@@ -277,8 +277,7 @@ set -uo pipefail
         #   - Relative project folder paths are normalized to absolute paths.
         #   - Uses ask() and ask_ok_redo_quit() for interactive input.
         #   - Confirmation includes a short auto-continue timeout.
-    __resolve_project_settings()
-    {
+    __resolve_project_settings(){
         local template_dir slug default_name default_folder default_template base default_projectname
 
         default_projectname="Project"j
@@ -351,8 +350,7 @@ set -uo pipefail
         #       ${TD_COMMON_LIB}/../templates
         #
         #   - Missing template directories are reported but do not cause failure.
-    __create_repository()
-    {
+    __create_repository(){
         local d template_dir
         local -a DIRS
         if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
@@ -448,7 +446,7 @@ set -uo pipefail
             printf '      "**/.git": true,\n'
             printf '      "**/.DS_Store": true\n'
             printf '    },\n'
-            printf '    "terminal.integrated.cwd": "\\${workspaceFolder}"\n'
+            printf '    "terminal.integrated.cwd": "${workspaceFolder}"\n'
             printf '  }\n'
             printf '}\n'
         } > "$workspace_file"
