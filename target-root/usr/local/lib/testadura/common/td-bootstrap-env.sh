@@ -113,8 +113,23 @@ set -uo pipefail
         ui-dlg.sh
     )
 
+    TD_FRAMEWORK_DIRS=(
+    )
+# --- Helpers ---------------------------------------------------------------------
+    __build_framework_dirs(){
+        TD_FRAMEWORK_DIRS=(
+            "s|$TD_COMMON_LIB"
+            "s|$TD_SYSCFG_DIR"
+            "u|$TD_USRCFG_DIR"
+            "u|$TD_STATE_DIR"
+            "s|$TD_STYLE_DIR"
+            "s|$TD_DOCS_DIR"
+            "s|$(dirname "$TD_LOG_PATH")"
+            "u|$(dirname "$TD_ALTLOG_PATH")"
+        )
+    }
 # --- Public API ------------------------------------------------------------------
-    # td_defaults_apply
+    # td_apply_defaults
         # Purpose:
         #   Apply default values for bootstrap globals if currently unset.
         #
@@ -133,9 +148,9 @@ set -uo pipefail
         #
         # Returns:
         #   0 always.
-    td_defaults_apply() {
+    td_apply_defaults() {
         : "${TD_FRAMEWORK_ROOT:=/}"
-        : "${TD_APPLICATION_ROOT:=/}"
+        : "${TD_APPLICATION_ROOT:=$TD_FRAMEWORK_ROOT}"
 
         : "${TD_LOG_MAX_BYTES:=$((25 * 1024 * 1024))}"
         : "${TD_LOG_KEEP:=20}"
@@ -241,12 +256,13 @@ set -uo pipefail
         #   - Pure path derivation: no filesystem validation is performed here.
         #   - TD_DOCS_DIR may not exist in dev/minimal installs.
     td_rebase_directories() {
+        saydebug "Rebasing directories"
         TD_COMMON_LIB="$TD_FRAMEWORK_ROOT/usr/local/lib/testadura/common"
         TD_SYSCFG_DIR="$TD_APPLICATION_ROOT/etc/testadura"
         TD_USRCFG_DIR="$TD_USER_HOME/.config/testadura"
         TD_STATE_DIR="$TD_USER_HOME/.state/testadura"
         TD_STYLE_DIR="$TD_FRAMEWORK_ROOT/usr/local/lib/testadura/styles"
-        TD_DOCS_DIR="$TD_FRAMEWORK_ROOT/usr/local/share/solidgroundux"   # May be absent in dev/minimal installs
+        TD_DOCS_DIR="$TD_FRAMEWORK_ROOT/usr/local/share/doc/solidgroundux"   # May be absent in dev/minimal installs
 
         # logs (paths only)
         TD_LOG_PATH="$TD_FRAMEWORK_ROOT/var/log/testadura/solidgroundux.log"
@@ -258,6 +274,8 @@ set -uo pipefail
             TD_USRCFG_FILE="$TD_USRCFG_DIR/$TD_SCRIPT_NAME.cfg"
             TD_STATE_FILE="$TD_STATE_DIR/$TD_SCRIPT_NAME.state"
         fi
+
+        __build_framework_dirs
     }
 
     # td_rebase_framework_cfg_paths
@@ -276,78 +294,101 @@ set -uo pipefail
         TD_FRAMEWORK_USRCFG_FILE="$TD_USRCFG_DIR/$TD_FRAMEWORK_CFG_BASENAME"
     }
 
-    # td_load_bootstrap_cfg
+    ## td_ensure_dirs
         # Purpose:
-        #   Locate, optionally create, and source the bootstrap configuration file.
+        #   Ensure that framework directories exist and have appropriate ownership.
+        #
+        # Arguments:
+        #   One or more directory specifications in the form:
+        #
+        #       "s|/path/to/system/dir"
+        #       "u|/path/to/user/dir"
+        #
+        # Specification fields:
+        #   kind | path
+        #
+        #   kind:
+        #     s  system directory
+        #        - Directory is created if missing.
+        #        - Ownership is left unchanged.
+        #
+        #     u  user directory
+        #        - Directory is created if missing.
+        #        - If running under sudo, ownership is assigned to the invoking
+        #          user (SUDO_USER) instead of root.
+        #        - Ensures the user retains usable permissions on the directory
+        #          (read, write, and traverse).
         #
         # Behavior:
-        #   - Detects dev-tree execution under a "target-root" directory.
-        #   - Prefers bootstrap cfg at:
-        #       <target_root>/usr/local/lib/testadura/solidgroundux.cfg
-        #   - If missing in dev-tree mode:
-        #       - Creates a minimal cfg when running as root (EUID==0).
-        #       - Fails with rc=126 when non-root (cannot create).
-        #   - Falls back to installed default:
-        #       /usr/local/lib/testadura/solidgroundux.cfg
-        #   - Sources the resolved cfg file.
+        #   - Uses mkdir -p so parent directories are created automatically.
+        #   - Ignores empty or malformed directory specifications.
+        #   - Existing directories are preserved; only minimal ownership or
+        #     permission adjustments may be applied for user directories.
         #
-        # Side effects:
-        #   - May create the cfg file and its parent directory in dev-tree mode (root only).
-        #   - Sources the cfg file (may set TD_FRAMEWORK_ROOT / TD_APPLICATION_ROOT).
+        # Inputs (globals):
+        #   SUDO_USER
+        #   EUID
         #
         # Returns:
-        #   0 on success.
-        #   126 if cfg cannot be read (or cannot be created when required).
-        #   127 if directory creation fails (dev-tree root create path).
+        #   0   all directories ensured successfully
+        #   1   one or more directories could not be created
         #
         # Notes:
-        #   - Uses BASH_SOURCE[1] to locate the caller path (td-bootstrap.sh).
-    td_load_bootstrap_cfg() {
-        local self_path
-        local target_root="/"
-        local cfg
+        #   - System directories should normally reside under the framework root
+        #     (e.g. /usr/local/lib/testadura, /etc/testadura, /var/log/testadura).
+        #
+        #   - User directories typically reside under:
+        #
+        #         $TD_USER_HOME/.config
+        #         $TD_USER_HOME/.state
+        #         $TD_USER_HOME/.log
+        #
+        #   - Ownership correction prevents sudo-created directories in a user's
+        #     home from becoming root-owned and unusable by the user.
+        #
+        # Example:
+        #
+        #   td_ensure_dirs \
+        #       "s|$TD_COMMON_LIB" \
+        #       "s|$TD_SYSCFG_DIR" \
+        #       "u|$TD_USRCFG_DIR" \
+    td_ensure_dirs() {
+        local spec
+        local kind
+        local dir
+        local owner=""
 
-        # BASH_SOURCE[1] is the caller (typically td-bootstrap.sh), not this library.
-        self_path="$(readlink -f "${BASH_SOURCE[1]}")"
-
-        # Dev-tree detection (target-root) -------------------------------
-        if [[ "$self_path" == */target-root/* ]]; then
-            target_root="${self_path%%/target-root/*}/target-root"
-        elif [[ "$self_path" == */target-root ]]; then
-            target_root="$self_path"
+        if [[ $EUID -eq 0 && -n "${SUDO_USER:-}" && "$SUDO_USER" != "root" ]]; then
+            owner="$SUDO_USER"
         fi
-        sayinfo "$target_root $self_path"
-        if [[ -n "${target_root:-}" ]]; then
-            cfg="$target_root/usr/local/lib/testadura/solidgroundux.cfg"
-            sayinfo "$cfg"
-            if [[ ! -r "$cfg" ]]; then
-                sayinfo "doesn't exists $cfg, should create one $EUID" 
-                if [[ $EUID -eq 0 ]]; then
-                    sayinfo "creating one $EUID"
-                    mkdir -p "$(dirname "$cfg")" || return 127
-                    printf '%s\n' \
-                        "# SolidgroundUX bootstrap configuration" \
-                        "# Auto-created for dev target-root" \
-                        "TD_FRAMEWORK_ROOT=/" \
-                        "TD_APPLICATION_ROOT=$target_root" \
-                        >"$cfg"
-                else
-                    printf "ERR: Missing bootstrap cfg: %s\n" "$cfg" >&2
-                    return 126
-                fi
+        
+        if [[ -n "$owner" ]]; then
+            sayinfo "Creating directories for user-owned paths as $owner"
+        else
+            sayinfo "Creating framework directories"
+        fi
+        
+        for spec in "$@"; do
+            IFS='|' read -r kind dir <<< "$spec"
+            [[ -z "$dir" ]] && continue
+
+            sayinfo "Trying $dir"
+            if [[ ! -d "$dir" ]]; then
+                mkdir -p -- "$dir" || {
+                    sayfail "Cannot create directory: $dir"
+                    return 1
+                }
             fi
-        else
-            # Installed system default
-            cfg="/usr/local/lib/testadura/solidgroundux.cfg"
-        fi
 
-        if [[ -r "$cfg" ]]; then
-            # shellcheck source=/dev/null
-            source "$cfg"
-        else
-            printf "ERR: Cannot read bootstrap cfg: %s\n" "$cfg" >&2
-            return 126
-        fi
+            if [[ "$kind" == "u" ]]; then
+                if [[ -n "$owner" ]]; then
+                    sayinfo "Set owner"
+                    chown "$owner:$owner" "$dir" 2>/dev/null || true
+                fi
+                sayinfo "Set user rights"
+
+                chmod u+rwx "$dir" 2>/dev/null || true
+            fi
+        done
     }
-
 

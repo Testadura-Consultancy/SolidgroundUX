@@ -194,7 +194,7 @@ set -uo pipefail
 
 # --- Public API ------------------------------------------------------------------
  # -- Public helpers --------------------------------------------------------------
-    # td_strip_ansi
+  # td_strip_ansi
         # Purpose:
         #   Strip ANSI CSI escape sequences (sufficient for SGR styling) from a string.
         #
@@ -1219,8 +1219,7 @@ set -uo pipefail
         #
         # Notes:
         #   - Intended for palette/style development and sanity checks.
-    td_color_samples()
-    {
+    td_color_samples(){
         printf '\n%s\n\n' "---- Available foreground colors & effects in SolidgroundUX ----"
 
         td_sample_row	BLUE	BRIGHT_BLUE	    DARK_BLUE	    BG_BLUE	    BG_DARK_BLUE

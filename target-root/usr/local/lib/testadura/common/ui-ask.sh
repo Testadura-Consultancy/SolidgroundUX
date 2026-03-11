@@ -148,40 +148,46 @@ set -uo pipefail
         #   Shared helper for ask_* wrappers:
         #     - non-interactive default
         #     - optional timed dialog via td_dlg_autocontinue
-        #     - normalize dialog outcome into a small set of action tokens
+        #     - normalize timed dialog outcome into a small generic action set
         #
         # Usage:
-        #   action="$(td__ask_action DEFAULT_ACTION ENTER_ACTION PROMPT SECONDS CHOICES)"
+        #   action="$(td__ask_action DEFAULT_ACTION ENTER_ACTION PROMPT SECONDS DLG_KEYS)"
         #
         # Arguments:
-        #   $1  DEFAULT_ACTION  Token used for non-interactive and timeout (e.g. YES, NO, OK).
-        #   $2  ENTER_ACTION    Token used when Enter is accepted by the dialog (usually same as default).
-        #   $3  PROMPT          Prompt text including suffix (e.g. "Proceed? [Y/n]").
+        #   $1  DEFAULT_ACTION  Token used for non-interactive and timeout
+        #                       (e.g. YES, NO, OK).
+        #   $2  ENTER_ACTION    Token used when Enter is accepted by the timed dialog
+        #                       (usually the same as DEFAULT_ACTION).
+        #   $3  PROMPT          Prompt text including suffix
+        #                       (e.g. "Proceed? [Y/n]").
         #   $4  SECONDS         Countdown seconds; 0 disables timed dialog.
-        #   $5  CHOICES         td_dlg_autocontinue CHOICES string (must include T if you want TYPE fallback).
+        #   $5  DLG_KEYS        td_dlg_autocontinue key map for the timed phase only.
         #
         # Output:
-        #   Prints one token: DEFAULT_ACTION/ENTER_ACTION/REDO/CANCEL/QUIT/TYPE
+        #   Prints one token:
+        #       DEFAULT_ACTION / ENTER_ACTION / REDO / CANCEL / QUIT / TYPE
         #
         # Notes:
+        #   - This helper implements only the reduced timed-dialog action model.
+        #   - Wrapper-specific typed semantics (such as Y/N, OK/Cancel, etc.)
+        #     are applied only after TYPE fallback.
         #   - Expects td_dlg_autocontinue to return:
-        #       0=continue, 1=timeout, 2=cancel, 3=redo, 4=quit, 5=typed-fallback (T)
+        #       0=continue, 1=timeout, 2=cancel, 3=redo, 4=quit, 5=typed-fallback
     td__ask_action() {
         local default_action="${1:?}"
         local enter_action="${2:?}"
         local prompt="${3:?}"
         local seconds="${4:-0}"
-        local choices="${5:-}"
+        local dlg_keys="${5:-}"
 
-        # Non-interactive → default answer
-        td_has_tty ||
-        {
+        # Non-interactive: never block; return the wrapper default.
+        td_has_tty || {
             printf '%s' "$default_action"
             return 0
         }
 
         if (( seconds > 0 )); then
-            td_dlg_autocontinue "$seconds" "$prompt" "$choices"
+            td_dlg_autocontinue "$seconds" "$prompt" "$dlg_keys"
             local rc=$?
 
             case "$rc" in
@@ -198,6 +204,7 @@ set -uo pipefail
 
         printf '%s' "TYPE"
     }
+    
 # --- ask -------------------------------------------------------------------------
     # ask
         # Purpose:
@@ -366,6 +373,7 @@ set -uo pipefail
             YES)    return 0 ;;
             CANCEL|QUIT) return 1 ;;
             TYPE) ;;
+            *) return 1 ;;
         esac
 
         ask --label "$prompt [Y/n]" --default "Y" --var yn_response

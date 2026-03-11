@@ -197,7 +197,7 @@ set -uo pipefail
       #   Does not return on failure (exits rc=1).
   td_need_writable(){ [[ -w "$1" ]] || { _sh_err "Not writable: $1"; exit 1; }; }
 
-  # -- Non lethal requirement checks (return 1 on failure, do not exit) ------------
+ # -- Non lethal requirement checks (return 1 on failure, do not exit) ------------
   # td_need_tty
       # Purpose:
       #   Require stdout to be a TTY; return non-zero if not.

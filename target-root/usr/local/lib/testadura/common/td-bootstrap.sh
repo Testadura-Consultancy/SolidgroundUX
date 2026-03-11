@@ -73,38 +73,7 @@ set -uo pipefail
     __td_lib_guard
     unset -f __td_lib_guard
 
-# --- Minimal fallback UI (will be overridden by ui.sh when sourced) --------------
-    #   Bootstrap must be able to report failures before core libraries (ui/say/log)
-    #   are available. These definitions are intentionally minimal and will be
-    #   overridden once ui.sh (or equivalent) is sourced.
 
-    # Minimal colors
-    MSG_CLR_INFO=$'\e[38;5;250m'
-    MSG_CLR_STRT=$'\e[38;5;82m'
-    MSG_CLR_OK=$'\e[38;5;82m'
-    MSG_CLR_WARN=$'\e[1;38;5;208m'
-    MSG_CLR_FAIL=$'\e[38;5;196m'
-    MSG_CLR_CNCL=$'\e[0;33m'
-    MSG_CLR_END=$'\e[38;5;82m'
-    MSG_CLR_EMPTY=$'\e[2;38;5;250m'
-    MSG_CLR_DEBUG=$'\e[1;35m'
-
-    TUI_COMMIT=$'\e[2;37m'
-    RESET=$'\e[0m'
-
-    # Minimal say functions
-        saystart()   { printf '%sSTART%s\t%s\n' "${MSG_CLR_STRT-}" "${RESET-}" "$*" >&2; }
-        sayinfo()    { printf '%sINFO%s \t%s\n' "${MSG_CLR_INFO-}" "${RESET-}" "$*" >&2; }
-        sayok()      { printf '%sOK%s   \t%s\n' "${MSG_CLR_OK-}"   "${RESET-}" "$*" >&2; }
-        saywarning() { printf '%sWARN%s \t%s\n' "${MSG_CLR_WARN-}" "${RESET-}" "$*" >&2; }
-        sayfail()    { printf '%sFAIL%s \t%s\n' "${MSG_CLR_FAIL-}" "${RESET-}" "$*" >&2; }
-        saydebug() {
-            if (( ${FLAG_DEBUG:-0} )); then
-                printf '%sDEBUG%s \t%s\n' "${MSG_CLR_DEBUG-}" "${RESET-}" "$*" >&2;
-            fi
-        }
-        saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
-        sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
 
     # __boot_fail
         # Emit a bootstrap failure message with caller context and return a code.
@@ -199,6 +168,8 @@ set -uo pipefail
             esac
         done
     }
+
+    local 
     # __init_bootstrap
         # Purpose:
         #   Initialize the SolidgroundUX bootstrap environment (env, defaults, roots, derived paths).
@@ -222,15 +193,20 @@ set -uo pipefail
         # Notes:
         #   May run multiple times across process boundaries when root re-exec occurs.
     __init_bootstrap() {
+        sayinfo "Sourcing bootstrap environment"
         TD_BOOTSTRAP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
         # shellcheck source=/dev/null
         source "$TD_BOOTSTRAP_DIR/td-bootstrap-env.sh"
 
-        td_defaults_apply
+        td_apply_defaults
 
-        td_load_bootstrap_cfg
+        sayinfo "Rebasing directories"
         td_rebase_directories
-        td_rebase_framework_cfg_paths   
+        td_rebase_framework_cfg_paths  
+
+        sayinfo "Making sure directories exist"
+        td_ensure_dirs "${TD_FRAMEWORK_DIRS[@]}"
+
     }
 
     # __source_corelibs
@@ -590,6 +566,7 @@ set -uo pipefail
         # shellcheck source=/dev/null
         source "$style_path"
     }
+    
  # --- Main ------------------------------------------------------------------------
     # td_bootstrap
         # Purpose:
@@ -660,20 +637,19 @@ set -uo pipefail
             fi
 
         # Basic initialization - Defaults
-            saydebug "Initializing bootstrap..."
+            sayinfo "Initializing bootstrap..."
             __init_bootstrap || { local rc=$?; __boot_fail "Failed to initialize bootstrapper" "$rc"; return "$rc"; }
 
             sayinfo "Parsing bootstrap arguments..."
             __parse_bootstrap_args "$@" || { local rc=$?; __boot_fail "Failed parsing bootstrap arguments" "$rc"; return "$rc"; }
 
-            saydebug "Loading core libraries"
             __source_corelibs || { local rc=$?; __boot_fail "Failed to load core libraries" "$rc"; return "$rc"; }
 
-            saydebug "Loading UI style"
+            sayinfo "Loading UI style"
             td_load_ui_style || { local rc=$?; __boot_fail "Failed to load UI style" "$rc"; return "$rc"; }
 
         # Load Framework globals
-            saydebug "Loading framework globals"
+            sayinfo "Loading framework globals"
             td_cfg_domain_apply "Framework" "$TD_FRAMEWORK_SYSCFG_FILE" "$TD_FRAMEWORK_USRCFG_FILE" "TD_FRAMEWORK_GLOBALS" "framework" \
                 || { local rc=$?; __boot_fail "Framework cfg load failed" "$rc"; return "$rc"; }
 

@@ -75,21 +75,20 @@ set -uo pipefail
     # - Accepts only names: [A-Za-z_][A-Za-z0-9_]*
     # - Loads via printf -v assignment (value preserved as-is)
 
-    
- #__td_is_ident
-    # Purpose:
-        #   Test whether a string is a valid Bash variable identifier.
-        #
-        # Arguments:
-        #   $1  Candidate identifier.
-        #
-        # Returns:
-        #   0 if valid ([A-Za-z_][A-Za-z0-9_]*), 1 otherwise.
-    __td_is_ident() {
-        [[ "${1:-}" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]
-    }
+    #__td_is_ident
+        # Purpose:
+            #   Test whether a string is a valid Bash variable identifier.
+            #
+            # Arguments:
+            #   $1  Candidate identifier.
+            #
+            # Returns:
+            #   0 if valid ([A-Za-z_][A-Za-z0-9_]*), 1 otherwise.
+        __td_is_ident() {
+            [[ "${1:-}" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]
+        }
 
- # __td_kv_load_file
+    # __td_kv_load_file
     # Purpose:
     #   Load KEY=VALUE pairs from a file into shell variables.
     #
@@ -607,7 +606,7 @@ set -uo pipefail
             if [[ "$mode" == "script" ]]; then
                 if (( is_root )); then
                     if [[ -n "$syscfg" && ! -f "$syscfg" ]]; then
-                        ensure_writable_dir "$(dirname -- "$syscfg")" || return 1
+                        td_ensure_writable_dir "$(dirname -- "$syscfg")" || return 1
                         td_cfg_write_skeleton_filtered "$syscfg" "system" "$spec_array_name" || return 1
                         printf '%s\n' "INFO: [$domain] created system cfg: $syscfg"
                     fi
@@ -619,7 +618,7 @@ set -uo pipefail
         # user cfg ---
         if td_cfg_has_audience "$spec_array_name" "user"; then
             if [[ -n "$usrcfg" && ! -f "$usrcfg" ]]; then
-                ensure_writable_dir "$(dirname -- "$usrcfg")" || return 1
+                td_ensure_writable_dir "$(dirname -- "$usrcfg")" || return 1
                 td_cfg_write_skeleton_filtered "$usrcfg" "user" "$spec_array_name" || return 1
                 printf '%s\n' "INFO: [$domain] created user cfg: $usrcfg"
             fi

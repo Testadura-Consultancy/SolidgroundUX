@@ -10,7 +10,7 @@
 # Design:
 #   - Executable scripts are explicit: set paths, import libs, then run.
 #   - Libraries never auto-run (templating, not inheritance).
-#   - Args parsing and config loading are opt-in by defining ARGS_SPEC and/or CFG_*.
+#   - Args parsing and config loading are opt-in via TD_ARGS_SPEC and TD_SCRIPT_GLOBALS.
 # ------------------------------------------------------------------------------
 # How to use this template (Edit Map)
 # 1) Set identity fields in "Script metadata (identity)" (DESC, VERSION, etc.)
@@ -26,57 +26,223 @@
 #   - Do NOT modify the bootstrap loader unless you are developing the framework.
 # ==================================================================================
 set -uo pipefail
-# --- Load bootstrapper ------------------------------------------------------------
-    _bootstrap_default="/usr/local/lib/testadura/common/td-bootstrap.sh"
 
-    # Optional non-interactive overrides (useful for CI/dev installs)
-    # - TD_BOOTSTRAP: full path to td-bootstrap.sh
-    # - TD_FRAMEWORK_PREFIX: sysroot/prefix that contains usr/local/lib/testadura/common/td-bootstrap.sh
+# --- Helpers ----------------------------------------------------------------------
+    # __framework_locator
+        # Resolve, create, and load the SolidGroundUX bootstrap configuration.
+        #
+        # Purpose:
+        #   Establish the two root variables that define the framework layout:
+        #
+        #       TD_FRAMEWORK_ROOT
+        #       TD_APPLICATION_ROOT
+        #
+        #   Once these are known, all other framework paths can be derived from
+        #   them by td-bootstrap.sh and the common libraries.
+        #
+        # Search order:
+        #   1. User configuration
+        #        ~/.config/testadura/solidgroundux.cfg
+        #
+        #   2. System configuration
+        #        /etc/testadura/solidgroundux.cfg
+        #
+        #   User configuration overrides system configuration.
+        #
+        # Sudo behavior:
+        #   When running under sudo, the lookup still prefers the invoking user's
+        #   home configuration (derived from SUDO_USER) rather than /root, so a
+        #   developer's user override remains active under elevation.
+        #
+        # Creation behavior:
+        #   If no configuration file exists:
+        #
+        #     - non-root user → create in ~/.config/testadura
+        #     - root user     → create in /etc/testadura
+        #
+        #   When created interactively, prompt for:
+        #
+        #       TD_FRAMEWORK_ROOT     [default: /]
+        #       TD_APPLICATION_ROOT   [default: TD_FRAMEWORK_ROOT]
+        #
+        #   In non-interactive mode, defaults are used automatically.
+        #
+        # Result:
+        #   Sources the selected configuration file and ensures:
+        #
+        #       TD_FRAMEWORK_ROOT defaults to /
+        #       TD_APPLICATION_ROOT defaults to TD_FRAMEWORK_ROOT
+        #
+        # Returns:
+        #   0   success
+        #   126 configuration unreadable / invalid
+        #   127 configuration directory or file could not be created
+    __framework_locator (){
+        local cfg_home="$HOME"
 
-    if [[ -n "${TD_BOOTSTRAP:-}" ]]; then
-        BOOTSTRAP="$TD_BOOTSTRAP"
-    elif [[ -n "${TD_FRAMEWORK_PREFIX:-}" ]]; then
-        BOOTSTRAP="$TD_FRAMEWORK_PREFIX/usr/local/lib/testadura/common/td-bootstrap.sh"
-    else
-        BOOTSTRAP="$_bootstrap_default"
-    fi
-
-    if [[ -r "$BOOTSTRAP" ]]; then
-        # shellcheck disable=SC1091
-        source "$BOOTSTRAP"
-    else
-        # Only prompt if interactive
-        if [[ -t 0 ]]; then
-            printf "\nFramework not installed at: %s\n" "$BOOTSTRAP"
-            printf "Are you developing the framework or using a custom install path?\n\n"
-            printf "Enter one of:\n"
-            printf "  - prefix (contains usr/local/...), e.g. /home/me/dev/solidgroundux/target-root\n"
-            printf "  - common dir (the folder that contains td-bootstrap.sh), e.g. /home/me/dev/solidgroundux/target-root/usr/local/lib/testadura/common\n"
-            printf "  - full path to td-bootstrap.sh\n\n"
-
-            read -r -p "Path (empty to abort): " _root </dev/tty
-            [[ -n "$_root" ]] || exit 127
-
-            if [[ "$_root" == */td-bootstrap.sh ]]; then
-                BOOTSTRAP="$_root"
-            elif [[ -r "$_root/td-bootstrap.sh" ]]; then
-                BOOTSTRAP="$_root/td-bootstrap.sh"
-            else
-                BOOTSTRAP="$_root/usr/local/lib/testadura/common/td-bootstrap.sh"
-            fi
-
-            if [[ ! -r "$BOOTSTRAP" ]]; then
-                printf "FATAL: No td-bootstrap.sh found at: %s\n" "$BOOTSTRAP" >&2
-                exit 127
-            fi
-
-            # shellcheck disable=SC1091
-            source "$BOOTSTRAP"
-        else
-            printf "FATAL: Testadura framework not installed (missing: %s)\n" "$BOOTSTRAP" >&2
-            exit 127
+        if [[ $EUID -eq 0 && -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]]; then
+            cfg_home="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
         fi
-    fi
+
+        local cfg_user="$cfg_home/.config/testadura/solidgroundux.cfg"
+        local cfg_sys="/etc/testadura/solidgroundux.cfg"
+        local cfg=""
+        local fw_root="/"
+        local app_root="$fw_root"
+        local reply
+
+        # Determine existing configuration
+        if [[ -r "$cfg_user" ]]; then
+            cfg="$cfg_user"
+
+        elif [[ -r "$cfg_sys" ]]; then
+            cfg="$cfg_sys"
+
+        else
+            # Determine creation location
+            if [[ $EUID -eq 0 ]]; then
+                cfg="$cfg_sys"
+            else
+                cfg="$cfg_user"
+            fi
+
+            # Interactive prompts (first run only)
+            if [[ -t 0 && -t 1 ]]; then
+
+                sayinfo "SolidGroundUX bootstrap configuration"
+                sayinfo "No configuration file found."
+                sayinfo "Creating: $cfg"
+
+                printf "TD_FRAMEWORK_ROOT [/] : " > /dev/tty
+                read -r reply < /dev/tty
+                fw_root="${reply:-/}"
+
+                printf "TD_APPLICATION_ROOT [/] : " > /dev/tty
+                read -r reply < /dev/tty
+                app_root="${reply:-$fw_root}"
+            fi
+
+            # Validate paths (must be absolute)
+            case "$fw_root" in
+                /*) ;;
+                *) sayfail "ERR: TD_FRAMEWORK_ROOT must be an absolute path"; return 126 ;;
+            esac
+
+            case "$app_root" in
+                /*) ;;
+                *) sayfail "ERR: TD_APPLICATION_ROOT must be an absolute path"; return 126 ;;
+            esac
+
+            # Create configuration file
+            mkdir -p "$(dirname "$cfg")" || return 127
+
+            # write cfg file 
+            {
+                printf '%s\n' "# SolidGroundUX bootstrap configuration"
+                printf '%s\n' "# Auto-generated on first run"
+                printf '\n'
+                printf 'TD_FRAMEWORK_ROOT=%q\n' "$fw_root"
+                printf 'TD_APPLICATION_ROOT=%q\n' "$app_root"
+            } > "$cfg" || return 127
+
+            saydebug "Created bootstrap cfg: $cfg"
+        fi
+
+        # Load configuration
+        if [[ -r "$cfg" ]]; then
+            # shellcheck source=/dev/null
+            source "$cfg"
+
+            : "${TD_FRAMEWORK_ROOT:=/}"
+            : "${TD_APPLICATION_ROOT:=$TD_FRAMEWORK_ROOT}"
+        else
+            sayfail "Cannot read bootstrap cfg: $cfg"
+            return 126
+        fi
+
+        saydebug "Bootstrap cfg loaded: $cfg, TD_FRAMEWORK_ROOT=$TD_FRAMEWORK_ROOT, TD_APPLICATION_ROOT=$TD_APPLICATION_ROOT"
+
+    }
+
+    # __load_bootstrapper
+        # Resolve and source the framework bootstrap library.
+        #
+        # Purpose:
+        #   Load the canonical td-bootstrap.sh entry library after the framework
+        #   roots have been established by __framework_locator.
+        #
+        # Behavior:
+        #   1. Calls __framework_locator to load or create the bootstrap cfg.
+        #   2. Derives the bootstrap path from TD_FRAMEWORK_ROOT.
+        #   3. Verifies that td-bootstrap.sh is readable.
+        #   4. Sources td-bootstrap.sh into the current shell.
+        #
+        # Path rule:
+        #   If TD_FRAMEWORK_ROOT is "/":
+        #
+        #       /usr/local/lib/testadura/common/td-bootstrap.sh
+        #
+        #   Otherwise:
+        #
+        #       $TD_FRAMEWORK_ROOT/usr/local/lib/testadura/common/td-bootstrap.sh
+        #
+        # Notes:
+        #   - This function performs executable-level startup resolution.
+        #   - td-bootstrap.sh is expected to derive secondary paths from the
+        #     already-established root variables, not rediscover them.
+        #
+        # Returns:
+        #   0   success
+        #   126 bootstrap library unreadable
+    __load_bootstrapper(){
+        local bootstrap=""
+
+        __framework_locator || return $?
+
+        if [[ "$TD_FRAMEWORK_ROOT" == "/" ]]; then
+            bootstrap="/usr/local/lib/testadura/common/td-bootstrap.sh"
+        else
+            bootstrap="${TD_FRAMEWORK_ROOT%/}/usr/local/lib/testadura/common/td-bootstrap.sh"
+        fi
+
+        [[ -r "$bootstrap" ]] || {
+            printf "FATAL: Cannot read bootstrap: %s\n" "$bootstrap" >&2
+            return 126
+        }
+        
+        saydebug "Loading $bootstrap"
+            
+        # shellcheck source=/dev/null
+        source "$bootstrap"
+    }
+
+    # Minimal colors
+    MSG_CLR_INFO=$'\e[38;5;250m'
+    MSG_CLR_STRT=$'\e[38;5;82m'
+    MSG_CLR_OK=$'\e[38;5;82m'
+    MSG_CLR_WARN=$'\e[1;38;5;208m'
+    MSG_CLR_FAIL=$'\e[38;5;196m'
+    MSG_CLR_CNCL=$'\e[0;33m'
+    MSG_CLR_END=$'\e[38;5;82m'
+    MSG_CLR_EMPTY=$'\e[2;38;5;250m'
+    MSG_CLR_DEBUG=$'\e[1;35m'
+
+    TUI_COMMIT=$'\e[2;37m'
+    RESET=$'\e[0m'
+
+    # Minimal UI
+    saystart()   { printf '%sSTART%s\t%s\n' "${MSG_CLR_STRT-}" "${RESET-}" "$*" >&2; }
+    sayinfo()    { printf '%sINFO%s \t%s\n' "${MSG_CLR_INFO-}" "${RESET-}" "$*" >&2; }
+    sayok()      { printf '%sOK%s   \t%s\n' "${MSG_CLR_OK-}"   "${RESET-}" "$*" >&2; }
+    saywarning() { printf '%sWARN%s \t%s\n' "${MSG_CLR_WARN-}" "${RESET-}" "$*" >&2; }
+    sayfail()    { printf '%sFAIL%s \t%s\n' "${MSG_CLR_FAIL-}" "${RESET-}" "$*" >&2; }
+    saydebug() {
+        if (( ${FLAG_DEBUG:-0} )); then
+            printf '%sDEBUG%s \t%s\n' "${MSG_CLR_DEBUG-}" "${RESET-}" "$*" >&2;
+        fi
+    }
+    saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
+    sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
 
 # --- Script metadata (identity) ---------------------------------------------------
     TD_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
@@ -92,7 +258,6 @@ set -uo pipefail
     : "${TD_SCRIPT_COPYRIGHT:=© 2025 Mark Fieten — Testadura Consultancy}"
     : "${TD_SCRIPT_LICENSE:=Testadura Non-Commercial License (TD-NC) v1.0}"
 
-    readonly BOOTSTRAP
 # --- Script metadata (framework integration) --------------------------------------
     # TD_USING
         # Libraries to source from TD_COMMON_LIB.
@@ -224,53 +389,52 @@ set -uo pipefail
 
 # --- Local script functions -------------------------------------------------------
 
- # --- Main ------------------------------------------------------------------------
+# --- Main ------------------------------------------------------------------------
     # main
-        #   Script entry point for preparing a release archive.
+        # Purpose:
+        #   Canonical script entry point.
         #
-        # Description:
-        #   Initializes the Testadura framework via td_bootstrap, handles builtin
-        #   framework arguments, then resolves parameters and builds the release.
-        #
-        # Execution flow:
-        #   1) td_bootstrap --state --needroot -- "$@"
-        #      - Initializes framework runtime, UI, logging, and argument parsing
-        #      - Loads persistent state (required for --auto reuse)
-        #      - Enforces root privileges (required for consistent staging/output paths)
-        #   2) td_builtinarg_handler
-        #      - Executes builtin flags (help/showargs/resetstate/etc.)
-        #      - Info-only builtins exit immediately
-        #   3) td_print_titlebar
-        #      - Prints standard script header UI
-        #   4) __get_parameters
-        #      - Resolve and confirm parameter set (or reuse in auto mode)
-        #   5) __create_tar
-        #      - Stage workspace and generate tarball + manifest + checksums
+        # Behavior:
+        #   - Resolves and loads the framework bootstrap library.
+        #   - Initializes framework runtime via td_bootstrap.
+        #   - Executes builtin framework arguments.
+        #   - Prints the standard title bar.
+        #   - Runs script-specific logic.
         #
         # Arguments:
-        #   $@  Script command-line arguments (framework + script-specific).
-        #
-        # Output:
-        #   Produces release artifacts under STAGING_ROOT.
+        #   $@  Framework and script-specific command-line arguments.
         #
         # Returns:
-        #   Exits with the status returned by the release creation steps.
-        #
-        # Notes:
-        #   This script requires --state to support reproducible "auto" runs and
-        #   parameter persistence between executions.
+        #   Exits with the status produced by bootstrap or script logic.
     main() {
         # -- Bootstrap
+            local rc=0
+
+            __load_bootstrapper || exit $?            
+
+            # Recognized switches:
+            #     --state      -> enable saving state variables 
+            #     --autostate  -> enable state support and auto-save TD_STATE_VARIABLES on exit
+            #     --needroot   -> restart script if not root
+            #     --cannotroot -> exit script if root
+            #     --log        -> enable file logging
+            #     --console    -> enable console logging
+            # Example:
+            #   td_bootstrap --state --needroot -- "$@"
             td_bootstrap -- "$@"
-            local rc=$?
+            rc=$?
+
+            saydebug "After bootstrap: $rc"
             (( rc != 0 )) && exit "$rc"
                         
-            # -- Handle builtin arguments
-                td_builtinarg_handler
+        # -- Handle builtin arguments
+            saydebug "Calling builtinarg handler"
+            td_builtinarg_handler
+            saydebug "Exited builtinarg handler"
 
-            # -- UI
-                td_update_runmode
-                td_print_titlebar
+        # -- UI
+            td_update_runmode
+            td_print_titlebar
 
         # -- Main script logic
 
