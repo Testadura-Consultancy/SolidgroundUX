@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# ===============================================================================
+# ==================================================================================
 # Testadura Consultancy — deploy-workspace.sh
-# -------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------
 # Purpose    : Deploy or remove a development workspace to/from a target root
 # Author     : Mark Fieten
 #
 # © 2025 Mark Fieten — Testadura Consultancy
 # Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
-# -------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------
 # Description:
 #   Deployment utility for synchronizing a development workspace into a target
 #   root filesystem.
@@ -40,9 +40,9 @@
 #   ./deploy-workspace.sh -s /home/user/dev/myworkspace -t /
 #   ./deploy-workspace.sh --undeploy -s /home/user/dev/myworkspace -t /
 #   ./deploy-workspace.sh   # interactive mode
-# ===============================================================================
+# ==================================================================================
 set -uo pipefail
-# --- Helpers ----------------------------------------------------------------------
+# --- Bootstrap --------------------------------------------------------------------
     # __framework_locator
         # Resolve, create, and load the SolidGroundUX bootstrap configuration.
         #
@@ -437,7 +437,7 @@ set -uo pipefail
         "/var/lib/testadura|600|700|Application state"
     )
 
-# --- local script functions ---------------------------------------------------
+# --- local script functions -------------------------------------------------------
     # __perm_resolve
         # Purpose:
         #   Resolve the effective permission mode (octal string) for a given path,
@@ -752,7 +752,7 @@ set -uo pipefail
         done
     }
 
-# --- Main ------------------------------------------------------------------------
+# --- Main -------------------------------------------------------------------------
     # main
         # Purpose:
         #   Canonical script entry point.

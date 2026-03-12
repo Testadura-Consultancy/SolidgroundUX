@@ -350,7 +350,7 @@ set -uo pipefail
                 ((seconds--))
                 if (( seconds < 0 )); then
                     printf '\r\e[%dB\n' "$((lines-1))" >"$tty"
-                    printf '%s\n' "${TUI_TEXT}Auto-continued.${RESET}" >"$tty"
+                    saydebug '%s\n' "${TUI_TEXT}Auto-continued.${RESET}" >"$tty"
                     return 1
                 fi
             fi

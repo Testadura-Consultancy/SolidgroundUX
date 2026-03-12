@@ -13,7 +13,7 @@
 #   - Args parsing and config loading are opt-in by defining ARGS_SPEC and/or CFG_*.
 # ==================================================================================
 set -uo pipefail
-# --- Helpers ----------------------------------------------------------------------
+# --- Bootstrap --------------------------------------------------------------------
     # __framework_locator
         # Resolve, create, and load the SolidGroundUX bootstrap configuration.
         #

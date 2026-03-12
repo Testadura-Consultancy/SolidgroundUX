@@ -143,7 +143,7 @@ set -uo pipefail
         done
     }
 
-    # td__ask_action
+    # td_ask_action
         # Purpose:
         #   Shared helper for ask_* wrappers:
         #     - non-interactive default
@@ -151,7 +151,7 @@ set -uo pipefail
         #     - normalize timed dialog outcome into a small generic action set
         #
         # Usage:
-        #   action="$(td__ask_action DEFAULT_ACTION ENTER_ACTION PROMPT SECONDS DLG_KEYS)"
+        #   action="$( td_ask_action DEFAULT_ACTION ENTER_ACTION PROMPT SECONDS DLG_KEYS)"
         #
         # Arguments:
         #   $1  DEFAULT_ACTION  Token used for non-interactive and timeout
@@ -173,10 +173,10 @@ set -uo pipefail
         #     are applied only after TYPE fallback.
         #   - Expects td_dlg_autocontinue to return:
         #       0=continue, 1=timeout, 2=cancel, 3=redo, 4=quit, 5=typed-fallback
-    td__ask_action() {
+    td_ask_action() {
         local default_action="${1:?}"
         local enter_action="${2:?}"
-        local prompt="${3:?}"
+        local prompt="${3:-}"
         local seconds="${4:-0}"
         local dlg_keys="${5:-}"
 
@@ -367,7 +367,7 @@ set -uo pipefail
         local yn_response=""
         local action=""
 
-        action="$(td__ask_action "YES" "YES" "$prompt [Y/n]" "$seconds" "ECPQT")"
+        action="$( td_ask_action "YES" "YES" "$prompt [Y/n]" "$seconds" "ECPQT")"
 
         case "$action" in
             YES)    return 0 ;;
@@ -400,7 +400,7 @@ set -uo pipefail
         local ny_response=""
         local action=""
 
-        action="$(td__ask_action "NO" "NO" "$prompt [y/N]" "$seconds" "ECPQT")"
+        action="$( td_ask_action "NO" "NO" "$prompt [y/N]" "$seconds" "ECPQT")"
 
         case "$action" in
             NO)     return 1 ;;     # default/enter/timeout
@@ -432,7 +432,7 @@ set -uo pipefail
         local oc_response=""
         local action=""
 
-        action="$(td__ask_action "OK" "OK" "$prompt [OK/Cancel]" "$seconds" "ECPQT")"
+        action="$( td_ask_action "OK" "OK" "$prompt [OK/Cancel]" "$seconds" "ECPQT")"
 
         case "$action" in
             OK)     return 0 ;;
@@ -453,23 +453,54 @@ set -uo pipefail
         # Pause execution until Enter is pressed, optionally auto-continuing.
         #
         # Usage:
-        #   ask_continue ["Prompt"] [AUTO_SECONDS]
+        #   ask_continue
+        #   ask_continue AUTO_SECONDS
+        #   ask_continue "Prompt"
+        #   ask_continue "Prompt" AUTO_SECONDS
+        #   ask_continue "" AUTO_SECONDS
+        #
+        # Behavior:
+        #   - With one numeric argument, treat it as AUTO_SECONDS.
+        #   - With empty prompt, no prompt text is shown.
         #
         # Returns:
         #   0 always
     ask_continue() {
-        local prompt="${1:-Press Enter to continue...}"
-        local seconds="${2:-0}"
+        local prompt="Press Enter to continue..."
+        local seconds=0
         local action=""
 
-        action="$(td__ask_action "OK" "OK" "$prompt" "$seconds" "EPT")"
+        case $# in
+            0)
+                ;;
+            1)
+                if [[ "$1" =~ ^[0-9]+$ ]]; then
+                    prompt=" "
+                    seconds="$1"
+                else
+                    prompt="$1"
+                fi
+                ;;
+            *)
+                prompt="$1"
+                seconds="${2:-0}"
+                ;;
+        esac
+
+        action="$(td_ask_action "OK" "OK" "$prompt" "$seconds" "EPT")"
         if [[ "$action" != "TYPE" ]]; then
             return 0
         fi
 
         local tty_fd
         exec {tty_fd}</dev/tty || return 0
-        IFS= read -u "$tty_fd" -r -p "$prompt" _
+
+        if [[ -n "$prompt" ]]; then
+            IFS= read -u "$tty_fd" -r -p "$prompt" _
+        else
+            IFS= read -u "$tty_fd" -r _
+        fi
+
         exec {tty_fd}<&-
     }
 
@@ -519,8 +550,9 @@ set -uo pipefail
         local varname="choice"
         local -a _opts=()
 
-        local _choice
-        local _valid
+        local _choice=""
+        local _valid=0
+        local opt=""
 
         # --- Parse options --------------------------------------------------------
         while [[ $# -gt 0 ]]; do

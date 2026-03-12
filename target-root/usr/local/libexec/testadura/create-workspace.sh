@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# ===============================================================================
+# ===================================================================================
 # Testadura Consultancy — create-workspace.sh
-# -------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------
 # Purpose    : Create a new development workspace from templates
 # Author     : Mark Fieten
 #
 # © 2025 Mark Fieten — Testadura Consultancy
 # Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
-# -------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------
 # Description:
 #   Developer utility that scaffolds a new project workspace from a source
 #   template into a target directory.
@@ -27,9 +27,9 @@
 # Usage examples:
 #   ./create-workspace.sh --project MyProject --folder /path/to/project
 #   ./create-workspace.sh -p MyProject -f /path/to/project --dryrun
-# ===============================================================================
+# ==================================================================================
 set -uo pipefail
-# --- Helpers ----------------------------------------------------------------------
+# --- Bootstrap --------------------------------------------------------------------
     # __framework_locator
         # Resolve, create, and load the SolidGroundUX bootstrap configuration.
         #
@@ -246,7 +246,7 @@ set -uo pipefail
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
 
-# --- Script metadata ----------------------------------------------------------
+# --- Script metadata --------------------------------------------------------------
     TD_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
     TD_SCRIPT_DIR="$(cd -- "$(dirname -- "$TD_SCRIPT_FILE")" && pwd)"
     TD_SCRIPT_BASE="$(basename -- "$TD_SCRIPT_FILE")"
@@ -408,7 +408,7 @@ set -uo pipefail
     TD_STATE_SAVE=0
 
 
-# --- local script functions ---------------------------------------------------
+# --- local script functions -------------------------------------------------------
     # __resolve_project_settings
         #   Resolve project name and target folder for a new workspace.
         #
@@ -731,7 +731,7 @@ set -uo pipefail
         > "${PROJECT_FOLDER}/.gitignore"
     }
 
-# --- main -----------------------------------------------------------------------
+# --- main -------------------------------------------------------------------------
     # main
         # Purpose:
         #   Canonical script entry point.

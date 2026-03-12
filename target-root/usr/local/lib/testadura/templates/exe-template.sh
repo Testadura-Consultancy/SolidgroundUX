@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# ==================================================================================
+# =====================================================================================
 # Testadura Consultancy — Script Template
-# ----------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------
 # Purpose : Canonical executable template for Testadura scripts
 # Author  : Mark Fieten
 # © 2025 Mark Fieten — Testadura Consultancy
 # Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
-# ----------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------
 # Design:
 #   - Executable scripts are explicit: set paths, import libs, then run.
 #   - Libraries never auto-run (templating, not inheritance).
 #   - Args parsing and config loading are opt-in via TD_ARGS_SPEC and TD_SCRIPT_GLOBALS.
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------
 # How to use this template (Edit Map)
 # 1) Set identity fields in "Script metadata (identity)" (DESC, VERSION, etc.)
 # 2) Add required libraries to TD_USING (optional)
@@ -24,10 +24,10 @@
 #   - Never read prompts from stdin in executables. Use /dev/tty (or ask/td_dlg_*).
 #   - Never print UI to stdout if stdout may be piped; prefer say*/td_print_* which can route.
 #   - Do NOT modify the bootstrap loader unless you are developing the framework.
-# ==================================================================================
+# ===================================================================================
 set -uo pipefail
 
-# --- Helpers ----------------------------------------------------------------------
+# --- Bootstrap --------------------------------------------------------------------
     # __framework_locator
         # Resolve, create, and load the SolidGroundUX bootstrap configuration.
         #
@@ -389,7 +389,7 @@ set -uo pipefail
 
 # --- Local script functions -------------------------------------------------------
 
-# --- Main ------------------------------------------------------------------------
+# --- Main -------------------------------------------------------------------------
     # main
         # Purpose:
         #   Canonical script entry point.
