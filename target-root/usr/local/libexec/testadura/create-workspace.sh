@@ -271,10 +271,13 @@ set -uo pipefail
         #   - -h / --help is built in and does not need to be defined here.
         #   - Parsed values become available in the configured target variables.
     TD_ARGS_SPEC=(
+        "exe|e|flag|FLAG_EXE|Create executable template and folders|"
+        "lib|l|flag|FLAG_LIB|Create library template and folders|"
+        "mod|m|flag|FLAG_MOD|Create console module template and folders|"
+        "modfolder|M|value|MOD_FOLDER|Location of console module (optional)|"
         "project|p|value|PROJECT_NAME|Project name|"
         "folder|f|value|PROJECT_FOLDER|Set project folder|"
     )
-
     # TD_SCRIPT_EXAMPLES
         # Optional: examples for --help output.
         # Each entry is a string that will be printed verbatim.
@@ -375,14 +378,282 @@ set -uo pipefail
 
 
 # --- local script functions -------------------------------------------------------
+    # __normalize_project_flags
+        # Purpose:
+        #   Normalize project selection flags into a coherent default state.
+        #
+        # Behavior:
+        #   - If no project flags are given, defaults to executable and library.
+        #
+        # Inputs (globals):
+        #   FLAG_EXE
+        #   FLAG_LIB
+        #   FLAG_MOD
+        #
+        # Outputs (globals):
+        #   FLAG_EXE
+        #   FLAG_LIB
+        #   FLAG_MOD
+        #
+        # Returns:
+        #   0 on success
+    __normalize_project_flags() {
+        if (( ! ${FLAG_EXE:-0} )) && (( ! ${FLAG_LIB:-0} )) && (( ! ${FLAG_MOD:-0} )); then
+            FLAG_EXE=1
+            FLAG_LIB=1
+            FLAG_MOD=0
+        fi
+
+        return 0
+    }
+
+    # __copy_template_file
+        # Purpose:
+        #   Copy a single template file to a target location.
+        #
+        # Behavior:
+        #   - Verifies the source template exists.
+        #   - Creates the destination parent directory when needed.
+        #   - Honors dry-run mode by reporting the intended action only.
+        #
+        # Arguments:
+        #   $1  Source template file
+        #   $2  Destination file
+        #
+        # Returns:
+        #   0 on success
+        #   1 on failure
+    __copy_template_file() {
+        local src="$1"
+        local dst="$2"
+
+        [[ -f "$src" ]] || {
+            sayfail "Template file not found: $src"
+            return 1
+        }
+
+        if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
+            sayinfo "Would have copied template $src -> $dst"
+            return 0
+        fi
+
+        mkdir -p "$(dirname "$dst")" || return 1
+        cp "$src" "$dst" || return 1
+        sayinfo "Copied template $src -> $dst"
+    }
+
+    # __get_template_filenames
+        # Purpose:
+        #   Determine output filenames for selected template types.
+        #
+        # Arguments:
+        #   $1  Name reference for exe filename
+        #   $2  Name reference for lib filename
+        #   $3  Name reference for mod filename
+    __get_template_filenames() {
+        local -n exe_ref=$1
+        local -n lib_ref=$2
+        local -n mod_ref=$3
+        local project_slug=""
+
+        project_slug="${PROJECT_NAME// /-}"
+        project_slug="${project_slug,,}"
+
+        exe_ref="${project_slug}.sh"
+
+        if (( ${FLAG_EXE:-0} )) && (( ${FLAG_LIB:-0} )); then
+            lib_ref="${project_slug}-lib.sh"
+        else
+            lib_ref="${project_slug}.sh"
+        fi
+
+        mod_ref="mod-${project_slug}.sh"
+    }
+
+    # __copy_project_templates
+        # Purpose:
+        #   Copy the appropriate template file(s) for the selected project components.
+        #
+        # Behavior:
+        #   - Copies exe-template when FLAG_EXE=1
+        #   - Copies lib-template when FLAG_LIB=1
+        #   - Copies mod-template when FLAG_MOD=1
+        #   - Uses component-specific output filenames
+        #
+        # Inputs (globals):
+        #   PROJECT_NAME
+        #   PROJECT_FOLDER
+        #   FLAG_EXE
+        #   FLAG_LIB
+        #   FLAG_MOD
+        #   TD_COMMON_LIB
+        #
+        # Returns:
+        #   0 on success
+        #   1 on failure
+    __copy_project_templates() {
+        local template_dir=""
+        local exe_file=""
+        local lib_file=""
+        local mod_file=""
+        local project_slug=""
+
+        project_slug="${PROJECT_NAME// /-}"
+        project_slug="${project_slug,,}"
+
+        template_dir="${TD_COMMON_LIB}/../templates"
+
+        [[ -d "$template_dir" ]] || {
+            saywarning "Template directory $template_dir does not exist; skipping template copy."
+            return 0
+        }
+
+        __get_template_filenames exe_file lib_file mod_file
+
+        if (( ${FLAG_EXE:-0} )); then
+            __copy_template_file \
+                "${template_dir}/exe-template" \
+                "${PROJECT_FOLDER}/target-root/usr/local/libexec/${exe_file}" \
+                || return 1
+        fi
+
+        if (( ${FLAG_LIB:-0} )); then
+            __copy_template_file \
+                "${template_dir}/lib-template" \
+                "${PROJECT_FOLDER}/target-root/usr/local/lib/${lib_file}" \
+                || return 1
+        fi
+
+        if (( ${FLAG_MOD:-0} )); then
+            __copy_template_file \
+                "${template_dir}/mod-template" \
+                "${PROJECT_FOLDER}/target-root/usr/local/libexec/${project_slug}/${mod_file}" \
+                || return 1
+        fi
+    }
+
+    # __create_mod_appcfg
+        # Purpose:
+        #   Create a console-module application configuration file.
+        #
+        # Behavior:
+        #   - Does nothing when MOD_FOLDER is empty.
+        #   - Creates the MOD_FOLDER directory when needed.
+        #   - Writes a <project>.app.cfg file pointing to the generated module script.
+        #   - Honors dry-run mode by reporting the intended action without writing the file.
+        #
+        # Inputs (globals):
+        #   PROJECT_NAME
+        #   PROJECT_FOLDER
+        #   MOD_FOLDER
+        #   FLAG_DRYRUN
+        #
+        # Returns:
+        #   0 on success
+        #   Non-zero on failure
+    __create_mod_appcfg() {
+        local project_slug=""
+        local appcfg_file=""
+
+        [[ -n "${MOD_FOLDER:-}" ]] || return 0
+
+        project_slug="${PROJECT_NAME// /-}"
+        project_slug="${project_slug,,}"
+        appcfg_file="${MOD_FOLDER%/}/${project_slug}.app.cfg"
+
+        if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
+            sayinfo "Would have created module app config ${appcfg_file}"
+            return 0
+        fi
+
+        mkdir -p "$MOD_FOLDER" || return 1
+
+        {
+            printf '%s\n' "# ----------------------------------------------------------------------"
+            printf '%s\n' "# Console module app config"
+            printf '%s\n' "# Auto-generated by create-workspace"
+            printf '%s\n' "# ----------------------------------------------------------------------"
+            printf '\n'
+            printf 'APP_TITLE=%q\n' "$PROJECT_NAME"
+            printf 'MODULE_DIR=%q\n' "${PROJECT_FOLDER}/target-root/usr/local/libexec/${project_slug}"
+            printf 'MODULE_FILE=%q\n' "mod-${project_slug}.sh"
+        } > "$appcfg_file" || return 1
+
+        sayinfo "Created module app config ${appcfg_file}"
+    }
+
+    # __get_project_directories
+        # Purpose:
+        #   Build the directory list required for the selected project components.
+        #
+        # Behavior:
+        #   - Adds shared target-root folders when any component is selected
+        #   - Adds executable folders when FLAG_EXE=1
+        #   - Adds library folders when FLAG_LIB=1
+        #   - Adds module folders when FLAG_MOD=1
+        #
+        # Arguments:
+        #   $1  Name reference to output array
+        #
+        # Inputs (globals):
+        #   PROJECT_NAME
+        #   FLAG_EXE
+        #   FLAG_LIB
+        #   FLAG_MOD
+        #
+        # Returns:
+        #   0 on success
+    __get_project_directories() {
+        local -n out_ref=$1
+        local project_slug=""
+
+        project_slug="${PROJECT_NAME// /-}"
+        project_slug="${project_slug,,}"
+
+        out_ref=()
+
+        if (( ${FLAG_EXE:-0} )) || (( ${FLAG_LIB:-0} )) || (( ${FLAG_MOD:-0} )); then
+            out_ref+=(
+                "target-root"
+                "target-root/usr/local/share/doc/$PROJECT_NAME"
+                "target-root/var/state"
+            )
+        fi
+
+        if (( ${FLAG_EXE:-0} )); then
+            out_ref+=(
+                "target-root/etc/systemd/system"
+                "target-root/usr/local/bin"
+                "target-root/usr/local/sbin"
+                "target-root/usr/local/libexec"
+                "target-root/var/lib/testadura/releases"
+            )
+        fi
+
+        if (( ${FLAG_LIB:-0} )); then
+            out_ref+=(
+                "target-root/usr/local/lib"
+                "target-root/usr/local/lib/testadura/templates"
+            )
+        fi
+
+        if (( ${FLAG_MOD:-0} )); then
+            out_ref+=(
+                "target-root/usr/local/libexec/${project_slug}"
+            )
+        fi
+    }
+
     # __resolve_project_settings
         # Purpose:
         #   Resolve and confirm the project name and target folder for a new workspace.
         #
         # Behavior:
         #   - Prompts for the project name.
+        #   - Prompts whether to include executable, library, and console-module components.
+        #   - Prompts for the console module app folder when module support is enabled.
         #   - Derives a filesystem-safe slug from the project name.
-        #   - Uses the slug to build a default project folder when none is already set.
+        #   - Uses the selected components to determine a default project folder.
         #   - Prompts for the project folder.
         #   - Normalizes relative folder paths to absolute paths.
         #   - Displays a summary and asks the user to confirm, redo, or abort.
@@ -408,46 +679,122 @@ set -uo pipefail
         #   - Uses ask() and ask_ok_redo_quit() for interactive input.
         #   - Confirmation includes a short auto-continue timeout.
     __resolve_project_settings(){
-        local template_dir slug default_name default_folder default_template base default_projectname
+        local slug=""
+        local default_folder=""
+        local default_projectname="Project"
+        local lw=25
+        local mxw=60
 
-        default_projectname="Project"j
-           
-        # --- Non-interactive AUTO mode:
-        
-        # --- Interactive mode OR missing arguments:
-            while true; do
-             
-                #  Get user input
-                ask --label "Project name " --var PROJECT_NAME --default "$default_projectname"
-                slug="${PROJECT_NAME// /-}"
+        while true; do
+            td_print
+            td_print_sectionheader "Project name and location" --maxwidth "$mxw"
+            ask --label "Project name " --var PROJECT_NAME --default "$default_projectname" --labelwidth "$lw"
 
+            slug="${PROJECT_NAME// /-}"
+            slug="${slug,,}"
 
-                if [[ -n "${PROJECT_FOLDER:-}" ]]; then
-                    default_folder="$PROJECT_FOLDER"
+            local resp
+            local default
+
+            # Get Project folder
+            if [[ -n "${PROJECT_FOLDER:-}" ]]; then
+                default_folder="$PROJECT_FOLDER"
+            else
+                default_folder="$TD_USER_HOME/dev/${slug}"
+            fi
+            ask --label "Project folder " --var PROJECT_FOLDER --default "$default_folder" --labelwidth "$lw"
+            if [[ "$PROJECT_FOLDER" != /* ]]; then
+               PROJECT_FOLDER="$(pwd)/$PROJECT_FOLDER"
+            fi
+
+            td_print
+            td_print_sectionheader "Script templates to include" --maxwidth "$mxw"
+            lw=35
+            # Include exe script
+            if [[ "${FLAG_EXE:-0}" -eq 1 ]]; then
+                default="Y"
+            else
+                default="N"
+            fi
+            ask --label "Include executable script (Y/N)" --var resp --default "$default" --choices "Y,Yes,N,No" --labelwidth "$lw" 
+            resp="${resp^^}"
+            [[ "$resp" == "Y" || "$resp" == "YES" ]] && FLAG_EXE=1 || FLAG_EXE=0
+
+            # Include library script
+            if [[ "${FLAG_LIB:-0}" -eq 1 ]]; then
+                default="Y"
+            else
+                default="N"
+            fi
+            ask --label "Include library script (Y/N)" --var resp --default "$default" --choices "Y,Yes,N,No" --labelwidth "$lw"
+            resp="${resp^^}"
+            [[ "$resp" == "Y" || "$resp" == "YES" ]] && FLAG_LIB=1 || FLAG_LIB=0
+            
+            # Include console module
+            if [[ "${FLAG_MOD:-0}" -eq 1 ]]; then
+                default="Y"
+            else
+                default="N"
+            fi
+            
+            ask --label "Include console module (Y/N)" --var resp --default "$default" --choices "Y,Yes,N,No" --labelwidth "$lw"
+            resp="${resp^^}"
+            [[ "$resp" == "Y" || "$resp" == "YES" ]] && FLAG_MOD=1 || FLAG_MOD=0
+            saydebug "${slug}"
+            if (( ${FLAG_MOD:-0} )); then
+                lw=25
+                if [[ -n "${MOD_FOLDER:-}" ]]; then
+                    ask --label "Console module app folder " --var MOD_FOLDER --default "$MOD_FOLDER" --labelwidth "$lw"
                 else
-                    default_folder="$TD_USER_HOME/dev/${slug}"
+                    ask --label "Console module app folder " --var MOD_FOLDER --default "$PROJECT_FOLDER/target-root/usr/local/libexec/${slug}" --labelwidth "$lw"
                 fi
 
-                ask --label "Project folder " --var PROJECT_FOLDER --default "$default_folder"
-
-                # Normalize folder to absolute path
-                if [[ "$PROJECT_FOLDER" != /* ]]; then
-                   PROJECT_FOLDER="$(pwd)/$PROJECT_FOLDER"
+                if [[ "$MOD_FOLDER" != /* ]]; then
+                    MOD_FOLDER="$(pwd)/$MOD_FOLDER"
                 fi
+            else
+                MOD_FOLDER=""
+            fi
 
-                sayinfo "Project name   : $PROJECT_NAME"
-                sayinfo "Project folder : $PROJECT_FOLDER"
 
-                ask_ok_redo_quit "Continue with these settings?" 15
-                case $? in
-                    0) break ;;   # OK
-                    1) PROJECT_NAME=""; PROJECT_FOLDER=""; continue ;;  # REDO
-                    2) saycancel "Aborting as per user request."; return 1 ;;
-                    *) sayfail "Aborting (unexpected response)."; return 1 ;;
-                esac
-            done
-        # -- Summary
+            if (( ! FLAG_EXE )) && (( ! FLAG_LIB )) && (( ! FLAG_MOD )); then
+                saywarning "Nothing selected; defaulting to executable and library."
+                FLAG_EXE=1
+                FLAG_LIB=1
+                FLAG_MOD=0
+            fi
 
+            td_print 
+            td_print_sectionheader "Summary" --maxwidth "$mxw"
+
+            local exe_text="no"
+            local lib_text="no"
+            local mod_text="no"
+
+            (( ${FLAG_EXE:-0} )) && exe_text="yes"
+            (( ${FLAG_LIB:-0} )) && lib_text="yes"
+            (( ${FLAG_MOD:-0} )) && mod_text="yes"
+
+            td_print_labeledvalue --label "Project name"   --value "$PROJECT_NAME"
+            td_print_labeledvalue --label "Project folder" --value "$PROJECT_FOLDER"
+            td_print_labeledvalue --label "Executable"     --value "$exe_text"
+            td_print_labeledvalue --label "Library"        --value "$lib_text"
+            td_print_labeledvalue --label "Console module" --value "$mod_text"
+            if (( ${FLAG_MOD:-0} )); then
+                 td_print_labeledvalue --label "Module app dir" --value "${MOD_FOLDER:-<none>}"
+            fi
+
+            td_print 
+            td_print_sectionheader --maxwidth "$mxw"
+
+            ask_ok_redo_quit "Continue with these settings?" 15
+            case $? in
+                0) break ;;
+                1) PROJECT_NAME=""; PROJECT_FOLDER=""; continue ;;
+                2) saycancel "Aborting as per user request."; return 1 ;;
+                *) sayfail "Aborting (unexpected response)."; return 1 ;;
+            esac
+        done
     }
     
     # __create_repository
@@ -456,81 +803,68 @@ set -uo pipefail
         #
         # Behavior:
         #   - Creates the project root folder when needed.
-        #   - Creates the standard target-root directory layout under PROJECT_FOLDER.
-        #   - Copies framework template files into the repository template location.
+        #   - Builds the directory structure based on selected project components.
+        #   - Ensures the module directory exists when FLAG_MOD=1.
+        #   - Copies only the applicable template file(s).
         #   - Honors dry-run mode by reporting intended actions without modifying the filesystem.
         #
         # Inputs (globals):
         #   PROJECT_FOLDER
         #   PROJECT_NAME
+        #   FLAG_EXE
+        #   FLAG_LIB
+        #   FLAG_MOD
         #   TD_COMMON_LIB
         #   FLAG_DRYRUN
-        #
-        # Side effects:
-        #   - Creates directories under PROJECT_FOLDER.
-        #   - Copies template files into the new repository.
         #
         # Returns:
         #   0 on success
         #   Non-zero if required filesystem operations fail
-        #
-        # Usage:
-        #   __create_repository
-        #
-        # Examples:
-        #   __create_repository || return 1
-        #
-        # Notes:
-        #   - Template files are copied from:
-        #       ${TD_COMMON_LIB}/../templates
-        #   - Missing template directories are reported but do not currently cause failure.
     __create_repository(){
-        local d template_dir
-        local -a DIRS
+        local d=""
+        local -a dirs=()
+
         if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
             sayinfo "Would have created folder ${PROJECT_FOLDER}"
         else
             saydebug "Creating folder ${PROJECT_FOLDER}"
-            mkdir -p "$PROJECT_FOLDER"
+            mkdir -p "$PROJECT_FOLDER" || return 1
         fi
-        
-        DIRS=(
-        "target-root"
-        "target-root/etc/systemd/system"
-        "target-root/usr/local/bin"
-        "target-root/usr/local/lib"
-        "target-root/usr/local/sbin"
-        "target-root/usr/local/libexec"
-        "target-root/usr/local/lib/testadura/templates"
-        "target-root/usr/local/share/doc/$PROJECT_NAME/"
-        "target-root/var/lib/testadura/releases"
-        "target-root/var/state"
-        )
-        
 
-        for d in "${DIRS[@]}"; do
+        if (( ${FLAG_MOD:-0} )); then
+            local project_slug=""
+            local mod_dir=""
+
+            project_slug="${PROJECT_NAME// /-}"
+            project_slug="${project_slug,,}"
+            mod_dir="${PROJECT_FOLDER}/target-root/usr/local/libexec/${project_slug}"
+
+            if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
+                sayinfo "Would have ensured module folder $mod_dir"
+            else
+                if [[ ! -d "$mod_dir" ]]; then
+                    mkdir -p "$mod_dir" || return 1
+                    sayinfo "Created module folder $mod_dir"
+                fi
+            fi
+        fi
+
+        __get_project_directories dirs || return 1
+
+        for d in "${dirs[@]}"; do
+            if [[ "$d" == "." ]]; then
+                continue
+            fi
+
             if [[ "$FLAG_DRYRUN" -eq 0 ]]; then
-                mkdir -p "${PROJECT_FOLDER}/${d}"
+                mkdir -p "${PROJECT_FOLDER}/${d}" || return 1
                 sayinfo "Created folder ${PROJECT_FOLDER}/${d}"
             else
-                sayinfo "Would have created folder ${PROJECT_FOLDER}/${d}" 
+                sayinfo "Would have created folder ${PROJECT_FOLDER}/${d}"
             fi
-            
         done
 
-        # Copy template files
-        template_dir="${TD_COMMON_LIB}/../templates"
-        if [[ -d "$template_dir" ]]; then
-            if [[ "$FLAG_DRYRUN" -eq 0 ]]; then
-                cp -r -v "${template_dir}/." "$PROJECT_FOLDER/target-root/usr/local/lib/testadura/templates/"
-                sayinfo "Copied templates to ${PROJECT_FOLDER}/target-root/usr/local/lib/testadura/templates/"
-            else
-                sayinfo "Would have copied templates to ${PROJECT_FOLDER}/target-root/usr/local/lib/testadura/templates/" 
-            fi
-        else
-            saywarning "Template directory $template_dir does not exist; skipping template copy."
-        fi
-
+        __copy_project_templates || return 1
     }
 
     # __create_workspace_file
@@ -720,7 +1054,7 @@ set -uo pipefail
     main() {
         # -- Bootstrap
             local rc=0
-
+            local proceed=0
             __load_bootstrapper || exit $?            
 
             # Recognized switches:
@@ -743,6 +1077,8 @@ set -uo pipefail
             td_builtinarg_handler
             saydebug "Exited builtinarg handler"
 
+            __normalize_project_flags || exit 1
+
         # -- UI
             td_update_runmode
             td_print_titlebar
@@ -761,10 +1097,14 @@ set -uo pipefail
             fi
 
             # For 0 (OK) and 2 (skip template) we still create repo + workspace
-            __create_repository
-            __create_workspace_file
-            __create_gitignore_file
+            __create_repository || exit $?
+            __create_workspace_file || exit $?
+            __create_gitignore_file || exit $?
             
+            if (( ${FLAG_MOD:-0} )); then
+                __create_mod_appcfg || exit $?
+            fi
+
             if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
                 sayinfo "Would have fixed ownership and permissions"
             else 
