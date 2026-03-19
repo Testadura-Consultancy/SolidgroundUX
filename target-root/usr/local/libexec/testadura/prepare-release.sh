@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-#!/usr/bin/env bash
 # ==================================================================================
 # Testadura Consultancy — Prepare Release
 # ----------------------------------------------------------------------------------
@@ -7,7 +6,7 @@
 #   Create a clean tar.gz release archive from the current workspace.
 #
 # Description:
-#   Developer utility that assembles a reproducible release package from a
+#   Developer utility that assembles a clean release package from a
 #   workspace by staging a filtered copy, generating a manifest, and writing
 #   checksums for the final artifacts.
 #
@@ -15,13 +14,13 @@
 #     - resolve release parameters interactively or from saved state
 #     - stage a clean copy of the source workspace
 #     - generate a versioned tar.gz archive
-#     - generate and embed an uninstall manifest
+#     - generate an uninstall manifest and embed it in the archive
 #     - update SHA256SUMS and sidecar checksum files
 #
 # Release model:
 #   - Source is treated as the current application or workspace root
 #   - Output is written under a staging/releases directory
-#   - Artifacts are intended to be reproducible and distributable
+#   - Artifacts are intended to be clean and distributable
 #
 # Notes:
 #   - Honors FLAG_DRYRUN, FLAG_VERBOSE, and FLAG_DEBUG

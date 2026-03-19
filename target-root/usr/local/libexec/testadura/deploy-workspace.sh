@@ -13,17 +13,21 @@
 #     - Creates destination directories as required
 #     - Applies permission policy based on PERMISSION_RULES
 #     - Skips private, hidden, and non-deployable files by convention
-#     - Supports undeploy (removal) operations
+#     - Records created files and directories in a deploy manifest
+#     - Supports manifest-based undeploy operations
 #
 # Deployment model:
 #   - Source is treated as a workspace root
 #   - Target is treated as a filesystem root (/, chroot, image root, etc.)
 #   - Files are installed if missing or newer than target
-#   - Undeploy removes only files originating from the workspace
+#   - Deploy records only files and directories created by the current run
+#   - Undeploy removes only files and directories recorded in a selected manifest
 #
 # Notes:
 #   - May require root privileges depending on target
 #   - Honors FLAG_DRYRUN, FLAG_VERBOSE, and FLAG_DEBUG
+#   - Updated pre-existing target files are not recorded in the manifest
+#   - Undeploy is not a full rollback; it removes created artifacts only
 #
 # Author  : Mark Fieten
 # © 2025 Mark Fieten — Testadura Consultancy
@@ -240,7 +244,13 @@ set -uo pipefail
     : "${TD_SCRIPT_COPYRIGHT:=© 2025 Mark Fieten — Testadura Consultancy}"
     : "${TD_SCRIPT_LICENSE:=Testadura Non-Commercial License (TD-NC) v1.0}"
 
-    readonly BOOTSTRAP
+    MANIFEST_BASE_DIR="/var/lib/testadura/deploy-workspace"
+    MANIFEST_SOURCE_ID=""
+    MANIFEST_SOURCE_DIR=""
+    MANIFEST_NAME=""
+    MANIFEST_PATH=""
+    MANIFEST_TMP=""
+
 # --- Script metadata (framework integration) --------------------------------------
     # TD_USING
         # Libraries to source from TD_COMMON_LIB.
@@ -275,6 +285,7 @@ set -uo pipefail
         "undeploy|u|flag|FLAG_UNDEPLOY|Remove files from main root|"
         "source|s|value|SRC_ROOT|Set Source directory|"
         "target|t|value|DEST_ROOT|Set Target directory|"
+        "manifest|m|value|MANIFEST_NAME|Use a specific manifest name for undeploy|"
     )
 
     # TD_SCRIPT_EXAMPLES
@@ -405,6 +416,435 @@ set -uo pipefail
     )
 
 # --- local script functions -------------------------------------------------------
+ # -- Manifests
+    # __manifest_source_id
+        # Purpose:
+        #   Derive a stable manifest namespace identifier from SRC_ROOT.
+        #
+        # Behavior:
+        #   - Hashes SRC_ROOT using sha256
+        #   - Prints the resulting identifier to stdout
+        #
+        # Inputs (globals):
+        #   SRC_ROOT
+        #
+        # Output:
+        #   Prints source-root identifier to stdout
+        #
+        # Returns:
+        #   0 on success
+        #
+        # Usage:
+        #   id="$(__manifest_source_id)"
+        #
+        # Notes:
+        #   - Used to group manifests by source root
+        #   - Keeps on-disk manifest paths safe and deterministic
+    __manifest_source_id() {
+        printf '%s' "$SRC_ROOT" | sha256sum | awk '{print $1}'
+    }
+
+    # __manifest_source_dir
+        # Purpose:
+        #   Resolve the manifest directory for the current SRC_ROOT.
+        #
+        # Behavior:
+        #   - Derives a stable source-root identifier
+        #   - Combines it with MANIFEST_BASE_DIR
+        #   - Prints the directory path to stdout
+        #
+        # Inputs (globals):
+        #   SRC_ROOT
+        #   MANIFEST_BASE_DIR
+        #
+        # Output:
+        #   Prints manifest directory path to stdout
+        #
+        # Returns:
+        #   0 on success
+        #
+        # Usage:
+        #   dir="$(__manifest_source_dir)"
+    __manifest_source_dir() {
+        local id
+        id="$(__manifest_source_id)"
+        printf '%s/%s\n' "$MANIFEST_BASE_DIR" "$id"
+    }
+
+    # __manifest_init
+        # Purpose:
+        #   Initialize a new manifest for the current deployment run.
+        #
+        # Behavior:
+        #   - Creates the source-root-specific manifest directory
+        #   - Generates a manifest name if MANIFEST_NAME is not already set
+        #   - Creates a temporary manifest file
+        #   - Writes manifest header metadata
+        #
+        # Manifest model:
+        #   - One manifest per deploy run
+        #   - Manifests are grouped by source root
+        #   - Only files and directories CREATED by this run are recorded
+        #
+        # Inputs (globals):
+        #   SRC_ROOT
+        #   DEST_ROOT
+        #   MANIFEST_BASE_DIR
+        #   MANIFEST_NAME
+        #   FLAG_DRYRUN
+        #
+        # Outputs (globals):
+        #   MANIFEST_SOURCE_ID
+        #   MANIFEST_SOURCE_DIR
+        #   MANIFEST_NAME
+        #   MANIFEST_PATH
+        #   MANIFEST_TMP
+        #
+        # Returns:
+        #   0 on success
+        #   1 on failure
+        #
+        # Usage:
+        #   __manifest_init || return $?
+        #
+        # Notes:
+        #   - In dry-run mode, no manifest file is created
+        #   - Caller must later invoke __manifest_commit or __manifest_discard
+    __manifest_init() {
+        local stamp
+
+        MANIFEST_SOURCE_ID="$(__manifest_source_id)"
+        MANIFEST_SOURCE_DIR="$(__manifest_source_dir)"
+
+        if [[ "${FLAG_DRYRUN:-0}" -eq 1 ]]; then
+            stamp="$(date +%Y%m%dT%H%M%S)"
+            MANIFEST_NAME="${MANIFEST_NAME:-$stamp}"
+            MANIFEST_PATH="${MANIFEST_SOURCE_DIR}/${MANIFEST_NAME}.manifest"
+            MANIFEST_TMP="${MANIFEST_PATH}.tmp"
+            sayinfo "Would initialize manifest: $MANIFEST_PATH"
+            return 0
+        fi
+
+        stamp="$(date +%Y%m%dT%H%M%S)"
+        MANIFEST_NAME="${MANIFEST_NAME:-$stamp}"
+        MANIFEST_PATH="${MANIFEST_SOURCE_DIR}/${MANIFEST_NAME}.manifest"
+        MANIFEST_TMP="${MANIFEST_PATH}.tmp"
+
+        install -d -m 700 "$MANIFEST_SOURCE_DIR" || {
+            sayfail "Cannot create manifest directory: $MANIFEST_SOURCE_DIR"
+            return 1
+        }
+
+        {
+            printf '%s\n' "# deploy-workspace manifest"
+            printf 'timestamp=%s\n' "$(date --iso-8601=seconds)"
+            printf 'source=%s\n' "$SRC_ROOT"
+            printf 'target=%s\n' "${DEST_ROOT:-/}"
+            printf 'name=%s\n' "$MANIFEST_NAME"
+            printf '\n'
+        } > "$MANIFEST_TMP" || {
+            sayfail "Cannot create manifest temp file: $MANIFEST_TMP"
+            return 1
+        }
+
+        saydebug "Initialized manifest temp file: $MANIFEST_TMP"
+        return 0
+    }
+
+    # __manifest_add_file
+        # Purpose:
+        #   Record a file CREATED during the current deployment run.
+        #
+        # Arguments:
+        #   $1  abs_rel   Absolute-style relative target path (e.g. "/usr/local/bin/foo")
+        #
+        # Behavior:
+        #   - Appends a file entry to the current manifest temp file
+        #   - Does nothing in dry-run mode
+        #
+        # Manifest entry format:
+        #   F|/path/from/target/root
+        #
+        # Inputs (globals):
+        #   MANIFEST_TMP
+        #   FLAG_DRYRUN
+        #
+        # Returns:
+        #   0 on success
+        #   1 on write failure
+        #
+        # Usage:
+        #   __manifest_add_file "/usr/local/bin/foo"
+        #
+        # Notes:
+        #   - Only call this when the target file did not exist prior to install
+    __manifest_add_file() {
+        local abs_rel="$1"
+
+        if [[ "${FLAG_DRYRUN:-0}" -eq 1 ]]; then
+            sayinfo "Would record created file in manifest: $abs_rel"
+            return 0
+        fi
+
+        printf 'F|%s\n' "$abs_rel" >> "$MANIFEST_TMP" || {
+            sayfail "Cannot append file entry to manifest: $MANIFEST_TMP"
+            return 1
+        }
+    }
+
+    # __manifest_add_dir
+        # Purpose:
+        #   Record a directory CREATED during the current deployment run.
+        #
+        # Arguments:
+        #   $1  abs_rel   Absolute-style relative target path (e.g. "/etc/testadura")
+        #
+        # Behavior:
+        #   - Appends a directory entry to the current manifest temp file
+        #   - Does nothing in dry-run mode
+        #
+        # Manifest entry format:
+        #   D|/path/from/target/root
+        #
+        # Inputs (globals):
+        #   MANIFEST_TMP
+        #   FLAG_DRYRUN
+        #
+        # Returns:
+        #   0 on success
+        #   1 on write failure
+        #
+        # Usage:
+        #   __manifest_add_dir "/etc/testadura"
+        #
+        # Notes:
+        #   - Only call this when the target directory did not exist prior to creation
+    __manifest_add_dir() {
+        local abs_rel="$1"
+
+        if [[ "${FLAG_DRYRUN:-0}" -eq 1 ]]; then
+            sayinfo "Would record created directory in manifest: $abs_rel"
+            return 0
+        fi
+
+        printf 'D|%s\n' "$abs_rel" >> "$MANIFEST_TMP" || {
+            sayfail "Cannot append directory entry to manifest: $MANIFEST_TMP"
+            return 1
+        }
+    }
+
+    # __manifest_commit
+        # Purpose:
+        #   Finalize the current manifest after a successful deployment run.
+        #
+        # Behavior:
+        #   - Renames the temporary manifest file into its final name
+        #   - Does nothing in dry-run mode
+        #
+        # Inputs (globals):
+        #   MANIFEST_TMP
+        #   MANIFEST_PATH
+        #   FLAG_DRYRUN
+        #
+        # Returns:
+        #   0 on success
+        #   1 on failure
+        #
+        # Usage:
+        #   __manifest_commit || return $?
+        #
+        # Notes:
+        #   - Should only be called after deploy completed successfully
+    __manifest_commit() {
+        if [[ "${FLAG_DRYRUN:-0}" -eq 1 ]]; then
+            sayinfo "Would commit manifest: $MANIFEST_PATH"
+            return 0
+        fi
+
+        mv -f -- "$MANIFEST_TMP" "$MANIFEST_PATH" || {
+            sayfail "Cannot commit manifest: $MANIFEST_PATH"
+            return 1
+        }
+
+        saydebug "Committed manifest: $MANIFEST_PATH"
+        return 0
+    }
+
+    # __manifest_discard
+        # Purpose:
+        #   Remove the temporary manifest after an interrupted or failed deployment run.
+        #
+        # Behavior:
+        #   - Deletes MANIFEST_TMP if it exists
+        #   - Does nothing in dry-run mode
+        #
+        # Inputs (globals):
+        #   MANIFEST_TMP
+        #   FLAG_DRYRUN
+        #
+        # Returns:
+        #   0 always
+        #
+        # Usage:
+        #   __manifest_discard
+        #
+        # Notes:
+        #   - Safe to call multiple times
+    __manifest_discard() {
+        if [[ "${FLAG_DRYRUN:-0}" -eq 1 ]]; then
+            return 0
+        fi
+
+        if [[ -n "${MANIFEST_TMP:-}" && -e "${MANIFEST_TMP:-}" ]]; then
+            rm -f -- "$MANIFEST_TMP"
+            saydebug "Discarded manifest temp file: $MANIFEST_TMP"
+        fi
+
+        return 0
+    }
+
+    # __manifest_resolve_for_undeploy
+        # Purpose:
+        #   Resolve which manifest should be used for undeploy.
+        #
+        # Behavior:
+        #   - Uses MANIFEST_NAME when explicitly provided
+        #   - Otherwise selects the latest manifest for the current SRC_ROOT
+        #   - Populates MANIFEST_SOURCE_ID, MANIFEST_SOURCE_DIR, and MANIFEST_PATH
+        #
+        # Selection rules:
+        #   - Explicit:  <source-dir>/<MANIFEST_NAME>.manifest
+        #   - Implicit:  lexically latest *.manifest in the source-root manifest folder
+        #
+        # Inputs (globals):
+        #   SRC_ROOT
+        #   MANIFEST_BASE_DIR
+        #   MANIFEST_NAME
+        #
+        # Outputs (globals):
+        #   MANIFEST_SOURCE_ID
+        #   MANIFEST_SOURCE_DIR
+        #   MANIFEST_PATH
+        #
+        # Returns:
+        #   0 on success
+        #   1 if no suitable manifest is found
+        #
+        # Usage:
+        #   __manifest_resolve_for_undeploy || return $?
+        #
+        # Notes:
+        #   - Assumes manifest names are time-sortable when auto-generated
+    __manifest_resolve_for_undeploy() {
+        local latest
+
+        MANIFEST_SOURCE_ID="$(__manifest_source_id)"
+        MANIFEST_SOURCE_DIR="$(__manifest_source_dir)"
+
+        [[ -d "$MANIFEST_SOURCE_DIR" ]] || {
+            sayfail "No manifest directory found for source root: $SRC_ROOT"
+            return 1
+        }
+
+        if [[ -n "${MANIFEST_NAME:-}" ]]; then
+            MANIFEST_PATH="${MANIFEST_SOURCE_DIR}/${MANIFEST_NAME}.manifest"
+            [[ -r "$MANIFEST_PATH" ]] || {
+                sayfail "Manifest not found: $MANIFEST_PATH"
+                return 1
+            }
+            saydebug "Resolved explicit manifest: $MANIFEST_PATH"
+            return 0
+        fi
+
+        latest="$(
+            find "$MANIFEST_SOURCE_DIR" -maxdepth 1 -type f -name '*.manifest' -printf '%f\n' 2>/dev/null |
+            sort |
+            tail -n 1
+        )"
+
+        [[ -n "$latest" ]] || {
+            sayfail "No manifests found for source root: $SRC_ROOT"
+            return 1
+        }
+
+        MANIFEST_PATH="${MANIFEST_SOURCE_DIR}/${latest}"
+        saydebug "Resolved latest manifest: $MANIFEST_PATH"
+        return 0
+    }
+
+    # __manifest_list
+        # Purpose:
+        #   List available manifests for the current source root.
+        #
+        # Behavior:
+        #   - Prints manifest filenames for the current SRC_ROOT namespace
+        #   - Sorted lexically
+        #
+        # Inputs (globals):
+        #   SRC_ROOT
+        #   MANIFEST_BASE_DIR
+        #
+        # Returns:
+        #   0 on success
+        #   1 if manifest directory does not exist
+        #
+        # Usage:
+        #   __manifest_list
+    __manifest_list() {
+        local dir
+        dir="$(__manifest_source_dir)"
+
+        [[ -d "$dir" ]] || {
+            sayfail "No manifest directory found for source root: $SRC_ROOT"
+            return 1
+        }
+
+        find "$dir" -maxdepth 1 -type f -name '*.manifest' -printf '%f\n' | sort
+        return 0
+    }
+
+    # __manifest_verify_target
+        # Purpose:
+        #   Verify that the resolved manifest belongs to the current DEST_ROOT.
+        #
+        # Behavior:
+        #   - Reads the target= header from the resolved manifest
+        #   - Compares it to the current DEST_ROOT
+        #   - Fails when the two targets do not match
+        #
+        # Inputs (globals):
+        #   MANIFEST_PATH
+        #   DEST_ROOT
+        #
+        # Returns:
+        #   0 when target matches
+        #   1 when target differs or cannot be read
+        #
+        # Usage:
+        #   __manifest_verify_target || return $?
+        #
+        # Notes:
+        #   - Prevents undeploy from applying a manifest to the wrong target root
+    __manifest_verify_target() {
+        local manifest_target=""
+        manifest_target="$(
+            awk -F= '/^target=/{print substr($0,8); exit}' "$MANIFEST_PATH"
+        )"
+
+        [[ -n "$manifest_target" ]] || {
+            sayfail "Cannot read target from manifest: $MANIFEST_PATH"
+            return 1
+        }
+
+        if [[ "${DEST_ROOT:-/}" != "$manifest_target" ]]; then
+            sayfail "Manifest target mismatch: manifest=$manifest_target current=${DEST_ROOT:-/}"
+            return 1
+        fi
+
+        return 0
+    }
+
+ # -- Main sequence  
     # __perm_resolve
         # Purpose:
         #   Resolve the effective permission mode for a given path based on PERMISSION_RULES.
@@ -467,7 +907,7 @@ set -uo pipefail
         #   Persist metadata of the last deployment run for reuse (e.g. auto mode).
         #
         # Behavior:
-        #   - Stores timestamp, source, and target in state
+        #   - Stores timestamp, source, and target in state for later reuse
         #   - Skips writes when FLAG_DRYRUN is enabled
         #
         # Writes:
@@ -597,9 +1037,16 @@ set -uo pipefail
         # Update logic:
         #   - Installs when destination is missing or source is newer
         #
+        # Manifest behavior:
+        #   - Initializes a new manifest at start of deployment
+        #   - Records only files CREATED by this run
+        #   - Records only directories CREATED by this run
+        #   - Updated pre-existing files are not recorded
+        #   - Finalizes manifest only after successful completion
+        #
         # Permissions:
         #   - File mode via __perm_resolve(abs_rel,"file")
-        #   - Directory mode via __perm_resolve(rel_dir,"dir")
+        #   - Directory mode via __perm_resolve(abs_rel,"dir")
         #
         # Dry run:
         #   - When FLAG_DRYRUN=1, only reports actions
@@ -611,35 +1058,39 @@ set -uo pipefail
         #   PERMISSION_RULES
         #
         # Returns:
-        #   0 always (logs and continues on errors)
+        #   0 on success
+        #   1 on fatal deployment/manifest failure
         #
         # Usage:
         #   __deploy
         #
         # Notes:
         #   - Uses install for atomic writes and permission control
-    __deploy(){
+        #   - Manifest records created artifacts only; it is not full rollback state
+    __deploy() {
         SRC_ROOT="${SRC_ROOT%/}"
         DEST_ROOT="${DEST_ROOT%/}"
 
         local file rel name abs_rel perms dst dst_dir dir_mode
+        local dst_existed probe dir_abs_rel
+        local -a missing_dirs=()
+        local i
 
         saystart "Starting deployment from $SRC_ROOT to ${DEST_ROOT:-/}"
 
-        find "$SRC_ROOT" -type f |
-        while IFS= read -r file; do
+        __manifest_init || return $?
 
+        while IFS= read -r file; do
             rel="${file#"$SRC_ROOT"/}"
 
             if [[ "$rel" == "$file" || "$rel" == /* ]]; then
-                sayerror "Bad rel path: file='$file' SRC_ROOT='$SRC_ROOT' rel='$rel'"
-                continue
+                sayfail "Bad rel path: file='$file' SRC_ROOT='$SRC_ROOT' rel='$rel'"
+                __manifest_discard
+                return 1
             fi
 
             name="$(basename "$file")"
             abs_rel="/$rel"
-
-            perms="$(__perm_resolve "$abs_rel" "file")"
             dst="${DEST_ROOT:-}/$rel"
 
             # Skip top-level files, hidden dirs, private dirs
@@ -650,33 +1101,80 @@ set -uo pipefail
             fi
 
             if [[ ! -e "$dst" || "$file" -nt "$dst" ]]; then
+                perms="$(__perm_resolve "$abs_rel" "file")"
                 dst_dir="$(dirname "$dst")"
-                dir_mode="$(__perm_resolve "/${rel%/*}" "dir")"
 
-                if [[ $FLAG_DRYRUN == 0 ]]; then
-                    sayinfo "Installing $SRC_ROOT/$rel --> $dst, with $perms permissions"
-                    install -d -m "$dir_mode" "$dst_dir"
-                    install -m "$perms" "$SRC_ROOT/$rel" "$dst"
+                if [[ "${FLAG_DRYRUN:-0}" -eq 0 ]]; then
+                    missing_dirs=()
+                    probe="$dst_dir"
+
+                    while [[ "$probe" != "${DEST_ROOT:-}" && "$probe" != "/" && ! -d "$probe" ]]; do
+                        missing_dirs+=("$probe")
+                        probe="$(dirname "$probe")"
+                    done
+
+                    for (( i=${#missing_dirs[@]}-1; i>=0; i-- )); do
+                        dir_abs_rel="${missing_dirs[$i]#"${DEST_ROOT:-}"}"
+                        dir_abs_rel="${dir_abs_rel:-/}"
+                        dir_mode="$(__perm_resolve "$dir_abs_rel" "dir")"
+
+                        install -d -m "$dir_mode" "${missing_dirs[$i]}" || {
+                            sayfail "Failed to create directory: ${missing_dirs[$i]}"
+                            __manifest_discard
+                            return 1
+                        }
+
+                        __manifest_add_dir "$dir_abs_rel" || {
+                            __manifest_discard
+                            return 1
+                        }
+                    done
+
+                    dst_existed=0
+                    [[ -e "$dst" ]] && dst_existed=1
+
+                    sayinfo "Installing $file --> $dst, with $perms permissions"
+                    install -m "$perms" "$file" "$dst" || {
+                        sayfail "Failed to install file: $file -> $dst"
+                        __manifest_discard
+                        return 1
+                    }
+
+                    if [[ "$dst_existed" -eq 0 ]]; then
+                        __manifest_add_file "$abs_rel" || {
+                            __manifest_discard
+                            return 1
+                        }
+                    fi
                 else
-                    sayinfo "Would have installed $SRC_ROOT/$rel --> $dst, with $perms permissions"
+                    sayinfo "Would have installed $file --> $dst, with $perms permissions"
                 fi
             else
                 saydebug "Skipping $rel; destination is up-to-date."
             fi
+        done < <(find "$SRC_ROOT" -type f)
 
-        done
+        __manifest_commit || return $?
 
         sayend "End deployment complete."
+        return 0
     }
 
     # __undeploy
         # Purpose:
-        #   Remove deployed files from DEST_ROOT that originate from SRC_ROOT.
+        #   Remove previously deployed files and directories using a manifest.
         #
         # Behavior:
-        #   - Enumerates files in SRC_ROOT to determine targets
-        #   - Applies same skip rules as __deploy
-        #   - Removes matching files from DEST_ROOT
+        #   - Resolves a manifest for the current SRC_ROOT
+        #   - Uses MANIFEST_NAME when provided
+        #   - Otherwise uses the latest manifest for the source root
+        #   - Removes recorded files first
+        #   - Removes recorded directories afterward in reverse-depth order
+        #
+        # Manifest rules:
+        #   - Only files recorded as created by deploy are removed
+        #   - Only directories recorded as created by deploy are considered
+        #   - Directories are removed only if empty
         #
         # Dry run:
         #   - When FLAG_DRYRUN=1, only reports actions
@@ -684,46 +1182,70 @@ set -uo pipefail
         # Inputs (globals):
         #   SRC_ROOT
         #   DEST_ROOT
+        #   MANIFEST_NAME
         #   FLAG_DRYRUN
         #
         # Returns:
-        #   0 always
+        #   0 on success
+        #   1 if manifest resolution fails
         #
         # Usage:
         #   __undeploy
         #
         # Notes:
-        #   - Only removes files known to the workspace (safe inverse deployment)
-    __undeploy(){
+        #   - This is a manifest-based inverse of created artifacts only
+        #   - Updated pre-existing files are not restored or removed
+    __undeploy() {
+        local kind path dst
 
-        saystart "Starting UNINSTALL from $SRC_ROOT to $DEST_ROOT" --show=symbol
+        __manifest_resolve_for_undeploy || return $?
+        __manifest_verify_target || return $?
 
-        find "$SRC_ROOT" -type f |
-        while IFS= read -r file; do
-        
-        local file rel name dst
-        rel="${file#$SRC_ROOT/}"
-        name="$(basename "$file")"
-        dst="${DEST_ROOT%/}/$rel"
+        saystart "Starting UNINSTALL using manifest $MANIFEST_PATH"
 
-        if [[ "$rel" != */* || "$name" == _* || "$name" == *.old || \
-                "$rel" == .*/* || "$rel" == _*/* || \
-                "$rel" == */.*/* || "$rel" == */_*/* ]]; then
-            continue
-        fi
+        # Remove files first
+        while IFS='|' read -r kind path; do
+            [[ -z "$kind" || -z "$path" ]] && continue
+            [[ "$kind" != "F" ]] && continue
 
-        if [[ -e "$dst" ]]; then
-            saywarning "Removing $dst"
-            if [[ $FLAG_DRYRUN == 0 ]]; then
-                rm -f "$dst"
+            dst="${DEST_ROOT%/}$path"
+
+            if [[ -e "$dst" ]]; then
+                if [[ "${FLAG_DRYRUN:-0}" -eq 0 ]]; then
+                    saywarning "Removing $dst"
+                    rm -f -- "$dst"
+                else
+                    sayinfo "Would have removed $dst"
+                fi
             else
-                sayinfo "Would have removed $dst"
+                saydebug "Skipping missing file: $dst"
             fi
-        else
-            saywarning "Skipping $rel; does not exist."
-        fi
+        done < <(grep '^F|' "$MANIFEST_PATH")
 
+        # Remove directories deepest first
+        grep '^D|' "$MANIFEST_PATH" |
+        sed 's/^D|//' |
+        awk '{ print length, $0 }' |
+        sort -rn |
+        cut -d' ' -f2- |
+        while IFS= read -r path; do
+            [[ -z "$path" ]] && continue
+            dst="${DEST_ROOT%/}$path"
+
+            if [[ -d "$dst" ]]; then
+                if [[ "${FLAG_DRYRUN:-0}" -eq 0 ]]; then
+                    saywarning "Removing directory if empty: $dst"
+                    rmdir --ignore-fail-on-non-empty -- "$dst" 2>/dev/null || true
+                else
+                    sayinfo "Would have removed directory if empty: $dst"
+                fi
+            else
+                saydebug "Skipping missing directory: $dst"
+            fi
         done
+
+        sayend "End undeploy complete."
+        return 0
     }
 
 # --- Main -------------------------------------------------------------------------
@@ -774,15 +1296,7 @@ set -uo pipefail
             saydebug "Exited builtinarg handler"
 
         # -- UI
-            td_bootstrap --state --needroot -- "$@"
-            local rc=$?
-            (( rc != 0 )) && exit "$rc"
-
-            # -- Handle builtin arguments
-                td_builtinarg_handler
-
-            # -- UI
-                td_print_titlebar
+            td_print_titlebar
 
         # -- Main script logic
             __getparameters || return $?
@@ -795,5 +1309,6 @@ set -uo pipefail
                 __undeploy
             fi
     }
+
     # Entrypoint: td_bootstrap will split framework args from script args.
     main "$@"
