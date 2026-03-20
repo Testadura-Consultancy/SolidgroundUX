@@ -1,8 +1,12 @@
 # ==================================================================================
-# Testadura Consultancy — Library Template
+# SolidgroundUX Library Template
 # ----------------------------------------------------------------------------------
-# Module     : lib-template.sh
-# Purpose    : Canonical template for Testadura Bash libraries
+# Metadata:
+#   Version : 1.0
+#   Build : 26079
+#   Sourcefile : exe-template.sh
+#   Type : script
+#   Purpose : Canonical executable template for Testadura scripts
 #
 # Description:
 #   Provides the standard structure for framework libraries, including:
@@ -27,9 +31,12 @@
 #   - Application logic
 #   - Framework bootstrap or path resolution
 #
-# Author     : Mark Fieten
-# © 2025 Mark Fieten — Testadura Consultancy
-# Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# Attribution:
+#   Developers : Mark Fieten
+#   Company : Testadura Consultancy
+#   Client : 
+#   Copyright : © 2025 Mark Fieten — Testadura Consultancy
+#   License : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # ==================================================================================
 set -uo pipefail
 # --- Library guard ---------------------------------------------------------------

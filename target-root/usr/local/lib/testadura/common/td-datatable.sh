@@ -159,6 +159,11 @@ set -uo pipefail
         # Purpose:
         #   Split a row string into positional field values.
         #
+        # Behavior:
+        #   - Splits on pipe ('|') delimiter
+        #   - Preserves empty fields, including trailing empty values
+        #   - Guarantees column count consistency with schema-based rows
+        #
         # Arguments:
         #   $1  ROW
         #
@@ -174,10 +179,17 @@ set -uo pipefail
         # Examples:
         #   td__dt_split_row "1|Tools|Utility"
         #   echo "${TD_DT_SPLIT[2]}"   # Utility
+        #
+        #   td__dt_split_row "1|Tools|"
+        #   echo "${TD_DT_SPLIT[2]}"   # (empty string)
     td__dt_split_row() {
         local row="${1-}"
+        local tmp=""
 
-        IFS='|' read -r -a TD_DT_SPLIT <<< "$row"
+        tmp="${row}|__TD_SENTINEL__"
+        IFS='|' read -r -a TD_DT_SPLIT <<< "$tmp"
+
+        unset 'TD_DT_SPLIT[${#TD_DT_SPLIT[@]}-1]'
     }
 
 # --- Public API -------------------------------------------------------------------
@@ -689,4 +701,87 @@ set -uo pipefail
 
         row="$(td_dt_make_row "$schema" "$@")" || return 1
         td_dt_insert "$schema" "$table_name" "$row"
+    }
+
+    # td_dt_print_table
+        # Purpose:
+        #   Print a table in aligned column form.
+        #
+        # Arguments:
+        #   $1  SCHEMA
+        #   $2  TABLE_ARRAY_NAME
+        #
+        # Returns:
+        #   0  success
+        #   1  invalid schema
+        #
+        # Usage:
+        #   td_dt_print_table "$SCHEMA" ARRAY_NAME
+        #
+        # Examples:
+        #   td_dt_print_table "$MY_SCHEMA" MY_ROWS
+    td_dt_print_table() {
+        local schema="${1:?missing schema}"
+        local table_name="${2:?missing table name}"
+
+        local row_count=0
+        local col_count=0
+        local i=0
+        local j=0
+        local cell=""
+        local row=""
+        local header=""
+        local sep=""
+        local -a widths=()
+        local -a columns=()
+
+        td_dt_validate_schema "$schema" || return 1
+
+        td__dt_split_schema "$schema"
+        columns=("${TD_DT_SPLIT[@]}")
+        col_count="${#columns[@]}"
+        row_count="$(td_dt_row_count "$table_name")"
+
+        # Initialize widths from header names
+        for (( j=0; j<col_count; j++ )); do
+            widths[j]="${#columns[j]}"
+        done
+
+        # Determine max width per column from row data
+        for (( i=0; i<row_count; i++ )); do
+            eval "row=\${$table_name[$i]}"
+            td__dt_split_row "$row"
+
+            for (( j=0; j<col_count; j++ )); do
+                cell="${TD_DT_SPLIT[j]-}"
+                (( ${#cell} > widths[j] )) && widths[j]="${#cell}"
+            done
+        done
+
+        # Print header
+        for (( j=0; j<col_count; j++ )); do
+            printf '%-*s' "${widths[j]}" "${columns[j]}"
+            (( j < col_count - 1 )) && printf '  '
+        done
+        printf '\n'
+
+        # Print separator
+        for (( j=0; j<col_count; j++ )); do
+            printf '%-*s' "${widths[j]}" ''
+            (( j < col_count - 1 )) && printf '  '
+        done | tr ' ' '-'
+        printf '\n'
+
+        # Print rows
+        for (( i=0; i<row_count; i++ )); do
+            eval "row=\${$table_name[$i]}"
+            td__dt_split_row "$row"
+
+            for (( j=0; j<col_count; j++ )); do
+                cell="${TD_DT_SPLIT[j]-}"
+                printf '%-*s' "${widths[j]}" "$cell"
+                (( j < col_count - 1 )) && printf '  '
+            done
+            printf '\n'
+        done
     }

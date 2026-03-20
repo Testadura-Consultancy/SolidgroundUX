@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 # =====================================================================================
-# Testadura Consultancy — Executable Script Template
+# SolidgroundUX Executable Script Template
 # ------------------------------------------------------------------------------------
-# Module     : exe-template.sh
-# Purpose    : Canonical executable template for Testadura scripts
+# Metadata:
+#   Version : 1.0
+#   Build : 26079
+#   Source : exe-template.sh
+#   Type : script
+#   Purpose : Canonical executable template for Testadura scripts
 #
 # Description:
 #   Provides the standard structure for all executable scripts in the framework,
@@ -27,9 +31,12 @@
 #   - Business logic implementation (provided by the script author)
 #   - Library behavior (handled in /common modules)
 #
-# Author     : Mark Fieten
-# © 2025 Mark Fieten — Testadura Consultancy
-# Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# Attribution:
+#   Developers : Mark Fieten
+#   Company : Testadura Consultancy
+#   Client : 
+#   Copyright : © 2025 Mark Fieten — Testadura Consultancy
+#   License : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
 set -uo pipefail
 
@@ -233,13 +240,7 @@ set -uo pipefail
     TD_SCRIPT_BASE="$(basename -- "$TD_SCRIPT_FILE")"
     TD_SCRIPT_NAME="${TD_SCRIPT_BASE%.sh}"
     TD_SCRIPT_TITLE="${TD_SCRIPT_NAME}"
-    : "${TD_SCRIPT_DESC:=Canonical executable template for Testadura scripts}"
-    : "${TD_SCRIPT_VERSION:=1.0}"
-    : "${TD_SCRIPT_BUILD:=20250110}"
-    : "${TD_SCRIPT_DEVELOPERS:=Mark Fieten}"
-    : "${TD_SCRIPT_COMPANY:=Testadura Consultancy}"
-    : "${TD_SCRIPT_COPYRIGHT:=© 2025 Mark Fieten — Testadura Consultancy}"
-    : "${TD_SCRIPT_LICENSE:=Testadura Non-Commercial License (TD-NC) v1.0}"
+    TD_SCRIPT_DESC="Canonical executable template for Testadura scripts"
 
 # --- Script metadata (framework integration) --------------------------------------
     # TD_USING

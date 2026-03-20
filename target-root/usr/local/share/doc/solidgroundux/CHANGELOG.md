@@ -9,47 +9,60 @@ and this project adheres to **Semantic Versioning** where practical.
 
 ## [Unreleased]
 
+## [Unreleased]
+
 ### Added
-- **SolidGround Console (`sgnd-console`)**
+- **SolidGround Console (`sgnd-console`)**  
   A configurable interactive module host replacing `script-hub`.  
   Supports dynamic module discovery, grouped menus, runtime toggles, and configurable console environments via `appcfg`.
 
-- **Module system**
+- **Module system**  
   Console modules can now register groups and menu items dynamically, allowing framework tools and external environments to integrate into a unified console.
 
-- **Lightweight Bash DataTable library (`td-datatable`)**
+- **Lightweight Bash DataTable library (`td-datatable`)**  
   Provides structured row/column handling for Bash arrays, enabling reliable internal registries (modules, groups, menu items).
 
-- **UI glyph library**
+- **UI glyph library**  
   Short symbolic constants for line drawing, keyboard hints, math symbols, and common characters used in console rendering.
 
-- **Module template**
+- **Module template**  
   Canonical template for developing console modules.
 
-### Changed
-- **Framework root resolution**
-  All framework paths now derive from a single configuration file `solidgroundux.cfg`, defining:
+- **External script integration**  
+  Menu items can invoke standalone executable scripts, enabling gradual adoption of the framework without requiring immediate refactoring of existing script collections.
 
+- **Documentation generator (planned)**  
+  Script-based extraction of module and function header comments into structured Markdown documentation, including:
+  - per-module reference pages  
+  - public vs local function separation  
+  - centralized glossary/index  
+
+### Changed
+- **Framework root resolution**  
+  All framework paths now derive from a single configuration file `solidgroundux.cfg`, defining:
   - `TD_FRAMEWORK_ROOT`
   - `TD_APPLICATION_ROOT`
 
-- **Bootstrap discovery**
+- **Bootstrap discovery**  
   Executables now locate and load the framework bootstrap deterministically through the root configuration.
 
-- **Console architecture**
+- **Console architecture**  
   Menu compilation, rendering, and dispatch have been rewritten to support dynamic module integration.
 
-- **Ask helpers**
+- **Ask helpers**  
   All shorthand `ask_*` helpers now support optional timed auto-continue.
 
-- **Library guard**
+- **Library guard**  
   Simplified and generalized guard pattern for library loading.
 
-- **Deployment layout**
+- **Deployment layout**  
   Standardized and reordered framework deployment paths.
 
+- **Script onboarding model**  
+  Reduced friction for integrating existing scripts by allowing direct execution within the console before full template-based migration.
+
 ### Deprecated
-- `script-hub.sh`
+- `script-hub.sh`  
   Fully replaced by `sgnd-console`.
 
 ---

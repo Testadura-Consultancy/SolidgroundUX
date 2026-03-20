@@ -1,8 +1,12 @@
 # ==================================================================================
-# Testadura Consultancy — Console Module Template
+# SolidgroundUX Console Module Template
 # ----------------------------------------------------------------------------------
-# Module     : console-mod-sample.sh
-# Purpose    : Canonical template for sgnd-console modules
+# Metadata:
+#   Version     : 1.0
+#   Build       : 26079
+#   Sourcefile  : mod-template.sh
+#   Type        : module
+#   Purpose     : Canonical template for sgnd-console modules
 #
 # Description:
 #   Provides the standard structure for modules that extend sgnd-console with:
@@ -34,9 +38,12 @@
 #   - Bootstrap, path resolution, or framework initialization
 #   - Full-screen UI behavior outside the sgnd-console host
 #
-# Author     : Mark Fieten
-# © 2025 Mark Fieten — Testadura Consultancy
-# Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# Attribution:
+#   Developers    : Mark Fieten
+#   Company       : Testadura Consultancy
+#   Client        :
+#   Copyright     : © 2025 Mark Fieten — Testadura Consultancy
+#   License       : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # ==================================================================================
 set -uo pipefail
 # --- Library guard ---------------------------------------------------------------
