@@ -1,31 +1,49 @@
-# ==================================================================================
-# Testadura Consultancy — SolidGround Console Menu Engine
-# ----------------------------------------------------------------------------------
-# Module  : sgnd-console-menu.sh
-# Purpose : Interactive menu rendering and navigation engine for sgnd-console.
+# =====================================================================================
+# SolidgroundUX - Console Menu System
+# -------------------------------------------------------------------------------------
+# Metadata:
+#   Version     : 1.0
+#   Build       : 2602607900
+#   Checksum    :
+#   Source      : sgnd-console-menu.sh
+#   Type        : library
+#   Purpose     : Provide menu definition and rendering logic for sgnd-console
 #
-# Scope   :
-#   - Menu rendering (titles, groups, items, layout)
-#   - Pagination (previous/next navigation)
-#   - Input handling and dispatch
-#   - Toggle-aware item presentation
+# Description:
+#   Implements the menu system used by sgnd-console for interactive navigation.
 #
-# Design  :
-#   - Driven by registered menu items (data → rendering)
-#   - Stateless rendering based on current flags and page index
-#   - Integrates with sgnd-console core for execution and state
+#   The library:
+#     - Defines menu structures and item registration mechanisms
+#     - Supports grouping, ordering, and labeling of menu items
+#     - Integrates with rendering helpers to display menus consistently
+#     - Handles user selection and dispatch to registered actions
+#     - Enables modular extension by allowing external modules to register items
 #
-# Notes   :
-#   - This module controls the full TUI lifecycle (render → input → dispatch)
-#   - Relies on shared UI helpers and toggle infrastructure
-#   - Assumes terminal-based interactive environment
+# Design principles:
+#   - Modular menu composition through registration rather than hardcoding
+#   - Clear separation between menu definition, rendering, and execution
+#   - Predictable navigation and selection behavior
+#   - Minimal coupling to specific applications or modules
 #
-# Author  : Mark Fieten
-# © 2025 Mark Fieten — Testadura Consultancy
-# Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
-# ==================================================================================
+# Role in framework:
+#   - Core component of sgnd-console interactive tooling
+#   - Bridges UI rendering, input handling, and executable scripts
+#   - Enables pluggable console applications through module-based menus
+#
+# Non-goals:
+#   - Full TUI frameworks or complex screen management
+#   - Persistent menu state beyond runtime session
+#   - Business logic execution beyond dispatching actions
+#
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      :
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# =====================================================================================
 set -uo pipefail
-# --- Library guard ---------------------------------------------------------------
+# --- Library guard -------------------------------------------------------------------
     # __td_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
@@ -82,7 +100,7 @@ set -uo pipefail
     unset -f __td_lib_guard
 
 
-# --- Label and status formatting --------------------------------------------------
+# --- Label and status formatting -----------------------------------------------------
     # __sgnd_console_toggleword
         # Purpose:
         #   Render a toggle label (e.g. DEBUG, DRYRUN) with color and hotkey styling.
@@ -244,7 +262,7 @@ set -uo pipefail
         printf 'Logfile: %s' "$(__sgnd_console_onoff "$TD_LOGFILE_ENABLED")"
     }
 
-# --- Builtin actions --------------------------------------------------------------
+# --- Builtin actions -----------------------------------------------------------------
      # __sgnd_console_toggle_clearonrender
         # Purpose:
         #   Toggle whether the console clears the screen before each render.
@@ -409,7 +427,7 @@ set -uo pipefail
         return 0
     }
 
-# --- Menu layout ------------------------------------------------------------------
+# --- Menu layout ---------------------------------------------------------------------
     # __sgnd_console_build_pages
         # Purpose:
         #   Simulate pagination and determine the start item of each page.
@@ -788,7 +806,7 @@ set -uo pipefail
         done
     }
 
-# --- Menu rendering ---------------------------------------------------------------
+# --- Menu rendering ------------------------------------------------------------------
     # __sgnd_console_render_menu
         # Purpose:
         #   Render the complete console menu for the current state.
@@ -1430,7 +1448,7 @@ set -uo pipefail
         printf '%*s%s\n' "$left_pad" "" "$bar_text"
     }
 
-# --- Menu dispatch ----------------------------------------------------------------
+# --- Menu dispatch -------------------------------------------------------------------
     # __sgnd_console_valid_choices_csv
         # Purpose:
         #   Build the current valid choice list for immediate console input.

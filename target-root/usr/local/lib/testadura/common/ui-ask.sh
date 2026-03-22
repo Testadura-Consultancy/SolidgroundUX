@@ -1,44 +1,50 @@
-# ==================================================================================
-# Testadura Consultancy — Interactive Prompting Module
-# ----------------------------------------------------------------------------------
-# Module     : ui-ask.sh
-# Purpose    : Interactive prompting and validated input helpers for TTY-driven scripts
+# =====================================================================================
+# SolidgroundUX - UI Ask
+# -------------------------------------------------------------------------------------
+# Metadata:
+#   Version     : 1.0
+#   Build       : 2602607900
+#   Checksum    :
+#   Source      : ui-ask.sh
+#   Type        : library
+#   Purpose     : Provide interactive prompting utilities for console input
 #
 # Description:
-#   Provides a consistent framework layer for interactive user input in terminal
-#   scripts and tools. This module covers:
-#     - editable prompts with defaults
-#     - validation-aware input loops
-#     - normalized decision helpers (yes/no, ok/cancel, ok/redo/quit, continue)
-#     - constrained choice input, including immediate key-based selection
+#   Provides a set of interactive input helpers for prompting users in
+#   console-based workflows.
 #
-# Terminal I/O model:
-#   - Reads from the controlling terminal (/dev/tty), not stdin
-#   - Safe for use in scripts that also consume piped or redirected stdin
-#   - Falls back to sensible defaults or explicit failure when no TTY is available
+#   The library:
+#     - Prompts for user input using labeled questions
+#     - Supports default values and editable input
+#     - Provides validation hooks for input checking
+#     - Supports yes/no, choice, and confirmation dialogs
+#     - Integrates with console styling and color configuration
+#     - Reads input from the controlling terminal to avoid stdin conflicts
 #
 # Design principles:
-#   - Keep prompting behavior consistent across the framework
-#   - Separate prompt mechanics from message/logging policy
-#   - Support both typed input and timed dialog-based interaction
-#   - Normalize wrapper behavior so calling code stays simple
+#   - Consistent and predictable user interaction patterns
+#   - Separation of input handling from business logic
+#   - Safe operation in piped or redirected environments
+#   - Minimal dependencies on external tools
 #
 # Role in framework:
-#   - Provides the interactive input layer for CLI tools and framework utilities
-#   - Builds on lower-level UI rendering and optional dialog helpers
-#   - Complements ui.sh and ui-dlg.sh rather than replacing them
+#   - Core user interaction layer for console-based tools
+#   - Used by scripts such as metadata-editor and console modules
 #
 # Non-goals:
-#   - Non-interactive batch input processing
-#   - Rich full-screen terminal forms or menu systems
-#   - Centralized logging or output policy
+#   - Full terminal UI (TUI) framework implementation
+#   - Complex form handling or layout management
+#   - Graphical user interface functionality
 #
-# Author     : Mark Fieten
-# Copyright  : © 2025 Mark Fieten — Testadura Consultancy
-# License    : Testadura Non-Commercial License (TD-NC) v1.0
-# ==================================================================================
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      :
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# =====================================================================================
 set -uo pipefail
-# --- Library guard ----------------------------------------------------------------
+# --- Library guard ------------------------------------------------------------------
     # __td_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
@@ -94,7 +100,7 @@ set -uo pipefail
     __td_lib_guard
     unset -f __td_lib_guard
     
-# --- Helpers ---------------------------------------------------------------------
+# --- Helpers ------------------------------------------------------------------------
     # __expand_choices
         # Purpose:
         #   Expand a comma-separated choice specification into individual allowed values.
@@ -274,7 +280,7 @@ set -uo pipefail
         printf '%s' "TYPE"
     }
     
-# --- ask -------------------------------------------------------------------------
+# --- ask ----------------------------------------------------------------------------
     # ask
         # Purpose:
         #   Prompt for interactive input from the controlling terminal (/dev/tty),
@@ -444,7 +450,7 @@ set -uo pipefail
             printf "%s\n" "$value"
         fi
     }
-# --- ask shorthand ---------------------------------------------------------------
+# --- ask shorthand ------------------------------------------------------------------
     # Convenience wrappers around ask() for common prompt patterns.
 
     # ask
@@ -460,6 +466,7 @@ set -uo pipefail
         #   - Re-prompts recursively when validation fails.
         #   - Can either assign the result to a variable or echo it to stdout.
         #   - Supports optional fixed-width label formatting via --labelwidth.
+        #   - Supports optional color overrides via --labelclr and --valueclr.
         #
         # Arguments:
         #   LABEL
@@ -470,6 +477,10 @@ set -uo pipefail
         #       Prompt label text.
         #   --labelwidth N
         #       Fixed display width for the label text. When omitted, label width is natural.
+        #   --labelclr ANSI
+        #       Override color prefix for the label text.
+        #   --valueclr ANSI
+        #       Override color prefix for the input/value text.
         #   --default VALUE
         #       Editable default value; empty entry resolves to this value.
         #   --validate FUNC
@@ -508,6 +519,7 @@ set -uo pipefail
         #   ask --label "Project name" --labelwidth 20 --var project
         #   ask --label "Environment" --default "dev" --var env
         #   ask --label "Release date" --validate validate_date --var release_date
+        #   ask --label "Project name" --labelclr "$BRIGHT_WHITE" --valueclr "$BRIGHT_GREEN" --var project_name
         #
         # Examples:
         #   ask --label "Project name" --var project_name
@@ -518,22 +530,28 @@ set -uo pipefail
         #
         #   ask --label "Release date" --validate validate_date --var release_date
         #
+        #   ask --label "Project name" --labelclr "$BRIGHT_WHITE" --valueclr "$BRIGHT_GREEN" --var project_name
+        #
         # Notes:
         #   - Re-prompt currently uses recursion; convert to a loop later if you want
         #     to avoid recursive retries entirely.
         #   - When neither --var nor --echo is supplied, the accepted value is kept
         #     local and not emitted.
-    ask(){
+    ask() {
         local label="" var_name="" colorize="both"
         local validate_fn="" def_value="" echo_input=0
         local label_width=""
+        local labelclr=""
+        local valueclr=""
         local -a _orig_args=( "$@" )
-        
+
         # ---- parse options ------------------------------------------------------
         while [[ $# -gt 0 ]]; do
             case "$1" in
                 --label)      label="$2"; shift 2 ;;
                 --labelwidth) label_width="$2"; shift 2 ;;
+                --labelclr)   labelclr="$2"; shift 2 ;;
+                --valueclr)   valueclr="$2"; shift 2 ;;
                 --var)        var_name="$2"; shift 2 ;;
                 --colorize)   colorize="$2"; shift 2 ;;
                 --validate)   validate_fn="$2"; shift 2 ;;
@@ -564,7 +582,10 @@ set -uo pipefail
                 input_color=""
                 ;;
         esac
-        
+
+        [[ -n "$labelclr" ]] && label_color="$labelclr"
+        [[ -n "$valueclr" ]] && input_color="$valueclr"
+
         # ---- build prompt -------------------------------------------------------
         local prompt=""
         local rendered_label=""
@@ -580,9 +601,13 @@ set -uo pipefail
         fi
 
         # ---- use bash readline pre-fill (-i) -----------------------------------
-        local value ok
+        local value="" ok=1
         local tty_fd
-        exec {tty_fd}</dev/tty || { printf "%bNo TTY available%b\n" "$TUI_INVALID" "$RESET"; return 2; }
+
+        exec {tty_fd}</dev/tty || {
+            printf "%bNo TTY available%b\n" "$TUI_INVALID" "$RESET"
+            return 2
+        }
 
         if [[ -n "$def_value" ]]; then
             IFS= read -u "$tty_fd" -e -p "$prompt" -i "$def_value" value
@@ -596,7 +621,6 @@ set -uo pipefail
         printf "%b" "$RESET"
 
         # ---- validation ---------------------------------------------------------
-        ok=1
         if [[ -n "$validate_fn" ]]; then
             if "$validate_fn" "$value"; then
                 ok=1
@@ -613,7 +637,7 @@ set -uo pipefail
                     "$TUI_VALID" "$RESET" >/dev/tty
             else
                 printf "  %b%s%b %b✗%b\n" \
-                    "$TUI_INPUT" "$value" "$RESET" \
+                    "$input_color" "$value" "$RESET" \
                     "$TUI_INVALID" "$RESET" >/dev/tty
             fi
         fi
@@ -628,8 +652,8 @@ set -uo pipefail
         # ---- return value -------------------------------------------------------
         if [[ -n "$var_name" ]]; then
             printf -v "$var_name" '%s' "$value"
-        elif [[ "$echo_input" -eq 1 ]]; then
-            printf "%s\n" "$value"
+        elif (( echo_input )); then
+            printf '%s\n' "$value"
         fi
     }
 
@@ -1107,7 +1131,7 @@ set -uo pipefail
             *)                          return 3 ;;
         esac
     }
-# --- File system validations -----------------------------------------------------
+# --- File system validations --------------------------------------------------------
     # validate_file_exists
         # Purpose:
         #   Validate that PATH exists and is a regular file.
@@ -1191,7 +1215,7 @@ set -uo pipefail
         return 1
     }
 
-# --- Type validations ------------------------------------------------------------
+# --- Type validations ---------------------------------------------------------------
     # validate_int
         #
         # Validate an integer (base-10), allowing an optional leading minus sign.

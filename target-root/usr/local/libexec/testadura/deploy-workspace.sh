@@ -1,12 +1,18 @@
 #!/usr/bin/env bash
-# ==================================================================================
-# Testadura Consultancy — Deploy Workspace
-# ----------------------------------------------------------------------------------
-# Purpose:
-#   Deploy or remove a development workspace to/from a target root.
+# =====================================================================================
+# SolidgroundUX - Deploy Workspace
+# -------------------------------------------------------------------------------------
+# Metadata:
+#   Version     : 1.0
+#   Build       : 2602607900
+#   Checksum    :
+#   Source      : deploy-workspace.sh
+#   Type        : script
+#   Purpose     : Deploy or remove a development workspace to or from a target root
 #
 # Description:
-#   Synchronizes a structured workspace into a target filesystem root.
+#   Provides a deployment utility that synchronizes a structured workspace
+#   into a target filesystem root.
 #
 #   The script:
 #     - Copies files from source to target while preserving structure
@@ -16,25 +22,30 @@
 #     - Records created files and directories in a deploy manifest
 #     - Supports manifest-based undeploy operations
 #
-# Deployment model:
-#   - Source is treated as a workspace root
-#   - Target is treated as a filesystem root (/, chroot, image root, etc.)
-#   - Files are installed if missing or newer than target
-#   - Deploy records only files and directories created by the current run
-#   - Undeploy removes only files and directories recorded in a selected manifest
+# Design principles:
+#   - Deployment behavior is explicit and predictable
+#   - Only created artifacts are tracked for undeploy
+#   - Honors dry-run, verbose, and debug run modes
+#   - Avoids destructive rollback behavior outside recorded manifests
 #
-# Notes:
-#   - May require root privileges depending on target
-#   - Honors FLAG_DRYRUN, FLAG_VERBOSE, and FLAG_DEBUG
-#   - Updated pre-existing target files are not recorded in the manifest
-#   - Undeploy is not a full rollback; it removes created artifacts only
+# Role in framework:
+#   - Entry point for deploying prepared workspaces into target roots
+#   - Supports controlled install and removal workflows for SolidgroundUX assets
 #
-# Author  : Mark Fieten
-# © 2025 Mark Fieten — Testadura Consultancy
-# Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
-# ==================================================================================
+# Non-goals:
+#   - Full rollback of all modified target files
+#   - Generic backup or restore functionality
+#   - Arbitrary synchronization outside the workspace deployment model
+#
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      :
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# =====================================================================================
 set -uo pipefail
-# --- Bootstrap --------------------------------------------------------------------
+# --- Bootstrap -----------------------------------------------------------------------
     # __framework_locator
         # Purpose:
         #   Locate, create, and load the SolidGroundUX bootstrap configuration.
@@ -230,7 +241,7 @@ set -uo pipefail
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
 
-# --- Script metadata (identity) ---------------------------------------------------
+# --- Script metadata (identity) ------------------------------------------------------
     TD_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
     TD_SCRIPT_DIR="$(cd -- "$(dirname -- "$TD_SCRIPT_FILE")" && pwd)"
     TD_SCRIPT_BASE="$(basename -- "$TD_SCRIPT_FILE")"
@@ -251,7 +262,7 @@ set -uo pipefail
     MANIFEST_PATH=""
     MANIFEST_TMP=""
 
-# --- Script metadata (framework integration) --------------------------------------
+# --- Script metadata (framework integration) -----------------------------------------
     # TD_USING
         # Libraries to source from TD_COMMON_LIB.
         # These are loaded automatically by td_bootstrap AFTER core libraries.
@@ -384,7 +395,7 @@ set -uo pipefail
         #   2) call td_bootstrap --state
     TD_STATE_SAVE=0
 
-# --- Local script Declarations ----------------------------------------------------
+# --- Local script Declarations -------------------------------------------------------
     # Put script-local constants and defaults here (NOT framework config).
     # Prefer local variables inside functions unless a value must be shared.
 
@@ -415,7 +426,7 @@ set -uo pipefail
         "/var/lib/testadura|600|700|Application state"
     )
 
-# --- local script functions -------------------------------------------------------
+# --- local script functions ----------------------------------------------------------
  # -- Manifests
     # __manifest_source_id
         # Purpose:
@@ -1248,7 +1259,7 @@ set -uo pipefail
         return 0
     }
 
-# --- Main -------------------------------------------------------------------------
+# --- Main ----------------------------------------------------------------------------
     # main
         # Purpose:
         #   Execute the workspace deployment workflow.

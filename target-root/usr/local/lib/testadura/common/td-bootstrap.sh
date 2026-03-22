@@ -1,44 +1,50 @@
-# =================================================================================
-# Testadura Consultancy — Framework Bootstrap Orchestrator
-# ---------------------------------------------------------------------------------
-# Module     : td-bootstrap.sh
-# Purpose    : Framework bootstrap orchestrator (environment, config, libraries)
+# =====================================================================================
+# SolidgroundUX - Bootstrap Core
+# -------------------------------------------------------------------------------------
+# Metadata:
+#   Version     : 1.0
+#   Build       : 2602607900
+#   Checksum    :
+#   Source      : td-bootstrap.sh
+#   Type        : library
+#   Purpose     : Initialize the SolidgroundUX framework and load core modules
 #
-# Responsibilities:
-#   - Source bootstrap environment (td-bootstrap-env.sh)
-#   - Apply defaults and derive framework paths
-#   - Ensure required directory structure exists
-#   - Load core libraries in defined order (TD_CORE_LIBS)
-#   - Load framework configuration (system + user)
+# Description:
+#   Provides the central bootstrap mechanism for all SolidgroundUX scripts.
 #
-# Design:
-#   - Acts as the canonical entry into the Testadura runtime environment
-#   - Idempotent: safe to call multiple times
-#   - Minimal logic; delegates responsibilities to specialized modules
+#   The library:
+#     - Orchestrates framework initialization sequence
+#     - Loads core and declared libraries (TD_USING)
+#     - Parses and separates framework and script arguments
+#     - Initializes environment, configuration, and runtime state
+#     - Applies standard execution flow for all scripts
+#     - Ensures consistent startup behavior across all tools
 #
-# Flow:
-#   1. Load bootstrap environment definitions
-#   2. Apply defaults
-#   3. Rebase directories and cfg paths
-#   4. Ensure required directories exist
-#   5. Load core libraries
-#   6. Apply framework configuration
+# Design principles:
+#   - Single entry point for framework initialization
+#   - Deterministic and repeatable startup sequence
+#   - Explicit dependency loading via TD_USING
+#   - Minimal assumptions about script context
 #
-# Assumptions:
-#   - Executed from a Bash entry script
-#   - Required files exist under TD_COMMON_LIB
+# Role in framework:
+#   - Central orchestrator of the SolidgroundUX runtime
+#   - Bridges bootstrap environment, argument parsing, and module loading
+#   - Ensures every script runs within a fully initialized framework context
 #
 # Non-goals:
-#   - Argument parsing (args layer)
-#   - UI/menu logic
+#   - Business logic execution
+#   - UI rendering or interaction handling
 #   - Application-specific behavior
 #
-# Author  : Mark Fieten
-# © 2025 Mark Fieten — Testadura Consultancy
-# Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
-# ==================================================================================
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      :
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# =====================================================================================
 set -uo pipefail
-# --- Library guard ---------------------------------------------------------------
+# --- Library guard -------------------------------------------------------------------
     # __td_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
@@ -127,7 +133,7 @@ set -uo pipefail
         return "$rc"
     }
 
-# --- Main sequence helpers + EXIT dispatch ---------------------------------------
+# --- Main sequence helpers + EXIT dispatch -------------------------------------------
     # __parse_bootstrap_args
         # Purpose:
         #   Parse framework-level bootstrap switches before script/builtin parsing.
@@ -359,7 +365,7 @@ set -uo pipefail
         return "$rc"
     }
 
-# --- Public API ------------------------------------------------------------------
+# --- Public API ----------------------------------------------------------------------
     # td_on_exit_install
         # Purpose:
         #   Install the framework EXIT dispatcher (trap) exactly once per process.

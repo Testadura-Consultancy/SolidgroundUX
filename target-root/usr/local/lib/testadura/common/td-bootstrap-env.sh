@@ -1,37 +1,49 @@
-# =================================================================================
-# Testadura Consultancy — Bootstrap Environment Setup module
-# ---------------------------------------------------------------------------------
-# Module     : td-bootstrap-env.sh
-# Purpose    : Bootstrap environment primitives (defaults, roots, derived paths)
+# =====================================================================================
+# SolidgroundUX - Bootstrap Environment
+# -------------------------------------------------------------------------------------
+# Metadata:
+#   Version     : 1.0
+#   Build       : 2602607900
+#   Checksum    :
+#   Source      : td-bootstrap-env.sh
+#   Type        : library
+#   Purpose     : Initialize framework environment variables and directory structure
 #
-# Scope:
-#   - Defines framework identity metadata
-#   - Defines framework-global configuration specifications (TD_FRAMEWORK_GLOBALS)
-#   - Defines core library load order (TD_CORE_LIBS)
-#   - Applies default values (td_apply_defaults / td_defaults_reset)
-#   - Derives standard directory and file paths from root settings
-#   - Prepares framework-level cfg path resolution
+# Description:
+#   Establishes the runtime environment for SolidgroundUX scripts.
 #
-# Design:
-#   - Pure bootstrap layer (no argument parsing, no UI, no logging policy)
-#   - Idempotent and safe for repeated sourcing
-#   - No side effects beyond variable initialization and path derivation
+#   The library:
+#     - Defines and initializes core framework directories
+#     - Resolves system and user paths (config, state, logs, etc.)
+#     - Ensures required directories exist with proper permissions
+#     - Applies default values for environment variables when unset
+#     - Normalizes environment behavior across different execution contexts
 #
-# Assumptions:
-#   - Minimal shell environment; safe to source early in bootstrap
-#   - Caller may run under sudo; TD_USER_HOME is derived accordingly
+# Design principles:
+#   - Deterministic environment setup regardless of execution context
+#   - Clear separation between framework root and application root
+#   - Safe defaults with minimal assumptions about host system
+#   - Idempotent setup (safe to run multiple times)
+#
+# Role in framework:
+#   - Core bootstrap layer responsible for environment initialization
+#   - Runs early in the bootstrap process before other libraries depend on it
+#   - Provides foundational paths and variables used across all modules
 #
 # Non-goals:
-#   - Argument parsing (args layer)
-#   - Configuration application (cfg/state layer)
-#   - UI/logging behavior (ui modules)
+#   - Argument parsing (handled by args.sh)
+#   - Configuration loading (handled by cfg.sh)
+#   - UI or user interaction
 #
-# Author  : Mark Fieten
-# © 2025 Mark Fieten — Testadura Consultancy
-# Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
-# ==================================================================================
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      :
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# =====================================================================================
 set -uo pipefail
-# --- Library guard ---------------------------------------------------------------
+# --- Library guard -------------------------------------------------------------------
     # __td_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
@@ -79,7 +91,7 @@ set -uo pipefail
     [[ -n "${!__lib_guard-}" ]] && return 0
     printf -v "$__lib_guard" '1'
 
-# --- Framework identity ----------------------------------------------------------
+# --- Framework identity --------------------------------------------------------------
     # Product/branding metadata used by framework-info, logging headers, and about text.
     TD_PRODUCT="SolidgroundUX"
     TD_VERSION="1.0-R2-beta"
@@ -91,7 +103,7 @@ set -uo pipefail
     TD_LICENSE_ACCEPTED=0
     TD_README_FILE="README.md"
 
-# --- Framework metadata ----------------------------------------------------------
+# --- Framework metadata --------------------------------------------------------------
     # TD_FRAMEWORK_GLOBALS spec format:
         #   audience|VARNAME|Human-readable description|extra
         #   - audience: system | user | both
@@ -136,7 +148,7 @@ set -uo pipefail
 
     TD_FRAMEWORK_DIRS=(
     )
-# --- Helpers ---------------------------------------------------------------------
+# --- Helpers -------------------------------------------------------------------------
     __build_framework_dirs(){
         TD_FRAMEWORK_DIRS=(
             "s|$TD_COMMON_LIB"
@@ -149,7 +161,7 @@ set -uo pipefail
             "u|$(dirname "$TD_ALTLOG_PATH")"
         )
     }
-# --- Public API ------------------------------------------------------------------
+# --- Public API ----------------------------------------------------------------------
     # td_apply_defaults
         # Purpose:
         #   Apply default values for bootstrap globals if currently unset.

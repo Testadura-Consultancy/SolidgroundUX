@@ -1,38 +1,50 @@
 #!/usr/bin/env bash
-# ==================================================================================
-# Testadura Consultancy — Prepare Release
-# ----------------------------------------------------------------------------------
-# Purpose:
-#   Create a clean tar.gz release archive from the current workspace.
+# =====================================================================================
+# SolidgroundUX - Prepare Release
+# -------------------------------------------------------------------------------------
+# Metadata:
+#   Version     : 1.0
+#   Build       : 2602607900
+#   Checksum    :
+#   Source      : prepare-release.sh
+#   Type        : script
+#   Purpose     : Prepare framework scripts for release
 #
 # Description:
-#   Developer utility that assembles a clean release package from a
-#   workspace by staging a filtered copy, generating a manifest, and writing
-#   checksums for the final artifacts.
+#   Provides a release-preparation utility for SolidgroundUX workspaces.
 #
-#   The script can:
-#     - resolve release parameters interactively or from saved state
-#     - stage a clean copy of the source workspace
-#     - generate a versioned tar.gz archive
-#     - generate an uninstall manifest and embed it in the archive
-#     - update SHA256SUMS and sidecar checksum files
+#   The script:
+#     - Selects target scripts by file or folder
+#     - Refreshes version, build, and checksum metadata
+#     - Applies optional major or minor version bumps
+#     - Supports dry-run verification before committing changes
+#     - Ensures release metadata is consistent across processed scripts
 #
-# Release model:
-#   - Source is treated as the current application or workspace root
-#   - Output is written under a staging/releases directory
-#   - Artifacts are intended to be clean and distributable
+# Design principles:
+#   - Release preparation is deterministic and repeatable
+#   - Metadata updates are explicit and convention-based
+#   - Safe verification is supported through dry-run mode
+#   - Script formatting is preserved when updating field values
 #
-# Notes:
-#   - Honors FLAG_DRYRUN, FLAG_VERBOSE, and FLAG_DEBUG
-#   - Supports auto mode and optional reuse of an existing staging tree
+# Role in framework:
+#   - Pre-release maintenance tool for framework and utility scripts
+#   - Ensures release metadata is synchronized before distribution
 #
-# Author  : Mark Fieten
-# © 2025 Mark Fieten — Testadura Consultancy
-# Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
-# ==================================================================================
+# Non-goals:
+#   - Packaging release artifacts
+#   - Deploying files to target environments
+#   - Managing version control, tagging, or publication workflows
+#
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      :
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# =====================================================================================
 
 set -uo pipefail
-# --- Bootstrap --------------------------------------------------------------------
+# --- Bootstrap -----------------------------------------------------------------------
     # __framework_locator
         # Purpose:
         #   Locate, create, and load the SolidGroundUX bootstrap configuration.
@@ -228,7 +240,7 @@ set -uo pipefail
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
     
-# --- Script metadata (identity) ---------------------------------------------------
+# --- Script metadata (identity) ------------------------------------------------------
     TD_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
     TD_SCRIPT_DIR="$(cd -- "$(dirname -- "$TD_SCRIPT_FILE")" && pwd)"
     TD_SCRIPT_BASE="$(basename -- "$TD_SCRIPT_FILE")"
@@ -244,7 +256,7 @@ set -uo pipefail
 
     readonly BOOTSTRAP
 
-# --- Script metadata (framework integration) --------------------------------------
+# --- Script metadata (framework integration) -----------------------------------------
     # TD_USING
         # Libraries to source from TD_COMMON_LIB.
         # These are loaded automatically by td_bootstrap AFTER core libraries.
@@ -254,6 +266,7 @@ set -uo pipefail
         #
         # Leave empty if no extra libs are needed.
     TD_USING=(
+        td-comment-parser.sh
     )
 
     # TD_ARGS_SPEC 
@@ -277,6 +290,8 @@ set -uo pipefail
         "auto|a|flag|FLAG_AUTO|Repeat with last settings|"
         "cleanup|c|flag|FLAG_CLEANUP|Cleanup staging files after run|"
         "useexisting|u|flag|FLAG_USEEXISTING|Use existing staging files|"
+        "bumpmajor||flag|FLAG_BUMP_MAJOR|Bump major version in source headers before packaging|"
+        "bumpminor||flag|FLAG_BUMP_MINOR|Bump minor version in source headers before packaging|"
     )
 
     # TD_SCRIPT_EXAMPLES
@@ -377,11 +392,11 @@ set -uo pipefail
         #   2) call td_bootstrap --state
     TD_STATE_SAVE=0
 
-# --- Local script Declarations ----------------------------------------------------
+# --- Local script Declarations -------------------------------------------------------
     # Put script-local constants and defaults here (NOT framework config).
     # Prefer local variables inside functions unless a value must be shared.
 
-# --- Local script functions -------------------------------------------------------
+# --- Local script functions ----------------------------------------------------------
     # __save_parameters
         # Purpose:
         #   Persist the current release parameters to the framework state store.
@@ -748,7 +763,56 @@ set -uo pipefail
         return 0
     }
 
-# --- Main Sequence ----------------------------------------------------------------
+
+
+    # __apply_version_bump
+        # Purpose:
+        #   Apply header checksum/build refresh and optional version bumping to source files.
+        #
+        # Behavior:
+        #   - Scans SOURCE_DIR for readable shell source files.
+        #   - Applies td_header_bump_version to each file.
+        #   - Uses --bumpmajor or --bumpminor to decide the bump mode.
+        #   - When no bump flag is set, does nothing.
+        #
+        # Inputs (globals):
+        #   SOURCE_DIR
+        #   FLAG_BUMP_MAJOR
+        #   FLAG_BUMP_MINOR
+        #
+        # Returns:
+        #   0 on success
+        #   1 on failure
+    __apply_version_bump() {
+        local mode="none"
+        local file=""
+        local failed=0
+
+        if (( ${FLAG_BUMP_MAJOR:-0} )) && (( ${FLAG_BUMP_MINOR:-0} )); then
+            sayfail "Use either --bumpmajor or --bumpminor, not both"
+            return 1
+        fi
+
+        if (( ${FLAG_BUMP_MAJOR:-0} )); then
+            mode="major"
+        elif (( ${FLAG_BUMP_MINOR:-0} )); then
+            mode="minor"
+        else
+            return 0
+        fi
+
+        while IFS= read -r -d '' file; do
+            if td_header_bump_version "$file" "$mode"; then
+                sayok "Updated header metadata in $file"
+            else
+                sayfail "Failed to update header metadata in $file"
+                failed=1
+            fi
+        done < <(find "$SOURCE_DIR" -type f -name '*.sh' -not -path '*/releases/*' -print0)
+
+        return "$failed"
+    }
+# --- Main Sequence -------------------------------------------------------------------
     # main
         # Purpose:
         #   Execute the release preparation workflow.
@@ -804,6 +868,7 @@ set -uo pipefail
         # -- Main script logic
 
         __get_parameters
+        __apply_version_bump || exit $?
         __create_tar
     }
 

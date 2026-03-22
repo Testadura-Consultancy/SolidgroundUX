@@ -1,54 +1,50 @@
-# =================================================================================
-# Testadura Consultancy — Bash DataTable Abstraction Module
-# ---------------------------------------------------------------------------------
-# Module     : td-datatable.sh
-# Purpose    : Lightweight DataTable-style abstraction for Bash arrays
+# =====================================================================================
+# SolidgroundUX - Datatable
+# -------------------------------------------------------------------------------------
+# Metadata:
+#   Version     : 1.0
+#   Build       : 2602607900
+#   Checksum    :
+#   Source      : td-datatable.sh
+#   Type        : library
+#   Purpose     : Provide lightweight tabular data structures and utilities
 #
 # Description:
-#   Provides a minimal relational-style table model using:
-#     - a pipe-separated schema definition
-#     - indexed arrays storing pipe-separated row strings
+#   Provides a lightweight, schema-driven datatable abstraction for handling
+#   structured data within shell scripts.
 #
-#   Enables structured data handling in Bash scripts without external tools.
-#
-# Core capabilities:
-#   - Schema validation and column resolution
-#   - Row construction and validation
-#   - Column-based access (get/set)
-#   - Table operations (insert, delete, find, append)
+#   The library:
+#     - Defines schema-based row structures using delimited fields
+#     - Stores and manages tabular data in indexed arrays
+#     - Supports row insertion, retrieval, and iteration
+#     - Enables field-based access using schema definitions
+#     - Provides helper functions for filtering and transformation
 #
 # Design principles:
-#   - Explicit schema required at all times
-#   - No implicit structure or dynamic typing
-#   - No multiline or pipe-containing values
-#   - Row identity is the array index
-#   - Minimal feature set (no SQL-like complexity)
-#
-# Typical usage:
-#   SCHEMA="id|name|desc"
-#   declare -a ROWS=()
-#
-#   td_dt_append "$SCHEMA" ROWS "1" "Tools" "Utility module"
-#   value="$(td_dt_get "$SCHEMA" ROWS 0 name)"
+#   - Minimal abstraction on top of native shell arrays
+#   - Schema-driven access for readability and consistency
+#   - Predictable and explicit data handling
+#   - Lightweight implementation without external dependencies
 #
 # Role in framework:
-#   - Provides structured data handling for modules such as:
-#       * menu systems
-#       * configuration tables
-#       * registry-style collections
+#   - Core data structure used across SolidgroundUX tooling
+#   - Backbone for metadata parsing, UI rendering, and data exchange
 #
 # Non-goals:
-#   - No persistence layer
-#   - No querying language
-#   - No type enforcement beyond basic validation
+#   - Full relational data modeling or query capabilities
+#   - Persistent storage or database functionality
+#   - Replacement for external data processing tools
 #
-# Author     : Mark Fieten
-# Copyright  : © 2025 Mark Fieten — Testadura Consultancy
-# License    : Testadura Non-Commercial License (TD-NC) v1.0
-# =================================================================================
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      :
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# =====================================================================================
 set -uo pipefail
 
-# --- Library guard ---------------------------------------------------------------
+# --- Library guard ------------------------------------------------------------------
     # __td_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
@@ -104,7 +100,7 @@ set -uo pipefail
     __td_lib_guard
     unset -f __td_lib_guard
 
-# --- Internal helpers -------------------------------------------------------------
+# --- Internal helpers ---------------------------------------------------------------
     # td__dt_array_length
         # Purpose:
         #   Return the length of an indexed array by name.
@@ -192,7 +188,7 @@ set -uo pipefail
         unset 'TD_DT_SPLIT[${#TD_DT_SPLIT[@]}-1]'
     }
 
-# --- Public API -------------------------------------------------------------------
+# --- Public API ---------------------------------------------------------------------
     # td_dt_validate_value
         # Purpose:
         #   Validate whether a field value is supported by v1 storage rules.

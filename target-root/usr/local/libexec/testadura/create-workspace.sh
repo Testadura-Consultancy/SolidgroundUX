@@ -1,40 +1,48 @@
 #!/usr/bin/env bash
-# ===================================================================================
-# Testadura Consultancy — Create Workspace
-# -----------------------------------------------------------------------------------
-# Module     : create-workspace.sh
-# Purpose    : Create a new development workspace from templates
+# =====================================================================================
+# SolidgroundUX - Create Workspace
+# -------------------------------------------------------------------------------------
+# Metadata:
+#   Version     : 1.0
+#   Build       : 2602607900
+#   Checksum    :
+#   Source      : create-workspace.sh
+#   Type        : script
+#   Purpose     : Create a new development workspace from templates
 #
 # Description:
-#   Developer utility that scaffolds a new project workspace into a target
-#   directory using the framework's standard template layout.
+#   Provides a developer utility that scaffolds a new project workspace
+#   into a target directory using the framework's standard template layout.
 #
-#   The script can:
-#     - resolve project name and target folder
-#     - create the required repository and target-root structure
-#     - copy framework template files
-#     - generate a VS Code workspace file
-#     - generate a standard .gitignore
-#     - generate a workspace creation manifest
-#     - optionally generate a console-module app config
-#     - remove previously created workspace items through --uncreate
+#   The script:
+#     - Resolves project name and target folder
+#     - Creates repository and target-root structure
+#     - Copies framework template files
+#     - Generates a VS Code workspace file
+#     - Generates a standard .gitignore
 #
 # Design principles:
-#   - Uses the canonical executable bootstrap flow
-#   - Keeps workspace creation deterministic and repeatable
-#   - Honors dry-run mode for all filesystem changes
-#   - Follows Testadura / SolidGround project conventions
+#   - Workspace creation is deterministic and repeatable
+#   - Follows SolidgroundUX project conventions
+#   - Supports dry-run for all filesystem operations
 #
-# Intended use:
-#   - Development and project scaffolding
-#   - Not intended for deployment or runtime installation
+# Role in framework:
+#   - Entry point for initializing new development workspaces
+#   - Ensures consistent project structure across environments
 #
-# Author     : Mark Fieten
-# © 2025 Mark Fieten — Testadura Consultancy
-# Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
-# ===================================================================================
+# Non-goals:
+#   - Deployment or installation of runtime environments
+#   - Managing existing workspaces beyond initial scaffolding
+#
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      :
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# =====================================================================================
 set -uo pipefail
-# --- Bootstrap --------------------------------------------------------------------
+# --- Bootstrap -----------------------------------------------------------------------
     # __framework_locator
         # Purpose:
         #   Locate, create, and load the SolidGroundUX bootstrap configuration.
@@ -230,7 +238,7 @@ set -uo pipefail
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
 
-# --- Script metadata --------------------------------------------------------------
+# --- Script metadata -----------------------------------------------------------------
     TD_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
     TD_SCRIPT_DIR="$(cd -- "$(dirname -- "$TD_SCRIPT_FILE")" && pwd)"
     TD_SCRIPT_BASE="$(basename -- "$TD_SCRIPT_FILE")"
@@ -244,7 +252,7 @@ set -uo pipefail
     : "${TD_SCRIPT_COPYRIGHT:=© 2025 Mark Fieten — Testadura Consultancy}"
     : "${TD_SCRIPT_LICENSE:=Testadura Non-Commercial License (TD-NC) v1.0}"
    
-# --- Script metadata (framework integration) --------------------------------------
+# --- Script metadata (framework integration) -----------------------------------------
     # TD_USING
         # Libraries to source from TD_COMMON_LIB.
         # These are loaded automatically by td_bootstrap AFTER core libraries.
@@ -381,7 +389,7 @@ set -uo pipefail
     TD_STATE_SAVE=0
 
 
-# --- local script functions -------------------------------------------------------
+# --- local script functions ----------------------------------------------------------
  # -- General helpers
     # __normalize_project_flags
         # Purpose:
@@ -1221,7 +1229,7 @@ set -uo pipefail
         sayinfo "Created module app config ${appcfg_file}"
     }
 
-# --- main -------------------------------------------------------------------------
+# --- main ----------------------------------------------------------------------------
     # main
         # Purpose:
         #   Execute the workspace creation or uncreation workflow.

@@ -1,48 +1,51 @@
-# ==================================================================================
-# SolidgroundUX Comment parser
-# ----------------------------------------------------------------------------------
+# =====================================================================================
+# SolidgroundUX - Comment Parser
+# -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 26079
-#   Sourcefile  : td-comment-parser.sh
+#   Build       : 2602607900
+#   Checksum    :
+#   Source      : td-comment-parser.sh
 #   Type        : library
-#   Purpose     : Library of helper functions to read and write data from script comments
+#   Purpose     : Parse and update structured header comments in SolidgroundUX scripts
 #
-# # Description:
-#   Provides helper functions to read and update structured header comments
-#   in SolidGroundUX/Testadura scripts and libraries.
+# Description:
+#   Provides parsing and update utilities for structured script header comments
+#   used throughout the SolidgroundUX framework.
 #
-#   Supports:
-#     - detecting canonical header section lines
-#     - reading full section content
-#     - reading individual field values from a section
-#     - loading section fields into a td-datatable
-#     - updating an existing field value in place
+#   The library:
+#     - Detects and reads canonical header sections
+#     - Extracts field/value pairs from structured comment blocks
+#     - Loads header data into td-datatable structures
+#     - Updates existing metadata field values while preserving formatting
+#     - Adds missing fields where required
+#     - Supports version, build, and checksum metadata workflows
 #
 # Design principles:
-#   - Operates only on comment headers at the top of a file
-#   - Treats section headers and field lines as structured text
-#   - Keeps parsing rules simple and predictable
-#   - Leaves policy and validation to the caller
+#   - Header comments are treated as structured, machine-readable data
+#   - Parsing logic is independent from higher-level UI workflows
+#   - Existing formatting is preserved when updating field values
+#   - Header manipulation remains predictable and convention-based
 #
 # Role in framework:
-#   - Shared parser/writer for script header metadata
-#   - Supports tools such as metadata-editor and documentation extraction
+#   - Core metadata parsing and update layer for script tooling
+#   - Supports metadata-editor and other header-aware utilities
 #
 # Non-goals:
-#   - Parsing arbitrary comments throughout a file
-#   - Inserting missing sections or fields
-#   - Validating business meaning of metadata values
+#   - Parsing arbitrary free-form comments outside canonical header sections
+#   - Acting as a general-purpose text processing library
+#   - Defining project policy beyond header comment conventions
 #
 # Attribution:
-#   Developers    : Mark Fieten
-#   Company       : Testadura Consultancy
-#   Client        :
-#   Copyright     : © 2025 Mark Fieten — Testadura Consultancy
-#   License       : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
-# ==================================================================================
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      :
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# =====================================================================================
+
 set -uo pipefail
-# --- Library guard ---------------------------------------------------------------
+# --- Library guard ------------------------------------------------------------------
     # __td_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
@@ -99,8 +102,8 @@ set -uo pipefail
     unset -f __td_lib_guard
 
 
-# --- Internal helpers ------------------------------------------------------------
-# --- Public API ------------------------------------------------------------------
+# --- Internal helpers ---------------------------------------------------------------
+# --- Public API ---------------------------------------------------------------------
     # __td_header_load_section_to_dt
             # Purpose:
             #   Load all key/value pairs from a header section into a td-datatable.
@@ -321,9 +324,240 @@ set -uo pipefail
         printf '%s' "$value"
     }
 
+
+
+    # td_header_add_field
+        # Purpose:
+        #   Insert a new field into an existing named header section.
+        #
+        # Arguments:
+        #   $1  FILE
+        #   $2  SECTION
+        #   $3  FIELD
+        #   $4  VALUE
+        #
+        # Returns:
+        #   0  field inserted
+        #   1  write or temp-file failure
+        #   2  section not found
+    td_header_add_field() {
+        local file="${1:?missing file}"
+        local section="${2:?missing section}"
+        local field="${3:?missing field}"
+        local value="${4-}"
+
+        local tmp_file=""
+        local line=""
+        local in_section=0
+        local inserted=0
+        local saw_section=0
+
+        tmp_file="$(mktemp)" || return 1
+
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            if [[ "$line" == "# $section:" ]]; then
+                in_section=1
+                saw_section=1
+                printf '%s\n' "$line" >> "$tmp_file"
+                continue
+            fi
+
+            if (( in_section )) && td_header_is_section_header "$line"; then
+                printf '#   %s : %s\n' "$field" "$value" >> "$tmp_file"
+                printf '%s\n' "$line" >> "$tmp_file"
+                inserted=1
+                in_section=0
+                continue
+            fi
+
+            printf '%s\n' "$line" >> "$tmp_file"
+        done < "$file"
+
+        if (( in_section && saw_section && ! inserted )); then
+            printf '#   %s : %s\n' "$field" "$value" >> "$tmp_file"
+            inserted=1
+        fi
+
+        if (( ! saw_section )); then
+            rm -f "$tmp_file"
+            return 2
+        fi
+
+        if (( ${FLAG_DRYRUN:-0} )); then
+            sayinfo "Would have inserted [$section] $field in $file to: $value"
+            rm -f "$tmp_file"
+            return 0
+        fi
+
+        if (( inserted )); then
+            mv "$tmp_file" "$file" || {
+                rm -f "$tmp_file"
+                return 1
+            }
+            return 0
+        fi
+
+        rm -f "$tmp_file"
+        return 1
+    }
+
+    # td_header_upsert_field
+        # Purpose:
+        #   Update a field when present or insert it when missing from an existing section.
+        #
+        # Arguments:
+        #   $1  FILE
+        #   $2  SECTION
+        #   $3  FIELD
+        #   $4  VALUE
+        #
+        # Returns:
+        #   0  field updated or inserted
+        #   1  write or temp-file failure
+        #   2  section not found
+    td_header_upsert_field() {
+        local file="${1:?missing file}"
+        local section="${2:?missing section}"
+        local field="${3:?missing field}"
+        local value="${4-}"
+        local rc=0
+
+        td_header_set_field "$file" "$section" "$field" "$value"
+        rc=$?
+
+        case "$rc" in
+            0) return 0 ;;
+            2) td_header_add_field "$file" "$section" "$field" "$value"; return $? ;;
+            *) return "$rc" ;;
+        esac
+    }
+
+    # td_header_calc_checksum
+        # Purpose:
+        #   Calculate a stable checksum for a script while ignoring self-updating metadata fields.
+        #
+        # Behavior:
+        #   - Hashes the full file content.
+        #   - Excludes Metadata lines for Version, Build, and Checksum from the hash input.
+        #   - Prints the SHA256 checksum to stdout.
+        #
+        # Arguments:
+        #   $1  FILE
+        #
+        # Returns:
+        #   0  success
+        #   1  file missing or checksum tool failed
+    td_header_calc_checksum() {
+        local file="${1:?missing file}"
+
+        [[ -r "$file" ]] || return 1
+
+        awk '
+            BEGIN { in_metadata = 0 }
+            /^# Metadata:$/ { in_metadata = 1; print; next }
+            in_metadata && /^#[[:space:]][A-Za-z][A-Za-z[:space:]-]*:[[:space:]]*$/ { in_metadata = 0 }
+            in_metadata && /^#[[:space:]]+Version[[:space:]]*:/ { next }
+            in_metadata && /^#[[:space:]]+Build[[:space:]]*:/ { next }
+            in_metadata && /^#[[:space:]]+Checksum[[:space:]]*:/ { next }
+            { print }
+        ' "$file" | sha256sum | awk '{print $1}'
+    }
+
+    # td_header_bump_version
+        # Purpose:
+        #   Refresh header checksum/build metadata and optionally bump semantic version fields.
+        #
+        # Behavior:
+        #   - Ensures a Checksum field exists in the Metadata section.
+        #   - Compares the stored checksum to the current normalized checksum.
+        #   - If the checksum differs, always updates Build and Checksum.
+        #   - Optionally bumps major or minor version numbers.
+        #   - A version bump also updates Build and Checksum.
+        #   - Build format is yydddHH (year, day-of-year, hour).
+        #
+        # Arguments:
+        #   $1  FILE
+        #   $2  MODE   none | major | minor
+        #
+        # Returns:
+        #   0  success
+        #   1  failure
+    td_header_bump_version() {
+        local file="${1:?missing file}"
+        local mode="${2:-none}"
+        local stored_checksum=""
+        local current_checksum=""
+        local version=""
+        local major="0"
+        local minor="0"
+        local new_version=""
+        local new_build=""
+        local needs_update=0
+
+        current_checksum="$(td_header_calc_checksum "$file")" || return 1
+
+        if ! td_header_get_field "$file" "Metadata" "Checksum" stored_checksum; then
+            stored_checksum=""
+            td_header_add_field "$file" "Metadata" "Checksum" "$current_checksum" || return 1
+        fi
+
+        case "$mode" in
+            major|minor|none) ;;
+            *) return 1 ;;
+        esac
+
+        # Any content change must always refresh Build + Checksum.
+        if [[ "$stored_checksum" != "$current_checksum" ]]; then
+            needs_update=1
+        fi
+
+        if [[ "$mode" != "none" ]]; then
+            td_header_get_field "$file" "Metadata" "Version" version || version="1.0"
+            if [[ "$version" =~ ^([0-9]+)\.([0-9]+)$ ]]; then
+                major="${BASH_REMATCH[1]}"
+                minor="${BASH_REMATCH[2]}"
+            else
+                major="1"
+                minor="0"
+            fi
+
+            case "$mode" in
+                major)
+                    major=$((major + 1))
+                    minor=0
+                    ;;
+                minor)
+                    minor=$((minor + 1))
+                    ;;
+            esac
+
+            new_version="${major}.${minor}"
+            td_header_upsert_field "$file" "Metadata" "Version" "$new_version" || return 1
+
+            # Version change changes content, so refresh checksum and build too.
+            needs_update=1
+            current_checksum="$(td_header_calc_checksum "$file")" || return 1
+        fi
+
+        if (( needs_update )); then
+            new_build="$(date +%y%j%H)"
+            td_header_upsert_field "$file" "Metadata" "Build" "$new_build" || return 1
+            td_header_upsert_field "$file" "Metadata" "Checksum" "$current_checksum" || return 1
+        fi
+
+        return 0
+    }
+
     # td_header_set_field
         # Purpose:
-        #   Replace the value of an existing field inside a named header section.
+        #   Replace the value of an existing field inside a named header section,
+        #   while preserving the original line formatting.
+        #
+        # Behavior:
+        #   - Scans only the requested header section.
+        #   - Matches the requested field by trimmed key name.
+        #   - Preserves the original indentation, label spacing, and separator spacing.
+        #   - Replaces only the field value.
         #
         # Arguments:
         #   $1  FILE
@@ -345,9 +579,13 @@ set -uo pipefail
         local line=""
         local in_section=0
         local replaced=0
+
         local raw=""
+        local lead_ws=""
+        local label_part=""
+        local sep_part=""
+        local value_part=""
         local key=""
-        local prefix=""
 
         tmp_file="$(mktemp)" || return 1
 
@@ -371,15 +609,26 @@ set -uo pipefail
 
             if (( in_section )); then
                 raw="${line#\#}"
-                prefix="${raw%%[![:space:]]*}"
-                raw="${raw#"$prefix"}"
 
-                if [[ "$raw" == *:* ]]; then
-                    key="${raw%%:*}"
-                    key="$(printf '%s' "$key" | sed 's/[[:space:]]*$//')"
+                # Preserve exact formatting:
+                #   group 1 = leading whitespace after '#'
+                #   group 2 = label part exactly as written (including spaces before ':')
+                #   group 3 = separator part beginning with ':' and including spaces/tabs after it
+                #   group 4 = existing value part
+                if [[ "$raw" =~ ^([[:space:]]*)([^:]+)(:[[:space:]]*)(.*)$ ]]; then
+                    lead_ws="${BASH_REMATCH[1]}"
+                    label_part="${BASH_REMATCH[2]}"
+                    sep_part="${BASH_REMATCH[3]}"
+                    value_part="${BASH_REMATCH[4]}"
+
+                    key="$(printf '%s' "$label_part" | sed 's/[[:space:]]*$//')"
 
                     if [[ "$key" == "$field" ]]; then
-                        printf '#%s%s : %s\n' "$prefix" "$field" "$value" >> "$tmp_file"
+                        printf '#%s%s%s%s\n' \
+                            "$lead_ws" \
+                            "$label_part" \
+                            "$sep_part" \
+                            "$value" >> "$tmp_file"
                         replaced=1
                         continue
                     fi

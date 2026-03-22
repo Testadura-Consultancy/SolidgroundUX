@@ -1,46 +1,48 @@
-# ==================================================================================
-# Testadura Consultancy — Timed Dialog Helpers
-# ----------------------------------------------------------------------------------
-# Module     : ui-dlg.sh
-# Purpose    : Non-blocking and timed dialog helpers for TTY-driven terminal scripts
+# =====================================================================================
+# SolidgroundUX - UI Dialogs
+# -------------------------------------------------------------------------------------
+# Metadata:
+#   Version     : 1.0
+#   Build       : 2602607900
+#   Checksum    :
+#   Source      : ui-dlg.sh
+#   Type        : library
+#   Purpose     : Provide dialog-style user interaction helpers
 #
 # Description:
-#   Provides lightweight dialog-style helpers that render a short status block to
-#   the controlling terminal and accept simple key-driven decisions.
+#   Implements dialog-oriented interaction patterns for console applications.
 #
-#   This module is intended for "soft prompt" flows such as:
-#     - timed auto-continue prompts
-#     - pause/resume dialogs
-#     - cancel / redo / quit decision blocks
-#     - small guided interaction without full-screen UI frameworks
-#
-# Terminal I/O model:
-#   - Writes directly to /dev/tty, independent of stdin/stdout redirection
-#   - Uses minimal ANSI cursor movement to redraw the dialog block in place
-#   - Returns decision codes instead of enforcing application policy
+#   The library:
+#     - Provides higher-level dialog constructs built on top of ui-ask
+#     - Supports timed prompts with auto-continue behavior
+#     - Normalizes user responses into consistent action tokens
+#     - Enables structured interaction flows such as confirmations and selections
+#     - Integrates with UI rendering for consistent look and feel
 #
 # Design principles:
-#   - Keep dialog behavior lightweight and terminal-safe
-#   - Separate decision mechanics from higher-level application flow
-#   - Avoid full-screen UI dependencies
-#   - Provide stable return contracts for wrapper functions
+#   - Build on top of primitive input helpers (ui-ask)
+#   - Normalize interaction results for predictable scripting
+#   - Keep dialogs lightweight and composable
+#   - Support both interactive and semi-automated scenarios
 #
 # Role in framework:
-#   - Supports timed and non-blocking interaction patterns
-#   - Complements ui-ask.sh (typed prompts) and ui-say.sh (message output)
-#   - Used where a richer confirmation flow is needed without leaving the normal terminal
+#   - Intermediate interaction layer between raw input (ui-ask) and applications
+#   - Used by scripts requiring structured or timed user decisions
 #
 # Non-goals:
-#   - General-purpose prompting (see ui-ask.sh)
-#   - Typed message output (see ui-say.sh)
-#   - Full-screen terminal UI frameworks
+#   - Full-screen or TUI-style dialog systems
+#   - Complex workflow/state engines
+#   - Persistent dialog sessions
 #
-# Author     : Mark Fieten
-# © 2025 Mark Fieten — Testadura Consultancy
-# Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
-# ==================================================================================
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      :
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# =====================================================================================
 set -uo pipefail
-# --- Library guard ---------------------------------------------------------------
+# --- Library guard ------------------------------------------------------------------
     # __td_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
@@ -96,7 +98,7 @@ set -uo pipefail
     __td_lib_guard
     unset -f __td_lib_guard
 
-# --- Internal helpers ------------------------------------------------------------
+# --- Internal helpers ------------------------------------------------------------------
     # __dlg_keymap
         # Purpose:
         #   Build a human-readable key legend string for the current dialog state.
@@ -155,7 +157,7 @@ set -uo pipefail
         printf '%s' "$keymap"
     }
 
-# --- Public API ------------------------------------------------------------------
+# --- Public API ---------------------------------------------------------------------
     # td_dlg_autocontinue
         # Purpose:
         #   Render a timed dialog on /dev/tty with a countdown and simple key-driven actions.

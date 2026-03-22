@@ -1,24 +1,49 @@
-# ===============================================================================
-# Testadura Consultancy — default-styles.sh
-# -------------------------------------------------------------------------------
-# Purpose    : Default CLI labels, symbols, and color mappings
-# Author     : Mark Fieten
+# =====================================================================================
+# SolidgroundUX - Default UI Style
+# -------------------------------------------------------------------------------------
+# Metadata:
+#   Version     : 1.0
+#   Build       : 2602607900
+#   Checksum    :
+#   Source      : default-ui-style.sh
+#   Type        : library
+#   Purpose     : Define default UI layout, spacing, and styling conventions
 #
-# © 2025 Mark Fieten — Testadura Consultancy
-# Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
-# -------------------------------------------------------------------------------
-# Design rules:
-#   - Constants only (no functions, no side effects).
+# Description:
+#   Provides the default layout and styling rules used by the SolidgroundUX UI layer.
+#
+#   The library:
+#     - Defines spacing, padding, and alignment conventions
+#     - Sets default widths for labels and columns
+#     - Provides style constants for borders, separators, and layout elements
+#     - Complements the color palette with structural presentation rules
+#     - Ensures consistent visual composition across all console tools
+#
+# Design principles:
+#   - Separate layout (style) from color (palette)
+#   - Keep styling declarative and easy to override
+#   - Favor readability and alignment over compactness
+#   - Maintain consistency across all rendered output
+#
+# Role in framework:
+#   - Structural styling layer used by ui.sh and related modules
+#   - Works alongside default-ui-palette.sh to define the full UI theme
+#   - Enables consistent layout behavior across scripts and tools
 #
 # Non-goals:
-#   - Output formatting logic (see ui-say.sh)
-#   - User interaction (see ui-ask.sh)
+#   - Rendering logic or user interaction handling
+#   - Terminal capability detection
+#   - Dynamic layout adaptation beyond simple width awareness
 #
-# Usage:
-#   printf "%s%s %s%s\n" "$MSG_CLR_INFO" "$LBL_INFO" "System initialized" "$RESET"
-# ===============================================================================
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      :
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# =====================================================================================
 
-# --- Message type labels and icons ---------------------------------------------
+# --- Message type labels and icons ---------------------------------------------------
 
   # --- say() global defaults ---------------------------------------------------
     SAY_DATE_DEFAULT=0     # 0 = no date, 1 = add date

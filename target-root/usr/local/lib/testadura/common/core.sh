@@ -1,30 +1,49 @@
-# ==================================================================================
-# Testadura Consultancy — SolidGround Core Library
-# ----------------------------------------------------------------------------------
-# Module  : core.sh
-# Purpose : Foundational helpers and shared primitives used across SolidGround
-#           scripts and modules.
+# =====================================================================================
+# SolidgroundUX - Core Utilities
+# -------------------------------------------------------------------------------------
+# Metadata:
+#   Version     : 1.0
+#   Build       : 2602607900
+#   Checksum    :
+#   Source      : core.sh
+#   Type        : library
+#   Purpose     : Provide foundational utility functions and shared primitives
 #
-# Scope   :
-#   - Lightweight, dependency-free utilities
-#   - Safe shell abstractions (validation, guards, common patterns)
-#   - Internal helpers not tied to UI or application state
+# Description:
+#   Contains the core utility functions used throughout the SolidgroundUX framework.
 #
-# Design  :
-#   - Functions are intentionally small and composable
-#   - No side effects unless explicitly documented
-#   - Suitable for sourcing in any SolidGround-compatible script
+#   The library:
+#     - Defines common helper functions used across modules
+#     - Provides string, array, and general-purpose utilities
+#     - Implements shared conventions and low-level abstractions
+#     - Serves as a dependency for higher-level libraries
+#     - Avoids duplication by centralizing frequently used logic
 #
-# Notes   :
-#   - This module forms part of the SolidGround runtime layer
-#   - Keep dependencies minimal to avoid bootstrap coupling
+# Design principles:
+#   - Keep utilities generic and broadly reusable
+#   - Avoid domain-specific logic in core helpers
+#   - Prefer clarity and predictability over cleverness
+#   - Minimize dependencies to keep the core lightweight
 #
-# Author  : Mark Fieten
-# © 2025 Mark Fieten — Testadura Consultancy
-# Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
-# ==================================================================================
+# Role in framework:
+#   - Foundational layer used by nearly all other libraries
+#   - Supports argument parsing, configuration, UI, and script logic
+#   - Acts as the lowest-level shared functionality layer
+#
+# Non-goals:
+#   - Business logic or application-specific behavior
+#   - UI rendering or user interaction handling
+#   - Configuration or state management (handled in dedicated modules)
+#
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      :
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# =====================================================================================
 set -uo pipefail
-# --- Library guard ---------------------------------------------------------------
+# --- Library guard -------------------------------------------------------------------
     # __td_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
@@ -80,7 +99,7 @@ set -uo pipefail
     __td_lib_guard
     unset -f __td_lib_guard
 
-# --- Internals -------------------------------------------------------------------
+# --- Internals -----------------------------------------------------------------------
   # _sh_err
       # Purpose:
       #   Print an error message to stderr (internal helper).
@@ -98,7 +117,7 @@ set -uo pipefail
       #   - Intended for internal use only (minimal; no UI formatting).
   _sh_err(){ printf '%s\n' "${*:-(no message)}" >&2; }
 
-# --- Requirement checks ----------------------------------------------------------
+# --- Requirement checks --------------------------------------------------------------
  # -- Possibly exiting requirement checks -----------------------------------------
     # td_need_cmd
         # Purpose:
@@ -260,7 +279,7 @@ set -uo pipefail
         #   0 if active; non-zero otherwise (as per systemctl).
     td_is_active(){ systemctl is-active --quiet "$1"; }
 
-# --- Filesystem Helpers ----------------------------------------------------------
+# --- Filesystem Helpers --------------------------------------------------------------
     # td_can_append
         # Purpose:
         #   Test whether a file can be appended to, or created for later appending.
@@ -581,7 +600,7 @@ set -uo pipefail
         return 127
     }
 
-# --- Systeminfo ------------------------------------------------------------------
+# --- Systeminfo ----------------------------------------------------------------------
     # td_get_primary_nic
       # Purpose:
       #   Return the interface name for the default route (best-effort).
@@ -597,7 +616,7 @@ set -uo pipefail
     td_get_primary_nic() {
         ip route show default 2>/dev/null | awk 'NR==1 {print $5}'
     }
-# --- Network Helpers -------------------------------------------------------------
+# --- Network Helpers -----------------------------------------------------------------
     # td_ping_ok
         # Purpose:
         #   Test whether a host responds to a single ICMP ping.
@@ -641,7 +660,7 @@ set -uo pipefail
       #   0 always (command failures may result in empty output).
     td_get_ip(){ hostname -I 2>/dev/null | awk '{print $1}'; }
 
-# --- Argument & Environment Helpers-----------------------------------------------
+# --- Argument & Environment Helpers---------------------------------------------------
     # td_is_set
       # Purpose:
       #   Test whether a variable name is set/defined in the shell.
@@ -919,7 +938,7 @@ set -uo pipefail
         find "${path}" -type d -exec chmod 755 {} +
         find "${path}" -type f -exec chmod 644 {} +
     }
-# --- Process & State Helpers -----------------------------------------------------
+# --- Process & State Helpers ---------------------------------------------------------
     # td_proc_exists
       # Purpose:
       #   Test whether a process with an exact name is running.
@@ -1039,7 +1058,7 @@ set -uo pipefail
     td_has_tty() {
         [[ -r /dev/tty && -w /dev/tty ]]
     }
-# --- Version & OS Helpers --------------------------------------------------------
+# --- Version & OS Helpers ------------------------------------------------------------
     # td_get_os
       # Purpose:
       #   Return OS ID from /etc/os-release (e.g., ubuntu, debian).
@@ -1074,59 +1093,59 @@ set -uo pipefail
         #   0 if A >= B; 1 otherwise.
     td_version_ge(){ [[ "$(printf '%s\n' "$2" "$1" | sort -V | head -n1)" == "$2" ]]; }
 
-# --- Misc Utilities --------------------------------------------------------------
-  # td_timestamp
+# --- Misc Utilities ------------------------------------------------------------------
+    # td_timestamp
+        # Purpose:
+        #   Return current local timestamp in "YYYY-MM-DD HH:MM:SS".
+        #
+        # Outputs:
+        #   Prints timestamp to stdout.
+        #
+        # Returns:
+        #   0 always.
+    td_timestamp(){ date +"%Y-%m-%d %H:%M:%S"; }
+
+    # td_retry
+        # Purpose:
+        #   Retry a command up to N times with a delay between attempts.
+        #
+        # Arguments:
+        #   $1  N attempts (integer >= 1).
+        #   $2  Delay in seconds between attempts.
+        #   $@  Command to execute (after shifting N and delay).
+        #
+        # Returns:
+        #   0 if the command succeeds within N attempts; 1 otherwise.
+    td_retry(){
+        local n="$1" d="$2"; shift 2
+        local i
+        for ((i=1;i<=n;i++)); do
+        "$@" && return 0
+        (( i < n )) && sleep "$d"
+        done
+        return 1
+    }
+
+    # td_join
       # Purpose:
-      #   Return current local timestamp in "YYYY-MM-DD HH:MM:SS".
+      #   Join arguments into a single string using a separator.
+      #
+      # Arguments:
+      #   $1  Separator string (assigned to IFS).
+      #   $@  Items to join.
       #
       # Outputs:
-      #   Prints timestamp to stdout.
+      #   Prints joined string to stdout (with printf).
       #
       # Returns:
       #   0 always.
-  td_timestamp(){ date +"%Y-%m-%d %H:%M:%S"; }
+      #
+      # Notes:
+      #   - Uses echo "$*"; this preserves spaces via IFS join semantics.
+      #   - Not safe for binary data; intended for display/logging.
+    td_join() { local IFS="$1"; shift; printf '%s' "$*"; }
 
-  # td_retry
-    # Purpose:
-    #   Retry a command up to N times with a delay between attempts.
-    #
-    # Arguments:
-    #   $1  N attempts (integer >= 1).
-    #   $2  Delay in seconds between attempts.
-    #   $@  Command to execute (after shifting N and delay).
-    #
-    # Returns:
-    #   0 if the command succeeds within N attempts; 1 otherwise.
-  td_retry(){
-    local n="$1" d="$2"; shift 2
-    local i
-    for ((i=1;i<=n;i++)); do
-      "$@" && return 0
-      (( i < n )) && sleep "$d"
-    done
-    return 1
-  }
-
-  # td_join
-    # Purpose:
-    #   Join arguments into a single string using a separator.
-    #
-    # Arguments:
-    #   $1  Separator string (assigned to IFS).
-    #   $@  Items to join.
-    #
-    # Outputs:
-    #   Prints joined string to stdout (with echo).
-    #
-    # Returns:
-    #   0 always.
-    #
-    # Notes:
-    #   - Uses echo "$*"; this preserves spaces via IFS join semantics.
-    #   - Not safe for binary data; intended for display/logging.
-  td_join(){ local IFS="$1"; shift; echo "$*"; }
-  
-  # td_array_union
+    # td_array_union
     # Purpose:
     #   Build a stable union of one or more source arrays into a destination array.
     #
@@ -1148,39 +1167,39 @@ set -uo pipefail
     #
     # Requires:
     #   bash 4.3+ (nameref) and associative arrays.
-  td_array_union() {
-      local dest_name="$1"
-      shift || true
+    td_array_union() {
+    local dest_name="$1"
+    shift || true
 
-      [[ -n "${dest_name:-}" && $# -ge 1 ]] || return 1
+    [[ -n "${dest_name:-}" && $# -ge 1 ]] || return 1
 
-      local -n __dest="$dest_name"
-      local -A __seen=()
-      __dest=()
+    local -n __dest="$dest_name"
+    local -A __seen=()
+    __dest=()
 
-      local src_name
-      local item
+    local src_name
+    local item
 
-      for src_name in "$@"; do
-          [[ -n "${src_name:-}" ]] || continue
+    for src_name in "$@"; do
+        [[ -n "${src_name:-}" ]] || continue
 
-          # If source array doesn't exist, skip it quietly
-          declare -p "$src_name" >/dev/null 2>&1 || continue
+        # If source array doesn't exist, skip it quietly
+        declare -p "$src_name" >/dev/null 2>&1 || continue
 
-          local -n __src="$src_name"
-          for item in "${__src[@]:-}"; do
-              [[ -n "${item:-}" ]] || continue
-              if [[ -z "${__seen[$item]+x}" ]]; then
-                  __dest+=( "$item" )
-                  __seen["$item"]=1
-              fi
-          done
-      done
+        local -n __src="$src_name"
+        for item in "${__src[@]:-}"; do
+            [[ -n "${item:-}" ]] || continue
+            if [[ -z "${__seen[$item]+x}" ]]; then
+                __dest+=( "$item" )
+                __seen["$item"]=1
+            fi
+        done
+    done
 
-      return 0
-  }
+    return 0
+    }
 
-# --- Text functions --------------------------------------------------------------
+# --- Text functions ------------------------------------------------------------------
     # td_trim
         # Purpose:
         #   Trim leading and trailing whitespace from a string.
@@ -1482,7 +1501,7 @@ set -uo pipefail
         [[ -n "$line" ]] && printf '%s\n' "$line"
     }
 
-# --- Error handlers --------------------------------------------------------------
+# --- Error handlers ------------------------------------------------------------------
     # td_die
         # Purpose:
         #   Terminate the script with a formatted fatal error message.
@@ -1607,7 +1626,7 @@ set -uo pipefail
         td_die "Fatal: $* (rc=$rc)" "$rc"
     }
 
-# --- Argument & Environment Validators -------------------------------------------
+# --- Argument & Environment Validators -----------------------------------------------
     # td_validate_int
       # Purpose:
       #   Validate whether a value is an integer (optional leading +/-).

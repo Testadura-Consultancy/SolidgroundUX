@@ -1,29 +1,50 @@
-# ==================================================================================
-# Testadura Consultancy — SolidGround Configuration Library
-# ----------------------------------------------------------------------------------
-# Module  : cfg.sh
-# Purpose : Lightweight KEY=VALUE configuration and state file handling.
+# =====================================================================================
+# SolidgroundUX - Configuration Management
+# -------------------------------------------------------------------------------------
+# Metadata:
+#   Version     : 1.0
+#   Build       : 2602607900
+#   Checksum    :
+#   Source      : cfg.sh
+#   Type        : library
+#   Purpose     : Load, manage, and persist configuration settings
 #
-# Scope   :
-#   - Load, read, write, and remove configuration entries
-#   - Support for application config, user config, and state files
-#   - Minimal parsing without external dependencies
+# Description:
+#   Provides configuration handling for the SolidgroundUX framework.
 #
-# Design  :
-#   - Simple, predictable file format (KEY=VALUE)
-#   - No implicit transformations (values treated as literal)
-#   - Safe updates with minimal file mutation
+#   The library:
+#     - Loads configuration from system and user locations
+#     - Resolves effective configuration using precedence rules
+#     - Supports reading and writing key-value configuration files
+#     - Ensures required configuration values are present
+#     - Provides helper functions for accessing configuration values
+#     - Integrates with bootstrap and runtime state handling
 #
-# Notes   :
-#   - Used by both runtime configuration and persisted state
-#   - Complements environment-based configuration
+# Design principles:
+#   - Clear separation between system-level and user-level configuration
+#   - Deterministic resolution of configuration values
+#   - Minimal and transparent configuration format
+#   - Safe defaults with optional overrides
 #
-# Author  : Mark Fieten
-# © 2025 Mark Fieten — Testadura Consultancy
-# Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
-# ==================================================================================
+# Role in framework:
+#   - Central configuration layer used during bootstrap and runtime
+#   - Supplies paths, settings, and environment-specific values
+#   - Supports scripts and modules requiring persistent configuration
+#
+# Non-goals:
+#   - Complex hierarchical configuration systems
+#   - External configuration formats (JSON, YAML, etc.)
+#   - Runtime hot-reloading of configuration
+#
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      :
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# =====================================================================================
 set -uo pipefail
-# --- Library guard ----------------------------------------------------------------
+# --- Library guard -------------------------------------------------------------------
     # __td_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
@@ -79,7 +100,7 @@ set -uo pipefail
     __td_lib_guard
     unset -f __td_lib_guard
 
-# --- Internal: file and value manipulation ----------------------------------------
+# --- Internal: file and value manipulation -------------------------------------------
     # - Ignores empty lines and comments
     # - Accepts only names: [A-Za-z_][A-Za-z0-9_]*
     # - Loads via printf -v assignment (value preserved as-is)
@@ -427,7 +448,7 @@ set -uo pipefail
         done < "$file"
     }
 
-# --- Public API: Config management ------------------------------------------------
+# --- Public API: Config management ---------------------------------------------------
     # td_cfg_load
         # Purpose:
         #   Load a config file into shell variables.
@@ -719,7 +740,7 @@ set -uo pipefail
         td_print
     }
 
-# --- Bootstrap/advanced: cfg domain loading ---------------------------------------
+# --- Bootstrap/advanced: cfg domain loading ------------------------------------------
     # These helpers implement "system + user cfg" behavior driven by a specs array.
     # Intended for bootstrap; stable but not part of the minimal surface area.
 
@@ -1096,7 +1117,7 @@ set -uo pipefail
         return 0
     }
 
-# --- Bootstrap/advanced: State loading --------------------------------------------
+# --- Bootstrap/advanced: State loading -----------------------------------------------
     # td_state_load
         # Purpose:
         #   Load the state file into shell variables.

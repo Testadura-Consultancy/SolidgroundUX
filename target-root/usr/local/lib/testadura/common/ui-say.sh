@@ -1,46 +1,48 @@
-# ==================================================================================
-# Testadura Consultancy — Typed Message Output Engine
-# ----------------------------------------------------------------------------------
-# Module     : ui-say.sh
-# Purpose    : Typed console output and logging framework (say* API)
+# =====================================================================================
+# SolidgroundUX - UI Say (Messaging)
+# -------------------------------------------------------------------------------------
+# Metadata:
+#   Version     : 1.0
+#   Build       : 2602607900
+#   Checksum    :
+#   Source      : ui-say.sh
+#   Type        : library
+#   Purpose     : Provide standardized console messaging helpers
 #
 # Description:
-#   Provides a unified messaging system for terminal-based applications using
-#   typed output categories such as INFO, WARN, FAIL, DEBUG, etc.
+#   Implements consistent message output helpers for console applications.
 #
-#   The module standardizes:
-#     - message formatting (label/icon/symbol composition)
-#     - optional timestamping
-#     - selective colorization (label/message/date)
-#     - console output policy (verbosity, filtering, debug gating)
-#     - best-effort logfile routing with rotation support
-#
-# Message model:
-#   - All output flows through say() or its convenience wrappers (sayinfo, sayfail, etc.)
-#   - Message types are normalized and mapped to style tokens (LBL_*, ICO_*, SYM_*)
-#   - Console visibility is controlled centrally via policy flags
+#   The library:
+#     - Provides standardized message functions (info, ok, warning, fail, debug, etc.)
+#     - Applies consistent formatting and coloring to message types
+#     - Supports verbosity and debug-level filtering
+#     - Ensures all messages follow a unified visual and structural style
+#     - Outputs messages to stderr for proper separation from data streams
 #
 # Design principles:
-#   - Single entry point for all user-facing output
-#   - Separate rendering, policy, and logging concerns
-#   - Never let logging or formatting failures break execution
-#   - Keep calling code clean and intention-driven
+#   - Consistent message semantics across all scripts
+#   - Separation of message intent from rendering details
+#   - Respect verbosity and debug flags globally
+#   - Keep output predictable and script-friendly
 #
 # Role in framework:
-#   - Core UI output layer used by all modules and scripts
-#   - Complements ui-ask.sh (input) and ui.sh (styling)
-#   - Provides consistent UX across all SolidGround tools
+#   - Core messaging layer used by all SolidgroundUX scripts
+#   - Works alongside ui.sh for rendering and formatting
 #
 # Non-goals:
-#   - Interactive prompting (see ui-ask.sh)
-#   - Application-specific logging policies beyond type filtering
+#   - Persistent logging or log file management
+#   - Complex formatting beyond message-level styling
+#   - Replacement for full logging frameworks
 #
-# Author     : Mark Fieten
-# © 2025 Mark Fieten — Testadura Consultancy
-# Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
-# ==================================================================================
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      :
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# =====================================================================================
 set -uo pipefail
-# --- Library guard ---------------------------------------------------------------
+# --- Library guard ------------------------------------------------------------------
     # __td_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
@@ -96,7 +98,7 @@ set -uo pipefail
     __td_lib_guard
     unset -f __td_lib_guard
 
-# --- Global defaults -------------------------------------------------------------
+# --- Global defaults ----------------------------------------------------------------
     # Can be overridden in:
     #   - environment
     #   - styles/*.sh
@@ -106,7 +108,7 @@ set -uo pipefail
     SAY_WRITELOG_DEFAULT="${SAY_WRITELOG_DEFAULT:-0}"     # 0 = no log, 1 = log
     SAY_DATE_FORMAT="${SAY_DATE_FORMAT:-%Y-%m-%d %H:%M:%S}"  # date format for --date
 
-# --- Helpers ---------------------------------------------------------------------
+# --- Helpers ------------------------------------------------------------------------
     # __say_should_print_console
         # Purpose:
         #   Determine whether a message TYPE should be printed to the console
@@ -363,7 +365,7 @@ set -uo pipefail
             rm -f -- "${logfile}.$((TD_LOG_KEEP+1))" "${logfile}.$((TD_LOG_KEEP+1)).gz" 2>/dev/null || true
     }
 
-# --- Public API ------------------------------------------------------------------
+# --- Public API ---------------------------------------------------------------------
     # say
         # Purpose:
         #   Emit a typed message with formatting, colorization, and optional logging.

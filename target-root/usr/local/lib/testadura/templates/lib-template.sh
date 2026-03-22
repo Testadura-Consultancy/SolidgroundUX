@@ -2,11 +2,12 @@
 # SolidgroundUX Library Template
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version : 1.0
-#   Build : 26079
-#   Sourcefile : exe-template.sh
-#   Type : script
-#   Purpose : Canonical executable template for Testadura scripts
+#   Version     : 1.0
+#   Build       : 26079
+#   Checksum    : 
+#   Sourcefile  : exe-template.sh
+#   Type        : library
+#   Purpose     : Canonical executable template for Testadura scripts
 #
 # Description:
 #   Provides the standard structure for framework libraries, including:
@@ -32,14 +33,14 @@
 #   - Framework bootstrap or path resolution
 #
 # Attribution:
-#   Developers : Mark Fieten
-#   Company : Testadura Consultancy
-#   Client : 
-#   Copyright : © 2025 Mark Fieten — Testadura Consultancy
-#   License : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      : 
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # ==================================================================================
 set -uo pipefail
-# --- Library guard ---------------------------------------------------------------
+# --- Library guard ----------------------------------------------------------------
     # __td_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
@@ -96,12 +97,12 @@ set -uo pipefail
     unset -f __td_lib_guard
 
 
-# --- Internal helpers ------------------------------------------------------------
+# --- Internal helpers -------------------------------------------------------------
     # Naming:
     #   - Prefix internal-only helpers with "__" (never "td_")
     # Example:
     #   __<libname>_helper() { :; }
-# --- Public API ------------------------------------------------------------------
+# --- Public API ------------------------------------------------------------------=
     # Naming:
     #   - Prefix public functions with "td_" (never "__")
     # Example:

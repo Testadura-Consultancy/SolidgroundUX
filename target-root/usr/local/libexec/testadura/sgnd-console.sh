@@ -1,42 +1,52 @@
 #!/usr/bin/env bash
-# ==================================================================================
-# Testadura Consultancy — SolidGround Console Host
-# ----------------------------------------------------------------------------------
-# Module     : sgnd-console.sh
-# Purpose    : Interactive console host and module orchestrator
+# =====================================================================================
+# SolidgroundUX - Console Host
+# -------------------------------------------------------------------------------------
+# Metadata:
+#   Version     : 1.0
+#   Build       : 2602607900
+#   Checksum    :
+#   Source      : sgnd-console.sh
+#   Type        : script
+#   Purpose     : Provide a modular console interface for SolidgroundUX tooling
 #
 # Description:
-#   sgnd-console is a modular terminal UI host that discovers, loads, and
-#   orchestrates console modules, exposing their actions through an interactive
-#   grouped menu.
+#   Provides a generic, modular console host that dynamically loads modules
+#   and presents their functionality through a structured menu interface.
 #
-#   Responsibilities:
-#     - Framework bootstrap and environment initialization
-#     - Console configuration loading and normalization
-#     - Module discovery and loading
-#     - Registration of menu groups and items
-#     - Ownership of console state (SGND_* tables and globals)
-#     - Running the interactive console loop
+#   The script:
+#     - Loads console modules from a configured module directory
+#     - Allows modules to register menu items dynamically
+#     - Builds and renders interactive menus
+#     - Handles user input and dispatches actions
+#     - Supports navigation, paging, and toggle controls
+#     - Persists runtime flags such as debug, verbose, and dry-run
 #
 # Design principles:
-#   - Executables are explicit: resolve, bootstrap, then run
-#   - Libraries never auto-execute (source-only function providers)
-#   - Console state is data-driven via SGND_* table models
-#   - Rendering, layout, and dispatch are delegated to sgnd-console-menu.sh
-#   - Builtin actions may remain dispatchable even when hidden from the menu
+#   - Modular architecture with clear separation of host and modules
+#   - Convention-based module registration
+#   - Minimal assumptions about module implementation
+#   - Consistent user interaction patterns across all tools
 #
-# Notes:
-#   - Prompts read from /dev/tty, never stdin
-#   - Bootstrap and path resolution are handled before framework loading
-#   - UI output should remain suitable for terminal-hosted interaction
+# Role in framework:
+#   - Central entry point for interactive SolidgroundUX tooling
+#   - Hosts and orchestrates functionality provided by console modules
 #
-# Author     : Mark Fieten
-# © 2025 Mark Fieten — Testadura Consultancy
-# Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
-# ==================================================================================
+# Non-goals:
+#   - Implementing business logic directly in the console host
+#   - Managing module-specific state beyond registration and dispatch
+#   - Providing a full TUI framework beyond structured menu interaction
+#
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      :
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# =====================================================================================
 set -uo pipefail
 
-# --- Bootstrap --------------------------------------------------------------------
+# --- Bootstrap -----------------------------------------------------------------------
     # __framework_locator
         # Purpose:
         #   Locate, create, and load the SolidGroundUX bootstrap configuration.
@@ -232,7 +242,7 @@ set -uo pipefail
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
 
-# --- Script metadata (identity) ---------------------------------------------------
+# --- Script metadata (identity) ------------------------------------------------------
     TD_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
     TD_SCRIPT_DIR="$(cd -- "$(dirname -- "$TD_SCRIPT_FILE")" && pwd)"
     TD_SCRIPT_BASE="$(basename -- "$TD_SCRIPT_FILE")"
@@ -246,7 +256,7 @@ set -uo pipefail
     : "${TD_SCRIPT_COPYRIGHT:=© 2025 Mark Fieten — Testadura Consultancy}"
     : "${TD_SCRIPT_LICENSE:=Testadura Non-Commercial License (TD-NC) v1.0}"
 
-# --- Script metadata (framework integration) --------------------------------------
+# --- Script metadata (framework integration) -----------------------------------------
     # TD_USING
         # Libraries to source from TD_COMMON_LIB.
         # These are loaded automatically by td_bootstrap AFTER core libraries.
@@ -378,37 +388,37 @@ set -uo pipefail
         #   2) call td_bootstrap --state
     TD_STATE_SAVE=0
 
-# --- Local scripts and definitions ------------------------------------------------
-# --- Console state
-    SGND_GROUP_SCHEMA="key|label|desc|source|builtin|visible|ord"
-    declare -ag SGND_GROUP_ROWS=()
+# --- Local scripts and definitions ---------------------------------------------------
+    # --- Console state
+        SGND_GROUP_SCHEMA="key|label|desc|source|builtin|visible|ord"
+        declare -ag SGND_GROUP_ROWS=()
 
-    SGND_ITEM_SCHEMA="key|group|label|handler|desc|source|builtin|waitsecs|visible"
-    declare -ag SGND_ITEM_ROWS=()
+        SGND_ITEM_SCHEMA="key|group|label|handler|desc|source|builtin|waitsecs|visible"
+        declare -ag SGND_ITEM_ROWS=()
 
-    SGND_MODULE_SCHEMA="id|name|desc|source"
-    declare -ag SGND_MODULE_ROWS=()
+        SGND_MODULE_SCHEMA="id|name|desc|source"
+        declare -ag SGND_MODULE_ROWS=()
 
 
 
-    SGND_CONSOLE_TITLE="Solidground Console"
-    SGND_CONSOLE_DESC="Interactive scalable console module host"
-    SGND_CONSOLE_MODULE_DIR=""
-    SGND_CURRENT_MODULE=""
-    SGND_LAST_WAITSECS=15
+        SGND_CONSOLE_TITLE="Solidground Console"
+        SGND_CONSOLE_DESC="Interactive scalable console module host"
+        SGND_CONSOLE_MODULE_DIR=""
+        SGND_CURRENT_MODULE=""
+        SGND_LAST_WAITSECS=15
 
-    declare -ag SGND_VISIBLE_ITEM_INDEXES=()
-    declare -ag SGND_GROUP_RENDER_INDEXES=()
+        declare -ag SGND_VISIBLE_ITEM_INDEXES=()
+        declare -ag SGND_GROUP_RENDER_INDEXES=()
 
-    SGND_CLEAR_ONRENDER=1
+        SGND_CLEAR_ONRENDER=1
 
-    SGND_PAGE_INDEX=0
-    declare -ag SGND_PAGE_STARTS=()
-    SGND_PAGE_HAS_PREV=0
-    SGND_PAGE_HAS_NEXT=0
-    SGND_PAGE_MAX_ROWS=15
-        
-# --- Module loading and registration 
+        SGND_PAGE_INDEX=0
+        declare -ag SGND_PAGE_STARTS=()
+        SGND_PAGE_HAS_PREV=0
+        SGND_PAGE_HAS_NEXT=0
+        SGND_PAGE_MAX_ROWS=15
+            
+    # --- Module loading and registration 
     # __sgnd_console_register_builtin_items
         # Purpose:
         #   Register the console's builtin groups and builtin menu actions.
@@ -737,7 +747,7 @@ set -uo pipefail
         (( found )) || saywarning "No modules found in: $mod_dir"
     }
 
-# --- Script execution -------------------------------------------------------------
+# --- Script execution ----------------------------------------------------------------
     # __sgnd_run_script
         # Purpose:
         #   Resolve and execute a script within the sgnd-console environment.
@@ -840,7 +850,7 @@ set -uo pipefail
         esac
     }
 
-# --- Console loop ----------------------------------------------------------------
+# --- Console loop --------------------------------------------------------------------
     # __sgnd_console_run
         # Purpose:
         #   Run the interactive console event loop.
@@ -895,7 +905,7 @@ set -uo pipefail
         done
     }
 
-# --- Public API -------------------------------------------------------------------
+# --- Public API ----------------------------------------------------------------------
     # sgnd_console_register_item
         # Purpose:
         #   Register one menu item in the console item model.
@@ -1022,7 +1032,7 @@ set -uo pipefail
             return 1
         }
     }
-# --- Main -------------------------------------------------------------------------
+# --- Main ----------------------------------------------------------------------------
     # main
         # Purpose:
         #   Execute the sgnd-console startup and interactive runtime flow.

@@ -1,29 +1,50 @@
-# ==================================================================================
-# Testadura Consultancy — SolidGround Arguments Library
-# ----------------------------------------------------------------------------------
-# Module  : args.sh
-# Purpose : Command-line argument parsing and normalization for SolidGround scripts.
+# =====================================================================================
+# SolidgroundUX - Argument Parsing
+# -------------------------------------------------------------------------------------
+# Metadata:
+#   Version     : 1.0
+#   Build       : 2602607900
+#   Checksum    :
+#   Source      : args.sh
+#   Type        : library
+#   Purpose     : Parse and manage command-line arguments for scripts
 #
-# Scope   :
-#   - Flag parsing (short and long options)
-#   - Default value handling
-#   - Argument validation and normalization
+# Description:
+#   Provides a structured argument parsing system for SolidgroundUX scripts.
 #
-# Design  :
-#   - Stateless parsing helpers
-#   - No side effects beyond setting expected globals
-#   - Consistent behavior across all SolidGround entry scripts
+#   The library:
+#     - Parses short and long command-line arguments
+#     - Supports flags, values, and enumerated options
+#     - Maps arguments to strongly defined variables
+#     - Validates input against argument specifications
+#     - Separates framework arguments from script-specific arguments
+#     - Generates consistent help and usage output
 #
-# Notes   :
-#   - Intended to be sourced by executable scripts (exe-template)
-#   - Keeps CLI behavior predictable and reusable
+# Design principles:
+#   - Declarative argument specification via TD_ARGS_SPEC
+#   - Predictable and consistent parsing behavior across scripts
+#   - Clear separation between parsing and business logic
+#   - Minimal runtime surprises through validation and normalization
 #
-# Author  : Mark Fieten
-# © 2025 Mark Fieten — Testadura Consultancy
-# Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
-# ==================================================================================
+# Role in framework:
+#   - Core infrastructure for all executable scripts
+#   - Used during bootstrap to interpret command-line input
+#   - Enables standardized CLI behavior across the framework
+#
+# Non-goals:
+#   - Complex subcommand frameworks (e.g., git-style commands)
+#   - Interactive input handling (handled by ui-ask/ui-dlg)
+#   - Dynamic runtime argument schema mutation
+#
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      :
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# =====================================================================================
 set -uo pipefail
-# --- Library guard ----------------------------------------------------------------
+# --- Library guard -------------------------------------------------------------------
     # __td_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
@@ -79,7 +100,7 @@ set -uo pipefail
     __td_lib_guard
     unset -f __td_lib_guard
 
-# --- Helper functions -------------------------------------------------------------
+# --- Helper functions ----------------------------------------------------------------
     # __td_arg_split
         # Purpose:
         #   Split a single TD_ARGS_SPEC definition into internal scratch variables.
@@ -299,7 +320,7 @@ set -uo pipefail
         TD_EFFECTIVE_ARGS_SPEC=( "${args[@]}" )
     }
 
-# --- Public API -------------------------------------------------------------------
+# --- Public API ----------------------------------------------------------------------
     __header_indent=2
     __text_indent=3
 

@@ -1,43 +1,49 @@
-# ===============================================================================
-# Testadura Consultancy — default-colors.sh
-# -------------------------------------------------------------------------------
-# Purpose    : ANSI color and style escape constants for console output
-# Author     : Mark Fieten
+# =====================================================================================
+# SolidgroundUX - Default UI Palette
+# -------------------------------------------------------------------------------------
+# Metadata:
+#   Version     : 1.0
+#   Build       : 2602607900
+#   Checksum    :
+#   Source      : defaultui-palette.sh
+#   Type        : library
+#   Purpose     : Define default color palette and styling for console UI
 #
-# © 2025 Mark Fieten — Testadura Consultancy
-# Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
-# -------------------------------------------------------------------------------
 # Description:
-#   Provides a curated set of ANSI escape code constants for styling
-#   console output in a consistent and readable way.
+#   Provides the default color and style definitions used by the
+#   SolidgroundUX UI layer.
 #
-#   Colors are defined declaratively and grouped by semantic intent:
-#     - DARK_*        : darker / muted foreground colors
-#     - *             : normal foreground colors
-#     - BRIGHT_*      : high-intensity foreground colors (256-color palette)
-#     - BG_*          : background color variants (mirroring foreground sets)
+#   The library:
+#     - Defines ANSI color variables for labels, input, and message types
+#     - Establishes consistent visual identity across console tools
+#     - Supplies defaults for UI modules such as ui.sh, ui-ask, and ui-say
+#     - Allows overriding by alternative palettes or user configuration
 #
-#   Text attributes (bold, faint, underline, etc.) are defined separately
-#   as FX_* constants and may be combined with colors as needed.
+# Design principles:
+#   - Centralize all color definitions in one place
+#   - Keep naming semantic (INFO, WARN, LABEL, INPUT, etc.)
+#   - Allow easy customization without touching rendering logic
+#   - Ensure readability across common terminal backgrounds
 #
-# Design rules:
-#   - Constants only (no functions, no side effects).
-#   - Foreground and background colors are separate namespaces.
-#   - Styling is applied by concatenating constants and always terminated
-#     with RESET (ESC[0m) to avoid style leakage.
+# Role in framework:
+#   - Default styling layer for all console rendering
+#   - Used by UI modules to apply consistent colors and emphasis
+#   - Can be replaced or extended for theming purposes
 #
-# Usage:
-#   printf "%s%sAlert message%s\n" "$BG_DARK_RED" "$BRIGHT_WHITE" "$RESET"
-#   printf "%sInfo message%s\n" "$DARK_SILVER" "$RESET"
-#   printf "%sSuccess%s\n" "$BRIGHT_GREEN" "$RESET"
+# Non-goals:
+#   - Rendering logic or layout behavior
+#   - Terminal capability detection
+#   - Dynamic theme switching at runtime
 #
-# Notes:
-#   - RESET resets all attributes, foreground and background colors.
-#   - Partial resets (foreground-only or background-only) are intentionally
-#     not encouraged to keep output predictable.
-# ===============================================================================
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      :
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# =====================================================================================
 
-# --- Text attributes (SGR) ------------------------------------------------------
+# --- Text attributes (SGR) -----------------------------------------------------------
   # Note: Support depends on terminal emulator; bold and underline are
   # universally supported, others may be ignored gracefully.
 
@@ -51,21 +57,21 @@
   FX_CONCEAL=8        # Conceal / hidden text (rarely useful)
   FX_STRIKE=9         # Strikethrough (not universally supported)
 
-# --- Color codes ---------------------------------------------------------------
+# --- Color codes ---------------------------------------------------------------------
   # Reset
     RESET=$'\e[0m'
-# --- Foreground colors ---------------------------------------------------------
-# Naming conventions:
-#   DARK_*    : darker / muted variants (typically faint or lower-intensity)
-#   *         : normal ANSI base colors
-#   BRIGHT_*  : high-intensity colors using the 256-color palette
-#
-# Notes:
-#   - Foreground colors use ANSI SGR codes 30–37 or 38;5;<n>
-#   - These MUST NOT be reused as background colors
-#   - Always terminate styled output with $RESET
+# --- Foreground colors ---------------------------------------------------------------
+  # Naming conventions:
+  #   DARK_*    : darker / muted variants (typically faint or lower-intensity)
+  #   *         : normal ANSI base colors
+  #   BRIGHT_*  : high-intensity colors using the 256-color palette
+  #
+  # Notes:
+  #   - Foreground colors use ANSI SGR codes 30–37 or 38;5;<n>
+  #   - These MUST NOT be reused as background colors
+  #   - Always terminate styled output with $RESET
 
-# --- Foreground: Dark / muted --------------------------------------------------
+# --- Foreground: Dark / muted --------------------------------------------------------
   DARK_RED=$'\e[38;5;88m'
   DARK_GREEN=$'\e[38;5;22m'
   DARK_YELLOW=$'\e[38;5;94m'
@@ -82,7 +88,7 @@
   DARK_GOLD=$'\e[38;5;178m'
   DARK_BROWN=$'\e[38;5;94m'
 
-# --- Foreground: Normal --------------------------------------------------------
+# --- Foreground: Normal --------------------------------------------------------------
   BLACK=$'\e[0;30m'
   RED=$'\e[0;31m'
   GREEN=$'\e[0;32m'
@@ -101,7 +107,7 @@
   BROWN=$'\e[38;5;130m'
 
 
-# --- Foreground: Bright --------------------------------------------------------
+# --- Foreground: Bright --------------------------------------------------------------
   BRIGHT_RED=$'\e[38;5;196m'
   BRIGHT_GREEN=$'\e[38;5;46m'
   BRIGHT_YELLOW=$'\e[38;5;226m'
@@ -116,19 +122,19 @@
   BRIGHT_GOLD=$'\e[38;5;226m'  
   BRIGHT_BROWN=$'\e[38;5;172m'
 
-# --- Background colors ---------------------------------------------------------
-# Naming conventions:
-#   BG_DARK_*    : darker / muted background shades
-#   BG_*         : normal ANSI background colors
-#   BG_BRIGHT_*  : high-intensity backgrounds using the 256-color palette
-#
-# Notes:
-#   - Background colors use ANSI SGR codes 40–47 or 48;5;<n>
-#   - Background colors are independent of foreground colors
-#   - Combine with foreground colors by concatenation:
-#       printf "%s%sText%s\n" "$BG_DARK_BLUE" "$BRIGHT_WHITE" "$RESET"
+# --- Background colors ---------------------------------------------------------------
+  # Naming conventions:
+  #   BG_DARK_*    : darker / muted background shades
+  #   BG_*         : normal ANSI background colors
+  #   BG_BRIGHT_*  : high-intensity backgrounds using the 256-color palette
+  #
+  # Notes:
+  #   - Background colors use ANSI SGR codes 40–47 or 48;5;<n>
+  #   - Background colors are independent of foreground colors
+  #   - Combine with foreground colors by concatenation:
+  #       printf "%s%sText%s\n" "$BG_DARK_BLUE" "$BRIGHT_WHITE" "$RESET"
 
-# --- Background: Dark / muted --------------------------------------------------
+# --- Background: Dark / muted --------------------------------------------------------
   BG_DARK_RED=$'\e[48;5;88m'
   BG_DARK_GREEN=$'\e[48;5;22m'
   BG_DARK_YELLOW=$'\e[48;5;94m'
@@ -145,7 +151,7 @@
   BG_DARK_GOLD=$'\e[48;5;178m'
   BG_DARK_BROWN=$'\e[48;5;94m'
 
-# --- Background: Normal --------------------------------------------------------
+# --- Background: Normal --------------------------------------------------------------
   BG_BLACK=$'\e[40m'
   BG_RED=$'\e[41m'
   BG_GREEN=$'\e[42m'
@@ -163,7 +169,7 @@
   BG_GOLD=$'\e[48;5;220m'
   BG_BROWN=$'\e[48;5;130m'
 
-# --- Background: Bright --------------------------------------------------------
+# --- Background: Bright --------------------------------------------------------------
   BG_BRIGHT_RED=$'\e[48;5;196m'
   BG_BRIGHT_GREEN=$'\e[48;5;46m'
   BG_BRIGHT_YELLOW=$'\e[48;5;226m'

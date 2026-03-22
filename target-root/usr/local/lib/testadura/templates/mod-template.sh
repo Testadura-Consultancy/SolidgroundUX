@@ -4,6 +4,7 @@
 # Metadata:
 #   Version     : 1.0
 #   Build       : 26079
+#   Checksum    : 
 #   Sourcefile  : mod-template.sh
 #   Type        : module
 #   Purpose     : Canonical template for sgnd-console modules
@@ -46,7 +47,7 @@
 #   License       : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # ==================================================================================
 set -uo pipefail
-# --- Library guard ---------------------------------------------------------------
+# --- Library guard ----------------------------------------------------------------
     # __td_lib_guard
             # Purpose:
             #   Ensure the file is sourced as a library and only initialized once.
@@ -103,7 +104,7 @@ set -uo pipefail
     unset -f __td_lib_guard
 
 
-# --- Internal helpers ------------------------------------------------------------
+# --- Internal helpers -------------------------------------------------------------
     # Naming:
     #   - Prefix internal-only helpers with "__"
     #   - Keep internal helpers module-local and menu-focused
@@ -111,7 +112,7 @@ set -uo pipefail
     # Example:
     #   __sample_format_status() { :; }
 
-# --- Public module actions -------------------------------------------------------
+# --- Public module actions --------------------------------------------------------
     # Naming:
     #   - Use clear action-style names for functions registered as menu handlers
     #   - Registered handlers do not need a td_ prefix; they belong to the module surface
@@ -120,7 +121,7 @@ set -uo pipefail
     #   sample_show_message() { :; }
     #   sys_status() { :; }
 
-# --- Console registration --------------------------------------------------------
+# --- Console registration ---------------------------------------------------------
     # Allowed side effect:
     #   - On source, the module may register groups and items with sgnd-console.
     #

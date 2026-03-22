@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # =====================================================================================
-# SolidgroundUX Executable Script Template
+# SolidgroundUX - Executable Script Template
 # ------------------------------------------------------------------------------------
 # Metadata:
-#   Version : 1.0
-#   Build : 26079
-#   Source : exe-template.sh
-#   Type : script
-#   Purpose : Canonical executable template for Testadura scripts
+#   Version     : 1.0
+#   Build       : 2608101
+#   Checksum    : 7e24beddd4459a04878f691e4b1f255b84a575278983be16cb83f3f5fd7868f7
+#   Source      : exe-template.sh
+#   Type        : script
+#   Purpose     : Canonical executable template for Testadura scripts.
 #
 # Description:
 #   Provides the standard structure for all executable scripts in the framework,
@@ -32,15 +33,15 @@
 #   - Library behavior (handled in /common modules)
 #
 # Attribution:
-#   Developers : Mark Fieten
-#   Company : Testadura Consultancy
-#   Client : 
-#   Copyright : © 2025 Mark Fieten — Testadura Consultancy
-#   License : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      : 
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
 set -uo pipefail
 
-# --- Bootstrap --------------------------------------------------------------------
+# --- Bootstrap -----------------------------------------------------------------------
     # __framework_locator
         # Purpose:
         #   Locate, create, and load the SolidGroundUX bootstrap configuration.
@@ -234,7 +235,7 @@ set -uo pipefail
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
 
-# --- Script metadata (identity) ---------------------------------------------------
+# --- Script metadata (identity) ------------------------------------------------------
     TD_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
     TD_SCRIPT_DIR="$(cd -- "$(dirname -- "$TD_SCRIPT_FILE")" && pwd)"
     TD_SCRIPT_BASE="$(basename -- "$TD_SCRIPT_FILE")"
@@ -242,7 +243,7 @@ set -uo pipefail
     TD_SCRIPT_TITLE="${TD_SCRIPT_NAME}"
     TD_SCRIPT_DESC="Canonical executable template for Testadura scripts"
 
-# --- Script metadata (framework integration) --------------------------------------
+# --- Script metadata (framework integration) -----------------------------------------
     # TD_USING
         # Libraries to source from TD_COMMON_LIB.
         # These are loaded automatically by td_bootstrap AFTER core libraries.
@@ -367,13 +368,13 @@ set -uo pipefail
         #   2) call td_bootstrap --state
     TD_STATE_SAVE=0
 
-# --- Local script Declarations ----------------------------------------------------
+# --- Local script Declarations -------------------------------------------------------
     # Put script-local constants and defaults here (NOT framework config).
     # Prefer local variables inside functions unless a value must be shared.
 
-# --- Local script functions -------------------------------------------------------
+# --- Local script functions ----------------------------------------------------------
 
-# --- Main -------------------------------------------------------------------------
+# --- Main ----------------------------------------------------------------------------
     # main
         # Purpose:
         #   Canonical entry point for executable scripts.

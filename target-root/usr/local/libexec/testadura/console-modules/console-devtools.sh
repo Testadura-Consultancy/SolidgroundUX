@@ -1,8 +1,13 @@
 # ==================================================================================
-# Testadura Consultancy — Developer Tools Console Module
+# SolidgroundUX — Developer Tools Console Module
 # ----------------------------------------------------------------------------------
-# Module     : console-devtools.sh
-# Purpose    : sgnd-console module exposing developer tooling actions
+# Metadata:
+#   Version     : 1.0
+#   Build       : 26079
+#   Checksum : 
+#   Sourcefile  : console-devtools.sh
+#   Type        : module
+#   Purpose     : sgnd-console module exposing developer tooling actions
 #
 # Description:
 #   Provides a console module that registers developer-oriented actions in
@@ -35,12 +40,15 @@
 #   - Framework bootstrap or path resolution
 #   - Direct implementation of workspace/deploy/release logic
 #
-# Author     : Mark Fieten
-# © 2025 Mark Fieten — Testadura Consultancy
-# Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# Attribution:
+#   Developers    : Mark Fieten
+#   Company       : Testadura Consultancy
+#   Client        :
+#   Copyright     : © 2025 Mark Fieten — Testadura Consultancy
+#   License       : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # ==================================================================================
 set -uo pipefail
-# --- Library guard ---------------------------------------------------------------
+# --- Library guard ----------------------------------------------------------------
     # __td_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
@@ -96,7 +104,7 @@ set -uo pipefail
     unset -f __td_lib_guard
 
 
-# --- Internal helpers ------------------------------------------------------------
+# --- Internal helpers -------------------------------------------------------------
     # __exe_createworkspace
         # Purpose:
         #   Launch the create-workspace developer tool through the sgnd-console runtime.
@@ -158,7 +166,7 @@ set -uo pipefail
     {
             __sgnd_run_script "prepare-release.sh" 
     }
-# --- Public API ------------------------------------------------------------------
+# --- Public API -------------------------------------------------------------------
 #    sample_show_message() {
 #        sayinfo "Sample module action executed"
 #    }

@@ -1,46 +1,48 @@
-# ==================================================================================
-# Testadura Consultancy — UI Glyph Definitions
-# ----------------------------------------------------------------------------------
-# Module     : ui-glyphs.sh
-# Purpose    : Centralized Unicode glyph definitions for terminal UI rendering
+# =====================================================================================
+# SolidgroundUX - UI Glyphs
+# -------------------------------------------------------------------------------------
+# Metadata:
+#   Version     : 1.0
+#   Build       : 2602607900
+#   Checksum    :
+#   Source      : ui-glyph.sh
+#   Type        : library
+#   Purpose     : Provide glyph and symbol helpers for console rendering
 #
 # Description:
-#   Provides a shared set of Unicode characters used throughout the framework
-#   for rendering structured terminal output, including:
-#     - box drawing (light and double line)
-#     - common symbols and indicators
-#     - math and comparison glyphs
-#     - keyboard hints
-#     - Greek symbols
+#   Defines reusable glyphs, symbols, and character helpers for use in
+#   console output across the SolidgroundUX framework.
+#
+#   The library:
+#     - Provides box-drawing characters and layout elements
+#     - Defines commonly used symbols (checkmarks, arrows, separators, etc.)
+#     - Encapsulates Unicode and ASCII fallbacks where needed
+#     - Supports consistent visual language across all UI components
 #
 # Design principles:
-#   - Single source of truth for all glyphs
-#   - Avoid hardcoded Unicode characters scattered across modules
-#   - Improve readability and consistency of terminal UI code
-#   - Keep naming predictable and category-based
-#
-# Naming conventions:
-#   LN_*  Light line drawing
-#   DL_*  Double line drawing
-#   CH_*  General characters
-#   KY_*  Keyboard hints
-#   GR_*  Greek symbols
+#   - Centralize glyph definitions to avoid duplication
+#   - Prefer readability and consistency over decorative complexity
+#   - Allow graceful fallback for terminals with limited Unicode support
+#   - Keep rendering concerns separate from glyph definition
 #
 # Role in framework:
-#   - Low-level dependency for UI rendering modules (ui.sh, console, menus)
-#   - Used wherever structured terminal output or symbolic indicators are needed
+#   - Foundational visual layer used by ui.sh and related UI modules
+#   - Supports consistent styling across all console tools
 #
 # Non-goals:
-#   - Rendering logic (this module defines symbols only)
-#   - Color/styling (handled in ui.sh)
+#   - Rendering logic or layout behavior
+#   - Terminal capability detection beyond basic fallback handling
+#   - Theme or color management
 #
-# Author     : Mark Fieten
-# © 2025 Mark Fieten — Testadura Consultancy
-# Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
-# ==================================================================================
-
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      :
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# =====================================================================================
 set -uo pipefail
-# --- Library guard ---------------------------------------------------------------
+# --- Library guard ------------------------------------------------------------------
     # __td_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
@@ -96,7 +98,7 @@ set -uo pipefail
     __td_lib_guard
     unset -f __td_lib_guard
     
-# --- Light line drawing --------------------------------------------------------
+# --- Light line drawing ------------------------------------------------------------
     LN_H="─"
     LN_V="│"
 
@@ -112,7 +114,7 @@ set -uo pipefail
     LN_X="┼"
 
 
-# --- Double line drawing -------------------------------------------------------
+# --- Double line drawing -----------------------------------------------------------
     DL_H="═"
     DL_V="║"
 
@@ -127,7 +129,7 @@ set -uo pipefail
     DL_R="╣"
     DL_X="╬"
 
-# --- Common characters ---------------------------------------------------------
+# --- Common characters -------------------------------------------------------------
     CH_DEG="°"
     CH_COPY="©"
     CH_TM="™"
@@ -137,7 +139,7 @@ set -uo pipefail
     CH_ARROW="→"
     CH_ELLIPSIS="…"
 
-# --- Math / comparison ---------------------------------------------------------
+# --- Math / comparison -------------------------------------------------------------
     CH_SQRT="√"
     CH_GE="≥"
     CH_LE="≤"
@@ -145,14 +147,14 @@ set -uo pipefail
     CH_APPROX="≈"
     CH_INF="∞"
 
-# --- Keyboard hints ------------------------------------------------------------
+# --- Keyboard hints ----------------------------------------------------------------
     KY_ENTER="↵"
     KY_UP="↑"
     KY_DOWN="↓"
     KY_LEFT="←"
     KY_RIGHT="→"
 
-# --- Greek letters -------------------------------------------------------------
+# --- Greek letters -----------------------------------------------------------------
     GR_ALPHA="α"
     GR_BETA="β"
     GR_GAMMA="γ"

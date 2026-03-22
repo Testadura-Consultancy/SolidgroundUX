@@ -1,54 +1,49 @@
-# =================================================================================
-# Testadura Consultancy — Terminal UI Rendering Module
-# ---------------------------------------------------------------------------------
-# Module     : ui.sh
-# Purpose    : Core terminal UI rendering utilities (colors, formatting, output)
+# =====================================================================================
+# SolidgroundUX - UI Rendering
+# -------------------------------------------------------------------------------------
+# Metadata:
+#   Version     : 1.0
+#   Build       : 2602607900
+#   Checksum    :
+#   Source      : ui.sh
+#   Type        : library
+#   Purpose     : Provide terminal rendering utilities for styled console output
 #
 # Description:
-#   Provides a consistent abstraction layer for rendering styled output in the
-#   terminal. Wraps ANSI escape sequences and centralizes visual behavior such as:
-#     - colors and text attributes
-#     - message formatting (info, warning, error, debug, etc.)
-#     - standardized console output conventions
+#   Provides the core rendering layer for styled terminal output within
+#   the SolidgroundUX framework.
 #
-#   Ensures consistent look-and-feel across all Testadura / SolidGround scripts.
-#
-# Core capabilities:
-#   - ANSI color and style handling via td_sgr
-#   - Predefined message helpers (say, sayinfo, saywarn, sayfail, etc.)
-#   - Conditional output (verbosity, debug, dry-run awareness)
-#   - Formatting helpers for emphasis and readability
+#   The library:
+#     - Defines reusable rendering helpers for text and layout
+#     - Applies ANSI colors and text attributes through centralized helpers
+#     - Renders labeled values, section headers, title bars, and filled lines
+#     - Supports width-aware formatting for terminal output
+#     - Provides standardized message and presentation conventions
 #
 # Design principles:
-#   - Centralized styling (no inline ANSI codes in modules)
+#   - Centralized styling without inline ANSI codes in consuming modules
 #   - Readability over visual complexity
-#   - Graceful degradation when styling is disabled
-#   - Consistent message semantics across the framework
-#
-# Typical usage:
-#   sayinfo "Starting process..."
-#   saywarn "Configuration missing, using defaults"
-#   sayfail "Operation failed"
-#
-#   clr="$(td_sgr "$BRIGHT_GREEN" "" "$FX_BOLD")"
-#   printf "%sSuccess%s\n" "$clr" "$(td_sgr_reset)"
+#   - Graceful degradation when styling is disabled or unavailable
+#   - Consistent rendering semantics across all console tools
 #
 # Role in framework:
-#   - Forms the visual layer of the framework
-#   - Used by all modules for user interaction and feedback
-#   - Supports higher-level UI modules (console menus, dialogs, etc.)
+#   - Core visual layer for console-based SolidgroundUX tooling
+#   - Supports higher-level interaction modules such as ui-ask and sgnd-console
 #
 # Non-goals:
-#   - No layout engine (handled by higher-level modules)
-#   - No input handling (handled by dialog/console modules)
-#   - No terminal capability detection beyond basic needs
+#   - Input handling or dialog flow control
+#   - Full terminal capability abstraction beyond framework needs
+#   - Graphical or window-based user interface functionality
 #
-# Author     : Mark Fieten
-# Copyright  : © 2025 Mark Fieten — Testadura Consultancy
-# License    : Testadura Non-Commercial License (TD-NC) v1.0
-# =================================================================================
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      :
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# =====================================================================================
 set -uo pipefail
-# --- Library guard ---------------------------------------------------------------
+# --- Library guard ------------------------------------------------------------------
     # __td_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
@@ -104,7 +99,7 @@ set -uo pipefail
     __td_lib_guard
     unset -f __td_lib_guard
 
-# --- Compatibility overrides -----------------------------------------------------
+# --- Compatibility overrides --------------------------------------------------------
     # Shims to integrate with legacy helpers if present (say/ask), with safe fallbacks.
     # These overrides are intentionally small and policy-free.
 
@@ -186,7 +181,7 @@ set -uo pipefail
         fi
     }
 
-# --- Helpers ---------------------------------------------------------------------
+# --- Helpers ------------------------------------------------------------------------
     # __td_ui_resolve_theme_file
         # Purpose:
         #   Resolve a palette or style specification into a readable .sh file path.
@@ -261,7 +256,7 @@ set -uo pipefail
         return 5
     }
 
-# --- Public API ------------------------------------------------------------------
+# --- Public API ---------------------------------------------------------------------
  # -- Public helpers --------------------------------------------------------------
     # td_strip_ansi
         # Purpose:
@@ -718,7 +713,7 @@ set -uo pipefail
         local value=""
 
         local sep=":"
-        local width=25
+        local labelwidth=25
         local pad=0
         local labelclr="${TUI_LABEL}"
         local valueclr="${TUI_VALUE}"
@@ -738,8 +733,8 @@ set -uo pipefail
                     sep="$2"
                     shift 2
                     ;;
-                --width)
-                    width="$2"
+                --labelwidth)
+                    labelwidth="$2"
                     shift 2
                     ;;
                 --pad)
@@ -773,12 +768,12 @@ set -uo pipefail
         [[ -z "$label" ]] && return 0
 
         # Width / pad safety
-        [[ "$width" =~ ^[0-9]+$ ]] || width=22
+        [[ "$labelwidth" =~ ^[0-9]+$ ]] || labelwidth=22
         [[ "$pad"   =~ ^[0-9]+$ ]] || pad=4
 
         printf '%*s%s %s %s\n' \
             "$pad" "" \
-            "${labelclr}$(printf "%-*.*s" "$width" "$width" "$label")${RESET}" \
+            "${labelclr}$(printf "%-*.*s" "$labelwidth" "$labelwidth" "$label")${RESET}" \
             "$sep" \
             "${valueclr}${value}${RESET}"
     }

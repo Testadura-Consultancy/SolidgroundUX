@@ -1,49 +1,50 @@
 #!/usr/bin/env bash
 # =====================================================================================
-# SolidgroundUX Metadata Editor
-# ------------------------------------------------------------------------------------
+# SolidgroundUX - Prepare Release
+# -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 26079
-#   Source      : metadata-editor.sh
+#   Build       : 2602607900
+#   Checksum    :
+#   Source      : prepare-release.sh
 #   Type        : script
-#   Purpose     : Read and write metadata in script header comments
+#   Purpose     : Prepare a workspace for release distribution
 #
 # Description:
-#   Interactive and automatic editor for structured script header metadata.
+#   Provides a utility that prepares a development workspace for release
+#   by applying version updates and ensuring metadata consistency.
 #
-#   Supports:
-#     - reading Metadata and Attribution sections from script headers
-#     - prompting for updated values interactively
-#     - limiting prompts to selected fields
-#     - reusing entered values across multiple files (--idem)
-#     - applying direct non-interactive updates (--auto)
+#   The script:
+#     - Updates version, build, and checksum metadata in scripts
+#     - Processes target files or folders for release readiness
+#     - Ensures consistent metadata across all release artifacts
+#     - Supports dry-run mode for safe verification
 #
 # Design principles:
-#   - Header comments are treated as structured data
-#   - Interactive mode stages values before applying changes
-#   - Automatic mode updates only explicitly requested fields
-#   - Batch processing should report mismatches and continue
+#   - Release preparation is deterministic and repeatable
+#   - Metadata consistency is enforced across all scripts
+#   - Minimal assumptions about project structure beyond conventions
+#   - Supports safe execution through dry-run capability
 #
 # Role in framework:
-#   - Maintenance tool for script and library header metadata
-#   - Consumer of td-comment-parser and td-datatable helpers
+#   - Pre-release step for SolidgroundUX workspaces
+#   - Ensures scripts are versioned and consistent before distribution
 #
 # Non-goals:
-#   - Editing arbitrary comments outside canonical script headers
-#   - Creating missing metadata fields or sections
-#   - General-purpose text editing
+#   - Packaging or distributing release artifacts
+#   - Managing version control or tagging
+#   - Performing deployment operations
 #
 # Attribution:
-#   Developers    : Mark Fieten
-#   Company       : Testadura Consultancy
-#   Client        :
-#   Copyright     : © 2025 Mark Fieten — Testadura Consultancy
-#   License       : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      :
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
 set -uo pipefail
 
-# --- Bootstrap --------------------------------------------------------------------
+# --- Bootstrap -----------------------------------------------------------------------
     # __framework_locator
         # Purpose:
         #   Locate, create, and load the SolidGroundUX bootstrap configuration.
@@ -84,7 +85,7 @@ set -uo pipefail
         local cfg=""
         local fw_root="/"
         local app_root="$fw_root"
-        local reply
+        local reply=""
 
         # Determine existing configuration
         if [[ -r "$cfg_user" ]]; then
@@ -103,7 +104,6 @@ set -uo pipefail
 
             # Interactive prompts (first run only)
             if [[ -t 0 && -t 1 ]]; then
-
                 sayinfo "SolidGroundUX bootstrap configuration"
                 sayinfo "No configuration file found."
                 sayinfo "Creating: $cfg"
@@ -131,7 +131,6 @@ set -uo pipefail
             # Create configuration file
             mkdir -p "$(dirname "$cfg")" || return 127
 
-            # write cfg file 
             {
                 printf '%s\n' "# SolidGroundUX bootstrap configuration"
                 printf '%s\n' "# Auto-generated on first run"
@@ -156,7 +155,6 @@ set -uo pipefail
         fi
 
         saydebug "Bootstrap cfg loaded: $cfg, TD_FRAMEWORK_ROOT=$TD_FRAMEWORK_ROOT, TD_APPLICATION_ROOT=$TD_APPLICATION_ROOT"
-
     }
 
     # __load_bootstrapper
@@ -198,9 +196,9 @@ set -uo pipefail
             printf "FATAL: Cannot read bootstrap: %s\n" "$bootstrap" >&2
             return 126
         }
-        
+
         saydebug "Loading $bootstrap"
-            
+
         # shellcheck source=/dev/null
         source "$bootstrap"
     }
@@ -221,9 +219,9 @@ set -uo pipefail
 
     # Minimal UI
     saystart()   { printf '%sSTART%s\t%s\n' "${MSG_CLR_STRT-}" "${RESET-}" "$*" >&2; }
-    sayinfo()    { 
+    sayinfo()    {
         if (( ${FLAG_VERBOSE:-0} )); then
-            printf '%sINFO%s \t%s\n' "${MSG_CLR_INFO-}" "${RESET-}" "$*" >&2; 
+            printf '%sINFO%s \t%s\n' "${MSG_CLR_INFO-}" "${RESET-}" "$*" >&2
         fi
     }
     sayok()      { printf '%sOK%s   \t%s\n' "${MSG_CLR_OK-}"   "${RESET-}" "$*" >&2; }
@@ -231,13 +229,13 @@ set -uo pipefail
     sayfail()    { printf '%sFAIL%s \t%s\n' "${MSG_CLR_FAIL-}" "${RESET-}" "$*" >&2; }
     saydebug() {
         if (( ${FLAG_DEBUG:-0} )); then
-            printf '%sDEBUG%s \t%s\n' "${MSG_CLR_DEBUG-}" "${RESET-}" "$*" >&2;
+            printf '%sDEBUG%s \t%s\n' "${MSG_CLR_DEBUG-}" "${RESET-}" "$*" >&2
         fi
     }
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
 
-# --- Script metadata (identity) ---------------------------------------------------
+# --- Script metadata (identity) ------------------------------------------------------
     TD_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
     TD_SCRIPT_DIR="$(cd -- "$(dirname -- "$TD_SCRIPT_FILE")" && pwd)"
     TD_SCRIPT_BASE="$(basename -- "$TD_SCRIPT_FILE")"
@@ -245,59 +243,31 @@ set -uo pipefail
     TD_SCRIPT_TITLE="Metadata editor"
     TD_SCRIPT_DESC="Reads and writes fields in script comments"
 
-# --- Script metadata (framework integration) --------------------------------------
+# --- Script metadata (framework integration) -----------------------------------------
     # TD_USING
         # Libraries to source from TD_COMMON_LIB.
         # These are loaded automatically by td_bootstrap AFTER core libraries.
-        #
-        # Example:
-        #   TD_USING=( net.sh fs.sh )
-        #
-        # Leave empty if no extra libs are needed.
     TD_USING=(
-            td-comment-parser.sh
-            td-datatable.sh
+        td-comment-parser.sh
+        td-datatable.sh
     )
 
-    # TD_ARGS_SPEC 
-        # Optional: script-specific arguments
-        # --- Example: Arguments
-        # Each entry:
-        #   "name|short|type|var|help|choices"
-        #
-        #   name    = long option name WITHOUT leading --
-        #   short   - short option name WITHOUT leading -
-        #   type    = flag | value | enum
-        #   var     = shell variable that will be set
-        #   help    = help string for auto-generated --help output
-        #   choices = for enum: comma-separated values (e.g. fast,slow,auto)
-        #             for flag/value: leave empty
-        #
-        # Notes:
-        #   - -h / --help is built in, you don't need to define it here.
-        #   - After parsing you can use: FLAG_VERBOSE, VAL_CONFIG, ENUM_MODE, ...
+    # TD_ARGS_SPEC
     TD_ARGS_SPEC=(
         "file|f|value|VAL_FILE|Exact filename or glob mask to process|"
+        "folder||value|VAL_FOLDER|Folder whose .sh files should be processed|"
         "section|s|enum|VAL_SECTION|Header section to update|Metadata,Attribution"
         "field||value|VAL_FIELD|Field name to update|"
         "value||value|VAL_VALUE|New value to write|"
         "auto|a|flag|FLAG_AUTO|Run non-interactively and update immediately|"
         "promptfor||value|VAL_PROMPTFOR|Comma-separated list of field names to prompt for|"
         "idem||flag|FLAG_IDEM|In multi-file mode, ask each selected field only once and reuse the answers|"
+        "bumpversion||flag|FLAG_BUMPVERSION|Refresh checksum/build metadata for target file(s)|"
+        "bumpmajor||flag|FLAG_BUMPMAJOR|Bump major version and refresh checksum/build metadata|"
+        "bumpminor||flag|FLAG_BUMPMINOR|Bump minor version and refresh checksum/build metadata|"
     )
 
     # TD_SCRIPT_EXAMPLES
-        # Optional: examples for --help output.
-        # Each entry is a string that will be printed verbatim.
-        #
-        # Example:
-        #   TD_SCRIPT_EXAMPLES=(
-        #       "Example usage:"
-        #       "  script.sh --verbose --mode fast"
-        #       "  script.sh -v -m slow"
-        #   )
-        #
-        # Leave empty if no examples are needed.
     TD_SCRIPT_EXAMPLES=(
         "Interactive on one file:"
         "  metadata-editor.sh --file ./my-script.sh"
@@ -310,146 +280,102 @@ set -uo pipefail
         ""
         "Auto update one field in one file:"
         "  metadata-editor.sh --auto --file ./my-script.sh --section Metadata --field Version --value 2.1"
+        ""
+        "Refresh build/checksum on one file:"
+        "  metadata-editor.sh --file ./my-script.sh --bumpversion"
+        ""
+        "Bump minor version on one file:"
+        "  metadata-editor.sh --file ./my-script.sh --bumpminor"
+        ""
+        "Bump major version on all scripts in a folder:"
+        "  metadata-editor.sh --folder ./scripts --bumpmajor"
     )
 
     # TD_SCRIPT_GLOBALS
-        # Explicit declaration of global variables intentionally used by this script.
-        #
-        # Purpose:
-        #   - Declares which globals are part of the script’s public/config contract.
-        #   - Enables optional configuration loading when non-empty.
-        #
-        # Behavior:
-        #   - If this array is non-empty, td_bootstrap enables config integration.
-        #   - Variables listed here may be populated from configuration files.
-        #   - Unlisted globals will NOT be auto-populated.
-        #
-        # Use this to:
-        #   - Document intentional globals
-        #   - Prevent accidental namespace leakage
-        #   - Make configuration behavior explicit and predictable
-        #
-        # Only list:
-        #   - Variables that must be globally accessible
-        #   - Variables that may be defined in config files
-        #
-        # Leave empty if:
-        #   - The script does not use configuration-driven globals
     TD_SCRIPT_GLOBALS=(
     )
 
     # TD_STATE_VARIABLES
-        # List of variables participating in persistent state.
-        #
-        # Purpose:
-        #   - Declares which variables should be saved/restored when state is enabled.
-        #
-        # Behavior:
-        #   - Only used when td_bootstrap is invoked with --state.
-        #   - Variables listed here are serialized on exit (if TD_STATE_SAVE=1).
-        #   - On startup, previously saved values are restored before main logic runs.
-        #
-        # Contract:
-        #   - Variables must be simple scalars (no arrays/associatives unless explicitly supported).
-        #   - Script remains fully functional when state is disabled.
-        #
-        # Leave empty if:
-        #   - The script does not use persistent state.
     TD_STATE_VARIABLES=(
     )
 
     # TD_ON_EXIT_HANDLERS
-        # List of functions to be invoked on script termination.
-        #
-        # Purpose:
-        #   - Allows scripts to register cleanup or finalization hooks.
-        #
-        # Behavior:
-        #   - Functions listed here are executed during framework exit handling.
-        #   - Execution order follows array order.
-        #   - Handlers run regardless of normal exit or controlled termination.
-        #
-        # Contract:
-        #   - Functions must exist before exit occurs.
-        #   - Handlers must not call exit directly.
-        #   - Handlers should be idempotent (safe if executed once).
-        #
-        # Typical uses:
-        #   - Cleanup temporary files
-        #   - Persist additional state
-        #   - Release locks
-        #
-        # Leave empty if:
-        #   - No custom exit behavior is required.
     TD_ON_EXIT_HANDLERS=(
     )
-    
+
     # State persistence is opt-in.
-        # Scripts that want persistent state must:
-        #   1) set TD_STATE_SAVE=1
-        #   2) call td_bootstrap --state
     TD_STATE_SAVE=0
 
-# --- Local script Declarations ----------------------------------------------------
-    # Put script-local constants and defaults here (NOT framework config).
-    # Prefer local variables inside functions unless a value must be shared.
+# --- Local script Declarations -------------------------------------------------------
     META_SCHEMA="section|field|value"
     declare -a META_ROWS=()
 
     declare -a TARGET_FILES=()
     current_script=""
-# --- Local UI --------------------------------------------------------------------
+    BUMP_MODE="none"
+
+# --- Local UI ------------------------------------------------------------------------
     # __print_section_labeledvalues
         # Purpose:
-        #   Print all rows from a datatable that belong to one section.
+        #   Print all rows from one metadata section as labeled values.
         #
         # Behavior:
-        #   - Iterates through all rows in the supplied table.
-        #   - Selects rows whose section column matches the requested section.
-        #   - Prints each matching field/value pair as a labeled value.
+        #   - Reads rows from the supplied td-datatable.
+        #   - Filters rows by the requested section name.
+        #   - Prints each matching field/value pair using td_print_labeledvalue().
         #
         # Arguments:
         #   $1  SCHEMA
+        #       Datatable schema string.
         #   $2  TABLE_NAME
-        #   $3  SECTION
+        #       Name of the datatable array variable.
+        #   $3  WANTED_SECTION
+        #       Section name to render (for example: Metadata, Attribution).
         #
         # Returns:
         #   0  success
-        #   1  row lookup failure
+        #   1  failed to read datatable contents
+        #
+        # Usage:
+        #   __print_section_labeledvalues "$META_SCHEMA" META_ROWS "Metadata"
+        #
+        # Examples:
+        #   __print_section_labeledvalues "$META_SCHEMA" META_ROWS "Attribution"
     __print_section_labeledvalues() {
-            local schema="${1:?missing schema}"
-            local table_name="${2:?missing table name}"
-            local wanted_section="${3:?missing section}"
+        local schema="${1:?missing schema}"
+        local table_name="${2:?missing table name}"
+        local wanted_section="${3:?missing section}"
 
-            local row_count=0
-            local i=0
-            local section=""
-            local field=""
-            local value=""
-            
-            row_count="$(td_dt_row_count "$table_name")" || return 1
-            
-            td_print
-            td_print_sectionheader "$wanted_section" --border "${LN_H}" --padleft 2
-            for (( i=0; i<row_count; i++ )); do
-                section="$(td_dt_get "$schema" "$table_name" "$i" "section")" || return 1
-                [[ "$section" == "$wanted_section" ]] || continue
+        local row_count=0
+        local i=0
+        local section=""
+        local field=""
+        local value=""
+        local lw=15
 
-                field="$(td_dt_get "$schema" "$table_name" "$i" "field")" || return 1
-                value="$(td_dt_get "$schema" "$table_name" "$i" "value")" || return 1
+        row_count="$(td_dt_row_count "$table_name")" || return 1
 
-                td_print_labeledvalue "$field" "$value" --pad 3
-            done
+        td_print
+        td_print_sectionheader "$wanted_section" --border "${LN_H}" --padleft 2
+        for (( i=0; i<row_count; i++ )); do
+            section="$(td_dt_get "$schema" "$table_name" "$i" "section")" || return 1
+            [[ "$section" == "$wanted_section" ]] || continue
+
+            field="$(td_dt_get "$schema" "$table_name" "$i" "field")" || return 1
+            value="$(td_dt_get "$schema" "$table_name" "$i" "value")" || return 1
+
+            td_print_labeledvalue "$field" "$value" --pad 3 --labelwidth "$lw"
+        done
     }
 
     # __show_current_metadata
         # Purpose:
-        #   Display the currently loaded metadata grouped by section.
+        #   Render the currently loaded metadata for the active script.
         #
         # Behavior:
-        #   - Prints a titled overview of the loaded metadata.
-        #   - Displays the Metadata section.
-        #   - Displays the Attribution section.
+        #   - Prints a titled block for the current header data.
+        #   - Renders the Metadata section.
+        #   - Renders the Attribution section.
         #
         # Inputs (globals):
         #   META_SCHEMA
@@ -457,9 +383,18 @@ set -uo pipefail
         #
         # Returns:
         #   0  success
+        #   1  failed to render section contents
+        #
+        # Usage:
+        #   __show_current_metadata
+        #
+        # Examples:
+        #   __get_metadata || return 1
+        #   __show_current_metadata
     __show_current_metadata(){
+        local lw=
         td_print
-        td_print_sectionheader "Current data" --border "${LN_H}" --padleft 0
+        td_print_sectionheader "Current data" --border "${LN_H}" --padleft 2
 
         __print_section_labeledvalues "$META_SCHEMA" META_ROWS "Metadata"
         __print_section_labeledvalues "$META_SCHEMA" META_ROWS "Attribution"
@@ -467,18 +402,21 @@ set -uo pipefail
         td_print
         td_print_sectionheader --border "${LN_H}" --padleft 0
     }
-    
+
     # __show_pending_value_buffer
         # Purpose:
-        #   Display the staged values that are pending application.
+        #   Show a summary of changed fields in the pending value buffer.
         #
         # Behavior:
-        #   - Iterates through META_ROWS in order.
-        #   - Groups rows by section.
-        #   - Prints the staged value from the supplied buffer for each field.
+        #   - Compares the supplied buffer against the current values in META_ROWS.
+        #   - Prints only fields whose values have changed.
+        #   - Groups changed fields by section.
+        #   - Does not print the new values, only the changed field names.
+        #   - Prints "No changes" when the buffer matches the current metadata.
         #
         # Arguments:
-        #   $1  BUFFER_ARRAY_NAME
+        #   $1  BUFFER_NAME
+        #       Name of the pending value buffer array variable.
         #
         # Inputs (globals):
         #   META_SCHEMA
@@ -486,46 +424,81 @@ set -uo pipefail
         #
         # Returns:
         #   0  success
-        #   1  datatable lookup failure
+        #   1  failed to read metadata rows
+        #
+        # Usage:
+        #   __show_pending_value_buffer value_buffer
+        #
+        # Examples:
+        #   __show_pending_value_buffer io_buffer
     __show_pending_value_buffer() {
         local -n in_buffer="$1"
         local i=0
         local section=""
         local field=""
+        local old_value=""
         local new_value=""
         local prev_section=""
+        local any_changes=0
 
         td_print
         td_print_sectionheader "Summary" --border "${LN_H}" --padleft 2
+
         for (( i=0; i<${#META_ROWS[@]}; i++ )); do
             section="$(td_dt_get "$META_SCHEMA" META_ROWS "$i" "section")" || return 1
             field="$(td_dt_get "$META_SCHEMA" META_ROWS "$i" "field")" || return 1
+            old_value="$(td_dt_get "$META_SCHEMA" META_ROWS "$i" "value")" || return 1
             new_value="${in_buffer[$i]-}"
-            
+
+            [[ "$new_value" == "$old_value" ]] && continue
+
             if [[ "$section" != "$prev_section" ]]; then
                 td_print
                 td_print_sectionheader "$section" --border "${LN_H}" --padend 0 --padleft 2
                 prev_section="$section"
             fi
-            td_print_labeledvalue "$field" "$new_value" --pad 3
+
+            td_print_labeledvalue "$field" "" --pad 3 --labelwidth 20
+            (( any_changes++ ))
         done
+
+        if (( any_changes == 0 )); then
+            td_print
+            td_print_labeledvalue "No changes" "" --pad 3
+        fi
+
         td_print_sectionheader --border "${LN_H}"
     }
-# --- Local script functions -------------------------------------------------------
+
+# --- Local script functions ----------------------------------------------------------
     # __field_is_selected
         # Purpose:
-        #   Determine whether a field should be prompted in interactive mode.
+        #   Test whether a field is included in the interactive prompt selection.
         #
         # Behavior:
-        #   - If VAL_PROMPTFOR is empty, all fields are selected.
-        #   - Otherwise, matches FIELD against the comma-separated prompt list.
+        #   - When VAL_PROMPTFOR is empty, all fields are considered selected.
+        #   - When VAL_PROMPTFOR is set, splits the comma-separated list.
+        #   - Trims surrounding whitespace from each list item.
+        #   - Matches the requested field name exactly.
         #
         # Arguments:
         #   $1  FIELD
+        #       Field name to test.
+        #
+        # Inputs (globals):
+        #   VAL_PROMPTFOR
         #
         # Returns:
-        #   0  field selected
-        #   1  field not selected
+        #   0  field is selected
+        #   1  field is not selected
+        #
+        # Usage:
+        #   __field_is_selected "Version"
+        #
+        # Examples:
+        #   if __field_is_selected "$field"; then
+        #       :
+        #   fi
     __field_is_selected() {
         local wanted="${1:?missing field}"
         local item=""
@@ -547,22 +520,30 @@ set -uo pipefail
 
     # __resolve_target_files
         # Purpose:
-        #   Resolve a file path or glob mask into the TARGET_FILES array.
+        #   Resolve a file path or glob mask into TARGET_FILES.
         #
         # Behavior:
         #   - Expands the supplied mask using shell globbing.
-        #   - Keeps only readable regular files.
-        #   - Stores resolved absolute paths in TARGET_FILES.
+        #   - Keeps only regular readable files.
+        #   - Normalizes each accepted file to an absolute path.
+        #   - Fails when no readable files match.
         #
         # Arguments:
-        #   $1  FILE_OR_MASK
+        #   $1  MASK
+        #       Exact file path or glob mask.
         #
         # Outputs (globals):
         #   TARGET_FILES
         #
         # Returns:
-        #   0  one or more readable files resolved
-        #   1  no matching readable files    
+        #   0  success
+        #   1  no mask supplied or no readable matches found
+        #
+        # Usage:
+        #   __resolve_target_files "./*.sh"
+        #
+        # Examples:
+        #   __resolve_target_files "$VAL_FILE" || return 1
     __resolve_target_files() {
         local mask="${1:-}"
         local matches=()
@@ -576,10 +557,7 @@ set -uo pipefail
         }
 
         shopt -s nullglob
-
-        # Expand mask safely
         matches=( $mask )
-
         shopt -u nullglob
 
         if (( ${#matches[@]} == 0 )); then
@@ -604,24 +582,139 @@ set -uo pipefail
         return 0
     }
 
-    # __get_metadata
+    # __resolve_folder_scripts
         # Purpose:
-        #   Load editable header metadata from the current script into META_ROWS.
+        #   Resolve all readable .sh files in a folder into TARGET_FILES.
         #
         # Behavior:
-        #   - Clears META_ROWS.
-        #   - Loads the Metadata section.
-        #   - Loads the Attribution section.
+        #   - Validates that the supplied folder exists.
+        #   - Scans the folder for files matching *.sh.
+        #   - Keeps only regular readable files.
+        #   - Normalizes each accepted file to an absolute path.
+        #   - Fails when no readable script files are found.
+        #
+        # Arguments:
+        #   $1  FOLDER
+        #       Folder path to scan.
+        #
+        # Outputs (globals):
+        #   TARGET_FILES
+        #
+        # Returns:
+        #   0  success
+        #   1  missing folder, invalid folder, or no readable scripts found
+        #
+        # Usage:
+        #   __resolve_folder_scripts "./scripts"
+        #
+        # Examples:
+        #   __resolve_folder_scripts "$VAL_FOLDER" || return 1
+    __resolve_folder_scripts() {
+        local folder="${1:-}"
+        local file=""
+
+        TARGET_FILES=()
+
+        [[ -n "$folder" ]] || {
+            sayfail "No folder provided. Use --folder <path>"
+            return 1
+        }
+
+        [[ -d "$folder" ]] || {
+            sayfail "Folder not found: $folder"
+            return 1
+        }
+
+        shopt -s nullglob
+        for file in "$folder"/*.sh; do
+            [[ -f "$file" ]] || continue
+            [[ -r "$file" ]] || {
+                saywarning "Skipping unreadable file: $file"
+                continue
+            }
+            TARGET_FILES+=( "$(readlink -f "$file")" )
+        done
+        shopt -u nullglob
+
+        if (( ${#TARGET_FILES[@]} == 0 )); then
+            sayfail "No readable .sh files found in folder: $folder"
+            return 1
+        fi
+
+        return 0
+    }
+
+    # __resolve_targets
+        # Purpose:
+        #   Resolve the effective processing targets into TARGET_FILES.
+        #
+        # Behavior:
+        #   - Accepts either --file or --folder input.
+        #   - Rejects cases where both are supplied.
+        #   - Delegates to __resolve_target_files() or __resolve_folder_scripts().
+        #
+        # Inputs (globals):
+        #   VAL_FILE
+        #   VAL_FOLDER
+        #
+        # Outputs (globals):
+        #   TARGET_FILES
+        #
+        # Returns:
+        #   0  success
+        #   1  invalid target arguments or target resolution failure
+        #
+        # Usage:
+        #   __resolve_targets || return 1
+        #
+        # Examples:
+        #   __resolve_targets
+    __resolve_targets() {
+        if [[ -n "${VAL_FILE:-}" && -n "${VAL_FOLDER:-}" ]]; then
+            sayfail "Use either --file or --folder, not both"
+            return 1
+        fi
+
+        if [[ -n "${VAL_FILE:-}" ]]; then
+            __resolve_target_files "${VAL_FILE}"
+            return $?
+        fi
+
+        if [[ -n "${VAL_FOLDER:-}" ]]; then
+            __resolve_folder_scripts "${VAL_FOLDER}"
+            return $?
+        fi
+
+        sayfail "Provide either --file <path|glob> or --folder <path>"
+        return 1
+    }
+
+    # __get_metadata
+        # Purpose:
+        #   Load header metadata for the current script into META_ROWS.
+        #
+        # Behavior:
+        #   - Clears the current META_ROWS buffer.
+        #   - Loads the Metadata section from the current script header.
+        #   - Loads the Attribution section from the current script header.
         #
         # Inputs (globals):
         #   current_script
+        #   META_SCHEMA
         #
         # Outputs (globals):
         #   META_ROWS
         #
         # Returns:
         #   0  success
-        #   1  section load failure
+        #   1  failed to load one or more header sections
+        #
+        # Usage:
+        #   __get_metadata || return 1
+        #
+        # Examples:
+        #   current_script="$file"
+        #   __get_metadata
     __get_metadata() {
         META_ROWS=()
 
@@ -629,32 +722,97 @@ set -uo pipefail
         td_header_load_section_to_dt "$current_script" "Attribution" "$META_SCHEMA" META_ROWS || return 1
     }
 
-    # __validate_auto_args
+    # __resolve_bump_mode
         # Purpose:
-        #   Validate that all required arguments for automatic mode are present.
+        #   Resolve the effective non-interactive version update mode from flags.
         #
         # Behavior:
-        #   - Returns immediately when FLAG_AUTO is not enabled.
-        #   - Verifies that file, section, field, and value arguments are available.
-        #   - Reports missing required arguments.
+        #   - Initializes BUMP_MODE to none.
+        #   - Maps --bumpversion to none.
+        #   - Maps --bumpmajor to major.
+        #   - Maps --bumpminor to minor.
+        #   - Fails when more than one bump flag is supplied.
+        #
+        # Inputs (globals):
+        #   FLAG_BUMPVERSION
+        #   FLAG_BUMPMAJOR
+        #   FLAG_BUMPMINOR
+        #
+        # Outputs (globals):
+        #   BUMP_MODE
+        #
+        # Returns:
+        #   0  success
+        #   1  conflicting bump flags supplied
+        #
+        # Usage:
+        #   __resolve_bump_mode || exit 2
+        #
+        # Examples:
+        #   __resolve_bump_mode
+    __resolve_bump_mode() {
+        local bump_count=0
+
+        BUMP_MODE="none"
+
+        if (( ${FLAG_BUMPVERSION:-0} )); then
+            BUMP_MODE="none"
+            (( bump_count++ ))
+        fi
+
+        if (( ${FLAG_BUMPMAJOR:-0} )); then
+            BUMP_MODE="major"
+            (( bump_count++ ))
+        fi
+
+        if (( ${FLAG_BUMPMINOR:-0} )); then
+            BUMP_MODE="minor"
+            (( bump_count++ ))
+        fi
+
+        if (( bump_count > 1 )); then
+            sayfail "Use only one of --bumpversion, --bumpmajor, or --bumpminor"
+            return 1
+        fi
+
+        return 0
+    }
+
+    # __validate_auto_args
+        # Purpose:
+        #   Validate required arguments for automatic field update mode.
+        #
+        # Behavior:
+        #   - Performs no checks when FLAG_AUTO is not set.
+        #   - Requires --file or --folder.
+        #   - Requires --section.
+        #   - Requires --field.
+        #   - Requires --value.
         #
         # Inputs (globals):
         #   FLAG_AUTO
         #   VAL_FILE
+        #   VAL_FOLDER
         #   VAL_SECTION
         #   VAL_FIELD
         #   VAL_VALUE
         #
         # Returns:
-        #   0  arguments valid
-        #   1  one or more required arguments missing
+        #   0  success
+        #   1  missing required auto-mode arguments
+        #
+        # Usage:
+        #   __validate_auto_args || exit 2
+        #
+        # Examples:
+        #   __validate_auto_args
     __validate_auto_args() {
         (( ${FLAG_AUTO:-0} )) || return 0
 
-        [[ -n "${VAL_FILE:-}" ]] || {
-            sayfail "--auto requires --file"
+        if [[ -z "${VAL_FILE:-}" && -z "${VAL_FOLDER:-}" ]]; then
+            sayfail "--auto requires --file or --folder"
             return 1
-        }
+        fi
 
         [[ -n "${VAL_SECTION:-}" ]] || {
             sayfail "--auto requires --section"
@@ -674,35 +832,77 @@ set -uo pipefail
         return 0
     }
 
-    # __auto_update_files
+    # __validate_bump_args
         # Purpose:
-        #   Apply a single field update to all resolved target files.
+        #   Validate required arguments for version metadata update mode.
         #
         # Behavior:
-        #   - Resolves target files from VAL_FILE.
-        #   - Updates the requested section/field in each file.
-        #   - Reports per-file success or failure.
-        #   - Continues processing after individual file failures.
+        #   - Performs checks only when one or more bump flags are set.
+        #   - Requires exactly one target source: --file or --folder.
+        #   - Rejects cases where both are supplied.
         #
         # Inputs (globals):
+        #   FLAG_BUMPVERSION
+        #   FLAG_BUMPMAJOR
+        #   FLAG_BUMPMINOR
         #   VAL_FILE
+        #   VAL_FOLDER
+        #
+        # Returns:
+        #   0  success
+        #   1  invalid or missing bump-mode target arguments
+        #
+        # Usage:
+        #   __validate_bump_args || exit 2
+        #
+        # Examples:
+        #   __validate_bump_args
+    __validate_bump_args() {
+        if (( ${FLAG_BUMPVERSION:-0} || ${FLAG_BUMPMAJOR:-0} || ${FLAG_BUMPMINOR:-0} )); then
+            if [[ -z "${VAL_FILE:-}" && -z "${VAL_FOLDER:-}" ]]; then
+                sayfail "Version bump mode requires --file or --folder"
+                return 1
+            fi
+
+            if [[ -n "${VAL_FILE:-}" && -n "${VAL_FOLDER:-}" ]]; then
+                sayfail "Use either --file or --folder, not both"
+                return 1
+            fi
+        fi
+
+        return 0
+    }
+
+    # __auto_update_files
+        # Purpose:
+        #   Apply one direct field update to all resolved target files.
+        #
+        # Behavior:
+        #   - Resolves target files from --file or --folder.
+        #   - Applies td_header_set_field() to each target.
+        #   - Continues across failures and reports a summary.
+        #
+        # Inputs (globals):
         #   VAL_SECTION
         #   VAL_FIELD
         #   VAL_VALUE
         #
-        # Outputs (globals):
-        #   TARGET_FILES
-        #
         # Returns:
-        #   0  all updates applied successfully
-        #   1  one or more updates failed
+        #   0  all updates succeeded
+        #   1  target resolution failed or one or more updates failed
+        #
+        # Usage:
+        #   __auto_update_files || exit $?
+        #
+        # Examples:
+        #   __auto_update_files
     __auto_update_files() {
         local file=""
         local rc=0
         local changed=0
         local failed=0
 
-        __resolve_target_files "${VAL_FILE:-}" || return 1
+        __resolve_targets || return 1
 
         for file in "${TARGET_FILES[@]}"; do
             if td_header_set_field "$file" "$VAL_SECTION" "$VAL_FIELD" "$VAL_VALUE"; then
@@ -723,25 +923,138 @@ set -uo pipefail
         done
 
         sayinfo "Summary: $changed updated, $failed failed"
-
         (( failed == 0 ))
     }
 
-# --- User input -------------------------------------------------------------------
-    # __build_value_buffer_from_meta
+    # __bump_one_file
         # Purpose:
-        #   Build a staged value buffer from the current META_ROWS table.
-        #
-        # Behavior:
-        #   - Reads the value column from each row in META_ROWS.
-        #   - Writes the values into the target array in row order.
+        #   Apply a version bump to one file, respecting dry-run.
         #
         # Arguments:
-        #   $1  OUTPUT_ARRAY_NAME
+        #   $1  FILE
+        #   $2  MODE   none | major | minor
         #
         # Returns:
         #   0  success
-        #   1  datatable lookup failure
+        #   1  failure
+    __bump_one_file() {
+        local file="${1:?missing file}"
+        local mode="${2:-none}"
+
+        if (( ${FLAG_DRYRUN:-0} )); then
+            case "$mode" in
+                major) sayinfo "[DRYRUN] Would bump major version in $file" ;;
+                minor) sayinfo "[DRYRUN] Would bump minor version in $file" ;;
+                none)  sayinfo "[DRYRUN] Would update build/checksum in $file" ;;
+            esac
+            return 0
+        fi
+
+        td_header_bump_version "$file" "$mode"
+    }
+
+    # __bump_version_files
+        # Purpose:
+        #   Apply the resolved version metadata update mode to all target files.
+        #
+        # Behavior:
+        #   - Resolves target files from --file or --folder.
+        #   - Applies __bump_one_file() to each target.
+        #   - Reports per-file results and a final summary.
+        #
+        # Inputs (globals):
+        #   BUMP_MODE
+        #
+        # Returns:
+        #   0  all targets processed successfully
+        #   1  target resolution failed or one or more updates failed
+        #
+        # Usage:
+        #   __bump_version_files || exit $?
+        #
+        # Examples:
+        #   __bump_version_files
+    __bump_version_files() {
+        local file=""
+        local changed=0
+        local failed=0
+
+        __resolve_targets || return 1
+
+        for file in "${TARGET_FILES[@]}"; do
+            if __bump_one_file "$file" "$BUMP_MODE"; then
+                case "$BUMP_MODE" in
+                    major) sayok "Bumped major version in $file" ;;
+                    minor) sayok "Bumped minor version in $file" ;;
+                    none)  sayok "Updated build/checksum in $file" ;;
+                esac
+                (( changed++ ))
+            else
+                sayfail "Failed version bump in $file"
+                (( failed++ ))
+            fi
+        done
+
+        sayinfo "Summary: $changed processed, $failed failed"
+        (( failed == 0 ))
+    }
+
+    # __collect_changed_fields
+        # Purpose:
+        #   Collect the names of fields whose pending values differ from current metadata.
+        #
+        # Arguments:
+        #   $1  BUFFER_NAME
+        #
+        # Outputs:
+        #   Writes changed field names to stdout, one per line.
+    __collect_changed_fields() {
+        local -n in_buffer="$1"
+        local i=0
+        local field=""
+        local old_value=""
+        local new_value=""
+
+        for (( i=0; i<${#META_ROWS[@]}; i++ )); do
+            field="$(td_dt_get "$META_SCHEMA" META_ROWS "$i" "field")" || return 1
+            old_value="$(td_dt_get "$META_SCHEMA" META_ROWS "$i" "value")" || return 1
+            new_value="${in_buffer[$i]-}"
+
+            [[ "$new_value" == "$old_value" ]] && continue
+            printf '%s\n' "$field"
+        done
+    }
+
+# --- User input ----------------------------------------------------------------------
+    # __build_value_buffer_from_meta
+        # Purpose:
+        #   Build an editable value buffer from the current metadata rows.
+        #
+        # Behavior:
+        #   - Clears the destination array.
+        #   - Copies the value column from META_ROWS into the destination buffer.
+        #   - Preserves row order so buffer indexes match metadata row indexes.
+        #
+        # Arguments:
+        #   $1  OUT_BUFFER_NAME
+        #       Name of the destination array variable.
+        #
+        # Inputs (globals):
+        #   META_SCHEMA
+        #   META_ROWS
+        #
+        # Outputs (globals):
+        #   Writes values into the supplied output buffer by reference.
+        #
+        # Returns:
+        #   0  success
+        #   1  failed to read metadata rows
+        #
+        # Usage:
+        #   __build_value_buffer_from_meta value_buffer
+        #
+        # Examples:
+        #   __build_value_buffer_from_meta io_buffer
     __build_value_buffer_from_meta() {
         local -n out_buffer="$1"
         local i=0
@@ -757,23 +1070,43 @@ set -uo pipefail
 
     # __prompt_value_buffer
         # Purpose:
-        #   Prompt the user for updated values using the staged value buffer.
+        #   Prompt interactively for editable field values and update the buffer in place.
         #
         # Behavior:
         #   - Iterates through META_ROWS in order.
-        #   - Prompts only selected fields.
-        #   - Uses the current buffer value as the default.
-        #   - Updates the buffer in place.
+        #   - Prompts only for fields selected by __field_is_selected().
+        #   - Groups prompts by section.
+        #   - Uses the current buffer value as the editable default.
+        #   - Writes accepted values back into the supplied buffer.
+        #   - When prompt_mode is idem, skips prompting entirely.
         #
         # Arguments:
-        #   $1  BUFFER_ARRAY_NAME
-        #   $2  PROMPT_MODE (optional; default: normal)
+        #   $1  BUFFER_NAME
+        #       Name of the editable value buffer array variable.
+        #   $2  PROMPT_MODE
+        #       Prompt mode token.
+        #       Supported values:
+        #         normal
+        #         idem
+        #
+        # Inputs (globals):
+        #   META_SCHEMA
+        #   META_ROWS
+        #
+        # Outputs (globals):
+        #   Updates the supplied buffer by reference.
         #
         # Returns:
         #   0  success
-        #   1  datatable lookup failure
+        #   1  failed to read metadata rows
+        #
+        # Usage:
+        #   __prompt_value_buffer value_buffer normal
+        #
+        # Examples:
+        #   __prompt_value_buffer io_buffer idem
     __prompt_value_buffer() {
-        local -n io_buffer="$1"
+        local -n buffer_ref="$1"
         local prompt_mode="${2:-normal}"
         local i=0
         local section=""
@@ -781,19 +1114,20 @@ set -uo pipefail
         local current_value=""
         local new_value=""
         local lw=15
-
-        td_print "Enter new values for the selected fields"
-        td_print
         local prev_section=""
         local new_section=1
+
+        td_print "Enter new values for the selected fields"
+
         for (( i=0; i<${#META_ROWS[@]}; i++ )); do
             section="$(td_dt_get "$META_SCHEMA" META_ROWS "$i" "section")" || return 1
             if [[ "$section" != "$prev_section" ]]; then
                 prev_section="$section"
                 new_section=1
             fi
+
             field="$(td_dt_get "$META_SCHEMA" META_ROWS "$i" "field")" || return 1
-            current_value="${io_buffer[$i]-}"
+            current_value="${buffer_ref[$i]-}"
 
             __field_is_selected "$field" || continue
 
@@ -802,51 +1136,197 @@ set -uo pipefail
             fi
 
             if [[ "$new_section" == 1 ]]; then
+                td_print
                 td_print_sectionheader "$section" --border "${LN_H}" --padend 0 --padleft 2
                 new_section=0
             fi
 
-            ask --label "    $field" --var new_value --default "$current_value" --labelwidth "$lw" 
-            io_buffer[$i]="$new_value"
+            ask --label "    $field" --var new_value --default "$current_value" --labelwidth "$lw" --labelclr "${CYAN}"
+            buffer_ref[$i]="$new_value"
         done
+
         td_print
         td_print_sectionheader --border "${LN_H}"
     }
 
-    # __apply_value_buffer_to_file
+    # __ask_apply_first_answers_to_all
         # Purpose:
-        #   Apply the staged value buffer to the current script header.
+        #   Ask whether the first file's answers should be reused for all files.
+        #
+        # Returns:
+        #   0  yes
+        #   1  no
+        #   2  cancel
+    __ask_apply_first_answers_to_all() {
+        ask_noyes "Apply first file's answers to all?"
+        return $?
+    }
+
+    # __ask_interactive_action
+        # Purpose:
+        #   Ask which interactive action to apply to the selected targets.
         #
         # Behavior:
-        #   - Iterates through META_ROWS.
-        #   - Updates each corresponding field in current_script.
-        #   - Reports mismatches and write failures.
+        #   - Displays the interactive action menu.
+        #   - Reads the user's choice through td_choose().
+        #   - Maps the accepted choice to an action token.
         #
         # Arguments:
-        #   $1  BUFFER_ARRAY_NAME
+        #   $1  OUT_ACTION
+        #       Name of the destination variable.
+        #
+        # Outputs (globals):
+        #   Sets the supplied variable (by reference) to:
+        #     edit | bump | cancel
+        #
+        # Returns:
+        #   0  success
+        #
+        # Usage:
+        #   __ask_interactive_action action
+        #
+        # Examples:
+        #   local action=""
+        #   __ask_interactive_action action
+            # Purpose:
+            #   Ask whether to edit fields or bump version.
+            #
+            # Outputs:
+            #   Writes selected action token to stdout:
+            #     edit | bump | cancel
+    __ask_interactive_action() {
+        local -n out_action="$1"
+        local choice=""
+
+        td_print
+        td_print_sectionheader "Action" --border "${LN_H}" --padleft 2
+        td_print_labeledvalue --label "1" --value "Edit fields" --pad 3 --labelwidth 3
+        td_print_labeledvalue --label "2" --value "Bump version" --pad 3 --labelwidth 3
+        td_print_labeledvalue --label "Q" --value "Cancel" --pad 3 --labelwidth 3
+        td_print
+
+        td_choose --label "Choose" --choices "1,2,Q" --var choice
+
+        case "${choice^^}" in
+            1) out_action="edit" ;;
+            2) out_action="bump" ;;
+            Q) out_action="cancel" ;;
+            *) out_action="cancel" ;;
+        esac
+    }
+
+    # __ask_bump_mode
+        # Purpose:
+        #   Ask which version metadata update mode to apply.
+        #
+        # Behavior:
+        #   - Displays the version update menu.
+        #   - Supports refresh-only mode and semantic version bump modes.
+        #   - Maps the accepted choice to a mode token.
+        #
+        # Arguments:
+        #   $1  OUT_MODE
+        #       Name of the destination variable.
+        #
+        # Outputs (globals):
+        #   Sets the supplied variable (by reference) to:
+        #     none | major | minor | cancel
+        #
+        # Returns:
+        #   0  success
+        #
+        # Usage:
+        #   __ask_bump_mode mode
+        #
+        # Examples:
+        #   local mode=""
+        #   __ask_bump_mode mode
+            # Purpose:
+            #   Ask which semantic version bump to apply.
+            #
+            # Outputs:
+            #   Writes selected mode token to stdout:
+            #     major | minor | cancel
+    __ask_bump_mode() {
+        local -n out_mode="$1"
+        local choice=""
+
+        td_print
+        td_print_sectionheader "Version update" --border "${LN_H}" --padleft 2
+        td_print_labeledvalue "0" "Refresh build/checksum" --pad 3 --labelwidth 4
+        td_print_labeledvalue "1" "Major" --pad 3 --labelwidth 4
+        td_print_labeledvalue "2" "Minor" --pad 3 --labelwidth 4
+        td_print_labeledvalue "Q" "Cancel" --pad 3 --labelwidth 4
+        td_print
+
+        td_choose --label "Choose" --choices "0, 1,2,Q" --var choice
+
+        case "${choice^^}" in
+            0) out_mode="none" ;;
+            1) out_mode="major" ;;
+            2) out_mode="minor" ;;
+            Q) out_mode="cancel" ;;
+            *) out_mode="cancel" ;;
+        esac
+    }
+    
+    # __apply_value_buffer_to_file
+        # Purpose:
+        #   Apply changed values from the pending buffer to the current script header.
+        #
+        # Behavior:
+        #   - Compares the supplied buffer against the current values in META_ROWS.
+        #   - Updates only fields whose values actually changed.
+        #   - Respects dry-run mode and reports simulated changes instead of writing.
+        #   - Continues across field update failures and reports them individually.
+        #   - Reports when there are no metadata changes to apply.
+        #
+        # Arguments:
+        #   $1  BUFFER_NAME
+        #       Name of the pending value buffer array variable.
         #
         # Inputs (globals):
         #   current_script
+        #   META_SCHEMA
+        #   META_ROWS
+        #   FLAG_DRYRUN
         #
         # Returns:
-        #   0  all updates applied
-        #   1  one or more updates failed
+        #   0  all changed fields applied successfully (or no changes)
+        #   1  one or more field updates failed
+        #
+        # Usage:
+        #   __apply_value_buffer_to_file value_buffer
+        #
+        # Examples:
+        #   __apply_value_buffer_to_file io_buffer
     __apply_value_buffer_to_file() {
         local -n in_buffer="$1"
         local i=0
         local section=""
         local field=""
-        local value=""
+        local old_value=""
+        local new_value=""
         local rc=0
         local failed=0
+        local changed=0
 
         for (( i=0; i<${#META_ROWS[@]}; i++ )); do
             section="$(td_dt_get "$META_SCHEMA" META_ROWS "$i" "section")" || return 1
             field="$(td_dt_get "$META_SCHEMA" META_ROWS "$i" "field")" || return 1
-            value="${in_buffer[$i]-}"
+            old_value="$(td_dt_get "$META_SCHEMA" META_ROWS "$i" "value")" || return 1
+            new_value="${in_buffer[$i]-}"
 
-            if td_header_set_field "$current_script" "$section" "$field" "$value"; then
-                :
+            [[ "$new_value" == "$old_value" ]] && continue
+
+            if (( ${FLAG_DRYRUN:-0} )); then
+                sayinfo "[DRYRUN] Would update [$section] $field in $current_script: '$old_value' -> '$new_value'"
+                (( changed++ ))
+                continue
+            fi
+
+            if td_header_set_field "$current_script" "$section" "$field" "$new_value"; then
+                (( changed++ ))
             else
                 rc=$?
                 case "$rc" in
@@ -857,151 +1337,331 @@ set -uo pipefail
             fi
         done
 
+        if (( changed == 0 )); then
+            sayinfo "No metadata changes to apply."
+        fi
+
         (( failed == 0 ))
     }
-# --- Main -------------------------------------------------------------------------
+
+# --- Main ----------------------------------------------------------------------------
+    # __interactive_bump_files
+        # Purpose:
+        #   Apply an interactive version metadata update to the first file or all files.
+        #
+        # Behavior:
+        #   - Prompts for the desired update mode.
+        #   - Supports refresh-only, major, and minor update modes.
+        #   - Applies the selected mode either to the first file only or to all targets.
+        #
+        # Arguments:
+        #   $1  APPLY_ALL
+        #       0 = first file only
+        #       1 = all target files
+        #
+        # Inputs (globals):
+        #   TARGET_FILES
+        #
+        # Returns:
+        #   0  success
+        #   1  failure
+        #   2  cancelled
+        #
+        # Usage:
+        #   __interactive_bump_files 0
+        #
+        # Examples:
+        #   __interactive_bump_files "$apply_all_answers"
+    __interactive_bump_files() {
+        local apply_all="${1:-0}"
+        local mode=""
+        local file=""
+        local -a bump_files=()
+
+        local mode=""
+        __ask_bump_mode mode
+
+        case "$mode" in
+            cancel) return 2 ;;
+            none|major|minor) ;;
+            *) return 2 ;;
+        esac
+
+        if (( apply_all )); then
+            bump_files=( "${TARGET_FILES[@]}" )
+        else
+            bump_files=( "${TARGET_FILES[0]}" )
+        fi
+
+        for file in "${bump_files[@]}"; do
+            if __bump_one_file "$file" "$mode"; then
+                case "$mode" in
+                    major) sayok "Bumped major version in $file" ;;
+                    minor) sayok "Bumped minor version in $file" ;;
+                esac
+            else
+                sayfail "Failed version bump in $file"
+                return 1
+            fi
+        done
+
+        return 0
+    }
 
     # __interactive_edit_current_file
         # Purpose:
-        #   Edit the metadata of the current script interactively using a local value buffer.
+        #   Interactively edit metadata for the current script using a fresh value buffer.
         #
         # Behavior:
-        #   - Loads metadata from current_script into META_ROWS.
-        #   - Builds a staged value buffer from the current metadata.
-        #   - Prompts the user for updated values.
-        #   - Repeats the prompt loop until confirmed or cancelled.
+        #   - Loads current metadata into META_ROWS.
+        #   - Builds an editable buffer from the current values.
+        #   - Prompts for new values.
+        #   - Shows a summary of changed fields.
+        #   - Confirms whether the changed fields should be applied.
+        #   - Allows redo before committing changes.
         #
         # Inputs (globals):
         #   current_script
         #
         # Returns:
-        #   0  confirmed
-        #   1  cancelled or failed
+        #   0  success
+        #   1  failure or user abort
+        #
+        # Usage:
+        #   __interactive_edit_current_file
+        #
+        # Examples:
+        #   current_script="$file"
+        #   __interactive_edit_current_file
     __interactive_edit_current_file() {
-        local action=""
         local -a value_buffer=()
+        local -a changed_fields=()
+        local field_list=""
+        local field_word="fields"
 
-        __get_metadata
-        __build_value_buffer_from_meta value_buffer
+        __get_metadata || return 1
+        __build_value_buffer_from_meta value_buffer || return 1
 
         while true; do
             sayinfo "Editing: $current_script"
             __show_current_metadata
             echo
 
-            __prompt_value_buffer value_buffer
+            __prompt_value_buffer value_buffer || return 1
 
             echo
             sayinfo "Pending changes:"
-            __show_pending_value_buffer value_buffer
+            __show_pending_value_buffer value_buffer || return 1
             echo
 
-            ask_ok_redo_quit "Apply changes to $current_script?" 15
+            mapfile -t changed_fields < <(__collect_changed_fields value_buffer) || return 1
+            field_list="$(td_join ", " "${changed_fields[@]}")"
+
+            if (( ${#changed_fields[@]} == 0 )); then
+                field_list="(no changes)"
+                field_word="fields"
+            elif (( ${#changed_fields[@]} == 1 )); then
+                field_word="field"
+            else
+                field_word="fields"
+            fi
+
+            ask_ok_redo_quit \
+                "Apply changes to ${field_word} ${field_list} in $(basename "$current_script")?" 15
+
             case $? in
-                0) break ;;
-                1) continue ;;
-                2) saycancel "Aborting as per user request."; return 1 ;;
-                *) sayfail "Aborting (unexpected response)."; return 1 ;;
+                0)
+                    __apply_value_buffer_to_file value_buffer || return 1
+                    break
+                    ;;
+                1)
+                    continue
+                    ;;
+                2)
+                    saycancel "Aborting as per user request."
+                    return 1
+                    ;;
+                *)
+                    sayfail "Aborting (unexpected response)."
+                    return 1
+                    ;;
             esac
         done
     }
 
     # __interactive_edit_current_file_with_buffer
         # Purpose:
-        #   Edit the metadata of the current script interactively using a supplied value buffer.
+        #   Interactively edit metadata for the current script using a supplied value buffer.
         #
         # Behavior:
-        #   - Displays the current metadata.
-        #   - Prompts for updated values unless prompt_mode indicates reuse.
-        #   - Displays a summary of staged values.
-        #   - Repeats until confirmed or cancelled.
+        #   - Reuses the caller-supplied buffer by reference.
+        #   - Supports normal prompting and idem-style buffer reuse.
+        #   - Shows the current metadata and the list of changed fields.
+        #   - Confirms whether the changed fields should be applied.
+        #   - Allows redo before committing changes.
         #
         # Arguments:
-        #   $1  BUFFER_ARRAY_NAME
-        #   $2  PROMPT_MODE (optional; default: normal)
+        #   $1  BUFFER_NAME
+        #       Name of the editable value buffer array variable.
+        #   $2  PROMPT_MODE
+        #       Prompt mode token.
+        #       Supported values:
+        #         normal
+        #         idem_reuse
         #
         # Inputs (globals):
         #   current_script
         #
         # Returns:
-        #   0  confirmed
-        #   1  cancelled or failed
+        #   0  success
+        #   1  failure
+        #   2  cancelled
+        #
+        # Usage:
+        #   __interactive_edit_current_file_with_buffer value_buffer normal
+        #
+        # Examples:
+        #   __interactive_edit_current_file_with_buffer value_buffer idem_reuse
     __interactive_edit_current_file_with_buffer() {
-        local -n io_buffer="$1"
-        local prompt_mode="${2:-normal}"
-        local action=""
+            local -n io_buffer="$1"
+            local prompt_mode="${2:-normal}"
+            local -a changed_fields=()
+            local field_list=""
+            local field_word="fields"
 
-        while true; do
-            clear
-            sayinfo "Editing: $current_script"
-            __show_current_metadata
-            echo
+            while true; do
+                sayinfo "Editing: $current_script"
+                __show_current_metadata
+                echo
 
-            if [[ "$prompt_mode" == "idem_reuse" ]]; then
-                sayinfo "Reusing previous answers (--idem)"
-            else
-                __prompt_value_buffer "$1" normal || return 1
-            fi
+                if [[ "$prompt_mode" == "idem_reuse" ]]; then
+                    sayinfo "Reusing previous answers (--idem)"
+                else
+                    __prompt_value_buffer io_buffer normal || return 1
+                fi
 
-            echo
-            sayinfo "Pending changes:"
-            __show_pending_value_buffer "$1"
-            echo
+                mapfile -t changed_fields < <(__collect_changed_fields io_buffer) || return 1
+                field_list="$(td_join ", " "${changed_fields[@]}")"
 
-            ask_ok_redo_quit "Apply changes to $current_script?" 15
-            case $? in
-                0) break ;;
-                1) continue ;;
-                2) saycancel "Aborting as per user request."; return 1 ;;
-                *) sayfail "Aborting (unexpected response)."; return 1 ;;
-            esac
-        done
-    }
+                if (( ${#changed_fields[@]} == 0 )); then
+                    field_list="(no changes)"
+                    field_word="fields"
+                elif (( ${#changed_fields[@]} == 1 )); then
+                    field_word="field"
+                else
+                    field_word="fields"
+                fi
 
+                ask_ok_redo_quit \
+                    "Apply changes to ${field_word} ${field_list} in $(basename "$current_script")?" 15
+
+                case $? in
+                    0)
+                        __apply_value_buffer_to_file io_buffer || return 1
+                        break
+                        ;;
+                    1)
+                        continue
+                        ;;
+                    2)
+                        saycancel "Aborting as per user request."
+                        return 2
+                        ;;
+                    *)
+                        sayfail "Aborting (unexpected response)."
+                        return 1
+                        ;;
+                esac
+            done
+        }
+
+    
+    
     # __interactive_edit_files
         # Purpose:
-        #   Process all resolved target files in interactive mode.
+        #   Interactive entry flow for target files.
         #
         # Behavior:
-        #   - Loads metadata for each file.
-        #   - Builds or reuses the staged value buffer.
-        #   - Reuses previous answers when --idem is active.
-        #   - Stops on user cancellation or unrecoverable failure.
-        #
-        # Inputs (globals):
-        #   TARGET_FILES
-        #   FLAG_IDEM
+        #   - Shows the first file name.
+        #   - In multi-file mode, optionally reuses first-file answers for all files.
+        #   - Lets the user choose between editing fields and bumping version.
         #
         # Returns:
         #   0  success
         #   1  failure
-        #   2  user cancelled
+        #   2  cancelled
     __interactive_edit_files() {
         local file=""
         local rc=0
+        local action=""
+        local apply_all_answers=0
         local -a value_buffer=()
-        local first_file=1
-        local prompt_mode="normal"
+        local first_file=""
+
+        (( ${#TARGET_FILES[@]} > 0 )) || return 1
+
+        first_file="${TARGET_FILES[0]}"
+        local lw=15
+
+        td_print
+        td_print_sectionheader "Target" --border "${LN_H}" --padleft 2
+        td_print_labeledvalue "First file" "$first_file" --pad 3 --labelwidth "$lw"
+
+        if (( ${#TARGET_FILES[@]} > 1 )); then
+            td_print_labeledvalue "File count" "${#TARGET_FILES[@]}" --pad 3 --labelwidth "$lw"
+
+            td_print_sectionheader --border "${LN_H}"
+            __ask_apply_first_answers_to_all
+            rc=$?
+            case "$rc" in
+                0) apply_all_answers=1 ;;
+                1) apply_all_answers=0 ;;
+                *) apply_all_answers=0 ;;
+            esac
+        fi
+
+        __ask_interactive_action action
+        case "$action" in
+            cancel)
+                saycancel "Aborting as per user request."
+                return 2
+                ;;
+            bump)
+                __interactive_bump_files "$apply_all_answers"
+                return $?
+                ;;
+            edit)
+                ;;
+            *)
+                sayfail "Unknown action."
+                return 1
+                ;;
+        esac
 
         for file in "${TARGET_FILES[@]}"; do
             current_script="$file"
             __get_metadata || return 1
 
-            if (( first_file )); then
+            if [[ "$file" == "$first_file" ]]; then
                 __build_value_buffer_from_meta value_buffer || return 1
-                prompt_mode="normal"
-                first_file=0
-            else
-                if (( ${FLAG_IDEM:-0} )); then
-                    prompt_mode="idem_reuse"
-                else
-                    prompt_mode="normal"
-                fi
+                __interactive_edit_current_file_with_buffer value_buffer "normal"
+                rc=$?
+                case "$rc" in
+                    0) ;;
+                    2) return 2 ;;
+                    *) return 1 ;;
+                esac
+                continue
             fi
 
-            __interactive_edit_current_file_with_buffer value_buffer "$prompt_mode"
-            rc=$?
+            if (( apply_all_answers )); then
+                __interactive_edit_current_file_with_buffer value_buffer "idem_reuse"
+            else
+                __build_value_buffer_from_meta value_buffer || return 1
+                __interactive_edit_current_file_with_buffer value_buffer "normal"
+            fi
 
+            rc=$?
             case "$rc" in
                 0) ;;
                 2) return 2 ;;
@@ -1014,62 +1674,61 @@ set -uo pipefail
 
     # main
         # Purpose:
-        #   Entry point for the metadata editor script.
+        #   Bootstrap the framework, validate arguments, and run metadata-editor mode logic.
         #
         # Behavior:
-        #   - Loads and initializes the SolidGroundUX framework.
-        #   - Processes built-in framework arguments.
-        #   - Prepares UI state (runmode and title bar).
-        #   - Validates script-specific arguments.
-        #   - Executes either:
-        #       * automatic batch updates (--auto), or
-        #       * interactive editing across one or more files.
-        #
-        # Arguments:
-        #   $@  Command-line arguments (framework + script-specific).
+        #   - Loads the framework bootstrapper.
+        #   - Runs td_bootstrap() and builtin argument handling.
+        #   - Prints the title bar and updates run-mode state.
+        #   - Validates auto-mode and bump-mode arguments.
+        #   - Dispatches to auto update mode, version metadata update mode,
+        #     or interactive edit mode.
         #
         # Returns:
-        #   Exits with the resulting status code from bootstrap or script logic.
+        #   Exits with an appropriate process status code.
         #
-        # Notes:
-        #   - Interactive mode requires --file.
-        #   - --idem is ignored in --auto mode.
+        # Usage:
+        #   main "$@"
+        #
+        # Examples:
+        #   main "$@"
     main() {
+        local rc=0
+
         # -- Bootstrap
-            local rc=0
+        __load_bootstrapper || exit $?
 
-            __load_bootstrapper || exit $?            
+        td_bootstrap -- "$@"
+        rc=$?
 
-            # Recognized switches:
-            #     --state      -> enable saving state variables 
-            #     --autostate  -> enable state support and auto-save TD_STATE_VARIABLES on exit
-            #     --needroot   -> restart script if not root
-            #     --cannotroot -> exit script if root
-            #     --log        -> enable file logging
-            #     --console    -> enable console logging
-            # Example:
-            #   td_bootstrap --state --needroot -- "$@"
-            td_bootstrap -- "$@"
-            rc=$?
+        saydebug "After bootstrap: $rc"
+        (( rc != 0 )) && exit "$rc"
 
-            saydebug "After bootstrap: $rc"
-            (( rc != 0 )) && exit "$rc"
-                        
         # -- Handle builtin arguments
-            saydebug "Calling builtinarg handler"
-            td_builtinarg_handler
-            saydebug "Exited builtinarg handler"
+        saydebug "Calling builtinarg handler"
+        td_builtinarg_handler
+        saydebug "Exited builtinarg handler"
 
         # -- UI
-            td_update_runmode
-            td_print_titlebar
+        td_update_runmode
+        td_print_titlebar
 
         # -- Main script logic
-
+        __resolve_bump_mode || exit 2
         __validate_auto_args || exit 2
+        __validate_bump_args || exit 2
 
         if (( ${FLAG_AUTO:-0} )) && (( ${FLAG_IDEM:-0} )); then
             saywarning "--idem is ignored in --auto mode"
+        fi
+
+        if (( ${FLAG_AUTO:-0} )) && (( ${FLAG_BUMPVERSION:-0} || ${FLAG_BUMPMAJOR:-0} || ${FLAG_BUMPMINOR:-0} )); then
+            sayfail "Do not combine --auto with --bumpversion, --bumpmajor, or --bumpminor"
+            exit 2
+        fi
+
+        if (( ${FLAG_IDEM:-0} )) && (( ${FLAG_BUMPVERSION:-0} || ${FLAG_BUMPMAJOR:-0} || ${FLAG_BUMPMINOR:-0} )); then
+            saywarning "--idem is ignored in version bump mode"
         fi
 
         if (( ${FLAG_AUTO:-0} )); then
@@ -1077,14 +1736,19 @@ set -uo pipefail
             exit 0
         fi
 
-        [[ -n "${VAL_FILE:-}" ]] || {
-            sayfail "Interactive mode currently requires --file <script>"
+        if (( ${FLAG_BUMPVERSION:-0} || ${FLAG_BUMPMAJOR:-0} || ${FLAG_BUMPMINOR:-0} )); then
+            __bump_version_files || exit $?
+            exit 0
+        fi
+
+        [[ -n "${VAL_FILE:-}" || -n "${VAL_FOLDER:-}" ]] || {
+            sayfail "Interactive mode currently requires --file <script|glob> or --folder <path>"
             exit 2
         }
 
-        __resolve_target_files "${VAL_FILE}" || exit $?
+        __resolve_targets || exit $?
+        
         __interactive_edit_files || exit $?
-
     }
 
     # Entrypoint: td_bootstrap will split framework args from script args.

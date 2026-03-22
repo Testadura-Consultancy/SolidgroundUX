@@ -1,16 +1,26 @@
 #!/usr/bin/env bash
 # ==================================================================================
-# Testadura Consultancy — bootstrap-test
+# SolidgroundUX — bootstrap-test
 # ----------------------------------------------------------------------------------
-# Purpose : Testscript testing some basic framework functions
-# Author  : Mark Fieten
-# © 2025 Mark Fieten — Testadura Consultancy
-# Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# Metadata:
+#   Version : 1.0
+#   Build : 2602607900
+#   Checksum : 
+#   Source : boottrap-test.sh
+#   Type : script
+#   Purpose : Testscript testing some basic framework functions
 # ----------------------------------------------------------------------------------
 # Design:
 #   - Executable scripts are explicit: set paths, import libs, then run.
 #   - Libraries never auto-run (templating, not inheritance).
 #   - Args parsing and config loading are opt-in by defining ARGS_SPEC and/or CFG_*.
+#
+# Attribution:
+#   Developers : Mark Fieten
+#   Company : Testadura Consultancy
+#   Client : 
+#   Copyright : © 2025 Mark Fieten — Testadura Consultancy
+#   License : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # ==================================================================================
 set -uo pipefail
 # --- Bootstrap --------------------------------------------------------------------

@@ -1,30 +1,48 @@
-# ==================================================================================
-# Testadura Consultancy — SolidGround Framework Info Library
-# ----------------------------------------------------------------------------------
-# Module  : framework-info.sh
-# Purpose : Presentation and diagnostic helpers for framework, script, arguments,
-#           configuration, and runtime state.
+# =====================================================================================
+# SolidgroundUX - Framework Information
+# -------------------------------------------------------------------------------------
+# Metadata:
+#   Version     : 1.0
+#   Build       : 2602607900
+#   Checksum    :
+#   Source      : framework-info.sh
+#   Type        : library
+#   Purpose     : Provide framework metadata and runtime information helpers
 #
-# Scope   :
-#   - Read-only rendering of framework and script context
-#   - Formatted output for diagnostics, debugging, and inspection
-#   - Aggregation of metadata, arguments, configuration, and state
+# Description:
+#   Exposes information about the SolidgroundUX framework and runtime environment.
 #
-# Design  :
-#   - Pure presentation layer (no parsing, no config loading)
-#   - Depends on globals prepared by args.sh, cfg.sh, and bootstrap layers
-#   - Uses ui.sh for all rendering primitives
+#   The library:
+#     - Provides access to framework identity (name, version, paths)
+#     - Exposes resolved bootstrap values such as TD_FRAMEWORK_ROOT and TD_APPLICATION_ROOT
+#     - Supplies helper functions for displaying framework and environment details
+#     - Supports diagnostics, logging, and informational output
 #
-# Notes   :
-#   - Intended for diagnostics (e.g. --env, debug output)
-#   - Safe to call at any point after bootstrap
+# Design principles:
+#   - Keep information access centralized and consistent
+#   - Avoid duplication of framework identity data across modules
+#   - Ensure values reflect the active runtime environment
+#   - Keep implementation lightweight and dependency-free where possible
 #
-# Author  : Mark Fieten
-# © 2025 Mark Fieten — Testadura Consultancy
-# Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
-# ==================================================================================
+# Role in framework:
+#   - Provides introspection capabilities for scripts and tools
+#   - Supports diagnostics, debugging, and informational commands
+#   - Complements bootstrap and configuration modules
+#
+# Non-goals:
+#   - Configuration management (handled by cfg.sh)
+#   - Argument parsing or user interaction
+#   - Persistent state tracking
+#
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      :
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# =====================================================================================
 set -uo pipefail
-# --- Library guard ---------------------------------------------------------------
+# --- Library guard -------------------------------------------------------------------
     # __td_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
@@ -80,7 +98,7 @@ set -uo pipefail
     __td_lib_guard
     unset -f __td_lib_guard
 
-# --- Internal helpers ------------------------------------------------------------
+# --- Internal helpers ----------------------------------------------------------------
     : "${__section_indent:=2}"
     : "${__items_indent:=4}"
     
@@ -183,7 +201,7 @@ set -uo pipefail
         done
     }
 
-# --- Public API ------------------------------------------------------------------
+# --- Public API ----------------------------------------------------------------------
     # td_print_cfg
         # Purpose:
         #   Print configuration variables described by a spec array.
