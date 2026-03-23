@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 1.0
 #   Build       : 2602607900
-#   Checksum    :
+#   Checksum    : 
 #   Source      : framework-info.sh
 #   Type        : library
 #   Purpose     : Provide framework metadata and runtime information helpers
@@ -37,7 +37,7 @@
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
-#   Client      :
+#   Client      : 
 #   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================

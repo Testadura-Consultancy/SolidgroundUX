@@ -5,7 +5,7 @@
 # Metadata:
 #   Version     : 1.0
 #   Build       : 2602607900
-#   Checksum    :
+#   Checksum    : 
 #   Source      : deploy-workspace.sh
 #   Type        : script
 #   Purpose     : Deploy or remove a development workspace to or from a target root
@@ -40,7 +40,7 @@
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
-#   Client      :
+#   Client      : 
 #   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================

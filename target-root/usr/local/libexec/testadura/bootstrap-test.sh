@@ -3,12 +3,12 @@
 # SolidgroundUX — bootstrap-test
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version : 1.0
-#   Build : 2602607900
-#   Checksum : 
-#   Source : boottrap-test.sh
-#   Type : script
-#   Purpose : Testscript testing some basic framework functions
+#   Version     : 1.0
+#   Build       : 2602607900
+#   Checksum    : 
+#   Source      : boottrap-test.sh
+#   Type        : script
+#   Purpose     : Testscript testing some basic framework functions
 # ----------------------------------------------------------------------------------
 # Design:
 #   - Executable scripts are explicit: set paths, import libs, then run.
@@ -17,10 +17,10 @@
 #
 # Attribution:
 #   Developers : Mark Fieten
-#   Company : Testadura Consultancy
-#   Client : 
-#   Copyright : © 2025 Mark Fieten — Testadura Consultancy
-#   License : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+#   Company     : Testadura Consultancy
+#   Client      : 
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # ==================================================================================
 set -uo pipefail
 # --- Bootstrap --------------------------------------------------------------------

@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 2602607900
-#   Checksum    :
+#   Build       : 2608201
+#   Checksum    : e759faff3561c8d72fa2770ee8a555a6ffc6597606bedba7a446c1821caea0fd
 #   Source      : prepare-release.sh
 #   Type        : script
 #   Purpose     : Prepare framework scripts for release
@@ -15,7 +15,7 @@
 #
 #   The script:
 #     - Selects target scripts by file or folder
-#     - Refreshes version, build, and checksum metadata
+#     - Refreshes version, build, and checksum metadata unless source updates are disabled
 #     - Applies optional major or minor version bumps
 #     - Supports dry-run verification before committing changes
 #     - Ensures release metadata is consistent across processed scripts
@@ -38,7 +38,7 @@
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
-#   Client      :
+#   Client      : 
 #   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
@@ -292,6 +292,7 @@ set -uo pipefail
         "useexisting|u|flag|FLAG_USEEXISTING|Use existing staging files|"
         "bumpmajor||flag|FLAG_BUMP_MAJOR|Bump major version in source headers before packaging|"
         "bumpminor||flag|FLAG_BUMP_MINOR|Bump minor version in source headers before packaging|"
+        "nosourceupdate||flag|FLAG_NOSOURCEUPDATE|Do not update source header metadata before packaging|"
     )
 
     # TD_SCRIPT_EXAMPLES
@@ -506,16 +507,16 @@ set -uo pipefail
         fi
 
         while true; do
-            ask --label "Release" --var RELEASE --default "$RELEASE" --colorize both 
-            ask --label "Source directory" --var SOURCE_DIR --default "$SOURCE_DIR" --validate_fn validate_dir_exists --colorize both
-            ask --label "Staging directory" --var STAGING_ROOT --default "$STAGING_ROOT" --validate_fn validate_dir_exists --colorize both
-            ask --label "Tar file" --var TAR_FILE --default "$TAR_FILE" --colorize both
+            ask --label "Release" --var RELEASE --default "$RELEASE" --colorize both --labelclr "${CYAN}"
+            ask --label "Source directory" --var SOURCE_DIR --default "$SOURCE_DIR" --validate_fn validate_dir_exists --colorize both --labelclr "${CYAN}"
+            ask --label "Staging directory" --var STAGING_ROOT --default "$STAGING_ROOT" --validate_fn validate_dir_exists --colorize both --labelclr "${CYAN}"
+            ask --label "Tar file" --var TAR_FILE --default "$TAR_FILE" --colorize both --labelclr "${CYAN}"
             if [[ "$FLAG_CLEANUP" -eq 1 ]]; then
                 cleanup="Y"
             else
                 cleanup="N"
             fi
-            ask --label "Cleanup staging files after run (Y/N)" --var cleanup --default "$cleanup" --choices "Y,N" --colorize both
+            ask --label "Cleanup staging files after run (Y/N)" --var cleanup --default "$cleanup" --choices "Y,N" --colorize both --labelclr "${CYAN}"
             if [[ "$cleanup" == "Y" || "$cleanup" == "y" ]]; then
                 FLAG_CLEANUP=1
             else
@@ -527,7 +528,7 @@ set -uo pipefail
             else
                 useexisting="N"
             fi
-            ask --label "Use existing staging files (Y/N)" --var useexisting --default "$useexisting" --choices "Y,N" --colorize both
+            ask --label "Use existing staging files (Y/N)" --var useexisting --default "$useexisting" --choices "Y,N" --colorize both --labelclr "${CYAN}"
             if [[ "$useexisting" == "Y" || "$useexisting" == "y" ]]; then
                 FLAG_USEEXISTING=1
             else
@@ -763,8 +764,6 @@ set -uo pipefail
         return 0
     }
 
-
-
     # __apply_version_bump
         # Purpose:
         #   Apply header checksum/build refresh and optional version bumping to source files.
@@ -773,12 +772,14 @@ set -uo pipefail
         #   - Scans SOURCE_DIR for readable shell source files.
         #   - Applies td_header_bump_version to each file.
         #   - Uses --bumpmajor or --bumpminor to decide the bump mode.
-        #   - When no bump flag is set, does nothing.
+        #   - When no bump flag is set, refreshes build/checksum only.
+        #   - In dry-run mode, reports intended actions without modifying files.
         #
         # Inputs (globals):
         #   SOURCE_DIR
         #   FLAG_BUMP_MAJOR
         #   FLAG_BUMP_MINOR
+        #   FLAG_DRYRUN
         #
         # Returns:
         #   0 on success
@@ -787,6 +788,11 @@ set -uo pipefail
         local mode="none"
         local file=""
         local failed=0
+
+        if (( ${FLAG_NOSOURCEUPDATE:-0} )); then
+            sayinfo "Skipping source header metadata updates (--nosourceupdate)"
+            return 0
+        fi
 
         if (( ${FLAG_BUMP_MAJOR:-0} )) && (( ${FLAG_BUMP_MINOR:-0} )); then
             sayfail "Use either --bumpmajor or --bumpminor, not both"
@@ -798,12 +804,25 @@ set -uo pipefail
         elif (( ${FLAG_BUMP_MINOR:-0} )); then
             mode="minor"
         else
-            return 0
+            mode="none"
         fi
 
         while IFS= read -r -d '' file; do
+            if (( ${FLAG_DRYRUN:-0} )); then
+                case "$mode" in
+                    major) sayinfo "[DRYRUN] Would have bumped major version in $file" ;;
+                    minor) sayinfo "[DRYRUN] Would have bumped minor version in $file" ;;
+                    none)  sayinfo "[DRYRUN] Would have updated build/checksum in $file" ;;
+                esac
+                continue
+            fi
+
             if td_header_bump_version "$file" "$mode"; then
-                sayok "Updated header metadata in $file"
+                case "$mode" in
+                    major) sayok "Bumped major version in $file" ;;
+                    minor) sayok "Bumped minor version in $file" ;;
+                    none)  sayok "Updated build/checksum in $file" ;;
+                esac
             else
                 sayfail "Failed to update header metadata in $file"
                 failed=1
