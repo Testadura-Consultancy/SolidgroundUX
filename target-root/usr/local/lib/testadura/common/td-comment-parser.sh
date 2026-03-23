@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 2602607900
-#   Checksum    : 
+#   Build       : 2608211
+#   Checksum    : 8b41be36113a0f9f4195607b0389d8fd2a36082eaccb2bf4f2397fa0c866587f
 #   Source      : td-comment-parser.sh
 #   Type        : library
 #   Purpose     : Parse and update structured header comments in SolidgroundUX scripts
@@ -104,6 +104,63 @@ set -uo pipefail
 
 # --- Internal helpers ---------------------------------------------------------------
 # --- Public API ---------------------------------------------------------------------
+  # Load and info
+    # td_header_read
+        # Purpose:
+        #   Read the canonical header comment block from the top of a script file.
+        #
+        # Behavior:
+        #   - Starts at the top of the file.
+        #   - Collects consecutive comment lines that belong to the header block.
+        #   - Skips the first line if it is a shebang.
+        #   - Stops at the first non-comment, non-blank line after the header begins.
+        #   - Preserves original comment markers and line formatting.
+        #
+        # Arguments:
+        #   $1  FILE
+        #
+        # Output:
+        #   Writes the full header block to stdout.
+        #
+        # Returns:
+        #   0  success
+        #   1  file missing or unreadable
+        #
+        # Usage:
+        #   td_header_read "$file"
+        #
+        # Examples:
+        #   header_text="$(td_header_read "$TD_SCRIPT_FILE")"
+    td_header_read() {
+        local file="${1:?missing file}"
+        local line=""
+        local started=0
+        local result=""
+
+        [[ -r "$file" ]] || return 1
+
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            if (( ! started )); then
+                [[ "$line" == '#!'* ]] && continue
+                [[ -z "$line" ]] && continue
+            fi
+
+            if [[ "$line" == \#* ]]; then
+                started=1
+                result+="$line"$'\n'
+                continue
+            fi
+
+            if (( started )); then
+                break
+            fi
+
+            [[ -z "$line" ]] || break
+        done < "$file"
+
+        printf '%s' "${result%$'\n'}"
+    }
+
     # __td_header_load_section_to_dt
             # Purpose:
             #   Load all key/value pairs from a header section into a td-datatable.
@@ -157,6 +214,7 @@ set -uo pipefail
             fi
         done < "$file"
     }
+
     # td_header_is_section_header
         # Purpose:
         #   Determine whether a line is a top-level script header section marker.
@@ -175,6 +233,191 @@ set -uo pipefail
         return 0
     }
 
+    # td_header_buffer_load
+        # Purpose:
+        #   Load a script header into the shared header buffer.
+        #
+        # Arguments:
+        #   $1  FILE
+        #
+        # Returns:
+        #   0  success
+        #   1  failure
+    td_header_buffer_load() {
+        local file="${1:?missing file}"
+
+        [[ -r "$file" ]] || return 1
+
+        TD_HEADER_BUFFER_FILE="$file"
+        TD_HEADER_BUFFER_TEXT="$(td_header_read "$file")" || return 1
+    }
+
+    # td_header_buffer_get_section
+        # Purpose:
+        #   Extract a named section from the current header buffer.
+        #
+        # Arguments:
+        #   $1  SECTION
+        #   $2  OUTVAR
+        #
+        # Returns:
+        #   0  section found
+        #   1  section not found or buffer empty
+    td_header_buffer_get_section() {
+        local section="${1:?missing section}"
+        local __outvar="${2:?missing outvar}"
+
+        [[ -n "${TD_HEADER_BUFFER_TEXT:-}" ]] || return 1
+        td_header_get_section_from_text "$TD_HEADER_BUFFER_TEXT" "$section" "$__outvar"
+    }
+
+  # Version control
+    # td_header_calc_checksum
+        # Purpose:
+        #   Calculate a stable checksum for a script while ignoring self-updating metadata fields.
+        #
+        # Behavior:
+        #   - Hashes the full file content.
+        #   - Excludes Metadata lines for Version, Build, and Checksum from the hash input.
+        #   - Prints the SHA256 checksum to stdout.
+        #
+        # Arguments:
+        #   $1  FILE
+        #
+        # Returns:
+        #   0  success
+        #   1  file missing or checksum tool failed
+    td_header_calc_checksum() {
+        local file="${1:?missing file}"
+
+        [[ -r "$file" ]] || return 1
+
+        awk '
+            BEGIN { in_metadata = 0 }
+            /^# Metadata:$/ { in_metadata = 1; print; next }
+            in_metadata && /^#[[:space:]][A-Za-z][A-Za-z[:space:]-]*:[[:space:]]*$/ { in_metadata = 0 }
+            in_metadata && /^#[[:space:]]+Version[[:space:]]*:/ { next }
+            in_metadata && /^#[[:space:]]+Build[[:space:]]*:/ { next }
+            in_metadata && /^#[[:space:]]+Checksum[[:space:]]*:/ { next }
+            { print }
+        ' "$file" | sha256sum | awk '{print $1}'
+    }
+
+    # td_header_bump_version
+        # Purpose:
+        #   Refresh header checksum/build metadata and optionally bump semantic version fields.
+        #
+        # Behavior:
+        #   - Calculates the normalized checksum for the file.
+        #   - Ensures a Checksum field exists in the Metadata section.
+        #   - Compares stored and current checksum values.
+        #   - If file content changed, refreshes Build and Checksum.
+        #   - If a major or minor version bump is requested, updates Version and then
+        #     refreshes Build and Checksum.
+        #   - Sets TD_HEADER_BUMP_CHANGED=1 only when header metadata was actually changed.
+        #
+        # Arguments:
+        #   $1  FILE   readable script file
+        #   $2  MODE   none | major | minor
+        #
+        # Outputs:
+        #   Sets global variable TD_HEADER_BUMP_CHANGED:
+        #     0 = no header changes were needed
+        #     1 = header metadata was updated
+        #
+        # Returns:
+        #   0  success
+        #   1  failure
+        #
+        # Usage:
+        #   td_header_bump_version "$file"
+        #   td_header_bump_version "$file" "minor"
+        #   td_header_bump_version "$file" "major"
+        #
+        # Examples:
+        #   td_header_bump_version "./my-script.sh" "none"
+        #   td_header_bump_version "./my-script.sh" "minor"
+    td_header_bump_version() {
+        local file="${1:?missing file}"
+        local mode="${2:-none}"
+        local stored_checksum=""
+        local current_checksum=""
+        local version=""
+        local major="0"
+        local minor="0"
+        local new_version=""
+        local new_build=""
+        local needs_update=0
+
+        TD_HEADER_BUMP_CHANGED=0
+
+        [[ -r "$file" ]] || return 1
+
+        case "$mode" in
+            none|major|minor) ;;
+            *) return 1 ;;
+        esac
+
+        current_checksum="$(td_header_calc_checksum "$file")" || return 1
+
+        if ! td_header_get_field "$file" "Metadata" "Checksum" stored_checksum; then
+            stored_checksum=""
+            td_header_add_field "$file" "Metadata" "Checksum" "$current_checksum" || return 1
+            TD_HEADER_BUMP_CHANGED=1
+        fi
+
+        saydebug "stored checksum : $stored_checksum"
+        saydebug "current checksum: $current_checksum"
+        saydebug "mode            : $mode"
+
+        if [[ "$stored_checksum" != "$current_checksum" ]]; then
+            needs_update=1
+        fi
+
+        if [[ "$mode" != "none" ]]; then
+            td_header_get_field "$file" "Metadata" "Version" version || version="1.0"
+
+            if [[ "$version" =~ ^([0-9]+)\.([0-9]+)$ ]]; then
+                major="${BASH_REMATCH[1]}"
+                minor="${BASH_REMATCH[2]}"
+            else
+                major="1"
+                minor="0"
+            fi
+
+            case "$mode" in
+                major)
+                    major=$((major + 1))
+                    minor=0
+                    ;;
+                minor)
+                    minor=$((minor + 1))
+                    ;;
+            esac
+
+            new_version="${major}.${minor}"
+
+            if ! td_header_get_field "$file" "Metadata" "Version" version || [[ "$version" != "$new_version" ]]; then
+                td_header_upsert_field "$file" "Metadata" "Version" "$new_version" || return 1
+                TD_HEADER_BUMP_CHANGED=1
+            fi
+
+            needs_update=1
+            current_checksum="$(td_header_calc_checksum "$file")" || return 1
+        fi
+
+        if (( needs_update )); then
+            new_build="$(date +%y%j%H)"
+
+            td_header_upsert_field "$file" "Metadata" "Build" "$new_build" || return 1
+            td_header_upsert_field "$file" "Metadata" "Checksum" "$current_checksum" || return 1
+            TD_HEADER_BUMP_CHANGED=1
+        fi
+
+        return 0
+    }
+
+  # Header CRUD
     # td_header_get_section
         # Purpose:
         #   Retrieve the full contents of a header section from a file.
@@ -227,6 +470,112 @@ set -uo pipefail
 
         result="${result%$'\n'}"
         printf -v "$__resultvar" '%s' "$result"
+    }
+
+    # td_header_get_section_from_text
+        # Purpose:
+        #   Extract the body of a named header section from buffered header text.
+        #
+        # Behavior:
+        #   - Scans the supplied text line by line.
+        #   - Starts capturing after the requested section header.
+        #   - Stops when the next section header is encountered.
+        #   - Returns only the body lines of the section.
+        #
+        # Arguments:
+        #   $1  HEADER_TEXT
+        #   $2  SECTION
+        #   $3  OUTVAR
+        #
+        # Returns:
+        #   0  section found
+        #   1  section not found
+    td_header_get_section_from_text() {
+        local text="${1-}"
+        local section="${2:?missing section}"
+        local __outvar="${3:?missing outvar}"
+
+        local line=""
+        local found=0
+        local in_section=0
+        local result=""
+
+        while IFS= read -r line; do
+            if [[ "$line" == "# $section:" ]]; then
+                found=1
+                in_section=1
+                continue
+            fi
+
+            if (( in_section )) && td_header_is_section_header "$line"; then
+                break
+            fi
+
+            if (( in_section )); then
+                line="${line#\#}"
+                line="${line#"${line%%[![:space:]]*}"}"
+                result+="$line"$'\n'
+            fi
+        done <<< "$text"
+
+        printf -v "$__outvar" '%s' "${result%$'\n'}"
+        (( found ))
+    }
+
+    # td_header_get_banner_parts_from_text
+        # Purpose:
+        #   Extract product and title from the banner line in buffered header text.
+        #
+        # Behavior:
+        #   - Scans the supplied header text line by line.
+        #   - Skips separator lines (==== / ----).
+        #   - Looks for the first line matching the pattern:
+        #       "# <Product> - <Title>"
+        #   - Splits the line into:
+        #       Product (left of " - ")
+        #       Title   (right of " - ")
+        #
+        # Arguments:
+        #   $1  HEADER_TEXT
+        #   $2  PRODUCT_VAR
+        #   $3  TITLE_VAR
+        #
+        # Output:
+        #   PRODUCT_VAR contains the extracted product name.
+        #   TITLE_VAR   contains the extracted title.
+        #
+        # Returns:
+        #   0  banner found and parsed
+        #   1  no valid banner line found
+    td_header_get_banner_parts_from_text() {
+        local text="${1-}"
+        local __product_var="${2:?missing product var}"
+        local __title_var="${3:?missing title var}"
+
+        local line=""
+        local content=""
+        local product=""
+        local title=""
+
+        while IFS= read -r line; do
+            [[ "$line" == \#* ]] || continue
+            [[ "$line" =~ ^\#[[:space:]]*[=-]+[[:space:]]*$ ]] && continue
+
+            content="${line#\# }"
+
+            if [[ "$content" == *" - "* ]]; then
+                product="${content%% - *}"
+                title="${content#* - }"
+
+                printf -v "$__product_var" '%s' "$product"
+                printf -v "$__title_var" '%s' "$title"
+                return 0
+            fi
+        done <<< "$text"
+
+        printf -v "$__product_var" '%s' ""
+        printf -v "$__title_var" '%s' ""
+        return 1
     }
 
     # td_header_get_field
@@ -324,7 +673,122 @@ set -uo pipefail
         printf '%s' "$value"
     }
 
+    # td_header_get_banner_parts
+        # Purpose:
+        #   Extract product and title from the script banner line.
+        #
+        # Behavior:
+        #   - Scans the header comment from the top of the file.
+        #   - Skips separator lines (==== / ----).
+        #   - Looks for the first line matching the pattern:
+        #       "# <Product> - <Title>"
+        #   - Splits the line into:
+        #       Product (left of " - ")
+        #       Title   (right of " - ")
+        #   - Stops scanning at first non-comment line.
+        #
+        # Arguments:
+        #   $1  FILE
+        #   $2  PRODUCT_VAR (name of variable to receive product)
+        #   $3  TITLE_VAR   (name of variable to receive title)
+        #
+        # Output:
+        #   PRODUCT_VAR contains the extracted product name
+        #   TITLE_VAR   contains the extracted title
+        #
+        # Returns:
+        #   0  banner found and parsed
+        #   1  no valid banner line found
+        #
+        # Usage:
+        #   td_header_get_banner_parts "$TD_SCRIPT_FILE" TD_SCRIPT_PRODUCT TD_SCRIPT_TITLE
+        #
+        # Examples:
+        #   # SolidgroundUX - Comment Parser
+        #   → Product = SolidgroundUX
+        #   → Title   = Comment Parser
+        #
+        # Notes:
+        #   - Assumes canonical banner format "<Product> - <Title>".
+        #   - Leading "# " is stripped before parsing.
+        #   - Does not validate content beyond delimiter presence.
+    td_header_get_banner_parts() {
+        local file="${1:?missing file}"
+        local __product_var="${2:?missing product var}"
+        local __title_var="${3:?missing title var}"
 
+        local line=""
+        local content=""
+        local product=""
+        local title=""
+
+        while IFS= read -r line; do
+            [[ "$line" == \#* ]] || break
+            [[ "$line" =~ ^\#[[:space:]]*[=-]+[[:space:]]*$ ]] && continue
+
+            content="${line#\# }"
+
+            if [[ "$content" == *" - "* ]]; then
+                product="${content%% - *}"
+                title="${content#* - }"
+
+                printf -v "$__product_var" '%s' "$product"
+                printf -v "$__title_var" '%s' "$title"
+                return 0
+            fi
+        done < "$file"
+
+        printf -v "$__product_var" '%s' ""
+        printf -v "$__title_var" '%s' ""
+        return 1
+    }
+
+     # td_section_get_field_value
+        # Purpose:
+        #   Extract a field value from a section string.
+        #
+        # Behavior:
+        #   - Scans the supplied section text line by line.
+        #   - Splits each line at the first colon.
+        #   - Trims surrounding whitespace from key and value.
+        #   - Returns the first matching field value.
+        #
+        # Arguments:
+        #   $1  SECTION_TEXT
+        #   $2  FIELD
+        #
+        # Output:
+        #   Writes field value to stdout.
+        #
+        # Returns:
+        #   0  always (empty if not found)
+    td_section_get_field_value() {
+        local section="${1-}"
+        local field="${2:?missing field}"
+        local line=""
+        local key=""
+        local value=""
+
+        while IFS= read -r line; do
+            [[ "$line" == *:* ]] || continue
+
+            key="${line%%:*}"
+            value="${line#*:}"
+
+            key="${key#"${key%%[![:space:]]*}"}"
+            key="${key%"${key##*[![:space:]]}"}"
+
+            value="${value#"${value%%[![:space:]]*}"}"
+            value="${value%"${value##*[![:space:]]}"}"
+
+            if [[ "$key" == "$field" ]]; then
+                printf '%s' "$value"
+                return 0
+            fi
+        done <<< "$section"
+
+        printf ''
+    }
 
     # td_header_add_field
         # Purpose:
@@ -390,7 +854,7 @@ set -uo pipefail
         fi
 
         if (( inserted )); then
-            mv "$tmp_file" "$file" || {
+            td_safe_replace_file "$tmp_file" "$file" || {
                 rm -f "$tmp_file"
                 return 1
             }
@@ -431,123 +895,7 @@ set -uo pipefail
             *) return "$rc" ;;
         esac
     }
-
-    # td_header_calc_checksum
-        # Purpose:
-        #   Calculate a stable checksum for a script while ignoring self-updating metadata fields.
-        #
-        # Behavior:
-        #   - Hashes the full file content.
-        #   - Excludes Metadata lines for Version, Build, and Checksum from the hash input.
-        #   - Prints the SHA256 checksum to stdout.
-        #
-        # Arguments:
-        #   $1  FILE
-        #
-        # Returns:
-        #   0  success
-        #   1  file missing or checksum tool failed
-    td_header_calc_checksum() {
-        local file="${1:?missing file}"
-
-        [[ -r "$file" ]] || return 1
-
-        awk '
-            BEGIN { in_metadata = 0 }
-            /^# Metadata:$/ { in_metadata = 1; print; next }
-            in_metadata && /^#[[:space:]][A-Za-z][A-Za-z[:space:]-]*:[[:space:]]*$/ { in_metadata = 0 }
-            in_metadata && /^#[[:space:]]+Version[[:space:]]*:/ { next }
-            in_metadata && /^#[[:space:]]+Build[[:space:]]*:/ { next }
-            in_metadata && /^#[[:space:]]+Checksum[[:space:]]*:/ { next }
-            { print }
-        ' "$file" | sha256sum | awk '{print $1}'
-    }
-
-    # td_header_bump_version
-        # Purpose:
-        #   Refresh header checksum/build metadata and optionally bump semantic version fields.
-        #
-        # Behavior:
-        #   - Ensures a Checksum field exists in the Metadata section.
-        #   - Compares the stored checksum to the current normalized checksum.
-        #   - If the checksum differs, always updates Build and Checksum.
-        #   - Optionally bumps major or minor version numbers.
-        #   - A version bump also updates Build and Checksum.
-        #   - Build format is yydddHH (year, day-of-year, hour).
-        #
-        # Arguments:
-        #   $1  FILE
-        #   $2  MODE   none | major | minor
-        #
-        # Returns:
-        #   0  success
-        #   1  failure
-    td_header_bump_version() {
-        local file="${1:?missing file}"
-        local mode="${2:-none}"
-        local stored_checksum=""
-        local current_checksum=""
-        local version=""
-        local major="0"
-        local minor="0"
-        local new_version=""
-        local new_build=""
-        local needs_update=0
-
-        current_checksum="$(td_header_calc_checksum "$file")" || return 1
-
-        if ! td_header_get_field "$file" "Metadata" "Checksum" stored_checksum; then
-            stored_checksum=""
-            td_header_add_field "$file" "Metadata" "Checksum" "$current_checksum" || return 1
-        fi
-
-        case "$mode" in
-            major|minor|none) ;;
-            *) return 1 ;;
-        esac
-
-        # Any content change must always refresh Build + Checksum.
-        if [[ "$stored_checksum" != "$current_checksum" ]]; then
-            needs_update=1
-        fi
-
-        if [[ "$mode" != "none" ]]; then
-            td_header_get_field "$file" "Metadata" "Version" version || version="1.0"
-            if [[ "$version" =~ ^([0-9]+)\.([0-9]+)$ ]]; then
-                major="${BASH_REMATCH[1]}"
-                minor="${BASH_REMATCH[2]}"
-            else
-                major="1"
-                minor="0"
-            fi
-
-            case "$mode" in
-                major)
-                    major=$((major + 1))
-                    minor=0
-                    ;;
-                minor)
-                    minor=$((minor + 1))
-                    ;;
-            esac
-
-            new_version="${major}.${minor}"
-            td_header_upsert_field "$file" "Metadata" "Version" "$new_version" || return 1
-
-            # Version change changes content, so refresh checksum and build too.
-            needs_update=1
-            current_checksum="$(td_header_calc_checksum "$file")" || return 1
-        fi
-
-        if (( needs_update )); then
-            new_build="$(date +%y%j%H)"
-            td_header_upsert_field "$file" "Metadata" "Build" "$new_build" || return 1
-            td_header_upsert_field "$file" "Metadata" "Checksum" "$current_checksum" || return 1
-        fi
-
-        return 0
-    }
-
+   
     # td_header_set_field
         # Purpose:
         #   Replace the value of an existing field inside a named header section,
@@ -645,7 +993,7 @@ set -uo pipefail
                 return 0
             fi
 
-            mv "$tmp_file" "$file" || {
+            td_safe_replace_file "$tmp_file" "$file" || {
                 rm -f "$tmp_file"
                 return 1
             }
@@ -656,5 +1004,139 @@ set -uo pipefail
         return 2
     }
 
+    # td_module_init_metadata
+        # Purpose:
+        #   Define module-scoped metadata variables for a sourced library and
+        #   populate them from the library header comment.
+        #
+        # Behavior:
+        #   - Derives a canonical module prefix from the library filename.
+        #       e.g. td-comment-parser.sh → TD_COMMENT_PARSER
+        #   - Defines structural variables:
+        #       TD_<MODULE>_FILE
+        #       TD_<MODULE>_DIR
+        #       TD_<MODULE>_BASE
+        #       TD_<MODULE>_NAME
+        #       TD_<MODULE>_KEY
+        #   - Loads the script header into the shared header buffer once.
+        #   - Extracts banner metadata:
+        #       TD_<MODULE>_PRODUCT
+        #       TD_<MODULE>_TITLE
+        #   - Extracts Description section:
+        #       TD_<MODULE>_DESC
+        #   - Extracts common metadata and attribution fields from buffered section text:
+        #       Version, Build, Checksum, Source, Type, Purpose
+        #       Developers, Company, Client, Copyright, License
+        #   - Preserves existing values (allows developer override).
+        #
+        # Arguments:
+        #   $1  FILE   (optional; defaults to BASH_SOURCE[1])
+        #
+        # Outputs (globals):
+        #   TD_<MODULE>_*
+        #
+        # Returns:
+        #   0  success
+        #   1  file missing or unreadable
+        #
+        # Usage:
+        #   td_module_init_metadata "${BASH_SOURCE[0]}"
+        #
+        # Notes:
+        #   - Intended for libraries only.
+        #   - Uses buffered header parsing to reduce repeated file reads.
+    td_module_init_metadata() {
+        local file="${1:-${BASH_SOURCE[1]}}"
+        local abs_file=""
+        local dir=""
+        local base=""
+        local name=""
+        local key=""
+        local prefix=""
+        local var_name=""
+
+        local product=""
+        local title=""
+        local desc=""
+        local metadata=""
+        local attribution=""
+        local value=""
+
+        [[ -n "$file" && -r "$file" ]] || return 1
+
+        abs_file="$(readlink -f "$file")" || return 1
+        dir="$(cd -- "$(dirname -- "$abs_file")" && pwd)" || return 1
+        base="$(basename -- "$abs_file")"
+        name="${base%.sh}"
+        key="${name//-/_}"
+        prefix="TD_${key^^}"
+
+        # --- Structural variables ----------------------------------------------------
+        var_name="${prefix}_FILE"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$abs_file"
+        var_name="${prefix}_DIR";  [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$dir"
+        var_name="${prefix}_BASE"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$base"
+        var_name="${prefix}_NAME"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$name"
+        var_name="${prefix}_KEY";  [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$prefix"
+
+        # --- Load header buffer once -------------------------------------------------
+        td_header_buffer_load "$abs_file" || return 1
+
+        # --- Banner (Product / Title) ------------------------------------------------
+        if td_header_get_banner_parts_from_text "$TD_HEADER_BUFFER_TEXT" product title; then
+            var_name="${prefix}_PRODUCT"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$product"
+            var_name="${prefix}_TITLE";   [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$title"
+        else
+            var_name="${prefix}_PRODUCT"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' ""
+            var_name="${prefix}_TITLE";   [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' ""
+        fi
+
+        # --- Load sections once ------------------------------------------------------
+        td_header_buffer_get_section "Description" desc || desc=""
+        td_header_buffer_get_section "Metadata" metadata || metadata=""
+        td_header_buffer_get_section "Attribution" attribution || attribution=""
+
+        # --- Description (multiline section) -----------------------------------------
+        var_name="${prefix}_DESC"
+        if [[ -z "${!var_name-}" ]]; then
+            printf -v "$var_name" '%s' "$desc"
+        fi
+
+        # --- Metadata fields ---------------------------------------------------------
+        value="$(td_section_get_field_value "$metadata" "Version")"
+        var_name="${prefix}_VERSION"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$value"
+
+        value="$(td_section_get_field_value "$metadata" "Build")"
+        var_name="${prefix}_BUILD"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$value"
+
+        value="$(td_section_get_field_value "$metadata" "Checksum")"
+        var_name="${prefix}_CHECKSUM"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$value"
+
+        value="$(td_section_get_field_value "$metadata" "Source")"
+        var_name="${prefix}_SOURCE"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$value"
+
+        value="$(td_section_get_field_value "$metadata" "Type")"
+        var_name="${prefix}_TYPE"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$value"
+
+        value="$(td_section_get_field_value "$metadata" "Purpose")"
+        var_name="${prefix}_PURPOSE"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$value"
+
+        # --- Attribution fields ------------------------------------------------------
+        value="$(td_section_get_field_value "$attribution" "Developers")"
+        var_name="${prefix}_DEVELOPERS"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$value"
+
+        value="$(td_section_get_field_value "$attribution" "Company")"
+        var_name="${prefix}_COMPANY"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$value"
+
+        value="$(td_section_get_field_value "$attribution" "Client")"
+        var_name="${prefix}_CLIENT"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$value"
+
+        value="$(td_section_get_field_value "$attribution" "Copyright")"
+        var_name="${prefix}_COPYRIGHT"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$value"
+
+        value="$(td_section_get_field_value "$attribution" "License")"
+        var_name="${prefix}_LICENSE"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$value"
+
+        return 0
+    }
 
 

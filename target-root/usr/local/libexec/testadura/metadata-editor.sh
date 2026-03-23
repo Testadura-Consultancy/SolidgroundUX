@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 2602607900
-#   Checksum    : 
+#   Build       : 2608201
+#   Checksum    : 7c4b13ee1c6da83fe99f3b13920bc3b0913175e9e68f60bd8feed6baab918b94
 #   Source      : prepare-release.sh
 #   Type        : script
 #   Purpose     : Prepare a workspace for release distribution

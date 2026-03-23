@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 26079
-#   Checksum    : 
+#   Build       : 2608203
+#   Checksum    : 5d109b9fab30aff78568930093f7f339c14455bb83207b4c8e05b0bfe6463068
 #   Sourcefile  : exe-template.sh
 #   Type        : library
 #   Purpose     : Canonical executable template for Testadura scripts
@@ -96,6 +96,7 @@ set -uo pipefail
     __td_lib_guard
     unset -f __td_lib_guard
 
+    td_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Internal helpers -------------------------------------------------------------
     # Naming:

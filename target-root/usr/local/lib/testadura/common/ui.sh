@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 2602607900
-#   Checksum    : 
+#   Build       : 2608211
+#   Checksum    : c1112d90e5984c770dd129fd66dacda9ade5434339b23909b5d92898a1c192f2
 #   Source      : ui.sh
 #   Type        : library
 #   Purpose     : Provide terminal rendering utilities for styled console output
@@ -98,6 +98,8 @@ set -uo pipefail
 
     __td_lib_guard
     unset -f __td_lib_guard
+
+    td_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Compatibility overrides --------------------------------------------------------
     # Shims to integrate with legacy helpers if present (say/ask), with safe fallbacks.
@@ -1022,7 +1024,7 @@ set -uo pipefail
     td_print_sectionheader() {
         local text=""
         local textclr="$(td_sgr "$WHITE" "" "$FX_BOLD")"
-        local border="-"
+        local border="$LN_H"
         local borderclr="${TUI_BORDER}"
         local padleft=4
         local padend=1
@@ -1441,6 +1443,116 @@ set -uo pipefail
         printf '%s%*s' "$s" "$pad" ""
     }
 
+    # td_module_show_metadata
+        # Purpose:
+        #   Display metadata for a library module initialized via td_module_init_metadata.
+        #
+        # Behavior:
+        #   - Accepts either:
+        #       • a module prefix (e.g. TD_COMMENT_PARSER)
+        #       • a file path (derives module prefix)
+        #   - Reads TD_<MODULE>_* variables via indirect expansion
+        #   - Prints values using td_print_labeled_value
+        #   - Displays Description as a separate block when present
+        #
+        # Arguments:
+        #   $1  MODULE_PREFIX_OR_FILE
+        #
+        # Returns:
+        #   0  success
+        #   1  unable to resolve module
+        #
+        # Usage:
+        #   td_module_show_metadata "TD_COMMENT_PARSER"
+        #   td_module_show_metadata "${BASH_SOURCE[0]}"
+        #
+        # Notes:
+        #   - Intended for debugging, diagnostics, and inspection
+        #   - Assumes td_print_labeled_value exists
+    td_module_show_metadata() {
+        local module_ref="${1:?missing module prefix or file}"
+        local prefix=""
+        local file=""
+        local base=""
+        local key=""
+        local var_name=""
+
+        local v_file=""
+        local v_dir=""
+        local v_base=""
+        local v_name=""
+        local v_product=""
+        local v_title=""
+        local v_desc=""
+        local v_version=""
+        local v_build=""
+        local v_checksum=""
+        local v_source=""
+        local v_type=""
+        local v_purpose=""
+        local v_developers=""
+        local v_company=""
+        local v_client=""
+        local v_copyright=""
+        local v_license=""
+
+        # --- Resolve module prefix ----------------------------------------------------
+        if [[ "$module_ref" == TD_* ]]; then
+            prefix="$module_ref"
+        else
+            file="$(readlink -f "$module_ref")" || return 1
+            base="$(basename -- "$file")"
+            key="${base%.sh}"
+            key="${key//-/_}"
+            prefix="TD_${key^^}"
+        fi
+
+        # --- Resolve variables --------------------------------------------------------
+        var_name="${prefix}_FILE";       v_file="${!var_name-}"
+        var_name="${prefix}_DIR";        v_dir="${!var_name-}"
+        var_name="${prefix}_BASE";       v_base="${!var_name-}"
+        var_name="${prefix}_NAME";       v_name="${!var_name-}"
+        var_name="${prefix}_PRODUCT";    v_product="${!var_name-}"
+        var_name="${prefix}_TITLE";      v_title="${!var_name-}"
+        var_name="${prefix}_DESC";       v_desc="${!var_name-}"
+        var_name="${prefix}_VERSION";    v_version="${!var_name-}"
+        var_name="${prefix}_BUILD";      v_build="${!var_name-}"
+        var_name="${prefix}_CHECKSUM";   v_checksum="${!var_name-}"
+        var_name="${prefix}_SOURCE";     v_source="${!var_name-}"
+        var_name="${prefix}_TYPE";       v_type="${!var_name-}"
+        var_name="${prefix}_PURPOSE";    v_purpose="${!var_name-}"
+        var_name="${prefix}_DEVELOPERS"; v_developers="${!var_name-}"
+        var_name="${prefix}_COMPANY";    v_company="${!var_name-}"
+        var_name="${prefix}_CLIENT";     v_client="${!var_name-}"
+        var_name="${prefix}_COPYRIGHT";  v_copyright="${!var_name-}"
+        var_name="${prefix}_LICENSE";    v_license="${!var_name-}"
+
+        # --- Output -------------------------------------------------------------------
+        td_print_labeled_value "Module"      "$prefix"
+        td_print_labeled_value "File"        "$v_file"
+        td_print_labeled_value "Directory"   "$v_dir"
+        td_print_labeled_value "Base"        "$v_base"
+        td_print_labeled_value "Name"        "$v_name"
+        td_print_labeled_value "Product"     "$v_product"
+        td_print_labeled_value "Title"       "$v_title"
+        td_print_labeled_value "Version"     "$v_version"
+        td_print_labeled_value "Build"       "$v_build"
+        td_print_labeled_value "Checksum"    "$v_checksum"
+        td_print_labeled_value "Source"      "$v_source"
+        td_print_labeled_value "Type"        "$v_type"
+        td_print_labeled_value "Purpose"     "$v_purpose"
+        td_print_labeled_value "Developers"  "$v_developers"
+        td_print_labeled_value "Company"     "$v_company"
+        td_print_labeled_value "Client"      "$v_client"
+        td_print_labeled_value "Copyright"   "$v_copyright"
+        td_print_labeled_value "License"     "$v_license"
+
+        if [[ -n "$v_desc" ]]; then
+            printf '\nDescription:\n%s\n' "$v_desc"
+        fi
+
+        return 0
+    }
  # -- Externals -------------------------------------------------------------------
  # -- Sample/demo renderers -------------------------------------------------------
     # td_color_samples

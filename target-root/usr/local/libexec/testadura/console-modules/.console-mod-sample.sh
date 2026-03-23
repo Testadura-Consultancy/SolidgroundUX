@@ -63,6 +63,8 @@ set -uo pipefail
     __td_lib_guard
     unset -f __td_lib_guard
 
+    td_module_init_metadata "${BASH_SOURCE[0]}"
+
 
 # --- Internal helpers ------------------------------------------------------------
     # Naming:

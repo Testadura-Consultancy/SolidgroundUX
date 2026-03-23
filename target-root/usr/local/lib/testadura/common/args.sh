@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 2602607900
-#   Checksum    : 
+#   Build       : 2608203
+#   Checksum    : 8514965960d1becba4459cc212b011b1bd6e9b51a2d41a9570cba36ff0e9354d
 #   Source      : args.sh
 #   Type        : library
 #   Purpose     : Parse and manage command-line arguments for scripts
@@ -100,6 +100,7 @@ set -uo pipefail
     __td_lib_guard
     unset -f __td_lib_guard
 
+    td_module_init_metadata "${BASH_SOURCE[0]}"
 # --- Helper functions ----------------------------------------------------------------
     # __td_arg_split
         # Purpose:

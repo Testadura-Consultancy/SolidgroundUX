@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 2608201
-#   Checksum    : e759faff3561c8d72fa2770ee8a555a6ffc6597606bedba7a446c1821caea0fd
+#   Build       : 2608211
+#   Checksum    : 5535e2d9db384122969bfb7106dbf6e3f15af4784c761cad3d518e7d43425f62
 #   Source      : prepare-release.sh
 #   Type        : script
 #   Purpose     : Prepare framework scripts for release
@@ -245,16 +245,6 @@ set -uo pipefail
     TD_SCRIPT_DIR="$(cd -- "$(dirname -- "$TD_SCRIPT_FILE")" && pwd)"
     TD_SCRIPT_BASE="$(basename -- "$TD_SCRIPT_FILE")"
     TD_SCRIPT_NAME="${TD_SCRIPT_BASE%.sh}"
-    TD_SCRIPT_TITLE="Prepare release"
-    : "${TD_SCRIPT_DESC:=Creates a clean tar.gz release archive of a workspace}"
-    : "${TD_SCRIPT_VERSION:=1.0}"
-    : "${TD_SCRIPT_BUILD:=20250110}"
-    : "${TD_SCRIPT_DEVELOPERS:=Mark Fieten}"
-    : "${TD_SCRIPT_COMPANY:=Testadura Consultancy}"
-    : "${TD_SCRIPT_COPYRIGHT:=© 2025 Mark Fieten — Testadura Consultancy}"
-    : "${TD_SCRIPT_LICENSE:=Testadura Non-Commercial License (TD-NC) v1.0}"
-
-    readonly BOOTSTRAP
 
 # --- Script metadata (framework integration) -----------------------------------------
     # TD_USING
@@ -772,7 +762,8 @@ set -uo pipefail
         #   - Scans SOURCE_DIR for readable shell source files.
         #   - Applies td_header_bump_version to each file.
         #   - Uses --bumpmajor or --bumpminor to decide the bump mode.
-        #   - When no bump flag is set, refreshes build/checksum only.
+        #   - When no bump flag is set, refreshes build/checksum only for changed files.
+        #   - Reports unchanged files separately.
         #   - In dry-run mode, reports intended actions without modifying files.
         #
         # Inputs (globals):
@@ -780,6 +771,7 @@ set -uo pipefail
         #   FLAG_BUMP_MAJOR
         #   FLAG_BUMP_MINOR
         #   FLAG_DRYRUN
+        #   FLAG_NOSOURCEUPDATE
         #
         # Returns:
         #   0 on success
@@ -812,25 +804,30 @@ set -uo pipefail
                 case "$mode" in
                     major) sayinfo "[DRYRUN] Would have bumped major version in $file" ;;
                     minor) sayinfo "[DRYRUN] Would have bumped minor version in $file" ;;
-                    none)  sayinfo "[DRYRUN] Would have updated build/checksum in $file" ;;
+                    none)  sayinfo "[DRYRUN] Would have refreshed build/checksum in $file if needed" ;;
                 esac
                 continue
             fi
 
             if td_header_bump_version "$file" "$mode"; then
-                case "$mode" in
-                    major) sayok "Bumped major version in $file" ;;
-                    minor) sayok "Bumped minor version in $file" ;;
-                    none)  sayok "Updated build/checksum in $file" ;;
-                esac
+                if (( ${TD_HEADER_BUMP_CHANGED:-0} )); then
+                    case "$mode" in
+                        major) sayok "Bumped major version in $file" ;;
+                        minor) sayok "Bumped minor version in $file" ;;
+                        none)  sayok "Updated build/checksum in $file" ;;
+                    esac
+                else
+                    sayinfo "$file is unchanged, no new buildnr applied."
+                fi
             else
-                sayfail "Failed to update header metadata in $file"
+                saywarning "Skipping unmanaged file (no valid header): $file"
                 failed=1
             fi
         done < <(find "$SOURCE_DIR" -type f -name '*.sh' -not -path '*/releases/*' -print0)
 
         return "$failed"
     }
+
 # --- Main Sequence -------------------------------------------------------------------
     # main
         # Purpose:
@@ -879,6 +876,9 @@ set -uo pipefail
             saydebug "Calling builtinarg handler"
             td_builtinarg_handler
             saydebug "Exited builtinarg handler"
+
+        # -- Initialize metadata
+        #     td_script_init_metadata
 
         # -- UI
             td_update_runmode

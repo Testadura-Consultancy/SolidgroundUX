@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 2602607900
-#   Checksum    : 
+#   Build       : 2608203
+#   Checksum    : 3c8ef4f033b8fe85c70737865a81832f36637bc7365369bbc14e070456fd0734
 #   Source      : ui-glyph.sh
 #   Type        : library
 #   Purpose     : Provide glyph and symbol helpers for console rendering
@@ -97,6 +97,8 @@ set -uo pipefail
 
     __td_lib_guard
     unset -f __td_lib_guard
+
+    td_module_init_metadata "${BASH_SOURCE[0]}"
     
 # --- Light line drawing ------------------------------------------------------------
     LN_H="─"

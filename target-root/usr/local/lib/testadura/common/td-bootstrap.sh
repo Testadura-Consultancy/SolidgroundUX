@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 2602607900
-#   Checksum    : 
+#   Build       : 2608203
+#   Checksum    : 5d3367c46d19b3508dbf9181dfe2c328ba9a6d48bec1c9269e75a0522d367a02
 #   Source      : td-bootstrap.sh
 #   Type        : library
 #   Purpose     : Initialize the SolidgroundUX framework and load core modules
@@ -196,7 +196,6 @@ set -uo pipefail
         done
     }
 
-    local 
     # __init_bootstrap
         # Purpose:
         #   Initialize the SolidgroundUX bootstrap environment (env, defaults, roots, derived paths).
@@ -222,8 +221,18 @@ set -uo pipefail
     __init_bootstrap() {
         sayinfo "Sourcing bootstrap environment"
         TD_BOOTSTRAP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        
         # shellcheck source=/dev/null
         source "$TD_BOOTSTRAP_DIR/td-bootstrap-env.sh"
+        source "$TD_BOOTSTRAP_DIR/td-comment-parser.sh"
+
+        # Core modules cannot self-initialize metadata during early source phase.
+        # Initialize them here once header parsing helpers are available.     
+        td_module_init_metadata "$TD_BOOTSTRAP_DIR/td-bootstrap.sh"
+        td_module_init_metadata "$TD_BOOTSTRAP_DIR/td-bootstrap-env.sh"
+        td_module_init_metadata "$TD_BOOTSTRAP_DIR/td-comment-parser.sh"
+
+        td_script_init_metadata
 
         td_apply_defaults
 
@@ -366,6 +375,100 @@ set -uo pipefail
     }
 
 # --- Public API ----------------------------------------------------------------------
+    # td_script_init_metadata
+        # Purpose:
+        #   Initialize executable metadata from structured header comments.
+        #
+        # Behavior:
+        #   - Reads structured header sections once:
+        #       • Banner line  (Product / Title)
+        #       • Description  (multiline)
+        #       • Metadata     (key/value pairs)
+        #       • Attribution  (key/value pairs)
+        #   - Extracts values from these sections and assigns them to
+        #     TD_SCRIPT_* variables.
+        #   - Preserves existing values, allowing developer overrides.
+        #   - Avoids repeated file scans by working on in-memory section content.
+        #
+        # Arguments:
+        #   None (uses TD_SCRIPT_FILE)
+        #
+        # Inputs (globals):
+        #   TD_SCRIPT_FILE  (must be set before calling)
+        #
+        # Outputs (globals):
+        #   TD_SCRIPT_PRODUCT
+        #   TD_SCRIPT_TITLE
+        #   TD_SCRIPT_DESC
+        #   TD_SCRIPT_VERSION
+        #   TD_SCRIPT_BUILD
+        #   TD_SCRIPT_CHECKSUM
+        #   TD_SCRIPT_SOURCE
+        #   TD_SCRIPT_TYPE
+        #   TD_SCRIPT_PURPOSE
+        #   TD_SCRIPT_DEVELOPERS
+        #   TD_SCRIPT_COMPANY
+        #   TD_SCRIPT_CLIENT
+        #   TD_SCRIPT_COPYRIGHT
+        #   TD_SCRIPT_LICENSE
+        #
+        # Returns:
+        #   0  success
+        #   1  missing or unreadable TD_SCRIPT_FILE
+        #
+        # Usage:
+        #   TD_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
+        #   td_script_init_metadata
+        #
+        # Notes:
+        #   - Must be called after bootstrap initialization, as it depends on
+        #     header parsing helpers (td_header_get_*).
+        #   - Intended for executables (not libraries).
+        #   - Uses td_section_get_field_value for in-memory parsing.
+    td_script_init_metadata() {
+        local metadata=""
+        local attribution=""
+        local value=""
+
+        [[ -n "${TD_SCRIPT_FILE:-}" && -r "$TD_SCRIPT_FILE" ]] || return 1
+
+        # --- Banner (Product / Title) ------------------------------------------------
+        [[ -n "${TD_SCRIPT_PRODUCT:-}" && -n "${TD_SCRIPT_TITLE:-}" ]] || \
+            td_header_get_banner_parts "$TD_SCRIPT_FILE" TD_SCRIPT_PRODUCT TD_SCRIPT_TITLE
+
+        # --- Description (multiline section) -----------------------------------------
+        [[ -n "${TD_SCRIPT_DESCRIPTION:-}" ]] || \
+            td_header_get_section "$TD_SCRIPT_FILE" "Description" TD_SCRIPT_DESCRIPTION
+
+        # --- Load sections once ------------------------------------------------------
+        td_header_get_section "$TD_SCRIPT_FILE" "Metadata" metadata
+        td_header_get_section "$TD_SCRIPT_FILE" "Attribution" attribution
+
+        # --- Metadata fields ---------------------------------------------------------
+        [[ -n "${TD_SCRIPT_VERSION:-}" ]]   || TD_SCRIPT_VERSION="$(td_section_get_field_value "$metadata" "Version")"
+        [[ -n "${TD_SCRIPT_BUILD:-}" ]]     || TD_SCRIPT_BUILD="$(td_section_get_field_value "$metadata" "Build")"
+        [[ -n "${TD_SCRIPT_CHECKSUM:-}" ]]  || TD_SCRIPT_CHECKSUM="$(td_section_get_field_value "$metadata" "Checksum")"
+        [[ -n "${TD_SCRIPT_SOURCE:-}" ]]    || TD_SCRIPT_SOURCE="$(td_section_get_field_value "$metadata" "Source")"
+        [[ -n "${TD_SCRIPT_TYPE:-}" ]]      || TD_SCRIPT_TYPE="$(td_section_get_field_value "$metadata" "Type")"
+        [[ -n "${TD_SCRIPT_PURPOSE:-}" ]]   || TD_SCRIPT_PURPOSE="$(td_section_get_field_value "$metadata" "Purpose")"
+
+        # --- Attribution fields ------------------------------------------------------
+        [[ -n "${TD_SCRIPT_DEVELOPERS:-}" ]] || TD_SCRIPT_DEVELOPERS="$(td_section_get_field_value "$attribution" "Developers")"    
+        [[ -n "${TD_SCRIPT_COMPANY:-}" ]]    || TD_SCRIPT_COMPANY="$(td_section_get_field_value "$attribution" "Company")"
+        [[ -n "${TD_SCRIPT_CLIENT:-}" ]]     || TD_SCRIPT_CLIENT="$(td_section_get_field_value "$attribution" "Client")"
+        [[ -n "${TD_SCRIPT_COPYRIGHT:-}" ]]  || TD_SCRIPT_COPYRIGHT="$(td_section_get_field_value "$attribution" "Copyright")"
+        [[ -n "${TD_SCRIPT_LICENSE:-}" ]]    || TD_SCRIPT_LICENSE="$(td_section_get_field_value "$attribution" "License")"
+
+        # --- Short description (first line of Description) ------------------------------
+        if [[ -z "${TD_SCRIPT_DESC:-}" ]]; then
+            if [[ -n "${TD_SCRIPT_DESCRIPTION:-}" ]]; then
+                TD_SCRIPT_DESC="${TD_SCRIPT_DESCRIPTION%%$'\n'*}"
+            else
+                TD_SCRIPT_DESC=""
+            fi
+        fi
+        return 0
+    }
     # td_on_exit_install
         # Purpose:
         #   Install the framework EXIT dispatcher (trap) exactly once per process.

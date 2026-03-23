@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 2602607900
-#   Checksum    : 
+#   Build       : 2608203
+#   Checksum    : 47959597d4d4803d4b1a0412dfdc85a87ced815b4ae475270f1b6bd5a1347527
 #   Source      : ui-ask.sh
 #   Type        : library
 #   Purpose     : Provide interactive prompting utilities for console input
@@ -99,6 +99,8 @@ set -uo pipefail
 
     __td_lib_guard
     unset -f __td_lib_guard
+
+    td_module_init_metadata "${BASH_SOURCE[0]}"
     
 # --- Helpers ------------------------------------------------------------------------
     # __expand_choices

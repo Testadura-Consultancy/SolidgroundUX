@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 2602607900
-#   Checksum    : 
+#   Build       : 2608203
+#   Checksum    : feab4407bb5ca3da3142233f7ef3951213548810d8fb410d7d65c59997c32a74
 #   Source      : td-bootstrap-env.sh
 #   Type        : library
 #   Purpose     : Initialize framework environment variables and directory structure
@@ -139,6 +139,7 @@ set -uo pipefail
         framework-info.sh
         cfg.sh
         core.sh
+        td-comment-parser.sh
         ui.sh
         ui-say.sh
         ui-ask.sh

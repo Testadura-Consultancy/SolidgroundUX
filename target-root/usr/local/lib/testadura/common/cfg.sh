@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 2602607900
-#   Checksum    : 
+#   Build       : 2608203
+#   Checksum    : efe31761d18a3682bdf4bbfbf387da919358abc74098a7b6768d14b7d81733af
 #   Source      : cfg.sh
 #   Type        : library
 #   Purpose     : Load, manage, and persist configuration settings
@@ -99,6 +99,8 @@ set -uo pipefail
 
     __td_lib_guard
     unset -f __td_lib_guard
+
+    td_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Internal: file and value manipulation -------------------------------------------
     # - Ignores empty lines and comments

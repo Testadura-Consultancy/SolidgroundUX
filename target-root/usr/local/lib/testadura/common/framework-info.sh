@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 2602607900
-#   Checksum    : 
+#   Build       : 2608203
+#   Checksum    : 03f59c4cec14617b06e7430af98ad6ffdd07f737588f11fcac0bcc27c8fe0df4
 #   Source      : framework-info.sh
 #   Type        : library
 #   Purpose     : Provide framework metadata and runtime information helpers
@@ -97,6 +97,8 @@ set -uo pipefail
 
     __td_lib_guard
     unset -f __td_lib_guard
+
+    td_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Internal helpers ----------------------------------------------------------------
     : "${__section_indent:=2}"

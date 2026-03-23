@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 26079
-#   Checksum    : 
+#   Build       : 2608203
+#   Checksum    : 5e8ef3a4a6bdaa01dd143b8919fe5e8067c287e849b29470b4bbbdea2254c6b0
 #   Sourcefile  : mod-template.sh
 #   Type        : module
 #   Purpose     : Canonical template for sgnd-console modules
@@ -103,6 +103,7 @@ set -uo pipefail
     __td_lib_guard
     unset -f __td_lib_guard
 
+    td_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Internal helpers -------------------------------------------------------------
     # Naming:

@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 2602607900
-#   Checksum    : 
+#   Build       : 2608203
+#   Checksum    : d87a50732c0bf248455d58a2bf65284dbaa61520cbba9eb4bf7da07309557080
 #   Source      : sgnd-console-menu.sh
 #   Type        : library
 #   Purpose     : Provide menu definition and rendering logic for sgnd-console
@@ -98,6 +98,8 @@ set -uo pipefail
 
     __td_lib_guard
     unset -f __td_lib_guard
+
+    td_module_init_metadata "${BASH_SOURCE[0]}"
 
 
 # --- Label and status formatting -----------------------------------------------------

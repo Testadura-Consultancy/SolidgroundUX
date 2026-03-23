@@ -4,8 +4,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 2602607900
-#   Checksum    : 
+#   Build       : 2608201
+#   Checksum    : 327f319cbbbf7d32572af9814d927ae0312c4e6538a0f63f70028909cfd8324e
 #   Source      : boottrap-test.sh
 #   Type        : script
 #   Purpose     : Testscript testing some basic framework functions

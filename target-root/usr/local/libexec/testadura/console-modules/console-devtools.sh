@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 26079
-#   Checksum    :  
+#   Build       : 2608203
+#   Checksum    :  f1e86d3a90b4ae8f07a73f2f8ecd96cad3fcd597f2cb69e4113ab80491160526
 #   Sourcefile  : console-devtools.sh
 #   Type        : module
 #   Purpose     : sgnd-console module exposing developer tooling actions
@@ -102,6 +102,8 @@ set -uo pipefail
 
     __td_lib_guard
     unset -f __td_lib_guard
+
+    td_module_init_metadata "${BASH_SOURCE[0]}"
 
 
 # --- Internal helpers -------------------------------------------------------------

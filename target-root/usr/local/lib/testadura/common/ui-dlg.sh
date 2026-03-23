@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 2602607900
-#   Checksum    : 
+#   Build       : 2608203
+#   Checksum    : 5062a88702de3b8db54c1a0ed6b9033ed1951debbfd7c694873235abb8b82fa8
 #   Source      : ui-dlg.sh
 #   Type        : library
 #   Purpose     : Provide dialog-style user interaction helpers
@@ -97,6 +97,8 @@ set -uo pipefail
 
     __td_lib_guard
     unset -f __td_lib_guard
+
+    td_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Internal helpers ------------------------------------------------------------------
     # __dlg_keymap

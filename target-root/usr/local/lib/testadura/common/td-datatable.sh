@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 2602607900
-#   Checksum    : 
+#   Build       : 2608203
+#   Checksum    : 8558c003868728dcc3faacf82fadaf4b5c989e3e4d500c472bdef082b7a9c42b
 #   Source      : td-datatable.sh
 #   Type        : library
 #   Purpose     : Provide lightweight tabular data structures and utilities
@@ -99,6 +99,8 @@ set -uo pipefail
 
     __td_lib_guard
     unset -f __td_lib_guard
+
+    td_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Internal helpers ---------------------------------------------------------------
     # td__dt_array_length

@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 2602607900
-#   Checksum    : 
+#   Build       : 2608210
+#   Checksum    : 68106af8dfdc328c03146dbeb208e168ff4bcaddcad97e3dbc6fd5ab5cf3ec3e
 #   Source      : core.sh
 #   Type        : library
 #   Purpose     : Provide foundational utility functions and shared primitives
@@ -98,6 +98,8 @@ set -uo pipefail
 
     __td_lib_guard
     unset -f __td_lib_guard
+
+    td_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Internals -----------------------------------------------------------------------
   # _sh_err
@@ -600,6 +602,47 @@ set -uo pipefail
         return 127
     }
 
+    # td_safe_replace_file
+        # Purpose:
+        #   Safely replace a destination file with a source file while preserving
+        #   the original file's permissions.
+        #
+        # Behavior:
+        #   - Copies the permission bits (mode) from the destination file to the source file.
+        #   - Replaces the destination file atomically using mv.
+        #   - Ensures executable flags and other mode settings are preserved.
+        #
+        # Notes:
+        #   - Intended for use with temporary files (e.g., mktemp output).
+        #   - The destination file must already exist.
+        #   - Does not preserve ownership (only mode). Add chown --reference if needed.
+        #
+        # Arguments:
+        #   $1  SRC   source file (temporary file)
+        #   $2  DST   destination file (existing file to replace)
+        #
+        # Returns:
+        #   0  success
+        #   1  failure (missing file, chmod failure, or mv failure)
+        #
+        # Usage:
+        #   td_safe_replace_file "$tmp_file" "$file"
+        #
+        # Examples:
+        #   tmp="$(mktemp)"
+        #   echo "new content" > "$tmp"
+        #   td_safe_replace_file "$tmp" "/path/to/script.sh"
+    td_safe_replace_file() {
+        local src="${1:?missing source}"
+        local dst="${2:?missing destination}"
+
+        [[ -e "$src" ]] || return 1
+        [[ -e "$dst" ]] || return 1
+
+        chmod --reference="$dst" "$src" || return 1
+        mv "$src" "$dst" || return 1
+    }
+    
 # --- Systeminfo ----------------------------------------------------------------------
     # td_get_primary_nic
       # Purpose:

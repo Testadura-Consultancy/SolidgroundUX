@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 2602607900
-#   Checksum    : 
+#   Build       : 2608211
+#   Checksum    : 3b02bf3be5f8d01169d43483261f8554327a6ca0939c05b97a54314c2a756e01
 #   Source      : ui-say.sh
 #   Type        : library
 #   Purpose     : Provide standardized console messaging helpers
@@ -97,6 +97,8 @@ set -uo pipefail
 
     __td_lib_guard
     unset -f __td_lib_guard
+
+    td_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Global defaults ----------------------------------------------------------------
     # Can be overridden in:

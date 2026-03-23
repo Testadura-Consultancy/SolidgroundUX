@@ -4,8 +4,8 @@
 # ------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 2608101
-#   Checksum    : 7e24beddd4459a04878f691e4b1f255b84a575278983be16cb83f3f5fd7868f7
+#   Build       : 2608201
+#   Checksum    : 7cbe590e8865baa6dfc442f37e17bc21565a352a558250246960ada941ed608b
 #   Source      : exe-template.sh
 #   Type        : script
 #   Purpose     : Canonical executable template for Testadura scripts.

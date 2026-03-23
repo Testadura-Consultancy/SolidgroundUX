@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 2602607900
-#   Checksum    : 
+#   Build       : 2608201
+#   Checksum    : 715564eda328b778cf2a11cbf3ae68aeeba87efa9445149b420d9642b7070d59
 #   Source      : create-workspace.sh
 #   Type        : script
 #   Purpose     : Create a new development workspace from templates
