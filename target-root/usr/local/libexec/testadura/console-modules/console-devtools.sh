@@ -168,6 +168,27 @@ set -uo pipefail
     {
             __sgnd_run_script "prepare-release.sh" 
     }
+
+    # __exe_metadataeditor
+        # Purpose:
+        #   Launch the prepare-release developer tool through the sgnd-console runtime.
+        #
+        # Behavior:
+        #   - Delegates execution to __sgnd_run_script.
+        #   - Invokes prepare-release.sh 
+        #
+        # Returns:
+        #   Exit code of the executed script.
+        #
+        # Usage:
+        #   __exe_metadataeditor
+        #
+        # Examples:
+        #   __exe_metadataeditor
+    __exe_metadata-editor(){
+        __sgnd_run_script "metadata-editor.sh"
+    }
+
 # --- Public API -------------------------------------------------------------------
 #    sample_show_message() {
 #        sayinfo "Sample module action executed"
@@ -186,5 +207,6 @@ set -uo pipefail
     sgnd_console_register_item "createws" "devtools" "Create workspace" "__exe_createworkspace" "Create a template workspace with target-root structure" 0 15 
     sgnd_console_register_item "deployws" "devtools" "Deploy workspace" "__exe_deployworkspace" "Deploy target-root structure from workspace to root" 0 15
     sgnd_console_register_item "preprel" "devtools" "Prepare release" "__exe_preparerelease" "Create a tar-file from workspace with checksums and manifests" 0 15
+    sgnd_console_register_item "metaedt" "devtools" "Metadata editor" "__exe_metadata-editor" "Edit metadata fields in script header comments" 0 15
 
 

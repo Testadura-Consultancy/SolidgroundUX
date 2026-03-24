@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 2608203
-#   Checksum    : 47959597d4d4803d4b1a0412dfdc85a87ced815b4ae475270f1b6bd5a1347527
+#   Build       : 2608301
+#   Checksum    : 1d5da7773ee9e2c1643ba3a6273aa99dee14209fbc78fb24e9869189c9dbca36
 #   Source      : ui-ask.sh
 #   Type        : library
 #   Purpose     : Provide interactive prompting utilities for console input
@@ -353,259 +353,99 @@ set -uo pipefail
         #     to avoid recursive retries entirely.
         #   - When neither --var nor --echo is supplied, the accepted value is kept
         #     local and not emitted.
-    ask(){
-        local label="" var_name="" colorize="both"
-        local validate_fn="" def_value="" echo_input=0
-        local -a _orig_args=( "$@" )
-        
-        # ---- parse options ------------------------------------------------------
-        while [[ $# -gt 0 ]]; do
-            case "$1" in
-                --label)    label="$2"; shift 2 ;;
-                --var)      var_name="$2"; shift 2 ;;
-                --colorize) colorize="$2"; shift 2 ;;
-                --validate) validate_fn="$2"; shift 2 ;;
-                --default)  def_value="$2"; shift 2 ;;
-                --echo)     echo_input=1; shift ;;
-                --)         shift; break ;;
-                *)          [[ -z "$label" ]] && label="$1"; shift ;;
-            esac
-        done
-
-        # ---- resolve color mode -------------------------------------------------
-        
-        local label_color="$TUI_LABEL"
-        local input_color="$TUI_INPUT"
-
-        case "$colorize" in
-            label)
-                label_color="$TUI_LABEL"
-                ;;
-            input)
-                input_color="$TUI_INPUT"
-                ;;
-            both)
-                label_color="$TUI_LABEL"
-                input_color="$TUI_INPUT"
-                ;;
-            none|*) ;;
-        esac
-        
-        # ---- build prompt -------------------------------------------------------
-        local prompt=""
-        if [[ -n "$label" ]]; then
-            # label in label_color, then ": ", then switch to input_color for typing
-            prompt+="${label_color}${label}${RESET}: ${input_color}"
-        fi
-
-        # ---- use bash readline pre-fill (-i) -----------------------------------
-        local value ok
-        local tty_fd
-        exec {tty_fd}</dev/tty || { printf "%bNo TTY available%b\n" "$TUI_INVALID" "$RESET"; return 2; }
-
-        if [[ -n "$def_value" ]]; then
-            IFS= read -u "$tty_fd" -e -p "$prompt" -i "$def_value" value
-            [[ -z "$value" ]] && value="$def_value"
-        else
-            IFS= read -u "$tty_fd" -e -p "$prompt" value
-        fi
-        exec {tty_fd}<&-
-
-        # reset color after the line, so the rest of the script isn't tinted
-        printf "%b" "$RESET"
-
-        # ---- validation ---------------------------------------------------------
-        ok=1
-        if [[ -n "$validate_fn" ]]; then
-            if "$validate_fn" "$value"; then
-                ok=1
-            else
-                ok=0
-            fi
-        fi
-
-        # ---- echo with ✓ / ✗ ----------------------------------------------------
-        # echo result to TTY (keep stdout clean) with colorized ✓/✗ feedback on validation
-        if (( echo_input )); then
-            if (( ok )); then
-                printf "  %b%s%b %b✓%b\n" \
-                    "$input_color" "$value" "$RESET" \
-                    "$TUI_VALID" "$RESET" >/dev/tty
-            else
-                printf "  %b%s%b %b✗%b\n" \
-                    "$TUI_INPUT" "$value" "$RESET" \
-                    "$TUI_INVALID" "$RESET" >/dev/tty
-            fi
-        fi
-
-        # Re-prompt on validation failure
-        if (( !ok )); then
-            printf "%bInvalid value. Please try again.%b\n" "$TUI_INVALID" "$RESET"
-            ask "${_orig_args[@]}"   # recursive retry
-            return
-        fi
-
-        # ---- return value -------------------------------------------------------
-        if [[ -n "$var_name" ]]; then
-            printf -v "$var_name" '%s' "$value"
-        elif [[ "$echo_input" -eq 1 ]]; then
-            printf "%s\n" "$value"
-        fi
-    }
-# --- ask shorthand ------------------------------------------------------------------
-    # Convenience wrappers around ask() for common prompt patterns.
-
-    # ask
-        # Purpose:
-        #   Prompt for interactive input from the controlling terminal (/dev/tty),
-        #   with optional defaulting, validation, and result delivery.
-        #
-        # Behavior:
-        #   - Reads from /dev/tty rather than stdin, so it remains safe in scripts
-        #     that consume piped or redirected stdin.
-        #   - Supports readline-style editing and optional prefilled defaults.
-        #   - Optionally validates the entered value through a callback function.
-        #   - Re-prompts recursively when validation fails.
-        #   - Can either assign the result to a variable or echo it to stdout.
-        #   - Supports optional fixed-width label formatting via --labelwidth.
-        #   - Supports optional color overrides via --labelclr and --valueclr.
-        #
-        # Arguments:
-        #   LABEL
-        #       Positional fallback label when --label is omitted.
-        #
-        # Options:
-        #   --label TEXT
-        #       Prompt label text.
-        #   --labelwidth N
-        #       Fixed display width for the label text. When omitted, label width is natural.
-        #   --labelclr ANSI
-        #       Override color prefix for the label text.
-        #   --valueclr ANSI
-        #       Override color prefix for the input/value text.
-        #   --default VALUE
-        #       Editable default value; empty entry resolves to this value.
-        #   --validate FUNC
-        #       Validation callback invoked as: FUNC "$value"
-        #       Return 0 to accept, non-zero to reject and re-prompt.
-        #   --colorize MODE
-        #       Prompt coloring mode: none | label | input | both
-        #       Default: both
-        #   --var NAME
-        #       Destination variable name for the accepted value.
-        #   --echo
-        #       Echo accepted input with ✓ / ✗ feedback to /dev/tty.
-        #       Also prints the accepted value to stdout when --var is not used.
-        #
-        # Inputs (globals):
-        #   TUI_LABEL
-        #   TUI_INPUT
-        #   TUI_VALID
-        #   TUI_INVALID
-        #   RESET
-        #
-        # Outputs (globals):
-        #   Assigns the accepted value to --var NAME when provided.
-        #
-        # Output:
-        #   - Prints validation feedback to /dev/tty when --echo is enabled.
-        #   - Prints the accepted value to stdout only when --var is not used and
-        #     --echo is enabled.
-        #
-        # Returns:
-        #   0  on accepted input
-        #   2  if /dev/tty cannot be opened
-        #
-        # Usage:
-        #   ask --label "Project name" --var project
-        #   ask --label "Project name" --labelwidth 20 --var project
-        #   ask --label "Environment" --default "dev" --var env
-        #   ask --label "Release date" --validate validate_date --var release_date
-        #   ask --label "Project name" --labelclr "$BRIGHT_WHITE" --valueclr "$BRIGHT_GREEN" --var project_name
-        #
-        # Examples:
-        #   ask --label "Project name" --var project_name
-        #
-        #   ask --label "Project name" --labelwidth 20 --var project_name
-        #
-        #   ask --label "Environment" --default "dev" --var env
-        #
-        #   ask --label "Release date" --validate validate_date --var release_date
-        #
-        #   ask --label "Project name" --labelclr "$BRIGHT_WHITE" --valueclr "$BRIGHT_GREEN" --var project_name
-        #
-        # Notes:
-        #   - Re-prompt currently uses recursion; convert to a loop later if you want
-        #     to avoid recursive retries entirely.
-        #   - When neither --var nor --echo is supplied, the accepted value is kept
-        #     local and not emitted.
     ask() {
-        local label="" var_name="" colorize="both"
-        local validate_fn="" def_value="" echo_input=0
-        local label_width=""
-        local labelclr=""
-        local valueclr=""
+        local label=""
+        local var_name=""
+        local colorize="both"
+        local validate_fn=""
+        local def_value=""
+        local echo_input=0
+        local labelwidth=25
+        local pad=0
+        local labelclr="${TUI_LABEL}"
+        local inputclr="${TUI_INPUT}"
+
         local -a _orig_args=( "$@" )
 
-        # ---- parse options ------------------------------------------------------
+        local label_color=""
+        local input_color=""
+        local prompt=""
+        local value=""
+        local ok=1
+        local tty_fd=""
+
+        # readline non-printing markers
+        local rl_start=$'\001'
+        local rl_end=$'\002'
+
+        # ---- parse arguments --------------------------------------------------
         while [[ $# -gt 0 ]]; do
             case "$1" in
-                --label)      label="$2"; shift 2 ;;
-                --labelwidth) label_width="$2"; shift 2 ;;
-                --labelclr)   labelclr="$2"; shift 2 ;;
-                --valueclr)   valueclr="$2"; shift 2 ;;
-                --var)        var_name="$2"; shift 2 ;;
-                --colorize)   colorize="$2"; shift 2 ;;
-                --validate)   validate_fn="$2"; shift 2 ;;
-                --default)    def_value="$2"; shift 2 ;;
-                --echo)       echo_input=1; shift ;;
-                --)           shift; break ;;
-                *)            [[ -z "$label" ]] && label="$1"; shift ;;
+                --label)       label="$2"; shift 2 ;;
+                --labelwidth)  labelwidth="$2"; shift 2 ;;
+                --pad)         pad="$2"; shift 2 ;;
+                --labelclr)    labelclr="$2"; shift 2 ;;
+                --inputclr)    inputclr="$2"; shift 2 ;;
+                --var)         var_name="$2"; shift 2 ;;
+                --colorize)    colorize="$2"; shift 2 ;;
+                --validate)    validate_fn="$2"; shift 2 ;;
+                --default)     def_value="$2"; shift 2 ;;
+                --echo)        echo_input=1; shift ;;
+                --)            shift; break ;;
+                *)             [[ -z "$label" ]] && label="$1"; shift ;;
             esac
         done
+        saydebug "Labelwidth : $labelwidth"
+        saydebug "Pad : $pad"
+        [[ "$labelwidth" =~ ^[0-9]+$ ]] || labelwidth=25
+        [[ "$pad" =~ ^[0-9]+$ ]] || pad=0
 
-        # ---- resolve color mode -------------------------------------------------
-        local label_color="$TUI_LABEL"
-        local input_color="$TUI_INPUT"
+        label_color="$labelclr"
+        input_color="$inputclr"
 
         case "$colorize" in
+            none)
+                label_color=""
+                input_color=""
+                ;;
             label)
                 input_color=""
                 ;;
             input)
                 label_color=""
                 ;;
-            both)
-                label_color="$TUI_LABEL"
-                input_color="$TUI_INPUT"
-                ;;
-            none|*)
-                label_color=""
-                input_color=""
-                ;;
+            both) ;;
         esac
 
-        [[ -n "$labelclr" ]] && label_color="$labelclr"
-        [[ -n "$valueclr" ]] && input_color="$valueclr"
-
-        # ---- build prompt -------------------------------------------------------
-        local prompt=""
-        local rendered_label=""
-
-        if [[ -n "$label" ]]; then
-            if [[ -n "$label_width" ]]; then
-                printf -v rendered_label "%-*s" "$label_width" "$label"
-            else
-                rendered_label="$label"
-            fi
-
-            prompt+="${label_color}${rendered_label}${RESET}: ${input_color}"
+        # ---- build prompt -----------------------------------------------------
+        local padleft=""
+        local padded_label=""
+        saydebug "Labelwidth : $labelwidth"
+        # ANSI-safe visible padding
+        if [[ -n "$labelwidth" && "$labelwidth" =~ ^[0-9]+$ ]]; then
+            padded_label="$(td_padded_visible "$label" "$labelwidth")"
+        else
+            padded_label="$label"
         fi
 
-        # ---- use bash readline pre-fill (-i) -----------------------------------
-        local value="" ok=1
-        local tty_fd
+        # left padding
+        padleft="$(td_string_repeat " " "${pad:-0}")"
+        padded_label="${padleft}${padded_label}"
 
+        # build readline-safe prompt (IMPORTANT FIX)
+        if [[ -n "$padded_label" ]]; then
+            prompt=""
+
+            [[ -n "$label_color" ]] && prompt+="${rl_start}${label_color}${rl_end}"
+            prompt+="${padded_label}"
+            [[ -n "$RESET" ]] && prompt+="${rl_start}${RESET}${rl_end}"
+
+            prompt+=" : "
+
+            [[ -n "$input_color" ]] && prompt+="${rl_start}${input_color}${rl_end}"
+        fi
+
+        # ---- read from /dev/tty -----------------------------------------------
         exec {tty_fd}</dev/tty || {
             printf "%bNo TTY available%b\n" "$TUI_INVALID" "$RESET"
             return 2
@@ -617,12 +457,13 @@ set -uo pipefail
         else
             IFS= read -u "$tty_fd" -e -p "$prompt" value
         fi
+
         exec {tty_fd}<&-
 
-        # reset color after the line, so the rest of the script isn't tinted
-        printf "%b" "$RESET"
+        # reset color so terminal doesn't stay tinted
+        printf "%b" "$RESET" >/dev/tty
 
-        # ---- validation ---------------------------------------------------------
+        # ---- validation -------------------------------------------------------
         if [[ -n "$validate_fn" ]]; then
             if "$validate_fn" "$value"; then
                 ok=1
@@ -631,7 +472,7 @@ set -uo pipefail
             fi
         fi
 
-        # ---- echo with ✓ / ✗ ----------------------------------------------------
+        # ---- echo feedback ----------------------------------------------------
         if (( echo_input )); then
             if (( ok )); then
                 printf "  %b%s%b %b✓%b\n" \
@@ -644,21 +485,22 @@ set -uo pipefail
             fi
         fi
 
-        # ---- re-prompt on validation failure -----------------------------------
-        if (( !ok )); then
-            printf "%bInvalid value. Please try again.%b\n" "$TUI_INVALID" "$RESET"
+        # ---- retry on invalid -------------------------------------------------
+        if (( ! ok )); then
+            printf "%bInvalid value. Please try again.%b\n" "$TUI_INVALID" "$RESET" >/dev/tty
             ask "${_orig_args[@]}"
             return
         fi
 
-        # ---- return value -------------------------------------------------------
+        # ---- output -----------------------------------------------------------
         if [[ -n "$var_name" ]]; then
             printf -v "$var_name" '%s' "$value"
         elif (( echo_input )); then
             printf '%s\n' "$value"
         fi
     }
-
+# --- ask shorthand ------------------------------------------------------------------
+    # Convenience wrappers around ask() for common prompt patterns.
     # ask_noyes
         # Purpose:
         #   Prompt a Yes/No question with default No, optionally using timed auto-continue.

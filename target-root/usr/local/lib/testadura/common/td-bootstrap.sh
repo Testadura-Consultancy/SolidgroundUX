@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 2608203
-#   Checksum    : 5d3367c46d19b3508dbf9181dfe2c328ba9a6d48bec1c9269e75a0522d367a02
+#   Build       : 2608301
+#   Checksum    : c9d5cc692027d55637c8d5ec896f7e66bda8161876e65c093063e76c88f2fd44
 #   Source      : td-bootstrap.sh
 #   Type        : library
 #   Purpose     : Initialize the SolidgroundUX framework and load core modules

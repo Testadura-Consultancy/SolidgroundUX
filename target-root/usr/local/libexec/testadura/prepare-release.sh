@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 2608211
-#   Checksum    : 5535e2d9db384122969bfb7106dbf6e3f15af4784c761cad3d518e7d43425f62
+#   Build       : 2608301
+#   Checksum    : d3bc648060f0a904ebc96c50b710cd3378066bdfb731f3dec616f664b29a7566
 #   Source      : prepare-release.sh
 #   Type        : script
 #   Purpose     : Prepare framework scripts for release
@@ -426,12 +426,15 @@ set -uo pipefail
             sayinfo "Would have saved state variables (manual)"
         else
             saydebug "Saving state variables (manual)"
+            td_state_set "PRODUCT" "$PRODUCT"
+            td_state_set "VERSION" "$VERSION"
             td_state_set "RELEASE" "$RELEASE"
             td_state_set "SOURCE_DIR" "$SOURCE_DIR"
             td_state_set "STAGING_ROOT" "$STAGING_ROOT"
             td_state_set "TAR_FILE" "$TAR_FILE"
             td_state_set "FLAG_CLEANUP" "$FLAG_CLEANUP"
             td_state_set "FLAG_USEEXISTING" "$FLAG_USEEXISTING"
+            td_state_set "FLAG_SAVEPARMS" "$FLAG_SAVEPARMS"
         fi
     }
 
@@ -482,49 +485,96 @@ set -uo pipefail
         #   - Uses ask() and ask_ok_redo_quit() for interactive input.
         #   - Auto mode assumes state was loaded during bootstrap (--state).
     __get_parameters(){
-        RELEASE="${RELEASE:-"$TD_PRODUCT-$TD_VERSION"}"
+        PRODUCT="${PRODUCT:-"$TD_PRODUCT"}"
+        VERSION="${VERSION:-"$TD_VERSION"}"
+        BUILD="$(date +%y%j%H)"
+
         SOURCE_DIR="${SOURCE_DIR:-"$TD_APPLICATION_ROOT"}"
         TD_APPLICATION_PARENT="$(dirname "$TD_APPLICATION_ROOT")"
         STAGING_ROOT="${STAGING_ROOT:-"$TD_APPLICATION_PARENT/releases"}"
-        TAR_FILE="${TAR_FILE:-"$RELEASE.tar.gz"}"
         FLAG_AUTO="${FLAG_AUTO:-0}"
-        FLAG_CLEANUP="${FLAG_CLEANUP:-0}"
-        FLAG_USEEXISTING="${FLAG_USEEXISTING:-0}"
+        FLAG_CLEANUP="${FLAG_CLEANUP:-1}"
+        FLAG_USEEXISTING="${FLAG_USEEXISTING:-1}"
+        FLAG_SAVEPARMS="${FLAG_SAVEPARMS:-1}"
 
         if [[ "${FLAG_AUTO:-0}" -eq 1 ]]; then
              sayinfo "Auto mode: using last deployment or default settings."
              return 0
         fi
-
+        local lw=20
+        local lp=4
         while true; do
-            ask --label "Release" --var RELEASE --default "$RELEASE" --colorize both --labelclr "${CYAN}"
-            ask --label "Source directory" --var SOURCE_DIR --default "$SOURCE_DIR" --validate_fn validate_dir_exists --colorize both --labelclr "${CYAN}"
-            ask --label "Staging directory" --var STAGING_ROOT --default "$STAGING_ROOT" --validate_fn validate_dir_exists --colorize both --labelclr "${CYAN}"
-            ask --label "Tar file" --var TAR_FILE --default "$TAR_FILE" --colorize both --labelclr "${CYAN}"
+            td_print
+            td_print_sectionheader "File locations" --padend 0       
+            ask --label "Source directory" --var SOURCE_DIR --default "$SOURCE_DIR" --validate validate_dir_exists --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+            ask --label "Staging directory" --var STAGING_ROOT --default "$STAGING_ROOT" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+            
+            td_print
+            td_print_sectionheader "Release identification" --padend 0
+            ask --label "Product" --var PRODUCT --default "$PRODUCT" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+            ask --label "Version" --var VERSION --default "$VERSION" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+            td_print_labeledvalue --label "Build" --value "$BUILD" --coloriz both --lableclr "$(td_sgr "$SILVER" "" "$FX_ITALIC")" --valueclr "$(td_sgr "$SILVER" "" "$FX_ITALIC")" --pad "$lp" --labelwidth "$lw"
+            
+            td_print
+            RELEASE="${RELEASE:-"$PRODUCT-$VERSION.$BUILD"}"
+            ask --label "Release" --var RELEASE --default "$RELEASE" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+            TAR_FILE="${TAR_FILE:-"$RELEASE.tar.gz"}"
+            ask --label "Tar file" --var TAR_FILE --default "$TAR_FILE" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+            
+            td_print
+            td_print_sectionheader "Switches" --padend 0      
+            lw=41
+
             if [[ "$FLAG_CLEANUP" -eq 1 ]]; then
                 cleanup="Y"
             else
                 cleanup="N"
             fi
-            ask --label "Cleanup staging files after run (Y/N)" --var cleanup --default "$cleanup" --choices "Y,N" --colorize both --labelclr "${CYAN}"
+            ask --label "Cleanup staging files after run (Y/N)" --var cleanup --default "$cleanup" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
             if [[ "$cleanup" == "Y" || "$cleanup" == "y" ]]; then
                 FLAG_CLEANUP=1
             else
                 FLAG_CLEANUP=0
             fi
             
-             if [[ "$FLAG_USEEXISTING" -eq 1 ]]; then
-                useexisting="Y"
-            else
-                useexisting="N"
+            # detect if staging root contains anything
+            local staging_has_files=0
+            if [[ -d "$STAGING_ROOT" ]] && find "$STAGING_ROOT" -mindepth 1 -print -quit 2>/dev/null | grep -q .; then
+                staging_has_files=1
             fi
-            ask --label "Use existing staging files (Y/N)" --var useexisting --default "$useexisting" --choices "Y,N" --colorize both --labelclr "${CYAN}"
-            if [[ "$useexisting" == "Y" || "$useexisting" == "y" ]]; then
-                FLAG_USEEXISTING=1
+
+            if (( staging_has_files )); then
+                if [[ "$FLAG_USEEXISTING" -eq 1 ]]; then
+                    useexisting="Y"
+                else
+                    useexisting="N"
+                fi
+
+                ask --label "Use existing staging files (Y/N)" --var useexisting --default "$useexisting" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+
+                case "${useexisting^^}" in
+                    Y) FLAG_USEEXISTING=1 ;;
+                    *) FLAG_USEEXISTING=0 ;;
+                esac
             else
+                # no files → force behavior
                 FLAG_USEEXISTING=0
+                sayinfo "Staging folder is empty → cannot reuse files."
             fi
-            td_print_sectionheader --border "="
+
+             if [[ "$FLAG_SAVEPARMS" -eq 1 ]]; then
+                saveparms="Y"
+            else
+                saveparms="N"
+            fi
+            ask --label "Save these settings for future use (Y/N)" --var saveparms --default "$saveparms" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+            if [[ "$saveparms" == "Y" || "$saveparms" == "y" ]]; then
+                FLAG_SAVEPARMS=1
+            else
+                FLAG_SAVEPARMS=0
+            fi
+
+            td_print_sectionheader 
             printf "\n"
             
             ask_ok_redo_quit "Create a release using these settings?" 5
@@ -533,7 +583,9 @@ set -uo pipefail
             case "$rc" in
                 0)
                     saydebug "Proceeding with release creation..."
-                    __save_parameters
+                    if [[ "${FLAG_SAVEPARMS:-0}" -eq 1 ]]; then
+                        __save_parameters
+                    fi
                     return 0
                     ;;
                 1)
@@ -613,7 +665,7 @@ set -uo pipefail
         printf '%s  %s\n' "$hash" "$tar_file" >> "$sums_file" || return 1
     }
 
-     # __create_tar
+    # __create_tar
         # Purpose:
         #   Stage a clean release tree and produce a versioned tar.gz archive.
         #
@@ -708,49 +760,50 @@ set -uo pipefail
             sayinfo "Would have generated manifest and compressed to: $tar_path_gz"
             sayinfo "Would have written checksum to: ${tar_path_gz}.sha256"
             sayinfo "Would have written checksum to: ${manifest_path}.sha256"
-            return 0
+        else
+
+            # --- Create uncompressed tar -----------------------------------------------
+            tar -C "$stage_path" -cpf "$tar_path_tar" . || { sayfail "tar failed."; return 1; }
+
+            # --- Write uninstall manifest (external) ------------------------------------
+            tar -tf "$tar_path_tar" \
+                | sed 's|^\./||' \
+                | sed '/^[[:space:]]*$/d' \
+                > "$manifest_path" || { sayfail "Failed to write manifest."; return 1; }
+
+            # --- Embed manifest into tar ------------------------------------------------
+            tar -C "$STAGING_ROOT" -rf "$tar_path_tar" "${RELEASE}.manifest" \
+                || { sayfail "Failed to embed manifest into tar."; return 1; }
+
+            # --- Compress to tar.gz -----------------------------------------------------
+            gzip -f "$tar_path_tar" || { sayfail "gzip failed."; return 1; }
+
+            # --- Update SHA256SUMS ------------------------------------------------------
+            td_release_write_checksum "$tar_path_gz" "$TAR_FILE" "$STAGING_ROOT" \
+                || { sayfail "Failed to update SHA256SUMS."; return 1; }
+
+            # Remove existing manifest entry (idempotent)
+            sed -i "\|  $(basename "$manifest_path")$|d" "$sums_path" \
+                || { sayfail "Failed to update SHA256SUMS (manifest)."; return 1; }
+
+            manifest_base="$(basename "$manifest_path")"
+            manifest_hash="$(sha256sum "$manifest_path" | awk '{print $1}')" \
+                || { sayfail "Failed to hash manifest."; return 1; }
+
+            printf '%s  %s\n' "$manifest_hash" "$manifest_base" >> "$sums_path" \
+                || { sayfail "Failed to append manifest checksum to SHA256SUMS."; return 1; }
+
+            # Write sidecar .sha256 files
+            printf '%s  %s\n' "$(sha256sum "$tar_path_gz" | awk '{print $1}')" "$TAR_FILE" > "${tar_path_gz}.sha256"
+            printf '%s  %s\n' "$manifest_hash" "$manifest_base" > "${manifest_path}.sha256"
+
+            sayinfo "Created $tar_path_gz"
+
+            # Inspect archive (first few entries)
+            tar -tf "$tar_path_gz" | head -n 30
         fi
 
-        # --- Create uncompressed tar -----------------------------------------------
-        tar -C "$stage_path" -cpf "$tar_path_tar" . || { sayfail "tar failed."; return 1; }
-
-        # --- Write uninstall manifest (external) ------------------------------------
-        tar -tf "$tar_path_tar" \
-            | sed 's|^\./||' \
-            | sed '/^[[:space:]]*$/d' \
-            > "$manifest_path" || { sayfail "Failed to write manifest."; return 1; }
-
-        # --- Embed manifest into tar ------------------------------------------------
-        tar -C "$STAGING_ROOT" -rf "$tar_path_tar" "${RELEASE}.manifest" \
-            || { sayfail "Failed to embed manifest into tar."; return 1; }
-
-        # --- Compress to tar.gz -----------------------------------------------------
-        gzip -f "$tar_path_tar" || { sayfail "gzip failed."; return 1; }
-
-        # --- Update SHA256SUMS ------------------------------------------------------
-        td_release_write_checksum "$tar_path_gz" "$TAR_FILE" "$STAGING_ROOT" \
-            || { sayfail "Failed to update SHA256SUMS."; return 1; }
-
-        # Remove existing manifest entry (idempotent)
-        sed -i "\|  $(basename "$manifest_path")$|d" "$sums_path" \
-            || { sayfail "Failed to update SHA256SUMS (manifest)."; return 1; }
-
-        manifest_base="$(basename "$manifest_path")"
-        manifest_hash="$(sha256sum "$manifest_path" | awk '{print $1}')" \
-            || { sayfail "Failed to hash manifest."; return 1; }
-
-        printf '%s  %s\n' "$manifest_hash" "$manifest_base" >> "$sums_path" \
-            || { sayfail "Failed to append manifest checksum to SHA256SUMS."; return 1; }
-
-        # Write sidecar .sha256 files
-        printf '%s  %s\n' "$(sha256sum "$tar_path_gz" | awk '{print $1}')" "$TAR_FILE" > "${tar_path_gz}.sha256"
-        printf '%s  %s\n' "$manifest_hash" "$manifest_base" > "${manifest_path}.sha256"
-
-        sayinfo "Created $tar_path_gz"
-
-        # Inspect archive (first few entries)
-        tar -tf "$tar_path_gz" | head -n 30
-
+        sayend "Done creating release."
         return 0
     }
 

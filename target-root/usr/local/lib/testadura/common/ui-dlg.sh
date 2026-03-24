@@ -159,6 +159,205 @@ set -uo pipefail
         printf '%s' "$keymap"
     }
 
+    # td__decision_expand_choices
+        # Purpose:
+        #   Expand a symbolic decision specification into canonical choices and aliases.
+        #
+        # Behavior:
+        #   - Parses a comma-separated list of choice groups.
+        #   - Each group may contain aliases separated by |.
+        #   - The first token in each group becomes the canonical value.
+        #   - Tokens are normalized to uppercase.
+        #
+        # Arguments:
+        #   $1  CHOICES
+        #       Choice specification, e.g. "OK|O,Redo|R,Quit|Q|Cancel|C"
+        #
+        # Outputs:
+        #   Writes rows to stdout as:
+        #       CANONICAL|ALIAS
+        #
+        # Returns:
+        #   0 always.
+    td__decision_expand_choices() {
+        local spec="${1-}"
+        local group=""
+        local canonical=""
+        local alias=""
+        local IFS=','
+
+        for group in $spec; do
+            canonical=""
+            IFS='|' read -r -a _aliases <<< "$group"
+
+            for alias in "${_aliases[@]}"; do
+                alias="${alias#"${alias%%[![:space:]]*}"}"
+                alias="${alias%"${alias##*[![:space:]]}"}"
+                alias="${alias^^}"
+
+                [[ -n "$alias" ]] || continue
+
+                if [[ -z "$canonical" ]]; then
+                    canonical="$alias"
+                fi
+
+                printf '%s|%s\n' "$canonical" "$alias"
+            done
+        done
+    }
+
+
+    # td__decision_normalize
+        # Purpose:
+        #   Normalize a typed value to its canonical decision token.
+        #
+        # Behavior:
+        #   - Matches the typed value against a decision specification.
+        #   - Returns the canonical token for the matching alias.
+        #   - Matching is case-insensitive.
+        #   - Empty input is treated as the provided default.
+        #
+        # Arguments:
+        #   $1  VALUE
+        #       User-entered value.
+        #   $2  CHOICES
+        #       Choice specification, e.g. "OK|O,Redo|R,Quit|Q|Cancel|C"
+        #   $3  DEFAULT
+        #       Optional default value used when VALUE is empty.
+        #
+        # Outputs:
+        #   Writes canonical token to stdout when matched.
+        #
+        # Returns:
+        #   0 if the value is valid and normalized.
+        #   1 if the value is invalid.
+    td__decision_normalize() {
+        local value="${1-}"
+        local choices="${2-}"
+        local default_value="${3-}"
+        local line=""
+        local canonical=""
+        local alias=""
+
+        if [[ -z "$value" ]]; then
+            value="$default_value"
+        fi
+
+        value="${value#"${value%%[![:space:]]*}"}"
+        value="${value%"${value##*[![:space:]]}"}"
+        value="${value^^}"
+
+        while IFS='|' read -r canonical alias; do
+            [[ "$value" == "$alias" ]] || continue
+            printf '%s\n' "$canonical"
+            return 0
+        done < <(td__decision_expand_choices "$choices")
+
+        return 1
+    }
+
+    # td__decision_display_choices
+        # Purpose:
+        #   Build a compact display label for a decision specification.
+        #
+        # Behavior:
+        #   - Uses the first token from each comma-separated choice group.
+        #   - Joins canonical labels with / for prompt display.
+        #
+        # Arguments:
+        #   $1  CHOICES
+        #       Choice specification, e.g. "OK|O,Redo|R,Quit|Q|Cancel|C"
+        #
+        # Outputs:
+        #   Writes compact display text, e.g. "OK/Redo/Quit"
+        #
+        # Returns:
+        #   0 always.
+    td__decision_display_choices() {
+        local spec="${1-}"
+        local group=""
+        local out=""
+        local first=""
+        local IFS=','
+
+        for group in $spec; do
+            first="${group%%|*}"
+            first="${first#"${first%%[![:space:]]*}"}"
+            first="${first%"${first##*[![:space:]]}"}"
+
+            [[ -n "$first" ]] || continue
+
+            if [[ -n "$out" ]]; then
+                out+="/"
+            fi
+            out+="$first"
+        done
+
+        printf '%s\n' "$out"
+    }
+
+
+    # td__decision_from_dialog_rc
+        # Purpose:
+        #   Translate a td_dlg_autocontinue() return code into a canonical decision token.
+        #
+        # Behavior:
+        #   - Maps dialog return codes to canonical decision names when possible.
+        #   - Returns non-zero when the dialog result should fall back to typed input.
+        #
+        # Arguments:
+        #   $1  RC
+        #       Return code from td_dlg_autocontinue().
+        #   $2  CHOICES
+        #       Decision specification used for normalization.
+        #   $3  DEFAULT
+        #       Default decision token.
+        #
+        # Outputs:
+        #   Writes canonical decision token to stdout when mapped.
+        #
+        # Returns:
+        #   0 if RC was mapped to a canonical decision.
+        #   1 if typed fallback should be used.
+    td__decision_from_dialog_rc() {
+        local rc="${1:-}"
+        local choices="${2-}"
+        local default_value="${3-}"
+        local mapped=""
+
+        case "$rc" in
+            0|1)
+                mapped="$(td__decision_normalize "$default_value" "$choices" "$default_value")" || return 1
+                printf '%s\n' "$mapped"
+                return 0
+                ;;
+            2)
+                mapped="$(td__decision_normalize "CANCEL" "$choices" "$default_value" 2>/dev/null || true)"
+                [[ -n "$mapped" ]] || mapped="$(td__decision_normalize "NO" "$choices" "$default_value" 2>/dev/null || true)"
+                [[ -n "$mapped" ]] || mapped="$(td__decision_normalize "QUIT" "$choices" "$default_value" 2>/dev/null || true)"
+                [[ -n "$mapped" ]] || return 1
+                printf '%s\n' "$mapped"
+                return 0
+                ;;
+            3)
+                mapped="$(td__decision_normalize "REDO" "$choices" "$default_value" 2>/dev/null || true)"
+                [[ -n "$mapped" ]] || return 1
+                printf '%s\n' "$mapped"
+                return 0
+                ;;
+            4)
+                mapped="$(td__decision_normalize "QUIT" "$choices" "$default_value" 2>/dev/null || true)"
+                [[ -n "$mapped" ]] || mapped="$(td__decision_normalize "CANCEL" "$choices" "$default_value" 2>/dev/null || true)"
+                [[ -n "$mapped" ]] || return 1
+                printf '%s\n' "$mapped"
+                return 0
+                ;;
+            *)
+                return 1
+                ;;
+        esac
+    }
+
 # --- Public API ---------------------------------------------------------------------
     # td_dlg_autocontinue
         # Purpose:
@@ -548,5 +747,131 @@ set -uo pipefail
         done
     }
 
+    # td_ask_decision
+        # Purpose:
+        #   Prompt for a constrained symbolic decision and normalize the result.
+        #
+        # Behavior:
+        #   - Builds a prompt label from free text plus compact choice display.
+        #   - Optionally runs td_dlg_autocontinue() first when --seconds > 0.
+        #   - Maps dialog outcomes to canonical decision tokens when possible.
+        #   - Falls back to ask() for typed input when needed.
+        #   - Re-prompts until a valid value is entered.
+        #   - Returns the canonical decision token in the requested variable.
+        #
+        # Options:
+        #   --label TEXT
+        #       Prompt label text.
+        #   --choices SPEC
+        #       Choice specification, e.g. "OK|O,Redo|R,Quit|Q|Cancel|C"
+        #   --default VALUE
+        #       Default decision token or alias.
+        #   --var NAME
+        #       Destination variable name. Default: decision
+        #   --seconds N
+        #       Optional auto-continue countdown in seconds.
+        #   --dlgchoices TEXT
+        #       Optional td_dlg_autocontinue key set. Default: ERCPQTH
+        #   --displaychoices 0|1
+        #       Append compact choices to the label. Default: 1
+        #   --colorize MODE
+        #       Passed through to ask(). Default: both
+        #   --labelclr ANSI
+        #       Passed through to ask().
+        #   --inputclr ANSI
+        #       Passed through to ask().
+        #   --labelwidth N
+        #       Passed through to ask().
+        #   --pad N
+        #       Passed through to ask().
+        #
+        # Returns:
+        #   0 on accepted valid input.
+    td_ask_decision() {
+        local label=""
+        local choices=""
+        local default_value=""
+        local var_name="decision"
+        local seconds=0
+        local dlgchoices="ERCPQTH"
+        local displaychoices=1
+        local colorize="both"
+        local labelclr="${TUI_LABEL}"
+        local inputclr="${TUI_INPUT}"
+        local labelwidth=25
+        local pad=0
+
+        local prompt_label=""
+        local display=""
+        local typed=""
+        local canonical=""
+        local dlg_message=""
+        local dlg_rc=0
+
+        while [[ $# -gt 0 ]]; do
+            case "$1" in
+                --label)          label="$2"; shift 2 ;;
+                --choices)        choices="$2"; shift 2 ;;
+                --default)        default_value="$2"; shift 2 ;;
+                --var)            var_name="$2"; shift 2 ;;
+                --seconds)        seconds="$2"; shift 2 ;;
+                --dlgchoices)     dlgchoices="$2"; shift 2 ;;
+                --displaychoices) displaychoices="$2"; shift 2 ;;
+                --colorize)       colorize="$2"; shift 2 ;;
+                --labelclr)       labelclr="$2"; shift 2 ;;
+                --inputclr)       inputclr="$2"; shift 2 ;;
+                --labelwidth)     labelwidth="$2"; shift 2 ;;
+                --pad)            pad="$2"; shift 2 ;;
+                --)               shift; break ;;
+                *)
+                    [[ -z "$label" ]] && label="$1"
+                    shift
+                    ;;
+            esac
+        done
+
+        prompt_label="$label"
+
+        if [[ -n "$choices" && "$displaychoices" -eq 1 ]]; then
+            display="$(td__decision_display_choices "$choices")"
+            [[ -n "$display" ]] && prompt_label+=" [$display]"
+        fi
+
+        # optional timed phase
+        if [[ "$seconds" =~ ^[0-9]+$ ]] && (( seconds > 0 )); then
+            dlg_message="$prompt_label"
+            td_dlg_autocontinue "$seconds" "$dlg_message" "$dlgchoices"
+            dlg_rc=$?
+
+            canonical="$(td__decision_from_dialog_rc "$dlg_rc" "$choices" "$default_value" 2>/dev/null || true)"
+            if [[ -n "$canonical" ]]; then
+                printf -v "$var_name" '%s' "$canonical"
+                return 0
+            fi
+        fi
+
+        while :; do
+            ask \
+                --label "$prompt_label" \
+                --var typed \
+                --default "$default_value" \
+                --colorize "$colorize" \
+                --labelclr "$labelclr" \
+                --inputclr "$inputclr" \
+                --labelwidth "$labelwidth" \
+                --pad "$pad"
+
+            if [[ -z "$choices" ]]; then
+                canonical="${typed^^}"
+                break
+            fi
+
+            canonical="$(td__decision_normalize "$typed" "$choices" "$default_value")" && break
+
+            saywarning "Invalid choice: $typed"
+        done
+
+        printf -v "$var_name" '%s' "$canonical"
+    }
 
 
