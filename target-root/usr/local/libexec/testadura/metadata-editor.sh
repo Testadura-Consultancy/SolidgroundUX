@@ -1,44 +1,65 @@
 #!/usr/bin/env bash
 # =====================================================================================
-# SolidgroundUX - Prepare Release
+# SolidgroundUX - Metadata Editor
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
 #   Build       : 2608201
 #   Checksum    : 7c4b13ee1c6da83fe99f3b13920bc3b0913175e9e68f60bd8feed6baab918b94
-#   Source      : prepare-release.sh
+#   Source      : metadata-editor.sh
 #   Type        : script
-#   Purpose     : Prepare a workspace for release distribution
+#   Purpose     : Inspect, edit, and version script metadata in a controlled workflow
 #
 # Description:
-#   Provides a utility that prepares a development workspace for release
-#   by applying version updates and ensuring metadata consistency.
+#   Provides an interactive and automated tool for managing script header metadata
+#   across SolidgroundUX workspaces.
 #
-#   The script:
-#     - Updates version, build, and checksum metadata in scripts
-#     - Processes target files or folders for release readiness
-#     - Ensures consistent metadata across all release artifacts
-#     - Supports dry-run mode for safe verification
+#   The script operates on one or more source files and allows:
+#     - Interactive editing of metadata fields (with validation and preview)
+#     - Controlled version bumping (build, minor, major)
+#     - Batch processing of multiple scripts with optional answer reuse (--idem)
+#     - Safe execution through dry-run simulation
+#
+#   Metadata is treated as structured data and processed through the framework's
+#   datatable and comment-parser abstractions.
+#
+# Core capabilities:
+#   - Discover source files via folder + mask or explicit file selection
+#   - Parse header sections into structured data tables
+#   - Present metadata in a readable, sectioned UI
+#   - Collect user input through aligned, validated prompts
+#   - Apply only actual changes (delta-based updates)
+#   - Maintain consistency of Version, Build, and Checksum fields
+#
+# Interaction model:
+#   - Interactive mode:
+#       Guides the user through editing or versioning workflows
+#   - Auto mode (--auto):
+#       Applies direct updates without prompts
+#   - Version mode (--bump*):
+#       Updates version metadata deterministically
 #
 # Design principles:
-#   - Release preparation is deterministic and repeatable
-#   - Metadata consistency is enforced across all scripts
-#   - Minimal assumptions about project structure beyond conventions
-#   - Supports safe execution through dry-run capability
+#   - Metadata is treated as data, not text
+#   - Changes are explicit, minimal, and traceable
+#   - Interactive workflows remain predictable and reversible
+#   - Batch operations remain safe and transparent
+#   - UX consistency across all SolidgroundUX scripts
 #
 # Role in framework:
-#   - Pre-release step for SolidgroundUX workspaces
-#   - Ensures scripts are versioned and consistent before distribution
+#   - Primary tool for maintaining script header integrity
+#   - Supports release preparation workflows
+#   - Acts as reference implementation for interactive CLI UX patterns
 #
 # Non-goals:
-#   - Packaging or distributing release artifacts
-#   - Managing version control or tagging
-#   - Performing deployment operations
+#   - Packaging or distributing artifacts
+#   - Version control operations (commit, tag, push)
+#   - Dependency or build management
 #
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
-#   Client      : 
+#   Client      :
 #   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
@@ -307,6 +328,12 @@ set -uo pipefail
 
     # SGND_STATE_VARIABLES
     SGND_STATE_VARIABLES=(
+        "VAL_FOLDER|Source folder|$SGND_SCRIPT_DIR|"
+        "VAL_FILE|File mask|*.sh|"
+        "FLAG_IDEM|Apply answers to all files|Y|"
+        "FLAG_BUMPVERSION|Refresh checksum and buildnr|Y|"
+        "FLAG_BUMPMAJOR|Bump major version by one|Y|"
+        "FLAG_BUMPMINOR|Bump minor version by one|Y|"
     )
 
     # SGND_ON_EXIT_HANDLERS
@@ -320,9 +347,15 @@ set -uo pipefail
     META_SCHEMA="section|field|value"
     declare -a META_ROWS=()
 
-    declare -a TARGET_FILES=()
+    declare -a SOURCE_FILES=()
     current_script=""
     BUMP_MODE="none"
+
+    _ask_lw=15
+    _ask_lp=3
+    _prnt_lw=15
+    _prnt_lp=3
+    _sect_lp=2
 
 # --- Local UI ------------------------------------------------------------------------
     # __print_section_labeledvalues
@@ -361,7 +394,6 @@ set -uo pipefail
         local section=""
         local field=""
         local value=""
-        local lw=15
 
         row_count="$(sgnd_dt_row_count "$table_name")" || return 1
 
@@ -374,7 +406,7 @@ set -uo pipefail
             field="$(sgnd_dt_get "$schema" "$table_name" "$i" "field")" || return 1
             value="$(sgnd_dt_get "$schema" "$table_name" "$i" "value")" || return 1
 
-            sgnd_print_labeledvalue "$field" "$value" --pad 3 --labelwidth "$lw"
+            sgnd_print_labeledvalue "$field" "$value" --pad "$_prnt_lp" --labelwidth "$_prnt_lw"
         done
     }
 
@@ -402,7 +434,6 @@ set -uo pipefail
         #   __get_metadata || return 1
         #   __show_current_metadata
     __show_current_metadata(){
-        local lw=
         sgnd_print
         sgnd_print_sectionheader "Current data" --border "${LN_H}" --padleft 2
 
@@ -528,175 +559,72 @@ set -uo pipefail
         return 1
     }
 
-    # __resolve_target_files
+    # __resolve_source
         # Purpose:
-        #   Resolve a file path or glob mask into TARGET_FILES.
+        #   Resolve effective processing targets into SOURCE_FILES.
         #
         # Behavior:
-        #   - Expands the supplied mask using shell globbing.
+        #   - Normalizes folder and file mask via __resolve_source_input().
+        #   - Combines folder + mask into a single glob expression.
+        #   - Expands matches using shell globbing.
         #   - Keeps only regular readable files.
-        #   - Normalizes each accepted file to an absolute path.
+        #   - Normalizes all results to absolute paths.
         #   - Fails when no readable files match.
         #
-        # Arguments:
-        #   $1  MASK
-        #       Exact file path or glob mask.
+        # Inputs (globals):
+        #   VAL_FOLDER
+        #   VAL_FILE
         #
         # Outputs (globals):
-        #   TARGET_FILES
+        #   SOURCE_FILES
         #
         # Returns:
         #   0  success
-        #   1  no mask supplied or no readable matches found
+        #   1  invalid folder or no readable matches found
         #
         # Usage:
-        #   __resolve_target_files "./*.sh"
+        #   __resolve_source || return 1
         #
         # Examples:
-        #   __resolve_target_files "$VAL_FILE" || return 1
-    __resolve_target_files() {
-        local mask="${1:-}"
-        local matches=()
+        #   __resolve_source
+    __resolve_source() {
+        local folder=""
+        local mask=""
+        local fullmask=""
         local file=""
 
-        TARGET_FILES=()
+        SOURCE_FILES=()
 
-        [[ -n "$mask" ]] || {
-            sayfail "No file or mask provided. Use --file <path|glob>"
-            return 1
-        }
+        __resolve_source_input
 
-        shopt -s nullglob
-        matches=( $mask )
-        shopt -u nullglob
-
-        if (( ${#matches[@]} == 0 )); then
-            sayfail "No files matched: $mask"
-            return 1
-        fi
-
-        for file in "${matches[@]}"; do
-            [[ -f "$file" ]] || continue
-            [[ -r "$file" ]] || {
-                saywarning "Skipping unreadable file: $file"
-                continue
-            }
-            TARGET_FILES+=( "$(readlink -f "$file")" )
-        done
-
-        if (( ${#TARGET_FILES[@]} == 0 )); then
-            sayfail "No readable files matched: $mask"
-            return 1
-        fi
-
-        return 0
-    }
-
-    # __resolve_folder_scripts
-        # Purpose:
-        #   Resolve all readable .sh files in a folder into TARGET_FILES.
-        #
-        # Behavior:
-        #   - Validates that the supplied folder exists.
-        #   - Scans the folder for files matching *.sh.
-        #   - Keeps only regular readable files.
-        #   - Normalizes each accepted file to an absolute path.
-        #   - Fails when no readable script files are found.
-        #
-        # Arguments:
-        #   $1  FOLDER
-        #       Folder path to scan.
-        #
-        # Outputs (globals):
-        #   TARGET_FILES
-        #
-        # Returns:
-        #   0  success
-        #   1  missing folder, invalid folder, or no readable scripts found
-        #
-        # Usage:
-        #   __resolve_folder_scripts "./scripts"
-        #
-        # Examples:
-        #   __resolve_folder_scripts "$VAL_FOLDER" || return 1
-    __resolve_folder_scripts() {
-        local folder="${1:-}"
-        local file=""
-
-        TARGET_FILES=()
-
-        [[ -n "$folder" ]] || {
-            sayfail "No folder provided. Use --folder <path>"
-            return 1
-        }
+        folder="${VAL_FOLDER}"
+        mask="${VAL_FILE}"
 
         [[ -d "$folder" ]] || {
             sayfail "Folder not found: $folder"
             return 1
         }
 
+        fullmask="${folder%/}/$mask"
+
         shopt -s nullglob
-        for file in "$folder"/*.sh; do
+        for file in $fullmask; do
             [[ -f "$file" ]] || continue
-            [[ -r "$file" ]] || {
+
+            if [[ ! -r "$file" ]]; then
                 saywarning "Skipping unreadable file: $file"
                 continue
-            }
-            TARGET_FILES+=( "$(readlink -f "$file")" )
+            fi
+            SOURCE_FILES+=( "$(readlink -f "$file")" )
         done
         shopt -u nullglob
 
-        if (( ${#TARGET_FILES[@]} == 0 )); then
-            sayfail "No readable .sh files found in folder: $folder"
+        if (( ${#SOURCE_FILES[@]} == 0 )); then
+            sayfail "No readable files matched: $fullmask"
             return 1
         fi
 
         return 0
-    }
-
-    # __resolve_targets
-        # Purpose:
-        #   Resolve the effective processing targets into TARGET_FILES.
-        #
-        # Behavior:
-        #   - Accepts either --file or --folder input.
-        #   - Rejects cases where both are supplied.
-        #   - Delegates to __resolve_target_files() or __resolve_folder_scripts().
-        #
-        # Inputs (globals):
-        #   VAL_FILE
-        #   VAL_FOLDER
-        #
-        # Outputs (globals):
-        #   TARGET_FILES
-        #
-        # Returns:
-        #   0  success
-        #   1  invalid target arguments or target resolution failure
-        #
-        # Usage:
-        #   __resolve_targets || return 1
-        #
-        # Examples:
-        #   __resolve_targets
-    __resolve_targets() {
-        if [[ -n "${VAL_FILE:-}" && -n "${VAL_FOLDER:-}" ]]; then
-            sayfail "Use either --file or --folder, not both"
-            return 1
-        fi
-
-        if [[ -n "${VAL_FILE:-}" ]]; then
-            __resolve_target_files "${VAL_FILE}"
-            return $?
-        fi
-
-        if [[ -n "${VAL_FOLDER:-}" ]]; then
-            __resolve_folder_scripts "${VAL_FOLDER}"
-            return $?
-        fi
-
-        sayfail "Provide either --file <path|glob> or --folder <path>"
-        return 1
     }
 
     # __get_metadata
@@ -726,10 +654,16 @@ set -uo pipefail
         #   current_script="$file"
         #   __get_metadata
     __get_metadata() {
+        local -a meta_rows=()
+        local -a attr_rows=()
+
         META_ROWS=()
 
-        sgnd_header_load_section_to_dt "$current_script" "Metadata" "$META_SCHEMA" META_ROWS || return 1
-        sgnd_header_load_section_to_dt "$current_script" "Attribution" "$META_SCHEMA" META_ROWS || return 1
+        sgnd_header_load_section_to_dt "$current_script" "Metadata" "$META_SCHEMA" meta_rows || return 1
+        sgnd_header_load_section_to_dt "$current_script" "Attribution" "$META_SCHEMA" attr_rows || return 1
+
+        META_ROWS+=( "${meta_rows[@]}" )
+        META_ROWS+=( "${attr_rows[@]}" )
     }
 
     # __resolve_bump_mode
@@ -912,9 +846,9 @@ set -uo pipefail
         local changed=0
         local failed=0
 
-        __resolve_targets || return 1
+        __resolve_source || return 1
 
-        for file in "${TARGET_FILES[@]}"; do
+        for file in "${SOURCE_FILES[@]}"; do
             if sgnd_header_set_field "$file" "$VAL_SECTION" "$VAL_FIELD" "$VAL_VALUE"; then
                 sayok "Updated [$VAL_SECTION] $VAL_FIELD in $file"
                 (( changed++ ))
@@ -989,9 +923,9 @@ set -uo pipefail
         local changed=0
         local failed=0
 
-        __resolve_targets || return 1
+        __resolve_source || return 1
 
-        for file in "${TARGET_FILES[@]}"; do
+        for file in "${SOURCE_FILES[@]}"; do
             if __bump_one_file "$file" "$BUMP_MODE"; then
                 case "$BUMP_MODE" in
                     major) sayok "Bumped major version in $file" ;;
@@ -1036,6 +970,64 @@ set -uo pipefail
     }
 
 # --- User input ----------------------------------------------------------------------
+    # __resolve_source_input
+        # Purpose:
+        #   Normalize and optionally prompt for target folder and file mask.
+        #
+        # Behavior:
+        #   - Accepts values from:
+        #       VAL_FOLDER  (folder)
+        #       VAL_FILE    (file name or glob mask)
+        #   - When VAL_FILE contains a path, splits it into folder + mask.
+        #   - Applies defaults when values are missing:
+        #       folder -> .
+        #       mask   -> *.sh
+        #   - In interactive mode:
+        #       prompts for folder and file mask using ask().
+        #   - Writes normalized values back to:
+        #       VAL_FOLDER
+        #       VAL_FILE
+        #
+        # Inputs (globals):
+        #   VAL_FOLDER
+        #   VAL_FILE
+        #
+        # Outputs (globals):
+        #   VAL_FOLDER
+        #   VAL_FILE
+        #
+        # Returns:
+        #   0  success
+        #
+        # Usage:
+        #   __resolve_source_input
+        #
+        # Examples:
+        #   __resolve_source_input
+    __resolve_source_input() {
+        local __folder="${VAL_FOLDER:-}"
+        local __mask="${VAL_FILE:-}"
+
+        # If file contains a path, split it
+        if [[ -z "$__folder" && -n "$__mask" && "$__mask" == */* ]]; then
+            __folder="$(dirname "$__mask")"
+            __mask="$(basename "$__mask")"
+        fi
+
+        # Defaults
+        [[ -n "$__folder" ]] || __folder="."
+        [[ -n "$__mask"   ]] || __mask="*.sh"
+
+        # Interactive prompt (TTY only)
+        if [[ -t 0 && -t 1 ]]; then
+            ask --label "Folder"    --default "$__folder" --var __folder --pad "$_ask_lp" --default "$VAL_FOLDER" --labelwidth "$_ask_lw" --labelclr "${CYAN}"
+            ask --label "File mask" --default "$__mask"   --var __mask --pad "$_ask_lp" --default "$VAL_FILE" --labelwidth "$_ask_lw" --labelclr "${CYAN}"
+        fi
+
+        VAL_FOLDER="$__folder"
+        VAL_FILE="$__mask"
+    }
+
     # __build_value_buffer_from_meta
         # Purpose:
         #   Build an editable value buffer from the current metadata rows.
@@ -1123,7 +1115,6 @@ set -uo pipefail
         local field=""
         local current_value=""
         local new_value=""
-        local lw=15
         local prev_section=""
         local new_section=1
 
@@ -1151,29 +1142,12 @@ set -uo pipefail
                 new_section=0
             fi
 
-            ask --label "    $field" --var new_value --default "$current_value" --labelwidth "$lw" --labelclr "${CYAN}"
+            ask --label "    $field" --var new_value --default "$current_value" --labelwidth "$_ask_lw" --labelclr "${CYAN}"
             buffer_ref[$i]="$new_value"
         done
 
         sgnd_print
         sgnd_print_sectionheader --border "${LN_H}"
-    }
-
-    # __ask_apply_first_answers_to_all
-        # Purpose:
-        #   Ask whether the first file's answers should be reused for all files.
-        #
-        # Returns:
-        #   0  yes
-        #   1  no
-        #   2  cancel
-    __ask_apply_first_answers_to_all() {
-        ask_decision \
-            --label "Apply first file's answers to all?" \
-            --choices "NO|N,YES|Y" \
-            --default "NO"
-
-        return $?
     }
 
     # __ask_interactive_action
@@ -1214,16 +1188,22 @@ set -uo pipefail
 
         sgnd_print
         sgnd_print_sectionheader "Action" --border "${LN_H}" --padleft 2
-        sgnd_print_labeledvalue --label "1" --value "Edit fields" --pad 3 --labelwidth 3
-        sgnd_print_labeledvalue --label "2" --value "Bump version" --pad 3 --labelwidth 3
+        sgnd_print_labeledvalue --label "E" --value "Edit fields" --pad 3 --labelwidth 3
+        sgnd_print_labeledvalue --label "B" --value "Bump version" --pad 3 --labelwidth 3
         sgnd_print_labeledvalue --label "Q" --value "Cancel" --pad 3 --labelwidth 3
         sgnd_print
-
-        ask_choose --label "Choose" --choices "1,2,Q" --var choice
+        
+        ask_choose_immediate \
+            --label "Choose" \
+            --choices "E,B,Q" \
+            --instantchoices "E,B,Q" \
+            --var choice \
+            --pad "$_ask_lp" \
+            --labelclr "${CYAN}"
 
         case "${choice^^}" in
-            1) out_action="edit" ;;
-            2) out_action="bump" ;;
+            E) out_action="edit" ;;
+            B) out_action="bump" ;;
             Q) out_action="cancel" ;;
             *) out_action="cancel" ;;
         esac
@@ -1264,16 +1244,18 @@ set -uo pipefail
     __ask_bump_mode() {
         local -n out_mode="$1"
         local choice=""
+        local lw=4
+        local lp=3
 
         sgnd_print
-        sgnd_print_sectionheader "Version update" --border "${LN_H}" --padleft 2
-        sgnd_print_labeledvalue "0" "Refresh build/checksum" --pad 3 --labelwidth 4
-        sgnd_print_labeledvalue "1" "Major" --pad 3 --labelwidth 4
-        sgnd_print_labeledvalue "2" "Minor" --pad 3 --labelwidth 4
-        sgnd_print_labeledvalue "Q" "Cancel" --pad 3 --labelwidth 4
+        sgnd_print_sectionheader "Version update" --border "${LN_H}" --padleft 2 --padend 0
+        sgnd_print_labeledvalue "0" "Refresh build/checksum" --pad "$lp" --labelwidth "$lw"
+        sgnd_print_labeledvalue "1" "Major" --pad "$lp" --labelwidth "$lw"
+        sgnd_print_labeledvalue "2" "Minor" --pad "$lp" --labelwidth "$lw"
+        sgnd_print_labeledvalue "Q" "Cancel" --pad "$lp" --labelwidth "$lw"
         sgnd_print
 
-        ask_choose --label "Choose" --choices "0, 1,2,Q" --var choice
+        ask_choose --label "Choose" --choices "0, 1,2,Q" --var choice   --pad "$_ask_lp" --labelclr "${CYAN}"
 
         case "${choice^^}" in
             0) out_mode="none" ;;
@@ -1374,7 +1356,7 @@ set -uo pipefail
         #       1 = all target files
         #
         # Inputs (globals):
-        #   TARGET_FILES
+        #   SOURCE_FILES
         #
         # Returns:
         #   0  success
@@ -1402,9 +1384,9 @@ set -uo pipefail
         esac
 
         if (( apply_all )); then
-            bump_files=( "${TARGET_FILES[@]}" )
+            bump_files=( "${SOURCE_FILES[@]}" )
         else
-            bump_files=( "${TARGET_FILES[0]}" )
+            bump_files=( "${SOURCE_FILES[0]}" )
         fi
 
         for file in "${bump_files[@]}"; do
@@ -1566,20 +1548,19 @@ set -uo pipefail
                     field_word="fields"
                 fi
 
-                ask_ok_redo_quit \
-                    "Apply changes to ${field_word} ${field_list} in $(basename "$current_script")?" 15
+                ask_dlg_autocontinue --seconds 15 --message "Apply changes to ${field_word} ${field_list} in $(basename "$current_script")?" --redo --cancel
 
                 case $? in
-                    0)
+                    0|1)
                         __apply_value_buffer_to_file io_buffer || return 1
                         break
-                        ;;
-                    1)
-                        continue
                         ;;
                     2)
                         saycancel "Aborting as per user request."
                         return 2
+                        ;;
+                    3)
+                        continue
                         ;;
                     *)
                         sayfail "Aborting (unexpected response)."
@@ -1612,22 +1593,20 @@ set -uo pipefail
         local -a value_buffer=()
         local first_file=""
 
-        (( ${#TARGET_FILES[@]} > 0 )) || return 1
+        (( ${#SOURCE_FILES[@]} > 0 )) || return 1
 
-        first_file="${TARGET_FILES[0]}"
-        local lw=15
+        first_file="${SOURCE_FILES[0]}"        
 
         sgnd_print
-        sgnd_print_sectionheader "Target" --border "${LN_H}" --padleft 2
-        sgnd_print_labeledvalue "First file" "$first_file" --pad 3 --labelwidth "$lw"
+        sgnd_print_labeledvalue "First file" "$first_file" --pad 3 --labelwidth "$_ask_lw" --labelclr "$(sgnd_sgr "$SILVER" "$FX_ITALIC")" --valueclr "$(sgnd_sgr "$SILVER" "$FX_ITALIC")"
 
-        if (( ${#TARGET_FILES[@]} > 1 )); then
-            sgnd_print_labeledvalue "File count" "${#TARGET_FILES[@]}" --pad 3 --labelwidth "$lw"
+        if (( ${#SOURCE_FILES[@]} > 1 )); then
+            sgnd_print_labeledvalue "File count" "${#SOURCE_FILES[@]}" --pad "$_ask_lp" --labelwidth "$_ask_lw" --labelclr "$(sgnd_sgr "$SILVER" "$FX_ITALIC")" --valueclr "$(sgnd_sgr "$SILVER" "$FX_ITALIC")"
+            sgnd_print
 
-            sgnd_print_sectionheader --border "${LN_H}"
-            __ask_apply_first_answers_to_all
-            rc=$?
-            case "$rc" in
+            ask --label "Apply first file's answers to all?" --var __resp --default "Y" --colorize both --labelclr "${CYAN}" --pad "$_ask_lp" --labelwidth "$_ask_lw"
+
+            case "$__resp" in
                 0) apply_all_answers=1 ;;
                 1) apply_all_answers=0 ;;
                 *) apply_all_answers=0 ;;
@@ -1652,7 +1631,7 @@ set -uo pipefail
                 ;;
         esac
 
-        for file in "${TARGET_FILES[@]}"; do
+        for file in "${SOURCE_FILES[@]}"; do
             current_script="$file"
             __get_metadata || return 1
 
@@ -1721,7 +1700,7 @@ set -uo pipefail
             #     --console    -> enable console logging
             # Example:
             #   sgnd_bootstrap --state --needroot -- "$@"
-            sgnd_bootstrap -- "$@"
+            sgnd_bootstrap --state -- "$@"
             rc=$?
 
             saydebug "After bootstrap: $rc"
@@ -1764,12 +1743,7 @@ set -uo pipefail
             exit 0
         fi
 
-        [[ -n "${VAL_FILE:-}" || -n "${VAL_FOLDER:-}" ]] || {
-            sayfail "Interactive mode currently requires --file <script|glob> or --folder <path>"
-            exit 2
-        }
-
-        __resolve_targets || exit $?
+        __resolve_source || exit $?
         
         __interactive_edit_files || exit $?
     }

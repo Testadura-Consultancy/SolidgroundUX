@@ -960,90 +960,80 @@ set -uo pipefail
 
     # ask_choose
         # Purpose:
-        #   Prompt for a user choice, optionally constrained to a set or range of
-        #   allowed values.
+        #   Prompt for a constrained user choice using standard line input.
         #
         # Behavior:
-        #   - Prompts via ask() and stores the typed value.
-        #   - Accepts any input when no choices constraint is provided.
-        #   - Validates case-insensitively against the allowed choices when provided.
-        #   - Supports comma-separated tokens and simple ranges such as:
-        #       A-D
-        #       1-5
+        #   - Reads input from /dev/tty.
+        #   - Requires Enter to confirm input.
+        #   - Validates input against the allowed choice list when provided.
         #   - Re-prompts on invalid input when keepasking=1.
-        #   - Assigns the final accepted value to the requested variable.
+        #   - Supports default values.
+        #   - Uses shared prompt rendering via _ask_build_prompt().
         #
         # Options:
         #   --label TEXT
         #       Prompt label.
+        #
         #   --var NAME
         #       Destination variable name.
         #       Default: choice
+        #
         #   --choices LIST
         #       Allowed values as comma-separated tokens and/or ranges.
-        #       Examples:
-        #           "dev,acc,prod"
-        #           "1-9"
-        #           "A-D,X"
+        #
+        #   --default VALUE
+        #       Default value (editable).
+        #
         #   --displaychoices 0|1
         #       Append [choices] to the label.
         #       Default: 1
+        #
         #   --keepasking 0|1
         #       Re-prompt on invalid input.
         #       Default: 1
-        #   --colorize MODE
-        #       Passed through to ask().
-        #       Default: both
+        #
         #   --labelwidth N
-        #       Passed through to ask().
+        #       Align label to fixed width.
+        #
         #   --pad N
-        #       Passed through to ask().
+        #       Spacing between label and ':'.
+        #
         #   --labelclr ANSI
-        #       Passed through to ask().
+        #       Color/style applied to label.
+        #
         #   --inputclr ANSI
-        #       Passed through to ask().
+        #       Color/style applied to input.
+        #
+        #   --colorize MODE
+        #       Colorization mode:
+        #         label | input | both | none
         #
         # Outputs (globals):
-        #   Assigns the accepted value to --var NAME.
+        #   Assigns accepted value to variable defined by --var.
         #
         # Returns:
         #   0 always.
         #
         # Usage:
-        #   ask_choose --label "Environment" --choices "dev,acc,prod" --var env
+        #   ask_choose --label "Select option" --choices "1,2,3" --var choice
         #
         # Examples:
-        #   # Fixed list
+        #   # Basic choice
         #   ask_choose \
-        #       --label "Environment" \
-        #       --choices "dev,acc,prod" \
-        #       --var ENVIRONMENT
+        #       --label "Action" \
+        #       --choices "1,2,3,Q" \
+        #       --var ACTION
         #
-        #   # Numeric range
-        #   ask_choose \
-        #       --label "Select item" \
-        #       --choices "1-9" \
-        #       --var ITEMNR
-        #
-        #   # Drive letters + one extra token
-        #   ask_choose \
-        #       --label "Drive" \
-        #       --choices "A-D,X" \
-        #       --var DRIVE
-        #
-        #   # Styled / aligned
+        #   # With default
         #   ask_choose \
         #       --label "Mode" \
-        #       --choices "fast,full" \
-        #       --var MODE \
-        #       --labelwidth 24 \
-        #       --pad 4 \
-        #       --labelclr "${CYAN}"
+        #       --choices "auto,manual" \
+        #       --default "auto" \
+        #       --var MODE
         #
         # Notes:
-        #   - ask_choose is intended for constrained typed input.
-        #   - For semantic decisions such as YES/NO or OK/REDO/CANCEL,
-        #     prefer ask_decision().
+        #   - Intended for standard constrained input.
+        #   - For instant key-driven menus, use ask_choose_immediate().
     ask_choose() {
         local label=""
         local choices=""
@@ -1056,7 +1046,7 @@ set -uo pipefail
         local labelclr=""
         local inputclr=""
 
-        local choice=""
+        local __rsp="" # Purposely ugly variablename to minimize risk of collisions
 
         while [[ $# -gt 0 ]]; do
             case "$1" in
@@ -1086,7 +1076,7 @@ set -uo pipefail
             if [[ -n "$labelclr" || -n "$inputclr" || -n "$labelwidth" || -n "$pad" ]]; then
                 local -a ask_opts=(
                     --label "$label"
-                    --var choice
+                    --var __rsp
                     --colorize "$colorize"
                 )
                 [[ -n "$labelwidth" ]] && ask_opts+=( --labelwidth "$labelwidth" )
@@ -1096,55 +1086,79 @@ set -uo pipefail
 
                 ask "${ask_opts[@]}"
             else
-                ask --label "$label" --var choice --colorize "$colorize"
+                ask --label "$label" --var __rsp --colorize "$colorize"
             fi
 
             [[ -z "$choices" ]] && break
 
-            if _ask_choice_is_valid "$choice" "$choices"; then
+            if _ask_choice_is_valid "$__rsp" "$choices"; then
                 break
             fi
 
-            saywarning "Invalid choice: $choice"
+            saywarning "Invalid choice: $__rsp"
             (( keepasking )) || break
         done
 
-        printf -v "$varname" '%s' "$choice"
+        printf -v "$varname" '%s' "$__rsp"
     }
 
     # ask_choose_immediate
         # Purpose:
-        #   Prompt for a user choice using immediate-capable TTY input, with optional
-        #   instant hotkeys and constrained allowed values.
+        #   Prompt for a constrained user choice using immediate-capable TTY input.
         #
         # Behavior:
         #   - Reads directly from /dev/tty.
-        #   - Accepts configured instant choices immediately without Enter.
+        #   - Accepts configured instant choices immediately (no Enter required).
         #   - Buffers all other input until Enter is pressed.
         #   - Supports backspace editing for buffered input.
-        #   - Validates against the allowed choice list when provided.
+        #   - Validates input against the allowed choice list when provided.
         #   - Re-prompts on invalid input when keepasking=1.
-        #   - Assigns the final accepted value to the requested variable.
+        #   - Uses shared prompt rendering via _ask_build_prompt().
         #
         # Options:
         #   --label TEXT
         #       Prompt label.
+        #
         #   --var NAME
         #       Destination variable name.
         #       Default: choice
+        #
         #   --choices LIST
         #       Allowed values as comma-separated tokens and/or ranges.
+        #       Examples:
+        #         "1,2,3,Q"
+        #         "A-D,1-5"
+        #
         #   --instantchoices LIST
         #       Choices accepted immediately without Enter.
+        #
         #   --displaychoices 0|1
         #       Append [choices] to the label.
         #       Default: 1
+        #
         #   --keepasking 0|1
         #       Re-prompt on invalid input.
         #       Default: 1
         #
+        #   --labelwidth N
+        #       Align label to fixed width.
+        #
+        #   --pad N
+        #       Spacing between label and ':'.
+        #
+        #   --labelclr ANSI
+        #       Color/style applied to label.
+        #
+        #   --inputclr ANSI
+        #       Color/style applied to typed input.
+        #
+        #   --colorize MODE
+        #       Colorization mode:
+        #         label | input | both | none
+        #       Default: both
+        #
         # Outputs (globals):
-        #   Assigns the accepted value to --var NAME.
+        #   Assigns accepted value to variable defined by --var.
         #
         # Returns:
         #   0 always.
@@ -1153,29 +1167,29 @@ set -uo pipefail
         #   ask_choose_immediate --label "Action" --choices "1,2,3,Q" --var action
         #
         # Examples:
-        #   # Immediate menu key
+        #   # Immediate hotkey (Q exits instantly)
         #   ask_choose_immediate \
         #       --label "Action" \
         #       --choices "1,2,3,Q" \
         #       --instantchoices "Q" \
         #       --var ACTION
         #
-        #   # Menu with hotkeys
+        #   # Menu-style hotkeys
         #   ask_choose_immediate \
         #       --label "Select option" \
         #       --choices "1-9,B,D,L,V,C,Q" \
         #       --instantchoices "B,D,L,V,C,Q" \
         #       --var ACTION
         #
-        #   # Buffered input until Enter
+        #   # Buffered input (Enter required)
         #   ask_choose_immediate \
         #       --label "Enter code" \
         #       --choices "A-D,1-3" \
         #       --var CODE
         #
         # Notes:
-        #   - Intended for menu-style UIs where some keys should react immediately.
-        #   - For ordinary typed constrained input, prefer ask_choose().
+        #   - Intended for menu-driven UIs with immediate key reactions.
+        #   - For standard constrained input, prefer ask_choose().
     ask_choose_immediate() {
         local label=""
         local choices=""
@@ -1184,7 +1198,13 @@ set -uo pipefail
         local keepasking=1
         local varname="choice"
 
-        local choice=""
+        local labelwidth=""
+        local pad=""
+        local labelclr=""
+        local inputclr=""
+        local colorize="both"
+
+        local __rsp=""
 
         while [[ $# -gt 0 ]]; do
             case "$1" in
@@ -1194,6 +1214,11 @@ set -uo pipefail
                 --instantchoices) instantchoices="$2"; shift 2 ;;
                 --displaychoices) displaychoices="$2"; shift 2 ;;
                 --keepasking)     keepasking="$2"; shift 2 ;;
+                --labelwidth)     labelwidth="$2"; shift 2 ;;
+                --pad)            pad="$2"; shift 2 ;;
+                --labelclr)       labelclr="$2"; shift 2 ;;
+                --inputclr)       inputclr="$2"; shift 2 ;;
+                --colorize)       colorize="$2"; shift 2 ;;
                 --) shift; break ;;
                 *)
                     [[ -z "$label" ]] && label="$1"
@@ -1210,8 +1235,18 @@ set -uo pipefail
             local key=""
             local buffer=""
             local candidate=""
+            local prompt=""
 
-            printf '%s: ' "$label" >/dev/tty
+            # --- Use shared prompt builder --------------------------------------
+            prompt="$(_ask_build_prompt \
+                "$label" \
+                "$labelwidth" \
+                "$pad" \
+                "$labelclr" \
+                "$inputclr" \
+                "$colorize")"
+
+            printf '%s' "$prompt" >/dev/tty
 
             while true; do
                 IFS= read -r -s -n 1 key </dev/tty || return 1
@@ -1220,7 +1255,7 @@ set -uo pipefail
                     "")
                         if [[ -n "$buffer" ]]; then
                             printf '\n' >/dev/tty
-                            choice="$buffer"
+                            __rsp="$buffer"
                             break
                         fi
                         ;;
@@ -1235,29 +1270,36 @@ set -uo pipefail
                     *)
                         candidate="${key^^}"
 
+                        # --- Instant choice handling -----------------------------
                         if [[ -n "$instantchoices" ]] && _ask_choice_is_valid "$candidate" "$instantchoices"; then
                             printf '\n' >/dev/tty
-                            choice="$candidate"
+                            __rsp="$candidate"
                             break
                         fi
 
                         buffer+="$key"
-                        printf '%s' "$key" >/dev/tty
+
+                        # --- Input coloring (match ask behavior) ----------------
+                        if [[ "$colorize" == "both" || "$colorize" == "input" ]]; then
+                            printf '%s%s%s' "${inputclr:-}" "$key" "${RESET:-}" >/dev/tty
+                        else
+                            printf '%s' "$key" >/dev/tty
+                        fi
                         ;;
                 esac
             done
 
             [[ -z "$choices" ]] && break
 
-            if _ask_choice_is_valid "$choice" "$choices"; then
+            if _ask_choice_is_valid "$__rsp" "$choices"; then
                 break
             fi
 
-            saywarning "Invalid choice: $choice"
+            saywarning "Invalid choice: $__rsp"
             (( keepasking )) || break
         done
 
-        printf -v "$varname" '%s' "$choice"
+        printf -v "$varname" '%s' "$__rsp"
     }
 
     # ask_prompt_form

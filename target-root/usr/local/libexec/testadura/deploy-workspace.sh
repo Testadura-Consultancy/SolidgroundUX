@@ -1034,7 +1034,7 @@ set -uo pipefail
             case $? in
                 0|1) break ;;
                 2) saycancel "Aborting as per user request."; return 1 ;;
-                3) PROJECT_NAME=""; PROJECT_FOLDER=""; continue ;;
+                3) sayinfo "Redoing input"; continue ;;
                 *) sayfail "Aborting (unexpected response)."; return 1 ;;
             esac
         done
