@@ -1,5 +1,5 @@
 # =====================================================================================
-# SolidgroundUX - UI Glyphs
+# SolidgroundUX - UI Glyph
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
@@ -42,8 +42,9 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
 set -uo pipefail
+
 # --- Library guard ------------------------------------------------------------------
-    # __td_lib_guard
+    # _sgnd_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
         #
@@ -58,47 +59,32 @@ set -uo pipefail
         #   $0
         #
         # Outputs (globals):
-        #   TD_<MODULE>_LOADED
+        #   SGND_<MODULE>_LOADED
         #
         # Returns:
         #   0 if already loaded or successfully initialized.
         #   Exits with code 2 if executed instead of sourced.
-        #
-        # Usage:
-        #   __td_lib_guard
-        #
-        # Examples:
-        #   # Typical usage at top of library file
-        #   __td_lib_guard
-        #   unset -f __td_lib_guard
-        #
-        # Notes:
-        #   - Guard variable is derived dynamically (e.g. ui-glyphs.sh → TD_UI_GLYPHS_LOADED).
-        #   - Safe under `set -u` due to indirect expansion with default.
-    __td_lib_guard() {
+    _sgnd_lib_guard() {
         local lib_base
         local guard
 
-        lib_base="$(basename "${BASH_SOURCE[0]}")"
-        lib_base="${lib_base%.sh}"
+        lib_base="$(basename "${BASH_SOURCE[0]}" .sh)"
         lib_base="${lib_base//-/_}"
-        guard="TD_${lib_base^^}_LOADED"
+        guard="SGND_${lib_base^^}_LOADED"
 
-        # Refuse to execute (library only)
         [[ "${BASH_SOURCE[0]}" != "$0" ]] || {
-            echo "This is a library; source it, do not execute it: ${BASH_SOURCE[0]}" >&2
+            printf 'This is a library; source it, do not execute it: %s\n' "${BASH_SOURCE[0]}" >&2
             exit 2
         }
 
-        # Load guard (safe under set -u)
         [[ -n "${!guard-}" ]] && return 0
         printf -v "$guard" '1'
     }
 
-    __td_lib_guard
-    unset -f __td_lib_guard
+    _sgnd_lib_guard
+    unset -f _sgnd_lib_guard
 
-    td_module_init_metadata "${BASH_SOURCE[0]}"
+    sgnd_module_init_metadata "${BASH_SOURCE[0]}"
     
 # --- Light line drawing ------------------------------------------------------------
     LN_H="─"

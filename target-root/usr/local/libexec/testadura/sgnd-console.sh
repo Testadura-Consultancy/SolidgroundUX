@@ -45,9 +45,8 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
 set -uo pipefail
-
 # --- Bootstrap -----------------------------------------------------------------------
-    # __framework_locator
+    # _framework_locator
         # Purpose:
         #   Locate, create, and load the SolidGroundUX bootstrap configuration.
         #
@@ -60,8 +59,8 @@ set -uo pipefail
         #   - Sources the selected configuration file.
         #
         # Outputs (globals):
-        #   TD_FRAMEWORK_ROOT
-        #   TD_APPLICATION_ROOT
+        #   SGND_FRAMEWORK_ROOT
+        #   SGND_APPLICATION_ROOT
         #
         # Returns:
         #   0   success
@@ -69,14 +68,14 @@ set -uo pipefail
         #   127 configuration directory or file could not be created
         #
         # Usage:
-        #   __framework_locator || return $?
+        #   _framework_locator || return $?
         #
         # Examples:
-        #   __framework_locator
+        #   _framework_locator
         #
         # Notes:
         #   - Under sudo, configuration is resolved relative to SUDO_USER instead of /root.
-    __framework_locator (){
+    _framework_locator (){
         local cfg_home="$HOME"
 
         if [[ $EUID -eq 0 && -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]]; then
@@ -112,11 +111,11 @@ set -uo pipefail
                 sayinfo "No configuration file found."
                 sayinfo "Creating: $cfg"
 
-                printf "TD_FRAMEWORK_ROOT [/] : " > /dev/tty
+                printf "SGND_FRAMEWORK_ROOT [/] : " > /dev/tty
                 read -r reply < /dev/tty
                 fw_root="${reply:-/}"
 
-                printf "TD_APPLICATION_ROOT [/] : " > /dev/tty
+                printf "SGND_APPLICATION_ROOT [/] : " > /dev/tty
                 read -r reply < /dev/tty
                 app_root="${reply:-$fw_root}"
             fi
@@ -124,12 +123,12 @@ set -uo pipefail
             # Validate paths (must be absolute)
             case "$fw_root" in
                 /*) ;;
-                *) sayfail "ERR: TD_FRAMEWORK_ROOT must be an absolute path"; return 126 ;;
+                *) sayfail "ERR: SGND_FRAMEWORK_ROOT must be an absolute path"; return 126 ;;
             esac
 
             case "$app_root" in
                 /*) ;;
-                *) sayfail "ERR: TD_APPLICATION_ROOT must be an absolute path"; return 126 ;;
+                *) sayfail "ERR: SGND_APPLICATION_ROOT must be an absolute path"; return 126 ;;
             esac
 
             # Create configuration file
@@ -140,8 +139,8 @@ set -uo pipefail
                 printf '%s\n' "# SolidGroundUX bootstrap configuration"
                 printf '%s\n' "# Auto-generated on first run"
                 printf '\n'
-                printf 'TD_FRAMEWORK_ROOT=%q\n' "$fw_root"
-                printf 'TD_APPLICATION_ROOT=%q\n' "$app_root"
+                printf 'SGND_FRAMEWORK_ROOT=%q\n' "$fw_root"
+                printf 'SGND_APPLICATION_ROOT=%q\n' "$app_root"
             } > "$cfg" || return 127
 
             saydebug "Created bootstrap cfg: $cfg"
@@ -152,51 +151,51 @@ set -uo pipefail
             # shellcheck source=/dev/null
             source "$cfg"
 
-            : "${TD_FRAMEWORK_ROOT:=/}"
-            : "${TD_APPLICATION_ROOT:=$TD_FRAMEWORK_ROOT}"
+            : "${SGND_FRAMEWORK_ROOT:=/}"
+            : "${SGND_APPLICATION_ROOT:=$SGND_FRAMEWORK_ROOT}"
         else
             sayfail "Cannot read bootstrap cfg: $cfg"
             return 126
         fi
 
-        saydebug "Bootstrap cfg loaded: $cfg, TD_FRAMEWORK_ROOT=$TD_FRAMEWORK_ROOT, TD_APPLICATION_ROOT=$TD_APPLICATION_ROOT"
+        saydebug "Bootstrap cfg loaded: $cfg, SGND_FRAMEWORK_ROOT=$SGND_FRAMEWORK_ROOT, SGND_APPLICATION_ROOT=$SGND_APPLICATION_ROOT"
 
     }
 
-    # __load_bootstrapper
+    # _load_bootstrapper
         # Purpose:
         #   Resolve and source the framework bootstrap library.
         #
         # Behavior:
         #   - Calls __framework_locator to establish framework roots.
-        #   - Derives the td-bootstrap.sh path from TD_FRAMEWORK_ROOT.
+        #   - Derives the sgnd-bootstrap.sh path from SGND_FRAMEWORK_ROOT.
         #   - Verifies that the bootstrap library is readable.
-        #   - Sources td-bootstrap.sh into the current shell.
+        #   - Sources sgnd-bootstrap.sh into the current shell.
         #
         # Inputs (globals):
-        #   TD_FRAMEWORK_ROOT
+        #   SGND_FRAMEWORK_ROOT
         #
         # Returns:
         #   0   success
         #   126 bootstrap library unreadable
         #
         # Usage:
-        #   __load_bootstrapper || return $?
+        #   _load_bootstrapper || return $?
         #
         # Examples:
-        #   __load_bootstrapper
+        #   _load_bootstrapper
         #
         # Notes:
         #   - This is executable-level startup logic, not reusable framework behavior.
-    __load_bootstrapper(){
+    _load_bootstrapper(){
         local bootstrap=""
 
-        __framework_locator || return $?
+        _framework_locator || return $?
 
-        if [[ "$TD_FRAMEWORK_ROOT" == "/" ]]; then
-            bootstrap="/usr/local/lib/testadura/common/td-bootstrap.sh"
+        if [[ "$SGND_FRAMEWORK_ROOT" == "/" ]]; then
+            bootstrap="/usr/local/lib/testadura/common/sgnd-bootstrap.sh"
         else
-            bootstrap="${TD_FRAMEWORK_ROOT%/}/usr/local/lib/testadura/common/td-bootstrap.sh"
+            bootstrap="${SGND_FRAMEWORK_ROOT%/}/usr/local/lib/testadura/common/sgnd-bootstrap.sh"
         fi
 
         [[ -r "$bootstrap" ]] || {
@@ -241,36 +240,42 @@ set -uo pipefail
     }
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
+    
+# --- Script metadata (identity) ------------------------------------------------------
+    SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
+    SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"
+    SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
+    SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
 
 # --- Script metadata (identity) ------------------------------------------------------
-    TD_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
-    TD_SCRIPT_DIR="$(cd -- "$(dirname -- "$TD_SCRIPT_FILE")" && pwd)"
-    TD_SCRIPT_BASE="$(basename -- "$TD_SCRIPT_FILE")"
-    TD_SCRIPT_NAME="${TD_SCRIPT_BASE%.sh}"
-    TD_SCRIPT_TITLE="Solidground Console"
-    : "${TD_SCRIPT_DESC:=Interactive console module host}"
-    : "${TD_SCRIPT_VERSION:=1.0}"
-    : "${TD_SCRIPT_BUILD:=20260312}"
-    : "${TD_SCRIPT_DEVELOPERS:=Mark Fieten}"
-    : "${TD_SCRIPT_COMPANY:=Testadura Consultancy}"
-    : "${TD_SCRIPT_COPYRIGHT:=© 2025 Mark Fieten — Testadura Consultancy}"
-    : "${TD_SCRIPT_LICENSE:=Testadura Non-Commercial License (TD-NC) v1.0}"
+    SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
+    SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"
+    SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
+    SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
+    SGND_SCRIPT_TITLE="Solidground Console"
+    : "${SGND_SCRIPT_DESC:=Interactive console module host}"
+    : "${SGND_SCRIPT_VERSION:=1.0}"
+    : "${SGND_SCRIPT_BUILD:=20260312}"
+    : "${SGND_SCRIPT_DEVELOPERS:=Mark Fieten}"
+    : "${SGND_SCRIPT_COMPANY:=Testadura Consultancy}"
+    : "${SGND_SCRIPT_COPYRIGHT:=© 2025 Mark Fieten — Testadura Consultancy}"
+    : "${SGND_SCRIPT_LICENSE:=Testadura Non-Commercial License (TD-NC) v1.0}"
 
 # --- Script metadata (framework integration) -----------------------------------------
-    # TD_USING
-        # Libraries to source from TD_COMMON_LIB.
-        # These are loaded automatically by td_bootstrap AFTER core libraries.
+    # SGND_USING
+        # Libraries to source from SGND_COMMON_LIB.
+        # These are loaded automatically by sgnd_bootstrap AFTER core libraries.
         #
         # Example:
-        #   TD_USING=( net.sh fs.sh )
+        #   SGND_USING=( net.sh fs.sh )
         #
         # Leave empty if no extra libs are needed.
-    TD_USING=(
-        td-datatable.sh
+    SGND_USING=(
+        sgnd-datatable.sh
         sgnd-console-menu.sh
     )
 
-    # TD_ARGS_SPEC 
+    # SGND_ARGS_SPEC 
         # Optional: script-specific arguments
         # --- Example: Arguments
         # Each entry:
@@ -287,30 +292,30 @@ set -uo pipefail
         # Notes:
         #   - -h / --help is built in, you don't need to define it here.
         #   - After parsing you can use: FLAG_VERBOSE, VAL_CONFIG, ENUM_MODE, ...
-    TD_ARGS_SPEC=(
+    SGND_ARGS_SPEC=(
         "appcfg||value|VAL_APPCFG|Path to console app config file|"
         "maxrows||value|VAL_MAXROWS|Maximum menu rows per page|"
     )
 
-    # TD_SCRIPT_EXAMPLES
+    # SGND_SCRIPT_EXAMPLES
         # Optional: examples for --help output.
         # Each entry is a string that will be printed verbatim.
         #
         # Example:
-        #   TD_SCRIPT_EXAMPLES=(
+        #   SGND_SCRIPT_EXAMPLES=(
         #       "Example usage:"
         #       "  script.sh --verbose --mode fast"
         #       "  script.sh -v -m slow"
         #   )
         #
         # Leave empty if no examples are needed.
-    TD_SCRIPT_EXAMPLES=(
+    SGND_SCRIPT_EXAMPLES=(
         "Examples:"
         "  sgnd-console.sh"
         "  sgnd-console.sh --appcfg ./my-console.cfg"
     ) 
 
-    # TD_SCRIPT_GLOBALS
+    # SGND_SCRIPT_GLOBALS
         # Explicit declaration of global variables intentionally used by this script.
         #
         # Purpose:
@@ -318,7 +323,7 @@ set -uo pipefail
         #   - Enables optional configuration loading when non-empty.
         #
         # Behavior:
-        #   - If this array is non-empty, td_bootstrap enables config integration.
+        #   - If this array is non-empty, sgnd_bootstrap enables config integration.
         #   - Variables listed here may be populated from configuration files.
         #   - Unlisted globals will NOT be auto-populated.
         #
@@ -333,18 +338,18 @@ set -uo pipefail
         #
         # Leave empty if:
         #   - The script does not use configuration-driven globals
-    TD_SCRIPT_GLOBALS=(
+    SGND_SCRIPT_GLOBALS=(
     )
 
-    # TD_STATE_VARIABLES
+    # SGND_STATE_VARIABLES
         # List of variables participating in persistent state.
         #
         # Purpose:
         #   - Declares which variables should be saved/restored when state is enabled.
         #
         # Behavior:
-        #   - Only used when td_bootstrap is invoked with --state.
-        #   - Variables listed here are serialized on exit (if TD_STATE_SAVE=1).
+        #   - Only used when sgnd_bootstrap is invoked with --state.
+        #   - Variables listed here are serialized on exit (if SGND_STATE_SAVE=1).
         #   - On startup, previously saved values are restored before main logic runs.
         #
         # Contract:
@@ -353,10 +358,10 @@ set -uo pipefail
         #
         # Leave empty if:
         #   - The script does not use persistent state.
-    TD_STATE_VARIABLES=(
+    SGND_STATE_VARIABLES=(
     )
 
-    # TD_ON_EXIT_HANDLERS
+    # SGND_ON_EXIT_HANDLERS
         # List of functions to be invoked on script termination.
         #
         # Purpose:
@@ -379,14 +384,14 @@ set -uo pipefail
         #
         # Leave empty if:
         #   - No custom exit behavior is required.
-    TD_ON_EXIT_HANDLERS=(
+    SGND_ON_EXIT_HANDLERS=(
     )
     
     # State persistence is opt-in.
         # Scripts that want persistent state must:
-        #   1) set TD_STATE_SAVE=1
-        #   2) call td_bootstrap --state
-    TD_STATE_SAVE=0
+        #   1) set SGND_STATE_SAVE=1
+        #   2) call sgnd_bootstrap --state
+    SGND_STATE_SAVE=0
 
 # --- Local scripts and definitions ---------------------------------------------------
     # --- Console state
@@ -497,11 +502,11 @@ set -uo pipefail
         case "$key" in
             module:*)
                 module_id="${key#module:}"
-                row_count="$(td_dt_row_count SGND_MODULE_ROWS)"
+                row_count="$(sgnd_dt_row_count SGND_MODULE_ROWS)"
 
                 for (( i=0; i<row_count; i++ )); do
-                    if [[ "$(td_dt_get "$SGND_MODULE_SCHEMA" SGND_MODULE_ROWS "$i" id)" == "$module_id" ]]; then
-                        module_name="$(td_dt_get "$SGND_MODULE_SCHEMA" SGND_MODULE_ROWS "$i" name)"
+                    if [[ "$(sgnd_dt_get "$SGND_MODULE_SCHEMA" SGND_MODULE_ROWS "$i" id)" == "$module_id" ]]; then
+                        module_name="$(sgnd_dt_get "$SGND_MODULE_SCHEMA" SGND_MODULE_ROWS "$i" name)"
                         break
                     fi
                 done
@@ -537,7 +542,7 @@ set -uo pipefail
     __sgnd_console_group_exists() {
         local key="${1:?missing group key}"
 
-        td_dt_has_row "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS key "$key"
+        sgnd_dt_has_row "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS key "$key"
     }
 
     # __sgnd_console_load_config
@@ -583,8 +588,8 @@ set -uo pipefail
         local cfg="${VAL_APPCFG-}"
         local cfg_dir
 
-        : "${SGND_CONSOLE_TITLE:=${TD_SCRIPT_TITLE}}"
-        : "${SGND_CONSOLE_DESC:=${TD_SCRIPT_DESC}}"
+        : "${SGND_CONSOLE_TITLE:=${SGND_SCRIPT_TITLE}}"
+        : "${SGND_CONSOLE_DESC:=${SGND_SCRIPT_DESC}}"
         : "${SGND_CONSOLE_MODULE_DIR:=./console-modules}"
         : "${SGND_PAGE_MAX_ROWS:=15}"
 
@@ -608,8 +613,8 @@ set -uo pipefail
             # shellcheck source=/dev/null
             source "$cfg"
 
-            : "${SGND_CONSOLE_TITLE:=${TD_SCRIPT_TITLE}}"
-            : "${SGND_CONSOLE_DESC:=${TD_SCRIPT_DESC}}"
+            : "${SGND_CONSOLE_TITLE:=${SGND_SCRIPT_TITLE}}"
+            : "${SGND_CONSOLE_DESC:=${SGND_SCRIPT_DESC}}"
             : "${SGND_CONSOLE_MODULE_DIR:=./console-modules}"
 
             case "$SGND_CONSOLE_MODULE_DIR" in
@@ -753,7 +758,7 @@ set -uo pipefail
         #   Resolve and execute a script within the sgnd-console environment.
         #
         # Behavior:
-        #   - Resolves relative script paths against TD_SCRIPT_DIR.
+        #   - Resolves relative script paths against SGND_SCRIPT_DIR.
         #   - Normalizes the resolved path when readlink is available.
         #   - Verifies that the script exists and is executable.
         #   - Forwards active framework flags to the target script.
@@ -761,7 +766,7 @@ set -uo pipefail
         #
         # Arguments:
         #   $1  SCRIPT
-        #       Script path, absolute or relative to TD_SCRIPT_DIR.
+        #       Script path, absolute or relative to SGND_SCRIPT_DIR.
         #   $@  ARGS
         #       Additional arguments passed to the target script.
         #
@@ -769,7 +774,7 @@ set -uo pipefail
         #   FLAG_DRYRUN         -> --dryrun
         #   FLAG_VERBOSE        -> --verbose
         #   FLAG_DEBUG          -> --debug
-        #   TD_LOGFILE_ENABLED  -> --logfile <file>
+        #   SGND_LOGFILE_ENABLED  -> --logfile <file>
         #
         # Returns:
         #   Exit code of the executed script
@@ -793,7 +798,7 @@ set -uo pipefail
         case "$script" in
             /*) ;;
             *)
-                resolved="${TD_SCRIPT_DIR%/}/$script"
+                resolved="${SGND_SCRIPT_DIR%/}/$script"
                 ;;
         esac
 
@@ -814,7 +819,7 @@ set -uo pipefail
         __sgnd_flag_is_on "${FLAG_DRYRUN:-0}"        && script_args+=("--dryrun")
         __sgnd_flag_is_on "${FLAG_VERBOSE:-0}"       && script_args+=("--verbose")
         __sgnd_flag_is_on "${FLAG_DEBUG:-0}"         && script_args+=("--debug")
-        __sgnd_flag_is_on "${TD_LOGFILE_ENABLED:-0}" && [[ -n "${LOG_FILE:-}" ]] && script_args+=("--logfile" "$LOG_FILE")
+        __sgnd_flag_is_on "${SGND_LOGFILE_ENABLED:-0}" && [[ -n "${LOG_FILE:-}" ]] && script_args+=("--logfile" "$LOG_FILE")
 
         script_args+=("$@")
 
@@ -842,7 +847,7 @@ set -uo pipefail
         #   if __sgnd_flag_is_on "${FLAG_DEBUG:-0}"; then ...
         #
         # Examples:
-        #   __sgnd_flag_is_on "${TD_LOGFILE_ENABLED:-0}"
+        #   __sgnd_flag_is_on "${SGND_LOGFILE_ENABLED:-0}"
     __sgnd_flag_is_on() {
         case "${1:-}" in
             1|true|TRUE|yes|YES|on|ON) return 0 ;;
@@ -858,7 +863,7 @@ set -uo pipefail
         # Behavior:
         #   - Renders the menu.
         #   - Builds the valid choice list for the current menu state.
-        #   - Reads a choice via td_choose_immediate.
+        #   - Reads a choice via ask_choose_immediate.
         #   - Dispatches the selected handler.
         #   - Exits when a handler returns sentinel value 200.
         #   - Optionally pauses after actions according to SGND_LAST_WAITSECS.
@@ -881,8 +886,8 @@ set -uo pipefail
             __sgnd_console_render_menu
             valid_choices="$(__sgnd_console_valid_choices_csv)"
             
-            td_print_sectionheader --border "$DL_H" --maxwidth "$(td_terminal_width)"
-            td_choose_immediate \
+            sgnd_print_sectionheader --border "$DL_H" --maxwidth "$(sgnd_terminal_width)"
+            ask_choose_immediate \
                 --label "Select option" \
                 --choices "$valid_choices" \
                 --instantchoices "B,D,L,V,C,<,>" \
@@ -956,7 +961,7 @@ set -uo pipefail
         local visible="${8:-1}"
         local source="${SGND_CURRENT_MODULE:-}"
 
-        if td_dt_has_row "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS key "$key"; then
+        if sgnd_dt_has_row "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS key "$key"; then
             sayfail "Duplicate menu key: $key"
             return 1
         fi
@@ -974,7 +979,7 @@ set -uo pipefail
             __sgnd_console_register_fallback_group "$group"
         fi
 
-        td_dt_append "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS \
+        sgnd_dt_append "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS \
             "$key" "$group" "$label" "$handler" "$desc" "$source" "$builtin" "$waitsecs" "$visible" || {
             sayfail "Failed to register item: $key"
             return 1
@@ -1022,11 +1027,11 @@ set -uo pipefail
         local ord="${6:-1000}"
         local source="${SGND_CURRENT_MODULE:-}"
 
-        if td_dt_has_row "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS key "$key"; then
+        if sgnd_dt_has_row "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS key "$key"; then
             return 0
         fi
 
-        td_dt_append "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS \
+        sgnd_dt_append "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS \
             "$key" "$label" "$desc" "$source" "$builtin" "$visible" "$ord" || {
             sayfail "Failed to register group: $key"
             return 1
@@ -1039,7 +1044,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Resolves and loads the framework bootstrap library.
-        #   - Initializes framework runtime via td_bootstrap.
+        #   - Initializes framework runtime via sgnd_bootstrap.
         #   - Executes builtin framework argument handling.
         #   - Updates run-mode UI state.
         #   - Loads console configuration.
@@ -1062,18 +1067,18 @@ set -uo pipefail
         # -- Bootstrap
             local rc=0
 
-            __load_bootstrapper || exit $?            
+            _load_bootstrapper || exit $?            
 
             # Recognized switches:
             #     --state      -> enable saving state variables 
-            #     --autostate  -> enable state support and auto-save TD_STATE_VARIABLES on exit
+            #     --autostate  -> enable state support and auto-save SGND_STATE_VARIABLES on exit
             #     --needroot   -> restart script if not root
             #     --cannotroot -> exit script if root
             #     --log        -> enable file logging
             #     --console    -> enable console logging
             # Example:
-            #   td_bootstrap --state --needroot -- "$@"
-            td_bootstrap -- "$@"
+            #   sgnd_bootstrap --state --needroot -- "$@"
+            sgnd_bootstrap -- "$@"
             rc=$?
 
             saydebug "After bootstrap: $rc"
@@ -1081,17 +1086,16 @@ set -uo pipefail
                         
         # -- Handle builtin arguments
             saydebug "Calling builtinarg handler"
-            td_builtinarg_handler
+            sgnd_builtinarg_handler
             saydebug "Exited builtinarg handler"
 
         # -- UI
-            td_update_runmode
-            #td_print_titlebar
-
+            sgnd_update_runmode
+            #sgnd_print_titlebar
         
         # -- Main script logic
 
-        declare -F td_dt_append >/dev/null || {
+        declare -F sgnd_dt_append >/dev/null || {
             sayfail "td-datatable.sh did not load correctly"
             exit 126
         }
@@ -1099,12 +1103,12 @@ set -uo pipefail
         __sgnd_console_register_builtin_items || exit $?
         __sgnd_console_load_modules || exit $?
 
-        if (( $(td_dt_row_count SGND_ITEM_ROWS) == 0 )); then
+        if (( $(sgnd_dt_row_count SGND_ITEM_ROWS) == 0 )); then
             saywarning "No menu items registered"
         fi
 
             __sgnd_console_run
     }
 
-    # Entrypoint: td_bootstrap will split framework args from script args.
+    # Entrypoint: sgnd_bootstrap will split framework args from script args.
     main "$@"

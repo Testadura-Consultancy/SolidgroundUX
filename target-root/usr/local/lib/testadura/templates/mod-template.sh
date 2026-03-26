@@ -32,7 +32,7 @@
 # Assumptions:
 #   - Loaded by sgnd-console after framework bootstrap is complete
 #   - sgnd_console_register_group and sgnd_console_register_item are available
-#   - Framework helpers such as say* and td_print_* may be used
+#   - Framework helpers such as say* and sgnd_print_* may be used
 #
 # Non-goals:
 #   - Standalone execution
@@ -47,64 +47,50 @@
 #   License       : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # ==================================================================================
 set -uo pipefail
-# --- Library guard ----------------------------------------------------------------
-    # __td_lib_guard
-            # Purpose:
-            #   Ensure the file is sourced as a library and only initialized once.
-            #
-            # Behavior:
-            #   - Derives a unique guard variable name from the current filename.
-            #   - Aborts execution if the file is executed instead of sourced.
-            #   - Sets the guard variable on first load.
-            #   - Skips initialization if the library was already loaded.
-            #
-            # Inputs:
-            #   BASH_SOURCE[0]
-            #   $0
-            #
-            # Outputs (globals):
-            #   TD_<MODULE>_LOADED
-            #
-            # Returns:
-            #   0 if already loaded or successfully initialized.
-            #   Exits with code 2 if executed instead of sourced.
-            #
-            # Usage:
-            #   __td_lib_guard
-            #
-            # Examples:
-            #   # Typical usage at top of library file
-            #   __td_lib_guard
-            #   unset -f __td_lib_guard
-            #
-            # Notes:
-            #   - Guard variable is derived dynamically (e.g. ui-glyphs.sh → TD_UI_GLYPHS_LOADED).
-            #   - Safe under `set -u` due to indirect expansion with default.
-    __td_lib_guard() {
+# --- Library guard ------------------------------------------------------------------
+# --- Library guard ------------------------------------------------------------------
+    # _sgnd_lib_guard
+        # Purpose:
+        #   Ensure the file is sourced as a library and only initialized once.
+        #
+        # Behavior:
+        #   - Derives a unique guard variable name from the current filename.
+        #   - Aborts execution if the file is executed instead of sourced.
+        #   - Sets the guard variable on first load.
+        #   - Skips initialization if the library was already loaded.
+        #
+        # Inputs:
+        #   BASH_SOURCE[0]
+        #   $0
+        #
+        # Outputs (globals):
+        #   SGND_<MODULE>_LOADED
+        #
+        # Returns:
+        #   0 if already loaded or successfully initialized.
+        #   Exits with code 2 if executed instead of sourced.
+    _sgnd_lib_guard() {
         local lib_base
         local guard
 
-        lib_base="$(basename "${BASH_SOURCE[0]}")"
-        lib_base="${lib_base%.sh}"
+        lib_base="$(basename "${BASH_SOURCE[0]}" .sh)"
         lib_base="${lib_base//-/_}"
-        guard="TD_${lib_base^^}_LOADED"
+        guard="SGND_${lib_base^^}_LOADED"
 
-        # Refuse to execute (library only)
         [[ "${BASH_SOURCE[0]}" != "$0" ]] || {
-            echo "This is a library; source it, do not execute it: ${BASH_SOURCE[0]}" >&2
+            printf 'This is a library; source it, do not execute it: %s\n' "${BASH_SOURCE[0]}" >&2
             exit 2
         }
 
-        # Load guard (safe under set -u)
         [[ -n "${!guard-}" ]] && return 0
         printf -v "$guard" '1'
     }
 
-    __td_lib_guard
-    unset -f __td_lib_guard
+    _sgnd_lib_guard
+    unset -f _sgnd_lib_guard
 
-    td_module_init_metadata "${BASH_SOURCE[0]}"
-
+    sgnd_module_init_metadata "${BASH_SOURCE[0]}"
+    
 # --- Internal helpers -------------------------------------------------------------
     # Naming:
     #   - Prefix internal-only helpers with "__"
@@ -116,7 +102,7 @@ set -uo pipefail
 # --- Public module actions --------------------------------------------------------
     # Naming:
     #   - Use clear action-style names for functions registered as menu handlers
-    #   - Registered handlers do not need a td_ prefix; they belong to the module surface
+    #   - Registered handlers do not need a sgnd_ prefix; they belong to the module surface
     #
     # Example:
     #   sample_show_message() { :; }

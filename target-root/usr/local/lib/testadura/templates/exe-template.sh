@@ -40,37 +40,37 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
 set -uo pipefail
-
 # --- Bootstrap -----------------------------------------------------------------------
-    # __framework_locator
+    # _framework_locator
         # Purpose:
         #   Locate, create, and load the SolidGroundUX bootstrap configuration.
         #
         # Behavior:
-        #   - Resolves configuration from user or system location.
-        #   - Creates configuration interactively or with defaults when missing.
-        #   - Ensures TD_FRAMEWORK_ROOT and TD_APPLICATION_ROOT are set.
+        #   - Searches user and system bootstrap configuration locations.
+        #   - Prefers the invoking user's config over the system config.
+        #   - Creates a new bootstrap config when none exists.
+        #   - Prompts for framework/application roots in interactive mode.
+        #   - Applies default values when running non-interactively.
         #   - Sources the selected configuration file.
         #
         # Outputs (globals):
-        #   TD_FRAMEWORK_ROOT
-        #   TD_APPLICATION_ROOT
+        #   SGND_FRAMEWORK_ROOT
+        #   SGND_APPLICATION_ROOT
         #
         # Returns:
         #   0   success
         #   126 configuration unreadable or invalid
-        #   127 configuration could not be created
+        #   127 configuration directory or file could not be created
         #
         # Usage:
-        #   __framework_locator || exit $?
+        #   _framework_locator || return $?
         #
         # Examples:
-        #   __framework_locator
+        #   _framework_locator
         #
         # Notes:
-        #   - Prefers user config over system config.
-        #   - Under sudo, resolves config relative to SUDO_USER.
-    __framework_locator (){
+        #   - Under sudo, configuration is resolved relative to SUDO_USER instead of /root.
+    _framework_locator (){
         local cfg_home="$HOME"
 
         if [[ $EUID -eq 0 && -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]]; then
@@ -106,11 +106,11 @@ set -uo pipefail
                 sayinfo "No configuration file found."
                 sayinfo "Creating: $cfg"
 
-                printf "TD_FRAMEWORK_ROOT [/] : " > /dev/tty
+                printf "SGND_FRAMEWORK_ROOT [/] : " > /dev/tty
                 read -r reply < /dev/tty
                 fw_root="${reply:-/}"
 
-                printf "TD_APPLICATION_ROOT [/] : " > /dev/tty
+                printf "SGND_APPLICATION_ROOT [/] : " > /dev/tty
                 read -r reply < /dev/tty
                 app_root="${reply:-$fw_root}"
             fi
@@ -118,12 +118,12 @@ set -uo pipefail
             # Validate paths (must be absolute)
             case "$fw_root" in
                 /*) ;;
-                *) sayfail "ERR: TD_FRAMEWORK_ROOT must be an absolute path"; return 126 ;;
+                *) sayfail "ERR: SGND_FRAMEWORK_ROOT must be an absolute path"; return 126 ;;
             esac
 
             case "$app_root" in
                 /*) ;;
-                *) sayfail "ERR: TD_APPLICATION_ROOT must be an absolute path"; return 126 ;;
+                *) sayfail "ERR: SGND_APPLICATION_ROOT must be an absolute path"; return 126 ;;
             esac
 
             # Create configuration file
@@ -134,8 +134,8 @@ set -uo pipefail
                 printf '%s\n' "# SolidGroundUX bootstrap configuration"
                 printf '%s\n' "# Auto-generated on first run"
                 printf '\n'
-                printf 'TD_FRAMEWORK_ROOT=%q\n' "$fw_root"
-                printf 'TD_APPLICATION_ROOT=%q\n' "$app_root"
+                printf 'SGND_FRAMEWORK_ROOT=%q\n' "$fw_root"
+                printf 'SGND_APPLICATION_ROOT=%q\n' "$app_root"
             } > "$cfg" || return 127
 
             saydebug "Created bootstrap cfg: $cfg"
@@ -146,50 +146,51 @@ set -uo pipefail
             # shellcheck source=/dev/null
             source "$cfg"
 
-            : "${TD_FRAMEWORK_ROOT:=/}"
-            : "${TD_APPLICATION_ROOT:=$TD_FRAMEWORK_ROOT}"
+            : "${SGND_FRAMEWORK_ROOT:=/}"
+            : "${SGND_APPLICATION_ROOT:=$SGND_FRAMEWORK_ROOT}"
         else
             sayfail "Cannot read bootstrap cfg: $cfg"
             return 126
         fi
 
-        saydebug "Bootstrap cfg loaded: $cfg, TD_FRAMEWORK_ROOT=$TD_FRAMEWORK_ROOT, TD_APPLICATION_ROOT=$TD_APPLICATION_ROOT"
+        saydebug "Bootstrap cfg loaded: $cfg, SGND_FRAMEWORK_ROOT=$SGND_FRAMEWORK_ROOT, SGND_APPLICATION_ROOT=$SGND_APPLICATION_ROOT"
 
     }
 
-    # __load_bootstrapper
+    # _load_bootstrapper
         # Purpose:
         #   Resolve and source the framework bootstrap library.
         #
         # Behavior:
         #   - Calls __framework_locator to establish framework roots.
-        #   - Resolves td-bootstrap.sh path based on TD_FRAMEWORK_ROOT.
-        #   - Verifies readability and sources the bootstrap library.
+        #   - Derives the td-bootstrap.sh path from SGND_FRAMEWORK_ROOT.
+        #   - Verifies that the bootstrap library is readable.
+        #   - Sources td-bootstrap.sh into the current shell.
         #
         # Inputs (globals):
-        #   TD_FRAMEWORK_ROOT
+        #   SGND_FRAMEWORK_ROOT
         #
         # Returns:
         #   0   success
         #   126 bootstrap library unreadable
         #
         # Usage:
-        #   __load_bootstrapper || exit $?
+        #   _load_bootstrapper || return $?
         #
         # Examples:
-        #   __load_bootstrapper
+        #   _load_bootstrapper
         #
         # Notes:
-        #   - Must be called before any framework-dependent logic.
-    __load_bootstrapper(){
+        #   - This is executable-level startup logic, not reusable framework behavior.
+    _load_bootstrapper(){
         local bootstrap=""
 
-        __framework_locator || return $?
+        _framework_locator || return $?
 
-        if [[ "$TD_FRAMEWORK_ROOT" == "/" ]]; then
-            bootstrap="/usr/local/lib/testadura/common/td-bootstrap.sh"
+        if [[ "$SGND_FRAMEWORK_ROOT" == "/" ]]; then
+            bootstrap="/usr/local/lib/testadura/common/sgnd-bootstrap.sh"
         else
-            bootstrap="${TD_FRAMEWORK_ROOT%/}/usr/local/lib/testadura/common/td-bootstrap.sh"
+            bootstrap="${SGND_FRAMEWORK_ROOT%/}/usr/local/lib/testadura/common/sgnd-bootstrap.sh"
         fi
 
         [[ -r "$bootstrap" ]] || {
@@ -234,28 +235,27 @@ set -uo pipefail
     }
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
-
+    
 # --- Script metadata (identity) ------------------------------------------------------
-    TD_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
-    TD_SCRIPT_DIR="$(cd -- "$(dirname -- "$TD_SCRIPT_FILE")" && pwd)"
-    TD_SCRIPT_BASE="$(basename -- "$TD_SCRIPT_FILE")"
-    TD_SCRIPT_NAME="${TD_SCRIPT_BASE%.sh}"
-    TD_SCRIPT_TITLE="${TD_SCRIPT_NAME}"
-    TD_SCRIPT_DESC="Canonical executable template for Testadura scripts"
+    SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
+    SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"
+    SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
+    SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
 
 # --- Script metadata (framework integration) -----------------------------------------
-    # TD_USING
-        # Libraries to source from TD_COMMON_LIB.
-        # These are loaded automatically by td_bootstrap AFTER core libraries.
+    # SGND_USING
+        # Libraries to source from SGND_COMMON_LIB.
+        # These are loaded automatically by sgnd_bootstrap AFTER core libraries.
         #
         # Example:
-        #   TD_USING=( net.sh fs.sh )
+        #   SGND_USING=( net.sh fs.sh )
         #
         # Leave empty if no extra libs are needed.
-    TD_USING=(
+    SGND_USING=(
+        sgnd-comment-parser.sh
     )
 
-    # TD_ARGS_SPEC 
+    # SGND_ARGS_SPEC 
         # Optional: script-specific arguments
         # --- Example: Arguments
         # Each entry:
@@ -272,25 +272,36 @@ set -uo pipefail
         # Notes:
         #   - -h / --help is built in, you don't need to define it here.
         #   - After parsing you can use: FLAG_VERBOSE, VAL_CONFIG, ENUM_MODE, ...
-    TD_ARGS_SPEC=(
+    SGND_ARGS_SPEC=(
+        "auto|a|flag|FLAG_AUTO|Repeat with last settings|"
+        "cleanup|c|flag|FLAG_CLEANUP|Cleanup staging files after run|"
+        "useexisting|u|flag|FLAG_USEEXISTING|Use existing staging files|"
+        "bumpmajor||flag|FLAG_BUMP_MAJOR|Bump major version in source headers before packaging|"
+        "bumpminor||flag|FLAG_BUMP_MINOR|Bump minor version in source headers before packaging|"
+        "nosourceupdate||flag|FLAG_NOSOURCEUPDATE|Do not update source header metadata before packaging|"
     )
 
-    # TD_SCRIPT_EXAMPLES
+    # SGND_SCRIPT_EXAMPLES
         # Optional: examples for --help output.
         # Each entry is a string that will be printed verbatim.
         #
         # Example:
-        #   TD_SCRIPT_EXAMPLES=(
+        #   SGND_SCRIPT_EXAMPLES=(
         #       "Example usage:"
         #       "  script.sh --verbose --mode fast"
         #       "  script.sh -v -m slow"
         #   )
         #
         # Leave empty if no examples are needed.
-    TD_SCRIPT_EXAMPLES=(
+    SGND_SCRIPT_EXAMPLES=(
+        "Run in dry-run mode:"
+        "  $SGND_SCRIPT_NAME --dryrun"
+        ""
+        "Show verbose logging"
+        "  $SGND_SCRIPT_NAME --verbose"
     ) 
 
-    # TD_SCRIPT_GLOBALS
+    # SGND_SCRIPT_GLOBALS
         # Explicit declaration of global variables intentionally used by this script.
         #
         # Purpose:
@@ -298,7 +309,7 @@ set -uo pipefail
         #   - Enables optional configuration loading when non-empty.
         #
         # Behavior:
-        #   - If this array is non-empty, td_bootstrap enables config integration.
+        #   - If this array is non-empty, sgnd_bootstrap enables config integration.
         #   - Variables listed here may be populated from configuration files.
         #   - Unlisted globals will NOT be auto-populated.
         #
@@ -313,18 +324,18 @@ set -uo pipefail
         #
         # Leave empty if:
         #   - The script does not use configuration-driven globals
-    TD_SCRIPT_GLOBALS=(
+    SGND_SCRIPT_GLOBALS=(
     )
 
-    # TD_STATE_VARIABLES
+    # SGND_STATE_VARIABLES
         # List of variables participating in persistent state.
         #
         # Purpose:
         #   - Declares which variables should be saved/restored when state is enabled.
         #
         # Behavior:
-        #   - Only used when td_bootstrap is invoked with --state.
-        #   - Variables listed here are serialized on exit (if TD_STATE_SAVE=1).
+        #   - Only used when sgnd_bootstrap is invoked with --state.
+        #   - Variables listed here are serialized on exit (if SGND_STATE_SAVE=1).
         #   - On startup, previously saved values are restored before main logic runs.
         #
         # Contract:
@@ -333,10 +344,10 @@ set -uo pipefail
         #
         # Leave empty if:
         #   - The script does not use persistent state.
-    TD_STATE_VARIABLES=(
+    SGND_STATE_VARIABLES=(
     )
 
-    # TD_ON_EXIT_HANDLERS
+    # SGND_ON_EXIT_HANDLERS
         # List of functions to be invoked on script termination.
         #
         # Purpose:
@@ -359,14 +370,14 @@ set -uo pipefail
         #
         # Leave empty if:
         #   - No custom exit behavior is required.
-    TD_ON_EXIT_HANDLERS=(
+    SGND_ON_EXIT_HANDLERS=(
     )
     
     # State persistence is opt-in.
         # Scripts that want persistent state must:
-        #   1) set TD_STATE_SAVE=1
-        #   2) call td_bootstrap --state
-    TD_STATE_SAVE=0
+        #   1) set SGND_STATE_SAVE=1
+        #   2) call sgnd_bootstrap --state
+    SGND_STATE_SAVE=0
 
 # --- Local script Declarations -------------------------------------------------------
     # Put script-local constants and defaults here (NOT framework config).
@@ -381,7 +392,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Loads the framework bootstrapper.
-        #   - Initializes runtime via td_bootstrap.
+        #   - Initializes runtime via sgnd_bootstrap.
         #   - Handles built-in framework arguments.
         #   - Prepares UI state (runmode + title bar).
         #   - Executes script-specific logic.
@@ -400,23 +411,23 @@ set -uo pipefail
         #   main "$@"
         #
         # Notes:
-        #   - td_bootstrap splits framework and script arguments automatically..
+        #   - sgnd_bootstrap splits framework and script arguments automatically..
     main() {
         # -- Bootstrap
             local rc=0
 
-            __load_bootstrapper || exit $?            
+            _load_bootstrapper || exit $?            
 
             # Recognized switches:
             #     --state      -> enable saving state variables 
-            #     --autostate  -> enable state support and auto-save TD_STATE_VARIABLES on exit
+            #     --autostate  -> enable state support and auto-save SGND_STATE_VARIABLES on exit
             #     --needroot   -> restart script if not root
             #     --cannotroot -> exit script if root
             #     --log        -> enable file logging
             #     --console    -> enable console logging
             # Example:
-            #   td_bootstrap --state --needroot -- "$@"
-            td_bootstrap -- "$@"
+            #   sgnd_bootstrap --state --needroot -- "$@"
+            sgnd_bootstrap -- "$@"
             rc=$?
 
             saydebug "After bootstrap: $rc"
@@ -424,16 +435,16 @@ set -uo pipefail
                         
         # -- Handle builtin arguments
             saydebug "Calling builtinarg handler"
-            td_builtinarg_handler
+            sgnd_builtinarg_handler
             saydebug "Exited builtinarg handler"
 
         # -- UI
-            td_update_runmode
-            td_print_titlebar
+            sgnd_update_runmode
+            sgnd_print_titlebar
 
         # -- Main script logic
 
     }
 
-    # Entrypoint: td_bootstrap will split framework args from script args.
+    # Entrypoint: sgnd_bootstrap will split framework args from script args.
     main "$@"

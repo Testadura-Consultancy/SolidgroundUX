@@ -1,5 +1,5 @@
 # =====================================================================================
-# SolidgroundUX - UI Say (Messaging)
+# SolidgroundUX - UI Messaging
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
@@ -13,37 +13,45 @@
 #   Implements consistent message output helpers for console applications.
 #
 #   The library:
-#     - Provides standardized message functions (info, ok, warning, fail, debug, etc.)
-#     - Applies consistent formatting and coloring to message types
-#     - Supports verbosity and debug-level filtering
+#     - Provides a unified message API via `say` and typed wrappers (info, ok, warn, etc.)
+#     - Applies consistent formatting, prefixes, and optional colorization
+#     - Supports console output control via verbosity, debug flags, and message-type filtering
 #     - Ensures all messages follow a unified visual and structural style
-#     - Outputs messages to stderr for proper separation from data streams
+#     - Optionally performs best-effort file logging when enabled
 #
 # Design principles:
 #   - Consistent message semantics across all scripts
-#   - Separation of message intent from rendering details
-#   - Respect verbosity and debug flags globally
+#   - Separation of message intent (type) from rendering and output policy
+#   - Respect global verbosity, debug, and console filtering rules
 #   - Keep output predictable and script-friendly
 #
 # Role in framework:
 #   - Core messaging layer used by all SolidgroundUX scripts
+#   - Serves as the primary mechanism for user-facing output and diagnostics
 #   - Works alongside ui.sh for rendering and formatting
 #
 # Non-goals:
-#   - Persistent logging or log file management
+#   - Persistent logging frameworks or advanced log management
 #   - Complex formatting beyond message-level styling
-#   - Replacement for full logging frameworks
+#   - Replacement for dedicated logging systems
+#
+# Notes:
+#   - Console output is governed by:
+#       SGND_LOG_TO_CONSOLE and SGND_CONSOLE_MSGTYPES
+#   - DEBUG messages are controlled separately via FLAG_DEBUG
+#   - File logging is optional and best-effort; failures do not affect execution
 #
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
-#   Client      : 
+#   Client      :
 #   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
 set -uo pipefail
+
 # --- Library guard ------------------------------------------------------------------
-    # __td_lib_guard
+    # _sgnd_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
         #
@@ -58,47 +66,32 @@ set -uo pipefail
         #   $0
         #
         # Outputs (globals):
-        #   TD_<MODULE>_LOADED
+        #   SGND_<MODULE>_LOADED
         #
         # Returns:
         #   0 if already loaded or successfully initialized.
         #   Exits with code 2 if executed instead of sourced.
-        #
-        # Usage:
-        #   __td_lib_guard
-        #
-        # Examples:
-        #   # Typical usage at top of library file
-        #   __td_lib_guard
-        #   unset -f __td_lib_guard
-        #
-        # Notes:
-        #   - Guard variable is derived dynamically (e.g. ui-glyphs.sh → TD_UI_GLYPHS_LOADED).
-        #   - Safe under `set -u` due to indirect expansion with default.
-    __td_lib_guard() {
+    _sgnd_lib_guard() {
         local lib_base
         local guard
 
-        lib_base="$(basename "${BASH_SOURCE[0]}")"
-        lib_base="${lib_base%.sh}"
+        lib_base="$(basename "${BASH_SOURCE[0]}" .sh)"
         lib_base="${lib_base//-/_}"
-        guard="TD_${lib_base^^}_LOADED"
+        guard="SGND_${lib_base^^}_LOADED"
 
-        # Refuse to execute (library only)
         [[ "${BASH_SOURCE[0]}" != "$0" ]] || {
-            echo "This is a library; source it, do not execute it: ${BASH_SOURCE[0]}" >&2
+            printf 'This is a library; source it, do not execute it: %s\n' "${BASH_SOURCE[0]}" >&2
             exit 2
         }
 
-        # Load guard (safe under set -u)
         [[ -n "${!guard-}" ]] && return 0
         printf -v "$guard" '1'
     }
 
-    __td_lib_guard
-    unset -f __td_lib_guard
+    _sgnd_lib_guard
+    unset -f _sgnd_lib_guard
 
-    td_module_init_metadata "${BASH_SOURCE[0]}"
+    sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Global defaults ----------------------------------------------------------------
     # Can be overridden in:
@@ -111,89 +104,53 @@ set -uo pipefail
     SAY_DATE_FORMAT="${SAY_DATE_FORMAT:-%Y-%m-%d %H:%M:%S}"  # date format for --date
 
 # --- Helpers ------------------------------------------------------------------------
-    # __say_should_print_console
+    # _say_should_print_console
         # Purpose:
-        #   Determine whether a message TYPE should be printed to the console
+        #   Determine whether a message type should be printed to the console
         #   according to the current output policy.
         #
         # Behavior:
+        #   - SGND_LOG_TO_CONSOLE=0 suppresses all console output.
         #   - FLAG_VERBOSE=1 overrides all filters (always prints).
-        #   - TD_LOG_TO_CONSOLE=0 suppresses all console output.
-        #   - DEBUG messages require FLAG_DEBUG=1 unless verbose.
-        #   - Other types must be present in TD_CONSOLE_MSGTYPES.
+        #   - DEBUG messages require FLAG_DEBUG=1 (unless verbose).
+        #   - All other types must be present in SGND_CONSOLE_MSGTYPES.
         #
         # Arguments:
         #   $1  TYPE
         #       Message type token (case-insensitive).
         #
         # Inputs (globals):
-        #   FLAG_VERBOSE, TD_LOG_TO_CONSOLE, FLAG_DEBUG, TD_CONSOLE_MSGTYPES
+        #   FLAG_VERBOSE, SGND_LOG_TO_CONSOLE, FLAG_DEBUG, SGND_CONSOLE_MSGTYPES
         #
         # Returns:
         #   0 if the message should be printed
         #   1 otherwise
         #
         # Usage:
-        #   if __say_should_print_console "INFO"; then
+        #   if _say_should_print_console "INFO"; then
         #       printf "...\n"
         #   fi
         #
         # Examples:
-        #   __say_should_print_console "DEBUG" || return
-    __say_should_print_console() {
+        #   _say_should_print_console "DEBUG" || return
+    _say_should_print_console() {
         local type="${1^^}"
-        local list="${TD_CONSOLE_MSGTYPES:-INFO|STRT|WARN|FAIL|CNCL|OK|END|EMPTY}"
+        local list="${SGND_CONSOLE_MSGTYPES:-INFO|STRT|WARN|FAIL|CNCL|OK|END|EMPTY}"
         list="${list^^}"
 
+        [[ "${SGND_LOG_TO_CONSOLE:-1}" -eq 0 ]] && return 1
         [[ "${FLAG_VERBOSE:-0}" -eq 1 ]] && return 0
-        [[ "${TD_LOG_TO_CONSOLE:-1}" -eq 0 ]] && return 1
-        [[ "$type" == "DEBUG" && "${FLAG_DEBUG:-0}" -eq 1 ]] && return 0
+
+        if [[ "$type" == "DEBUG" ]]; then
+            [[ "${FLAG_DEBUG:-0}" -eq 1 ]] && return 0
+            return 1
+        fi
 
         [[ "|$list|" == *"|$type|"* ]]
     }
 
-    # __td_logfile
-        # Purpose:
-        #   Resolve the effective logfile path based on configured priorities.
-        #
-        # Behavior:
-        #   - Checks TD_LOG_PATH first, then TD_ALT_LOGPATH.
-        #   - Uses td_can_append to validate write capability.
-        #   - Returns the first usable path.
-        #
-        # Outputs:
-        #   Prints the resolved logfile path (no newline).
-        #
-        # Returns:
-        #   0 if a usable path is found
-        #   1 otherwise
-        #
-        # Usage:
-        #   logfile="$(__td_logfile)" || return
-        #
-        # Examples:
-        #   if logfile="$(__td_logfile)"; then
-        #       echo "Logging to $logfile"
-        #   fi
-    __td_logfile() {
-        
-        # Determine logfile path according to priority:
-        # 1. TD_LOG_PATH if set and usable
-        if [[ -n "${TD_LOG_PATH:-}" ]] && td_can_append "$TD_LOG_PATH"; then
-            printf '%s' "$TD_LOG_PATH"
-            return 0
-        fi
 
-        # 2. TD_ALT_LOGPATH if set and usable
-        if [[ -n "${TD_ALT_LOGPATH:-}" ]] && td_can_append "$TD_ALT_LOGPATH"; then
-            printf '%s' "$TD_ALT_LOGPATH"
-            return 0
-        fi
-
-        return 1
-    }
-
-    # __say_caller
+    # _say_caller
         # Purpose:
         #   Resolve the originating caller location for logging purposes.
         #
@@ -210,15 +167,15 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   IFS=$'\t' read -r func file line <<< "$(__say_caller)"
+        #   IFS=$'\t' read -r func file line <<< "$(_say_caller)"
         #
         # Examples:
-        #   caller="$(__say_caller)"
-    __say_caller() {
+        #   caller="$(_say_caller)"
+    _say_caller() {
         local i
         for ((i=1; i<${#FUNCNAME[@]}; i++)); do
             case "${FUNCNAME[$i]}" in
-                say|sayinfo|saywarning|sayfail|saydebug|justsay)
+                say|sayinfo|saystart|saywarning|sayfail|saycancel|sayok|sayend|saydebug|justsay)
                     continue
                     ;;
                 *)
@@ -233,7 +190,7 @@ set -uo pipefail
         printf '<main>\t<unknown>\t?'
     }
 
-    # __say_write_log
+    # _say_write_log
         # Purpose:
         #   Append a formatted log record to the logfile with optional rotation.
         #
@@ -241,7 +198,7 @@ set -uo pipefail
         #   - No-op when logging is disabled or no valid logfile is available.
         #   - Sanitizes message (removes ANSI, normalizes whitespace).
         #   - Adds timestamp, user, type, and caller metadata.
-        #   - Rotates logfile when size exceeds TD_LOG_MAX_BYTES.
+        #   - Rotates logfile when size exceeds SGND_LOG_MAX_BYTES.
         #   - Never fails the caller (best-effort).
         #
         # Arguments:
@@ -250,32 +207,32 @@ set -uo pipefail
         #   $3  DATE_STR (optional)
         #
         # Inputs (globals):
-        #   TD_LOGFILE_ENABLED, TD_LOG_MAX_BYTES, TD_LOG_KEEP, TD_LOG_COMPRESS
+        #   SGND_LOGFILE_ENABLED, SGND_LOG_MAX_BYTES, SGND_LOG_KEEP, SGND_LOG_COMPRESS
         #   SAY_DATE_FORMAT
         #
         # Returns:
         #   0 always.
         #
         # Usage:
-        #   __say_write_log "INFO" "Starting process" ""
+        #   _say_write_log "INFO" "Starting process" ""
         #
         # Examples:
-        #   __say_write_log "FAIL" "Connection error" "$(date)"
-    __say_write_log() {
+        #   _say_write_log "FAIL" "Connection error" "$(date)"
+    _say_write_log() {
         local type="${1^^}"
         local msg="$2"
         local date_str="$3"
 
-        : "${TD_LOGFILE_ENABLED:=0}"
-        : "${TD_LOG_MAX_BYTES:=$((25 * 1024 * 1024))}"
-        : "${TD_LOG_KEEP:=5}"
-        : "${TD_LOG_COMPRESS:=0}"
+        : "${SGND_LOGFILE_ENABLED:=0}"
+        : "${SGND_LOG_MAX_BYTES:=$((25 * 1024 * 1024))}"
+        : "${SGND_LOG_KEEP:=5}"
+        : "${SGND_LOG_COMPRESS:=0}"
 
         # Looks backwards at first glance: logging OFF → exit successfully (=no-op)
-        (( TD_LOGFILE_ENABLED )) || return 0
+        (( SGND_LOGFILE_ENABLED )) || return 0
 
         local logfile
-        logfile="$(__td_logfile)" || return 0
+        logfile="$(_sgnd_logfile)" || return 0
         [[ -n "$logfile" ]] || return 0
 
         local log_ts log_user caller_func caller_file caller_line clean_msg log_line
@@ -287,7 +244,7 @@ set -uo pipefail
         fi
 
         log_user="$(id -un 2>/dev/null || printf '%s' "${USER:-unknown}")"
-        IFS=$'\t' read -r caller_func caller_file caller_line <<< "$(__say_caller)"
+        IFS=$'\t' read -r caller_func caller_file caller_line <<< "$(_say_caller)"
 
         clean_msg="$msg"
         clean_msg="$(printf '%s' "$clean_msg" | sed -r 's/\x1B\[[0-9;]*[[:alpha:]]//g')"
@@ -301,20 +258,20 @@ set -uo pipefail
         size=$(stat -c %s "$logfile" 2>/dev/null || echo 0)
         add_bytes=$(( ${#log_line} + 1 ))   # +1 for '\n'
 
-        if (( size + add_bytes >= TD_LOG_MAX_BYTES )); then
-            __td_rotate_logs "$logfile"
+        if (( size + add_bytes >= SGND_LOG_MAX_BYTES )); then
+            _sgnd_rotate_logs "$logfile"
         fi
 
         printf '%s\n' "$log_line" >>"$logfile" 2>/dev/null || true
     }
 
-    # __td_rotate_logs
+    # _sgnd_rotate_logs
         # Purpose:
         #   Perform size-based rotation of a logfile.
         #
         # Behavior:
         #   - Renames logfile to logfile.1, shifts older files upward.
-        #   - Keeps up to TD_LOG_KEEP rotated files.
+        #   - Keeps up to SGND_LOG_KEEP rotated files.
         #   - Optionally compresses rotated files.
         #   - Recreates the active logfile.
         #
@@ -322,18 +279,18 @@ set -uo pipefail
         #   $1  LOGFILE
         #
         # Inputs (globals):
-        #   TD_LOG_MAX_BYTES, TD_LOG_KEEP, TD_LOG_COMPRESS
+        #   SGND_LOG_MAX_BYTES, SGND_LOG_KEEP, SGND_LOG_COMPRESS
         #
         # Returns:
         #   0 always.
         #
         # Usage:
-        #   __td_rotate_logs "/var/log/app.log"
+        #   _sgnd_rotate_logs "/var/log/app.log"
         #
         # Examples:
-        #   __td_rotate_logs "$logfile"
-    __td_rotate_logs() {
-            # Usage: __td_rotate_logs "/path/to/logfile"
+        #   _sgnd_rotate_logs "$logfile"
+    _sgnd_rotate_logs() {
+            # Usage: _sgnd_rotate_logs "/path/to/logfile"
             local logfile="$1"
             [[ -n "$logfile" ]] || return 0
             [[ -f "$logfile" ]] || return 0
@@ -341,11 +298,11 @@ set -uo pipefail
             # If not exceeding, do nothing (caller can pre-check; keep safe here too)
             local size
             size="$(wc -c < "$logfile" 2>/dev/null)" || return 0
-            (( size >= TD_LOG_MAX_BYTES )) || return 0
+            (( size >= SGND_LOG_MAX_BYTES )) || return 0
 
             local i src dst
             # Shift: logfile.N(.gz) -> logfile.(N+1)(.gz)
-            for (( i=TD_LOG_KEEP; i>=1; i-- )); do
+            for (( i=SGND_LOG_KEEP; i>=1; i-- )); do
                 src="${logfile}.${i}"
                 dst="${logfile}.$((i+1))"
                 [[ -f "$src" ]] && mv -f -- "$src" "$dst" 2>/dev/null || true
@@ -359,14 +316,54 @@ set -uo pipefail
             : > "$logfile" 2>/dev/null || true
 
             # Compress rotated file
-            if (( TD_LOG_COMPRESS )) && [[ -f "${logfile}.1" ]]; then
+            if (( SGND_LOG_COMPRESS )) && [[ -f "${logfile}.1" ]]; then
                 gzip -f "${logfile}.1" 2>/dev/null || true
             fi
 
             # Trim oldest beyond keep
-            rm -f -- "${logfile}.$((TD_LOG_KEEP+1))" "${logfile}.$((TD_LOG_KEEP+1)).gz" 2>/dev/null || true
+            rm -f -- "${logfile}.$((SGND_LOG_KEEP+1))" "${logfile}.$((SGND_LOG_KEEP+1)).gz" 2>/dev/null || true
     }
 
+    # _sgnd_logfile
+        # Purpose:
+        #   Resolve the effective logfile path based on configured priorities.
+        #
+        # Behavior:
+        #   - Checks SGND_LOG_PATH first, then SGND_ALT_LOGPATH.
+        #   - Uses sgnd_can_append to validate write capability.
+        #   - Returns the first usable path.
+        #
+        # Outputs:
+        #   Prints the resolved logfile path (no newline).
+        #
+        # Returns:
+        #   0 if a usable path is found
+        #   1 otherwise
+        #
+        # Usage:
+        #   logfile="$(_sgnd_logfile)" || return
+        #
+        # Examples:
+        #   if logfile="$(_sgnd_logfile)"; then
+        #       echo "Logging to $logfile"
+        #   fi
+    _sgnd_logfile() {
+        
+        # Determine logfile path according to priority:
+        # 1. SGND_LOG_PATH if set and usable
+        if [[ -n "${SGND_LOG_PATH:-}" ]] && sgnd_can_append "$SGND_LOG_PATH"; then
+            printf '%s' "$SGND_LOG_PATH"
+            return 0
+        fi
+
+        # 2. SGND_ALT_LOGPATH if set and usable
+        if [[ -n "${SGND_ALT_LOGPATH:-}" ]] && sgnd_can_append "$SGND_ALT_LOGPATH"; then
+            printf '%s' "$SGND_ALT_LOGPATH"
+            return 0
+        fi
+
+        return 1
+    }
 # --- Public API ---------------------------------------------------------------------
     # say
         # Purpose:
@@ -399,9 +396,6 @@ set -uo pipefail
         local add_date="${SAY_DATE_DEFAULT:-0}"
         local show="${SAY_SHOW_DEFAULT:-label}"
         local colorize="${SAY_COLORIZE_DEFAULT:-label}"
-
-        local writelog="${SAY_WRITELOG_DEFAULT:-0}"
-        local logfile="${LOG_FILE:-}"
 
         local explicit_type=0
         local msg=""
@@ -462,10 +456,10 @@ set -uo pipefail
 
         # EMPTY = print message only (no prefix), still eligible for logging
         if [[ "$type" == "EMPTY" ]]; then
-            if __say_should_print_console "EMPTY"; then
+            if _say_should_print_console "EMPTY"; then
                 printf '%s\n' "$msg"
             fi
-            __say_write_log "EMPTY" "$msg" ""
+            _say_write_log "EMPTY" "$msg" ""
             return 0
         fi
 
@@ -529,7 +523,7 @@ set -uo pipefail
         fi
 
         local l_len pad_lbl
-        l_len=$(td_visible_len "$lbl")
+        l_len=$(sgnd_visible_len "$lbl")
         pad_lbl=""
         if (( l_len < 8 )); then
             printf -v pad_lbl '%*s' $((8 - l_len)) ''
@@ -566,7 +560,7 @@ set -uo pipefail
         fi
 
         local v_len
-        v_len=$(td_visible_len "$fnl")
+        v_len=$(sgnd_visible_len "$fnl")
 
         local pad_col=""
         if (( v_len < prefixlength )); then
@@ -582,11 +576,11 @@ set -uo pipefail
             fnl+="$msg"
         fi
 
-        if __say_should_print_console "$type"; then
+        if _say_should_print_console "$type"; then
             printf '%s\n' "$fnl $RESET"
         fi
 
-        __say_write_log "$type" "$msg" "$date_str"
+        _say_write_log "$type" "$msg" "$date_str"
     }
 
     # -- Convenience wrappers for say() with a fixed TYPE.
@@ -611,10 +605,7 @@ set -uo pipefail
             # Examples:
             #   sayinfo "Using default configuration"
         sayinfo() {
-            if [[ ${FLAG_VERBOSE:-0} -eq 1 ]]; then
                 say INFO "$@"
-            fi
-            return 0
         }
 
         # saystart
@@ -774,15 +765,4 @@ set -uo pipefail
             fi
             return 0
         }
-    # -- Sample/demo renderers
-    say_test(){
-        sayinfo "Info message"
-        saystart "Start message"
-        saywarning "Warning message"
-        sayfail "Failure message"
-        saycancel "Cancellation message"
-        sayok "All is well"
-        sayend "Ended gracefully"
-        saydebug "Debug message"
-        justsay "Just saying"
-    }
+

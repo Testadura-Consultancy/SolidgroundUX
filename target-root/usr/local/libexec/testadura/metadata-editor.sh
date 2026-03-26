@@ -43,37 +43,37 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
 set -uo pipefail
-
 # --- Bootstrap -----------------------------------------------------------------------
-    # __framework_locator
+    # _framework_locator
         # Purpose:
         #   Locate, create, and load the SolidGroundUX bootstrap configuration.
         #
         # Behavior:
-        #   - Resolves configuration from user or system location.
-        #   - Creates configuration interactively or with defaults when missing.
-        #   - Ensures TD_FRAMEWORK_ROOT and TD_APPLICATION_ROOT are set.
+        #   - Searches user and system bootstrap configuration locations.
+        #   - Prefers the invoking user's config over the system config.
+        #   - Creates a new bootstrap config when none exists.
+        #   - Prompts for framework/application roots in interactive mode.
+        #   - Applies default values when running non-interactively.
         #   - Sources the selected configuration file.
         #
         # Outputs (globals):
-        #   TD_FRAMEWORK_ROOT
-        #   TD_APPLICATION_ROOT
+        #   SGND_FRAMEWORK_ROOT
+        #   SGND_APPLICATION_ROOT
         #
         # Returns:
         #   0   success
         #   126 configuration unreadable or invalid
-        #   127 configuration could not be created
+        #   127 configuration directory or file could not be created
         #
         # Usage:
-        #   __framework_locator || exit $?
+        #   _framework_locator || return $?
         #
         # Examples:
-        #   __framework_locator
+        #   _framework_locator
         #
         # Notes:
-        #   - Prefers user config over system config.
-        #   - Under sudo, resolves config relative to SUDO_USER.
-    __framework_locator (){
+        #   - Under sudo, configuration is resolved relative to SUDO_USER instead of /root.
+    _framework_locator (){
         local cfg_home="$HOME"
 
         if [[ $EUID -eq 0 && -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]]; then
@@ -85,7 +85,7 @@ set -uo pipefail
         local cfg=""
         local fw_root="/"
         local app_root="$fw_root"
-        local reply=""
+        local reply
 
         # Determine existing configuration
         if [[ -r "$cfg_user" ]]; then
@@ -104,15 +104,16 @@ set -uo pipefail
 
             # Interactive prompts (first run only)
             if [[ -t 0 && -t 1 ]]; then
+
                 sayinfo "SolidGroundUX bootstrap configuration"
                 sayinfo "No configuration file found."
                 sayinfo "Creating: $cfg"
 
-                printf "TD_FRAMEWORK_ROOT [/] : " > /dev/tty
+                printf "SGND_FRAMEWORK_ROOT [/] : " > /dev/tty
                 read -r reply < /dev/tty
                 fw_root="${reply:-/}"
 
-                printf "TD_APPLICATION_ROOT [/] : " > /dev/tty
+                printf "SGND_APPLICATION_ROOT [/] : " > /dev/tty
                 read -r reply < /dev/tty
                 app_root="${reply:-$fw_root}"
             fi
@@ -120,23 +121,24 @@ set -uo pipefail
             # Validate paths (must be absolute)
             case "$fw_root" in
                 /*) ;;
-                *) sayfail "ERR: TD_FRAMEWORK_ROOT must be an absolute path"; return 126 ;;
+                *) sayfail "ERR: SGND_FRAMEWORK_ROOT must be an absolute path"; return 126 ;;
             esac
 
             case "$app_root" in
                 /*) ;;
-                *) sayfail "ERR: TD_APPLICATION_ROOT must be an absolute path"; return 126 ;;
+                *) sayfail "ERR: SGND_APPLICATION_ROOT must be an absolute path"; return 126 ;;
             esac
 
             # Create configuration file
             mkdir -p "$(dirname "$cfg")" || return 127
 
+            # write cfg file 
             {
                 printf '%s\n' "# SolidGroundUX bootstrap configuration"
                 printf '%s\n' "# Auto-generated on first run"
                 printf '\n'
-                printf 'TD_FRAMEWORK_ROOT=%q\n' "$fw_root"
-                printf 'TD_APPLICATION_ROOT=%q\n' "$app_root"
+                printf 'SGND_FRAMEWORK_ROOT=%q\n' "$fw_root"
+                printf 'SGND_APPLICATION_ROOT=%q\n' "$app_root"
             } > "$cfg" || return 127
 
             saydebug "Created bootstrap cfg: $cfg"
@@ -147,58 +149,60 @@ set -uo pipefail
             # shellcheck source=/dev/null
             source "$cfg"
 
-            : "${TD_FRAMEWORK_ROOT:=/}"
-            : "${TD_APPLICATION_ROOT:=$TD_FRAMEWORK_ROOT}"
+            : "${SGND_FRAMEWORK_ROOT:=/}"
+            : "${SGND_APPLICATION_ROOT:=$SGND_FRAMEWORK_ROOT}"
         else
             sayfail "Cannot read bootstrap cfg: $cfg"
             return 126
         fi
 
-        saydebug "Bootstrap cfg loaded: $cfg, TD_FRAMEWORK_ROOT=$TD_FRAMEWORK_ROOT, TD_APPLICATION_ROOT=$TD_APPLICATION_ROOT"
+        saydebug "Bootstrap cfg loaded: $cfg, SGND_FRAMEWORK_ROOT=$SGND_FRAMEWORK_ROOT, SGND_APPLICATION_ROOT=$SGND_APPLICATION_ROOT"
+
     }
 
-    # __load_bootstrapper
+    # _load_bootstrapper
         # Purpose:
         #   Resolve and source the framework bootstrap library.
         #
         # Behavior:
         #   - Calls __framework_locator to establish framework roots.
-        #   - Resolves td-bootstrap.sh path based on TD_FRAMEWORK_ROOT.
-        #   - Verifies readability and sources the bootstrap library.
+        #   - Derives the sgnd-bootstrap.sh path from SGND_FRAMEWORK_ROOT.
+        #   - Verifies that the bootstrap library is readable.
+        #   - Sources sgnd-bootstrap.sh into the current shell.
         #
         # Inputs (globals):
-        #   TD_FRAMEWORK_ROOT
+        #   SGND_FRAMEWORK_ROOT
         #
         # Returns:
         #   0   success
         #   126 bootstrap library unreadable
         #
         # Usage:
-        #   __load_bootstrapper || exit $?
+        #   _load_bootstrapper || return $?
         #
         # Examples:
-        #   __load_bootstrapper
+        #   _load_bootstrapper
         #
         # Notes:
-        #   - Must be called before any framework-dependent logic.
-    __load_bootstrapper(){
+        #   - This is executable-level startup logic, not reusable framework behavior.
+    _load_bootstrapper(){
         local bootstrap=""
 
-        __framework_locator || return $?
+        _framework_locator || return $?
 
-        if [[ "$TD_FRAMEWORK_ROOT" == "/" ]]; then
-            bootstrap="/usr/local/lib/testadura/common/td-bootstrap.sh"
+        if [[ "$SGND_FRAMEWORK_ROOT" == "/" ]]; then
+            bootstrap="/usr/local/lib/testadura/common/sgnd-bootstrap.sh"
         else
-            bootstrap="${TD_FRAMEWORK_ROOT%/}/usr/local/lib/testadura/common/td-bootstrap.sh"
+            bootstrap="${SGND_FRAMEWORK_ROOT%/}/usr/local/lib/testadura/common/sgnd-bootstrap.sh"
         fi
 
         [[ -r "$bootstrap" ]] || {
             printf "FATAL: Cannot read bootstrap: %s\n" "$bootstrap" >&2
             return 126
         }
-
+        
         saydebug "Loading $bootstrap"
-
+            
         # shellcheck source=/dev/null
         source "$bootstrap"
     }
@@ -219,9 +223,9 @@ set -uo pipefail
 
     # Minimal UI
     saystart()   { printf '%sSTART%s\t%s\n' "${MSG_CLR_STRT-}" "${RESET-}" "$*" >&2; }
-    sayinfo()    {
+    sayinfo()    { 
         if (( ${FLAG_VERBOSE:-0} )); then
-            printf '%sINFO%s \t%s\n' "${MSG_CLR_INFO-}" "${RESET-}" "$*" >&2
+            printf '%sINFO%s \t%s\n' "${MSG_CLR_INFO-}" "${RESET-}" "$*" >&2; 
         fi
     }
     sayok()      { printf '%sOK%s   \t%s\n' "${MSG_CLR_OK-}"   "${RESET-}" "$*" >&2; }
@@ -229,31 +233,37 @@ set -uo pipefail
     sayfail()    { printf '%sFAIL%s \t%s\n' "${MSG_CLR_FAIL-}" "${RESET-}" "$*" >&2; }
     saydebug() {
         if (( ${FLAG_DEBUG:-0} )); then
-            printf '%sDEBUG%s \t%s\n' "${MSG_CLR_DEBUG-}" "${RESET-}" "$*" >&2
+            printf '%sDEBUG%s \t%s\n' "${MSG_CLR_DEBUG-}" "${RESET-}" "$*" >&2;
         fi
     }
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
+    
+# --- Script metadata (identity) ------------------------------------------------------
+    SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
+    SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"
+    SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
+    SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
 
 # --- Script metadata (identity) ------------------------------------------------------
-    TD_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
-    TD_SCRIPT_DIR="$(cd -- "$(dirname -- "$TD_SCRIPT_FILE")" && pwd)"
-    TD_SCRIPT_BASE="$(basename -- "$TD_SCRIPT_FILE")"
-    TD_SCRIPT_NAME="${TD_SCRIPT_BASE%.sh}"
-    TD_SCRIPT_TITLE="Metadata editor"
-    TD_SCRIPT_DESC="Reads and writes fields in script comments"
+    SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
+    SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"
+    SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
+    SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
+    SGND_SCRIPT_TITLE="Metadata editor"
+    SGND_SCRIPT_DESC="Reads and writes fields in script comments"
 
 # --- Script metadata (framework integration) -----------------------------------------
-    # TD_USING
-        # Libraries to source from TD_COMMON_LIB.
-        # These are loaded automatically by td_bootstrap AFTER core libraries.
-    TD_USING=(
-        td-comment-parser.sh
-        td-datatable.sh
+    # SGND_USING
+        # Libraries to source from SGND_COMMON_LIB.
+        # These are loaded automatically by sgnd_bootstrap AFTER core libraries.
+    SGND_USING=(
+        sgnd-comment-parser.sh
+        sgnd-datatable.sh
     )
 
-    # TD_ARGS_SPEC
-    TD_ARGS_SPEC=(
+    # SGND_ARGS_SPEC
+    SGND_ARGS_SPEC=(
         "file|f|value|VAL_FILE|Exact filename or glob mask to process|"
         "folder||value|VAL_FOLDER|Folder whose .sh files should be processed|"
         "section|s|enum|VAL_SECTION|Header section to update|Metadata,Attribution"
@@ -267,8 +277,8 @@ set -uo pipefail
         "bumpminor||flag|FLAG_BUMPMINOR|Bump minor version and refresh checksum/build metadata|"
     )
 
-    # TD_SCRIPT_EXAMPLES
-    TD_SCRIPT_EXAMPLES=(
+    # SGND_SCRIPT_EXAMPLES
+    SGND_SCRIPT_EXAMPLES=(
         "Interactive on one file:"
         "  metadata-editor.sh --file ./my-script.sh"
         ""
@@ -291,20 +301,20 @@ set -uo pipefail
         "  metadata-editor.sh --folder ./scripts --bumpmajor"
     )
 
-    # TD_SCRIPT_GLOBALS
-    TD_SCRIPT_GLOBALS=(
+    # SGND_SCRIPT_GLOBALS
+    SGND_SCRIPT_GLOBALS=(
     )
 
-    # TD_STATE_VARIABLES
-    TD_STATE_VARIABLES=(
+    # SGND_STATE_VARIABLES
+    SGND_STATE_VARIABLES=(
     )
 
-    # TD_ON_EXIT_HANDLERS
-    TD_ON_EXIT_HANDLERS=(
+    # SGND_ON_EXIT_HANDLERS
+    SGND_ON_EXIT_HANDLERS=(
     )
 
     # State persistence is opt-in.
-    TD_STATE_SAVE=0
+    SGND_STATE_SAVE=0
 
 # --- Local script Declarations -------------------------------------------------------
     META_SCHEMA="section|field|value"
@@ -322,7 +332,7 @@ set -uo pipefail
         # Behavior:
         #   - Reads rows from the supplied td-datatable.
         #   - Filters rows by the requested section name.
-        #   - Prints each matching field/value pair using td_print_labeledvalue().
+        #   - Prints each matching field/value pair using sgnd_print_labeledvalue().
         #
         # Arguments:
         #   $1  SCHEMA
@@ -353,18 +363,18 @@ set -uo pipefail
         local value=""
         local lw=15
 
-        row_count="$(td_dt_row_count "$table_name")" || return 1
+        row_count="$(sgnd_dt_row_count "$table_name")" || return 1
 
-        td_print
-        td_print_sectionheader "$wanted_section" --border "${LN_H}" --padleft 2
+        sgnd_print
+        sgnd_print_sectionheader "$wanted_section" --border "${LN_H}" --padleft 2
         for (( i=0; i<row_count; i++ )); do
-            section="$(td_dt_get "$schema" "$table_name" "$i" "section")" || return 1
+            section="$(sgnd_dt_get "$schema" "$table_name" "$i" "section")" || return 1
             [[ "$section" == "$wanted_section" ]] || continue
 
-            field="$(td_dt_get "$schema" "$table_name" "$i" "field")" || return 1
-            value="$(td_dt_get "$schema" "$table_name" "$i" "value")" || return 1
+            field="$(sgnd_dt_get "$schema" "$table_name" "$i" "field")" || return 1
+            value="$(sgnd_dt_get "$schema" "$table_name" "$i" "value")" || return 1
 
-            td_print_labeledvalue "$field" "$value" --pad 3 --labelwidth "$lw"
+            sgnd_print_labeledvalue "$field" "$value" --pad 3 --labelwidth "$lw"
         done
     }
 
@@ -393,14 +403,14 @@ set -uo pipefail
         #   __show_current_metadata
     __show_current_metadata(){
         local lw=
-        td_print
-        td_print_sectionheader "Current data" --border "${LN_H}" --padleft 2
+        sgnd_print
+        sgnd_print_sectionheader "Current data" --border "${LN_H}" --padleft 2
 
         __print_section_labeledvalues "$META_SCHEMA" META_ROWS "Metadata"
         __print_section_labeledvalues "$META_SCHEMA" META_ROWS "Attribution"
 
-        td_print
-        td_print_sectionheader --border "${LN_H}" --padleft 0
+        sgnd_print
+        sgnd_print_sectionheader --border "${LN_H}" --padleft 0
     }
 
     # __show_pending_value_buffer
@@ -441,33 +451,33 @@ set -uo pipefail
         local prev_section=""
         local any_changes=0
 
-        td_print
-        td_print_sectionheader "Summary" --border "${LN_H}" --padleft 2
+        sgnd_print
+        sgnd_print_sectionheader "Summary" --border "${LN_H}" --padleft 2
 
         for (( i=0; i<${#META_ROWS[@]}; i++ )); do
-            section="$(td_dt_get "$META_SCHEMA" META_ROWS "$i" "section")" || return 1
-            field="$(td_dt_get "$META_SCHEMA" META_ROWS "$i" "field")" || return 1
-            old_value="$(td_dt_get "$META_SCHEMA" META_ROWS "$i" "value")" || return 1
+            section="$(sgnd_dt_get "$META_SCHEMA" META_ROWS "$i" "section")" || return 1
+            field="$(sgnd_dt_get "$META_SCHEMA" META_ROWS "$i" "field")" || return 1
+            old_value="$(sgnd_dt_get "$META_SCHEMA" META_ROWS "$i" "value")" || return 1
             new_value="${in_buffer[$i]-}"
 
             [[ "$new_value" == "$old_value" ]] && continue
 
             if [[ "$section" != "$prev_section" ]]; then
-                td_print
-                td_print_sectionheader "$section" --border "${LN_H}" --padend 0 --padleft 2
+                sgnd_print
+                sgnd_print_sectionheader "$section" --border "${LN_H}" --padend 0 --padleft 2
                 prev_section="$section"
             fi
 
-            td_print_labeledvalue "$field" "" --pad 3 --labelwidth 20
+            sgnd_print_labeledvalue "$field" "" --pad 3 --labelwidth 20
             (( any_changes++ ))
         done
 
         if (( any_changes == 0 )); then
-            td_print
-            td_print_labeledvalue "No changes" "" --pad 3
+            sgnd_print
+            sgnd_print_labeledvalue "No changes" "" --pad 3
         fi
 
-        td_print_sectionheader --border "${LN_H}"
+        sgnd_print_sectionheader --border "${LN_H}"
     }
 
 # --- Local script functions ----------------------------------------------------------
@@ -718,8 +728,8 @@ set -uo pipefail
     __get_metadata() {
         META_ROWS=()
 
-        td_header_load_section_to_dt "$current_script" "Metadata" "$META_SCHEMA" META_ROWS || return 1
-        td_header_load_section_to_dt "$current_script" "Attribution" "$META_SCHEMA" META_ROWS || return 1
+        sgnd_header_load_section_to_dt "$current_script" "Metadata" "$META_SCHEMA" META_ROWS || return 1
+        sgnd_header_load_section_to_dt "$current_script" "Attribution" "$META_SCHEMA" META_ROWS || return 1
     }
 
     # __resolve_bump_mode
@@ -879,7 +889,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Resolves target files from --file or --folder.
-        #   - Applies td_header_set_field() to each target.
+        #   - Applies sgnd_header_set_field() to each target.
         #   - Continues across failures and reports a summary.
         #
         # Inputs (globals):
@@ -905,7 +915,7 @@ set -uo pipefail
         __resolve_targets || return 1
 
         for file in "${TARGET_FILES[@]}"; do
-            if td_header_set_field "$file" "$VAL_SECTION" "$VAL_FIELD" "$VAL_VALUE"; then
+            if sgnd_header_set_field "$file" "$VAL_SECTION" "$VAL_FIELD" "$VAL_VALUE"; then
                 sayok "Updated [$VAL_SECTION] $VAL_FIELD in $file"
                 (( changed++ ))
             else
@@ -950,7 +960,7 @@ set -uo pipefail
             return 0
         fi
 
-        td_header_bump_version "$file" "$mode"
+        sgnd_header_bump_version "$file" "$mode"
     }
 
     # __bump_version_files
@@ -1016,8 +1026,8 @@ set -uo pipefail
         local new_value=""
 
         for (( i=0; i<${#META_ROWS[@]}; i++ )); do
-            field="$(td_dt_get "$META_SCHEMA" META_ROWS "$i" "field")" || return 1
-            old_value="$(td_dt_get "$META_SCHEMA" META_ROWS "$i" "value")" || return 1
+            field="$(sgnd_dt_get "$META_SCHEMA" META_ROWS "$i" "field")" || return 1
+            old_value="$(sgnd_dt_get "$META_SCHEMA" META_ROWS "$i" "value")" || return 1
             new_value="${in_buffer[$i]-}"
 
             [[ "$new_value" == "$old_value" ]] && continue
@@ -1063,7 +1073,7 @@ set -uo pipefail
         out_buffer=()
 
         for (( i=0; i<${#META_ROWS[@]}; i++ )); do
-            value="$(td_dt_get "$META_SCHEMA" META_ROWS "$i" "value")" || return 1
+            value="$(sgnd_dt_get "$META_SCHEMA" META_ROWS "$i" "value")" || return 1
             out_buffer+=( "$value" )
         done
     }
@@ -1117,16 +1127,16 @@ set -uo pipefail
         local prev_section=""
         local new_section=1
 
-        td_print "Enter new values for the selected fields"
+        sgnd_print "Enter new values for the selected fields"
 
         for (( i=0; i<${#META_ROWS[@]}; i++ )); do
-            section="$(td_dt_get "$META_SCHEMA" META_ROWS "$i" "section")" || return 1
+            section="$(sgnd_dt_get "$META_SCHEMA" META_ROWS "$i" "section")" || return 1
             if [[ "$section" != "$prev_section" ]]; then
                 prev_section="$section"
                 new_section=1
             fi
 
-            field="$(td_dt_get "$META_SCHEMA" META_ROWS "$i" "field")" || return 1
+            field="$(sgnd_dt_get "$META_SCHEMA" META_ROWS "$i" "field")" || return 1
             current_value="${buffer_ref[$i]-}"
 
             __field_is_selected "$field" || continue
@@ -1136,8 +1146,8 @@ set -uo pipefail
             fi
 
             if [[ "$new_section" == 1 ]]; then
-                td_print
-                td_print_sectionheader "$section" --border "${LN_H}" --padend 0 --padleft 2
+                sgnd_print
+                sgnd_print_sectionheader "$section" --border "${LN_H}" --padend 0 --padleft 2
                 new_section=0
             fi
 
@@ -1145,8 +1155,8 @@ set -uo pipefail
             buffer_ref[$i]="$new_value"
         done
 
-        td_print
-        td_print_sectionheader --border "${LN_H}"
+        sgnd_print
+        sgnd_print_sectionheader --border "${LN_H}"
     }
 
     # __ask_apply_first_answers_to_all
@@ -1158,7 +1168,11 @@ set -uo pipefail
         #   1  no
         #   2  cancel
     __ask_apply_first_answers_to_all() {
-        ask_noyes "Apply first file's answers to all?"
+        ask_decision \
+            --label "Apply first file's answers to all?" \
+            --choices "NO|N,YES|Y" \
+            --default "NO"
+
         return $?
     }
 
@@ -1168,7 +1182,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Displays the interactive action menu.
-        #   - Reads the user's choice through td_choose().
+        #   - Reads the user's choice through ask_choose().
         #   - Maps the accepted choice to an action token.
         #
         # Arguments:
@@ -1198,14 +1212,14 @@ set -uo pipefail
         local -n out_action="$1"
         local choice=""
 
-        td_print
-        td_print_sectionheader "Action" --border "${LN_H}" --padleft 2
-        td_print_labeledvalue --label "1" --value "Edit fields" --pad 3 --labelwidth 3
-        td_print_labeledvalue --label "2" --value "Bump version" --pad 3 --labelwidth 3
-        td_print_labeledvalue --label "Q" --value "Cancel" --pad 3 --labelwidth 3
-        td_print
+        sgnd_print
+        sgnd_print_sectionheader "Action" --border "${LN_H}" --padleft 2
+        sgnd_print_labeledvalue --label "1" --value "Edit fields" --pad 3 --labelwidth 3
+        sgnd_print_labeledvalue --label "2" --value "Bump version" --pad 3 --labelwidth 3
+        sgnd_print_labeledvalue --label "Q" --value "Cancel" --pad 3 --labelwidth 3
+        sgnd_print
 
-        td_choose --label "Choose" --choices "1,2,Q" --var choice
+        ask_choose --label "Choose" --choices "1,2,Q" --var choice
 
         case "${choice^^}" in
             1) out_action="edit" ;;
@@ -1251,15 +1265,15 @@ set -uo pipefail
         local -n out_mode="$1"
         local choice=""
 
-        td_print
-        td_print_sectionheader "Version update" --border "${LN_H}" --padleft 2
-        td_print_labeledvalue "0" "Refresh build/checksum" --pad 3 --labelwidth 4
-        td_print_labeledvalue "1" "Major" --pad 3 --labelwidth 4
-        td_print_labeledvalue "2" "Minor" --pad 3 --labelwidth 4
-        td_print_labeledvalue "Q" "Cancel" --pad 3 --labelwidth 4
-        td_print
+        sgnd_print
+        sgnd_print_sectionheader "Version update" --border "${LN_H}" --padleft 2
+        sgnd_print_labeledvalue "0" "Refresh build/checksum" --pad 3 --labelwidth 4
+        sgnd_print_labeledvalue "1" "Major" --pad 3 --labelwidth 4
+        sgnd_print_labeledvalue "2" "Minor" --pad 3 --labelwidth 4
+        sgnd_print_labeledvalue "Q" "Cancel" --pad 3 --labelwidth 4
+        sgnd_print
 
-        td_choose --label "Choose" --choices "0, 1,2,Q" --var choice
+        ask_choose --label "Choose" --choices "0, 1,2,Q" --var choice
 
         case "${choice^^}" in
             0) out_mode="none" ;;
@@ -1312,9 +1326,9 @@ set -uo pipefail
         local changed=0
 
         for (( i=0; i<${#META_ROWS[@]}; i++ )); do
-            section="$(td_dt_get "$META_SCHEMA" META_ROWS "$i" "section")" || return 1
-            field="$(td_dt_get "$META_SCHEMA" META_ROWS "$i" "field")" || return 1
-            old_value="$(td_dt_get "$META_SCHEMA" META_ROWS "$i" "value")" || return 1
+            section="$(sgnd_dt_get "$META_SCHEMA" META_ROWS "$i" "section")" || return 1
+            field="$(sgnd_dt_get "$META_SCHEMA" META_ROWS "$i" "field")" || return 1
+            old_value="$(sgnd_dt_get "$META_SCHEMA" META_ROWS "$i" "value")" || return 1
             new_value="${in_buffer[$i]-}"
 
             [[ "$new_value" == "$old_value" ]] && continue
@@ -1325,7 +1339,7 @@ set -uo pipefail
                 continue
             fi
 
-            if td_header_set_field "$current_script" "$section" "$field" "$new_value"; then
+            if sgnd_header_set_field "$current_script" "$section" "$field" "$new_value"; then
                 (( changed++ ))
             else
                 rc=$?
@@ -1455,7 +1469,7 @@ set -uo pipefail
             echo
 
             mapfile -t changed_fields < <(__collect_changed_fields value_buffer) || return 1
-            field_list="$(td_join ", " "${changed_fields[@]}")"
+            field_list="$(sgnd_join ", " "${changed_fields[@]}")"
 
             if (( ${#changed_fields[@]} == 0 )); then
                 field_list="(no changes)"
@@ -1541,7 +1555,7 @@ set -uo pipefail
                 fi
 
                 mapfile -t changed_fields < <(__collect_changed_fields io_buffer) || return 1
-                field_list="$(td_join ", " "${changed_fields[@]}")"
+                field_list="$(sgnd_join ", " "${changed_fields[@]}")"
 
                 if (( ${#changed_fields[@]} == 0 )); then
                     field_list="(no changes)"
@@ -1603,14 +1617,14 @@ set -uo pipefail
         first_file="${TARGET_FILES[0]}"
         local lw=15
 
-        td_print
-        td_print_sectionheader "Target" --border "${LN_H}" --padleft 2
-        td_print_labeledvalue "First file" "$first_file" --pad 3 --labelwidth "$lw"
+        sgnd_print
+        sgnd_print_sectionheader "Target" --border "${LN_H}" --padleft 2
+        sgnd_print_labeledvalue "First file" "$first_file" --pad 3 --labelwidth "$lw"
 
         if (( ${#TARGET_FILES[@]} > 1 )); then
-            td_print_labeledvalue "File count" "${#TARGET_FILES[@]}" --pad 3 --labelwidth "$lw"
+            sgnd_print_labeledvalue "File count" "${#TARGET_FILES[@]}" --pad 3 --labelwidth "$lw"
 
-            td_print_sectionheader --border "${LN_H}"
+            sgnd_print_sectionheader --border "${LN_H}"
             __ask_apply_first_answers_to_all
             rc=$?
             case "$rc" in
@@ -1678,7 +1692,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Loads the framework bootstrapper.
-        #   - Runs td_bootstrap() and builtin argument handling.
+        #   - Runs sgnd_bootstrap() and builtin argument handling.
         #   - Prints the title bar and updates run-mode state.
         #   - Validates auto-mode and bump-mode arguments.
         #   - Dispatches to auto update mode, version metadata update mode,
@@ -1693,25 +1707,34 @@ set -uo pipefail
         # Examples:
         #   main "$@"
     main() {
-        local rc=0
-
         # -- Bootstrap
-        __load_bootstrapper || exit $?
+            local rc=0
 
-        td_bootstrap -- "$@"
-        rc=$?
+            _load_bootstrapper || exit $?            
 
-        saydebug "After bootstrap: $rc"
-        (( rc != 0 )) && exit "$rc"
+            # Recognized switches:
+            #     --state      -> enable saving state variables 
+            #     --autostate  -> enable state support and auto-save SGND_STATE_VARIABLES on exit
+            #     --needroot   -> restart script if not root
+            #     --cannotroot -> exit script if root
+            #     --log        -> enable file logging
+            #     --console    -> enable console logging
+            # Example:
+            #   sgnd_bootstrap --state --needroot -- "$@"
+            sgnd_bootstrap -- "$@"
+            rc=$?
 
+            saydebug "After bootstrap: $rc"
+            (( rc != 0 )) && exit "$rc"
+                        
         # -- Handle builtin arguments
-        saydebug "Calling builtinarg handler"
-        td_builtinarg_handler
-        saydebug "Exited builtinarg handler"
+            saydebug "Calling builtinarg handler"
+            sgnd_builtinarg_handler
+            saydebug "Exited builtinarg handler"
 
         # -- UI
-        td_update_runmode
-        td_print_titlebar
+            sgnd_update_runmode
+            sgnd_print_titlebar
 
         # -- Main script logic
         __resolve_bump_mode || exit 2
@@ -1751,5 +1774,5 @@ set -uo pipefail
         __interactive_edit_files || exit $?
     }
 
-    # Entrypoint: td_bootstrap will split framework args from script args.
+    # Entrypoint: sgnd_bootstrap will split framework args from script args.
     main "$@"

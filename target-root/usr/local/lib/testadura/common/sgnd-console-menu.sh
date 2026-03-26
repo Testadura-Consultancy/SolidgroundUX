@@ -43,8 +43,8 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
 set -uo pipefail
-# --- Library guard -------------------------------------------------------------------
-    # __td_lib_guard
+# --- Library guard ------------------------------------------------------------------
+    # _sgnd_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
         #
@@ -59,48 +59,32 @@ set -uo pipefail
         #   $0
         #
         # Outputs (globals):
-        #   TD_<MODULE>_LOADED
+        #   SGND_<MODULE>_LOADED
         #
         # Returns:
         #   0 if already loaded or successfully initialized.
         #   Exits with code 2 if executed instead of sourced.
-        #
-        # Usage:
-        #   __td_lib_guard
-        #
-        # Examples:
-        #   # Typical usage at top of library file
-        #   __td_lib_guard
-        #   unset -f __td_lib_guard
-        #
-        # Notes:
-        #   - Guard variable is derived dynamically (e.g. ui-glyphs.sh → TD_UI_GLYPHS_LOADED).
-        #   - Safe under `set -u` due to indirect expansion with default.
-    __td_lib_guard() {
+    _sgnd_lib_guard() {
         local lib_base
         local guard
 
-        lib_base="$(basename "${BASH_SOURCE[0]}")"
-        lib_base="${lib_base%.sh}"
+        lib_base="$(basename "${BASH_SOURCE[0]}" .sh)"
         lib_base="${lib_base//-/_}"
-        guard="TD_${lib_base^^}_LOADED"
+        guard="SGND_${lib_base^^}_LOADED"
 
-        # Refuse to execute (library only)
         [[ "${BASH_SOURCE[0]}" != "$0" ]] || {
-            echo "This is a library; source it, do not execute it: ${BASH_SOURCE[0]}" >&2
+            printf 'This is a library; source it, do not execute it: %s\n' "${BASH_SOURCE[0]}" >&2
             exit 2
         }
 
-        # Load guard (safe under set -u)
         [[ -n "${!guard-}" ]] && return 0
         printf -v "$guard" '1'
     }
 
-    __td_lib_guard
-    unset -f __td_lib_guard
+    _sgnd_lib_guard
+    unset -f _sgnd_lib_guard
 
-    td_module_init_metadata "${BASH_SOURCE[0]}"
-
+    sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Label and status formatting -----------------------------------------------------
     # __sgnd_console_toggleword
@@ -142,14 +126,14 @@ set -uo pipefail
         local suffix=""
 
         if (( state )); then
-            word_style="$(td_sgr "$onclr" "$FX_BOLD")"
-            key_style="$(td_sgr "$onclr" "$FX_BOLD" "$FX_UNDERLINE")"
+            word_style="$(sgnd_sgr "$onclr" "$FX_BOLD")"
+            key_style="$(sgnd_sgr "$onclr" "$FX_BOLD" "$FX_UNDERLINE")"
         else
             if [[ "$word" == "DRYRUN" ]]; then
                 word="COMMIT(D)"
             fi
-            word_style="$(td_sgr "$offclr")"
-            key_style="$(td_sgr "$offclr" "$FX_BOLD" "$FX_UNDERLINE")"
+            word_style="$(sgnd_sgr "$offclr")"
+            key_style="$(sgnd_sgr "$offclr" "$FX_BOLD" "$FX_UNDERLINE")"
         fi
 
         prefix="${word%%"$hotkey"*}"
@@ -188,9 +172,9 @@ set -uo pipefail
         local offclr="${3:-$DARK_SILVER}"
 
         if (( value )); then
-            printf '%sOn%s' "$(td_sgr "$onclr")" "$RESET"
+            printf '%sOn%s' "$(sgnd_sgr "$onclr")" "$RESET"
         else
-            printf '%sOff%s' "$(td_sgr "$offclr")" "$RESET"
+            printf '%sOff%s' "$(sgnd_sgr "$offclr")" "$RESET"
         fi
     }
 
@@ -260,8 +244,8 @@ set -uo pipefail
         # Returns:
         #   0 always
     __sgnd_console_label_logfile() {
-        : "${TD_LOGFILE_ENABLED:=0}"
-        printf 'Logfile: %s' "$(__sgnd_console_onoff "$TD_LOGFILE_ENABLED")"
+        : "${SGND_LOGFILE_ENABLED:=0}"
+        printf 'Logfile: %s' "$(__sgnd_console_onoff "$SGND_LOGFILE_ENABLED")"
     }
 
 # --- Builtin actions -----------------------------------------------------------------
@@ -317,7 +301,7 @@ set -uo pipefail
         # Behavior:
         #   - Flips FLAG_DEBUG between 0 and 1.
         #   - Emits an informational message reflecting the new state.
-        #   - Calls td_update_runmode so framework UI/debug state stays synchronized.
+        #   - Calls sgnd_update_runmode so framework UI/debug state stays synchronized.
         #
         # Returns:
         #   0 always
@@ -331,7 +315,7 @@ set -uo pipefail
             FLAG_DEBUG=1
             sayinfo "Debug enabled"
         fi
-        td_update_runmode
+        sgnd_update_runmode
     }
 
     # __sgnd_console_toggle_verbose
@@ -361,19 +345,19 @@ set -uo pipefail
         #   Toggle logfile output for the current session.
         #
         # Behavior:
-        #   - Flips TD_LOGFILE_ENABLED between 0 and 1.
+        #   - Flips SGND_LOGFILE_ENABLED between 0 and 1.
         #   - Emits an informational message reflecting the new state.
         #
         # Returns:
         #   0 always
     __sgnd_console_toggle_logfile() {
-        : "${TD_LOGFILE_ENABLED:=0}"
+        : "${SGND_LOGFILE_ENABLED:=0}"
 
-        if (( TD_LOGFILE_ENABLED )); then
-            TD_LOGFILE_ENABLED=0
+        if (( SGND_LOGFILE_ENABLED )); then
+            SGND_LOGFILE_ENABLED=0
             sayinfo "Logfile disabled"
         else
-            TD_LOGFILE_ENABLED=1
+            SGND_LOGFILE_ENABLED=1
             sayinfo "Logfile enabled"
         fi
     }
@@ -465,7 +449,7 @@ set -uo pipefail
 
         for (( visible_i=0; visible_i<visible_count; visible_i++ )); do
             row_index="${SGND_VISIBLE_ITEM_INDEXES[$visible_i]}"
-            group_key="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" group)"
+            group_key="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" group)"
             item_lines="$(__sgnd_console_measure_item_lines "$row_index")"
 
             needed_lines="$item_lines"
@@ -530,20 +514,20 @@ set -uo pipefail
         local wrapped_count=0
         local line=""
 
-        desc="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" desc)"
+        desc="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" desc)"
 
         if [[ -z "$desc" ]]; then
             printf '1\n'
             return 0
         fi
 
-        term_width="$(td_terminal_width)"
+        term_width="$(sgnd_terminal_width)"
         desc_width=$(( term_width - tpad - left_width_max - gap ))
         (( desc_width < 20 )) && desc_width=20
 
         while IFS= read -r line; do
             wrapped_count=$(( wrapped_count + 1 ))
-        done < <(td_wrap_words --width "$desc_width" --text "$desc")
+        done < <(sgnd_wrap_words --width "$desc_width" --text "$desc")
 
         (( wrapped_count < 1 )) && wrapped_count=1
         printf '%s\n' "$wrapped_count"
@@ -602,22 +586,22 @@ set -uo pipefail
         SGND_VISIBLE_ITEM_INDEXES=()
 
         __sgnd_console_collect_group_render_indexes
-        item_row_count="$(td_dt_row_count SGND_ITEM_ROWS)"
+        item_row_count="$(sgnd_dt_row_count SGND_ITEM_ROWS)"
 
         for gi in "${SGND_GROUP_RENDER_INDEXES[@]}"; do
-            group_builtin="$(td_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$gi" builtin)"
+            group_builtin="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$gi" builtin)"
             (( group_builtin )) && continue
 
-            group_key="$(td_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$gi" key)"
+            group_key="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$gi" key)"
 
             for (( ii=0; ii<item_row_count; ii++ )); do
-                item_group="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" group)"
+                item_group="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" group)"
                 [[ "$item_group" == "$group_key" ]] || continue
 
-                item_builtin="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" builtin)"
+                item_builtin="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" builtin)"
                 (( item_builtin )) && continue
 
-                item_state="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" visible)"
+                item_state="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" visible)"
                 case "$item_state" in
                     1|2)
                         SGND_VISIBLE_ITEM_INDEXES+=("$ii")
@@ -651,20 +635,20 @@ set -uo pipefail
         local width=0
         local max_width=0
 
-        row_count="$(td_dt_row_count SGND_ITEM_ROWS)"
+        row_count="$(sgnd_dt_row_count SGND_ITEM_ROWS)"
 
         for (( i=0; i<row_count; i++ )); do
-            builtin="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" builtin)"
+            builtin="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" builtin)"
 
             if (( builtin )); then
-                display_key="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" key)"
+                display_key="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" key)"
             else
                 display_key="$(__sgnd_console_get_visible_display_number "$i" 2>/dev/null)" || continue
             fi
 
-            label="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" label)"
+            label="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" label)"
             left_text="${display_key}) ${label}"
-            width="$(td_visible_length "$left_text")"
+            width="$(sgnd_visible_length "$left_text")"
 
             (( width > max_width )) && max_width="$width"
         done
@@ -721,7 +705,7 @@ set -uo pipefail
 
         for (( i=last_visible_pos + 1; i<${#SGND_VISIBLE_ITEM_INDEXES[@]}; i++ )); do
             row_index="${SGND_VISIBLE_ITEM_INDEXES[$i]}"
-            item_group="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" group)"
+            item_group="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" group)"
 
             if [[ "$item_group" == "$group_key" ]]; then
                 return 0
@@ -785,11 +769,11 @@ set -uo pipefail
 
         SGND_GROUP_RENDER_INDEXES=()
 
-        row_count="$(td_dt_row_count SGND_GROUP_ROWS)"
+        row_count="$(sgnd_dt_row_count SGND_GROUP_ROWS)"
 
         for (( i=0; i<row_count; i++ )); do
-            builtin="$(td_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$i" builtin)"
-            ord="$(td_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$i" ord)"
+            builtin="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$i" builtin)"
+            ord="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$i" ord)"
             : "${ord:=1000}"
 
             # sort key = builtin bucket | ord | original row index
@@ -856,10 +840,10 @@ set -uo pipefail
         __sgnd_console_render_menu_body_paged
 
         for idx in "${SGND_GROUP_RENDER_INDEXES[@]}"; do
-            builtin="$(td_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$idx" builtin)"
+            builtin="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$idx" builtin)"
             (( builtin )) || continue
 
-            group_key="$(td_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$idx" key)"
+            group_key="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$idx" key)"
             __sgnd_console_render_group "$group_key"
         done
 
@@ -880,13 +864,13 @@ set -uo pipefail
         (( ! SGND_CLEAR_ONRENDER )) || clear
         
         local width=80
-        width="$(td_terminal_width)"
+        width="$(sgnd_terminal_width)"
 
-        td_print_sectionheader --border "$DL_H" --maxwidth "$width"
-        td_print --pad 4 "$(td_sgr "$WHITE" "" "$FX_BOLD")${SGND_CONSOLE_TITLE}${RESET}"
-        td_print --pad 4 "$(td_sgr "$SILVER" "" "$FX_ITALIC")${SGND_CONSOLE_DESC}"
-        td_print_sectionheader --border "$LN_H" --maxwidth "$width"
-        td_print
+        sgnd_print_sectionheader --border "$DL_H" --maxwidth "$width"
+        sgnd_print --pad 4 "$(sgnd_sgr "$WHITE" "" "$FX_BOLD")${SGND_CONSOLE_TITLE}${RESET}"
+        sgnd_print --pad 4 "$(sgnd_sgr "$SILVER" "" "$FX_ITALIC")${SGND_CONSOLE_DESC}"
+        sgnd_print_sectionheader --border "$LN_H" --maxwidth "$width"
+        sgnd_print
     }
 
     # __sgnd_console_render_menu_body_paged
@@ -979,7 +963,7 @@ set -uo pipefail
 
         for (( visible_i=page_start_item; visible_i<page_end_item; visible_i++ )); do
             row_index="${SGND_VISIBLE_ITEM_INDEXES[$visible_i]}"
-            group_key="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" group)"
+            group_key="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" group)"
             item_lines="$(__sgnd_console_measure_item_lines "$row_index")"
 
             needed_lines="$item_lines"
@@ -1063,10 +1047,10 @@ set -uo pipefail
 
         local label_style=""
         local value_style=""
-        local normal_label_style="$(td_sgr "$SILVER")"
-        local normal_value_style="$(td_sgr "$SILVER" "" "$FX_ITALIC")"
-        local disabled_label_style="$(td_sgr "$DARK_SILVER" "" "$FX_FAINT")"
-        local disabled_value_style="$(td_sgr "$DARK_SILVER" "" "$FX_FAINT" "$FX_ITALIC")"
+        local normal_label_style="$(sgnd_sgr "$SILVER")"
+        local normal_value_style="$(sgnd_sgr "$SILVER" "" "$FX_ITALIC")"
+        local disabled_label_style="$(sgnd_sgr "$DARK_SILVER" "" "$FX_FAINT")"
+        local disabled_value_style="$(sgnd_sgr "$DARK_SILVER" "" "$FX_FAINT" "$FX_ITALIC")"
 
         local wrapped_line=""
         local first_line=1
@@ -1077,7 +1061,7 @@ set -uo pipefail
         local group_last_row_index=-1
         local group_last_visible_pos=-1
 
-        term_width="$(td_terminal_width)"
+        term_width="$(sgnd_terminal_width)"
         desc_width=$(( term_width - tpad - left_width_max - gap ))
         (( desc_width < 20 )) && desc_width=20
 
@@ -1086,9 +1070,9 @@ set -uo pipefail
             group_last_row_index=-1
             group_last_visible_pos=-1
 
-            for (( gi=0; gi<$(td_dt_row_count SGND_GROUP_ROWS); gi++ )); do
-                if [[ "$(td_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$gi" key)" == "$group_key" ]]; then
-                    group_label="$(td_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$gi" label)"
+            for (( gi=0; gi<$(sgnd_dt_row_count SGND_GROUP_ROWS); gi++ )); do
+                if [[ "$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$gi" key)" == "$group_key" ]]; then
+                    group_label="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$gi" label)"
                     break
                 fi
             done
@@ -1096,7 +1080,7 @@ set -uo pipefail
             [[ -n "$group_label" ]] || continue
 
             for row_index in "${_page_rows[@]}"; do
-                item_group="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" group)"
+                item_group="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" group)"
                 [[ "$item_group" == "$group_key" ]] || continue
                 group_last_row_index="$row_index"
             done
@@ -1113,15 +1097,15 @@ set -uo pipefail
                 fi
             fi
 
-            td_print --text "$group_label_display"
-            left_width="$(td_visible_length "$group_label_display")"
-            td_print_sectionheader --border "$LN_H" --maxwidth "$left_width"
+            sgnd_print --text "$group_label_display"
+            left_width="$(sgnd_visible_length "$group_label_display")"
+            sgnd_print_sectionheader --border "$LN_H" --maxwidth "$left_width"
 
             for row_index in "${_page_rows[@]}"; do
-                item_group="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" group)"
+                item_group="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" group)"
                 [[ "$item_group" == "$group_key" ]] || continue
 
-                item_state="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" visible)"
+                item_state="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" visible)"
                 case "$item_state" in
                     1|2) ;;
                     *) continue ;;
@@ -1137,13 +1121,13 @@ set -uo pipefail
                     value_style="$normal_value_style"
                 fi
 
-                label="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" label)"
-                desc="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" desc)"
+                label="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" label)"
+                desc="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" desc)"
                 left_text="${display_key}) ${label}"
 
                 if [[ -z "$desc" ]]; then
                     printf '%*s%s' "$tpad" "" "$label_style"
-                    td_padded_visible "$left_text" "$left_width_max"
+                    sgnd_padded_visible "$left_text" "$left_width_max"
                     printf '%s\n' "$RESET"
                     continue
                 fi
@@ -1152,7 +1136,7 @@ set -uo pipefail
                 while IFS= read -r wrapped_line; do
                     if (( first_line )); then
                         printf '%*s%s' "$tpad" "" "$label_style"
-                        td_padded_visible "$left_text" "$left_width_max"
+                        sgnd_padded_visible "$left_text" "$left_width_max"
                         printf '%s%*s%s%s%s\n' \
                             "$RESET" \
                             "$gap" "" \
@@ -1165,10 +1149,10 @@ set -uo pipefail
                             "$gap" "" \
                             "$value_style" "$wrapped_line" "$RESET"
                     fi
-                done < <(td_wrap_words --width "$desc_width" --text "$desc")
+                done < <(sgnd_wrap_words --width "$desc_width" --text "$desc")
             done
 
-            td_print
+            sgnd_print
         done
     }
 
@@ -1232,17 +1216,17 @@ set -uo pipefail
 
         local label_style=""
         local value_style=""
-        local normal_label_style="$(td_sgr "$SILVER")"
-        local normal_value_style="$(td_sgr "$SILVER" "$FX_ITALIC")"
-        local disabled_label_style="$(td_sgr "$DARK_SILVER" "$FX_FAINT")"
-        local disabled_value_style="$(td_sgr "$DARK_SILVER" "$FX_FAINT" "$FX_ITALIC")"
+        local normal_label_style="$(sgnd_sgr "$SILVER")"
+        local normal_value_style="$(sgnd_sgr "$SILVER" "$FX_ITALIC")"
+        local disabled_label_style="$(sgnd_sgr "$DARK_SILVER" "$FX_FAINT")"
+        local disabled_value_style="$(sgnd_sgr "$DARK_SILVER" "$FX_FAINT" "$FX_ITALIC")"
 
-        row_count="$(td_dt_row_count SGND_GROUP_ROWS)"
+        row_count="$(sgnd_dt_row_count SGND_GROUP_ROWS)"
 
         for (( gi=0; gi<row_count; gi++ )); do
-            if [[ "$(td_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$gi" key)" == "$group_key" ]]; then
-                group_label="$(td_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$gi" label)"
-                group_state="$(td_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$gi" visible)"
+            if [[ "$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$gi" key)" == "$group_key" ]]; then
+                group_label="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$gi" label)"
+                group_state="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$gi" visible)"
                 found_group=1
                 break
             fi
@@ -1251,13 +1235,13 @@ set -uo pipefail
         (( found_group )) || return 0
         (( group_state != 0 )) || return 0
 
-        row_count="$(td_dt_row_count SGND_ITEM_ROWS)"
+        row_count="$(sgnd_dt_row_count SGND_ITEM_ROWS)"
 
         for (( ii=0; ii<row_count; ii++ )); do
-            item_group="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" group)"
+            item_group="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" group)"
             [[ "$item_group" == "$group_key" ]] || continue
 
-            item_state="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" visible)"
+            item_state="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" visible)"
             case "$item_state" in
                 1|2)
                     has_renderable_items=1
@@ -1268,30 +1252,30 @@ set -uo pipefail
 
         (( has_renderable_items )) || return 0
 
-        term_width="$(td_terminal_width)"
+        term_width="$(sgnd_terminal_width)"
         desc_width=$(( term_width - _tpad - left_width_max - gap ))
         (( desc_width < 20 )) && desc_width=20
 
-        td_print --text "$group_label"
-        left_width="$(td_visible_length "$group_label")"
-        td_print_sectionheader --border "$LN_H" --maxwidth "$left_width"
+        sgnd_print --text "$group_label"
+        left_width="$(sgnd_visible_length "$group_label")"
+        sgnd_print_sectionheader --border "$LN_H" --maxwidth "$left_width"
 
-        row_count="$(td_dt_row_count SGND_ITEM_ROWS)"
+        row_count="$(sgnd_dt_row_count SGND_ITEM_ROWS)"
 
         for (( ii=0; ii<row_count; ii++ )); do
-            item_group="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" group)"
+            item_group="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" group)"
             [[ "$item_group" == "$group_key" ]] || continue
 
-            item_state="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" visible)"
+            item_state="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" visible)"
             case "$item_state" in
                 1|2) ;;
                 *) continue ;;
             esac
 
-            builtin="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" builtin)"
+            builtin="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" builtin)"
 
             if (( builtin )); then
-                display_key="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" key)"
+                display_key="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" key)"
             else
                 display_key="$(__sgnd_console_get_visible_display_number "$ii")" || continue
             fi
@@ -1304,13 +1288,13 @@ set -uo pipefail
                 value_style="$normal_value_style"
             fi
 
-            label="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" label)"
-            desc="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" desc)"
+            label="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" label)"
+            desc="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" desc)"
             left_text="${display_key}) ${label}"
 
             if [[ -z "$desc" ]]; then
                 printf '%*s%s' "$_tpad" "" "$label_style"
-                td_padded_visible "$left_text" "$left_width_max"
+                sgnd_padded_visible "$left_text" "$left_width_max"
                 printf '%s\n' "$RESET"
                 continue
             fi
@@ -1321,7 +1305,7 @@ set -uo pipefail
             while IFS= read -r wrapped_line; do
                 if (( first_line )); then
                     printf '%*s%s' "$_tpad" "" "$label_style"
-                    td_padded_visible "$left_text" "$left_width_max"
+                    sgnd_padded_visible "$left_text" "$left_width_max"
                     printf '%s%*s%s%s%s\n' \
                         "$RESET" \
                         "$gap" "" \
@@ -1334,10 +1318,10 @@ set -uo pipefail
                         "$gap" "" \
                         "$value_style" "$wrapped_line" "$RESET"
                 fi
-            done < <(td_wrap_words --width "$desc_width" --text "$desc")
+            done < <(sgnd_wrap_words --width "$desc_width" --text "$desc")
         done
 
-        td_print
+        sgnd_print
     }
 
     # __sgnd_console_render_togglebar
@@ -1354,7 +1338,7 @@ set -uo pipefail
         # Inputs (globals):
         #   FLAG_DEBUG
         #   FLAG_DRYRUN
-        #   TD_LOGFILE_ENABLED
+        #   SGND_LOGFILE_ENABLED
         #   FLAG_VERBOSE
         #   SGND_CLEAR_ONRENDER
         #   SGND_PAGE_INDEX
@@ -1392,11 +1376,11 @@ set -uo pipefail
         local prev_enabled=0
         local next_enabled=0
 
-        render_width="$(td_terminal_width)"
+        render_width="$(sgnd_terminal_width)"
 
         debug_text="$(__sgnd_console_toggleword "DEBUG"   "B" "${FLAG_DEBUG:-0}")"
         dryrun_text="$(__sgnd_console_toggleword "DRYRUN" "D" "${FLAG_DRYRUN:-0}" "${TUI_DRYRUN}" "${TUI_COMMIT}")"
-        logfile_text="$(__sgnd_console_toggleword "LOG"   "L" "${TD_LOGFILE_ENABLED:-0}")"
+        logfile_text="$(__sgnd_console_toggleword "LOG"   "L" "${SGND_LOGFILE_ENABLED:-0}")"
         verbose_text="$(__sgnd_console_toggleword "VERBOSE" "V" "${FLAG_VERBOSE:-0}")"
         clearscr_text="$(__sgnd_console_toggleword "CLRSCR" "C" "${SGND_CLEAR_ONRENDER:-0}")"
 
@@ -1415,7 +1399,7 @@ set -uo pipefail
 
         if (( page_count > 1 )); then
             page_text="Page $((SGND_PAGE_INDEX + 1))/$page_count"
-            page_text="$(td_sgr "$SILVER" "" "$FX_ITALIC")${page_text}${RESET}"
+            page_text="$(sgnd_sgr "$SILVER" "" "$FX_ITALIC")${page_text}${RESET}"
 
             segments+=("$prevtext")
             segments+=("$debug_text")
@@ -1438,15 +1422,15 @@ set -uo pipefail
         local seg
         for seg in "${segments[@]}"; do
             if [[ -n "$bar_text" ]]; then
-                bar_text+="$(td_string_repeat ' ' "$gap")"
+                bar_text+="$(sgnd_string_repeat ' ' "$gap")"
             fi
             bar_text+="$seg"
         done
-        visible_len="$(td_visible_length "$bar_text")"
+        visible_len="$(sgnd_visible_length "$bar_text")"
         left_pad=$(( (render_width - visible_len) / 2 ))
         (( left_pad < pad )) && left_pad="$pad"
 
-        td_print_sectionheader --border "$DL_H" --maxwidth "$render_width"
+        sgnd_print_sectionheader --border "$DL_H" --maxwidth "$render_width"
         printf '%*s%s\n' "$left_pad" "" "$bar_text"
     }
 
@@ -1490,13 +1474,13 @@ set -uo pipefail
             out+="$i"
         done
 
-        row_count="$(td_dt_row_count SGND_ITEM_ROWS)"
+        row_count="$(sgnd_dt_row_count SGND_ITEM_ROWS)"
 
         for (( i=0; i<row_count; i++ )); do
-            builtin="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" builtin)"
+            builtin="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" builtin)"
             (( builtin )) || continue
 
-            key="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" key)"
+            key="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" key)"
             [[ -n "$out" ]] && out+=","
             out+="$key"
         done
@@ -1561,36 +1545,36 @@ set -uo pipefail
             fi
 
             row_index="${SGND_VISIBLE_ITEM_INDEXES[$((choice - 1))]}"
-            label="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" label)"
-            state="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" visible)"
+            label="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" label)"
+            state="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" visible)"
 
             if (( state == 2 )); then
                 saywarning "Option disabled: $label"
                 return 1
             fi
 
-            handler="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" handler)"
-            SGND_LAST_WAITSECS="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" waitsecs)"
+            handler="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" handler)"
+            SGND_LAST_WAITSECS="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" waitsecs)"
             "$handler"
             return $?
         fi
 
-        row_count="$(td_dt_row_count SGND_ITEM_ROWS)"
+        row_count="$(sgnd_dt_row_count SGND_ITEM_ROWS)"
 
         for (( i=0; i<row_count; i++ )); do
-            key="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" key)"
+            key="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" key)"
 
             if [[ "${choice^^}" == "${key^^}" ]]; then
-                state="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" visible)"
-                label="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" label)"
+                state="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" visible)"
+                label="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" label)"
 
                 if (( state == 2 )); then
                     saywarning "Option disabled: $label"
                     return 1
                 fi
 
-                handler="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" handler)"
-                SGND_LAST_WAITSECS="$(td_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" waitsecs)"
+                handler="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" handler)"
+                SGND_LAST_WAITSECS="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" waitsecs)"
                 "$handler"
                 return $?
             fi

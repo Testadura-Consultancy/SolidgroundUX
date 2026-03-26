@@ -5,7 +5,7 @@
 #   Version     : 1.0
 #   Build       : 2608301
 #   Checksum    : c9d5cc692027d55637c8d5ec896f7e66bda8161876e65c093063e76c88f2fd44
-#   Source      : td-bootstrap.sh
+#   Source      : sgnd-bootstrap.sh
 #   Type        : library
 #   Purpose     : Initialize the SolidgroundUX framework and load core modules
 #
@@ -14,7 +14,7 @@
 #
 #   The library:
 #     - Orchestrates framework initialization sequence
-#     - Loads core and declared libraries (TD_USING)
+#     - Loads core and declared libraries (SGND_USING)
 #     - Parses and separates framework and script arguments
 #     - Initializes environment, configuration, and runtime state
 #     - Applies standard execution flow for all scripts
@@ -23,7 +23,7 @@
 # Design principles:
 #   - Single entry point for framework initialization
 #   - Deterministic and repeatable startup sequence
-#   - Explicit dependency loading via TD_USING
+#   - Explicit dependency loading via SGND_USING
 #   - Minimal assumptions about script context
 #
 # Role in framework:
@@ -44,8 +44,8 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
 set -uo pipefail
-# --- Library guard -------------------------------------------------------------------
-    # __td_lib_guard
+# --- Library guard ------------------------------------------------------------------
+    # _sgnd_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
         #
@@ -60,47 +60,30 @@ set -uo pipefail
         #   $0
         #
         # Outputs (globals):
-        #   TD_<MODULE>_LOADED
+        #   SGND_<MODULE>_LOADED
         #
         # Returns:
         #   0 if already loaded or successfully initialized.
         #   Exits with code 2 if executed instead of sourced.
-        #
-        # Usage:
-        #   __td_lib_guard
-        #
-        # Examples:
-        #   # Typical usage at top of library file
-        #   __td_lib_guard
-        #   unset -f __td_lib_guard
-        #
-        # Notes:
-        #   - Guard variable is derived dynamically (e.g. ui-glyphs.sh → TD_UI_GLYPHS_LOADED).
-        #   - Safe under `set -u` due to indirect expansion with default.
-    __td_lib_guard() {
+    _sgnd_lib_guard() {
         local lib_base
         local guard
 
-        lib_base="$(basename "${BASH_SOURCE[0]}")"
-        lib_base="${lib_base%.sh}"
+        lib_base="$(basename "${BASH_SOURCE[0]}" .sh)"
         lib_base="${lib_base//-/_}"
-        guard="TD_${lib_base^^}_LOADED"
+        guard="SGND_${lib_base^^}_LOADED"
 
-        # Refuse to execute (library only)
         [[ "${BASH_SOURCE[0]}" != "$0" ]] || {
-            echo "This is a library; source it, do not execute it: ${BASH_SOURCE[0]}" >&2
+            printf 'This is a library; source it, do not execute it: %s\n' "${BASH_SOURCE[0]}" >&2
             exit 2
         }
 
-        # Load guard (safe under set -u)
         [[ -n "${!guard-}" ]] && return 0
         printf -v "$guard" '1'
     }
 
-    __td_lib_guard
-    unset -f __td_lib_guard
-
-
+    _sgnd_lib_guard
+    unset -f _sgnd_lib_guard
 
     # __boot_fail
         # Emit a bootstrap failure message with caller context and return a code.
@@ -139,20 +122,20 @@ set -uo pipefail
         #   Parse framework-level bootstrap switches before script/builtin parsing.
         #
         # Arguments:
-        #   $@  Full command line as received by td_bootstrap().
+        #   $@  Full command line as received by sgnd_bootstrap().
         #
         # Outputs (globals):
         #   exe_state
         #     0 = no state, 1 = load state, 2 = load + autosave state on EXIT.
         #   exe_root
         #     0 = no constraint, 1 = must be root, 2 = must be non-root.
-        #   TD_BOOTSTRAP_REST
+        #   SGND_BOOTSTRAP_REST
         #     Array of remaining arguments after bootstrap parsing (preserved verbatim).
         #
         # Behavior:
         #   - Consumes recognized bootstrap switches from the start of the argument list.
         #   - Stops parsing at "--" or at the first unknown option.
-        #   - Copies the remaining arguments into TD_BOOTSTRAP_REST unchanged.
+        #   - Copies the remaining arguments into SGND_BOOTSTRAP_REST unchanged.
         #
         # Returns:
         #   0 always (validation is deferred to later stages).
@@ -163,8 +146,8 @@ set -uo pipefail
         #     --autostate  -> exe_state=2
         #     --needroot   -> exe_root=1
         #     --cannotroot -> exe_root=2
-        #     --log        -> TD_LOGFILE_ENABLED=1
-        #     --console    -> TD_LOG_TO_CONSOLE=1
+        #     --log        -> SGND_LOGFILE_ENABLED=1
+        #     --console    -> SGND_LOG_TO_CONSOLE=1
         #     --           -> explicit end of bootstrap switches
         #     <unknown>    -> implicit end of bootstrap switches
 
@@ -172,7 +155,7 @@ set -uo pipefail
         exe_state=0
         exe_root=0
 
-        TD_BOOTSTRAP_REST=()
+        SGND_BOOTSTRAP_REST=()
 
         while [[ $# -gt 0 ]]; do
             case "$1" in
@@ -185,13 +168,13 @@ set -uo pipefail
                 --cannotroot)
                     exe_root=2; shift ;;
                 --log)
-                    TD_LOGFILE_ENABLED=1; shift ;;
+                    SGND_LOGFILE_ENABLED=1; shift ;;
                 --console)
-                    TD_LOG_TO_CONSOLE=1; shift ;; 
+                    SGND_LOG_TO_CONSOLE=1; shift ;; 
                 --) 
-                    shift; TD_BOOTSTRAP_REST=("$@"); return 0 ;;
+                    shift; SGND_BOOTSTRAP_REST=("$@"); return 0 ;;
                 *) 
-                    TD_BOOTSTRAP_REST=("$@"); return 0 ;;
+                    SGND_BOOTSTRAP_REST=("$@"); return 0 ;;
             esac
         done
     }
@@ -201,17 +184,17 @@ set -uo pipefail
         #   Initialize the SolidgroundUX bootstrap environment (env, defaults, roots, derived paths).
         #
         # Outputs (globals):
-        #   TD_BOOTSTRAP_DIR
+        #   SGND_BOOTSTRAP_DIR
         #     Absolute directory of this file.
         #
         # Behavior:
-        #   - Resolves TD_BOOTSTRAP_DIR.
-        #   - Sources td-bootstrap-env.sh from TD_BOOTSTRAP_DIR.
+        #   - Resolves SGND_BOOTSTRAP_DIR.
+        #   - Sources td-bootstrap-env.sh from SGND_BOOTSTRAP_DIR.
         #   - Applies defaults, loads bootstrap cfg, and rebases derived directories/paths.
         #
         # Side effects:
         #   - Sources td-bootstrap-env.sh (may define variables/functions).
-        #   - Loads bootstrap cfg via td_load_bootstrap_cfg.
+        #   - Loads bootstrap cfg via sgnd_load_bootstrap_cfg.
         #
         # Returns:
         #   Propagates failures from sourced/bootstrap routines.
@@ -220,42 +203,42 @@ set -uo pipefail
         #   May run multiple times across process boundaries when root re-exec occurs.
     __init_bootstrap() {
         sayinfo "Sourcing bootstrap environment"
-        TD_BOOTSTRAP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        SGND_BOOTSTRAP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
         
         # shellcheck source=/dev/null
-        source "$TD_BOOTSTRAP_DIR/td-bootstrap-env.sh"
-        source "$TD_BOOTSTRAP_DIR/td-comment-parser.sh"
+        source "$SGND_BOOTSTRAP_DIR/sgnd-comment-parser.sh"
+        source "$SGND_BOOTSTRAP_DIR/sgnd-bootstrap-env.sh"
 
         # Core modules cannot self-initialize metadata during early source phase.
         # Initialize them here once header parsing helpers are available.     
-        td_module_init_metadata "$TD_BOOTSTRAP_DIR/td-bootstrap.sh"
-        td_module_init_metadata "$TD_BOOTSTRAP_DIR/td-bootstrap-env.sh"
-        td_module_init_metadata "$TD_BOOTSTRAP_DIR/td-comment-parser.sh"
+        sgnd_module_init_metadata "$SGND_BOOTSTRAP_DIR/sgnd-bootstrap.sh"
+        sgnd_module_init_metadata "$SGND_BOOTSTRAP_DIR/sgnd-comment-parser.sh"
+        sgnd_module_init_metadata "$SGND_BOOTSTRAP_DIR/sgnd-bootstrap-env.sh"
 
-        td_script_init_metadata
+        sgnd_script_init_metadata
 
-        td_apply_defaults
+        sgnd_apply_defaults
 
         sayinfo "Rebasing directories"
-        td_rebase_directories
-        td_rebase_framework_cfg_paths  
+        sgnd_rebase_directories
+        sgnd_rebase_framework_cfg_paths  
 
         sayinfo "Making sure directories exist"
-        td_ensure_dirs "${TD_FRAMEWORK_DIRS[@]}"
+        sgnd_ensure_dirs "${SGND_FRAMEWORK_DIRS[@]}"
 
     }
 
     # __source_corelibs
         # Purpose:
-        #   Source core framework libraries in the defined order (TD_CORE_LIBS).
+        #   Source core framework libraries in the defined order (SGND_CORE_LIBS).
         #
         # Inputs (globals):
-        #   TD_COMMON_LIB
-        #   TD_CORE_LIBS
+        #   SGND_COMMON_LIB
+        #   SGND_CORE_LIBS
         #
         # Behavior:
         #   - Rebase directories.
-        #   - Sources each library from: $TD_COMMON_LIB/<lib>.
+        #   - Sources each library from: $SGND_COMMON_LIB/<lib>.
         #
         # Side effects:
         #   - Defines functions/variables provided by core libraries.
@@ -264,11 +247,11 @@ set -uo pipefail
         #   Propagates any sourcing failures to the caller.
     __source_corelibs(){
         sayinfo "Loading core libraries..."  
-        td_rebase_directories
+        sgnd_rebase_directories
 
         local lib path
-        for lib in "${TD_CORE_LIBS[@]}"; do
-            path="$TD_COMMON_LIB/$lib"
+        for lib in "${SGND_CORE_LIBS[@]}"; do
+            path="$SGND_COMMON_LIB/$lib"
             # shellcheck source=/dev/null
             source "$path"
         done
@@ -276,15 +259,15 @@ set -uo pipefail
 
     # __source_usinglibs
         # Purpose:
-        #   Source optional script-requested libraries from TD_COMMON_LIB.
+        #   Source optional script-requested libraries from SGND_COMMON_LIB.
         #
         # Inputs (globals):
-        #   TD_COMMON_LIB
-        #   TD_USING
+        #   SGND_COMMON_LIB
+        #   SGND_USING
         #
         # Behavior:
-        #   - If TD_USING is defined and non-empty, sources each library from:
-        #       $TD_COMMON_LIB/<lib>
+        #   - If SGND_USING is defined and non-empty, sources each library from:
+        #       $SGND_COMMON_LIB/<lib>
         #   - Libraries are loaded after core libraries, so they may depend on them.
         #
         # Returns:
@@ -293,13 +276,13 @@ set -uo pipefail
     __source_usinglibs() {
         local lib path
 
-        declare -p TD_USING >/dev/null 2>&1 || return 0
-        (( ${#TD_USING[@]} > 0 )) || return 0
+        declare -p SGND_USING >/dev/null 2>&1 || return 0
+        (( ${#SGND_USING[@]} > 0 )) || return 0
 
         sayinfo "Loading optional libraries..."
 
-        for lib in "${TD_USING[@]}"; do
-            path="$TD_COMMON_LIB/$lib"
+        for lib in "${SGND_USING[@]}"; do
+            path="$SGND_COMMON_LIB/$lib"
             [[ -r "$path" ]] || {
                 sayfail "Optional library not found or unreadable: $path"
                 return 126
@@ -311,12 +294,12 @@ set -uo pipefail
         done
     }
 
-    # __td_on_exit_run
+    # __sgnd_on_exit_run
         # Purpose:
         #   Execute registered EXIT handlers (LIFO) while preserving the original exit code.
         #
         # Inputs (globals):
-        #   TD_ON_EXIT_HANDLERS
+        #   SGND_ON_EXIT_HANDLERS
         #
         # Behavior:
         #   - Captures the current exit code ($?) immediately.
@@ -328,16 +311,16 @@ set -uo pipefail
         #   The original exit code.
         #
         # Notes:
-        #   Installed once via td_on_exit_install().
-    __td_on_exit_run() {
+        #   Installed once via sgnd_on_exit_install().
+    __sgnd_on_exit_run() {
         local rc=$?
         local i cmd
         saydebug "Entering on exit"
-        declare -p TD_ON_EXIT_HANDLERS >/dev/null 2>&1 || { return "$rc"; }
+        declare -p SGND_ON_EXIT_HANDLERS >/dev/null 2>&1 || { return "$rc"; }
 
-        for (( i=${#TD_ON_EXIT_HANDLERS[@]}-1; i>=0; i-- )); do
+        for (( i=${#SGND_ON_EXIT_HANDLERS[@]}-1; i>=0; i-- )); do
             
-            cmd="${TD_ON_EXIT_HANDLERS[i]}"
+            cmd="${SGND_ON_EXIT_HANDLERS[i]}"
             saydebug "On exit executing: $cmd"
             eval "$cmd" || true
         done
@@ -345,13 +328,13 @@ set -uo pipefail
         return "$rc"
     }
 
-    # __td_save_state_dispatch
+    # __sgnd_save_state_dispatch
         # Purpose:
         #   Save state on EXIT only for clean exits.
         #
         # Behavior:
         #   - Captures the current exit code ($?).
-        #   - Calls td_save_state only when rc == 0.
+        #   - Calls sgnd_save_state only when rc == 0.
         #   - Skips save on rc == 130 (Ctrl+C) and other non-zero exits.
         #
         # Returns:
@@ -359,12 +342,12 @@ set -uo pipefail
         #
         # Notes:
         #   Registered only when --autostate is active.
-    __td_save_state_dispatch() {
+    __sgnd_save_state_dispatch() {
         local rc=$?   # capture immediately!
 
         # Only run state save on clean exit
         if (( rc == 0 )); then
-            td_save_state
+            sgnd_save_state
         elif (( rc == 130 )); then
             saydebug "Interrupted (Ctrl+C), not saving state"
         else
@@ -375,7 +358,7 @@ set -uo pipefail
     }
 
 # --- Public API ----------------------------------------------------------------------
-    # td_script_init_metadata
+    # sgnd_script_init_metadata
         # Purpose:
         #   Initialize executable metadata from structured header comments.
         #
@@ -386,99 +369,235 @@ set -uo pipefail
         #       • Metadata     (key/value pairs)
         #       • Attribution  (key/value pairs)
         #   - Extracts values from these sections and assigns them to
-        #     TD_SCRIPT_* variables.
+        #     SGND_SCRIPT_* variables.
         #   - Preserves existing values, allowing developer overrides.
         #   - Avoids repeated file scans by working on in-memory section content.
         #
         # Arguments:
-        #   None (uses TD_SCRIPT_FILE)
+        #   None (uses SGND_SCRIPT_FILE)
         #
         # Inputs (globals):
-        #   TD_SCRIPT_FILE  (must be set before calling)
+        #   SGND_SCRIPT_FILE  (must be set before calling)
         #
         # Outputs (globals):
-        #   TD_SCRIPT_PRODUCT
-        #   TD_SCRIPT_TITLE
-        #   TD_SCRIPT_DESC
-        #   TD_SCRIPT_VERSION
-        #   TD_SCRIPT_BUILD
-        #   TD_SCRIPT_CHECKSUM
-        #   TD_SCRIPT_SOURCE
-        #   TD_SCRIPT_TYPE
-        #   TD_SCRIPT_PURPOSE
-        #   TD_SCRIPT_DEVELOPERS
-        #   TD_SCRIPT_COMPANY
-        #   TD_SCRIPT_CLIENT
-        #   TD_SCRIPT_COPYRIGHT
-        #   TD_SCRIPT_LICENSE
+        #   SGND_SCRIPT_PRODUCT
+        #   SGND_SCRIPT_TITLE
+        #   SGND_SCRIPT_DESC
+        #   SGND_SCRIPT_VERSION
+        #   SGND_SCRIPT_BUILD
+        #   SGND_SCRIPT_CHECKSUM
+        #   SGND_SCRIPT_SOURCE
+        #   SGND_SCRIPT_TYPE
+        #   SGND_SCRIPT_PURPOSE
+        #   SGND_SCRIPT_DEVELOPERS
+        #   SGND_SCRIPT_COMPANY
+        #   SGND_SCRIPT_CLIENT
+        #   SGND_SCRIPT_COPYRIGHT
+        #   SGND_SCRIPT_LICENSE
         #
         # Returns:
         #   0  success
-        #   1  missing or unreadable TD_SCRIPT_FILE
+        #   1  missing or unreadable SGND_SCRIPT_FILE
         #
         # Usage:
-        #   TD_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
-        #   td_script_init_metadata
+        #   SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
+        #   sgnd_script_init_metadata
         #
         # Notes:
         #   - Must be called after bootstrap initialization, as it depends on
-        #     header parsing helpers (td_header_get_*).
+        #     header parsing helpers (sgnd_header_get_*).
         #   - Intended for executables (not libraries).
-        #   - Uses td_section_get_field_value for in-memory parsing.
-    td_script_init_metadata() {
+        #   - Uses sgnd_section_get_field_value for in-memory parsing.
+    sgnd_script_init_metadata() {
         local metadata=""
         local attribution=""
         local value=""
 
-        [[ -n "${TD_SCRIPT_FILE:-}" && -r "$TD_SCRIPT_FILE" ]] || return 1
+        [[ -n "${SGND_SCRIPT_FILE:-}" && -r "$SGND_SCRIPT_FILE" ]] || return 1
 
         # --- Banner (Product / Title) ------------------------------------------------
-        [[ -n "${TD_SCRIPT_PRODUCT:-}" && -n "${TD_SCRIPT_TITLE:-}" ]] || \
-            td_header_get_banner_parts "$TD_SCRIPT_FILE" TD_SCRIPT_PRODUCT TD_SCRIPT_TITLE
+        [[ -n "${SGND_SCRIPT_PRODUCT:-}" && -n "${SGND_SCRIPT_TITLE:-}" ]] || \
+            sgnd_header_get_banner_parts "$SGND_SCRIPT_FILE" SGND_SCRIPT_PRODUCT SGND_SCRIPT_TITLE
 
         # --- Description (multiline section) -----------------------------------------
-        [[ -n "${TD_SCRIPT_DESCRIPTION:-}" ]] || \
-            td_header_get_section "$TD_SCRIPT_FILE" "Description" TD_SCRIPT_DESCRIPTION
+        [[ -n "${SGND_SCRIPT_DESCRIPTION:-}" ]] || \
+            sgnd_header_get_section "$SGND_SCRIPT_FILE" "Description" SGND_SCRIPT_DESCRIPTION
 
         # --- Load sections once ------------------------------------------------------
-        td_header_get_section "$TD_SCRIPT_FILE" "Metadata" metadata
-        td_header_get_section "$TD_SCRIPT_FILE" "Attribution" attribution
+        sgnd_header_get_section "$SGND_SCRIPT_FILE" "Metadata" metadata
+        sgnd_header_get_section "$SGND_SCRIPT_FILE" "Attribution" attribution
 
         # --- Metadata fields ---------------------------------------------------------
-        [[ -n "${TD_SCRIPT_VERSION:-}" ]]   || TD_SCRIPT_VERSION="$(td_section_get_field_value "$metadata" "Version")"
-        [[ -n "${TD_SCRIPT_BUILD:-}" ]]     || TD_SCRIPT_BUILD="$(td_section_get_field_value "$metadata" "Build")"
-        [[ -n "${TD_SCRIPT_CHECKSUM:-}" ]]  || TD_SCRIPT_CHECKSUM="$(td_section_get_field_value "$metadata" "Checksum")"
-        [[ -n "${TD_SCRIPT_SOURCE:-}" ]]    || TD_SCRIPT_SOURCE="$(td_section_get_field_value "$metadata" "Source")"
-        [[ -n "${TD_SCRIPT_TYPE:-}" ]]      || TD_SCRIPT_TYPE="$(td_section_get_field_value "$metadata" "Type")"
-        [[ -n "${TD_SCRIPT_PURPOSE:-}" ]]   || TD_SCRIPT_PURPOSE="$(td_section_get_field_value "$metadata" "Purpose")"
+        [[ -n "${SGND_SCRIPT_VERSION:-}" ]]   || SGND_SCRIPT_VERSION="$(sgnd_section_get_field_value "$metadata" "Version")"
+        [[ -n "${SGND_SCRIPT_BUILD:-}" ]]     || SGND_SCRIPT_BUILD="$(sgnd_section_get_field_value "$metadata" "Build")"
+        [[ -n "${SGND_SCRIPT_CHECKSUM:-}" ]]  || SGND_SCRIPT_CHECKSUM="$(sgnd_section_get_field_value "$metadata" "Checksum")"
+        [[ -n "${SGND_SCRIPT_SOURCE:-}" ]]    || SGND_SCRIPT_SOURCE="$(sgnd_section_get_field_value "$metadata" "Source")"
+        [[ -n "${SGND_SCRIPT_TYPE:-}" ]]      || SGND_SCRIPT_TYPE="$(sgnd_section_get_field_value "$metadata" "Type")"
+        [[ -n "${SGND_SCRIPT_PURPOSE:-}" ]]   || SGND_SCRIPT_PURPOSE="$(sgnd_section_get_field_value "$metadata" "Purpose")"
 
         # --- Attribution fields ------------------------------------------------------
-        [[ -n "${TD_SCRIPT_DEVELOPERS:-}" ]] || TD_SCRIPT_DEVELOPERS="$(td_section_get_field_value "$attribution" "Developers")"    
-        [[ -n "${TD_SCRIPT_COMPANY:-}" ]]    || TD_SCRIPT_COMPANY="$(td_section_get_field_value "$attribution" "Company")"
-        [[ -n "${TD_SCRIPT_CLIENT:-}" ]]     || TD_SCRIPT_CLIENT="$(td_section_get_field_value "$attribution" "Client")"
-        [[ -n "${TD_SCRIPT_COPYRIGHT:-}" ]]  || TD_SCRIPT_COPYRIGHT="$(td_section_get_field_value "$attribution" "Copyright")"
-        [[ -n "${TD_SCRIPT_LICENSE:-}" ]]    || TD_SCRIPT_LICENSE="$(td_section_get_field_value "$attribution" "License")"
+        [[ -n "${SGND_SCRIPT_DEVELOPERS:-}" ]] || SGND_SCRIPT_DEVELOPERS="$(sgnd_section_get_field_value "$attribution" "Developers")"    
+        [[ -n "${SGND_SCRIPT_COMPANY:-}" ]]    || SGND_SCRIPT_COMPANY="$(sgnd_section_get_field_value "$attribution" "Company")"
+        [[ -n "${SGND_SCRIPT_CLIENT:-}" ]]     || SGND_SCRIPT_CLIENT="$(sgnd_section_get_field_value "$attribution" "Client")"
+        [[ -n "${SGND_SCRIPT_COPYRIGHT:-}" ]]  || SGND_SCRIPT_COPYRIGHT="$(sgnd_section_get_field_value "$attribution" "Copyright")"
+        [[ -n "${SGND_SCRIPT_LICENSE:-}" ]]    || SGND_SCRIPT_LICENSE="$(sgnd_section_get_field_value "$attribution" "License")"
 
         # --- Short description (first line of Description) ------------------------------
-        if [[ -z "${TD_SCRIPT_DESC:-}" ]]; then
-            if [[ -n "${TD_SCRIPT_DESCRIPTION:-}" ]]; then
-                TD_SCRIPT_DESC="${TD_SCRIPT_DESCRIPTION%%$'\n'*}"
+        if [[ -z "${SGND_SCRIPT_DESC:-}" ]]; then
+            if [[ -n "${SGND_SCRIPT_DESCRIPTION:-}" ]]; then
+                SGND_SCRIPT_DESC="${SGND_SCRIPT_DESCRIPTION%%$'\n'*}"
             else
-                TD_SCRIPT_DESC=""
+                SGND_SCRIPT_DESC=""
             fi
         fi
         return 0
     }
-    # td_on_exit_install
+
+    # sgnd_module_init_metadata
+        # Purpose:
+        #   Define module-scoped metadata variables for a sourced library and
+        #   populate them from the library header comment.
+        #
+        # Behavior:
+        #   - Derives a canonical module prefix from the library filename.
+        #       e.g. td-comment-parser.sh → SGND_COMMENT_PARSER
+        #   - Defines structural variables:
+        #       SGND_<MODULE>_FILE
+        #       SGND_<MODULE>_DIR
+        #       SGND_<MODULE>_BASE
+        #       SGND_<MODULE>_NAME
+        #       SGND_<MODULE>_KEY
+        #   - Loads the script header into the shared header buffer once.
+        #   - Extracts banner metadata:
+        #       SGND_<MODULE>_PRODUCT
+        #       SGND_<MODULE>_TITLE
+        #   - Extracts Description section:
+        #       SGND_<MODULE>_DESC
+        #   - Extracts common metadata and attribution fields from buffered section text:
+        #       Version, Build, Checksum, Source, Type, Purpose
+        #       Developers, Company, Client, Copyright, License
+        #   - Preserves existing values (allows developer override).
+        #
+        # Arguments:
+        #   $1  FILE   (optional; defaults to BASH_SOURCE[1])
+        #
+        # Outputs (globals):
+        #   SGND_<MODULE>_*
+        #
+        # Returns:
+        #   0  success
+        #   1  file missing or unreadable
+        #
+        # Usage:
+        #   sgnd_module_init_metadata "${BASH_SOURCE[0]}"
+        #
+        # Notes:
+        #   - Intended for libraries only.
+        #   - Uses buffered header parsing to reduce repeated file reads.
+    sgnd_module_init_metadata() {
+        local file="${1:-${BASH_SOURCE[1]}}"
+        local abs_file=""
+        local dir=""
+        local base=""
+        local name=""
+        local key=""
+        local prefix=""
+        local var_name=""
+
+        local product=""
+        local title=""
+        local desc=""
+        local metadata=""
+        local attribution=""
+        local value=""
+
+        [[ -n "$file" && -r "$file" ]] || return 1
+
+        abs_file="$(readlink -f "$file")" || return 1
+        dir="$(cd -- "$(dirname -- "$abs_file")" && pwd)" || return 1
+        base="$(basename -- "$abs_file")"
+        name="${base%.sh}"
+        key="${name//-/_}"
+        prefix="SGND_${key^^}"
+
+        # --- Structural variables ----------------------------------------------------
+        var_name="${prefix}_FILE"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$abs_file"
+        var_name="${prefix}_DIR";  [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$dir"
+        var_name="${prefix}_BASE"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$base"
+        var_name="${prefix}_NAME"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$name"
+        var_name="${prefix}_KEY";  [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$prefix"
+
+        # --- Load header buffer once -------------------------------------------------
+        sgnd_header_buffer_load "$abs_file" || return 1
+
+        # --- Banner (Product / Title) ------------------------------------------------
+        if sgnd_header_get_banner_parts_from_text "$SGND_HEADER_BUFFER_TEXT" product title; then
+            var_name="${prefix}_PRODUCT"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$product"
+            var_name="${prefix}_TITLE";   [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$title"
+        else
+            var_name="${prefix}_PRODUCT"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' ""
+            var_name="${prefix}_TITLE";   [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' ""
+        fi
+
+        # --- Load sections once ------------------------------------------------------
+        sgnd_header_buffer_get_section "Description" desc || desc=""
+        sgnd_header_buffer_get_section "Metadata" metadata || metadata=""
+        sgnd_header_buffer_get_section "Attribution" attribution || attribution=""
+
+        # --- Description (multiline section) -----------------------------------------
+        var_name="${prefix}_DESC"
+        if [[ -z "${!var_name-}" ]]; then
+            printf -v "$var_name" '%s' "$desc"
+        fi
+
+        # --- Metadata fields ---------------------------------------------------------
+        value="$(sgnd_section_get_field_value "$metadata" "Version")"
+        var_name="${prefix}_VERSION"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$value"
+
+        value="$(sgnd_section_get_field_value "$metadata" "Build")"
+        var_name="${prefix}_BUILD"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$value"
+
+        value="$(sgnd_section_get_field_value "$metadata" "Checksum")"
+        var_name="${prefix}_CHECKSUM"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$value"
+
+        value="$(sgnd_section_get_field_value "$metadata" "Source")"
+        var_name="${prefix}_SOURCE"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$value"
+
+        value="$(sgnd_section_get_field_value "$metadata" "Type")"
+        var_name="${prefix}_TYPE"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$value"
+
+        value="$(sgnd_section_get_field_value "$metadata" "Purpose")"
+        var_name="${prefix}_PURPOSE"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$value"
+
+        # --- Attribution fields ------------------------------------------------------
+        value="$(sgnd_section_get_field_value "$attribution" "Developers")"
+        var_name="${prefix}_DEVELOPERS"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$value"
+
+        value="$(sgnd_section_get_field_value "$attribution" "Company")"
+        var_name="${prefix}_COMPANY"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$value"
+
+        value="$(sgnd_section_get_field_value "$attribution" "Client")"
+        var_name="${prefix}_CLIENT"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$value"
+
+        value="$(sgnd_section_get_field_value "$attribution" "Copyright")"
+        var_name="${prefix}_COPYRIGHT"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$value"
+
+        value="$(sgnd_section_get_field_value "$attribution" "License")"
+        var_name="${prefix}_LICENSE"; [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$value"
+
+        return 0
+    }
+
+    # sgnd_on_exit_install
         # Purpose:
         #   Install the framework EXIT dispatcher (trap) exactly once per process.
         #
         # Behavior:
-        #   - If not yet installed, registers __td_on_exit_run as the EXIT trap.
+        #   - If not yet installed, registers __sgnd_on_exit_run as the EXIT trap.
         #   - Subsequent calls are no-ops (idempotent).
         #
         # Side effects:
-        #   - Sets __TD_ON_EXIT_INSTALLED=1 on first install.
+        #   - Sets __SGND_ON_EXIT_INSTALLED=1 on first install.
         #   - Installs an EXIT trap handler.
         #
         # Returns:
@@ -486,15 +605,15 @@ set -uo pipefail
         #
         # Notes:
         #   - This does not register handlers; it only installs the dispatcher.
-        #   - Add handlers via td_on_exit_add().
-    td_on_exit_install() {
+        #   - Add handlers via sgnd_on_exit_add().
+    sgnd_on_exit_install() {
         # Install once
-        [[ "${__TD_ON_EXIT_INSTALLED-0}" -eq 1 ]] && return 0
-        __TD_ON_EXIT_INSTALLED=1
-        trap '__td_on_exit_run' EXIT
+        [[ "${__SGND_ON_EXIT_INSTALLED-0}" -eq 1 ]] && return 0
+        __SGND_ON_EXIT_INSTALLED=1
+        trap '__sgnd_on_exit_run' EXIT
     }
 
-    # td_parse_statespec
+    # sgnd_parse_statespec
         # Purpose:
         #   Parse a pipe-delimited state specification into component fields.
         #
@@ -519,87 +638,87 @@ set -uo pipefail
         # Notes:
         #   - Callers must validate __statekey and interpret semantics of other fields.
         #   - Scratch variables are intentionally global to avoid array/echo returns.
-    td_parse_statespec() {
+    sgnd_parse_statespec() {
         local spec="${1-}"
         __statekey="" __statelabel="" __statedefault="" __statevalidate="" __statecolorize=""
         IFS='|' read -r __statekey __statelabel __statedefault __statevalidate __statecolorize <<< "$spec"
     }
     
-    # td_enable_save_state
+    # sgnd_enable_save_state
         # Purpose:
         #   Enable automatic state persistence.
         #
         # Behavior:
-        #   - Sets TD_STATE_SAVE=1.
-        #   - Allows td_save_state to execute when invoked.
-    td_enable_save_state(){
-        TD_STATE_SAVE=1
+        #   - Sets SGND_STATE_SAVE=1.
+        #   - Allows sgnd_save_state to execute when invoked.
+    sgnd_enable_save_state(){
+        SGND_STATE_SAVE=1
     }
 
-    # td_disable_save_state
+    # sgnd_disable_save_state
         # Purpose:
         #   Disable automatic state persistence.
         #
         # Behavior:
-        #   - Sets TD_STATE_SAVE=0.
-        #   - Causes td_save_state to become a no-op.
-    td_disable_save_state(){
-        TD_STATE_SAVE=0
+        #   - Sets SGND_STATE_SAVE=0.
+        #   - Causes sgnd_save_state to become a no-op.
+    sgnd_disable_save_state(){
+        SGND_STATE_SAVE=0
     }
 
-    # td_save_state
+    # sgnd_save_state
         # Purpose:
-        #   Persist selected state variables to storage (as configured by TD_STATE_VARIABLES).
+        #   Persist selected state variables to storage (as configured by SGND_STATE_VARIABLES).
         #
         # Inputs (globals):
-        #   TD_STATE_SAVE       Gate flag (0 disables saving; non-zero enables saving).
-        #   TD_STATE_VARIABLES  Array of state specs (pipe-delimited).
+        #   SGND_STATE_SAVE       Gate flag (0 disables saving; non-zero enables saving).
+        #   SGND_STATE_VARIABLES  Array of state specs (pipe-delimited).
         #
         # Behavior:
-        #   - No-op if TD_STATE_SAVE is disabled.
-        #   - Parses each TD_STATE_VARIABLES entry via td_parse_statespec().
+        #   - No-op if SGND_STATE_SAVE is disabled.
+        #   - Parses each SGND_STATE_VARIABLES entry via sgnd_parse_statespec().
         #   - Collects valid state keys (identifiers) into a local list.
-        #   - Delegates persistence to td_state_save_keys <keys...>.
+        #   - Delegates persistence to sgnd_state_save_keys <keys...>.
         #
         # Side effects:
-        #   - Writes state via td_state_save_keys() (implementation-owned).
+        #   - Writes state via sgnd_state_save_keys() (implementation-owned).
         #
         # Returns:
         #   0 on success or when no-op (disabled or nothing to save).
-        #   Non-zero if td_state_save_keys fails.
+        #   Non-zero if sgnd_state_save_keys fails.
         #
         # Notes:
-        #   - Intended to be called from EXIT dispatch (e.g., __td_save_state_dispatch).
+        #   - Intended to be called from EXIT dispatch (e.g., __sgnd_save_state_dispatch).
         #   - Validation is limited to identifier checks; semantics belong to state layer.
-    td_save_state(){
+    sgnd_save_state(){
 
-        (( ! TD_STATE_SAVE )) && return 0
+        (( ! SGND_STATE_SAVE )) && return 0
 
         if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
             sayinfo "Would have saved state variables from list"
         else
-            saydebug "Assembling list out of TD_STATE_VARIABLES"
+            saydebug "Assembling list out of SGND_STATE_VARIABLES"
             local line key label def validator colorize
             local keys=()
 
-            [[ ${#TD_STATE_VARIABLES[@]} -gt 0 ]] || return 0
+            [[ ${#SGND_STATE_VARIABLES[@]} -gt 0 ]] || return 0
             saystart "Saving state variables"
-            for line in "${TD_STATE_VARIABLES[@]}"; do
-                td_parse_statespec "$line"
-                key="$(td_trim "$__statekey")"
-                __td_is_ident "$key" || continue
+            for line in "${SGND_STATE_VARIABLES[@]}"; do
+                sgnd_parse_statespec "$line"
+                key="$(sgnd_trim "$__statekey")"
+                __sgnd_is_ident "$key" || continue
                 keys+=( "$key" )
             done
 
             saydebug "Saving state variables from array"
             # Only save if the array exists and has elements
             [[ ${#keys[@]} -gt 0 ]] || return 0
-            td_state_save_keys "${keys[@]}"
+            sgnd_state_save_keys "${keys[@]}"
             sayend "Done saving state variables."
         fi
     }    
 
-    # td_on_exit_add
+    # sgnd_on_exit_add
         # Purpose:
         #   Register a new EXIT handler to be executed by the EXIT dispatcher.
         #
@@ -607,37 +726,37 @@ set -uo pipefail
         #   $*  Command string to execute on process EXIT (stored as a single string).
         #
         # Inputs (globals):
-        #   TD_ON_EXIT_HANDLERS
+        #   SGND_ON_EXIT_HANDLERS
         #
         # Behavior:
-        #   - Appends the handler command string to TD_ON_EXIT_HANDLERS.
+        #   - Appends the handler command string to SGND_ON_EXIT_HANDLERS.
         #   - Handlers execute in reverse registration order (LIFO).
         #
         # Returns:
         #   0 always.
         #
         # Notes:
-        #   - Handlers are evaluated via eval in __td_on_exit_run.
-        #   - Call td_on_exit_install() before relying on handlers running.
-    td_on_exit_add() {
+        #   - Handlers are evaluated via eval in __sgnd_on_exit_run.
+        #   - Call sgnd_on_exit_install() before relying on handlers running.
+    sgnd_on_exit_add() {
         # store as one string per handler: "fn arg1 arg2 ..."
-        TD_ON_EXIT_HANDLERS+=( "$*" )
+        SGND_ON_EXIT_HANDLERS+=( "$*" )
     }
 
-    # td_check_license
+    # sgnd_check_license
         # Ensure the current license has been accepted (hash-based acceptance).
         #
         # Behavior:
-            #   - Computes SHA-256 of the current license file (TD_DOCS_DIR/TD_LICENSE_FILE).
-            #   - If an acceptance file exists (TD_STATE_DIR/<license>.accepted) and its
+            #   - Computes SHA-256 of the current license file (SGND_DOCS_DIR/SGND_LICENSE_FILE).
+            #   - If an acceptance file exists (SGND_STATE_DIR/<license>.accepted) and its
             #     hash matches the current license hash, license is considered accepted.
             #   - Otherwise, prints the license and prompts the user to accept.
             #   - On acceptance, writes the current hash to the acceptance file.
         #
         # Side effects:
             #   - May prompt the user (ask_yesno) and print the license text.
-            #   - Writes acceptance state to: TD_STATE_DIR/<license>.accepted
-            #   - Sets TD_LICENSE_ACCEPTED (1 accepted, 0 not accepted)
+            #   - Writes acceptance state to: SGND_STATE_DIR/<license>.accepted
+            #   - Sets SGND_LICENSE_ACCEPTED (1 accepted, 0 not accepted)
         #
         # Returns:
             #   0  License accepted (already accepted or accepted now)
@@ -647,15 +766,15 @@ set -uo pipefail
         # Notes:
             #   - Called only after root constraints are resolved to avoid double prompting
             #     across sudo re-exec.
-    td_check_license() {
-        local license_file="$TD_DOCS_DIR/$TD_LICENSE_FILE"
-        local accepted_file="$TD_STATE_DIR/$TD_LICENSE_FILE.accepted"
+    sgnd_check_license() {
+        local license_file="$SGND_DOCS_DIR/$SGND_LICENSE_FILE"
+        local accepted_file="$SGND_STATE_DIR/$SGND_LICENSE_FILE.accepted"
         local isaccepted=0
         local wasaccepted=0
         local current_hash
 
-        if ! current_hash="$(td_hash_sha256_file "$license_file")"; then
-            saywarning "td_check_license: could not compute hash"
+        if ! current_hash="$(sgnd_hash_sha256_file "$license_file")"; then
+            saywarning "sgnd_check_license: could not compute hash"
             current_hash=""
         fi
 
@@ -666,13 +785,13 @@ set -uo pipefail
             wasaccepted=1
 
             if [[ "$stored_hash" == "$current_hash" ]]; then
-                sayinfo "td_check_license: accepted state matches current license hash"
+                sayinfo "sgnd_check_license: accepted state matches current license hash"
                 isaccepted=1
             else
-                sayinfo "td_check_license: accepted state hash does NOT match current license hash"
+                sayinfo "sgnd_check_license: accepted state hash does NOT match current license hash"
             fi
         else
-            sayinfo "td_check_license: no accepted state file found at: $accepted_file"
+            sayinfo "sgnd_check_license: no accepted state file found at: $accepted_file"
         fi
 
         if (( isaccepted == 0 )); then
@@ -683,7 +802,7 @@ set -uo pipefail
                 question_text="Do you accept these license terms? \n (You must accept to use this software.)"
             fi
 
-            td_print_license 
+            sgnd_print_license 
 
             if ask_yesno "$question_text"; then
                 echo "$current_hash" > "$accepted_file"
@@ -692,7 +811,7 @@ set -uo pipefail
                 return 2
             fi
                        
-            sayinfo "td_check_license: license not accepted; prompting user"
+            sayinfo "sgnd_check_license: license not accepted; prompting user"
         fi
 
         sayinfo "License acceptance status: $(
@@ -701,29 +820,29 @@ set -uo pipefail
             || echo "${TUI_INVALID}NOT ACCEPTED${RESET}"
         )"
 
-        TD_LICENSE_ACCEPTED=$isaccepted
+        SGND_LICENSE_ACCEPTED=$isaccepted
     }
 
-    # td_load_ui_style
+    # sgnd_load_ui_style
         # Load the active UI palette and style definitions.
         #
         # Behavior:
-            #   - Resolves TD_UI_PALETTE and TD_UI_STYLE; if a value is a basename,
-            #     it is resolved relative to TD_STYLE_DIR.
+            #   - Resolves SGND_UI_PALETTE and SGND_UI_STYLE; if a value is a basename,
+            #     it is resolved relative to SGND_STYLE_DIR.
             #   - Sources palette first, then style.
         #
         # Returns:
             #   0 on success
             #   1 if palette/style file is missing or unreadable
-    td_load_ui_style() {
+    sgnd_load_ui_style() {
         local style_path palette_path
 
-        style_path="$TD_UI_STYLE"
-        palette_path="$TD_UI_PALETTE"
+        style_path="$SGND_UI_STYLE"
+        palette_path="$SGND_UI_PALETTE"
 
-        # If values are basenames, resolve from TD_STYLE_DIR
-        [[ "$style_path" == */* ]] || style_path="$TD_STYLE_DIR/$style_path"
-        [[ "$palette_path" == */* ]] || palette_path="$TD_STYLE_DIR/$palette_path"
+        # If values are basenames, resolve from SGND_STYLE_DIR
+        [[ "$style_path" == */* ]] || style_path="$SGND_STYLE_DIR/$style_path"
+        [[ "$palette_path" == */* ]] || palette_path="$SGND_STYLE_DIR/$palette_path"
 
         [[ -r "$palette_path" ]] || { saywarning "Palette not found: $palette_path"; return 1; }
         [[ -r "$style_path"   ]] || { saywarning "Style not found: $style_path";   return 1; }
@@ -735,7 +854,7 @@ set -uo pipefail
     }
     
  # --- Main ------------------------------------------------------------------------
-    # td_bootstrap
+    # sgnd_bootstrap
         # Purpose:
         #   Initialize the Testadura framework runtime environment.
         #
@@ -744,14 +863,14 @@ set -uo pipefail
         #   - Applies default configuration values.
         #   - Derives framework directory and cfg paths.
         #   - Ensures required directories exist.
-        #   - Loads core libraries defined in TD_CORE_LIBS.
+        #   - Loads core libraries defined in SGND_CORE_LIBS.
         #   - Applies framework configuration (system + user).
         #
         # Inputs (globals):
-        #   TD_COMMON_LIB (optional override before call)
+        #   SGND_COMMON_LIB (optional override before call)
         #
         # Outputs (globals):
-        #   All TD_* framework variables
+        #   All SGND_* framework variables
         #   Loaded functions from core libraries
         #
         # Side effects:
@@ -764,16 +883,16 @@ set -uo pipefail
         #   1   failure loading required components
         #
         # Usage:
-        #   td_bootstrap
+        #   sgnd_bootstrap
         #
         # Examples:
         #   # Minimal bootstrap
-        #   td_bootstrap
+        #   sgnd_bootstrap
         #
         #   # Override root before bootstrap
-        #   TD_FRAMEWORK_ROOT="/opt/testadura"
-        #   td_bootstrap
-    td_bootstrap() {
+        #   SGND_FRAMEWORK_ROOT="/opt/testadura"
+        #   sgnd_bootstrap
+    sgnd_bootstrap() {
         saystart "Initializing framework"
         # Definitions
             : "${TUI_COMMIT:=$(printf '\e[38;5;214m')}"
@@ -788,16 +907,16 @@ set -uo pipefail
             : "${FLAG_SHOWARGS:=0}"
             : "${FLAG_HELP:=0}"
 
-            if ! declare -p TD_SCRIPT_GLOBALS >/dev/null 2>&1; then
-                declare -ag TD_SCRIPT_GLOBALS=()
+            if ! declare -p SGND_SCRIPT_GLOBALS >/dev/null 2>&1; then
+                declare -ag SGND_SCRIPT_GLOBALS=()
             fi
             
-            if ! declare -p TD_STATE_VARIABLES >/dev/null 2>&1; then
-                declare -ag TD_STATE_VARIABLES=()
+            if ! declare -p SGND_STATE_VARIABLES >/dev/null 2>&1; then
+                declare -ag SGND_STATE_VARIABLES=()
             fi
 
-            if ! declare -p TD_ON_EXIT_HANDLERS >/dev/null 2>&1; then
-                declare -ag TD_ON_EXIT_HANDLERS=()
+            if ! declare -p SGND_ON_EXIT_HANDLERS >/dev/null 2>&1; then
+                declare -ag SGND_ON_EXIT_HANDLERS=()
             fi
 
         # Basic initialization - Defaults
@@ -811,43 +930,43 @@ set -uo pipefail
             __source_usinglibs || { local rc=$?; __boot_fail "Failed to load optional libraries" "$rc"; return "$rc"; }
 
             sayinfo "Loading UI style"
-            td_load_ui_style || { local rc=$?; __boot_fail "Failed to load UI style" "$rc"; return "$rc"; }
+            sgnd_load_ui_style || { local rc=$?; __boot_fail "Failed to load UI style" "$rc"; return "$rc"; }
 
         # Load Framework globals
             sayinfo "Loading framework globals"
-            td_cfg_domain_apply "Framework" "$TD_FRAMEWORK_SYSCFG_FILE" "$TD_FRAMEWORK_USRCFG_FILE" "TD_FRAMEWORK_GLOBALS" "framework" \
+            sgnd_cfg_domain_apply "Framework" "$SGND_FRAMEWORK_SYSCFG_FILE" "$SGND_FRAMEWORK_USRCFG_FILE" "SGND_FRAMEWORK_GLOBALS" "framework" \
                 || { local rc=$?; __boot_fail "Framework cfg load failed" "$rc"; return "$rc"; }
 
         # Parse builtin arguments early
             saydebug "Processing builtin arguments."
-            local -a __td_script_args
-            local -a __td_after_builtins
-                __td_script_args=( "${TD_BOOTSTRAP_REST[@]}" )
+            local -a __sgnd_script_args
+            local -a __sgnd_after_builtins
+                __sgnd_script_args=( "${SGND_BOOTSTRAP_REST[@]}" )
 
-            saydebug "Parsing arguments $TD_BUILTIN_ARGS ${__td_script_args[@]}"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
-            td_parse_args --stop-at-unknown "${__td_script_args[@]}" \
+            saydebug "Parsing arguments $SGND_BUILTIN_ARGS ${__sgnd_script_args[@]}"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+            sgnd_parse_args --stop-at-unknown "${__sgnd_script_args[@]}" \
                 || { local rc=$?; __boot_fail "Error parsing builtins" "$rc"; return "$rc"; }
-            __td_after_builtins=( "${TD_POSITIONAL[@]}" )
+            __sgnd_after_builtins=( "${SGND_POSITIONAL[@]}" )
 
         # Final basic settings
             saydebug "Finalizing initial settings"
-            td_update_runmode || { local rc=$?; __boot_fail "Error setting RUN_MODE" "$rc"; return "$rc"; }
+            sgnd_update_runmode || { local rc=$?; __boot_fail "Error setting RUN_MODE" "$rc"; return "$rc"; }
 
         sayinfo "Applying bootstrap options"
 
         # Root checks (after libs so need_root exists)
             if (( exe_root == 1 )); then
-                td_need_root "${__td_script_args[@]}" \
+                sgnd_need_root "${__sgnd_script_args[@]}" \
                     || { local rc=$?; __boot_fail "Failed to enable need_root" "$rc"; return "$rc"; }
             fi
 
             if (( exe_root == 2 )); then
-                td_cannot_root "${__td_script_args[@]}" \
+                sgnd_cannot_root "${__sgnd_script_args[@]}" \
                     || { local rc=$?; __boot_fail "Failed to enable cannot_root" "$rc"; return "$rc"; }
             fi
 
         # Now the root/non-root debate has been settled, check license acceptance.
-            td_check_license
+            sgnd_check_license
             case $? in
                 0) : ;;
                 2) return 2 ;;
@@ -855,45 +974,45 @@ set -uo pipefail
             esac
         
         # Now that we know we won't re-exec, continue with the remainder of the arguments
-        TD_BOOTSTRAP_REST=( "${__td_after_builtins[@]}" )
+        SGND_BOOTSTRAP_REST=( "${__sgnd_after_builtins[@]}" )
 
         # Reset statefile before it's loaded if requested
         if [[ "${FLAG_STATERESET:-0}" -eq 1 ]]; then
-            td_state_reset
+            sgnd_state_reset
             sayinfo "State file reset as requested."
         fi
 
         # Load state and parse *script* args
         if (( exe_state > 0 )); then
             saydebug "Installing on exit handler"
-            td_on_exit_install
+            sgnd_on_exit_install
 
             saydebug "Loading state file."
-            td_state_load || { local rc=$?; __boot_fail "Failed to load state" "$rc"; return "$rc"; }
+            sgnd_state_load || { local rc=$?; __boot_fail "Failed to load state" "$rc"; return "$rc"; }
         fi
 
         if (( exe_state == 2 )); then
             saydebug "Registering save state"
-            td_on_exit_add "__td_save_state_dispatch"
+            sgnd_on_exit_add "__sgnd_save_state_dispatch"
         fi
         
-        if (( ${#TD_SCRIPT_GLOBALS[@]} > 0 )); then
+        if (( ${#SGND_SCRIPT_GLOBALS[@]} > 0 )); then
             saydebug "Processing CFG."
-            td_cfg_domain_apply "Script" "$TD_SYSCFG_FILE" "$TD_USRCFG_FILE" "TD_SCRIPT_GLOBALS" \
+            sgnd_cfg_domain_apply "Script" "$SGND_SYSCFG_FILE" "$SGND_USRCFG_FILE" "SGND_SCRIPT_GLOBALS" \
                 || { local rc=$?; __boot_fail "Script cfg load failed" "$rc"; return "$rc"; }
         fi
 
         # Always parse script args if the script defines any arg specs
-        if (( ${#TD_ARGS_SPEC[@]} > 0 && ${#TD_BOOTSTRAP_REST[@]} > 0 )); then
-            saydebug "Parsing script arguments $TD_BOOTSTRAP_REST"
-            td_parse_args "${TD_BOOTSTRAP_REST[@]}" \
+        if (( ${#SGND_ARGS_SPEC[@]} > 0 && ${#SGND_BOOTSTRAP_REST[@]} > 0 )); then
+            saydebug "Parsing script arguments $SGND_BOOTSTRAP_REST"
+            sgnd_parse_args "${SGND_BOOTSTRAP_REST[@]}" \
                 || { local rc=$?; __boot_fail "Error parsing script args" "$rc"; return "$rc"; }
-            TD_BOOTSTRAP_REST=( "${TD_POSITIONAL[@]}" )
-            saydebug "Parsed script arguments $TD_BOOTSTRAP_REST remaining"
+            SGND_BOOTSTRAP_REST=( "${SGND_POSITIONAL[@]}" )
+            saydebug "Parsed script arguments $SGND_BOOTSTRAP_REST remaining"
         fi
 
         saydebug "Update loadmode"
-        td_update_runmode || { local rc=$?; __boot_fail "Error updating RUN_MODE" "$rc"; return "$rc"; }
+        sgnd_update_runmode || { local rc=$?; __boot_fail "Error updating RUN_MODE" "$rc"; return "$rc"; }
 
         if [[ "${FLAG_DRYRUN:-0}" -eq 1 ]]; then
             sayinfo "Running in $RUN_MODE mode (no changes will be made)."

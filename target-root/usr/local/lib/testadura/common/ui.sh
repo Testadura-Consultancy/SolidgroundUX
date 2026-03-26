@@ -44,7 +44,7 @@
 # =====================================================================================
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------
-    # __td_lib_guard
+    # _sgnd_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
         #
@@ -59,47 +59,32 @@ set -uo pipefail
         #   $0
         #
         # Outputs (globals):
-        #   TD_<MODULE>_LOADED
+        #   SGND_<MODULE>_LOADED
         #
         # Returns:
         #   0 if already loaded or successfully initialized.
         #   Exits with code 2 if executed instead of sourced.
-        #
-        # Usage:
-        #   __td_lib_guard
-        #
-        # Examples:
-        #   # Typical usage at top of library file
-        #   __td_lib_guard
-        #   unset -f __td_lib_guard
-        #
-        # Notes:
-        #   - Guard variable is derived dynamically (e.g. ui-glyphs.sh → TD_UI_GLYPHS_LOADED).
-        #   - Safe under `set -u` due to indirect expansion with default.
-    __td_lib_guard() {
+    _sgnd_lib_guard() {
         local lib_base
         local guard
 
-        lib_base="$(basename "${BASH_SOURCE[0]}")"
-        lib_base="${lib_base%.sh}"
+        lib_base="$(basename "${BASH_SOURCE[0]}" .sh)"
         lib_base="${lib_base//-/_}"
-        guard="TD_${lib_base^^}_LOADED"
+        guard="SGND_${lib_base^^}_LOADED"
 
-        # Refuse to execute (library only)
         [[ "${BASH_SOURCE[0]}" != "$0" ]] || {
-            echo "This is a library; source it, do not execute it: ${BASH_SOURCE[0]}" >&2
+            printf 'This is a library; source it, do not execute it: %s\n' "${BASH_SOURCE[0]}" >&2
             exit 2
         }
 
-        # Load guard (safe under set -u)
         [[ -n "${!guard-}" ]] && return 0
         printf -v "$guard" '1'
     }
 
-    __td_lib_guard
-    unset -f __td_lib_guard
+    _sgnd_lib_guard
+    unset -f _sgnd_lib_guard
 
-    td_module_init_metadata "${BASH_SOURCE[0]}"
+    sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Compatibility overrides --------------------------------------------------------
     # Shims to integrate with legacy helpers if present (say/ask), with safe fallbacks.
@@ -158,7 +143,7 @@ set -uo pipefail
         #
         # Examples:
         #   if confirm "Delete existing config?"; then
-        #       td_cfg_reset
+        #       sgnd_cfg_reset
         #   fi
         #
         # Notes:
@@ -184,14 +169,14 @@ set -uo pipefail
     }
 
 # --- Helpers ------------------------------------------------------------------------
-    # __td_ui_resolve_theme_file
+    # __sgnd_ui_resolve_theme_file
         # Purpose:
         #   Resolve a palette or style specification into a readable .sh file path.
         #
         # Behavior:
         #   - Treats values containing "/" or ending in ".sh" as explicit paths.
         #   - Otherwise resolves logical names under:
-        #       $TD_UI_THEME_DIR/<kind>/<name>.sh
+        #       $SGND_UI_THEME_DIR/<kind>/<name>.sh
         #   - Verifies readability before returning success.
         #
         # Arguments:
@@ -201,7 +186,7 @@ set -uo pipefail
         #       Explicit path or logical theme name.
         #
         # Inputs (globals):
-        #   TD_UI_THEME_DIR
+        #   SGND_UI_THEME_DIR
         #
         # Output:
         #   Prints the resolved readable file path to stdout.
@@ -210,22 +195,22 @@ set -uo pipefail
         #   0  resolved and readable
         #   2  missing spec
         #   3  explicit path unreadable
-        #   4  TD_UI_THEME_DIR missing for named lookup
+        #   4  SGND_UI_THEME_DIR missing for named lookup
         #   5  named theme not found
         #
         # Usage:
-        #   __td_ui_resolve_theme_file palettes default-ui-palette
+        #   __sgnd_ui_resolve_theme_file palettes default-ui-palette
         #
         # Examples:
-        #   palette_file="$(__td_ui_resolve_theme_file "palettes" "$palette_spec")" || return $?
-    __td_ui_resolve_theme_file() {
+        #   palette_file="$(__sgnd_ui_resolve_theme_file "palettes" "$palette_spec")" || return $?
+    __sgnd_ui_resolve_theme_file() {
         local kind="$1"
         local spec="$2"
         local base
         local file
 
         if [[ -z "$spec" ]]; then
-            printf '__td_ui_resolve_theme_file: missing %s spec\n' "$kind" >&2
+            printf '__sgnd_ui_resolve_theme_file: missing %s spec\n' "$kind" >&2
             return 2
         fi
 
@@ -242,9 +227,9 @@ set -uo pipefail
         fi
 
         # Name resolution under theme dir
-        base="${TD_UI_THEME_DIR-}"
+        base="${SGND_UI_THEME_DIR-}"
         if [[ -z "$base" ]]; then
-            printf 'UI theme directory not set (TD_UI_THEME_DIR/TD_FRAMEWORK_ROOT missing)\n' >&2
+            printf 'UI theme directory not set (SGND_UI_THEME_DIR/SGND_FRAMEWORK_ROOT missing)\n' >&2
             return 4
         fi
 
@@ -260,7 +245,7 @@ set -uo pipefail
 
 # --- Public API ---------------------------------------------------------------------
  # -- Public helpers --------------------------------------------------------------
-    # td_strip_ansi
+    # sgnd_strip_ansi
         # Purpose:
         #   Strip ANSI CSI escape sequences from a string.
         #
@@ -279,20 +264,20 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   td_strip_ansi "$text"
+        #   sgnd_strip_ansi "$text"
         #
         # Examples:
-        #   plain="$(td_strip_ansi "$colored_text")"
-    td_strip_ansi() {
+        #   plain="$(sgnd_strip_ansi "$colored_text")"
+    sgnd_strip_ansi() {
         sed -r $'s/\x1B\\[[0-9;?]*[[:alpha:]]//g' <<<"$1"
     }
 
-    # td_visible_len
+    # sgnd_visible_len
         # Purpose:
         #   Return the visible character length of a string after stripping ANSI.
         #
         # Behavior:
-        #   - Strips ANSI sequences using td_strip_ansi().
+        #   - Strips ANSI sequences using sgnd_strip_ansi().
         #   - Returns the remaining string length.
         #
         # Arguments:
@@ -306,30 +291,30 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   td_visible_len "$text"
+        #   sgnd_visible_len "$text"
         #
         # Examples:
-        #   width="$(td_visible_len "$RUN_MODE")"
+        #   width="$(sgnd_visible_len "$RUN_MODE")"
         #
         # Notes:
         #   - Length is byte-based and assumes monospaced terminal rendering.
-    td_visible_len() {
+    sgnd_visible_len() {
         local plain
-        plain="$(td_strip_ansi "$1")"
+        plain="$(sgnd_strip_ansi "$1")"
         printf '%s' "${#plain}"
     }
 
  # -- Theme loading ---------------------------------------------------------------
-    # td_ui_set_theme
+    # sgnd_ui_set_theme
         # Purpose:
         #   Load a UI palette and style into the current shell.
         #
         # Behavior:
         #   - Accepts palette and style as explicit paths or logical names.
-        #   - Resolves logical names under TD_UI_THEME_DIR.
-        #   - Derives TD_UI_THEME_DIR from TD_FRAMEWORK_ROOT when unset.
+        #   - Resolves logical names under SGND_UI_THEME_DIR.
+        #   - Derives SGND_UI_THEME_DIR from SGND_FRAMEWORK_ROOT when unset.
         #   - Loads palette first, then style.
-        #   - Records the resolved files in TD_UI_PALETTE_FILE and TD_UI_STYLE_FILE.
+        #   - Records the resolved files in SGND_UI_PALETTE_FILE and SGND_UI_STYLE_FILE.
         #
         # Arguments:
         #   --palette SPEC
@@ -342,13 +327,13 @@ set -uo pipefail
         #       Print usage help.
         #
         # Inputs (globals):
-        #   TD_UI_THEME_DIR
-        #   TD_FRAMEWORK_ROOT
+        #   SGND_UI_THEME_DIR
+        #   SGND_FRAMEWORK_ROOT
         #
         # Outputs (globals):
-        #   TD_UI_THEME_DIR
-        #   TD_UI_PALETTE_FILE
-        #   TD_UI_STYLE_FILE
+        #   SGND_UI_THEME_DIR
+        #   SGND_UI_PALETTE_FILE
+        #   SGND_UI_STYLE_FILE
         #   Variables defined by the sourced palette and style files
         #
         # Side effects:
@@ -365,15 +350,15 @@ set -uo pipefail
         #   12  style load failed
         #
         # Usage:
-        #   td_ui_set_theme --palette <file|name> --style <file|name>
-        #   td_ui_set_theme --default
-        #   td_ui_set_theme <palette> <style>
+        #   sgnd_ui_set_theme --palette <file|name> --style <file|name>
+        #   sgnd_ui_set_theme --default
+        #   sgnd_ui_set_theme <palette> <style>
         #
         # Examples:
-        #   td_ui_set_theme --default
+        #   sgnd_ui_set_theme --default
         #
-        #   td_ui_set_theme "default-ui-palette" "default-ui-style"
-    td_ui_set_theme() {
+        #   sgnd_ui_set_theme "default-ui-palette" "default-ui-style"
+    sgnd_ui_set_theme() {
         local palette_spec=""
         local style_spec=""
         local use_default=0
@@ -387,18 +372,18 @@ set -uo pipefail
                 --default) use_default=1; shift ;;
                 -h|--help)
                     printf '%s\n' \
-                        "td_ui_set_theme --palette <file|name> --style <file|name>" \
-                        "td_ui_set_theme --default"
+                        "sgnd_ui_set_theme --palette <file|name> --style <file|name>" \
+                        "sgnd_ui_set_theme --default"
                     return 0
                     ;;
                 *)
-                    # allow shorthand: td_ui_set_theme palette style
+                    # allow shorthand: sgnd_ui_set_theme palette style
                     if [[ -z "$palette_spec" ]]; then
                         palette_spec="$a"
                     elif [[ -z "$style_spec" ]]; then
                         style_spec="$a"
                     else
-                        printf 'td_ui_set_theme: unexpected argument: %s\n' "$a" >&2
+                        printf 'sgnd_ui_set_theme: unexpected argument: %s\n' "$a" >&2
                         return 2
                     fi
                     shift
@@ -412,12 +397,12 @@ set -uo pipefail
         fi
 
         # Theme root (where palettes/ and styles/ live)
-        if [[ -z "${TD_UI_THEME_DIR-}" ]]; then
-            if [[ -n "${TD_FRAMEWORK_ROOT-}" ]]; then
-                TD_UI_THEME_DIR="${TD_FRAMEWORK_ROOT%/}/usr/local/lib/testadura/common/ui"
+        if [[ -z "${SGND_UI_THEME_DIR-}" ]]; then
+            if [[ -n "${SGND_FRAMEWORK_ROOT-}" ]]; then
+                SGND_UI_THEME_DIR="${SGND_FRAMEWORK_ROOT%/}/usr/local/lib/testadura/common/ui"
             else
                 # fallback: relative to this file if possible
-                TD_UI_THEME_DIR=""
+                SGND_UI_THEME_DIR=""
             fi
         fi
 
@@ -425,55 +410,55 @@ set -uo pipefail
         local palette_file
         local style_file
 
-        palette_file="$(__td_ui_resolve_theme_file "palettes" "$palette_spec")" || return $?
-        style_file="$(__td_ui_resolve_theme_file "styles"   "$style_spec")"   || return $?
+        palette_file="$(__sgnd_ui_resolve_theme_file "palettes" "$palette_spec")" || return $?
+        style_file="$(__sgnd_ui_resolve_theme_file "styles"   "$style_spec")"   || return $?
 
         # --- load palette first, then style ---------------------------------------
         # shellcheck disable=SC1090
         source "$palette_file" || {
-            printf 'td_ui_set_theme: failed to load palette: %s\n' "$palette_file" >&2
+            printf 'sgnd_ui_set_theme: failed to load palette: %s\n' "$palette_file" >&2
             return 10
         }
 
         # Minimal sanity: palette should define RESET
         if [[ -z "${RESET-}" ]]; then
-            printf 'td_ui_set_theme: palette did not define RESET: %s\n' "$palette_file" >&2
+            printf 'sgnd_ui_set_theme: palette did not define RESET: %s\n' "$palette_file" >&2
             return 11
         fi
 
         # shellcheck disable=SC1090
         source "$style_file" || {
-            printf 'td_ui_set_theme: failed to load style: %s\n' "$style_file" >&2
+            printf 'sgnd_ui_set_theme: failed to load style: %s\n' "$style_file" >&2
             return 12
         }
 
-        TD_UI_PALETTE_FILE="$palette_file"
-        TD_UI_STYLE_FILE="$style_file"
+        SGND_UI_PALETTE_FILE="$palette_file"
+        SGND_UI_STYLE_FILE="$style_file"
 
         return 0
     }
 
-    # td_ui_set_default_theme
+    # sgnd_ui_set_default_theme
         # Purpose:
         #   Convenience wrapper to load the default UI palette and style.
         #
         # Behavior:
-        #   - Delegates directly to td_ui_set_theme --default.
+        #   - Delegates directly to sgnd_ui_set_theme --default.
         #
         # Returns:
-        #   Whatever td_ui_set_theme returns.
+        #   Whatever sgnd_ui_set_theme returns.
         #
         # Usage:
-        #   td_ui_set_default_theme
+        #   sgnd_ui_set_default_theme
         #
         # Examples:
-        #   td_ui_set_default_theme || return 1
-    td_ui_set_default_theme() {
-        td_ui_set_theme --default
+        #   sgnd_ui_set_default_theme || return 1
+    sgnd_ui_set_default_theme() {
+        sgnd_ui_set_theme --default
     }
 
  # -- Styling helpers -------------------------------------------------------------
-    # td_sgr
+    # sgnd_sgr
         # Purpose:
         #   Build one canonical ANSI SGR escape sequence from mixed inputs.
         #
@@ -500,13 +485,13 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   td_sgr "$WHITE" "" "$FX_BOLD"
+        #   sgnd_sgr "$WHITE" "" "$FX_BOLD"
         #
         # Examples:
-        #   clr="$(td_sgr "$GREEN" "" "$FX_BOLD")"
+        #   clr="$(sgnd_sgr "$GREEN" "" "$FX_BOLD")"
         #
-        #   printf '%sHello%s\n' "$(td_sgr 1 4)" "$RESET"
-    td_sgr() {
+        #   printf '%sHello%s\n' "$(sgnd_sgr 1 4)" "$RESET"
+    sgnd_sgr() {
         local -a parts=()
         local -a subparts=()
         local arg=""
@@ -557,7 +542,7 @@ set -uo pipefail
         printf $'\e[%sm' "$(IFS=';'; echo "${parts[*]}")"
     }
 
-    # td_fg
+    # sgnd_fg
         # Purpose:
         #   Convenience wrapper to build a foreground-color SGR prefix.
         #
@@ -574,17 +559,17 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   td_fg "$GREEN" "$FX_BOLD"
+        #   sgnd_fg "$GREEN" "$FX_BOLD"
         #
         # Examples:
-        #   printf '%sText%s\n' "$(td_fg "$WHITE" "$FX_ITALIC")" "$RESET"
-    td_fg() {  # td_fg <fg> [fx...]
+        #   printf '%sText%s\n' "$(sgnd_fg "$WHITE" "$FX_ITALIC")" "$RESET"
+    sgnd_fg() {  # sgnd_fg <fg> [fx...]
         local fg="${1:-}"
         shift || true
-        td_sgr "$fg" "" "$@"
+        sgnd_sgr "$fg" "" "$@"
     }
 
-    # td_bg
+    # sgnd_bg
         # Purpose:
         #   Convenience wrapper to build a background-color SGR prefix.
         #
@@ -601,24 +586,24 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   td_bg "$BG_BLUE"
+        #   sgnd_bg "$BG_BLUE"
         #
         # Examples:
-        #   printf '%sText%s\n' "$(td_bg "$BG_RED" "$FX_BOLD")" "$RESET"
-    td_bg() {  # td_bg <bg> [fx...]
+        #   printf '%sText%s\n' "$(sgnd_bg "$BG_RED" "$FX_BOLD")" "$RESET"
+    sgnd_bg() {  # sgnd_bg <bg> [fx...]
         local bg="${1:-}"
         shift || true
-        td_sgr "" "$bg" "$@"
+        sgnd_sgr "" "$bg" "$@"
     }
 
  # -- Runmode indicators ----------------------------------------------------------
-    # td_update_runmode
+    # sgnd_update_runmode
         # Purpose:
         #   Update the styled global RUN_MODE indicator from the current dry-run state.
         #
         # Behavior:
         #   - Sets RUN_MODE to DRYRUN or COMMIT.
-        #   - Uses td_runmode_color() for the prefix.
+        #   - Uses sgnd_runmode_color() for the prefix.
         #   - Appends RESET so the string is safe for inline rendering.
         #
         # Inputs (globals):
@@ -632,20 +617,20 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   td_update_runmode
+        #   sgnd_update_runmode
         #
         # Examples:
         #   FLAG_DRYRUN=1
-        #   td_update_runmode
-    td_update_runmode() {
+        #   sgnd_update_runmode
+    sgnd_update_runmode() {
         if (( FLAG_DRYRUN )); then
-            RUN_MODE="$(td_runmode_color)DRYRUN${RESET}"
+            RUN_MODE="$(sgnd_runmode_color)DRYRUN${RESET}"
         else
-            RUN_MODE="$(td_runmode_color)COMMIT${RESET}"
+            RUN_MODE="$(sgnd_runmode_color)COMMIT${RESET}"
         fi
     }
 
-    # td_runmode_color
+    # sgnd_runmode_color
         # Purpose:
         #   Return the ANSI prefix associated with the current run mode.
         #
@@ -661,16 +646,16 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   td_runmode_color
+        #   sgnd_runmode_color
         #
         # Examples:
-        #   printf '%s%s%s\n' "$(td_runmode_color)" "COMMIT" "$RESET"
-    td_runmode_color() {
+        #   printf '%s%s%s\n' "$(sgnd_runmode_color)" "COMMIT" "$RESET"
+    sgnd_runmode_color() {
         (( FLAG_DRYRUN )) && printf '%s' "$TUI_DRYRUN" || printf '%s' "$TUI_COMMIT"
     }
 
  # -- Rendering primitives --------------------------------------------------------
-    # td_print_labeledvalue
+    # sgnd_print_labeledvalue
         # Purpose:
         #   Print one aligned "Label : Value" line with optional styling.
         #
@@ -703,14 +688,14 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   td_print_labeledvalue "Label" "Value"
-        #   td_print_labeledvalue --label "Label" --value "Value" [opts]
+        #   sgnd_print_labeledvalue "Label" "Value"
+        #   sgnd_print_labeledvalue --label "Label" --value "Value" [opts]
         #
         # Examples:
-        #   td_print_labeledvalue "Version" "$TD_VERSION"
+        #   sgnd_print_labeledvalue "Version" "$SGND_VERSION"
         #
-        #   td_print_labeledvalue --label "Mode" --value "$RUN_MODE" --pad 4
-    td_print_labeledvalue() {
+        #   sgnd_print_labeledvalue --label "Mode" --value "$RUN_MODE" --pad 4
+    sgnd_print_labeledvalue() {
         local label=""
         local value=""
 
@@ -780,7 +765,7 @@ set -uo pipefail
             "${valueclr}${value}${RESET}"
     }
 
-    # td_print_fill
+    # sgnd_print_fill
         # Purpose:
         #   Print one line with left and right content separated by a fill region.
         #
@@ -815,12 +800,12 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   td_print_fill "Left" "Right"
-        #   td_print_fill --left "Menu" --right "$RUN_MODE" [opts]
+        #   sgnd_print_fill "Left" "Right"
+        #   sgnd_print_fill --left "Menu" --right "$RUN_MODE" [opts]
         #
         # Examples:
-        #   td_print_fill --left "$TD_SCRIPT_TITLE" --right "$RUN_MODE" --maxwidth 100
-    td_print_fill() {
+        #   sgnd_print_fill --left "$SGND_SCRIPT_TITLE" --right "$RUN_MODE" --maxwidth 100
+    sgnd_print_fill() {
         local left="" right=""
         local padleft=2 padright=1 maxwidth=80
         local fillchar=" "
@@ -865,37 +850,37 @@ set -uo pipefail
 
         fill=$(( maxwidth
                 - padleft
-                - $(td_visible_len "$left")
-                - $(td_visible_len "$right")
+                - $(sgnd_visible_len "$left")
+                - $(sgnd_visible_len "$right")
                 - padright ))
 
         (( fill < 0 )) && fill=0
 
         # --- Render (colors applied last)
         printf '%s%s%s%s%s%s\n' \
-            "$(td_string_repeat "$fillchar" "$padleft")" \
+            "$(sgnd_string_repeat "$fillchar" "$padleft")" \
             "${leftclr}${left}${RESET}" \
-            "$(td_string_repeat "$fillchar" "$fill")" \
-            "$(td_string_repeat "$fillchar" "$padright")" \
+            "$(sgnd_string_repeat "$fillchar" "$fill")" \
+            "$(sgnd_string_repeat "$fillchar" "$padright")" \
             "${rightclr}${right}${RESET}" \
             ""
     }
 
-    # td_print_titlebar
+    # sgnd_print_titlebar
         # Purpose:
         #   Print a framed title bar with left/right header text and optional subtitle.
         #
         # Behavior:
         #   - Prints a border line, one header line, an optional subtitle line,
         #     and a closing border line.
-        #   - Uses TD_SCRIPT_TITLE or TD_SCRIPT_BASE as the default left title.
+        #   - Uses SGND_SCRIPT_TITLE or SGND_SCRIPT_BASE as the default left title.
         #   - Uses RUN_MODE as the default right-side text.
-        #   - Uses TD_SCRIPT_DESC as the default subtitle.
+        #   - Uses SGND_SCRIPT_DESC as the default subtitle.
         #
         # Inputs (globals):
-        #   TD_SCRIPT_TITLE
-        #   TD_SCRIPT_BASE
-        #   TD_SCRIPT_DESC
+        #   SGND_SCRIPT_TITLE
+        #   SGND_SCRIPT_BASE
+        #   SGND_SCRIPT_DESC
         #   RUN_MODE
         #
         # Output:
@@ -905,20 +890,20 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   td_print_titlebar [opts]
+        #   sgnd_print_titlebar [opts]
         #
         # Examples:
-        #   td_print_titlebar
+        #   sgnd_print_titlebar
         #
-        #   td_print_titlebar --left "SolidGround Console" --right "$RUN_MODE" --sub "$TD_SCRIPT_DESC"
-    td_print_titlebar() {
+        #   sgnd_print_titlebar --left "SolidGround Console" --right "$RUN_MODE" --sub "$SGND_SCRIPT_DESC"
+    sgnd_print_titlebar() {
 
-        local left="${TD_SCRIPT_TITLE:-$TD_SCRIPT_BASE}"
+        local left="${SGND_SCRIPT_TITLE:-$SGND_SCRIPT_BASE}"
         local right="${RUN_MODE:-}"
-        local leftclr="$(td_sgr "$WHITE" "" "$FX_BOLD")"
-        local rightclr=""                 # let td_print_fill inherit
-        local sub="${TD_SCRIPT_DESC:-""}"
-        local subclr="$(td_sgr "$WHITE" "" "$FX_ITALIC")"
+        local leftclr="$(sgnd_sgr "$WHITE" "" "$FX_BOLD")"
+        local rightclr=""                 # let sgnd_print_fill inherit
+        local sub="${SGND_SCRIPT_DESC:-""}"
+        local subclr="$(sgnd_sgr "$WHITE" "" "$FX_ITALIC")"
         local subjust="C"
         local border="$DL_H"
         local borderclr="${TUI_BORDER}"
@@ -953,13 +938,13 @@ set -uo pipefail
         (( maxwidth < 10 )) && maxwidth=10
         (( padleft < 0 )) && padleft=0
 
-        td_print
-        td_print_sectionheader \
+        sgnd_print
+        sgnd_print_sectionheader \
             --border "$border" \
             --borderclr "$borderclr" \
             --maxwidth "$maxwidth"
 
-        td_print_fill \
+        sgnd_print_fill \
             --left "$left" \
             --right "$right" \
             --padleft "$padleft" \
@@ -968,20 +953,20 @@ set -uo pipefail
             ${rightclr:+--rightclr "$rightclr"}
 
         if [[ "${sub}" != "" ]]; then
-           td_print \
+           sgnd_print \
             --text "$sub" \
             --justify "$subjust" \
             --textclr "$subclr" \
-            --rightmargin "$(td_visible_len "$right")"
+            --rightmargin "$(sgnd_visible_len "$right")"
         fi
 
-        td_print_sectionheader \
+        sgnd_print_sectionheader \
             --border "$border" \
             --borderclr "$borderclr" \
             --maxwidth "$maxwidth"
     }
 
-    # td_print_sectionheader
+    # sgnd_print_sectionheader
         # Purpose:
         #   Print a divider line with optional title text.
         #
@@ -1013,17 +998,17 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   td_print_sectionheader
-        #   td_print_sectionheader "Title"
-        #   td_print_sectionheader --text "Title" [opts]
+        #   sgnd_print_sectionheader
+        #   sgnd_print_sectionheader "Title"
+        #   sgnd_print_sectionheader --text "Title" [opts]
         #
         # Examples:
-        #   td_print_sectionheader --text "Framework metadata"
+        #   sgnd_print_sectionheader --text "Framework metadata"
         #
-        #   td_print_sectionheader --border "=" --maxwidth 100
-    td_print_sectionheader() {
+        #   sgnd_print_sectionheader --border "=" --maxwidth 100
+    sgnd_print_sectionheader() {
         local text=""
-        local textclr="$(td_sgr "$WHITE" "" "$FX_BOLD")"
+        local textclr="$(sgnd_sgr "$WHITE" "" "$FX_BOLD")"
         local border="$LN_H"
         local borderclr="${TUI_BORDER}"
         local padleft=4
@@ -1062,18 +1047,18 @@ set -uo pipefail
 
         # If no text: full-width border line
         if [[ -z "$text" ]]; then
-            fnl="${borderclr}$(td_string_repeat "$border" "$maxwidth")${RESET}"
+            fnl="${borderclr}$(sgnd_string_repeat "$border" "$maxwidth")${RESET}"
             printf '%s\n' "$fnl"
             return 0
         fi
 
         # Left: "---- " (padleft times border + a space)
         if [[ -n "$border" && $padleft -gt 0 ]]; then
-            left_plain="$(td_string_repeat "$border" "$padleft") "
+            left_plain="$(sgnd_string_repeat "$border" "$padleft") "
         fi
 
         # Middle: "Text"
-        mid_plain="$(td_strip_ansi "$text")"
+        mid_plain="$(sgnd_strip_ansi "$text")"
 
         if (( padend )); then
             # We will output: left_plain + mid_plain + space + right_plain
@@ -1087,7 +1072,7 @@ set -uo pipefail
             (( remaining < 0 )) && remaining=0
 
             if [[ -n "$border" && $remaining -gt 0 ]]; then
-                right_plain="$(td_string_repeat "$border" "$remaining")"
+                right_plain="$(sgnd_string_repeat "$border" "$remaining")"
             fi
 
             if [[ -n "$right_plain" ]]; then
@@ -1102,15 +1087,15 @@ set -uo pipefail
         printf '%s\n' "$fnl"
     }
 
-    # td_print
+    # sgnd_print
         # Purpose:
         #   Print formatted text with padding, justification, and optional wrapping.
         #
         # Behavior:
         #   - Empty call prints a blank line.
         #   - Auto-wraps when text exceeds the available width unless wrap mode is forced.
-        #   - Delegates single-line rendering to td_print_single().
-        #   - Delegates wrapping to td_wrap_words().
+        #   - Delegates single-line rendering to sgnd_print_single().
+        #   - Delegates wrapping to sgnd_wrap_words().
         #
         # Arguments:
         #   --text TEXT
@@ -1135,15 +1120,15 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   td_print
-        #   td_print "Text"
-        #   td_print --text "Text" [opts]
+        #   sgnd_print
+        #   sgnd_print "Text"
+        #   sgnd_print --text "Text" [opts]
         #
         # Examples:
-        #   td_print --text "$TD_SCRIPT_DESC" --justify C --pad 4
+        #   sgnd_print --text "$SGND_SCRIPT_DESC" --justify C --pad 4
         #
-        #   td_print --text "$long_text" --wrap 1 --maxwidth 100
-    td_print() {
+        #   sgnd_print --text "$long_text" --wrap 1 --maxwidth 100
+    sgnd_print() {
         local text=""
         local textclr="${TUI_TEXT:-}"
         local wrap=0
@@ -1173,7 +1158,7 @@ set -uo pipefail
 
         # Empty call => newline
         if [[ -z "$text" ]]; then
-            td_print_single
+            sgnd_print_single
             return 0
         fi
 
@@ -1197,15 +1182,15 @@ set -uo pipefail
             (( mw_eff < 1 )) && mw_eff=1
 
             while IFS= read -r line; do
-                td_print_single \
+                sgnd_print_single \
                     --text "$line" \
                     --textclr "$textclr" \
                     --pad "$pad" \
                     --justify "$justify" \
                     --maxwidth "$mw_eff"
-            done < <(td_wrap_words --width "$avail" --text "$text")
+            done < <(sgnd_wrap_words --width "$avail" --text "$text")
         else
-            td_print_single \
+            sgnd_print_single \
                 --text "$text" \
                 --textclr "$textclr" \
                 --pad "$pad" \
@@ -1214,7 +1199,7 @@ set -uo pipefail
         fi
     }
 
-    # td_print_single
+    # sgnd_print_single
         # Purpose:
         #   Render exactly one formatted line within a fixed width.
         #
@@ -1243,13 +1228,13 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   td_print_single
-        #   td_print_single "Text"
-        #   td_print_single --text "Text" [opts]
+        #   sgnd_print_single
+        #   sgnd_print_single "Text"
+        #   sgnd_print_single --text "Text" [opts]
         #
         # Examples:
-        #   td_print_single --text "Done" --justify R --maxwidth 40
-    td_print_single() {
+        #   sgnd_print_single --text "Done" --justify R --maxwidth 40
+    sgnd_print_single() {
         local text=""
         local textclr="${TUI_TEXT:-}"
         local pad=0
@@ -1316,7 +1301,7 @@ set -uo pipefail
         printf "%b\n" "${textclr}${line}${RESET}"
     }
 
-    # td_print_file
+    # sgnd_print_file
         # Purpose:
         #   Print a text file to stdout, paging when interactive.
         #
@@ -1337,15 +1322,15 @@ set -uo pipefail
         #   2 on missing or unreadable file
         #
         # Usage:
-        #   td_print_file <path>
+        #   sgnd_print_file <path>
         #
         # Examples:
-        #   td_print_file "$TD_DOCS_DIR/README.md"
-    td_print_file() {
+        #   sgnd_print_file "$SGND_DOCS_DIR/README.md"
+    sgnd_print_file() {
         local file="$1"
         
-        [[ -n "${file:-}" ]] || { printf "ERROR: td_print_file: missing file\n" >&2; return 2; }
-        [[ -r "$file" ]]      || { printf "ERROR: td_print_file: not readable: %s\n" "$file" >&2; return 2; }
+        [[ -n "${file:-}" ]] || { printf "ERROR: sgnd_print_file: missing file\n" >&2; return 2; }
+        [[ -r "$file" ]]      || { printf "ERROR: sgnd_print_file: not readable: %s\n" "$file" >&2; return 2; }
 
         
         local ext="${file##*.}"
@@ -1402,7 +1387,7 @@ set -uo pipefail
         fi
     }
     
-    # td_print_cell
+    # sgnd_print_cell
         # Purpose:
         #   Print a fixed-width cell that may contain ANSI styling sequences.
         #
@@ -1424,11 +1409,11 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   td_print_cell 20 "$text"
+        #   sgnd_print_cell 20 "$text"
         #
         # Examples:
-        #   td_print_cell 20 "${GREEN}OK${RESET}"
-    td_print_cell() {
+        #   sgnd_print_cell 20 "${GREEN}OK${RESET}"
+    sgnd_print_cell() {
         local width="$1"
         local s="$2"
 
@@ -1443,16 +1428,16 @@ set -uo pipefail
         printf '%s%*s' "$s" "$pad" ""
     }
 
-    # td_module_show_metadata
+    # sgnd_module_show_metadata
         # Purpose:
-        #   Display metadata for a library module initialized via td_module_init_metadata.
+        #   Display metadata for a library module initialized via sgnd_module_init_metadata.
         #
         # Behavior:
         #   - Accepts either:
-        #       • a module prefix (e.g. TD_COMMENT_PARSER)
+        #       • a module prefix (e.g. SGND_COMMENT_PARSER)
         #       • a file path (derives module prefix)
-        #   - Reads TD_<MODULE>_* variables via indirect expansion
-        #   - Prints values using td_print_labeled_value
+        #   - Reads SGND_<MODULE>_* variables via indirect expansion
+        #   - Prints values using sgnd_print_labeled_value
         #   - Displays Description as a separate block when present
         #
         # Arguments:
@@ -1463,13 +1448,13 @@ set -uo pipefail
         #   1  unable to resolve module
         #
         # Usage:
-        #   td_module_show_metadata "TD_COMMENT_PARSER"
-        #   td_module_show_metadata "${BASH_SOURCE[0]}"
+        #   sgnd_module_show_metadata "SGND_COMMENT_PARSER"
+        #   sgnd_module_show_metadata "${BASH_SOURCE[0]}"
         #
         # Notes:
         #   - Intended for debugging, diagnostics, and inspection
-        #   - Assumes td_print_labeled_value exists
-    td_module_show_metadata() {
+        #   - Assumes sgnd_print_labeled_value exists
+    sgnd_module_show_metadata() {
         local module_ref="${1:?missing module prefix or file}"
         local prefix=""
         local file=""
@@ -1497,14 +1482,14 @@ set -uo pipefail
         local v_license=""
 
         # --- Resolve module prefix ----------------------------------------------------
-        if [[ "$module_ref" == TD_* ]]; then
+        if [[ "$module_ref" == SGND_* ]]; then
             prefix="$module_ref"
         else
             file="$(readlink -f "$module_ref")" || return 1
             base="$(basename -- "$file")"
             key="${base%.sh}"
             key="${key//-/_}"
-            prefix="TD_${key^^}"
+            prefix="SGND_${key^^}"
         fi
 
         # --- Resolve variables --------------------------------------------------------
@@ -1528,24 +1513,24 @@ set -uo pipefail
         var_name="${prefix}_LICENSE";    v_license="${!var_name-}"
 
         # --- Output -------------------------------------------------------------------
-        td_print_labeled_value "Module"      "$prefix"
-        td_print_labeled_value "File"        "$v_file"
-        td_print_labeled_value "Directory"   "$v_dir"
-        td_print_labeled_value "Base"        "$v_base"
-        td_print_labeled_value "Name"        "$v_name"
-        td_print_labeled_value "Product"     "$v_product"
-        td_print_labeled_value "Title"       "$v_title"
-        td_print_labeled_value "Version"     "$v_version"
-        td_print_labeled_value "Build"       "$v_build"
-        td_print_labeled_value "Checksum"    "$v_checksum"
-        td_print_labeled_value "Source"      "$v_source"
-        td_print_labeled_value "Type"        "$v_type"
-        td_print_labeled_value "Purpose"     "$v_purpose"
-        td_print_labeled_value "Developers"  "$v_developers"
-        td_print_labeled_value "Company"     "$v_company"
-        td_print_labeled_value "Client"      "$v_client"
-        td_print_labeled_value "Copyright"   "$v_copyright"
-        td_print_labeled_value "License"     "$v_license"
+        sgnd_print_labeled_value "Module"      "$prefix"
+        sgnd_print_labeled_value "File"        "$v_file"
+        sgnd_print_labeled_value "Directory"   "$v_dir"
+        sgnd_print_labeled_value "Base"        "$v_base"
+        sgnd_print_labeled_value "Name"        "$v_name"
+        sgnd_print_labeled_value "Product"     "$v_product"
+        sgnd_print_labeled_value "Title"       "$v_title"
+        sgnd_print_labeled_value "Version"     "$v_version"
+        sgnd_print_labeled_value "Build"       "$v_build"
+        sgnd_print_labeled_value "Checksum"    "$v_checksum"
+        sgnd_print_labeled_value "Source"      "$v_source"
+        sgnd_print_labeled_value "Type"        "$v_type"
+        sgnd_print_labeled_value "Purpose"     "$v_purpose"
+        sgnd_print_labeled_value "Developers"  "$v_developers"
+        sgnd_print_labeled_value "Company"     "$v_company"
+        sgnd_print_labeled_value "Client"      "$v_client"
+        sgnd_print_labeled_value "Copyright"   "$v_copyright"
+        sgnd_print_labeled_value "License"     "$v_license"
 
         if [[ -n "$v_desc" ]]; then
             printf '\nDescription:\n%s\n' "$v_desc"
@@ -1555,13 +1540,13 @@ set -uo pipefail
     }
  # -- Externals -------------------------------------------------------------------
  # -- Sample/demo renderers -------------------------------------------------------
-    # td_color_samples
+    # sgnd_color_samples
         # Purpose:
         #   Print a demo table of available palette colors and common effects.
         #
         # Behavior:
         #   - Renders sample rows for the framework palette color variables.
-        #   - Delegates row rendering to td_sample_row().
+        #   - Delegates row rendering to sgnd_sample_row().
         #
         # Output:
         #   Writes a formatted color demo to stdout.
@@ -1570,30 +1555,30 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   td_color_samples
+        #   sgnd_color_samples
         #
         # Examples:
-        #   td_color_samples
-    td_color_samples(){
+        #   sgnd_color_samples
+    sgnd_color_samples(){
         printf '\n%s\n\n' "---- Available foreground colors & effects in SolidgroundUX ----"
 
-        td_sample_row	BLUE	BRIGHT_BLUE	    DARK_BLUE	    BG_BLUE	    BG_DARK_BLUE
-        td_sample_row	BROWN	BRIGHT_BROWN	DARK_BROWN      BG_BROWN	BG_DARK_BROWN
-        td_sample_row	CYAN	BRIGHT_CYAN	    DARK_CYAN	    BG_CYAN	    BG_DARK_CYAN
-        td_sample_row	GOLD	BRIGHT_GOLD	    DARK_GOLD	    BG_GOLD	    BG_DARK_GOLD
-        td_sample_row	GREEN	BRIGHT_GREEN	DARK_GREEN	    BG_GREEN	BG_DARK_GREEN
-        td_sample_row	MAGENTA	BRIGHT_MAGENTA	DARK_MAGENTA	BG_MAGENTA	BG_DARK_MAGENTA
-        td_sample_row	ORANGE	BRIGHT_ORANGE	DARK_ORANGE	    BG_ORANGE	BG_DARK_ORANGE
-        td_sample_row	PINK	BRIGHT_PINK	    DARK_PINK	    BG_PINK	    BG_DARK_PINK
-        td_sample_row	PURPLE	BRIGHT_PURPLE	DARK_PURPLE	    BG_PURPLE	BG_DARK_PURPLE
-        td_sample_row	RED	    BRIGHT_RED	    DARK_RED	    BG_RED	    BG_DARK_RED
-        td_sample_row	TEAL	BRIGHT_TEAL	    DARK_TEAL	    BG_TEAL	    BG_DARK_TEAL
-        td_sample_row	WHITE	BRIGHT_WHITE	DARK_WHITE	    BG_WHITE	BG_DARK_WHITE
-        td_sample_row	YELLOW	BRIGHT_YELLOW	DARK_YELLOW	    BG_YELLOW	BG_DARK_YELLOW
+        sgnd_sample_row	BLUE	BRIGHT_BLUE	    DARK_BLUE	    BG_BLUE	    BG_DARK_BLUE
+        sgnd_sample_row	BROWN	BRIGHT_BROWN	DARK_BROWN      BG_BROWN	BG_DARK_BROWN
+        sgnd_sample_row	CYAN	BRIGHT_CYAN	    DARK_CYAN	    BG_CYAN	    BG_DARK_CYAN
+        sgnd_sample_row	GOLD	BRIGHT_GOLD	    DARK_GOLD	    BG_GOLD	    BG_DARK_GOLD
+        sgnd_sample_row	GREEN	BRIGHT_GREEN	DARK_GREEN	    BG_GREEN	BG_DARK_GREEN
+        sgnd_sample_row	MAGENTA	BRIGHT_MAGENTA	DARK_MAGENTA	BG_MAGENTA	BG_DARK_MAGENTA
+        sgnd_sample_row	ORANGE	BRIGHT_ORANGE	DARK_ORANGE	    BG_ORANGE	BG_DARK_ORANGE
+        sgnd_sample_row	PINK	BRIGHT_PINK	    DARK_PINK	    BG_PINK	    BG_DARK_PINK
+        sgnd_sample_row	PURPLE	BRIGHT_PURPLE	DARK_PURPLE	    BG_PURPLE	BG_DARK_PURPLE
+        sgnd_sample_row	RED	    BRIGHT_RED	    DARK_RED	    BG_RED	    BG_DARK_RED
+        sgnd_sample_row	TEAL	BRIGHT_TEAL	    DARK_TEAL	    BG_TEAL	    BG_DARK_TEAL
+        sgnd_sample_row	WHITE	BRIGHT_WHITE	DARK_WHITE	    BG_WHITE	BG_DARK_WHITE
+        sgnd_sample_row	YELLOW	BRIGHT_YELLOW	DARK_YELLOW	    BG_YELLOW	BG_DARK_YELLOW
 
     }
 
-    # td_sample_row
+    # sgnd_sample_row
         # Purpose:
         #   Render one sample row for one or more named palette variables.
         #
@@ -1613,49 +1598,49 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   td_sample_row BLUE BRIGHT_BLUE
+        #   sgnd_sample_row BLUE BRIGHT_BLUE
         #
         # Examples:
-        #   td_sample_row GREEN BRIGHT_GREEN DARK_GREEN
+        #   sgnd_sample_row GREEN BRIGHT_GREEN DARK_GREEN
         #
         # Notes:
         #   - Uses eval and expects trusted framework palette variable names.
-    td_sample_row(){
+    sgnd_sample_row(){
         local clr name val
 
         for clr in "$@"; do
             eval "val=\${$clr}"
 
-            td_print_cell 20 "$val$clr$RESET"
+            sgnd_print_cell 20 "$val$clr$RESET"
 
             # Bold
             printf "%sBOLD%s\t" \
-                "$(td_sgr "$val" "" "$FX_BOLD")" \
+                "$(sgnd_sgr "$val" "" "$FX_BOLD")" \
                 "$RESET"
 
             # Faint / Dim
             printf "%sFAINT%s\t" \
-                "$(td_sgr "$val" "" "$FX_FAINT")" \
+                "$(sgnd_sgr "$val" "" "$FX_FAINT")" \
                 "$RESET"
 
             # Italic
             printf "%sITALIC%s\t" \
-                "$(td_sgr "$val" "" "$FX_ITALIC")" \
+                "$(sgnd_sgr "$val" "" "$FX_ITALIC")" \
                 "$RESET"
 
             # Underline
             printf "%sUNDER%s\t" \
-                "$(td_sgr "$val" "" "$FX_UNDERLINE")" \
+                "$(sgnd_sgr "$val" "" "$FX_UNDERLINE")" \
                 "$RESET"
 
             # Reverse
             printf "%sREVERSE%s\t" \
-                "$(td_sgr "$val" "" "$FX_REVERSE")" \
+                "$(sgnd_sgr "$val" "" "$FX_REVERSE")" \
                 "$RESET"
 
             # Strikethrough
             printf "%sSTRIKE%s\t" \
-                "$(td_sgr "$val" "" "$FX_STRIKE")" \
+                "$(sgnd_sgr "$val" "" "$FX_STRIKE")" \
                 "$RESET"
 
             printf "\n"    
@@ -1664,7 +1649,7 @@ set -uo pipefail
         printf "\n"
     }
 
-    # td_style_samples
+    # sgnd_style_samples
         # Purpose:
         #   Print a demo of semantic message and UI style variables.
         #
@@ -1679,11 +1664,11 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   td_style_samples
+        #   sgnd_style_samples
         #
         # Examples:
-        #   td_style_samples
-    td_style_samples(){
+        #   sgnd_style_samples
+    sgnd_style_samples(){
         printf '\n%s\n\n' "---- Message colors (Say) ----"
        
         printf '%s\n' "${MSG_CLR_INFO}MSG_CLR_INFO${RESET}"

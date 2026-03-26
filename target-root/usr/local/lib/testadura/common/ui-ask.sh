@@ -2,50 +2,43 @@
 # SolidgroundUX - UI Ask
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0
-#   Build       : 2608301
-#   Checksum    : 1d5da7773ee9e2c1643ba3a6273aa99dee14209fbc78fb24e9869189c9dbca36
+#   Version     : 1.1
+#   Build       : 2608501
+#   Checksum    :
 #   Source      : ui-ask.sh
 #   Type        : library
-#   Purpose     : Provide interactive prompting utilities for console input
+#   Purpose     : Provide interactive prompting and lightweight dialog utilities
 #
 # Description:
-#   Provides a set of interactive input helpers for prompting users in
-#   console-based workflows.
+#   Provides the framework's console interaction layer.
 #
 #   The library:
-#     - Prompts for user input using labeled questions
-#     - Supports default values and editable input
-#     - Provides validation hooks for input checking
-#     - Supports yes/no, choice, and confirmation dialogs
-#     - Integrates with console styling and color configuration
+#     - Prompts for typed input using labeled questions
+#     - Supports editable defaults and validation hooks
+#     - Supports constrained symbolic decisions
+#     - Supports timed auto-continue prompts with simple intervention keys
+#     - Supports typed and immediate choice selection helpers
+#     - Supports prompting a variable set from field-spec lines
 #     - Reads input from the controlling terminal to avoid stdin conflicts
 #
-# Design principles:
-#   - Consistent and predictable user interaction patterns
-#   - Separation of input handling from business logic
-#   - Safe operation in piped or redirected environments
-#   - Minimal dependencies on external tools
-#
-# Role in framework:
-#   - Core user interaction layer for console-based tools
-#   - Used by scripts such as metadata-editor and console modules
-#
-# Non-goals:
-#   - Full terminal UI (TUI) framework implementation
-#   - Complex form handling or layout management
-#   - Graphical user interface functionality
+# Public API:
+#   - ask
+#   - ask_decision
+#   - ask_dlg_autocontinue
+#   - ask_choose
+#   - ask_choose_immediate
+#   - ask_prompt_form
 #
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
-#   Client      : 
+#   Client      :
 #   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------
-    # __td_lib_guard
+    # _sgnd_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
         #
@@ -60,50 +53,35 @@ set -uo pipefail
         #   $0
         #
         # Outputs (globals):
-        #   TD_<MODULE>_LOADED
+        #   SGND_<MODULE>_LOADED
         #
         # Returns:
         #   0 if already loaded or successfully initialized.
         #   Exits with code 2 if executed instead of sourced.
-        #
-        # Usage:
-        #   __td_lib_guard
-        #
-        # Examples:
-        #   # Typical usage at top of library file
-        #   __td_lib_guard
-        #   unset -f __td_lib_guard
-        #
-        # Notes:
-        #   - Guard variable is derived dynamically (e.g. ui-glyphs.sh → TD_UI_GLYPHS_LOADED).
-        #   - Safe under `set -u` due to indirect expansion with default.
-    __td_lib_guard() {
+    _sgnd_lib_guard() {
         local lib_base
         local guard
 
-        lib_base="$(basename "${BASH_SOURCE[0]}")"
-        lib_base="${lib_base%.sh}"
+        lib_base="$(basename "${BASH_SOURCE[0]}" .sh)"
         lib_base="${lib_base//-/_}"
-        guard="TD_${lib_base^^}_LOADED"
+        guard="SGND_${lib_base^^}_LOADED"
 
-        # Refuse to execute (library only)
         [[ "${BASH_SOURCE[0]}" != "$0" ]] || {
-            echo "This is a library; source it, do not execute it: ${BASH_SOURCE[0]}" >&2
+            printf 'This is a library; source it, do not execute it: %s\n' "${BASH_SOURCE[0]}" >&2
             exit 2
         }
 
-        # Load guard (safe under set -u)
         [[ -n "${!guard-}" ]] && return 0
         printf -v "$guard" '1'
     }
 
-    __td_lib_guard
-    unset -f __td_lib_guard
+    _sgnd_lib_guard
+    unset -f _sgnd_lib_guard
 
-    td_module_init_metadata "${BASH_SOURCE[0]}"
-    
-# --- Helpers ------------------------------------------------------------------------
-    # __expand_choices
+    sgnd_module_init_metadata "${BASH_SOURCE[0]}"
+
+# --- Internal helpers ----------------------------------------------------------------
+    # _ask_expand_choices
         # Purpose:
         #   Expand a comma-separated choice specification into individual allowed values.
         #
@@ -113,33 +91,25 @@ set -uo pipefail
         #       - Simple ranges:  "A-Z", "0-9" (single ASCII [[:alnum:]] endpoints)
         #       - Optional whitespace around tokens: "A-Z, 1-3, foo"
         #
-        # Behavior:
-        #   - Splits on commas, trims whitespace per token.
-        #   - Expands valid ASCII ranges X-Y into X..Y (inclusive).
-        #   - Rejects reverse ranges (e.g. "Z-A") and skips them (warns if saywarning exists).
-        #   - Leaves non-range tokens as-is (including empty tokens, if present in input).
-        #
-        # Outputs:
-        #   Prints one expanded value per line (suitable for `mapfile -t`).
+        # Output:
+        #   Prints one expanded value per line.
         #
         # Returns:
-        #   0 always (expansion helper; invalid ranges are skipped, not fatal).
-        #
-        # Dependencies:
-        #   saywarning (optional) : used when rejecting a range.
-        #
-        # Examples:
-        #   mapfile -t opts < <(__expand_choices "A-C, x, 1-3")
-        #   # opts => ( "A" "B" "C" "x" "1" "2" "3" )
-    __expand_choices() {
+        #   0 always.
+    _ask_expand_choices() {
         local spec="$1"
         local -a out=()
-        local part start end i
+        local -a parts=()
+        local part=""
+        local start=""
+        local end=""
+        local i=0
+        local s=0
+        local e=0
 
         IFS=',' read -r -a parts <<< "$spec"
 
         for part in "${parts[@]}"; do
-            # trim leading/trailing spaces
             part="${part#"${part%%[![:space:]]*}"}"
             part="${part%"${part##*[![:space:]]}"}"
 
@@ -147,18 +117,15 @@ set -uo pipefail
                 start="${BASH_REMATCH[1]}"
                 end="${BASH_REMATCH[2]}"
 
-                local s e
                 s=$(printf '%d' "'$start")
                 e=$(printf '%d' "'$end")
 
-                # Reject reverse ranges (strict is better for ops tools)
                 if (( s > e )); then
                     saywarning "Invalid range: $part"
                     continue
                 fi
 
                 for (( i=s; i<=e; i++ )); do
-                    # Convert ASCII code to actual character
                     out+=( "$(printf '\\%03o' "$i")" )
                 done
             else
@@ -166,32 +133,23 @@ set -uo pipefail
             fi
         done
 
-        # Interpret the \ooo sequences into characters
         for part in "${out[@]}"; do
             printf '%b\n' "$part"
         done
     }
 
-    # td__choice_is_valid
+    # _ask_choice_is_valid
         # Purpose:
-        #   Validate a single choice against a td_choose-style choices list.
-        #
-        # Usage:
-        #   if td__choice_is_valid "$value" "$choices"; then ...
+        #   Validate a single choice against a ask_choose-style choices list.
         #
         # Arguments:
-        #   $1  VALUE    Value to validate.
-        #   $2  CHOICES  Comma-separated tokens and/or ranges.
-        #
-        # Behavior:
-        #   - If CHOICES is empty: returns success.
-        #   - Expands CHOICES via __expand_choices.
-        #   - Compares case-insensitively.
+        #   $1  VALUE
+        #   $2  CHOICES
         #
         # Returns:
         #   0 if valid
         #   1 if invalid
-    td__choice_is_valid() {
+    _ask_choice_is_valid() {
         local value="${1-}"
         local choices="${2-}"
         local opt=""
@@ -199,9 +157,7 @@ set -uo pipefail
 
         [[ -z "$choices" ]] && return 0
 
-        mapfile -t expanded < <(__expand_choices "$choices")
-        saydebug "td__choice_is_valid: choices=[$choices] expanded=[${expanded[*]}] value=[$value]"
-
+        mapfile -t expanded < <(_ask_expand_choices "$choices")
         for opt in "${expanded[@]}"; do
             if [[ "${value^^}" == "${opt^^}" ]]; then
                 return 0
@@ -211,90 +167,311 @@ set -uo pipefail
         return 1
     }
 
-    # td_ask_action
+    # _ask_build_prompt
         # Purpose:
-        #   Shared helper for ask_* wrappers that normalizes timed and non-interactive
-        #   prompt behavior into a small generic action set.
-        #
-        # Behavior:
-        #   - Returns DEFAULT_ACTION immediately when no TTY is available.
-        #   - Optionally invokes td_dlg_autocontinue for a timed interaction phase.
-        #   - Maps dialog return codes to normalized action tokens.
-        #   - Falls back to TYPE when typed input should be collected by the caller.
+        #   Build a readline-safe prompt with visible-width padding and optional colors.
         #
         # Arguments:
-        #   $1  DEFAULT_ACTION
-        #       Action used for non-interactive mode and timeout.
-        #   $2  ENTER_ACTION
-        #       Action used when Enter is accepted by the timed dialog.
-        #   $3  PROMPT
-        #       Prompt text, including any suffix such as "[Y/n]".
-        #   $4  SECONDS
-        #       Countdown seconds; 0 disables timed dialog behavior.
-        #   $5  DLG_KEYS
-        #       Key map passed to td_dlg_autocontinue.
+        #   $1  LABEL
+        #   $2  LABELWIDTH
+        #   $3  PAD
+        #   $4  LABELCLR
+        #   $5  INPUTCLR
+        #   $6  COLORIZE
         #
         # Output:
-        #   Prints one normalized action token to stdout:
-        #     DEFAULT_ACTION / ENTER_ACTION / REDO / CANCEL / QUIT / TYPE
+        #   Writes the composed prompt string to stdout.
+        #
+        # Returns:
+        #   0 always.
+    _ask_build_prompt() {
+        local label="$1"
+        local labelwidth="$2"
+        local pad="$3"
+        local labelclr="$4"
+        local inputclr="$5"
+        local colorize="$6"
+
+        local rl_start=$'\001'
+        local rl_end=$'\002'
+        local label_color="$labelclr"
+        local input_color="$inputclr"
+        local padded_label=""
+        local padleft=""
+        local prompt=""
+
+        case "$colorize" in
+            none)
+                label_color=""
+                input_color=""
+                ;;
+            label)
+                input_color=""
+                ;;
+            input)
+                label_color=""
+                ;;
+            both) ;;
+            *) ;;
+        esac
+
+        if [[ -n "$labelwidth" && "$labelwidth" =~ ^[0-9]+$ ]]; then
+            padded_label="$(sgnd_padded_visible "$label" "$labelwidth")"
+        else
+            padded_label="$label"
+        fi
+
+        padleft="$(sgnd_string_repeat " " "${pad:-0}")"
+        padded_label="${padleft}${padded_label}"
+
+        [[ -n "$label_color" ]] && prompt+="${rl_start}${label_color}${rl_end}"
+        prompt+="$padded_label"
+        [[ -n "${RESET-}" ]] && prompt+="${rl_start}${RESET}${rl_end}"
+        prompt+=" : "
+        [[ -n "$input_color" ]] && prompt+="${rl_start}${input_color}${rl_end}"
+
+        printf '%s' "$prompt"
+    }
+
+    # _ask_validate
+        # Purpose:
+        #   Run a validation callback when provided.
+        #
+        # Arguments:
+        #   $1  VALIDATE_FUNCTION
+        #   $2  VALUE
+        #
+        # Returns:
+        #   0 if valid or no validator is supplied.
+        #   Non-zero when the validator rejects the value.
+    _ask_validate() {
+        local fn="${1-}"
+        local value="${2-}"
+
+        [[ -z "$fn" ]] && return 0
+        "$fn" "$value"
+    }
+
+    # _ask_decision_expand_choices
+        # Purpose:
+        #   Expand a symbolic decision specification into canonical choices and aliases.
+        #
+        # Arguments:
+        #   $1  CHOICES
+        #       Choice specification, e.g. "YES|Y,NO|N".
+        #
+        # Output:
+        #   Writes rows to stdout as CANONICAL|ALIAS.
+        #
+        # Returns:
+        #   0 always.
+    _ask_decision_expand_choices() {
+        local spec="${1-}"
+        local group=""
+        local canonical=""
+        local alias=""
+        local IFS=','
+        local -a aliases=()
+
+        for group in $spec; do
+            canonical=""
+            IFS='|' read -r -a aliases <<< "$group"
+
+            for alias in "${aliases[@]}"; do
+                alias="${alias#"${alias%%[![:space:]]*}"}"
+                alias="${alias%"${alias##*[![:space:]]}"}"
+                alias="${alias^^}"
+
+                [[ -n "$alias" ]] || continue
+                [[ -z "$canonical" ]] && canonical="$alias"
+
+                printf '%s|%s\n' "$canonical" "$alias"
+            done
+        done
+    }
+
+    # _ask_decision_normalize
+        # Purpose:
+        #   Normalize a typed decision value to its canonical token.
+        #
+        # Arguments:
+        #   $1  VALUE
+        #   $2  CHOICES
+        #   $3  DEFAULT
+        #
+        # Output:
+        #   Writes canonical token to stdout on success.
+        #
+        # Returns:
+        #   0 if valid
+        #   1 if invalid
+    _ask_decision_normalize() {
+        local value="${1-}"
+        local choices="${2-}"
+        local default_value="${3-}"
+        local canonical=""
+        local alias=""
+
+        [[ -z "$value" ]] && value="$default_value"
+
+        value="${value#"${value%%[![:space:]]*}"}"
+        value="${value%"${value##*[![:space:]]}"}"
+        value="${value^^}"
+
+        while IFS='|' read -r canonical alias; do
+            [[ "$value" == "$alias" ]] || continue
+            printf '%s\n' "$canonical"
+            return 0
+        done < <(_ask_decision_expand_choices "$choices")
+
+        return 1
+    }
+
+    # _ask_decision_display
+        # Purpose:
+        #   Build a compact display string from a decision specification.
+        #
+        # Arguments:
+        #   $1  CHOICES
+        #
+        # Output:
+        #   Writes display string, e.g. YES/NO.
+        #
+        # Returns:
+        #   0 always.
+    _ask_decision_display() {
+        local spec="${1-}"
+        local group=""
+        local out=""
+        local first=""
+        local IFS=','
+
+        for group in $spec; do
+            first="${group%%|*}"
+            first="${first#"${first%%[![:space:]]*}"}"
+            first="${first%"${first##*[![:space:]]}"}"
+            [[ -n "$first" ]] || continue
+            [[ -n "$out" ]] && out+="/"
+            out+="$first"
+        done
+
+        printf '%s\n' "$out"
+    }
+
+    # _ask_decision_map_dlg_rc
+        # Purpose:
+        #   Map ask_dlg_autocontinue return codes to a canonical decision when possible.
+        #
+        # Arguments:
+        #   $1  RC
+        #   $2  CHOICES
+        #   $3  DEFAULT
+        #
+        # Output:
+        #   Writes canonical decision token to stdout when mapped.
+        #
+        # Returns:
+        #   0 if mapped
+        #   1 if no mapping applies and typed fallback should be used
+    _ask_decision_map_dlg_rc() {
+        local rc="${1-}"
+        local choices="${2-}"
+        local default_value="${3-}"
+        local mapped=""
+
+        case "$rc" in
+            0|1)
+                mapped="$(_ask_decision_normalize "$default_value" "$choices" "$default_value" 2>/dev/null || true)"
+                [[ -n "$mapped" ]] || return 1
+                printf '%s\n' "$mapped"
+                return 0
+                ;;
+            2)
+                mapped="$(_ask_decision_normalize "CANCEL" "$choices" "$default_value" 2>/dev/null || true)"
+                [[ -n "$mapped" ]] || mapped="$(_ask_decision_normalize "QUIT" "$choices" "$default_value" 2>/dev/null || true)"
+                [[ -n "$mapped" ]] || mapped="$(_ask_decision_normalize "NO" "$choices" "$default_value" 2>/dev/null || true)"
+                [[ -n "$mapped" ]] || return 1
+                printf '%s\n' "$mapped"
+                return 0
+                ;;
+            3)
+                mapped="$(_ask_decision_normalize "REDO" "$choices" "$default_value" 2>/dev/null || true)"
+                [[ -n "$mapped" ]] || return 1
+                printf '%s\n' "$mapped"
+                return 0
+                ;;
+            *)
+                return 1
+                ;;
+        esac
+    }
+
+    # _ask_parse_fieldspec
+        # Purpose:
+        #   Parse a simple field-spec line into reusable globals for ask_prompt_form().
+        #
+        # Behavior:
+        #   - Splits a pipe-delimited spec line into:
+        #       key|label|default|validate
+        #   - Writes parsed values to _ask_field_* globals.
+        #   - Missing fields are allowed and become empty strings.
+        #
+        # Arguments:
+        #   $1  FIELD_SPEC
+        #       Pipe-delimited field spec.
+        #
+        # Outputs (globals):
+        #   _ask_field_key
+        #   _ask_field_label
+        #   _ask_field_default
+        #   _ask_field_validate
         #
         # Returns:
         #   0 always.
         #
         # Usage:
-        #   action="$(td_ask_action "YES" "YES" "Proceed? [Y/n]" 5 "ECPQT")"
-        #
-        # Examples:
-        #   action="$(td_ask_action "OK" "OK" "Continue?" 10 "EPT")"
-        #
-        # Notes:
-        #   - Intended as an internal helper for ask_* wrappers.
-        #   - Wrapper-specific meaning is applied only after TYPE fallback.
-    td_ask_action() {
-        local default_action="${1:?}"
-        local enter_action="${2:?}"
-        local prompt="${3:-}"
-        local seconds="${4:-0}"
-        local dlg_keys="${5:-}"
+        #   _ask_parse_fieldspec "HOST|Host name|localhost|validate_text"
+    _ask_parse_fieldspec() {
+        local spec="${1-}"
 
-        # Non-interactive: never block; return the wrapper default.
-        td_has_tty || {
-            printf '%s' "$default_action"
-            return 0
-        }
-
-        if (( seconds > 0 )); then
-            td_dlg_autocontinue "$seconds" "$prompt" "$dlg_keys"
-            local rc=$?
-
-            case "$rc" in
-                0) printf '%s' "$enter_action" ;;
-                1) printf '%s' "$default_action" ;;
-                2) printf '%s' "CANCEL" ;;
-                3) printf '%s' "REDO" ;;
-                4) printf '%s' "QUIT" ;;
-                5) printf '%s' "TYPE" ;;
-                *) printf '%s' "TYPE" ;;
-            esac
-            return 0
-        fi
-
-        printf '%s' "TYPE"
+        IFS='|' read -r \
+            _ask_field_key \
+            _ask_field_label \
+            _ask_field_default \
+            _ask_field_validate \
+            <<< "$spec"
     }
-    
-# --- ask ----------------------------------------------------------------------------
+
+    # _ask_is_ident
+        # Purpose:
+        #   Test whether a value is a valid shell variable identifier.
+        #
+        # Arguments:
+        #   $1  VALUE
+        #
+        # Returns:
+        #   0 if valid
+        #   1 if invalid
+    _ask_is_ident() {
+        [[ "${1-}" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]
+    }
+
+# --- Public API ---------------------------------------------------------------------
     # ask
         # Purpose:
         #   Prompt for interactive input from the controlling terminal (/dev/tty),
-        #   with optional defaulting, validation, and result delivery.
+        #   with optional defaulting, validation, and direct assignment to a variable.
         #
         # Behavior:
         #   - Reads from /dev/tty rather than stdin, so it remains safe in scripts
         #     that consume piped or redirected stdin.
         #   - Supports readline-style editing and optional prefilled defaults.
+        #   - Supports aligned labels via --labelwidth and --pad.
+        #   - Uses readline-safe prompt markers so ANSI color codes do not break
+        #     cursor positioning or default-value editing.
         #   - Optionally validates the entered value through a callback function.
         #   - Re-prompts recursively when validation fails.
-        #   - Can either assign the result to a variable or echo it to stdout.
+        #   - Can either assign the accepted value to a variable or echo it.
         #
         # Arguments:
         #   LABEL
@@ -306,11 +483,25 @@ set -uo pipefail
         #   --default VALUE
         #       Editable default value; empty entry resolves to this value.
         #   --validate FUNC
-        #       Validation callback invoked as: FUNC "$value"
-        #       Return 0 to accept, non-zero to reject and re-prompt.
+        #       Validation callback invoked as:
+        #           FUNC "$value"
+        #       Return 0 to accept; non-zero to reject and re-prompt.
         #   --colorize MODE
-        #       Prompt coloring mode: none | label | input | both
+        #       Prompt coloring mode:
+        #           none | label | input | both
         #       Default: both
+        #   --labelwidth N
+        #       Visible width of the label column.
+        #       Default: 25
+        #   --pad N
+        #       Left indentation in spaces.
+        #       Default: 0
+        #   --labelclr ANSI
+        #       ANSI color/style prefix for the label.
+        #       Default: TUI_LABEL
+        #   --inputclr ANSI
+        #       ANSI color/style prefix for the input area.
+        #       Default: TUI_INPUT
         #   --var NAME
         #       Destination variable name for the accepted value.
         #   --echo
@@ -323,6 +514,8 @@ set -uo pipefail
         #   TUI_VALID
         #   TUI_INVALID
         #   RESET
+        #   sgnd_padded_visible
+        #   sgnd_string_repeat
         #
         # Outputs (globals):
         #   Assigns the accepted value to --var NAME when provided.
@@ -342,17 +535,32 @@ set -uo pipefail
         #   ask --label "Release date" --validate validate_date --var release_date
         #
         # Examples:
-        #   ask --label "Project name" --var project_name
+        #   # Plain text input
+        #   ask --label "Product" --var PRODUCT
         #
-        #   ask --label "Environment" --default "dev" --var env
+        #   # With default
+        #   ask --label "Version" --default "1.0" --var VERSION
         #
-        #   ask --label "Release date" --validate validate_date --var release_date
+        #   # With validation
+        #   ask --label "Staging directory" \
+        #       --default "$STAGING_ROOT" \
+        #       --validate validate_dir_exists \
+        #       --var STAGING_ROOT
+        #
+        #   # With alignment / styling
+        #   ask --label "Release" \
+        #       --default "$RELEASE" \
+        #       --var RELEASE \
+        #       --labelwidth 30 \
+        #       --pad 4 \
+        #       --labelclr "${CYAN}" \
+        #       --colorize both
         #
         # Notes:
         #   - Re-prompt currently uses recursion; convert to a loop later if you want
         #     to avoid recursive retries entirely.
-        #   - When neither --var nor --echo is supplied, the accepted value is kept
-        #     local and not emitted.
+        #   - This is the base prompt primitive; higher-level helpers such as
+        #     ask_decision and ask_choose build on top of it.
     ask() {
         local label=""
         local var_name=""
@@ -367,18 +575,11 @@ set -uo pipefail
 
         local -a _orig_args=( "$@" )
 
-        local label_color=""
-        local input_color=""
         local prompt=""
         local value=""
         local ok=1
         local tty_fd=""
 
-        # readline non-printing markers
-        local rl_start=$'\001'
-        local rl_end=$'\002'
-
-        # ---- parse arguments --------------------------------------------------
         while [[ $# -gt 0 ]]; do
             case "$1" in
                 --label)       label="$2"; shift 2 ;;
@@ -395,57 +596,12 @@ set -uo pipefail
                 *)             [[ -z "$label" ]] && label="$1"; shift ;;
             esac
         done
-        saydebug "Labelwidth : $labelwidth"
-        saydebug "Pad : $pad"
+
         [[ "$labelwidth" =~ ^[0-9]+$ ]] || labelwidth=25
         [[ "$pad" =~ ^[0-9]+$ ]] || pad=0
 
-        label_color="$labelclr"
-        input_color="$inputclr"
+        prompt="$(_ask_build_prompt "$label" "$labelwidth" "$pad" "$labelclr" "$inputclr" "$colorize")"
 
-        case "$colorize" in
-            none)
-                label_color=""
-                input_color=""
-                ;;
-            label)
-                input_color=""
-                ;;
-            input)
-                label_color=""
-                ;;
-            both) ;;
-        esac
-
-        # ---- build prompt -----------------------------------------------------
-        local padleft=""
-        local padded_label=""
-        saydebug "Labelwidth : $labelwidth"
-        # ANSI-safe visible padding
-        if [[ -n "$labelwidth" && "$labelwidth" =~ ^[0-9]+$ ]]; then
-            padded_label="$(td_padded_visible "$label" "$labelwidth")"
-        else
-            padded_label="$label"
-        fi
-
-        # left padding
-        padleft="$(td_string_repeat " " "${pad:-0}")"
-        padded_label="${padleft}${padded_label}"
-
-        # build readline-safe prompt (IMPORTANT FIX)
-        if [[ -n "$padded_label" ]]; then
-            prompt=""
-
-            [[ -n "$label_color" ]] && prompt+="${rl_start}${label_color}${rl_end}"
-            prompt+="${padded_label}"
-            [[ -n "$RESET" ]] && prompt+="${rl_start}${RESET}${rl_end}"
-
-            prompt+=" : "
-
-            [[ -n "$input_color" ]] && prompt+="${rl_start}${input_color}${rl_end}"
-        fi
-
-        # ---- read from /dev/tty -----------------------------------------------
         exec {tty_fd}</dev/tty || {
             printf "%bNo TTY available%b\n" "$TUI_INVALID" "$RESET"
             return 2
@@ -459,271 +615,461 @@ set -uo pipefail
         fi
 
         exec {tty_fd}<&-
-
-        # reset color so terminal doesn't stay tinted
         printf "%b" "$RESET" >/dev/tty
 
-        # ---- validation -------------------------------------------------------
-        if [[ -n "$validate_fn" ]]; then
-            if "$validate_fn" "$value"; then
-                ok=1
-            else
-                ok=0
-            fi
+        if _ask_validate "$validate_fn" "$value"; then
+            ok=1
+        else
+            ok=0
         fi
 
-        # ---- echo feedback ----------------------------------------------------
         if (( echo_input )); then
             if (( ok )); then
                 printf "  %b%s%b %b✓%b\n" \
-                    "$input_color" "$value" "$RESET" \
+                    "$inputclr" "$value" "$RESET" \
                     "$TUI_VALID" "$RESET" >/dev/tty
             else
                 printf "  %b%s%b %b✗%b\n" \
-                    "$input_color" "$value" "$RESET" \
+                    "$inputclr" "$value" "$RESET" \
                     "$TUI_INVALID" "$RESET" >/dev/tty
             fi
         fi
 
-        # ---- retry on invalid -------------------------------------------------
         if (( ! ok )); then
             printf "%bInvalid value. Please try again.%b\n" "$TUI_INVALID" "$RESET" >/dev/tty
             ask "${_orig_args[@]}"
             return
         fi
 
-        # ---- output -----------------------------------------------------------
         if [[ -n "$var_name" ]]; then
             printf -v "$var_name" '%s' "$value"
         elif (( echo_input )); then
             printf '%s\n' "$value"
         fi
     }
-# --- ask shorthand ------------------------------------------------------------------
-    # Convenience wrappers around ask() for common prompt patterns.
-    # ask_noyes
+
+    # ask_decision
         # Purpose:
-        #   Prompt a Yes/No question with default No, optionally using timed auto-continue.
+        #   Prompt for a constrained symbolic decision and store the canonical result.
         #
         # Behavior:
-        #   - Uses td_ask_action for non-interactive and timed-dialog handling.
-        #   - Falls back to typed input via ask() when needed.
-        #   - Treats Enter and timeout as No.
+        #   - Builds on top of ask().
+        #   - Accepts a developer-defined decision specification with aliases.
+        #   - Optionally runs ask_dlg_autocontinue() first when --seconds > 0.
+        #   - Validates typed input against the allowed decision values.
+        #   - Stores the canonical decision token in the variable named by --var.
         #
-        # Arguments:
-        #   $1  PROMPT
-        #       Question text without suffix.
-        #   $2  SECONDS
-        #       Optional auto-confirm timeout in seconds.
-        #
-        # Returns:
-        #   0 if the final answer is Yes.
-        #   1 if the final answer is No, Cancel, or Quit.
-        #
-        # Usage:
-        #   ask_noyes "Delete all generated files?"
-        #
-        # Examples:
-        #   if ask_noyes "Reset the state file?" 10; then
-        #       td_state_reset
-        #   fi
-    ask_noyes() {
-        local prompt="${1:?}"
-        local seconds="${2:-0}"
-        local ny_response=""
-        local action=""
-
-        action="$( td_ask_action "NO" "NO" "$prompt [y/N]" "$seconds" "ECPQT")"
-
-        case "$action" in
-            NO)     return 1 ;;     # default/enter/timeout
-            CANCEL|QUIT) return 1 ;;
-            TYPE) ;;
-        esac
-
-        ask --label "$prompt [y/N]" --default "N" --var ny_response
-
-        case "${ny_response^^}" in
-            Y|YES)   return 0 ;;
-            N|NO|"") return 1 ;;
-            *)       return 1 ;;
-        esac
-    }
-
-    # ask_okcancel
-        # Purpose:
-        #   Prompt an OK/Cancel confirmation with default OK, optionally using timed auto-continue.
-        #
-        # Behavior:
-        #   - Uses td_ask_action for non-interactive and timed-dialog handling.
-        #   - Falls back to typed input via ask() when needed.
-        #   - Treats Enter and timeout as OK.
-        #
-        # Arguments:
-        #   $1  PROMPT
-        #       Confirmation text without suffix.
-        #   $2  SECONDS
-        #       Optional auto-confirm timeout in seconds.
-        #
-        # Returns:
-        #   0 if the final answer is OK.
-        #   1 if the final answer is Cancel or Quit.
+        # Options:
+        #   --label TEXT
+        #   --choices SPEC
+        #   --default VALUE
+        #   --var NAME
+        #   --seconds N
+        #   --displaychoices 0|1
+        #   --colorize MODE
+        #   --labelclr ANSI
+        #   --inputclr ANSI
+        #   --labelwidth N
+        #   --pad N
         #
         # Usage:
-        #   ask_okcancel "Apply changes?"
+        #   ask_decision \
+        #       --label "Use existing staging files?" \
+        #       --choices "YES|Y,NO|N" \
+        #       --default "NO" \
+        #       --var answer
         #
         # Examples:
-        #   if ask_okcancel "Publish release now?" 5; then
-        #       publish_release
-        #   fi
-    ask_okcancel() {
-        local prompt="${1:?}"
-        local seconds="${2:-0}"
-        local oc_response=""
-        local action=""
-
-        action="$( td_ask_action "OK" "OK" "$prompt [OK/Cancel]" "$seconds" "ECPQT")"
-
-        case "$action" in
-            OK)     return 0 ;;
-            CANCEL|QUIT) return 1 ;;
-            TYPE) ;;
-        esac
-
-        ask --label "$prompt [OK/Cancel]" --default "OK" --var oc_response
-
-        case "${oc_response^^}" in
-            OK|"")     return 0 ;;
-            CANCEL)    return 1 ;;
-            *)         return 1 ;;
-        esac
-    }
-
-    # ask_continue
-        # Purpose:
-        #   Pause execution until Enter is pressed, optionally auto-continuing after a delay.
+        #   local action=""
+        #   ask_decision \
+        #       --label "Create release using these settings?" \
+        #       --choices "OK|O,REDO|R,CANCEL|C" \
+        #       --default "OK" \
+        #       --seconds 5 \
+        #       --var action
         #
-        # Behavior:
-        #   - Accepts either a prompt, a timeout, or both.
-        #   - Uses td_ask_action for the timed phase when seconds > 0.
-        #   - Reads directly from /dev/tty for the typed phase.
+        #   local answer=""
+        #   ask_decision \
+        #       --label "Use existing staging files?" \
+        #       --choices "YES|Y,NO|N" \
+        #       --default "NO" \
+        #       --var answer
         #
-        # Arguments:
-        #   $1  PROMPT or SECONDS
-        #       Prompt text, or timeout seconds when numeric.
-        #   $2  SECONDS
-        #       Optional timeout when the first argument is a prompt.
-        #
-        # Returns:
-        #   0 always.
-        #
-        # Usage:
-        #   ask_continue
-        #   ask_continue 5
-        #   ask_continue "Press Enter to continue..."
-        #   ask_continue "Continuing shortly..." 10
-        #
-        # Examples:
-        #   ask_continue "Review complete. Press Enter to proceed."
-    ask_continue() {
-        local prompt="Press Enter to continue..."
+        #   case "$answer" in
+        #       YES) FLAG_USEEXISTING=1 ;;
+        #       NO)  FLAG_USEEXISTING=0 ;;
+        #   esac
+    ask_decision() {
+        local label=""
+        local choices=""
+        local default_value=""
+        local var_name="decision"
         local seconds=0
-        local action=""
+        local displaychoices=1
+        local colorize="both"
+        local labelclr="${TUI_LABEL}"
+        local inputclr="${TUI_INPUT}"
+        local labelwidth=25
+        local pad=0
 
-        case $# in
-            0)
-                ;;
-            1)
-                if [[ "$1" =~ ^[0-9]+$ ]]; then
-                    prompt=" "
-                    seconds="$1"
-                else
-                    prompt="$1"
-                fi
-                ;;
-            *)
-                prompt="$1"
-                seconds="${2:-0}"
-                ;;
-        esac
+        local prompt_label=""
+        local display=""
+        local typed=""
+        local canonical=""
+        local dlg_rc=0
 
-        action="$(td_ask_action "OK" "OK" "$prompt" "$seconds" "EPT")"
-        if [[ "$action" != "TYPE" ]]; then
-            return 0
+        while [[ $# -gt 0 ]]; do
+            case "$1" in
+                --label)          label="$2"; shift 2 ;;
+                --choices)        choices="$2"; shift 2 ;;
+                --default)        default_value="$2"; shift 2 ;;
+                --var)            var_name="$2"; shift 2 ;;
+                --seconds)        seconds="$2"; shift 2 ;;
+                --displaychoices) displaychoices="$2"; shift 2 ;;
+                --colorize)       colorize="$2"; shift 2 ;;
+                --labelclr)       labelclr="$2"; shift 2 ;;
+                --inputclr)       inputclr="$2"; shift 2 ;;
+                --labelwidth)     labelwidth="$2"; shift 2 ;;
+                --pad)            pad="$2"; shift 2 ;;
+                --)               shift; break ;;
+                *)
+                    [[ -z "$label" ]] && label="$1"
+                    shift
+                    ;;
+            esac
+        done
+
+        prompt_label="$label"
+        if [[ -n "$choices" && "$displaychoices" -eq 1 ]]; then
+            display="$(_ask_decision_display "$choices")"
+            [[ -n "$display" ]] && prompt_label+=" [$display]"
         fi
 
-        local tty_fd
-        exec {tty_fd}</dev/tty || return 0
-
-        if [[ -n "$prompt" ]]; then
-            IFS= read -u "$tty_fd" -r -p "$prompt" _
-        else
-            IFS= read -u "$tty_fd" -r _
+        if [[ "$seconds" =~ ^[0-9]+$ ]] && (( seconds > 0 )); then
+            ask_dlg_autocontinue --seconds "$seconds" --message "$prompt_label" --redo --cancel --pause
+            dlg_rc=$?
+            canonical="$(_ask_decision_map_dlg_rc "$dlg_rc" "$choices" "$default_value" 2>/dev/null || true)"
+            if [[ -n "$canonical" ]]; then
+                printf -v "$var_name" '%s' "$canonical"
+                return 0
+            fi
         fi
 
-        exec {tty_fd}<&-
+        while :; do
+            ask \
+                --label "$prompt_label" \
+                --var typed \
+                --default "$default_value" \
+                --colorize "$colorize" \
+                --labelclr "$labelclr" \
+                --inputclr "$inputclr" \
+                --labelwidth "$labelwidth" \
+                --pad "$pad"
+
+            if [[ -z "$choices" ]]; then
+                canonical="${typed^^}"
+                break
+            fi
+
+            canonical="$(_ask_decision_normalize "$typed" "$choices" "$default_value" 2>/dev/null || true)"
+            [[ -n "$canonical" ]] && break
+
+            saywarning "Invalid choice: $typed"
+        done
+
+        printf -v "$var_name" '%s' "$canonical"
     }
 
-    # td_choose
+    # ask_dlg_autocontinue
         # Purpose:
-        #   Prompt for a user choice, optionally constrained to a set or range of allowed values.
+        #   Show a lightweight timed auto-continue prompt on /dev/tty.
+        #
+        # Behavior:
+        #   - Displays an optional message.
+        #   - Displays a countdown line that updates once per second.
+        #   - Auto-continues when the countdown expires.
+        #   - Supports optional redo, cancel, and pause/resume controls.
+        #   - Supports either Enter-to-continue or any-key-to-continue behavior.
+        #
+        # Options:
+        #   --seconds N
+        #   --message TEXT
+        #   --redo
+        #   --cancel
+        #   --pause
+        #   --anykey
+        #   --hidelegend
+        #
+        # Returns:
+        #   0  explicit continue
+        #   1  timeout / auto-continue
+        #   2  cancel
+        #   3  redo
+        #
+        # Usage:
+        #   ask_dlg_autocontinue --seconds 5 --message "Continuing shortly..."
+        #
+        # Examples:
+        #   ask_dlg_autocontinue \
+        #       --seconds 5 \
+        #       --message "Create release using these settings?" \
+        #       --redo \
+        #       --cancel \
+        #       --pause
+        #
+        #   ask_dlg_autocontinue \
+        #       --seconds 5 \
+        #       --message "Create release using these settings?" \
+        #       --redo \
+        #       --cancel \
+        #       --pause
+        #
+        #   case $? in
+        #       0|1) proceed ;;
+        #       2)   exit 1 ;;
+        #       3)   continue ;;
+        #   esac
+    ask_dlg_autocontinue() {
+        local seconds=5
+        local message=""
+        local allow_redo=0
+        local allow_cancel=0
+        local allow_pause=0
+        local allow_anykey=0
+        local hide_legend=0
+
+        local tty="/dev/tty"
+        local paused=0
+        local key=""
+        local got=0
+        local clr=""
+        local line_count=1
+        local legend=""
+
+        while [[ $# -gt 0 ]]; do
+            case "$1" in
+                --seconds)    seconds="$2"; shift 2 ;;
+                --message)    message="$2"; shift 2 ;;
+                --redo)       allow_redo=1; shift ;;
+                --cancel)     allow_cancel=1; shift ;;
+                --pause)      allow_pause=1; shift ;;
+                --anykey)     allow_anykey=1; shift ;;
+                --hidelegend) hide_legend=1; shift ;;
+                --)           shift; break ;;
+                *)
+                    [[ -z "$message" ]] && message="$1"
+                    shift
+                    ;;
+            esac
+        done
+
+        [[ "$seconds" =~ ^[0-9]+$ ]] || seconds=5
+        [[ -r "$tty" && -w "$tty" ]] || return 0
+
+        clr="$(sgnd_sgr "$WHITE" "" "$FX_ITALIC")"
+
+        [[ -n "$message" ]] && (( line_count++ ))
+        (( ! hide_legend )) && (( line_count++ ))
+
+        while true; do
+            legend=""
+            if (( allow_anykey )); then
+                legend+="Any key=continue; "
+            else
+                legend+="Enter=continue; "
+            fi
+            (( allow_redo )) && legend+="R=redo; "
+            (( allow_cancel )) && legend+="C/Esc=cancel; "
+            if (( allow_pause )); then
+                if (( paused )); then
+                    legend+="P/Space=resume; "
+                else
+                    legend+="P/Space=pause; "
+                fi
+            fi
+            legend="${legend%; }"
+
+            if [[ -n "$message" ]]; then
+                printf '\r\033[K%s%s%s\n' "$TUI_TEXT" "$message" "$RESET" >"$tty"
+            fi
+            if (( ! hide_legend )); then
+                printf '\r\033[K%s%s%s\n' "$TUI_TEXT" "$legend" "$RESET" >"$tty"
+            fi
+            if (( paused )); then
+                printf '\r\033[K%sPaused...%s' "$clr" "$RESET" >"$tty"
+            else
+                printf '\r\033[K%sContinuing in %ds...%s' "$clr" "$seconds" "$RESET" >"$tty"
+            fi
+
+            got=0
+            key=""
+            if (( paused )); then
+                if IFS= read -r -n 1 -s key <"$tty"; then
+                    got=1
+                fi
+            else
+                if IFS= read -r -n 1 -s -t 1 key <"$tty"; then
+                    got=1
+                fi
+            fi
+
+            if (( line_count > 1 )); then
+                printf '\033[%dA' "$((line_count - 1))" >"$tty"
+            fi
+            printf '\r' >"$tty"
+
+            if (( got )); then
+                [[ -z "$key" ]] && key=$'\n'
+                case "$key" in
+                    p|P|" ")
+                        (( allow_pause )) || continue
+                        (( paused )) && paused=0 || paused=1
+                        continue
+                        ;;
+                    r|R)
+                        (( allow_redo )) || continue
+                        printf '\r\033[%dB\033[K\n' "$((line_count - 1))" >"$tty"
+                        return 3
+                        ;;
+                    c|C|$'\e')
+                        (( allow_cancel )) || continue
+                        printf '\r\033[%dB\033[K\n' "$((line_count - 1))" >"$tty"
+                        return 2
+                        ;;
+                    $'\n'|$'\r')
+                        printf '\r\033[%dB\033[K\n' "$((line_count - 1))" >"$tty"
+                        return 0
+                        ;;
+                    *)
+                        (( allow_anykey )) || continue
+                        printf '\r\033[%dB\033[K\n' "$((line_count - 1))" >"$tty"
+                        return 0
+                        ;;
+                esac
+            fi
+
+            if (( ! paused )); then
+                ((seconds--))
+                if (( seconds < 0 )); then
+                    printf '\r\033[%dB\033[K\n' "$((line_count - 1))" >"$tty"
+                    return 1
+                fi
+            fi
+        done
+    }
+
+    # ask_choose
+        # Purpose:
+        #   Prompt for a user choice, optionally constrained to a set or range of
+        #   allowed values.
         #
         # Behavior:
         #   - Prompts via ask() and stores the typed value.
         #   - Accepts any input when no choices constraint is provided.
-        #   - Validates case-insensitively against expanded choices when provided.
+        #   - Validates case-insensitively against the allowed choices when provided.
+        #   - Supports comma-separated tokens and simple ranges such as:
+        #       A-D
+        #       1-5
         #   - Re-prompts on invalid input when keepasking=1.
-        #   - Always assigns the final captured value to the requested variable.
+        #   - Assigns the final accepted value to the requested variable.
         #
         # Options:
         #   --label TEXT
         #       Prompt label.
         #   --var NAME
-        #       Destination variable name. Default: choice
+        #       Destination variable name.
+        #       Default: choice
         #   --choices LIST
         #       Allowed values as comma-separated tokens and/or ranges.
+        #       Examples:
+        #           "dev,acc,prod"
+        #           "1-9"
+        #           "A-D,X"
         #   --displaychoices 0|1
-        #       Append [choices] to the label. Default: 1
+        #       Append [choices] to the label.
+        #       Default: 1
         #   --keepasking 0|1
-        #       Re-prompt on invalid input. Default: 1
+        #       Re-prompt on invalid input.
+        #       Default: 1
         #   --colorize MODE
-        #       Passed through to ask(). Default: both
+        #       Passed through to ask().
+        #       Default: both
+        #   --labelwidth N
+        #       Passed through to ask().
+        #   --pad N
+        #       Passed through to ask().
+        #   --labelclr ANSI
+        #       Passed through to ask().
+        #   --inputclr ANSI
+        #       Passed through to ask().
+        #
+        # Outputs (globals):
+        #   Assigns the accepted value to --var NAME.
         #
         # Returns:
         #   0 always.
         #
         # Usage:
-        #   td_choose --label "Environment" --choices "dev,acc,prod" --var env
+        #   ask_choose --label "Environment" --choices "dev,acc,prod" --var env
         #
         # Examples:
-        #   td_choose --label "Environment" --choices "dev,acc,prod" --var env
+        #   # Fixed list
+        #   ask_choose \
+        #       --label "Environment" \
+        #       --choices "dev,acc,prod" \
+        #       --var ENVIRONMENT
         #
-        #   td_choose --label "Drive" --choices "A-D,X" --var drive
+        #   # Numeric range
+        #   ask_choose \
+        #       --label "Select item" \
+        #       --choices "1-9" \
+        #       --var ITEMNR
+        #
+        #   # Drive letters + one extra token
+        #   ask_choose \
+        #       --label "Drive" \
+        #       --choices "A-D,X" \
+        #       --var DRIVE
+        #
+        #   # Styled / aligned
+        #   ask_choose \
+        #       --label "Mode" \
+        #       --choices "fast,full" \
+        #       --var MODE \
+        #       --labelwidth 24 \
+        #       --pad 4 \
+        #       --labelclr "${CYAN}"
         #
         # Notes:
-        #   - Validity is enforced by re-prompting, not by the return code.
-    td_choose() {
+        #   - ask_choose is intended for constrained typed input.
+        #   - For semantic decisions such as YES/NO or OK/REDO/CANCEL,
+        #     prefer ask_decision().
+    ask_choose() {
         local label=""
         local choices=""
         local colorize="both"
         local displaychoices=1
         local keepasking=1
         local varname="choice"
-        local -a _opts=()
+        local labelwidth=""
+        local pad=""
+        local labelclr=""
+        local inputclr=""
 
-        local _choice=""
-        local _valid=0
-        local opt=""
+        local choice=""
 
-        # --- Parse options --------------------------------------------------------
         while [[ $# -gt 0 ]]; do
             case "$1" in
-                --label)       label="$2"; shift 2 ;;
-                --var)         varname="$2"; shift 2 ;;
-                --colorize)    colorize="$2"; shift 2 ;;
-                --choices)     choices="$2"; shift 2 ;;
+                --label)          label="$2"; shift 2 ;;
+                --var)            varname="$2"; shift 2 ;;
+                --colorize)       colorize="$2"; shift 2 ;;
+                --choices)        choices="$2"; shift 2 ;;
                 --displaychoices) displaychoices="$2"; shift 2 ;;
-                --keepasking)  keepasking="$2"; shift 2 ;;
+                --keepasking)     keepasking="$2"; shift 2 ;;
+                --labelwidth)     labelwidth="$2"; shift 2 ;;
+                --pad)            pad="$2"; shift 2 ;;
+                --labelclr)       labelclr="$2"; shift 2 ;;
+                --inputclr)       inputclr="$2"; shift 2 ;;
                 --) shift; break ;;
                 *)
                     [[ -z "$label" ]] && label="$1"
@@ -732,36 +1078,41 @@ set -uo pipefail
             esac
         done
 
-        # --- Append choices to label (if requested) ------------------------------
         if [[ -n "$choices" && "$displaychoices" -eq 1 ]]; then
             label+=" [$choices]"
         fi
 
-        # --- Ask loop -------------------------------------------------------------
         while :; do
-            ask --label "$label" --var _choice --colorize "$colorize"
+            if [[ -n "$labelclr" || -n "$inputclr" || -n "$labelwidth" || -n "$pad" ]]; then
+                local -a ask_opts=(
+                    --label "$label"
+                    --var choice
+                    --colorize "$colorize"
+                )
+                [[ -n "$labelwidth" ]] && ask_opts+=( --labelwidth "$labelwidth" )
+                [[ -n "$pad" ]]        && ask_opts+=( --pad "$pad" )
+                [[ -n "$labelclr" ]]   && ask_opts+=( --labelclr "$labelclr" )
+                [[ -n "$inputclr" ]]   && ask_opts+=( --inputclr "$inputclr" )
 
-            # --- No choices constraint → accept immediately -----------------------
-            if [[ -z "$choices" ]]; then
+                ask "${ask_opts[@]}"
+            else
+                ask --label "$label" --var choice --colorize "$colorize"
+            fi
+
+            [[ -z "$choices" ]] && break
+
+            if _ask_choice_is_valid "$choice" "$choices"; then
                 break
             fi
 
-        # --- Validate choice --------------------------------------------------
-        if td__choice_is_valid "$_choice" "$choices"; then
-            break
-        fi
-
-            # --- Invalid choice ---------------------------------------------------
-            saywarning "Invalid choice: $_choice"
-
+            saywarning "Invalid choice: $choice"
             (( keepasking )) || break
         done
 
-        # --- Assign to requested variable ----------------------------------------
-        printf -v "$varname" '%s' "$_choice"
+        printf -v "$varname" '%s' "$choice"
     }
-    
-    # td_choose_immediate
+
+    # ask_choose_immediate
         # Purpose:
         #   Prompt for a user choice using immediate-capable TTY input, with optional
         #   instant hotkeys and constrained allowed values.
@@ -773,39 +1124,59 @@ set -uo pipefail
         #   - Supports backspace editing for buffered input.
         #   - Validates against the allowed choice list when provided.
         #   - Re-prompts on invalid input when keepasking=1.
+        #   - Assigns the final accepted value to the requested variable.
         #
         # Options:
         #   --label TEXT
         #       Prompt label.
         #   --var NAME
-        #       Destination variable name. Default: choice
+        #       Destination variable name.
+        #       Default: choice
         #   --choices LIST
         #       Allowed values as comma-separated tokens and/or ranges.
         #   --instantchoices LIST
         #       Choices accepted immediately without Enter.
         #   --displaychoices 0|1
-        #       Append [choices] to the label. Default: 1
+        #       Append [choices] to the label.
+        #       Default: 1
         #   --keepasking 0|1
-        #       Re-prompt on invalid input. Default: 1
+        #       Re-prompt on invalid input.
+        #       Default: 1
+        #
+        # Outputs (globals):
+        #   Assigns the accepted value to --var NAME.
         #
         # Returns:
         #   0 always.
         #
         # Usage:
-        #   td_choose_immediate --label "Select option" --choices "1,2,3,Q" --var choice
+        #   ask_choose_immediate --label "Action" --choices "1,2,3,Q" --var action
         #
         # Examples:
-        #   td_choose_immediate --label "Select option" --choices "1,2,3,Q" --var choice
-        #
-        #   td_choose_immediate \
+        #   # Immediate menu key
+        #   ask_choose_immediate \
         #       --label "Action" \
+        #       --choices "1,2,3,Q" \
+        #       --instantchoices "Q" \
+        #       --var ACTION
+        #
+        #   # Menu with hotkeys
+        #   ask_choose_immediate \
+        #       --label "Select option" \
         #       --choices "1-9,B,D,L,V,C,Q" \
         #       --instantchoices "B,D,L,V,C,Q" \
-        #       --var action
+        #       --var ACTION
+        #
+        #   # Buffered input until Enter
+        #   ask_choose_immediate \
+        #       --label "Enter code" \
+        #       --choices "A-D,1-3" \
+        #       --var CODE
         #
         # Notes:
-        #   - Intended for menu-style UIs where some hotkeys should react immediately.
-    td_choose_immediate() {
+        #   - Intended for menu-style UIs where some keys should react immediately.
+        #   - For ordinary typed constrained input, prefer ask_choose().
+    ask_choose_immediate() {
         local label=""
         local choices=""
         local instantchoices=""
@@ -813,9 +1184,8 @@ set -uo pipefail
         local keepasking=1
         local varname="choice"
 
-        local _choice=""
+        local choice=""
 
-        # --- Parse options --------------------------------------------------------
         while [[ $# -gt 0 ]]; do
             case "$1" in
                 --label)          label="$2"; shift 2 ;;
@@ -832,421 +1202,289 @@ set -uo pipefail
             esac
         done
 
-        # --- Append choices to label ---------------------------------------------
         if [[ -n "$choices" && "$displaychoices" -eq 1 ]]; then
             label+=" [$choices]"
         fi
 
-        # --- Ask loop -------------------------------------------------------------
         while :; do
             local key=""
             local buffer=""
             local candidate=""
 
-            printf '%s: ' "$label" > /dev/tty
+            printf '%s: ' "$label" >/dev/tty
 
             while true; do
-                IFS= read -r -s -n 1 key < /dev/tty || return 1
+                IFS= read -r -s -n 1 key </dev/tty || return 1
 
                 case "$key" in
                     "")
-                        # Enter confirms buffered input
                         if [[ -n "$buffer" ]]; then
-                            printf '\n' > /dev/tty
-                            _choice="$buffer"
+                            printf '\n' >/dev/tty
+                            choice="$buffer"
                             break
                         fi
                         ;;
 
                     $'\177'|$'\b')
-                        # Backspace
                         if [[ -n "$buffer" ]]; then
                             buffer="${buffer%?}"
-                            printf '\b \b' > /dev/tty
+                            printf '\b \b' >/dev/tty
                         fi
                         ;;
 
                     *)
                         candidate="${key^^}"
 
-                        # Immediate only for configured instant choices
-                        if [[ -n "$instantchoices" ]] && td__choice_is_valid "$candidate" "$instantchoices"; then
-                            printf '\n' > /dev/tty
-                            _choice="$candidate"
+                        if [[ -n "$instantchoices" ]] && _ask_choice_is_valid "$candidate" "$instantchoices"; then
+                            printf '\n' >/dev/tty
+                            choice="$candidate"
                             break
                         fi
 
-                        # Otherwise buffer normally
                         buffer+="$key"
-                        printf '%s' "$key" > /dev/tty
+                        printf '%s' "$key" >/dev/tty
                         ;;
                 esac
             done
 
-            # --- No choices constraint -------------------------------------------
-            if [[ -z "$choices" ]]; then
+            [[ -z "$choices" ]] && break
+
+            if _ask_choice_is_valid "$choice" "$choices"; then
                 break
             fi
 
-            # --- Validate choice --------------------------------------------------
-            if td__choice_is_valid "$_choice" "$choices"; then
-                break
-            fi
-
-            # --- Invalid choice ---------------------------------------------------
-            saywarning "Invalid choice: $_choice"
-
+            saywarning "Invalid choice: $choice"
             (( keepasking )) || break
         done
 
-        # --- Assign result --------------------------------------------------------
-        printf -v "$varname" '%s' "$_choice"
+        printf -v "$varname" '%s' "$choice"
     }
 
-    # ask_ok_redo_quit
+    # ask_prompt_form
         # Purpose:
-        #   Prompt for a standard OK / Redo / Quit decision, optionally with timed auto-continue.
+        #   Prompt for a list of variables described by field-spec lines.
         #
         # Behavior:
-        #   - Returns immediately with OK in non-interactive mode.
-        #   - Optionally uses td_dlg_autocontinue for a timed decision phase.
-        #   - Falls back to typed input via ask() when needed.
-        #   - Normalizes all interaction paths into a stable ORQ return contract.
+        #   - Parses each spec line via _ask_parse_fieldspec.
+        #   - Resolves variable name, label, default value, and validator.
+        #   - Uses the current shell value when present; otherwise uses the spec default.
+        #   - Prompts via ask() and stores results directly in the target variables.
+        #   - Optionally auto-aligns labels based on the longest label in the input list.
         #
-        # Arguments:
-        #   $1  PROMPT
-        #       Prompt text without suffix.
-        #   $2  SECONDS
-        #       Optional auto-confirm timeout in seconds.
+        # Options:
+        #   --labelwidth N
+        #       Fixed label width.
+        #       Default: 0
+        #   --autoalign
+        #       Compute label width from the longest label in the provided specs.
+        #   --colorize MODE
+        #       Passed through to ask --colorize.
+        #       Default: both
+        #   --pad N
+        #       Passed through to ask --pad.
+        #       Default: 0
+        #   --labelclr ANSI
+        #       Passed through to ask --labelclr.
+        #   --inputclr ANSI
+        #       Passed through to ask --inputclr.
+        #   --
+        #       End of options; remaining arguments are field-spec lines.
+        #
+        # Field-spec format:
+        #   Each field spec is parsed by _ask_parse_fieldspec and is expected to provide:
+        #     _ask_field_key
+        #     _ask_field_label
+        #     _ask_field_default
+        #     _ask_field_validate
+        #
+        # Required helper contract:
+        #   _ask_parse_fieldspec "$line" must populate:
+        #     _ask_field_key
+        #     _ask_field_label
+        #     _ask_field_default
+        #     _ask_field_validate
+        #
+        # Inputs (dependencies):
+        #   _ask_parse_fieldspec
+        #   _ask_is_ident
+        #   ask
+        #   saywarning
+        #
+        # Outputs (globals):
+        #   Assigns prompted values directly to the variables named in each field spec.
         #
         # Returns:
-        #   0  OK / continue
-        #   1  Redo
-        #   2  Quit / Cancel
-        #   3  Invalid typed input
+        #   0 always.
         #
         # Usage:
-        #   ask_ok_redo_quit "Proceed with operation?"
+        #   ask_prompt_form --autoalign -- "${FORM_FIELDS[@]}"
         #
         # Examples:
-        #   case $? in
-        #       0) proceed ;;
-        #       1) retry ;;
-        #       2) exit 1 ;;
-        #   esac
+        #   askprompt_form --autoalign --colorize both --pad 4 -- \
+        #       "HOST|Host name|localhost|validate_text" \
+        #       "PORT|Port|8080|validate_int"
         #
         # Notes:
-        #   - Defines the canonical ORQ interaction pattern for the framework.
-    ask_ok_redo_quit() {
-        local prompt="${1-}"
-        local seconds="${2:-0}"
-        local orq_response=""
+        #   - Invalid variable names are skipped with a warning.
+        #   - This function is intentionally lightweight; it is a prompt loop, not a form engine.
+    ask_prompt_form() {
+        local labelwidth=0
+        local autoalign=0
+        local colorize="both"
+        local pad=0
+        local labelclr=""
+        local inputclr=""
 
-        # Non-interactive: never block; default OK
-        td_has_tty || return 0  
-
-        if (( seconds > 0 )); then
-            # Use tty-based soft dialog for the timed phase:
-            # E=Enter->OK, R=redo, C=cancel, P=pause, Q=quit, T=typed fallback, H=hide key legend
-            td_dlg_autocontinue "$seconds" "$prompt [$KY_ENTER/Redo/Quit]" "ERCPQTH"
-            local rc=$?
-
-            case "$rc" in
-                0|1)  return 0 ;;  # Enter or timeout => OK
-                3)    return 1 ;;  # redo
-                2|4)  return 2 ;;  # cancel/quit => Quit/Cancel
-                5)    ;;           # typed fallback requested
-                *)    ;;           # ignore anything else and fall through to typed
+        while [[ $# -gt 0 ]]; do
+            case "$1" in
+                --labelwidth)
+                    labelwidth="$2"
+                    shift 2
+                    ;;
+                --autoalign)
+                    autoalign=1
+                    shift
+                    ;;
+                --colorize)
+                    colorize="$2"
+                    shift 2
+                    ;;
+                --pad)
+                    pad="$2"
+                    shift 2
+                    ;;
+                --labelclr)
+                    labelclr="$2"
+                    shift 2
+                    ;;
+                --inputclr)
+                    inputclr="$2"
+                    shift 2
+                    ;;
+                --)
+                    shift
+                    break
+                    ;;
+                *)
+                    break
+                    ;;
             esac
-        fi
-
-        # Full typed prompt (original behavior)
-        ask --label "$prompt [$KY_ENTER/Redo/Quit]" --var orq_response
-
-        # Trim whitespace
-        orq_response="${orq_response#"${orq_response%%[![:space:]]*}"}"
-        orq_response="${orq_response%"${orq_response##*[![:space:]]}"}"
-
-        local upper="${orq_response^^}"
-        case "$upper" in
-            ""|OK|O)                    return 0 ;;
-            REDO|R)                     return 1 ;;
-            QUIT|Q|EXIT|CANCEL|C)       return 2 ;;
-            *)                          return 3 ;;
-        esac
-    }
-# --- File system validations --------------------------------------------------------
-    # validate_file_exists
-        # Purpose:
-        #   Validate that PATH exists and is a regular file.
-        #
-        # Arguments:
-        #   $1  PATH
-        #
-        # Returns:
-        #   0  valid
-        #   1  invalid
-    validate_file_exists() {
-        local path="$1"
-
-        [[ -f "$path" ]] && return 0    # valid
-        return 1                        # invalid
-    }
-
-    # validate_path_exists
-        # Purpose:
-        #   Validate that a path exists (file/dir/symlink/etc).
-        #
-        # Arguments:
-        #   $1  Path
-        #
-        # Returns:
-        #   0  → exists
-        #   1  → does not exist
-    validate_path_exists() {
-        [[ -e "$1" ]] && return 0
-        return 1
-    }
-
-    # validate_dir_exists
-        # Purpose:
-        #   Validate that a path exists and is a directory.
-        #
-        # Arguments:
-        #   $1  Path
-        #
-        # Returns:
-        #   0  → exists and is a directory
-        #   1  → missing or not a directory
-    validate_dir_exists() {
-        [[ -d "$1" ]] && return 0
-        return 1
-    }
-
-    # validate_executable
-        # Purpose:
-        #   Validate that a path exists and is executable.
-        #
-        # Arguments:
-        #   $1  Path
-        #
-        # Returns:
-        #   0  → executable
-        #   1  → not executable / missing
-        #
-        # Example:
-        #   validate_executable "/usr/bin/git" || __boot_fail "git missing" 127
-    validate_executable() {
-        [[ -x "$1" ]] && return 0
-        return 1
-    }
-
-    # validate_file_not_exists
-        # Purpose:
-        #   Validate that a file path does NOT exist as a regular file.
-        #
-        # Arguments:
-        #   $1  Path
-        #
-        # Returns:
-        #   0  → file does not exist
-        #   1  → file exists
-        #
-        # Example:
-        #   validate_file_not_exists "$target" || __boot_fail "Refusing to overwrite $target" 1
-    validate_file_not_exists() {
-        [[ ! -f "$1" ]] && return 0
-        return 1
-    }
-
-# --- Type validations ---------------------------------------------------------------
-    # validate_int
-        #
-        # Validate an integer (base-10), allowing an optional leading minus sign.
-        #
-        # Arguments:
-        #   $1  Value
-        #
-        # Returns:
-        #   0  → valid integer (e.g. 0, 42, -7)
-        #   1  → invalid
-        #
-        # Example:
-        #   validate_int "$age" || saywarning "Age must be an integer"
-    validate_int() {
-        [[ "$1" =~ ^-?[0-9]+$ ]] && return 0
-        return 1
-    }
-
-    # validate_numeric
-        #
-        # Validate a numeric value (integer or decimal), allowing optional leading minus.
-        # Accepts dot as decimal separator (e.g. 12.34).
-        #
-        # Arguments:
-        #   $1  Value
-        #
-        # Returns:
-        #   0  → valid numeric (e.g. 10, -3, 0.5, -12.34)
-        #   1  → invalid
-        #
-        # Notes:
-        #   - Does not accept scientific notation (e.g. 1e-3).
-        #   - Does not accept comma decimals (e.g. 1,5).
-        #
-        # Example:
-        #   validate_numeric "$price" || saywarning "Price must be numeric"
-    validate_numeric() {
-        [[ "$1" =~ ^-?[0-9]+([.][0-9]+)?$ ]] && return 0
-        return 1
-    }
-
-    # validate_text
-        #
-        # Validate that a value is non-empty.
-        #
-        # Arguments:
-        #   $1  Value
-        #
-        # Returns:
-        #   0  → non-empty
-        #   1  → empty
-        #
-        # Example:
-        #   validate_text "$name" || saywarning "Name is required"
-    validate_text() {
-        [[ -n "$1" ]] && return 0
-        return 1
-    }
-
-    # validate_bool
-        #
-        # Validate common boolean representations.
-        #
-        # Accepted values (case-insensitive):
-        #   y, yes, n, no, true, false, 1, 0
-        #
-        # Arguments:
-        #   $1  Value
-        #
-        # Returns:
-        #   0  → recognized boolean token
-        #   1  → invalid
-        #
-        # Example:
-        #   validate_bool "$enabled" || saywarning "Expected boolean (yes/no/true/false/1/0)"
-    validate_bool() {
-        case "${1,,}" in
-            y|yes|n|no|true|false|1|0)
-                return 0 ;;
-            *)
-                return 1 ;;
-        esac
-    }
-
-    # validate_date
-        #
-        # Validate a date in ISO format: YYYY-MM-DD
-        #
-        # Arguments:
-        #   $1  Value
-        #
-        # Returns:
-        #   0  → matches YYYY-MM-DD pattern
-        #   1  → invalid
-        #
-        # Notes:
-        #   - This validates format only; it does not reject impossible dates like
-        #     2026-99-99.
-        #
-        # Example:
-        #   validate_date "$start_date" || saywarning "Expected YYYY-MM-DD"
-    validate_date() {
-        [[ "$1" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] && return 0
-        return 1
-    }
-
-    # validate_ip
-        #
-        # Validate an IPv4 address (dotted decimal).
-        #
-        # Arguments:
-        #   $1  IP address string
-        #
-        # Returns:
-        #   0  → valid IPv4 address (0-255 per octet)
-        #   1  → invalid
-        #
-        # Example:
-        #   validate_ip "$host_ip" || saywarning "Invalid IP address: $host_ip"
-    validate_ip() {
-        local ip="$1"
-        local IFS='.'
-        local -a octets
-
-        [[ "$ip" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || return 1
-
-        read -r -a octets <<< "$ip"
-
-        for o in "${octets[@]}"; do
-            (( o >= 0 && o <= 255 )) || return 1
         done
 
-        return 0
+        local line=""
+        local key=""
+        local label=""
+        local def=""
+        local validator=""
+        local current=""
+        local chosen=""
+        local maxw=0
+
+        # --- auto-align pass -------------------------------------------------------
+        if (( autoalign )) && (( labelwidth <= 0 )); then
+            for line in "$@"; do
+                _ask_parse_fieldspec "$line"
+
+                key="${_ask_field_key:-}"
+                label="${_ask_field_label:-}"
+
+                [[ -n "$key" ]] || continue
+                _ask_is_ident "$key" || continue
+
+                [[ -n "$label" ]] || label="$key"
+                ((${#label} > maxw)) && maxw=${#label}
+            done
+
+            labelwidth="$maxw"
+        fi
+
+        # --- prompt pass -----------------------------------------------------------
+        for line in "$@"; do
+            _ask_parse_fieldspec "$line"
+
+            key="${_ask_field_key:-}"
+            label="${_ask_field_label:-}"
+            def="${_ask_field_default:-}"
+            validator="${_ask_field_validate:-}"
+
+            if ! _ask_is_ident "$key"; then
+                saywarning "Skipping invalid field key: '$key'"
+                continue
+            fi
+
+            [[ -n "$label" ]] || label="$key"
+
+            current="${!key-}"
+            if [[ -n "$current" ]]; then
+                chosen="$current"
+            else
+                chosen="$def"
+            fi
+
+            if [[ -n "$validator" ]]; then
+                if [[ -n "$labelclr" && -n "$inputclr" ]]; then
+                    ask \
+                        --label "$label" \
+                        --var "$key" \
+                        --default "$chosen" \
+                        --validate "$validator" \
+                        --colorize "$colorize" \
+                        --labelwidth "$labelwidth" \
+                        --pad "$pad" \
+                        --labelclr "$labelclr" \
+                        --inputclr "$inputclr"
+                elif [[ -n "$labelclr" ]]; then
+                    ask \
+                        --label "$label" \
+                        --var "$key" \
+                        --default "$chosen" \
+                        --validate "$validator" \
+                        --colorize "$colorize" \
+                        --labelwidth "$labelwidth" \
+                        --pad "$pad" \
+                        --labelclr "$labelclr"
+                else
+                    ask \
+                        --label "$label" \
+                        --var "$key" \
+                        --default "$chosen" \
+                        --validate "$validator" \
+                        --colorize "$colorize" \
+                        --labelwidth "$labelwidth" \
+                        --pad "$pad"
+                fi
+            else
+                if [[ -n "$labelclr" && -n "$inputclr" ]]; then
+                    ask \
+                        --label "$label" \
+                        --var "$key" \
+                        --default "$chosen" \
+                        --colorize "$colorize" \
+                        --labelwidth "$labelwidth" \
+                        --pad "$pad" \
+                        --labelclr "$labelclr" \
+                        --inputclr "$inputclr"
+                elif [[ -n "$labelclr" ]]; then
+                    ask \
+                        --label "$label" \
+                        --var "$key" \
+                        --default "$chosen" \
+                        --colorize "$colorize" \
+                        --labelwidth "$labelwidth" \
+                        --pad "$pad" \
+                        --labelclr "$labelclr"
+                else
+                    ask \
+                        --label "$label" \
+                        --var "$key" \
+                        --default "$chosen" \
+                        --colorize "$colorize" \
+                        --labelwidth "$labelwidth" \
+                        --pad "$pad"
+                fi
+            fi
+        done
     }
 
-    # validate_cidr
-        #
-        # Validate an IPv4 CIDR prefix length (0..32).
-        #
-        # Arguments:
-        #   $1  Prefix length
-        #
-        # Returns:
-        #   0  → valid CIDR prefix length (0-32)
-        #   1  → invalid
-        #
-        # Example:
-        #   validate_cidr "$mask" || saywarning "CIDR must be between 0 and 32"
-    validate_cidr(){  
-        [[ "$1" =~ ^([0-9]|[12][0-9]|3[0-2])$ ]] && return 0
-        return 1
-    }
 
-    # validate_slug
-        #
-        # Validate a "slug" identifier consisting of:
-        #   letters, digits, dot, underscore, hyphen
-        #
-        # Arguments:
-        #   $1  Value
-        #
-        # Returns:
-        #   0  → valid slug
-        #   1  → invalid
-        #
-        # Example:
-        #   validate_slug "$project" || saywarning "Invalid slug: $project"
-    validate_slug() {
-        [[ "$1" =~ ^[a-zA-Z0-9._-]+$ ]] && return 0
-        return 1
-    }
 
-    # validate_fs_name
-        #
-        # Validate a filesystem-friendly name consisting of:
-        #   letters, digits, dot, underscore, hyphen
-        #
-        # Arguments:
-        #   $1  Value
-        #
-        # Returns:
-        #   0  → valid filesystem-friendly name
-        #   1  → invalid
-        #
-        # Example:
-        #   validate_fs_name "$dir" || saywarning "Invalid directory name: $dir"
-    validate_fs_name() {
-        [[ "$1" =~ ^[A-Za-z0-9._-]+$ ]] && return 0
-        return 1
-    }

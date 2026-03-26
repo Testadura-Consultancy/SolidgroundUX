@@ -5,7 +5,7 @@
 #   Version     : 1.0
 #   Build       : 2608210
 #   Checksum    : 68106af8dfdc328c03146dbeb208e168ff4bcaddcad97e3dbc6fd5ab5cf3ec3e
-#   Source      : core.sh
+#   Source      : sgnd-core.sh
 #   Type        : library
 #   Purpose     : Provide foundational utility functions and shared primitives
 #
@@ -43,8 +43,8 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
 set -uo pipefail
-# --- Library guard -------------------------------------------------------------------
-    # __td_lib_guard
+# --- Library guard ------------------------------------------------------------------
+    # _sgnd_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
         #
@@ -59,47 +59,32 @@ set -uo pipefail
         #   $0
         #
         # Outputs (globals):
-        #   TD_<MODULE>_LOADED
+        #   SGND_<MODULE>_LOADED
         #
         # Returns:
         #   0 if already loaded or successfully initialized.
         #   Exits with code 2 if executed instead of sourced.
-        #
-        # Usage:
-        #   __td_lib_guard
-        #
-        # Examples:
-        #   # Typical usage at top of library file
-        #   __td_lib_guard
-        #   unset -f __td_lib_guard
-        #
-        # Notes:
-        #   - Guard variable is derived dynamically (e.g. ui-glyphs.sh → TD_UI_GLYPHS_LOADED).
-        #   - Safe under `set -u` due to indirect expansion with default.
-    __td_lib_guard() {
+    _sgnd_lib_guard() {
         local lib_base
         local guard
 
-        lib_base="$(basename "${BASH_SOURCE[0]}")"
-        lib_base="${lib_base%.sh}"
+        lib_base="$(basename "${BASH_SOURCE[0]}" .sh)"
         lib_base="${lib_base//-/_}"
-        guard="TD_${lib_base^^}_LOADED"
+        guard="SGND_${lib_base^^}_LOADED"
 
-        # Refuse to execute (library only)
         [[ "${BASH_SOURCE[0]}" != "$0" ]] || {
-            echo "This is a library; source it, do not execute it: ${BASH_SOURCE[0]}" >&2
+            printf 'This is a library; source it, do not execute it: %s\n' "${BASH_SOURCE[0]}" >&2
             exit 2
         }
 
-        # Load guard (safe under set -u)
         [[ -n "${!guard-}" ]] && return 0
         printf -v "$guard" '1'
     }
 
-    __td_lib_guard
-    unset -f __td_lib_guard
+    _sgnd_lib_guard
+    unset -f _sgnd_lib_guard
 
-    td_module_init_metadata "${BASH_SOURCE[0]}"
+    sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Internals -----------------------------------------------------------------------
   # _sh_err
@@ -121,7 +106,7 @@ set -uo pipefail
 
 # --- Requirement checks --------------------------------------------------------------
  # -- Possibly exiting requirement checks -----------------------------------------
-    # td_need_cmd
+    # sgnd_need_cmd
         # Purpose:
         #   Require a command to be available on PATH; exit on failure.
         #
@@ -129,7 +114,7 @@ set -uo pipefail
         #   $1  Command name to check.
         #
         # Behavior:
-        #   - Calls td_have "$1".
+        #   - Calls sgnd_have "$1".
         #   - Exits the process with rc=1 if missing.
         #
         # Outputs:
@@ -137,26 +122,26 @@ set -uo pipefail
         #
         # Returns:
         #   Does not return on failure (exits).
-    td_need_cmd(){ td_have "$1" || { _sh_err "Missing required command: $1"; exit 1; }; }
+    sgnd_need_cmd(){ sgnd_have "$1" || { _sh_err "Missing required command: $1"; exit 1; }; }
 
-    # td_need_root
+    # sgnd_need_root
         # Purpose:
         #   Require the script to run as root, re-executing through sudo when needed.
         #
         # Behavior:
         #   - Detects whether the current process already runs with effective UID 0.
-        #   - If not root and TD_ALREADY_ROOT is unset, re-executes the current script via sudo.
+        #   - If not root and SGND_ALREADY_ROOT is unset, re-executes the current script via sudo.
         #   - Preserves selected environment variables across the sudo boundary.
-        #   - Uses TD_ALREADY_ROOT as a loop guard to prevent repeated elevation attempts.
+        #   - Uses SGND_ALREADY_ROOT as a loop guard to prevent repeated elevation attempts.
         #
         # Arguments:
         #   $@  ARGS
         #       Original script arguments forwarded to the re-exec call.
         #
         # Inputs (globals):
-        #   TD_ALREADY_ROOT
-        #   TD_FRAMEWORK_ROOT
-        #   TD_APPLICATION_ROOT
+        #   SGND_ALREADY_ROOT
+        #   SGND_FRAMEWORK_ROOT
+        #   SGND_APPLICATION_ROOT
         #   PATH
         #
         # Side effects:
@@ -168,28 +153,28 @@ set -uo pipefail
         #   Does not return when re-exec succeeds.
         #
         # Usage:
-        #   td_need_root "$@"
+        #   sgnd_need_root "$@"
         #
         # Examples:
-        #   td_need_root "$@"
+        #   sgnd_need_root "$@"
         #
-        #   td_need_root "$@" || exit 1
+        #   sgnd_need_root "$@" || exit 1
         #
         # Notes:
         #   - Intended as a guard near the top of privileged scripts.
-    td_need_root() {
+    sgnd_need_root() {
       sayinfo "Script requires root permissions"
-      if [[ ${EUID:-$(id -u)} -ne 0 && -z "${TD_ALREADY_ROOT:-}" ]]; then
+      if [[ ${EUID:-$(id -u)} -ne 0 && -z "${SGND_ALREADY_ROOT:-}" ]]; then
         exec sudo \
-            --preserve-env=TD_FRAMEWORK_ROOT,TD_APPLICATION_ROOT,PATH \
-            -- env TD_ALREADY_ROOT=1 "$0" "$@"
+            --preserve-env=SGND_FRAMEWORK_ROOT,SGND_APPLICATION_ROOT,PATH \
+            -- env SGND_ALREADY_ROOT=1 "$0" "$@"
         saydebug "Restarting as root"
       else
         saydebug "Already root, no restart required"
       fi
     }
 
-    # td_cannot_root
+    # sgnd_cannot_root
         # Purpose:
         #   Require the script to NOT run as root; exit if root.
         #
@@ -202,7 +187,7 @@ set -uo pipefail
         #
         # Returns:
         #   0 when not root; does not return when root (exits).
-    td_cannot_root() {
+    sgnd_cannot_root() {
       sayinfo "Script requires NOT having root permissions"
       if [[ ${EUID:-$(id -u)} -eq 0 ]]; then
           sayfail "Do not run this script as root. Exiting..."
@@ -210,7 +195,7 @@ set -uo pipefail
       fi
     }
 
-    # td_need_bash
+    # sgnd_need_bash
         # Purpose:
         #   Require Bash and (optionally) a minimum major version; exit on failure.
         #
@@ -225,23 +210,23 @@ set -uo pipefail
         #
         # Returns:
         #   Does not return on failure (exits rc=1).
-    td_need_bash(){ (( BASH_VERSINFO[0] >= ${1:-4} )) || { _sh_err "Bash ${1:-4}+ required."; exit 1; }; }
+    sgnd_need_bash(){ (( BASH_VERSINFO[0] >= ${1:-4} )) || { _sh_err "Bash ${1:-4}+ required."; exit 1; }; }
 
-    # td_need_systemd
+    # sgnd_need_systemd
         # Purpose:
         #   Require systemd tooling (systemctl); exit on failure.
         #
         # Behavior:
-        #   - Calls td_have systemctl.
+        #   - Calls sgnd_have systemctl.
         #
         # Outputs:
         #   Writes an error to stderr on failure.
         #
         # Returns:
         #   Does not return on failure (exits rc=1).
-    td_need_systemd(){ td_have systemctl || { _sh_err "Systemd not available."; exit 1; }; }
+    sgnd_need_systemd(){ sgnd_have systemctl || { _sh_err "Systemd not available."; exit 1; }; }
 
-    # td_need_writable
+    # sgnd_need_writable
         # Purpose:
         #   Require a path to be writable; exit on failure.
         #
@@ -253,10 +238,10 @@ set -uo pipefail
         #
         # Returns:
         #   Does not return on failure (exits rc=1).
-    td_need_writable(){ [[ -w "$1" ]] || { _sh_err "Not writable: $1"; exit 1; }; }
+    sgnd_need_writable(){ [[ -w "$1" ]] || { _sh_err "Not writable: $1"; exit 1; }; }
 
  # -- Non lethal requirement checks (return 1 on failure, do not exit) ------------
-    # td_need_tty
+    # sgnd_need_tty
         # Purpose:
         #   Require stdout to be a TTY; return non-zero if not.
         #
@@ -268,9 +253,9 @@ set -uo pipefail
         #
         # Returns:
         #   0 if stdout is a TTY; 1 otherwise.
-    td_need_tty(){ [[ -t 1 ]] || { _sh_err "No TTY attached."; return 1; }; }
+    sgnd_need_tty(){ [[ -t 1 ]] || { _sh_err "No TTY attached."; return 1; }; }
 
-    # td_is_active
+    # sgnd_is_active
         # Purpose:
         #   Test whether a systemd unit is active.
         #
@@ -279,10 +264,10 @@ set -uo pipefail
         #
         # Returns:
         #   0 if active; non-zero otherwise (as per systemctl).
-    td_is_active(){ systemctl is-active --quiet "$1"; }
+    sgnd_is_active(){ systemctl is-active --quiet "$1"; }
 
 # --- Filesystem Helpers --------------------------------------------------------------
-    # td_can_append
+    # sgnd_can_append
         # Purpose:
         #   Test whether a file can be appended to, or created for later appending.
         #
@@ -304,18 +289,18 @@ set -uo pipefail
         #   1 otherwise.
         #
         # Usage:
-        #   td_can_append FILE
+        #   sgnd_can_append FILE
         #
         # Examples:
-        #   if td_can_append "$TD_LOG_PATH"; then
+        #   if sgnd_can_append "$SGND_LOG_PATH"; then
         #       printf 'log target ok\n'
         #   fi
         #
-        #   td_can_append "/var/log/testadura/app.log" || return 1
+        #   sgnd_can_append "/var/log/testadura/app.log" || return 1
         #
         # Notes:
         #   - Does not verify available disk space or future write success.
-    td_can_append() {
+    sgnd_can_append() {
         # Returns 0 if we can append to $1 (file exists and writable, or dir writable to create)
         local f="$1"
         local d
@@ -341,7 +326,7 @@ set -uo pipefail
         return 0
     }
 
-    # td_ensure_dir
+    # sgnd_ensure_dir
         # Purpose:
         #   Ensure a directory exists (mkdir -p if needed).
         #
@@ -354,13 +339,13 @@ set -uo pipefail
         #
         # Returns:
         #   0 on success; 2 on missing argument; otherwise mkdir's rc.
-    td_ensure_dir() {
+    sgnd_ensure_dir() {
         local dir="${1:-}"
         [[ -n "$dir" ]] || return 2
         [[ -d "$dir" ]] || mkdir -p -- "$dir"
     }
 
-    # td_ensure_writable_dir
+    # sgnd_ensure_writable_dir
         # Purpose:
         #   Ensure a directory exists and is suitable for user-scoped writing.
         #
@@ -388,16 +373,16 @@ set -uo pipefail
         #   4 if the directory still does not exist afterward.
         #
         # Usage:
-        #   td_ensure_writable_dir DIR
+        #   sgnd_ensure_writable_dir DIR
         #
         # Examples:
-        #   td_ensure_writable_dir "$TD_USRCFG_DIR" || return 1
+        #   sgnd_ensure_writable_dir "$SGND_USRCFG_DIR" || return 1
         #
-        #   td_ensure_writable_dir "$(td_real_home)/.config/testadura"
+        #   sgnd_ensure_writable_dir "$(sgnd_real_home)/.config/testadura"
         #
         # Notes:
         #   - Ownership correction is only attempted for newly created directories.
-    td_ensure_writable_dir() {
+    sgnd_ensure_writable_dir() {
         local dir="${1:-}"
         [[ -n "$dir" ]] || return 2
 
@@ -421,7 +406,7 @@ set -uo pipefail
         return 0
     }
 
-    # td_exists
+    # sgnd_exists
       # Purpose:
       #   Test whether a regular file exists.
       #
@@ -430,9 +415,9 @@ set -uo pipefail
       #
       # Returns:
       #   0 if exists and is a regular file; non-zero otherwise.
-    td_exists(){ [[ -f "$1" ]]; }
+    sgnd_exists(){ [[ -f "$1" ]]; }
 
-    # td_is_dir
+    # sgnd_is_dir
       # Purpose:
       #   Test whether a directory exists.
       #
@@ -441,9 +426,9 @@ set -uo pipefail
       #
       # Returns:
       #   0 if exists and is a directory; non-zero otherwise.
-    td_is_dir(){ [[ -d "$1" ]]; }
+    sgnd_is_dir(){ [[ -d "$1" ]]; }
 
-    # td_is_nonempty
+    # sgnd_is_nonempty
       # Purpose:
       #   Test whether a file exists and is non-empty.
       #
@@ -452,9 +437,9 @@ set -uo pipefail
       #
       # Returns:
       #   0 if file exists and size > 0; non-zero otherwise.
-    td_is_nonempty(){ [[ -s "$1" ]]; }
+    sgnd_is_nonempty(){ [[ -s "$1" ]]; }
 
-    # td_abs_path
+    # sgnd_abs_path
         # Purpose:
         #   Resolve an absolute canonical path.
         #
@@ -469,9 +454,9 @@ set -uo pipefail
         #
         # Returns:
         #   0 on success; non-zero if both resolvers fail.
-    td_abs_path(){ readlink -f "$1" 2>/dev/null || realpath "$1"; }
+    sgnd_abs_path(){ readlink -f "$1" 2>/dev/null || realpath "$1"; }
 
-    # td_mktemp_dir
+    # sgnd_mktemp_dir
       # Purpose:
       #   Create a temporary directory and print its path.
       #
@@ -483,9 +468,9 @@ set -uo pipefail
       #
       # Notes:
       #   - Uses mktemp -d; falls back to TMPDIR-based template.
-    td_mktemp_dir(){ mktemp -d 2>/dev/null || TMPDIR=${TMPDIR:-/tmp} mktemp -d "${TMPDIR%/}/XXXXXX"; }
+    sgnd_mktemp_dir(){ mktemp -d 2>/dev/null || TMPDIR=${TMPDIR:-/tmp} mktemp -d "${TMPDIR%/}/XXXXXX"; }
 
-    # td_mktemp_file
+    # sgnd_mktemp_file
         # Purpose:
         #   Create a temporary file and print its path.
         #
@@ -494,9 +479,9 @@ set -uo pipefail
         #
         # Returns:
         #   0 on success; non-zero on failure.
-    td_mktemp_file(){ TMPDIR=${TMPDIR:-/tmp} mktemp "${TMPDIR%/}/XXXXXX"; }
+    sgnd_mktemp_file(){ TMPDIR=${TMPDIR:-/tmp} mktemp "${TMPDIR%/}/XXXXXX"; }
 
-    # td_slugify
+    # sgnd_slugify
         # Purpose:
         #   Convert arbitrary text into a lowercase, filename-safe slug.
         #
@@ -518,14 +503,14 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   td_slugify TEXT
+        #   sgnd_slugify TEXT
         #
         # Examples:
-        #   td_slugify "Some Title!!"
+        #   sgnd_slugify "Some Title!!"
         #
-        #   slug="$(td_slugify "$menu_title")"
-    td_slugify() {
-        # Usage: td_slugify "Some Title!!"
+        #   slug="$(sgnd_slugify "$menu_title")"
+    sgnd_slugify() {
+        # Usage: sgnd_slugify "Some Title!!"
         # Output: some-title
         local s="${1:-}"
 
@@ -549,7 +534,7 @@ set -uo pipefail
         printf '%s' "$s"
     }
 
-    # td_hash_sha256_file
+    # sgnd_hash_sha256_file
         # Purpose:
         #   Compute and print the SHA-256 hash of a readable file.
         #
@@ -573,13 +558,13 @@ set -uo pipefail
         #   127 if no supported hashing tool is available.
         #
         # Usage:
-        #   td_hash_sha256_file FILE
+        #   sgnd_hash_sha256_file FILE
         #
         # Examples:
-        #   hash="$(td_hash_sha256_file "$archive")" || return 1
+        #   hash="$(sgnd_hash_sha256_file "$archive")" || return 1
         #
-        #   td_hash_sha256_file "./release.tar.gz"
-    td_hash_sha256_file() {
+        #   sgnd_hash_sha256_file "./release.tar.gz"
+    sgnd_hash_sha256_file() {
         local file="$1"
 
         [[ -r "$file" ]] || return 2
@@ -602,7 +587,7 @@ set -uo pipefail
         return 127
     }
 
-    # td_safe_replace_file
+    # sgnd_safe_replace_file
         # Purpose:
         #   Safely replace a destination file with a source file while preserving
         #   the original file's permissions.
@@ -626,13 +611,13 @@ set -uo pipefail
         #   1  failure (missing file, chmod failure, or mv failure)
         #
         # Usage:
-        #   td_safe_replace_file "$tmp_file" "$file"
+        #   sgnd_safe_replace_file "$tmp_file" "$file"
         #
         # Examples:
         #   tmp="$(mktemp)"
         #   echo "new content" > "$tmp"
-        #   td_safe_replace_file "$tmp" "/path/to/script.sh"
-    td_safe_replace_file() {
+        #   sgnd_safe_replace_file "$tmp" "/path/to/script.sh"
+    sgnd_safe_replace_file() {
         local src="${1:?missing source}"
         local dst="${2:?missing destination}"
 
@@ -644,7 +629,7 @@ set -uo pipefail
     }
     
 # --- Systeminfo ----------------------------------------------------------------------
-    # td_get_primary_nic
+    # sgnd_get_primary_nic
       # Purpose:
       #   Return the interface name for the default route (best-effort).
       #
@@ -656,11 +641,11 @@ set -uo pipefail
       #
       # Returns:
       #   0 always (awk/ip failures may result in empty output).
-    td_get_primary_nic() {
+    sgnd_get_primary_nic() {
         ip route show default 2>/dev/null | awk 'NR==1 {print $5}'
     }
 # --- Network Helpers -----------------------------------------------------------------
-    # td_ping_ok
+    # sgnd_ping_ok
         # Purpose:
         #   Test whether a host responds to a single ICMP ping.
         #
@@ -669,9 +654,9 @@ set -uo pipefail
         #
         # Returns:
         #   0 if ping succeeds; non-zero otherwise.
-    td_ping_ok(){ ping -c1 -W1 "$1" &>/dev/null; }
+    sgnd_ping_ok(){ ping -c1 -W1 "$1" &>/dev/null; }
 
-    # td_port_open
+    # sgnd_port_open
       # Purpose:
       #   Test whether a TCP port on a host appears open.
       #
@@ -685,14 +670,14 @@ set -uo pipefail
       #
       # Returns:
       #   0 if connection succeeds; non-zero otherwise.
-    td_port_open(){
+    sgnd_port_open(){
       local h="$1" p="$2"
-      if td_have nc; then nc -z "$h" "$p" &>/dev/null; else
+      if sgnd_have nc; then nc -z "$h" "$p" &>/dev/null; else
         (exec 3<>"/dev/tcp/$h/$p") &>/dev/null
       fi
     }
 
-    # td_get_ip
+    # sgnd_get_ip
       # Purpose:
       #   Return the first non-loopback IP from hostname -I (best-effort).
       #
@@ -701,10 +686,10 @@ set -uo pipefail
       #
       # Returns:
       #   0 always (command failures may result in empty output).
-    td_get_ip(){ hostname -I 2>/dev/null | awk '{print $1}'; }
+    sgnd_get_ip(){ hostname -I 2>/dev/null | awk '{print $1}'; }
 
 # --- Argument & Environment Helpers---------------------------------------------------
-    # td_is_set
+    # sgnd_is_set
       # Purpose:
       #   Test whether a variable name is set/defined in the shell.
       #
@@ -713,9 +698,9 @@ set -uo pipefail
       #
       # Returns:
       #   0 if defined; non-zero otherwise.
-    td_is_set(){ [[ -v "$1" ]]; }
+    sgnd_is_set(){ [[ -v "$1" ]]; }
 
-    # td_default
+    # sgnd_default
         # Purpose:
         #   Assign a default value to a variable when it is unset or empty.
         #
@@ -737,18 +722,18 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   td_default VAR_NAME DEFAULT
+        #   sgnd_default VAR_NAME DEFAULT
         #
         # Examples:
-        #   td_default TD_UI_STYLE "default"
+        #   sgnd_default SGND_UI_STYLE "default"
         #
-        #   td_default FLAG_VERBOSE "0"
+        #   sgnd_default FLAG_VERBOSE "0"
         #
         # Notes:
         #   - Uses eval, so both arguments must be trusted.
-    td_default(){ eval "${1}=\${${1}:-$2}"; }
+    sgnd_default(){ eval "${1}=\${${1}:-$2}"; }
 
-    # td_is_number
+    # sgnd_is_number
       # Purpose:
       #   Test whether a value contains only digits (0-9).
       #
@@ -757,9 +742,9 @@ set -uo pipefail
       #
       # Returns:
       #   0 if digits-only; non-zero otherwise.
-    td_is_number(){ [[ "$1" =~ ^[0-9]+$ ]]; }
+    sgnd_is_number(){ [[ "$1" =~ ^[0-9]+$ ]]; }
 
-    # td_is_bool
+    # sgnd_is_bool
       # Purpose:
       #   Test whether a value is a common boolean-like token.
       #
@@ -768,9 +753,9 @@ set -uo pipefail
       #
       # Returns:
       #   0 if matches (true|false|yes|no|on|off|1|0); non-zero otherwise.
-    td_is_bool(){ [[ "$1" =~ ^(true|false|yes|no|on|off|1|0)$ ]]; }
+    sgnd_is_bool(){ [[ "$1" =~ ^(true|false|yes|no|on|off|1|0)$ ]]; }
 
-    # td_array_has_items
+    # sgnd_array_has_items
       # Purpose:
       #   Test whether a named array variable exists and contains at least one element.
       #
@@ -782,13 +767,13 @@ set -uo pipefail
       #
       # Requires:
       #   bash 4.3+ (nameref).
-    td_array_has_items(){
+    sgnd_array_has_items(){
       declare -p "$1" &>/dev/null || return 1
       local -n _arr="$1"
       (( ${#_arr[@]} > 0 ))
     }
 
-    # td_is_true
+    # sgnd_is_true
         # Purpose:
         #   Test whether a value represents "true" (case-insensitive).
         #
@@ -797,14 +782,14 @@ set -uo pipefail
         #
         # Returns:
         #   0 if token is one of: y, yes, 1, true; non-zero otherwise.
-    td_is_true() {
+    sgnd_is_true() {
       case "${1,,}" in
           y|yes|1|true) return 0 ;;
           *)            return 1 ;;
       esac
     }
 
-    # td_real_user
+    # sgnd_real_user
         # Purpose:
         #   Resolve the real invoking user, even when the current process runs under sudo.
         #
@@ -822,13 +807,13 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   td_real_user
+        #   sgnd_real_user
         #
         # Examples:
-        #   user="$(td_real_user)"
+        #   user="$(sgnd_real_user)"
         #
-        #   printf 'real user: %s\n' "$(td_real_user)"
-    td_real_user() {
+        #   printf 'real user: %s\n' "$(sgnd_real_user)"
+    sgnd_real_user() {
         if [[ -n "${SUDO_USER-}" && "${SUDO_USER}" != "root" ]]; then
             printf '%s\n' "${SUDO_USER}"
         else
@@ -836,12 +821,12 @@ set -uo pipefail
         fi
     }
 
-    # td_real_home
+    # sgnd_real_home
         # Purpose:
         #   Resolve the home directory of the real invoking user.
         #
         # Behavior:
-        #   - Determines the effective invoking user through td_real_user().
+        #   - Determines the effective invoking user through sgnd_real_user().
         #   - Looks up that user in the system account database using getent passwd.
         #   - Prints the home directory field from the passwd entry.
         #
@@ -853,27 +838,27 @@ set -uo pipefail
         #   Non-zero if the user lookup fails.
         #
         # Usage:
-        #   td_real_home
+        #   sgnd_real_home
         #
         # Examples:
-        #   home_dir="$(td_real_home)"
+        #   home_dir="$(sgnd_real_home)"
         #
-        #   td_ensure_writable_dir "$(td_real_home)/workspace"
+        #   sgnd_ensure_writable_dir "$(sgnd_real_home)/workspace"
         #
         # Notes:
         #   - Avoids relying on HOME, which may point to /root under sudo.
-    td_real_home() {
+    sgnd_real_home() {
         local user
-        user="$(td_real_user)"
+        user="$(sgnd_real_user)"
         getent passwd "${user}" | cut -d: -f6
     }
 
-    # td_run_as_real_user
+    # sgnd_run_as_real_user
         # Purpose:
         #   Execute a command as the invoking non-root user when currently running as root.
         #
         # Behavior:
-        #   - Resolves the real user via td_real_user().
+        #   - Resolves the real user via sgnd_real_user().
         #   - If the current process runs as root and the real user is not root, executes the command through sudo -u <user> -H.
         #   - Otherwise executes the command directly in the current context.
         #
@@ -888,18 +873,18 @@ set -uo pipefail
         #   Returns the exit status of the executed command.
         #
         # Usage:
-        #   td_run_as_real_user COMMAND [ARG ...]
+        #   sgnd_run_as_real_user COMMAND [ARG ...]
         #
         # Examples:
-        #   td_run_as_real_user mkdir -p "$(td_real_home)/workspace"
+        #   sgnd_run_as_real_user mkdir -p "$(sgnd_real_home)/workspace"
         #
-        #   td_run_as_real_user cp template.txt "$target_dir/"
+        #   sgnd_run_as_real_user cp template.txt "$target_dir/"
         #
         # Notes:
         #   - The -H flag ensures HOME is set correctly for the target user.
-    td_run_as_real_user() {
+    sgnd_run_as_real_user() {
         local user
-        user="$(td_real_user)"
+        user="$(sgnd_real_user)"
 
         if (( EUID == 0 )) && [[ "${user}" != "root" ]]; then
             sudo -u "${user}" -H -- "$@"
@@ -908,12 +893,12 @@ set -uo pipefail
         fi
     }
 
-    # td_fix_ownership
+    # sgnd_fix_ownership
         # Purpose:
         #   Recursively change ownership of a path to the real invoking user.
         #
         # Behavior:
-        #   - Resolves the real user via td_real_user().
+        #   - Resolves the real user via sgnd_real_user().
         #   - Resolves that user's primary group via id -gn.
         #   - Applies chown -R to the requested path.
         #
@@ -929,22 +914,22 @@ set -uo pipefail
         #   Non-zero if chown fails.
         #
         # Usage:
-        #   td_fix_ownership PATH
+        #   sgnd_fix_ownership PATH
         #
         # Examples:
-        #   td_fix_ownership "$workspace_dir"
+        #   sgnd_fix_ownership "$workspace_dir"
         #
-        #   td_fix_ownership "$(td_real_home)/.config/testadura"
-    td_fix_ownership() {
+        #   sgnd_fix_ownership "$(sgnd_real_home)/.config/testadura"
+    sgnd_fix_ownership() {
         local path="$1"
         local user group
-        user="$(td_real_user)"
+        user="$(sgnd_real_user)"
         group="$(id -gn "${user}")"
 
         chown -R "${user}:${group}" "${path}"
     }
   
-    # td_fix_permissions
+    # sgnd_fix_permissions
         # Purpose:
         #   Normalize directory and file permissions under a path.
         #
@@ -965,16 +950,16 @@ set -uo pipefail
         #   Non-zero if any chmod operation fails.
         #
         # Usage:
-        #   td_fix_permissions PATH
+        #   sgnd_fix_permissions PATH
         #
         # Examples:
-        #   td_fix_permissions "$publish_root"
+        #   sgnd_fix_permissions "$publish_root"
         #
-        #   td_fix_permissions "./target-root"
+        #   sgnd_fix_permissions "./target-root"
         #
         # Notes:
         #   - Executable bits are not preserved for regular files.
-    td_fix_permissions() {
+    sgnd_fix_permissions() {
         local path="$1"
 
         # Directories: 755, files: 644 (tweak if you want executable scripts kept executable)
@@ -982,7 +967,7 @@ set -uo pipefail
         find "${path}" -type f -exec chmod 644 {} +
     }
 # --- Process & State Helpers ---------------------------------------------------------
-    # td_proc_exists
+    # sgnd_proc_exists
       # Purpose:
       #   Test whether a process with an exact name is running.
       #
@@ -991,9 +976,9 @@ set -uo pipefail
       #
       # Returns:
       #   0 if found; non-zero otherwise.
-    td_proc_exists(){ pgrep -x "$1" &>/dev/null; }
+    sgnd_proc_exists(){ pgrep -x "$1" &>/dev/null; }
 
-    # td_wait_for_exit
+    # sgnd_wait_for_exit
       # Purpose:
       #   Block until a named process is no longer running.
       #
@@ -1005,9 +990,9 @@ set -uo pipefail
       #
       # Returns:
       #   0 always (terminates when process is gone).
-    td_wait_for_exit(){ while td_proc_exists "$1"; do sleep 0.5; done; }
+    sgnd_wait_for_exit(){ while sgnd_proc_exists "$1"; do sleep 0.5; done; }
 
-    # td_kill_if_running
+    # sgnd_kill_if_running
       # Purpose:
       #   Terminate all processes with an exact name if running.
       #
@@ -1016,9 +1001,9 @@ set -uo pipefail
       #
       # Returns:
       #   0 always (pkill failures suppressed).
-    td_kill_if_running(){ pkill -x "$1" &>/dev/null || true; }
+    sgnd_kill_if_running(){ pkill -x "$1" &>/dev/null || true; }
 
-    # td_caller_id
+    # sgnd_caller_id
         # Purpose:
         #   Build a compact caller identifier string for diagnostics.
         #
@@ -1039,13 +1024,13 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   td_caller_id [DEPTH]
+        #   sgnd_caller_id [DEPTH]
         #
         # Examples:
-        #   td_caller_id
+        #   sgnd_caller_id
         #
-        #   saydebug "Called from $(td_caller_id 2)"
-    td_caller_id() {
+        #   saydebug "Called from $(sgnd_caller_id 2)"
+    sgnd_caller_id() {
         local depth="${1:-1}"
 
         local file="${BASH_SOURCE[$depth]}"
@@ -1055,13 +1040,13 @@ set -uo pipefail
         printf '%s:%s (%s)' "${file##*/}" "$line" "$func"
     }
   
-    # td_stack_trace
+    # sgnd_stack_trace
         # Purpose:
         #   Print a simple stack trace with the most recent caller first.
         #
         # Behavior:
         #   - Iterates over the Bash call stack arrays.
-        #   - Skips the td_stack_trace frame itself.
+        #   - Skips the sgnd_stack_trace frame itself.
         #   - Prints one formatted line per caller frame.
         #
         # Output:
@@ -1071,11 +1056,11 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   td_stack_trace
+        #   sgnd_stack_trace
         #
         # Examples:
-        #   td_stack_trace
-    td_stack_trace() {
+        #   sgnd_stack_trace
+    sgnd_stack_trace() {
         local i
         for (( i=1; i<${#FUNCNAME[@]}; i++ )); do
             printf '  at %s:%s (%s)\n' \
@@ -1085,7 +1070,7 @@ set -uo pipefail
         done
     }
 
-    # td_has_tty
+    # sgnd_has_tty
         # Purpose:
         #   Test whether /dev/tty is available for reading and writing.
         #
@@ -1094,15 +1079,15 @@ set -uo pipefail
         #   1 otherwise.
         #
         # Usage:
-        #   td_has_tty
+        #   sgnd_has_tty
         #
         # Examples:
-        #   td_has_tty || return 1
-    td_has_tty() {
+        #   sgnd_has_tty || return 1
+    sgnd_has_tty() {
         [[ -r /dev/tty && -w /dev/tty ]]
     }
 # --- Version & OS Helpers ------------------------------------------------------------
-    # td_get_os
+    # sgnd_get_os
       # Purpose:
       #   Return OS ID from /etc/os-release (e.g., ubuntu, debian).
       #
@@ -1111,9 +1096,9 @@ set -uo pipefail
       #
       # Returns:
       #   0 on success; non-zero if /etc/os-release is missing/unreadable.
-    td_get_os(){ grep -E '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"' ; }
+    sgnd_get_os(){ grep -E '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"' ; }
 
-    # td_get_os_version
+    # sgnd_get_os_version
       # Purpose:
       #   Return OS VERSION_ID from /etc/os-release.
       #
@@ -1122,9 +1107,9 @@ set -uo pipefail
       #
       # Returns:
       #   0 on success; non-zero if /etc/os-release is missing/unreadable.
-    td_get_os_version(){ grep -E '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '"' ; }
+    sgnd_get_os_version(){ grep -E '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '"' ; }
 
-    # td_version_ge
+    # sgnd_version_ge
         # Purpose:
         #   Compare two version strings using sort -V (A >= B).
         #
@@ -1134,10 +1119,10 @@ set -uo pipefail
         #
         # Returns:
         #   0 if A >= B; 1 otherwise.
-    td_version_ge(){ [[ "$(printf '%s\n' "$2" "$1" | sort -V | head -n1)" == "$2" ]]; }
+    sgnd_version_ge(){ [[ "$(printf '%s\n' "$2" "$1" | sort -V | head -n1)" == "$2" ]]; }
 
 # --- Misc Utilities ------------------------------------------------------------------
-    # td_timestamp
+    # sgnd_timestamp
         # Purpose:
         #   Return current local timestamp in "YYYY-MM-DD HH:MM:SS".
         #
@@ -1146,9 +1131,9 @@ set -uo pipefail
         #
         # Returns:
         #   0 always.
-    td_timestamp(){ date +"%Y-%m-%d %H:%M:%S"; }
+    sgnd_timestamp(){ date +"%Y-%m-%d %H:%M:%S"; }
 
-    # td_retry
+    # sgnd_retry
         # Purpose:
         #   Retry a command up to N times with a delay between attempts.
         #
@@ -1159,7 +1144,7 @@ set -uo pipefail
         #
         # Returns:
         #   0 if the command succeeds within N attempts; 1 otherwise.
-    td_retry(){
+    sgnd_retry(){
         local n="$1" d="$2"; shift 2
         local i
         for ((i=1;i<=n;i++)); do
@@ -1169,7 +1154,7 @@ set -uo pipefail
         return 1
     }
 
-    # td_join
+    # sgnd_join
       # Purpose:
       #   Join arguments into a single string using a separator.
       #
@@ -1186,9 +1171,9 @@ set -uo pipefail
       # Notes:
       #   - Uses echo "$*"; this preserves spaces via IFS join semantics.
       #   - Not safe for binary data; intended for display/logging.
-    td_join() { local IFS="$1"; shift; printf '%s' "$*"; }
+    sgnd_join() { local IFS="$1"; shift; printf '%s' "$*"; }
 
-    # td_array_union
+    # sgnd_array_union
     # Purpose:
     #   Build a stable union of one or more source arrays into a destination array.
     #
@@ -1210,7 +1195,7 @@ set -uo pipefail
     #
     # Requires:
     #   bash 4.3+ (nameref) and associative arrays.
-    td_array_union() {
+    sgnd_array_union() {
     local dest_name="$1"
     shift || true
 
@@ -1243,7 +1228,7 @@ set -uo pipefail
     }
 
 # --- Text functions ------------------------------------------------------------------
-    # td_trim
+    # sgnd_trim
         # Purpose:
         #   Trim leading and trailing whitespace from a string.
         #
@@ -1255,9 +1240,9 @@ set -uo pipefail
         #
         # Returns:
         #   0 always.
-    td_trim(){ local v="${*:-}"; v="${v#"${v%%[![:space:]]*}"}"; echo "${v%"${v##*[![:space:]]}"}"; }
+    sgnd_trim(){ local v="${*:-}"; v="${v#"${v%%[![:space:]]*}"}"; echo "${v%"${v##*[![:space:]]}"}"; }
 
-    # td_string_repeat
+    # sgnd_string_repeat
         # Purpose:
         #   Repeat a string N times.
         #
@@ -1270,7 +1255,7 @@ set -uo pipefail
         #
         # Returns:
         #   0 always.
-    td_string_repeat() {
+    sgnd_string_repeat() {
         local s="${1- }"
         local n="${2-0}"
 
@@ -1286,7 +1271,7 @@ set -uo pipefail
         printf '%s' "$out"
     }
 
-    # td_fill_left
+    # sgnd_fill_left
         # Purpose:
         #   Left-pad a string to a given total length using a fill character.
         #
@@ -1300,7 +1285,7 @@ set -uo pipefail
         #
         # Returns:
         #   0 always.
-    td_fill_left() {
+    sgnd_fill_left() {
         local source="${1-}"
         local maxlength="${2-20}"
         local char="${3- }"
@@ -1309,12 +1294,12 @@ set -uo pipefail
         (( padcount > 0 )) || { printf '%s' "$source"; return 0; }
 
         local pad
-        pad="$(td_string_repeat "$char" "$padcount")"
+        pad="$(sgnd_string_repeat "$char" "$padcount")"
 
         printf '%s%s' "$pad" "$source"
     }
 
-    # td_fill_right
+    # sgnd_fill_right
       # Purpose:
       #   Right-pad a string to a given total length using a fill character.
       #
@@ -1328,7 +1313,7 @@ set -uo pipefail
       #
       # Returns:
       #   0 always.
-    td_fill_right() {
+    sgnd_fill_right() {
         local source="${1-}"
         local maxlength="${2-20}"
         local char="${3- }"
@@ -1337,12 +1322,12 @@ set -uo pipefail
         (( padcount > 0 )) || { printf '%s' "$source"; return 0; }
 
         local pad
-        pad="$(td_string_repeat "$char" "$padcount")"
+        pad="$(sgnd_string_repeat "$char" "$padcount")"
 
         printf '%s%s' "$source" "$pad"
     }
 
-    # td_fill_center
+    # sgnd_fill_center
       # Purpose:
       #   Center-pad a string to a given total length using a fill character.
       #
@@ -1356,7 +1341,7 @@ set -uo pipefail
       #
       # Returns:
       #   0 always.
-    td_fill_center() {
+    sgnd_fill_center() {
         local source="${1-}"
         local maxlength="${2-20}"
         local char="${3- }"
@@ -1368,13 +1353,13 @@ set -uo pipefail
         local right=$(( padcount - left ))
 
         local pad_left pad_right
-        pad_left="$(td_string_repeat "$char" "$left")"
-        pad_right="$(td_string_repeat "$char" "$right")"
+        pad_left="$(sgnd_string_repeat "$char" "$left")"
+        pad_right="$(sgnd_string_repeat "$char" "$right")"
 
         printf '%s%s%s' "$pad_left" "$source" "$pad_right"
     }
 
-    # td_visible_length
+    # sgnd_visible_length
         # Purpose:
         #   Measure the visible character length of a string, ignoring ANSI escape sequences.
         #
@@ -1393,18 +1378,18 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   td_visible_length TEXT
+        #   sgnd_visible_length TEXT
         #
         # Examples:
-        #   td_visible_length "$colored_text"
-    td_visible_length() {
+        #   sgnd_visible_length "$colored_text"
+    sgnd_visible_length() {
         local text="${1-}"
 
         text="$(printf '%s' "$text" | sed -E 's/\x1B\[[0-9;]*[[:alpha:]]//g')"
         printf '%s' "$text" | wc -m
     }
 
-    # td_terminal_width
+    # sgnd_terminal_width
         # Purpose:
         #   Determine the effective terminal render width within configured limits.
         #
@@ -1424,11 +1409,11 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   td_terminal_width
+        #   sgnd_terminal_width
         #
         # Examples:
-        #   render_width="$(td_terminal_width)"
-    td_terminal_width() {
+        #   render_width="$(sgnd_terminal_width)"
+    sgnd_terminal_width() {
         local term_width=80
         local max_render_width="${SGND_MAX_RENDER_WIDTH:-140}"
 
@@ -1443,12 +1428,12 @@ set -uo pipefail
         printf '%s\n' "$term_width"
     }
 
-    # td_padded_visible
+    # sgnd_padded_visible
         # Purpose:
         #   Pad a string to a target visible width while accounting for ANSI escape sequences.
         #
         # Behavior:
-        #   - Measures visible length through td_visible_length().
+        #   - Measures visible length through sgnd_visible_length().
         #   - Appends the required number of trailing spaces.
         #   - Never truncates the input text.
         #
@@ -1465,24 +1450,24 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   td_padded_visible TEXT WIDTH
+        #   sgnd_padded_visible TEXT WIDTH
         #
         # Examples:
-        #   td_padded_visible "$label" 20
-    td_padded_visible() {
+        #   sgnd_padded_visible "$label" 20
+    sgnd_padded_visible() {
         local text="${1-}"
         local width="${2:-0}"
         local visible_len=0
         local pad_len=0
 
-        visible_len="$(td_visible_length "$text")"
+        visible_len="$(sgnd_visible_length "$text")"
         pad_len=$(( width - visible_len ))
         (( pad_len < 0 )) && pad_len=0
 
         printf '%s%*s' "$text" "$pad_len" ""
     }
 
-    # td_wrap_words
+    # sgnd_wrap_words
         # Purpose:
         #   Wrap a text string to a fixed width on word boundaries.
         #
@@ -1506,13 +1491,13 @@ set -uo pipefail
         #   2 on invalid arguments.
         #
         # Usage:
-        #   td_wrap_words --width N --text STR
+        #   sgnd_wrap_words --width N --text STR
         #
         # Examples:
-        #   td_wrap_words --width 60 --text "$long_text"
+        #   sgnd_wrap_words --width 60 --text "$long_text"
         #
-        #   td_wrap_words --width "$render_width" --text "This is a wrapped sentence."
-    td_wrap_words() {
+        #   sgnd_wrap_words --width "$render_width" --text "This is a wrapped sentence."
+    sgnd_wrap_words() {
         local width=80 text=""
         while [[ $# -gt 0 ]]; do
             case "$1" in
@@ -1545,7 +1530,7 @@ set -uo pipefail
     }
 
 # --- Error handlers ------------------------------------------------------------------
-    # td_die
+    # sgnd_die
         # Purpose:
         #   Terminate the script with a formatted fatal error message.
         #
@@ -1573,27 +1558,27 @@ set -uo pipefail
         #   Does not return.
         #
         # Usage:
-        #   td_die [MESSAGE] [RC]
+        #   sgnd_die [MESSAGE] [RC]
         #
         # Examples:
-        #   td_die "Configuration invalid"
+        #   sgnd_die "Configuration invalid"
         #
-        #   td_die "Unable to continue" 2
-    td_die() {
+        #   sgnd_die "Unable to continue" 2
+    sgnd_die() {
       local msg="${1-}"
       local rc="${2-1}"
 
       local ci=""
       if (( ${FLAG_VERBOSE:-0} )); then
           sayfail "$rc ${msg:-Fatal error}"
-          td_stack_trace
+          sgnd_stack_trace
       else
-          sayfail "$rc ${msg:-Fatal error} ($(td_caller_id 2))"
+          sayfail "$rc ${msg:-Fatal error} ($(sgnd_caller_id 2))"
       fi
       exit "$rc"
     }
 
-    # td_require
+    # sgnd_require
         # Purpose:
         #   Execute a command and report failure without terminating the script.
         #
@@ -1614,89 +1599,64 @@ set -uo pipefail
         #   Returns the executed command's exit code.
         #
         # Usage:
-        #   td_require COMMAND [ARG ...]
+        #   sgnd_require COMMAND [ARG ...]
         #
         # Examples:
-        #   td_require cp "$src" "$dst" || return 1
+        #   sgnd_require cp "$src" "$dst" || return 1
         #
-        #   td_require systemctl restart ssh
-    td_require() {
+        #   sgnd_require systemctl restart ssh
+    sgnd_require() {
         "$@"
         local rc=$?
 
         if (( rc != 0 )); then
-            # script -> td_require -> td_caller_id
-            sayfail "Command failed (rc=$rc): $* ($(td_caller_id 2))"
+            # script -> sgnd_require -> sgnd_caller_id
+            sayfail "Command failed (rc=$rc): $* ($(sgnd_caller_id 2))"
         fi
 
         return "$rc"
     }
 
-    # td_must
+    # sgnd_must
         # Purpose:
         #   Execute a command and terminate the script when it fails.
         #
         # Behavior:
         #   - Runs the supplied command.
         #   - Returns immediately when the command succeeds.
-        #   - On failure, delegates to td_die with the original exit code.
+        #   - On failure, delegates to sgnd_die with the original exit code.
         #
         # Arguments:
         #   $@  COMMAND
         #       Command and arguments to execute.
         #
         # Side effects:
-        #   - May terminate the current process through td_die.
+        #   - May terminate the current process through sgnd_die.
         #
         # Returns:
         #   0 if the command succeeds.
         #   Does not return on failure.
         #
         # Usage:
-        #   td_must COMMAND [ARG ...]
+        #   sgnd_must COMMAND [ARG ...]
         #
         # Examples:
-        #   td_must mkdir -p "$target_dir"
+        #   sgnd_must mkdir -p "$target_dir"
         #
-        #   td_must cp "$source" "$target"
-    td_must() {
+        #   sgnd_must cp "$source" "$target"
+    sgnd_must() {
         "$@"
         local rc=$?
 
         (( rc == 0 )) && return 0
 
-        # Do NOT add caller-id here; td_die will do that (and optional stack trace)
-        td_die "Fatal: $* (rc=$rc)" "$rc"
+        # Do NOT add caller-id here; sgnd_die will do that (and optional stack trace)
+        sgnd_die "Fatal: $* (rc=$rc)" "$rc"
     }
 
-# --- Argument & Environment Validators -----------------------------------------------
-    # td_validate_int
-      # Purpose:
-      #   Validate whether a value is an integer (optional leading +/-).
-      #
-      # Arguments:
-      #   $1  Value to test.
-      #
-      # Returns:
-      #   0 if valid integer; non-zero otherwise.
-    td_validate_int(){
-      [[ "$1" =~ ^[+-]?[0-9]+$ ]]
-    }
-
-    # td_validate_decimal
-      # Purpose:
-      #   Validate whether a value is a decimal number (int or int.frac, optional leading +/-).
-      #
-      # Arguments:
-      #   $1  Value to test.
-      #
-      # Returns:
-      #   0 if valid decimal; non-zero otherwise.
-    td_validate_decimal(){
-      [[ "$1" =~ ^[+-]?[0-9]+(\.[0-9]+)?$ ]]
-    }
-
-      # td_validate_ipv4
+# --- Validators ----------------------------------------------------------------------
+ # --- Type validations ---------------------------------------------------------------
+      # sgnd_validate_ipv4
           # Purpose:
           #   Validate whether a string is a syntactically valid IPv4 address.
           #
@@ -1715,15 +1675,15 @@ set -uo pipefail
           #   1 otherwise.
           #
           # Usage:
-          #   td_validate_ipv4 IP
+          #   sgnd_validate_ipv4 IP
           #
           # Examples:
-          #   if td_validate_ipv4 "$server_ip"; then
+          #   if sgnd_validate_ipv4 "$server_ip"; then
           #       printf 'ok\n'
           #   fi
           #
-          #   td_validate_ipv4 "192.168.1.10"
-      td_validate_ipv4(){
+          #   sgnd_validate_ipv4 "192.168.1.10"
+      sgnd_validate_ipv4(){
         local ip="$1" IFS='.' octets o
         IFS='.' read -r -a octets <<<"$ip"
         [[ ${#octets[@]} -eq 4 ]] || return 1
@@ -1734,7 +1694,7 @@ set -uo pipefail
         return 0
       }
 
-    # td_validate_yesno
+    # sgnd_validate_yesno
       # Purpose:
       #   Validate whether a value is a single-char Y/y/N/n token.
       #
@@ -1743,6 +1703,91 @@ set -uo pipefail
       #
       # Returns:
       #   0 if matches ^[YyNn]$; non-zero otherwise.
-    td_validate_yesno(){
+    sgnd_validate_yesno(){
       [[ "$1" =~ ^[YyNn]$ ]]
+    }
+
+    sgnd_validate_int() {
+        [[ "$1" =~ ^-?[0-9]+$ ]] && return 0
+        return 1
+    }
+
+    sgnd_validate_numeric() {
+        [[ "$1" =~ ^-?[0-9]+([.][0-9]+)?$ ]] && return 0
+        return 1
+    }
+
+    sgnd_validate_text() {
+        [[ -n "$1" ]] && return 0
+        return 1
+    }
+
+    sgnd_validate_bool() {
+        case "${1,,}" in
+            y|yes|n|no|true|false|1|0) return 0 ;;
+            *) return 1 ;;
+        esac
+    }
+
+    sgnd_validate_date() {
+        [[ "$1" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] && return 0
+        return 1
+    }
+
+    sgnd_validate_ip() {
+        local ip="$1"
+        local IFS='.'
+        local -a octets=()
+        local o=0
+
+        [[ "$ip" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || return 1
+        read -r -a octets <<< "$ip"
+
+        for o in "${octets[@]}"; do
+            (( o >= 0 && o <= 255 )) || return 1
+        done
+
+        return 0
+    }
+
+    sgnd_validate_cidr() {
+        [[ "$1" =~ ^([0-9]|[12][0-9]|3[0-2])$ ]] && return 0
+        return 1
+    }
+
+    sgnd_validate_slug() {
+        [[ "$1" =~ ^[a-zA-Z0-9._-]+$ ]] && return 0
+        return 1
+    }
+
+    sgnd_validate_fs_name() {
+        [[ "$1" =~ ^[A-Za-z0-9._-]+$ ]] && return 0
+        return 1
+    }
+
+ # --- File system validations --------------------------------------------------------
+    sgnd_validate_file_exists() {
+        local path="$1"
+        [[ -f "$path" ]] && return 0
+        return 1
+    }
+
+    sgnd_validate_path_exists() {
+        [[ -e "$1" ]] && return 0
+        return 1
+    }
+
+    sgnd_validate_dir_exists() {
+        [[ -d "$1" ]] && return 0
+        return 1
+    }
+
+    sgnd_validate_executable() {
+        [[ -x "$1" ]] && return 0
+        return 1
+    }
+
+    sgnd_validate_file_not_exists() {
+        [[ ! -f "$1" ]] && return 0
+        return 1
     }
