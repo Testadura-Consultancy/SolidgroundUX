@@ -88,13 +88,13 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Helper functions ----------------------------------------------------------------
-    # __sgnd_arg_split
+    # _sgnd_arg_split
         # Purpose:
         #   Split a single SGND_ARGS_SPEC definition into internal scratch variables.
         #
         # Behavior:
         #   - Reads one pipe-delimited spec string.
-        #   - Assigns each field to the corresponding __sgnd_* scratch variable.
+        #   - Assigns each field to the corresponding _sgnd_* scratch variable.
         #   - Performs parsing only; does not validate semantic correctness.
         #
         # Arguments:
@@ -103,34 +103,34 @@ set -uo pipefail
         #       "name|short|type|var|help|choices"
         #
         # Outputs (globals):
-        #   __sgnd_name
-        #   __sgnd_short
-        #   __sgnd_type
-        #   __sgnd_var
-        #   __sgnd_help
-        #   __sgnd_choices
+        #   _sgnd_name
+        #   _sgnd_short
+        #   _sgnd_type
+        #   _sgnd_var
+        #   _sgnd_help
+        #   _sgnd_choices
         #
         # Side effects:
-        #   - Overwrites the current __sgnd_* scratch field variables.
+        #   - Overwrites the current _sgnd_* scratch field variables.
         #
         # Returns:
         #   0 always.
         #
         # Usage:
-        #   __sgnd_arg_split "$spec"
+        #   _sgnd_arg_split "$spec"
         #
         # Examples:
-        #   __sgnd_arg_split "config|c|value|CFG_FILE|Config file path|"
-        #   printf '%s\n' "$__sgnd_var"
+        #   _sgnd_arg_split "config|c|value|CFG_FILE|Config file path|"
+        #   printf '%s\n' "$_sgnd_var"
         #
         # Notes:
         #   - Intended as an internal helper for spec-driven parsing.
-    __sgnd_arg_split() {
+    _sgnd_arg_split() {
         local spec="$1"
-        IFS='|' read -r __sgnd_name __sgnd_short __sgnd_type __sgnd_var __sgnd_help __sgnd_choices <<< "$spec"
+        IFS='|' read -r _sgnd_name _sgnd_short _sgnd_type _sgnd_var _sgnd_help _sgnd_choices <<< "$spec"
     }
 
-    # __sgnd_arg_find_spec
+    # _sgnd_arg_find_spec
         # Purpose:
         #   Find the effective argument specification that matches a long or short option token.
         #
@@ -153,25 +153,25 @@ set -uo pipefail
         #   Prints the matching full spec line to stdout.
         #
         # Side effects:
-        #   - Updates __sgnd_* scratch variables while scanning.
+        #   - Updates _sgnd_* scratch variables while scanning.
         #
         # Returns:
         #   0 if a matching spec is found.
         #   1 if no matching spec exists.
         #
         # Usage:
-        #   spec="$(__sgnd_arg_find_spec "config")"
+        #   spec="$(_sgnd_arg_find_spec "config")"
         #
         # Examples:
-        #   spec="$(__sgnd_arg_find_spec "c")" || return 1
-        #   __sgnd_arg_split "$spec"
-    __sgnd_arg_find_spec() {
+        #   spec="$(_sgnd_arg_find_spec "c")" || return 1
+        #   _sgnd_arg_split "$spec"
+    _sgnd_arg_find_spec() {
         local wanted="$1"
         local spec
 
         for spec in "${SGND_EFFECTIVE_ARGS_SPEC[@]:-}"; do
-            __sgnd_arg_split "$spec"
-            if [[ "$__sgnd_name" == "$wanted" || "$__sgnd_short" == "$wanted" ]]; then
+            _sgnd_arg_split "$spec"
+            if [[ "$_sgnd_name" == "$wanted" || "$_sgnd_short" == "$wanted" ]]; then
                 printf '%s\n' "$spec"
                 return 0
             fi
@@ -180,7 +180,7 @@ set -uo pipefail
         return 1
     }
     
-    # __sgnd_arg_validate_enum
+    # _sgnd_arg_validate_enum
         # Purpose:
         #   Validate whether a value is present in a comma-separated enum choice list.
         #
@@ -200,13 +200,13 @@ set -uo pipefail
         #   1 if VALUE is not found in CHOICES_CSV.
         #
         # Usage:
-        #   __sgnd_arg_validate_enum "$mode" "dev,prd,tst"
+        #   _sgnd_arg_validate_enum "$mode" "dev,prd,tst"
         #
         # Examples:
-        #   if __sgnd_arg_validate_enum "$2" "${__sgnd_choices:-}"; then
+        #   if _sgnd_arg_validate_enum "$2" "${_sgnd_choices:-}"; then
         #       printf 'valid\n'
         #   fi
-    __sgnd_arg_validate_enum() {
+    _sgnd_arg_validate_enum() {
         local value="$1"
         local choices_csv="$2"
 
@@ -225,7 +225,7 @@ set -uo pipefail
         [[ "$ok" -eq 1 ]]
     }
 
-    # __sgnd_arg_init_defaults
+    # _sgnd_arg_init_defaults
         # Purpose:
         #   Initialize option variables and build the effective argument specification list.
         #
@@ -258,16 +258,16 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   __sgnd_arg_init_defaults "both"
+        #   _sgnd_arg_init_defaults "both"
         #
         # Examples:
-        #   __sgnd_arg_init_defaults "script"
-        #   __sgnd_arg_init_defaults "${SGND_ARGS_SOURCE:-both}"
+        #   _sgnd_arg_init_defaults "script"
+        #   _sgnd_arg_init_defaults "${SGND_ARGS_SOURCE:-both}"
         #
         # Notes:
         #   - Re-running the function resets declared option variables to their defaults.
         #   - Does not validate spec correctness beyond presence of type and variable name.
-    __sgnd_arg_init_defaults() {
+    _sgnd_arg_init_defaults() {
         local source="${1:-both}"
         local -a args=()
 
@@ -294,13 +294,13 @@ set -uo pipefail
 
         local spec
         for spec in "${args[@]}"; do
-            __sgnd_arg_split "$spec"
-            [[ -n "${__sgnd_var:-}" && -n "${__sgnd_type:-}" ]] || continue
+            _sgnd_arg_split "$spec"
+            [[ -n "${_sgnd_var:-}" && -n "${_sgnd_type:-}" ]] || continue
 
-            case "$__sgnd_type" in
-                flag)  printf -v "$__sgnd_var" '0' ;;
-                value) printf -v "$__sgnd_var" ''  ;;
-                enum)  printf -v "$__sgnd_var" ''  ;;
+            case "$_sgnd_type" in
+                flag)  printf -v "$_sgnd_var" '0' ;;
+                value) printf -v "$_sgnd_var" ''  ;;
+                enum)  printf -v "$_sgnd_var" ''  ;;
             esac
         done
 
@@ -308,8 +308,8 @@ set -uo pipefail
     }
 
 # --- Public API ----------------------------------------------------------------------
-    __header_indent=2
-    __text_indent=3
+    _header_indent=2
+    _text_indent=3
 
     # Global Arrays
     SGND_BUILTIN_ARGS=(
@@ -378,66 +378,66 @@ set -uo pipefail
         sgnd_print "${spaces}Description:" 
         sgnd_print "\t${SGND_SCRIPT_DESC:-No description available}\n" 
 
-        sgnd_print_sectionheader --text "Script options:" --padleft "$__header_indent"
+        sgnd_print_sectionheader --text "Script options:" --padleft "$_header_indent"
 
         if declare -p SGND_ARGS_SPEC >/dev/null 2>&1; then
             local spec opt meta
 
             for spec in "${SGND_ARGS_SPEC[@]}"; do
-                __sgnd_arg_split "$spec"
+                _sgnd_arg_split "$spec"
 
                 # Skip malformed/empty spec entries
-                [[ -n "${__sgnd_name:-}" && -n "${__sgnd_type:-}" && -n "${__sgnd_var:-}" ]] || continue
+                [[ -n "${_sgnd_name:-}" && -n "${_sgnd_type:-}" && -n "${_sgnd_var:-}" ]] || continue
 
-                if [[ -n "${__sgnd_short:-}" ]]; then
-                    opt="-$__sgnd_short, --$__sgnd_name"
+                if [[ -n "${_sgnd_short:-}" ]]; then
+                    opt="-$_sgnd_short, --$_sgnd_name"
                 else
-                    opt="--$__sgnd_name"
+                    opt="--$_sgnd_name"
                 fi
 
                 meta=""
-                case "$__sgnd_type" in
+                case "$_sgnd_type" in
                     value) meta=" VALUE" ;;
-                    enum)  meta=" {${__sgnd_choices//,/|}}" ;;
+                    enum)  meta=" {${_sgnd_choices//,/|}}" ;;
                     flag)  meta="" ;;
                 esac
 
-                sgnd_print_labeledvalue "$opt$meta" "${__sgnd_help:-}" --pad "$__text_indent" --textclr "$RESET" --valueclr "$RESET" --width 18
+                sgnd_print_labeledvalue "$opt$meta" "${_sgnd_help:-}" --pad "$_text_indent" --textclr "$RESET" --valueclr "$RESET" --width 18
             done
         fi
 
         if (( include_builtins )); then
             if declare -p SGND_BUILTIN_ARGS >/dev/null 2>&1; then
                 sgnd_print
-                sgnd_print_sectionheader --text "Builtin options:" --padleft "$__header_indent"
+                sgnd_print_sectionheader --text "Builtin options:" --padleft "$_header_indent"
 
                 local spec opt meta
 
                 for spec in "${SGND_BUILTIN_ARGS[@]}"; do
-                    __sgnd_arg_split "$spec"
+                    _sgnd_arg_split "$spec"
 
                     # Skip malformed/empty spec entries
-                    [[ -n "${__sgnd_name:-}" && -n "${__sgnd_type:-}" && -n "${__sgnd_var:-}" ]] || continue
+                    [[ -n "${_sgnd_name:-}" && -n "${_sgnd_type:-}" && -n "${_sgnd_var:-}" ]] || continue
 
                     # Avoid duplicating help line (already printed above)
-                    if [[ "${__sgnd_name}" == "help" ]]; then
+                    if [[ "${_sgnd_name}" == "help" ]]; then
                         continue
                     fi
 
-                    if [[ -n "${__sgnd_short:-}" ]]; then
-                        opt="-$__sgnd_short, --$__sgnd_name"
+                    if [[ -n "${_sgnd_short:-}" ]]; then
+                        opt="-$_sgnd_short, --$_sgnd_name"
                     else
-                        opt="--$__sgnd_name"
+                        opt="--$_sgnd_name"
                     fi
 
                     meta=""
-                    case "$__sgnd_type" in
+                    case "$_sgnd_type" in
                         value) meta=" VALUE" ;;
-                        enum)  meta=" {${__sgnd_choices//,/|}}" ;;
+                        enum)  meta=" {${_sgnd_choices//,/|}}" ;;
                         flag)  meta="" ;;
                     esac
 
-                    sgnd_print_labeledvalue "$opt$meta" "${__sgnd_help:-}" --pad "$__text_indent" --textclr "$RESET" --valueclr "$RESET" --width 18
+                    sgnd_print_labeledvalue "$opt$meta" "${_sgnd_help:-}" --pad "$_text_indent" --textclr "$RESET" --valueclr "$RESET" --width 18
                 done
             fi 
         fi
@@ -456,7 +456,7 @@ set -uo pipefail
 
         if (( ${#examples[@]} > 0 )); then
             sgnd_print
-            sgnd_print_sectionheader --text "Examples:" --padleft "$__header_indent"
+            sgnd_print_sectionheader --text "Examples:" --padleft "$_header_indent"
 
             local ex
             for ex in "${examples[@]}"; do
@@ -537,7 +537,7 @@ set -uo pipefail
         SGND_POSITIONAL=()
 
         # Initialize variables from spec defaults
-        __sgnd_arg_init_defaults "$source"
+        _sgnd_arg_init_defaults "$source"
 
         # Main parse loop
         while [[ $# -gt 0 ]]; do
@@ -556,7 +556,7 @@ set -uo pipefail
                     local opt spec
                     opt="${1#--}"
 
-                    spec="$(__sgnd_arg_find_spec "$opt" || true)"
+                    spec="$(_sgnd_arg_find_spec "$opt" || true)"
 
                     if [[ -z "${spec:-}" ]]; then
                         if (( stop_at_unknown )); then
@@ -567,11 +567,11 @@ set -uo pipefail
                         return 1
                     fi
 
-                    __sgnd_arg_split "$spec"
+                    _sgnd_arg_split "$spec"
 
-                    case "$__sgnd_type" in
+                    case "$_sgnd_type" in
                         flag)
-                            printf -v "$__sgnd_var" '1'
+                            printf -v "$_sgnd_var" '1'
                             shift
                             ;;
 
@@ -580,7 +580,7 @@ set -uo pipefail
                                 echo "Missing value for --$opt" >&2
                                 return 1
                             fi
-                            printf -v "$__sgnd_var" '%s' "$2"
+                            printf -v "$_sgnd_var" '%s' "$2"
                             shift 2
                             ;;
 
@@ -590,17 +590,17 @@ set -uo pipefail
                                 return 1
                             fi
 
-                            if ! __sgnd_arg_validate_enum "$2" "${__sgnd_choices:-}"; then
-                                echo "Invalid value '$2' for --$opt (allowed: ${__sgnd_choices:-<none>})" >&2
+                            if ! _sgnd_arg_validate_enum "$2" "${_sgnd_choices:-}"; then
+                                echo "Invalid value '$2' for --$opt (allowed: ${_sgnd_choices:-<none>})" >&2
                                 return 1
                             fi
 
-                            printf -v "$__sgnd_var" '%s' "$2"
+                            printf -v "$_sgnd_var" '%s' "$2"
                             shift 2
                             ;;
 
                         *)
-                            echo "Invalid spec type '$__sgnd_type' for --$opt" >&2
+                            echo "Invalid spec type '$_sgnd_type' for --$opt" >&2
                             return 1
                             ;;
                     esac
@@ -617,7 +617,7 @@ set -uo pipefail
                         return 1
                     fi
 
-                    spec="$(__sgnd_arg_find_spec "$sopt" || true)"
+                    spec="$(_sgnd_arg_find_spec "$sopt" || true)"
 
                     if [[ -z "${spec:-}" ]]; then
                         if (( stop_at_unknown )); then
@@ -628,11 +628,11 @@ set -uo pipefail
                         return 1
                     fi
 
-                    __sgnd_arg_split "$spec"
+                    _sgnd_arg_split "$spec"
 
-                    case "$__sgnd_type" in
+                    case "$_sgnd_type" in
                         flag)
-                            printf -v "$__sgnd_var" '1'
+                            printf -v "$_sgnd_var" '1'
                             shift
                             ;;
 
@@ -641,7 +641,7 @@ set -uo pipefail
                                 echo "Missing value for -$sopt" >&2
                                 return 1
                             fi
-                            printf -v "$__sgnd_var" '%s' "$2"
+                            printf -v "$_sgnd_var" '%s' "$2"
                             shift 2
                             ;;
 
@@ -651,17 +651,17 @@ set -uo pipefail
                                 return 1
                             fi
 
-                            if ! __sgnd_arg_validate_enum "$2" "${__sgnd_choices:-}"; then
-                                echo "Invalid value '$2' for -$sopt (allowed: ${__sgnd_choices:-<none>})" >&2
+                            if ! _sgnd_arg_validate_enum "$2" "${_sgnd_choices:-}"; then
+                                echo "Invalid value '$2' for -$sopt (allowed: ${_sgnd_choices:-<none>})" >&2
                                 return 1
                             fi
 
-                            printf -v "$__sgnd_var" '%s' "$2"
+                            printf -v "$_sgnd_var" '%s' "$2"
                             shift 2
                             ;;
 
                         *)
-                            echo "Invalid spec type '$__sgnd_type' for -$sopt" >&2
+                            echo "Invalid spec type '$_sgnd_type' for -$sopt" >&2
                             return 1
                             ;;
                     esac

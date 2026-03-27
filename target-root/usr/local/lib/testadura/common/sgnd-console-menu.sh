@@ -87,7 +87,7 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Label and status formatting -----------------------------------------------------
-    # __sgnd_console_toggleword
+    # _sgnd_console_toggleword
         # Purpose:
         #   Render a toggle label (e.g. DEBUG, DRYRUN) with color and hotkey styling.
         #
@@ -110,9 +110,9 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   __sgnd_console_toggleword "DEBUG" "B" 1
-        #   __sgnd_console_toggleword "DRYRUN" "D" 0
-    __sgnd_console_toggleword() {
+        #   _sgnd_console_toggleword "DEBUG" "B" 1
+        #   _sgnd_console_toggleword "DRYRUN" "D" 0
+    _sgnd_console_toggleword() {
         local word="${1:?missing word}"
         local hotkey="${2:?missing hotkey}"
         local state="${3:-0}"
@@ -152,7 +152,7 @@ set -uo pipefail
             "$RESET"
     }
 
-    # __sgnd_console_onoff
+    # _sgnd_console_onoff
         # Purpose:
         #   Render a colored "On" or "Off" state fragment.
         #
@@ -166,7 +166,7 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
-    __sgnd_console_onoff() {
+    _sgnd_console_onoff() {
         local value="${1:-0}"
         local onclr="${2:-$BRIGHT_GREEN}"
         local offclr="${3:-$DARK_SILVER}"
@@ -178,7 +178,7 @@ set -uo pipefail
         fi
     }
 
-    # __sgnd_console_label_clearonrender
+    # _sgnd_console_label_clearonrender
         # Purpose:
         #   Build the current label text for the clear-on-render builtin item.
         #
@@ -187,12 +187,12 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
-    __sgnd_console_label_clearonrender() {
+    _sgnd_console_label_clearonrender() {
         : "${SGND_CLEAR_ONRENDER:=1}"
-        printf 'Clear screen: %s' "$(__sgnd_console_onoff "$SGND_CLEAR_ONRENDER")"
+        printf 'Clear screen: %s' "$(_sgnd_console_onoff "$SGND_CLEAR_ONRENDER")"
     }
 
-    # __sgnd_console_label_dryrun
+    # _sgnd_console_label_dryrun
         # Purpose:
         #   Build the current label text for the dry-run builtin item.
         #
@@ -201,12 +201,12 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
-    __sgnd_console_label_dryrun() {
+    _sgnd_console_label_dryrun() {
         : "${FLAG_DRYRUN:=0}"
-        printf 'Dry-run: %s' "$(__sgnd_console_onoff "$FLAG_DRYRUN" "$TUI_DRYRUN" "$TUI_COMMIT")"
+        printf 'Dry-run: %s' "$(_sgnd_console_onoff "$FLAG_DRYRUN" "$TUI_DRYRUN" "$TUI_COMMIT")"
     }
 
-    # __sgnd_console_label_debug
+    # _sgnd_console_label_debug
         # Purpose:
         #   Build the current label text for the debug builtin item.
         #
@@ -215,12 +215,12 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
-    __sgnd_console_label_debug() {
+    _sgnd_console_label_debug() {
         : "${FLAG_DEBUG:=0}"
-        printf 'Debug: %s' "$(__sgnd_console_onoff "$FLAG_DEBUG")"
+        printf 'Debug: %s' "$(_sgnd_console_onoff "$FLAG_DEBUG")"
     }
 
-    # __sgnd_console_label_verbose
+    # _sgnd_console_label_verbose
         # Purpose:
         #   Build the current label text for the verbose builtin item.
         #
@@ -229,12 +229,12 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
-    __sgnd_console_label_verbose() {
+    _sgnd_console_label_verbose() {
         : "${FLAG_VERBOSE:=0}"
-        printf 'Verbose: %s' "$(__sgnd_console_onoff "$FLAG_VERBOSE")"
+        printf 'Verbose: %s' "$(_sgnd_console_onoff "$FLAG_VERBOSE")"
     }
 
-    # __sgnd_console_label_logfile
+    # _sgnd_console_label_logfile
         # Purpose:
         #   Build the current label text for the logfile builtin item.
         #
@@ -243,13 +243,13 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
-    __sgnd_console_label_logfile() {
+    _sgnd_console_label_logfile() {
         : "${SGND_LOGFILE_ENABLED:=0}"
-        printf 'Logfile: %s' "$(__sgnd_console_onoff "$SGND_LOGFILE_ENABLED")"
+        printf 'Logfile: %s' "$(_sgnd_console_onoff "$SGND_LOGFILE_ENABLED")"
     }
 
 # --- Builtin actions -----------------------------------------------------------------
-     # __sgnd_console_toggle_clearonrender
+     # _sgnd_console_toggle_clearonrender
         # Purpose:
         #   Toggle whether the console clears the screen before each render.
         #
@@ -259,7 +259,7 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
-    __sgnd_console_toggle_clearonrender() {
+    _sgnd_console_toggle_clearonrender() {
         : "${SGND_CLEAR_ONRENDER:=1}"
 
         if (( SGND_CLEAR_ONRENDER )); then
@@ -271,7 +271,7 @@ set -uo pipefail
         fi
     }
 
-    # __sgnd_console_toggle_dryrun
+    # _sgnd_console_toggle_dryrun
         # Purpose:
         #   Toggle dry-run mode for the current session.
         #
@@ -281,7 +281,7 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
-    __sgnd_console_toggle_dryrun() {
+    _sgnd_console_toggle_dryrun() {
         : "${FLAG_DRYRUN:=0}"
 
         if (( FLAG_DRYRUN )); then
@@ -294,7 +294,7 @@ set -uo pipefail
         
     }
 
-    # __sgnd_console_toggle_debug
+    # _sgnd_console_toggle_debug
         # Purpose:
         #   Toggle debug output for the current session.
         #
@@ -305,7 +305,7 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
-    __sgnd_console_toggle_debug() {
+    _sgnd_console_toggle_debug() {
         : "${FLAG_DEBUG:=0}"
 
         if (( FLAG_DEBUG )); then
@@ -318,7 +318,7 @@ set -uo pipefail
         sgnd_update_runmode
     }
 
-    # __sgnd_console_toggle_verbose
+    # _sgnd_console_toggle_verbose
         # Purpose:
         #   Toggle verbose output for the current session.
         #
@@ -328,7 +328,7 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
-    __sgnd_console_toggle_verbose() {
+    _sgnd_console_toggle_verbose() {
         : "${FLAG_VERBOSE:=0}"
 
         if (( FLAG_VERBOSE )); then
@@ -340,7 +340,7 @@ set -uo pipefail
         fi
     }
 
-    # __sgnd_console_toggle_logfile
+    # _sgnd_console_toggle_logfile
         # Purpose:
         #   Toggle logfile output for the current session.
         #
@@ -350,7 +350,7 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
-    __sgnd_console_toggle_logfile() {
+    _sgnd_console_toggle_logfile() {
         : "${SGND_LOGFILE_ENABLED:=0}"
 
         if (( SGND_LOGFILE_ENABLED )); then
@@ -362,34 +362,34 @@ set -uo pipefail
         fi
     }
 
-    # __sgnd_console_redraw
+    # _sgnd_console_redraw
         # Purpose:
         #   No-op action used to force a menu redraw cycle.
         #
         # Returns:
         #   0 always
-    __sgnd_console_redraw() {
+    _sgnd_console_redraw() {
         return 0
     }
 
-    # __sgnd_console_quit
+    # _sgnd_console_quit
         # Purpose:
         #   Signal the console loop to terminate.
         #
         # Returns:
-        #   200 as a sentinel value consumed by __sgnd_console_run
-    __sgnd_console_quit() {
+        #   200 as a sentinel value consumed by _sgnd_console_run
+    _sgnd_console_quit() {
         return 200
     }
 
-    # __sgnd_console_nextpage
+    # _sgnd_console_nextpage
         # Purpose:
         #   Advance to the next rendered menu page when available.
         #
         # Returns:
         #   0 always
-    __sgnd_console_nextpage() {
-        __sgnd_console_build_pages
+    _sgnd_console_nextpage() {
+        _sgnd_console_build_pages
 
         if (( SGND_PAGE_INDEX < ${#SGND_PAGE_STARTS[@]} - 1 )); then
             SGND_PAGE_INDEX=$(( SGND_PAGE_INDEX + 1 ))
@@ -398,14 +398,14 @@ set -uo pipefail
         return 0
     }
 
-    # __sgnd_console_prevpage
+    # _sgnd_console_prevpage
         # Purpose:
         #   Return to the previous rendered menu page when available.
         #
         # Returns:
         #   0 always
 
-    __sgnd_console_prevpage() {
+    _sgnd_console_prevpage() {
         if (( SGND_PAGE_INDEX > 0 )); then
             SGND_PAGE_INDEX=$(( SGND_PAGE_INDEX - 1 ))
         fi
@@ -414,7 +414,7 @@ set -uo pipefail
     }
 
 # --- Menu layout ---------------------------------------------------------------------
-    # __sgnd_console_build_pages
+    # _sgnd_console_build_pages
         # Purpose:
         #   Simulate pagination and determine the start item of each page.
         #
@@ -423,7 +423,7 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
-    __sgnd_console_build_pages() {
+    _sgnd_console_build_pages() {
         local body_height=0
         local used_lines=0
         local visible_count=0
@@ -437,11 +437,11 @@ set -uo pipefail
 
         SGND_PAGE_STARTS=()
 
-        __sgnd_console_collect_group_render_indexes
-        __sgnd_console_collect_visible_item_indexes
+        _sgnd_console_collect_group_render_indexes
+        _sgnd_console_collect_visible_item_indexes
 
         visible_count="${#SGND_VISIBLE_ITEM_INDEXES[@]}"
-        body_height="$(__sgnd_console_body_height)"
+        body_height="$(_sgnd_console_body_height)"
 
         (( visible_count == 0 )) && return 0
 
@@ -450,12 +450,12 @@ set -uo pipefail
         for (( visible_i=0; visible_i<visible_count; visible_i++ )); do
             row_index="${SGND_VISIBLE_ITEM_INDEXES[$visible_i]}"
             group_key="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" group)"
-            item_lines="$(__sgnd_console_measure_item_lines "$row_index")"
+            item_lines="$(_sgnd_console_measure_item_lines "$row_index")"
 
             needed_lines="$item_lines"
 
             if [[ "$group_key" != "$current_group" ]]; then
-                header_lines="$(__sgnd_console_measure_group_header_lines)"
+                header_lines="$(_sgnd_console_measure_group_header_lines)"
                 needed_lines=$(( needed_lines + header_lines ))
             fi
 
@@ -466,7 +466,7 @@ set -uo pipefail
             fi
 
             if [[ "$group_key" != "$current_group" ]]; then
-                header_lines="$(__sgnd_console_measure_group_header_lines)"
+                header_lines="$(_sgnd_console_measure_group_header_lines)"
                 used_lines=$(( used_lines + header_lines ))
                 current_group="$group_key"
             fi
@@ -475,7 +475,7 @@ set -uo pipefail
         done
     }
 
-    # __sgnd_console_body_height
+    # _sgnd_console_body_height
         # Purpose:
         #   Return the maximum number of body rows to render on one page.
         #
@@ -484,14 +484,14 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
-    __sgnd_console_body_height() {
+    _sgnd_console_body_height() {
         local body_height="${SGND_PAGE_MAX_ROWS:-20}"
 
         (( body_height < 5 )) && body_height=5
         printf '%s\n' "$body_height"
     }
 
-    # __sgnd_console_measure_item_lines
+    # _sgnd_console_measure_item_lines
         # Purpose:
         #   Measure how many screen lines a menu item will occupy when rendered.
         #
@@ -503,7 +503,7 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
-    __sgnd_console_measure_item_lines() {
+    _sgnd_console_measure_item_lines() {
         local row_index="${1:?missing row index}"
         local desc=""
         local term_width=80
@@ -533,19 +533,19 @@ set -uo pipefail
         printf '%s\n' "$wrapped_count"
     }
 
-    # __sgnd_console_measure_group_header_lines
-    __sgnd_console_measure_group_header_lines() {
+    # _sgnd_console_measure_group_header_lines
+    _sgnd_console_measure_group_header_lines() {
         # group label + underline
         printf '2\n'
     }
 
-    # __sgnd_console_visible_item_count
-    __sgnd_console_visible_item_count() {
+    # _sgnd_console_visible_item_count
+    _sgnd_console_visible_item_count() {
         printf '%s\n' "${#SGND_VISIBLE_ITEM_INDEXES[@]}"
     }
 
-    # __sgnd_console_get_visible_row_index
-    __sgnd_console_get_visible_row_index() {
+    # _sgnd_console_get_visible_row_index
+    _sgnd_console_get_visible_row_index() {
         local visible_index="${1:?missing visible index}"
 
         if (( visible_index < 0 || visible_index >= ${#SGND_VISIBLE_ITEM_INDEXES[@]} )); then
@@ -555,7 +555,7 @@ set -uo pipefail
         printf '%s\n' "${SGND_VISIBLE_ITEM_INDEXES[$visible_index]}"
     }
 
-    # __sgnd_console_collect_visible_item_indexes
+    # _sgnd_console_collect_visible_item_indexes
         # Purpose:
         #   Build the canonical visible numeric menu order for non-builtin items.
         #
@@ -573,7 +573,7 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
-    __sgnd_console_collect_visible_item_indexes() {
+    _sgnd_console_collect_visible_item_indexes() {
         local gi
         local ii
         local item_row_count=0
@@ -585,7 +585,7 @@ set -uo pipefail
 
         SGND_VISIBLE_ITEM_INDEXES=()
 
-        __sgnd_console_collect_group_render_indexes
+        _sgnd_console_collect_group_render_indexes
         item_row_count="$(sgnd_dt_row_count SGND_ITEM_ROWS)"
 
         for gi in "${SGND_GROUP_RENDER_INDEXES[@]}"; do
@@ -611,7 +611,7 @@ set -uo pipefail
         done
     }
 
-    # __sgnd_console_calc_label_width
+    # _sgnd_console_calc_label_width
         # Purpose:
         #   Calculate the left-column width needed for rendered menu items.
         #
@@ -625,7 +625,7 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
-    __sgnd_console_calc_label_width() {
+    _sgnd_console_calc_label_width() {
         local i
         local row_count=0
         local builtin="0"
@@ -643,7 +643,7 @@ set -uo pipefail
             if (( builtin )); then
                 display_key="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" key)"
             else
-                display_key="$(__sgnd_console_get_visible_display_number "$i" 2>/dev/null)" || continue
+                display_key="$(_sgnd_console_get_visible_display_number "$i" 2>/dev/null)" || continue
             fi
 
             label="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" label)"
@@ -657,7 +657,7 @@ set -uo pipefail
         printf '%s\n' "$max_width"
     }
 
-    # __sgnd_console_find_visible_pos_for_row
+    # _sgnd_console_find_visible_pos_for_row
         # Purpose:
         #   Find the visible-order position for a row index in SGND_ITEM_ROWS.
         #
@@ -670,7 +670,7 @@ set -uo pipefail
         # Returns:
         #   0 if found
         #   1 otherwise
-    __sgnd_console_find_visible_pos_for_row() {
+    _sgnd_console_find_visible_pos_for_row() {
         local row_index="${1:?missing row index}"
         local i
 
@@ -684,7 +684,7 @@ set -uo pipefail
         return 1
     }
 
-    # __sgnd_console_group_continues_after_visible_pos
+    # _sgnd_console_group_continues_after_visible_pos
         # Purpose:
         #   Determine whether a group has more visible items after a given visible
         #   position in the canonical visible item order.
@@ -696,7 +696,7 @@ set -uo pipefail
         # Returns:
         #   0 if the group continues on a later page
         #   1 otherwise
-    __sgnd_console_group_continues_after_visible_pos() {
+    _sgnd_console_group_continues_after_visible_pos() {
         local group_key="${1:?missing group key}"
         local last_visible_pos="${2:?missing visible position}"
         local i
@@ -715,7 +715,7 @@ set -uo pipefail
         return 1
     }
 
-    # __sgnd_console_get_visible_display_number
+    # _sgnd_console_get_visible_display_number
         # Purpose:
         #   Resolve the visible numeric display number for an item row index.
         #
@@ -728,7 +728,7 @@ set -uo pipefail
         # Returns:
         #   0 if the item is in the visible numeric order
         #   1 otherwise
-    __sgnd_console_get_visible_display_number() {
+    _sgnd_console_get_visible_display_number() {
         local row_index="${1:?missing row index}"
         local i
 
@@ -742,7 +742,7 @@ set -uo pipefail
         return 1
     }
 
-    # __sgnd_console_collect_group_render_indexes
+    # _sgnd_console_collect_group_render_indexes
         # Purpose:
         #   Build the canonical render order for menu groups.
         #
@@ -758,7 +758,7 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
-    __sgnd_console_collect_group_render_indexes() {
+    _sgnd_console_collect_group_render_indexes() {
         local i
         local row_count=0
         local builtin="0"
@@ -793,7 +793,7 @@ set -uo pipefail
     }
 
 # --- Menu rendering ------------------------------------------------------------------
-    # __sgnd_console_render_menu
+    # _sgnd_console_render_menu
         # Purpose:
         #   Render the complete console menu for the current state.
         #
@@ -822,35 +822,35 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   __sgnd_console_render_menu
+        #   _sgnd_console_render_menu
         #
         # Examples:
-        #   __sgnd_console_render_menu
-    __sgnd_console_render_menu() {
+        #   _sgnd_console_render_menu
+    _sgnd_console_render_menu() {
         local idx=""
         local group_key=""
         local builtin="0"
 
-        __sgnd_console_refresh_builtin_labels
-        __sgnd_console_collect_group_render_indexes
-        __sgnd_console_collect_visible_item_indexes
-        SGND_RENDER_LABEL_WIDTH="$(__sgnd_console_calc_label_width)"
+        _sgnd_console_refresh_builtin_labels
+        _sgnd_console_collect_group_render_indexes
+        _sgnd_console_collect_visible_item_indexes
+        SGND_RENDER_LABEL_WIDTH="$(_sgnd_console_calc_label_width)"
 
-        __sgnd_console_render_menu_title
-        __sgnd_console_render_menu_body_paged
+        _sgnd_console_render_menu_title
+        _sgnd_console_render_menu_body_paged
 
         for idx in "${SGND_GROUP_RENDER_INDEXES[@]}"; do
             builtin="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$idx" builtin)"
             (( builtin )) || continue
 
             group_key="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$idx" key)"
-            __sgnd_console_render_group "$group_key"
+            _sgnd_console_render_group "$group_key"
         done
 
-        __sgnd_console_render_togglebar
+        _sgnd_console_render_togglebar
     }
 
-    # __sgnd_console_render_menu_title
+    # _sgnd_console_render_menu_title
         # Purpose:
         #   Render the console title and description banner.
         #
@@ -860,7 +860,7 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
-    __sgnd_console_render_menu_title() {
+    _sgnd_console_render_menu_title() {
         (( ! SGND_CLEAR_ONRENDER )) || clear
         
         local width=80
@@ -873,7 +873,7 @@ set -uo pipefail
         sgnd_print
     }
 
-    # __sgnd_console_render_menu_body_paged
+    # _sgnd_console_render_menu_body_paged
         # Purpose:
         #   Render the current non-builtin menu page using the computed paging model.
         #
@@ -882,7 +882,7 @@ set -uo pipefail
         #   - Normalizes SGND_PAGE_INDEX to a valid page.
         #   - Determines whether previous and next pages are available.
         #   - Selects the visible row indexes that belong to the current page.
-        #   - Delegates final row rendering to __sgnd_console_render_page_rows.
+        #   - Delegates final row rendering to _sgnd_console_render_page_rows.
         #
         # Inputs (globals):
         #   SGND_VISIBLE_ITEM_INDEXES
@@ -906,11 +906,11 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   __sgnd_console_render_menu_body_paged
+        #   _sgnd_console_render_menu_body_paged
         #
         # Examples:
-        #   __sgnd_console_render_menu_body_paged
-    __sgnd_console_render_menu_body_paged() {
+        #   _sgnd_console_render_menu_body_paged
+    _sgnd_console_render_menu_body_paged() {
         local body_height=0
         local used_lines=0
 
@@ -927,12 +927,12 @@ set -uo pipefail
         local -a page_rows=()
         local -a page_groups=()
 
-        __sgnd_console_collect_group_render_indexes
-        __sgnd_console_collect_visible_item_indexes
-        __sgnd_console_build_pages
+        _sgnd_console_collect_group_render_indexes
+        _sgnd_console_collect_visible_item_indexes
+        _sgnd_console_build_pages
 
         visible_count="${#SGND_VISIBLE_ITEM_INDEXES[@]}"
-        body_height="$(__sgnd_console_body_height)"
+        body_height="$(_sgnd_console_body_height)"
 
                     SGND_PAGE_HAS_PREV=0
         SGND_PAGE_HAS_NEXT=0
@@ -964,12 +964,12 @@ set -uo pipefail
         for (( visible_i=page_start_item; visible_i<page_end_item; visible_i++ )); do
             row_index="${SGND_VISIBLE_ITEM_INDEXES[$visible_i]}"
             group_key="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" group)"
-            item_lines="$(__sgnd_console_measure_item_lines "$row_index")"
+            item_lines="$(_sgnd_console_measure_item_lines "$row_index")"
 
             needed_lines="$item_lines"
 
             if [[ "$group_key" != "$current_group" ]]; then
-                header_lines="$(__sgnd_console_measure_group_header_lines)"
+                header_lines="$(_sgnd_console_measure_group_header_lines)"
                 needed_lines=$(( needed_lines + header_lines ))
             fi
 
@@ -983,10 +983,10 @@ set -uo pipefail
             used_lines=$(( used_lines + item_lines ))
         done
 
-        __sgnd_console_render_page_rows page_groups page_rows
+        _sgnd_console_render_page_rows page_groups page_rows
     }
 
-    # __sgnd_console_render_page_rows
+    # _sgnd_console_render_page_rows
         # Purpose:
         #   Render a prepared set of ordered groups and item rows for one menu page.
         #
@@ -1018,14 +1018,14 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   __sgnd_console_render_page_rows page_groups page_rows
+        #   _sgnd_console_render_page_rows page_groups page_rows
         #
         # Examples:
-        #   __sgnd_console_render_page_rows page_groups page_rows
+        #   _sgnd_console_render_page_rows page_groups page_rows
         #
         # Notes:
         #   - Requires bash 4.3+ (nameref).
-    __sgnd_console_render_page_rows() {
+    _sgnd_console_render_page_rows() {
         local -n _page_groups="$1"
         local -n _page_rows="$2"
 
@@ -1088,10 +1088,10 @@ set -uo pipefail
             group_label_display="$group_label"
 
             if (( group_last_row_index >= 0 )); then
-                group_last_visible_pos="$(__sgnd_console_find_visible_pos_for_row "$group_last_row_index" 2>/dev/null || printf '%s' '-1')"
+                group_last_visible_pos="$(_sgnd_console_find_visible_pos_for_row "$group_last_row_index" 2>/dev/null || printf '%s' '-1')"
 
                 if (( group_last_visible_pos >= 0 )); then
-                    if __sgnd_console_group_continues_after_visible_pos "$group_key" "$group_last_visible_pos"; then
+                    if _sgnd_console_group_continues_after_visible_pos "$group_key" "$group_last_visible_pos"; then
                         group_label_display="${group_label} ....."
                     fi
                 fi
@@ -1111,7 +1111,7 @@ set -uo pipefail
                     *) continue ;;
                 esac
 
-                display_key="$(__sgnd_console_get_visible_display_number "$row_index")" || continue
+                display_key="$(_sgnd_console_get_visible_display_number "$row_index")" || continue
 
                 if (( item_state == 2 )); then
                     label_style="$disabled_label_style"
@@ -1156,7 +1156,7 @@ set -uo pipefail
         done
     }
 
-    # __sgnd_console_render_group
+    # _sgnd_console_render_group
         # Purpose:
         #   Render one complete menu group and its currently renderable items.
         #
@@ -1185,11 +1185,11 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   __sgnd_console_render_group "$group_key"
+        #   _sgnd_console_render_group "$group_key"
         #
         # Examples:
-        #   __sgnd_console_render_group "builtin"
-    __sgnd_console_render_group() {
+        #   _sgnd_console_render_group "builtin"
+    _sgnd_console_render_group() {
         local group_key="${1:?missing group key}"
         local _tpad=3
 
@@ -1277,7 +1277,7 @@ set -uo pipefail
             if (( builtin )); then
                 display_key="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" key)"
             else
-                display_key="$(__sgnd_console_get_visible_display_number "$ii")" || continue
+                display_key="$(_sgnd_console_get_visible_display_number "$ii")" || continue
             fi
 
             if (( item_state == 2 )); then
@@ -1324,7 +1324,7 @@ set -uo pipefail
         sgnd_print
     }
 
-    # __sgnd_console_render_togglebar
+    # _sgnd_console_render_togglebar
         # Purpose:
         #   Render the bottom console status and navigation bar.
         #
@@ -1352,11 +1352,11 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   __sgnd_console_render_togglebar
+        #   _sgnd_console_render_togglebar
         #
         # Examples:
-        #   __sgnd_console_render_togglebar
-    __sgnd_console_render_togglebar() {
+        #   _sgnd_console_render_togglebar
+    _sgnd_console_render_togglebar() {
         local render_width=80
         local pad=3
         local gap=3
@@ -1378,17 +1378,17 @@ set -uo pipefail
 
         render_width="$(sgnd_terminal_width)"
 
-        debug_text="$(__sgnd_console_toggleword "DEBUG"   "B" "${FLAG_DEBUG:-0}")"
-        dryrun_text="$(__sgnd_console_toggleword "DRYRUN" "D" "${FLAG_DRYRUN:-0}" "${TUI_DRYRUN}" "${TUI_COMMIT}")"
-        logfile_text="$(__sgnd_console_toggleword "LOG"   "L" "${SGND_LOGFILE_ENABLED:-0}")"
-        verbose_text="$(__sgnd_console_toggleword "VERBOSE" "V" "${FLAG_VERBOSE:-0}")"
-        clearscr_text="$(__sgnd_console_toggleword "CLRSCR" "C" "${SGND_CLEAR_ONRENDER:-0}")"
+        debug_text="$(_sgnd_console_toggleword "DEBUG"   "B" "${FLAG_DEBUG:-0}")"
+        dryrun_text="$(_sgnd_console_toggleword "DRYRUN" "D" "${FLAG_DRYRUN:-0}" "${TUI_DRYRUN}" "${TUI_COMMIT}")"
+        logfile_text="$(_sgnd_console_toggleword "LOG"   "L" "${SGND_LOGFILE_ENABLED:-0}")"
+        verbose_text="$(_sgnd_console_toggleword "VERBOSE" "V" "${FLAG_VERBOSE:-0}")"
+        clearscr_text="$(_sgnd_console_toggleword "CLRSCR" "C" "${SGND_CLEAR_ONRENDER:-0}")"
 
         (( SGND_PAGE_INDEX > 0 )) && prev_enabled=1
         (( SGND_PAGE_INDEX + 1 < ${#SGND_PAGE_STARTS[@]} )) && next_enabled=1
 
-        prevtext="$(__sgnd_console_toggleword "<<PREV" "<" "$prev_enabled")"
-        nexttext="$(__sgnd_console_toggleword "NEXT>>" ">" "$next_enabled")"
+        prevtext="$(_sgnd_console_toggleword "<<PREV" "<" "$prev_enabled")"
+        nexttext="$(_sgnd_console_toggleword "NEXT>>" ">" "$next_enabled")"
 
         local page_text=""
         local page_count="${#SGND_PAGE_STARTS[@]}"
@@ -1435,7 +1435,7 @@ set -uo pipefail
     }
 
 # --- Menu dispatch -------------------------------------------------------------------
-    # __sgnd_console_valid_choices_csv
+    # _sgnd_console_valid_choices_csv
         # Purpose:
         #   Build the current valid choice list for immediate console input.
         #
@@ -1456,18 +1456,18 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   __sgnd_console_valid_choices_csv
+        #   _sgnd_console_valid_choices_csv
         #
         # Examples:
-        #   choices="$(__sgnd_console_valid_choices_csv)"
-    __sgnd_console_valid_choices_csv() {
+        #   choices="$(_sgnd_console_valid_choices_csv)"
+    _sgnd_console_valid_choices_csv() {
         local i
         local out=""
         local row_count=0
         local builtin="0"
         local key=""
 
-        __sgnd_console_collect_visible_item_indexes
+        _sgnd_console_collect_visible_item_indexes
 
         for (( i=1; i<=${#SGND_VISIBLE_ITEM_INDEXES[@]}; i++ )); do
             [[ -n "$out" ]] && out+=","
@@ -1488,7 +1488,7 @@ set -uo pipefail
         printf '%s' "$out"
     }
 
-    # __sgnd_console_dispatch
+    # _sgnd_console_dispatch
         # Purpose:
         #   Dispatch a user menu choice to the matching registered handler.
         #
@@ -1520,13 +1520,13 @@ set -uo pipefail
         #   1 when the choice is invalid or disabled.
         #
         # Usage:
-        #   __sgnd_console_dispatch "$choice"
+        #   _sgnd_console_dispatch "$choice"
         #
         # Examples:
-        #   __sgnd_console_dispatch "1"
+        #   _sgnd_console_dispatch "1"
         #
-        #   __sgnd_console_dispatch "Q"
-    __sgnd_console_dispatch() {
+        #   _sgnd_console_dispatch "Q"
+    _sgnd_console_dispatch() {
         local choice="${1:?missing choice}"
         local handler=""
         local label=""
@@ -1537,7 +1537,7 @@ set -uo pipefail
         local key=""
 
         if [[ "$choice" =~ ^[0-9]+$ ]]; then
-            __sgnd_console_collect_visible_item_indexes
+            _sgnd_console_collect_visible_item_indexes
 
             if (( choice < 1 || choice > ${#SGND_VISIBLE_ITEM_INDEXES[@]} )); then
                 saywarning "Invalid selection: $choice"

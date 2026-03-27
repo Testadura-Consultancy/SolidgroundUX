@@ -85,11 +85,11 @@ set -uo pipefail
     _sgnd_lib_guard
     unset -f _sgnd_lib_guard
 
-    # __boot_fail
+    # _boot_fail
         # Emit a bootstrap failure message with caller context and return a code.
         #
         # Usage:
-        #   cmd || { local rc=$?; __boot_fail "Message" "$rc"; return "$rc"; }
+        #   cmd || { local rc=$?; _boot_fail "Message" "$rc"; return "$rc"; }
         #
         # Arguments:
         #   $1  Message to display
@@ -101,7 +101,7 @@ set -uo pipefail
         #
         # Returns:
         #   The provided return code ($2).
-    __boot_fail() {
+    _boot_fail() {
         local msg="${1:-Bootstrap step failed}"
         local rc="${2:-1}"
 
@@ -117,7 +117,7 @@ set -uo pipefail
     }
 
 # --- Main sequence helpers + EXIT dispatch -------------------------------------------
-    # __parse_bootstrap_args
+    # _parse_bootstrap_args
         # Purpose:
         #   Parse framework-level bootstrap switches before script/builtin parsing.
         #
@@ -151,7 +151,7 @@ set -uo pipefail
         #     --           -> explicit end of bootstrap switches
         #     <unknown>    -> implicit end of bootstrap switches
 
-    __parse_bootstrap_args() {
+    _parse_bootstrap_args() {
         exe_state=0
         exe_root=0
 
@@ -179,7 +179,7 @@ set -uo pipefail
         done
     }
 
-    # __init_bootstrap
+    # _init_bootstrap
         # Purpose:
         #   Initialize the SolidgroundUX bootstrap environment (env, defaults, roots, derived paths).
         #
@@ -201,7 +201,7 @@ set -uo pipefail
         #
         # Notes:
         #   May run multiple times across process boundaries when root re-exec occurs.
-    __init_bootstrap() {
+    _init_bootstrap() {
         sayinfo "Sourcing bootstrap environment"
         SGND_BOOTSTRAP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
         
@@ -228,7 +228,7 @@ set -uo pipefail
 
     }
 
-    # __source_corelibs
+    # _source_corelibs
         # Purpose:
         #   Source core framework libraries in the defined order (SGND_CORE_LIBS).
         #
@@ -245,7 +245,7 @@ set -uo pipefail
         #
         # Returns:
         #   Propagates any sourcing failures to the caller.
-    __source_corelibs(){
+    _source_corelibs(){
         sayinfo "Loading core libraries..."  
         sgnd_rebase_directories
 
@@ -257,7 +257,7 @@ set -uo pipefail
         done
     }
 
-    # __source_usinglibs
+    # _source_usinglibs
         # Purpose:
         #   Source optional script-requested libraries from SGND_COMMON_LIB.
         #
@@ -273,7 +273,7 @@ set -uo pipefail
         # Returns:
         #   0  success
         #   Non-zero if any requested library cannot be sourced
-    __source_usinglibs() {
+    _source_usinglibs() {
         local lib path
 
         declare -p SGND_USING >/dev/null 2>&1 || return 0
@@ -294,7 +294,7 @@ set -uo pipefail
         done
     }
 
-    # __sgnd_on_exit_run
+    # _sgnd_on_exit_run
         # Purpose:
         #   Execute registered EXIT handlers (LIFO) while preserving the original exit code.
         #
@@ -312,7 +312,7 @@ set -uo pipefail
         #
         # Notes:
         #   Installed once via sgnd_on_exit_install().
-    __sgnd_on_exit_run() {
+    _sgnd_on_exit_run() {
         local rc=$?
         local i cmd
         saydebug "Entering on exit"
@@ -328,7 +328,7 @@ set -uo pipefail
         return "$rc"
     }
 
-    # __sgnd_save_state_dispatch
+    # _sgnd_save_state_dispatch
         # Purpose:
         #   Save state on EXIT only for clean exits.
         #
@@ -342,7 +342,7 @@ set -uo pipefail
         #
         # Notes:
         #   Registered only when --autostate is active.
-    __sgnd_save_state_dispatch() {
+    _sgnd_save_state_dispatch() {
         local rc=$?   # capture immediately!
 
         # Only run state save on clean exit
@@ -593,11 +593,11 @@ set -uo pipefail
         #   Install the framework EXIT dispatcher (trap) exactly once per process.
         #
         # Behavior:
-        #   - If not yet installed, registers __sgnd_on_exit_run as the EXIT trap.
+        #   - If not yet installed, registers _sgnd_on_exit_run as the EXIT trap.
         #   - Subsequent calls are no-ops (idempotent).
         #
         # Side effects:
-        #   - Sets __SGND_ON_EXIT_INSTALLED=1 on first install.
+        #   - Sets _SGND_ON_EXIT_INSTALLED=1 on first install.
         #   - Installs an EXIT trap handler.
         #
         # Returns:
@@ -608,9 +608,9 @@ set -uo pipefail
         #   - Add handlers via sgnd_on_exit_add().
     sgnd_on_exit_install() {
         # Install once
-        [[ "${__SGND_ON_EXIT_INSTALLED-0}" -eq 1 ]] && return 0
-        __SGND_ON_EXIT_INSTALLED=1
-        trap '__sgnd_on_exit_run' EXIT
+        [[ "${_SGND_ON_EXIT_INSTALLED-0}" -eq 1 ]] && return 0
+        _SGND_ON_EXIT_INSTALLED=1
+        trap '_sgnd_on_exit_run' EXIT
     }
 
     # sgnd_parse_statespec
@@ -622,11 +622,11 @@ set -uo pipefail
         #       key|label|default|validator|colorize
         #
         # Outputs (globals):
-        #   __statekey       Variable name to persist (expected identifier).
-        #   __statelabel     Optional human-readable label (UI/prompt usage).
-        #   __statedefault   Optional default value when no persisted value exists.
-        #   __statevalidate  Optional validator function name.
-        #   __statecolorize  Optional UI color token.
+        #   _statekey       Variable name to persist (expected identifier).
+        #   _statelabel     Optional human-readable label (UI/prompt usage).
+        #   _statedefault   Optional default value when no persisted value exists.
+        #   _statevalidate  Optional validator function name.
+        #   _statecolorize  Optional UI color token.
         #
         # Behavior:
         #   - Splits the spec on '|' using IFS.
@@ -636,12 +636,12 @@ set -uo pipefail
         #   0 always (parsing only; no validation performed here).
         #
         # Notes:
-        #   - Callers must validate __statekey and interpret semantics of other fields.
+        #   - Callers must validate _statekey and interpret semantics of other fields.
         #   - Scratch variables are intentionally global to avoid array/echo returns.
     sgnd_parse_statespec() {
         local spec="${1-}"
-        __statekey="" __statelabel="" __statedefault="" __statevalidate="" __statecolorize=""
-        IFS='|' read -r __statekey __statelabel __statedefault __statevalidate __statecolorize <<< "$spec"
+        _statekey="" _statelabel="" _statedefault="" _statevalidate="" _statecolorize=""
+        IFS='|' read -r _statekey _statelabel _statedefault _statevalidate _statecolorize <<< "$spec"
     }
     
     # sgnd_enable_save_state
@@ -688,7 +688,7 @@ set -uo pipefail
         #   Non-zero if sgnd_state_save_keys fails.
         #
         # Notes:
-        #   - Intended to be called from EXIT dispatch (e.g., __sgnd_save_state_dispatch).
+        #   - Intended to be called from EXIT dispatch (e.g., _sgnd_save_state_dispatch).
         #   - Validation is limited to identifier checks; semantics belong to state layer.
     sgnd_save_state(){
 
@@ -705,8 +705,8 @@ set -uo pipefail
             saystart "Saving state variables"
             for line in "${SGND_STATE_VARIABLES[@]}"; do
                 sgnd_parse_statespec "$line"
-                key="$(sgnd_trim "$__statekey")"
-                __sgnd_is_ident "$key" || continue
+                key="$(sgnd_trim "$_statekey")"
+                _sgnd_is_ident "$key" || continue
                 keys+=( "$key" )
             done
 
@@ -736,7 +736,7 @@ set -uo pipefail
         #   0 always.
         #
         # Notes:
-        #   - Handlers are evaluated via eval in __sgnd_on_exit_run.
+        #   - Handlers are evaluated via eval in _sgnd_on_exit_run.
         #   - Call sgnd_on_exit_install() before relying on handlers running.
     sgnd_on_exit_add() {
         # store as one string per handler: "fn arg1 arg2 ..."
@@ -921,48 +921,48 @@ set -uo pipefail
 
         # Basic initialization - Defaults
             sayinfo "Initializing bootstrap..."
-            __init_bootstrap || { local rc=$?; __boot_fail "Failed to initialize bootstrapper" "$rc"; return "$rc"; }
+            _init_bootstrap || { local rc=$?; _boot_fail "Failed to initialize bootstrapper" "$rc"; return "$rc"; }
 
             sayinfo "Parsing bootstrap arguments..."
-            __parse_bootstrap_args "$@" || { local rc=$?; __boot_fail "Failed parsing bootstrap arguments" "$rc"; return "$rc"; }
+            _parse_bootstrap_args "$@" || { local rc=$?; _boot_fail "Failed parsing bootstrap arguments" "$rc"; return "$rc"; }
 
-            __source_corelibs || { local rc=$?; __boot_fail "Failed to load core libraries" "$rc"; return "$rc"; }
-            __source_usinglibs || { local rc=$?; __boot_fail "Failed to load optional libraries" "$rc"; return "$rc"; }
+            _source_corelibs || { local rc=$?; _boot_fail "Failed to load core libraries" "$rc"; return "$rc"; }
+            _source_usinglibs || { local rc=$?; _boot_fail "Failed to load optional libraries" "$rc"; return "$rc"; }
 
             sayinfo "Loading UI style"
-            sgnd_load_ui_style || { local rc=$?; __boot_fail "Failed to load UI style" "$rc"; return "$rc"; }
+            sgnd_load_ui_style || { local rc=$?; _boot_fail "Failed to load UI style" "$rc"; return "$rc"; }
 
         # Load Framework globals
             sayinfo "Loading framework globals"
             sgnd_cfg_domain_apply "Framework" "$SGND_FRAMEWORK_SYSCFG_FILE" "$SGND_FRAMEWORK_USRCFG_FILE" "SGND_FRAMEWORK_GLOBALS" "framework" \
-                || { local rc=$?; __boot_fail "Framework cfg load failed" "$rc"; return "$rc"; }
+                || { local rc=$?; _boot_fail "Framework cfg load failed" "$rc"; return "$rc"; }
 
         # Parse builtin arguments early
             saydebug "Processing builtin arguments."
-            local -a __sgnd_script_args
-            local -a __sgnd_after_builtins
-                __sgnd_script_args=( "${SGND_BOOTSTRAP_REST[@]}" )
+            local -a _sgnd_script_args
+            local -a _sgnd_after_builtins
+                _sgnd_script_args=( "${SGND_BOOTSTRAP_REST[@]}" )
 
-            saydebug "Parsing arguments $SGND_BUILTIN_ARGS ${__sgnd_script_args[@]}"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
-            sgnd_parse_args --stop-at-unknown "${__sgnd_script_args[@]}" \
-                || { local rc=$?; __boot_fail "Error parsing builtins" "$rc"; return "$rc"; }
-            __sgnd_after_builtins=( "${SGND_POSITIONAL[@]}" )
+            saydebug "Parsing arguments $SGND_BUILTIN_ARGS ${_sgnd_script_args[@]}"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+            sgnd_parse_args --stop-at-unknown "${_sgnd_script_args[@]}" \
+                || { local rc=$?; _boot_fail "Error parsing builtins" "$rc"; return "$rc"; }
+            _sgnd_after_builtins=( "${SGND_POSITIONAL[@]}" )
 
         # Final basic settings
             saydebug "Finalizing initial settings"
-            sgnd_update_runmode || { local rc=$?; __boot_fail "Error setting RUN_MODE" "$rc"; return "$rc"; }
+            sgnd_update_runmode || { local rc=$?; _boot_fail "Error setting RUN_MODE" "$rc"; return "$rc"; }
 
         sayinfo "Applying bootstrap options"
 
         # Root checks (after libs so need_root exists)
             if (( exe_root == 1 )); then
-                sgnd_need_root "${__sgnd_script_args[@]}" \
-                    || { local rc=$?; __boot_fail "Failed to enable need_root" "$rc"; return "$rc"; }
+                sgnd_need_root "${_sgnd_script_args[@]}" \
+                    || { local rc=$?; _boot_fail "Failed to enable need_root" "$rc"; return "$rc"; }
             fi
 
             if (( exe_root == 2 )); then
-                sgnd_cannot_root "${__sgnd_script_args[@]}" \
-                    || { local rc=$?; __boot_fail "Failed to enable cannot_root" "$rc"; return "$rc"; }
+                sgnd_cannot_root "${_sgnd_script_args[@]}" \
+                    || { local rc=$?; _boot_fail "Failed to enable cannot_root" "$rc"; return "$rc"; }
             fi
 
         # Now the root/non-root debate has been settled, check license acceptance.
@@ -970,11 +970,11 @@ set -uo pipefail
             case $? in
                 0) : ;;
                 2) return 2 ;;
-                *) { __boot_fail "License acceptance check failed" 1; return 1; } ;;
+                *) { _boot_fail "License acceptance check failed" 1; return 1; } ;;
             esac
         
         # Now that we know we won't re-exec, continue with the remainder of the arguments
-        SGND_BOOTSTRAP_REST=( "${__sgnd_after_builtins[@]}" )
+        SGND_BOOTSTRAP_REST=( "${_sgnd_after_builtins[@]}" )
 
         # Reset statefile before it's loaded if requested
         if [[ "${FLAG_STATERESET:-0}" -eq 1 ]]; then
@@ -988,31 +988,31 @@ set -uo pipefail
             sgnd_on_exit_install
 
             saydebug "Loading state file."
-            sgnd_state_load || { local rc=$?; __boot_fail "Failed to load state" "$rc"; return "$rc"; }
+            sgnd_state_load || { local rc=$?; _boot_fail "Failed to load state" "$rc"; return "$rc"; }
         fi
 
         if (( exe_state == 2 )); then
             saydebug "Registering save state"
-            sgnd_on_exit_add "__sgnd_save_state_dispatch"
+            sgnd_on_exit_add "_sgnd_save_state_dispatch"
         fi
         
         if (( ${#SGND_SCRIPT_GLOBALS[@]} > 0 )); then
             saydebug "Processing CFG."
             sgnd_cfg_domain_apply "Script" "$SGND_SYSCFG_FILE" "$SGND_USRCFG_FILE" "SGND_SCRIPT_GLOBALS" \
-                || { local rc=$?; __boot_fail "Script cfg load failed" "$rc"; return "$rc"; }
+                || { local rc=$?; _boot_fail "Script cfg load failed" "$rc"; return "$rc"; }
         fi
 
         # Always parse script args if the script defines any arg specs
         if (( ${#SGND_ARGS_SPEC[@]} > 0 && ${#SGND_BOOTSTRAP_REST[@]} > 0 )); then
             saydebug "Parsing script arguments $SGND_BOOTSTRAP_REST"
             sgnd_parse_args "${SGND_BOOTSTRAP_REST[@]}" \
-                || { local rc=$?; __boot_fail "Error parsing script args" "$rc"; return "$rc"; }
+                || { local rc=$?; _boot_fail "Error parsing script args" "$rc"; return "$rc"; }
             SGND_BOOTSTRAP_REST=( "${SGND_POSITIONAL[@]}" )
             saydebug "Parsed script arguments $SGND_BOOTSTRAP_REST remaining"
         fi
 
         saydebug "Update loadmode"
-        sgnd_update_runmode || { local rc=$?; __boot_fail "Error updating RUN_MODE" "$rc"; return "$rc"; }
+        sgnd_update_runmode || { local rc=$?; _boot_fail "Error updating RUN_MODE" "$rc"; return "$rc"; }
 
         if [[ "${FLAG_DRYRUN:-0}" -eq 1 ]]; then
             sayinfo "Running in $RUN_MODE mode (no changes will be made)."

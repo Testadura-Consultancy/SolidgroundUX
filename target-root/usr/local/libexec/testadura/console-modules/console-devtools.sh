@@ -28,12 +28,12 @@
 # Role in framework:
 #   - Extends sgnd-console with developer workflow actions
 #   - Acts as a lightweight plugin layer on top of the console host
-#   - Uses __sgnd_run_script to execute related tooling scripts consistently
+#   - Uses _sgnd_run_script to execute related tooling scripts consistently
 #
 # Assumptions:
 #   - Loaded by sgnd-console after framework bootstrap is complete
 #   - sgnd_console_register_group and sgnd_console_register_item are available
-#   - __sgnd_run_script is available in the host environment
+#   - _sgnd_run_script is available in the host environment
 #
 # Non-goals:
 #   - Standalone execution
@@ -92,83 +92,83 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Internal helpers -------------------------------------------------------------
-    # __exe_createworkspace
+    # _exe_createworkspace
         # Purpose:
         #   Launch the create-workspace developer tool through the sgnd-console runtime.
         #
         # Behavior:
-        #   - Delegates execution to __sgnd_run_script.
+        #   - Delegates execution to _sgnd_run_script.
         #   - Invokes create-workspace.sh
         #
         # Returns:
         #   Exit code of the executed script.
         #
         # Usage:
-        #   __exe_createworkspace
+        #   _exe_createworkspace
         #
         # Examples:
-        #   __exe_createworkspace    
-    __exe_createworkspace(){
-            __sgnd_run_script "create-workspace.sh"
+        #   _exe_createworkspace    
+    _exe_createworkspace(){
+            _sgnd_run_script "create-workspace.sh"
     }
     
-    # __exe_deployworkspace
+    # _exe_deployworkspace
         # Purpose:
         #   Launch the deploy-workspace developer tool through the sgnd-console runtime.
         #
         # Behavior:
-        #   - Delegates execution to __sgnd_run_script.
+        #   - Delegates execution to _sgnd_run_script.
         #   - Invokes deploy-workspace.sh 
         # Returns:
         #   Exit code of the executed script.
         #
         # Usage:
-        #   __exe_deployworkspace
+        #   _exe_deployworkspace
         #
         # Examples:
-        #   __exe_deployworkspace
-    __exe_deployworkspace(){
-            __sgnd_run_script "deploy-workspace.sh" 
+        #   _exe_deployworkspace
+    _exe_deployworkspace(){
+            _sgnd_run_script "deploy-workspace.sh" 
     }
 
-    # __exe_preparerelease
+    # _exe_preparerelease
         # Purpose:
         #   Launch the prepare-release developer tool through the sgnd-console runtime.
         #
         # Behavior:
-        #   - Delegates execution to __sgnd_run_script.
+        #   - Delegates execution to _sgnd_run_script.
         #   - Invokes prepare-release.sh 
         #
         # Returns:
         #   Exit code of the executed script.
         #
         # Usage:
-        #   __exe_preparerelease
+        #   _exe_preparerelease
         #
         # Examples:
-        #   __exe_preparerelease
-    __exe_preparerelease(){
-            __sgnd_run_script "prepare-release.sh" 
+        #   _exe_preparerelease
+    _exe_preparerelease(){
+            _sgnd_run_script "prepare-release.sh" 
     }
 
-    # __exe_metadataeditor
+    # _exe_metadataeditor
         # Purpose:
         #   Launch the prepare-release developer tool through the sgnd-console runtime.
         #
         # Behavior:
-        #   - Delegates execution to __sgnd_run_script.
+        #   - Delegates execution to _sgnd_run_script.
         #   - Invokes prepare-release.sh 
         #
         # Returns:
         #   Exit code of the executed script.
         #
         # Usage:
-        #   __exe_metadataeditor
+        #   _exe_metadataeditor
         #
         # Examples:
-        #   __exe_metadataeditor
-    __exe_metadata-editor(){
-        __sgnd_run_script "metadata-editor.sh"
+        #   _exe_metadataeditor
+    _exe_metadata-editor(){
+        _sgnd_run_script "metadata-editor.sh"
     }
 
 # --- Public API -------------------------------------------------------------------
@@ -186,9 +186,9 @@ set -uo pipefail
 
     sgnd_console_register_group "devtools" "Developer tools" "Tool scripts to create, deploy and release VSC-workspaces" 0 1 900
 
-    sgnd_console_register_item "createws" "devtools" "Create workspace" "__exe_createworkspace" "Create a template workspace with target-root structure" 0 15 
-    sgnd_console_register_item "deployws" "devtools" "Deploy workspace" "__exe_deployworkspace" "Deploy target-root structure from workspace to root" 0 15
-    sgnd_console_register_item "preprel" "devtools" "Prepare release" "__exe_preparerelease" "Create a tar-file from workspace with checksums and manifests" 0 15
-    sgnd_console_register_item "metaedt" "devtools" "Metadata editor" "__exe_metadata-editor" "Edit metadata fields in script header comments" 0 15
+    sgnd_console_register_item "createws" "devtools" "Create workspace" "_exe_createworkspace" "Create a template workspace with target-root structure" 0 15 
+    sgnd_console_register_item "deployws" "devtools" "Deploy workspace" "_exe_deployworkspace" "Deploy target-root structure from workspace to root" 0 15
+    sgnd_console_register_item "preprel" "devtools" "Prepare release" "_exe_preparerelease" "Create a tar-file from workspace with checksums and manifests" 0 15
+    sgnd_console_register_item "metaedt" "devtools" "Metadata editor" "_exe_metadata-editor" "Edit metadata fields in script header comments" 0 15
 
 

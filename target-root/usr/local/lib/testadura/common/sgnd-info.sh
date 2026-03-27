@@ -86,10 +86,10 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Internal helpers ----------------------------------------------------------------
-    : "${__section_indent:=2}"
-    : "${__items_indent:=4}"
+    : "${_section_indent:=2}"
+    : "${_items_indent:=4}"
     
-    # __sgnd_print_arg_spec_entry
+    # _sgnd_print_arg_spec_entry
         # Purpose:
         #   Render a single SGND_ARGS_SPEC / SGND_BUILTIN_ARGS entry as a labeled value line.
         #
@@ -98,7 +98,7 @@ set -uo pipefail
         #         name|short|type|varname|help|choices
         #
         # Inputs (globals):
-        #   __items_indent  : indentation used for sgnd_print_labeledvalue
+        #   _items_indent  : indentation used for sgnd_print_labeledvalue
         #
         # Behavior:
         #   - Builds an option label:
@@ -114,11 +114,11 @@ set -uo pipefail
         #   0 always (display helper).
         #
         # Usage:
-        #   __sgnd_print_arg_spec_entry "debug|d|flag|FLAG_DEBUG|Enable debug mode|"
+        #   _sgnd_print_arg_spec_entry "debug|d|flag|FLAG_DEBUG|Enable debug mode|"
         #
         # Notes:
         #   - Display helper only; does not parse arguments.
-    __sgnd_print_arg_spec_entry() {
+    _sgnd_print_arg_spec_entry() {
         local entry="$1"
 
         local name short type varname help choices
@@ -138,10 +138,10 @@ set -uo pipefail
             value="<no var>"
         fi
 
-        sgnd_print_labeledvalue "$label" "$value" --pad "$__items_indent"
+        sgnd_print_labeledvalue "$label" "$value" --pad "$_items_indent"
     }
 
-    # __sgnd_print_arg_spec_list
+    # _sgnd_print_arg_spec_list
         # Purpose:
         #   Print all argument spec entries from a named array, with a section header.
         #
@@ -150,8 +150,8 @@ set -uo pipefail
         #   $2  Array variable name containing spec entries (e.g. "SGND_ARGS_SPEC").
         #
         # Inputs (globals):
-        #   __section_indent : indentation for section header
-        #   __items_indent   : indentation for entries
+        #   _section_indent : indentation for section header
+        #   _items_indent   : indentation for entries
         #
         # Behavior:
         #   - If the named array is undefined or empty: prints nothing.
@@ -164,11 +164,11 @@ set -uo pipefail
         #   0 always (display helper).
         #
         # Usage:
-        #   __sgnd_print_arg_spec_list "Script arguments" "SGND_ARGS_SPEC"
+        #   _sgnd_print_arg_spec_list "Script arguments" "SGND_ARGS_SPEC"
         #
         # Notes:
         #   - Requires bash 4.3+ (nameref).
-    __sgnd_print_arg_spec_list() {
+    _sgnd_print_arg_spec_list() {
         local header="$1"
         local array_name="$2"
 
@@ -181,10 +181,10 @@ set -uo pipefail
         local _printed_header=0
         for entry in "${specs_ref[@]}"; do
             if (( !_printed_header )); then
-                sgnd_print_sectionheader --text "$header" --padleft "$__section_indent"
+                sgnd_print_sectionheader --text "$header" --padleft "$_section_indent"
                 _printed_header=1
             fi
-            __sgnd_print_arg_spec_entry "$entry"
+            _sgnd_print_arg_spec_entry "$entry"
         done
     }
 
@@ -199,7 +199,7 @@ set -uo pipefail
         #   $2  Filter scope selector: system | user | both (default: both)
         #
         # Inputs (globals):
-        #   __section_indent, __items_indent
+        #   _section_indent, _items_indent
         #
         # Behavior:
         #   - Prints system and/or user globals depending on filter.
@@ -222,12 +222,12 @@ set -uo pipefail
         local filter="${2:-both}"
 
         
-        __print_cfg_pass() {
+        _print_cfg_pass() {
             local header_text="$1"
             shift
             local -a accept_scopes=( "$@" )
 
-            sgnd_print_sectionheader --text "$header_text" --padleft "$__section_indent"
+            sgnd_print_sectionheader --text "$header_text" --padleft "$_section_indent"
 
             local item scope name desc default
             for item in "${source_array[@]}"; do
@@ -244,17 +244,17 @@ set -uo pipefail
                 (( ok )) || continue
 
                 local value="${!name:-$default}"
-                sgnd_print_labeledvalue "$name" "$value" --pad "$__items_indent"
+                sgnd_print_labeledvalue "$name" "$value" --pad "$_items_indent"
             done
         }
 
         if ( [[ "$filter" == "system" ]] || [[ "$filter" == "both" ]] ); then
-              __print_cfg_pass "System globals" system both
+              _print_cfg_pass "System globals" system both
               sgnd_print
         fi
         
         if ( [[ "$filter" == "user" ]] || [[ "$filter" == "both" ]] ); then
-            __print_cfg_pass "User globals" user both
+            _print_cfg_pass "User globals" user both
             sgnd_print
         fi
     }
@@ -279,13 +279,13 @@ set -uo pipefail
         # Usage:
         #   sgnd_print_framework_metadata
     sgnd_print_framework_metadata() {
-        sgnd_print_sectionheader --text "Framework metadata" --padleft "$__section_indent"
-        sgnd_print_labeledvalue "Product"      "$SGND_PRODUCT" --pad "$__items_indent"
-        sgnd_print_labeledvalue "Version"      "$SGND_VERSION" --pad "$__items_indent"
-        sgnd_print_labeledvalue "Release date" "$SGND_VERSION_DATE" --pad "$__items_indent"
-        sgnd_print_labeledvalue "Company"      "$SGND_COMPANY" --pad "$__items_indent"
-        sgnd_print_labeledvalue "Copyright"    "$SGND_COPYRIGHT" --pad "$__items_indent"
-        sgnd_print_labeledvalue "License"      "$SGND_LICENSE" --pad "$__items_indent"
+        sgnd_print_sectionheader --text "Framework metadata" --padleft "$_section_indent"
+        sgnd_print_labeledvalue "Product"      "$SGND_PRODUCT" --pad "$_items_indent"
+        sgnd_print_labeledvalue "Version"      "$SGND_VERSION" --pad "$_items_indent"
+        sgnd_print_labeledvalue "Release date" "$SGND_VERSION_DATE" --pad "$_items_indent"
+        sgnd_print_labeledvalue "Company"      "$SGND_COMPANY" --pad "$_items_indent"
+        sgnd_print_labeledvalue "Copyright"    "$SGND_COPYRIGHT" --pad "$_items_indent"
+        sgnd_print_labeledvalue "License"      "$SGND_LICENSE" --pad "$_items_indent"
         sgnd_print
     }
 
@@ -306,11 +306,11 @@ set -uo pipefail
         # Usage:
         #   sgnd_print_metadata
     sgnd_print_metadata(){
-        sgnd_print_sectionheader --text "Script metadata" --padleft "$__section_indent"
-        sgnd_print_labeledvalue "File"               "$SGND_SCRIPT_FILE" --pad "$__items_indent"
-        sgnd_print_labeledvalue "Script description" "$SGND_SCRIPT_DESC" --pad "$__items_indent"
-        sgnd_print_labeledvalue "Script dir"         "$SGND_SCRIPT_DIR" --pad "$__items_indent"
-        sgnd_print_labeledvalue "Script version"     "$SGND_SCRIPT_VERSION (build $SGND_SCRIPT_BUILD)" --pad "$__items_indent"
+        sgnd_print_sectionheader --text "Script metadata" --padleft "$_section_indent"
+        sgnd_print_labeledvalue "File"               "$SGND_SCRIPT_FILE" --pad "$_items_indent"
+        sgnd_print_labeledvalue "Script description" "$SGND_SCRIPT_DESC" --pad "$_items_indent"
+        sgnd_print_labeledvalue "Script dir"         "$SGND_SCRIPT_DIR" --pad "$_items_indent"
+        sgnd_print_labeledvalue "Script version"     "$SGND_SCRIPT_VERSION (build $SGND_SCRIPT_BUILD)" --pad "$_items_indent"
         sgnd_print
     }   
 
@@ -336,11 +336,11 @@ set -uo pipefail
 
         # Script args first
         sgnd_print
-        __sgnd_print_arg_spec_list "Script arguments" "SGND_ARGS_SPEC"
+        _sgnd_print_arg_spec_list "Script arguments" "SGND_ARGS_SPEC"
 
         # Builtins last
         sgnd_print
-        __sgnd_print_arg_spec_list "Framework arguments" "SGND_BUILTIN_ARGS" 
+        _sgnd_print_arg_spec_list "Framework arguments" "SGND_BUILTIN_ARGS" 
 
         # Positional
         if declare -p SGND_POSITIONAL >/dev/null 2>&1 && (( ${#SGND_POSITIONAL[@]} > 0 )); then
@@ -376,10 +376,10 @@ set -uo pipefail
             local _printed_header=0
             while IFS='|' read -r key value; do
                 if (( !_printed_header )); then
-                    sgnd_print_sectionheader --text "State variables" --padleft "$__section_indent"
+                    sgnd_print_sectionheader --text "State variables" --padleft "$_section_indent"
                     _printed_header=1
                 fi
-                sgnd_print_labeledvalue "$key" "$value" --pad "$__items_indent"
+                sgnd_print_labeledvalue "$key" "$value" --pad "$_items_indent"
             done
             sgnd_print
         }
@@ -418,7 +418,7 @@ set -uo pipefail
         if [[ -r "$license_file" ]]; then
             saydebug "sgnd_print_license: found license file, printing"
             sgnd_print
-            sgnd_print_sectionheader --text "$SGND_PRODUCT license $status_text" --padleft "$__section_indent"
+            sgnd_print_sectionheader --text "$SGND_PRODUCT license $status_text" --padleft "$_section_indent"
             sgnd_print
             sgnd_print_file "$license_file"
             sgnd_print

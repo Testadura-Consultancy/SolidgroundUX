@@ -145,7 +145,7 @@ set -uo pipefail
         printf '%s' "${result%$'\n'}"
     }
 
-    # __sgnd_header_load_section_to_dt
+    # _sgnd_header_load_section_to_dt
             # Purpose:
             #   Load all key/value pairs from a header section into a td-datatable.
             #
@@ -249,10 +249,10 @@ set -uo pipefail
         #   1  section not found or buffer empty
     sgnd_header_buffer_get_section() {
         local section="${1:?missing section}"
-        local __outvar="${2:?missing outvar}"
+        local _outvar="${2:?missing outvar}"
 
         [[ -n "${SGND_HEADER_BUFFER_TEXT:-}" ]] || return 1
-        sgnd_header_get_section_from_text "$SGND_HEADER_BUFFER_TEXT" "$section" "$__outvar"
+        sgnd_header_get_section_from_text "$SGND_HEADER_BUFFER_TEXT" "$section" "$_outvar"
     }
 
   # Version control
@@ -426,7 +426,7 @@ set -uo pipefail
     sgnd_header_get_section() {
         local file="${1:?missing file}"
         local section="${2:?missing section}"
-        local __resultvar="${3:?missing result var}"
+        local _resultvar="${3:?missing result var}"
 
         local line=""
         local capture=0
@@ -453,7 +453,7 @@ set -uo pipefail
         done < "$file"
 
         result="${result%$'\n'}"
-        printf -v "$__resultvar" '%s' "$result"
+        printf -v "$_resultvar" '%s' "$result"
     }
 
     # sgnd_header_get_section_from_text
@@ -477,7 +477,7 @@ set -uo pipefail
     sgnd_header_get_section_from_text() {
         local text="${1-}"
         local section="${2:?missing section}"
-        local __outvar="${3:?missing outvar}"
+        local _outvar="${3:?missing outvar}"
 
         local line=""
         local found=0
@@ -502,7 +502,7 @@ set -uo pipefail
             fi
         done <<< "$text"
 
-        printf -v "$__outvar" '%s' "${result%$'\n'}"
+        printf -v "$_outvar" '%s' "${result%$'\n'}"
         (( found ))
     }
 
@@ -533,8 +533,8 @@ set -uo pipefail
         #   1  no valid banner line found
     sgnd_header_get_banner_parts_from_text() {
         local text="${1-}"
-        local __product_var="${2:?missing product var}"
-        local __title_var="${3:?missing title var}"
+        local _product_var="${2:?missing product var}"
+        local _title_var="${3:?missing title var}"
 
         local line=""
         local content=""
@@ -551,14 +551,14 @@ set -uo pipefail
                 product="${content%% - *}"
                 title="${content#* - }"
 
-                printf -v "$__product_var" '%s' "$product"
-                printf -v "$__title_var" '%s' "$title"
+                printf -v "$_product_var" '%s' "$product"
+                printf -v "$_title_var" '%s' "$title"
                 return 0
             fi
         done <<< "$text"
 
-        printf -v "$__product_var" '%s' ""
-        printf -v "$__title_var" '%s' ""
+        printf -v "$_product_var" '%s' ""
+        printf -v "$_title_var" '%s' ""
         return 1
     }
 
@@ -588,7 +588,7 @@ set -uo pipefail
         local file="${1:?missing file}"
         local section="${2:?missing section}"
         local field="${3:?missing field}"
-        local __resultvar="${4:?missing result var}"
+        local _resultvar="${4:?missing result var}"
 
         local line=""
         local key=""
@@ -619,13 +619,13 @@ set -uo pipefail
                 value="$(printf '%s' "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
 
                 if [[ "$key" == "$field" ]]; then
-                    printf -v "$__resultvar" '%s' "$value"
+                    printf -v "$_resultvar" '%s' "$value"
                     return 0
                 fi
             fi
         done < "$file"
 
-        printf -v "$__resultvar" '%s' ""
+        printf -v "$_resultvar" '%s' ""
         return 1
     }
 
@@ -698,8 +698,8 @@ set -uo pipefail
         #   - Does not validate content beyond delimiter presence.
     sgnd_header_get_banner_parts() {
         local file="${1:?missing file}"
-        local __product_var="${2:?missing product var}"
-        local __title_var="${3:?missing title var}"
+        local _product_var="${2:?missing product var}"
+        local _title_var="${3:?missing title var}"
 
         local line=""
         local content=""
@@ -716,14 +716,14 @@ set -uo pipefail
                 product="${content%% - *}"
                 title="${content#* - }"
 
-                printf -v "$__product_var" '%s' "$product"
-                printf -v "$__title_var" '%s' "$title"
+                printf -v "$_product_var" '%s' "$product"
+                printf -v "$_title_var" '%s' "$title"
                 return 0
             fi
         done < "$file"
 
-        printf -v "$__product_var" '%s' ""
-        printf -v "$__title_var" '%s' ""
+        printf -v "$_product_var" '%s' ""
+        printf -v "$_title_var" '%s' ""
         return 1
     }
 

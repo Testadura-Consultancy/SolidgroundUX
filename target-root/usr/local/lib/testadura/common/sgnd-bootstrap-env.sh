@@ -144,7 +144,7 @@ set -uo pipefail
     SGND_FRAMEWORK_DIRS=(
     )
 # --- Helpers -------------------------------------------------------------------------
-    __build_framework_dirs(){
+    _build_framework_dirs(){
         SGND_FRAMEWORK_DIRS=(
             "s|$SGND_COMMON_LIB"
             "s|$SGND_SYSCFG_DIR"
@@ -267,7 +267,7 @@ set -uo pipefail
         #       SGND_FRAMEWORK_ROOT, SGND_APPLICATION_ROOT, SGND_USER_HOME
         #   - Derives logging paths.
         #   - Optionally derives script-scoped cfg/state paths when SGND_SCRIPT_NAME is set.
-        #   - Rebuilds SGND_FRAMEWORK_DIRS via __build_framework_dirs.
+        #   - Rebuilds SGND_FRAMEWORK_DIRS via _build_framework_dirs.
         #
         # Inputs (globals):
         #   SGND_FRAMEWORK_ROOT
@@ -314,7 +314,7 @@ set -uo pipefail
             SGND_STATE_FILE="$SGND_STATE_DIR/$SGND_SCRIPT_NAME.state"
         fi
 
-        __build_framework_dirs
+        _build_framework_dirs
     }
 
     # sgnd_rebase_framework_cfg_paths

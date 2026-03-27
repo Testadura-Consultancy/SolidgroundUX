@@ -38,12 +38,13 @@
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
-#   Client      : 
+#   Client      :
 #   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
 
 set -uo pipefail
+
 # --- Bootstrap -----------------------------------------------------------------------
     # _framework_locator
         # Purpose:
@@ -67,10 +68,10 @@ set -uo pipefail
         #   127 configuration directory or file could not be created
         #
         # Usage:
-        #   __framework_locator || return $?
+        #   _framework_locator || return $?
         #
         # Examples:
-        #   __framework_locator
+        #   _framework_locator
         #
         # Notes:
         #   - Under sudo, configuration is resolved relative to SUDO_USER instead of /root.
@@ -133,7 +134,7 @@ set -uo pipefail
             # Create configuration file
             mkdir -p "$(dirname "$cfg")" || return 127
 
-            # write cfg file 
+            # write cfg file
             {
                 printf '%s\n' "# SolidGroundUX bootstrap configuration"
                 printf '%s\n' "# Auto-generated on first run"
@@ -161,12 +162,12 @@ set -uo pipefail
 
     }
 
-    # __load_bootstrapper
+    # _load_bootstrapper
         # Purpose:
         #   Resolve and source the framework bootstrap library.
         #
         # Behavior:
-        #   - Calls __framework_locator to establish framework roots.
+        #   - Calls _framework_locator to establish framework roots.
         #   - Derives the sgnd-bootstrap.sh path from SGND_FRAMEWORK_ROOT.
         #   - Verifies that the bootstrap library is readable.
         #   - Sources sgnd-bootstrap.sh into the current shell.
@@ -179,10 +180,10 @@ set -uo pipefail
         #   126 bootstrap library unreadable
         #
         # Usage:
-        #   __load_bootstrapper || return $?
+        #   _load_bootstrapper || return $?
         #
         # Examples:
-        #   __load_bootstrapper
+        #   _load_bootstrapper
         #
         # Notes:
         #   - This is executable-level startup logic, not reusable framework behavior.
@@ -201,9 +202,9 @@ set -uo pipefail
             printf "FATAL: Cannot read bootstrap: %s\n" "$bootstrap" >&2
             return 126
         }
-        
+
         saydebug "Loading $bootstrap"
-            
+
         # shellcheck source=/dev/null
         source "$bootstrap"
     }
@@ -223,9 +224,9 @@ set -uo pipefail
 
     # Minimal UI
     saystart()   { printf '%sSTART%s\t%s\n' "${MSG_CLR_STRT-}" "${RESET-}" "$*" >&2; }
-    sayinfo()    { 
+    sayinfo()    {
         if (( ${FLAG_VERBOSE:-0} )); then
-            printf '%sINFO%s \t%s\n' "${MSG_CLR_INFO-}" "${RESET-}" "$*" >&2; 
+            printf '%sINFO%s \t%s\n' "${MSG_CLR_INFO-}" "${RESET-}" "$*" >&2;
         fi
     }
     sayok()      { printf '%sOK%s   \t%s\n' "${MSG_CLR_OK-}"   "${RESET-}" "$*" >&2; }
@@ -238,7 +239,7 @@ set -uo pipefail
     }
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
-    
+
 # --- Script metadata (identity) ------------------------------------------------------
     SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
     SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"
@@ -258,9 +259,9 @@ set -uo pipefail
         sgnd-comment-parser.sh
     )
 
-    # SGND_ARGS_SPEC 
+    # SGND_ARGS_SPEC
         # Optional: script-specific arguments
-        # --- Example: Arguments
+    # SGND_ARGS_SPEC
         # Each entry:
         #   "name|short|type|var|help|choices"
         #
@@ -281,7 +282,7 @@ set -uo pipefail
         "useexisting|u|flag|FLAG_USEEXISTING|Use existing staging files|"
         "bumpmajor||flag|FLAG_BUMP_MAJOR|Bump major version in source headers before packaging|"
         "bumpminor||flag|FLAG_BUMP_MINOR|Bump minor version in source headers before packaging|"
-        "nosourceupdate||flag|FLAG_NOSOURCEUPDATE|Do not update source header metadata before packaging|"
+        "updatebuild||flag|FLAG_UPDATEBUILD|Update source header metadata before packaging|"
     )
 
     # SGND_SCRIPT_EXAMPLES
@@ -302,7 +303,7 @@ set -uo pipefail
         ""
         "Show verbose logging"
         "  $SGND_SCRIPT_NAME --verbose"
-    ) 
+    )
 
     # SGND_SCRIPT_GLOBALS
         # Explicit declaration of global variables intentionally used by this script.
@@ -375,7 +376,7 @@ set -uo pipefail
         #   - No custom exit behavior is required.
     SGND_ON_EXIT_HANDLERS=(
     )
-    
+
     # State persistence is opt-in.
         # Scripts that want persistent state must:
         #   1) set SGND_STATE_SAVE=1
@@ -387,7 +388,7 @@ set -uo pipefail
     # Prefer local variables inside functions unless a value must be shared.
 
 # --- Local script functions ----------------------------------------------------------
-    # __save_parameters
+    # _save_parameters
         # Purpose:
         #   Persist the current release parameters to the framework state store.
         #
@@ -413,14 +414,14 @@ set -uo pipefail
         #   Non-zero if state storage fails
         #
         # Usage:
-        #   __save_parameters
+        #   _save_parameters
         #
         # Examples:
-        #   __save_parameters || return 1
+        #   _save_parameters || return 1
         #
         # Notes:
         #   - Requires sgnd_bootstrap --state so the state backend is available.
-    __save_parameters(){
+    _save_parameters(){
         if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
             sayinfo "Would have saved state variables (manual)"
         else
@@ -437,7 +438,7 @@ set -uo pipefail
         fi
     }
 
-    # __get_parameters
+    # _get_parameters
         # Purpose:
         #   Resolve and collect all parameters required to prepare a release archive.
         #
@@ -445,7 +446,7 @@ set -uo pipefail
         #   - Computes default values from framework metadata and workspace paths.
         #   - In auto mode, reuses existing or default values without prompting.
         #   - In interactive mode, prompts for release settings and confirms them.
-        #   - Saves confirmed parameters through __save_parameters().
+        #   - Saves confirmed parameters through _save_parameters().
         #
         # Parameters handled:
         #   RELEASE
@@ -475,15 +476,15 @@ set -uo pipefail
         #   Exits the script with status 1 if the user cancels
         #
         # Usage:
-        #   __get_parameters
+        #   _get_parameters
         #
         # Examples:
-        #   __get_parameters || return 1
+        #   _get_parameters || return 1
         #
         # Notes:
         #   - Uses ask() and ask_ok_redo_quit() for interactive input.
         #   - Auto mode assumes state was loaded during bootstrap (--state).
-    __get_parameters(){
+    _get_parameters(){
         PRODUCT="${PRODUCT:-"$SGND_PRODUCT"}"
         VERSION="${VERSION:-"$SGND_VERSION"}"
         BUILD="$(date +%y%j%H)"
@@ -495,6 +496,7 @@ set -uo pipefail
         FLAG_CLEANUP="${FLAG_CLEANUP:-1}"
         FLAG_USEEXISTING="${FLAG_USEEXISTING:-1}"
         FLAG_SAVEPARMS="${FLAG_SAVEPARMS:-1}"
+        FLAG_UPDATEBUILD="${FLAG_UPDATEBUILD:-1}"
 
         if [[ "${FLAG_AUTO:-0}" -eq 1 ]]; then
              sayinfo "Auto mode: using last deployment or default settings."
@@ -504,24 +506,24 @@ set -uo pipefail
         local lp=4
         while true; do
             sgnd_print
-            sgnd_print_sectionheader "File locations" --padend 0       
+            sgnd_print_sectionheader "File locations" --padend 0
             ask --label "Source directory" --var SOURCE_DIR --default "$SOURCE_DIR" --validate sgnd_validate_dir_exists --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
             ask --label "Staging directory" --var STAGING_ROOT --default "$STAGING_ROOT" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
-            
+
             sgnd_print
             sgnd_print_sectionheader "Release identification" --padend 0
             ask --label "Product" --var PRODUCT --default "$PRODUCT" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
             ask --label "Version" --var VERSION --default "$VERSION" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
             sgnd_print_labeledvalue --label "Build" --value "$BUILD" --coloriz both --lableclr "$(sgnd_sgr "$SILVER" "" "$FX_ITALIC")" --valueclr "$(sgnd_sgr "$SILVER" "" "$FX_ITALIC")" --pad "$lp" --labelwidth "$lw"
-            
+
             sgnd_print
             RELEASE="${RELEASE:-"$PRODUCT-$VERSION.$BUILD"}"
             ask --label "Release" --var RELEASE --default "$RELEASE" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
             TAR_FILE="${TAR_FILE:-"$RELEASE.tar.gz"}"
             ask --label "Tar file" --var TAR_FILE --default "$TAR_FILE" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
-            
+
             sgnd_print
-            sgnd_print_sectionheader "Switches" --padend 0      
+            sgnd_print_sectionheader "Switches" --padend 0
             lw=41
 
             if [[ "$FLAG_CLEANUP" -eq 1 ]]; then
@@ -535,7 +537,7 @@ set -uo pipefail
             else
                 FLAG_CLEANUP=0
             fi
-            
+
             # detect if staging root contains anything
             local staging_has_files=0
             if [[ -d "$STAGING_ROOT" ]] && find "$STAGING_ROOT" -mindepth 1 -print -quit 2>/dev/null | grep -q .; then
@@ -556,9 +558,9 @@ set -uo pipefail
                     *) FLAG_USEEXISTING=0 ;;
                 esac
             else
-                # no files → force behavior
+                # no files -> force behavior
                 FLAG_USEEXISTING=0
-                sayinfo "Staging folder is empty → cannot reuse files."
+                sayinfo "Staging folder is empty -> cannot reuse files."
             fi
 
              if [[ "$FLAG_SAVEPARMS" -eq 1 ]]; then
@@ -566,6 +568,19 @@ set -uo pipefail
             else
                 saveparms="N"
             fi
+
+            if [[ "$FLAG_UPDATEBUILD" -eq 1 ]]; then
+                upd="Y"
+            else
+                upd="N"
+            fi
+            ask --label "Cleanup staging files after run (Y/N)" --var cleanup --default "$upd" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+            if [[ "$cleanup" == "Y" || "$cleanup" == "y" ]]; then
+                FLAG_UPDATEBUILD=1
+            else
+                FLAG_UPDATEBUILD=0
+            fi
+
             ask --label "Save these settings for future use (Y/N)" --var saveparms --default "$saveparms" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
             if [[ "$saveparms" == "Y" || "$saveparms" == "y" ]]; then
                 FLAG_SAVEPARMS=1
@@ -573,9 +588,9 @@ set -uo pipefail
                 FLAG_SAVEPARMS=0
             fi
 
-            sgnd_print_sectionheader 
+            sgnd_print_sectionheader
             printf "\n"
-            
+
             ask_dlg_autocontinue \
                 --seconds 15 \
                 --message "Continue with these settings?" \
@@ -587,7 +602,7 @@ set -uo pipefail
                 2) saycancel "Aborting as per user request."; return 1 ;;
                 3) PROJECT_NAME=""; PROJECT_FOLDER=""; continue ;;
                 *) sayfail "Aborting (unexpected response)."; return 1 ;;
-            esac     
+            esac
 
         done
     }
@@ -651,7 +666,7 @@ set -uo pipefail
         printf '%s  %s\n' "$hash" "$tar_file" >> "$sums_file" || return 1
     }
 
-    # __create_tar
+    # _create_tar
         # Purpose:
         #   Stage a clean release tree and produce a versioned tar.gz archive.
         #
@@ -688,15 +703,15 @@ set -uo pipefail
         #   1 on failure to stage, package, hash, or write artifacts
         #
         # Usage:
-        #   __create_tar
+        #   _create_tar
         #
         # Examples:
-        #   __create_tar || return 1
+        #   _create_tar || return 1
         #
         # Notes:
         #   - In dry-run mode, only reports the intended actions.
         #   - Manifest is generated before embedding, so it does not list itself.
-    __create_tar() {
+    _create_tar() {
         saystart "Creating release: $RELEASE"
 
         local stage_path tar_path_tar tar_path_gz manifest_path sums_path
@@ -793,7 +808,7 @@ set -uo pipefail
         return 0
     }
 
-    # __apply_version_bump
+    # _apply_version_bump
         # Purpose:
         #   Apply header checksum/build refresh and optional version bumping to source files.
         #
@@ -815,7 +830,7 @@ set -uo pipefail
         # Returns:
         #   0 on success
         #   1 on failure
-    __apply_version_bump() {
+    _apply_version_bump() {
         local mode="none"
         local file=""
         local failed=0
@@ -894,10 +909,10 @@ set -uo pipefail
         # -- Bootstrap
             local rc=0
 
-            _load_bootstrapper || exit $?            
+            _load_bootstrapper || exit $?
 
             # Recognized switches:
-            #     --state      -> enable saving state variables 
+            #     --state      -> enable saving state variables
             #     --autostate  -> enable state support and auto-save SGND_STATE_VARIABLES on exit
             #     --needroot   -> restart script if not root
             #     --cannotroot -> exit script if root
@@ -910,7 +925,7 @@ set -uo pipefail
 
             saydebug "After bootstrap: $rc"
             (( rc != 0 )) && exit "$rc"
-                        
+
         # -- Handle builtin arguments
             saydebug "Calling builtinarg handler"
             sgnd_builtinarg_handler
@@ -919,12 +934,12 @@ set -uo pipefail
         # -- UI
             sgnd_update_runmode
             sgnd_print_titlebar
-            
+
         # -- Main script logic
 
-        __get_parameters
-        __apply_version_bump || exit $?
-        __create_tar
+        _get_parameters
+        _apply_version_bump || exit $?
+        _create_tar
     }
 
     # Run main with positional args only (not the options)

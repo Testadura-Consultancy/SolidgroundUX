@@ -1201,9 +1201,9 @@ set -uo pipefail
 
     [[ -n "${dest_name:-}" && $# -ge 1 ]] || return 1
 
-    local -n __dest="$dest_name"
-    local -A __seen=()
-    __dest=()
+    local -n _dest="$dest_name"
+    local -A _seen=()
+    _dest=()
 
     local src_name
     local item
@@ -1214,12 +1214,12 @@ set -uo pipefail
         # If source array doesn't exist, skip it quietly
         declare -p "$src_name" >/dev/null 2>&1 || continue
 
-        local -n __src="$src_name"
-        for item in "${__src[@]:-}"; do
+        local -n _src="$src_name"
+        for item in "${_src[@]:-}"; do
             [[ -n "${item:-}" ]] || continue
-            if [[ -z "${__seen[$item]+x}" ]]; then
-                __dest+=( "$item" )
-                __seen["$item"]=1
+            if [[ -z "${_seen[$item]+x}" ]]; then
+                _dest+=( "$item" )
+                _seen["$item"]=1
             fi
         done
     done

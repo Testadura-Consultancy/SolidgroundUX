@@ -169,7 +169,7 @@ set -uo pipefail
     }
 
 # --- Helpers ------------------------------------------------------------------------
-    # __sgnd_ui_resolve_theme_file
+    # _sgnd_ui_resolve_theme_file
         # Purpose:
         #   Resolve a palette or style specification into a readable .sh file path.
         #
@@ -199,18 +199,18 @@ set -uo pipefail
         #   5  named theme not found
         #
         # Usage:
-        #   __sgnd_ui_resolve_theme_file palettes default-ui-palette
+        #   _sgnd_ui_resolve_theme_file palettes default-ui-palette
         #
         # Examples:
-        #   palette_file="$(__sgnd_ui_resolve_theme_file "palettes" "$palette_spec")" || return $?
-    __sgnd_ui_resolve_theme_file() {
+        #   palette_file="$(_sgnd_ui_resolve_theme_file "palettes" "$palette_spec")" || return $?
+    _sgnd_ui_resolve_theme_file() {
         local kind="$1"
         local spec="$2"
         local base
         local file
 
         if [[ -z "$spec" ]]; then
-            printf '__sgnd_ui_resolve_theme_file: missing %s spec\n' "$kind" >&2
+            printf '_sgnd_ui_resolve_theme_file: missing %s spec\n' "$kind" >&2
             return 2
         fi
 
@@ -410,8 +410,8 @@ set -uo pipefail
         local palette_file
         local style_file
 
-        palette_file="$(__sgnd_ui_resolve_theme_file "palettes" "$palette_spec")" || return $?
-        style_file="$(__sgnd_ui_resolve_theme_file "styles"   "$style_spec")"   || return $?
+        palette_file="$(_sgnd_ui_resolve_theme_file "palettes" "$palette_spec")" || return $?
+        style_file="$(_sgnd_ui_resolve_theme_file "styles"   "$style_spec")"   || return $?
 
         # --- load palette first, then style ---------------------------------------
         # shellcheck disable=SC1090

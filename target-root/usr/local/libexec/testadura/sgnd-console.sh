@@ -167,7 +167,7 @@ set -uo pipefail
         #   Resolve and source the framework bootstrap library.
         #
         # Behavior:
-        #   - Calls __framework_locator to establish framework roots.
+        #   - Calls _framework_locator to establish framework roots.
         #   - Derives the sgnd-bootstrap.sh path from SGND_FRAMEWORK_ROOT.
         #   - Verifies that the bootstrap library is readable.
         #   - Sources sgnd-bootstrap.sh into the current shell.
@@ -424,7 +424,7 @@ set -uo pipefail
         SGND_PAGE_MAX_ROWS=15
             
     # --- Module loading and registration 
-    # __sgnd_console_register_builtin_items
+    # _sgnd_console_register_builtin_items
         # Purpose:
         #   Register the console's builtin groups and builtin menu actions.
         #
@@ -444,31 +444,31 @@ set -uo pipefail
         #   Non-zero if group or item registration fails
         #
         # Usage:
-        #   __sgnd_console_register_builtin_items
+        #   _sgnd_console_register_builtin_items
         #
         # Examples:
-        #   __sgnd_console_register_builtin_items || exit 1
+        #   _sgnd_console_register_builtin_items || exit 1
         #   non-zero if group/item registration fails
-    __sgnd_console_register_builtin_items() {
+    _sgnd_console_register_builtin_items() {
         SGND_GROUP_RUNTIME="runtime"
         SGND_GROUP_SESSION="session"
 
         sgnd_console_register_group "$SGND_GROUP_RUNTIME" "Runtime toggles" "" 1 0 980
         sgnd_console_register_group "$SGND_GROUP_SESSION" "Console Session" "" 1 1 990
 
-        sgnd_console_register_item "B" "$SGND_GROUP_RUNTIME" "$(__sgnd_console_label_debug)" "__sgnd_console_toggle_debug" "Toggle debug output" 1 0 0
-        sgnd_console_register_item "D" "$SGND_GROUP_RUNTIME" "$(__sgnd_console_label_dryrun)" "__sgnd_console_toggle_dryrun" "Toggle dry-run mode" 1 0 0
-        sgnd_console_register_item "L" "$SGND_GROUP_RUNTIME" "$(__sgnd_console_label_logfile)" "__sgnd_console_toggle_logfile" "Toggle logfile output" 1 0 0
-        sgnd_console_register_item "V" "$SGND_GROUP_RUNTIME" "$(__sgnd_console_label_verbose)" "__sgnd_console_toggle_verbose" "Toggle verbose output" 1 0 1
+        sgnd_console_register_item "B" "$SGND_GROUP_RUNTIME" "$(_sgnd_console_label_debug)" "_sgnd_console_toggle_debug" "Toggle debug output" 1 0 0
+        sgnd_console_register_item "D" "$SGND_GROUP_RUNTIME" "$(_sgnd_console_label_dryrun)" "_sgnd_console_toggle_dryrun" "Toggle dry-run mode" 1 0 0
+        sgnd_console_register_item "L" "$SGND_GROUP_RUNTIME" "$(_sgnd_console_label_logfile)" "_sgnd_console_toggle_logfile" "Toggle logfile output" 1 0 0
+        sgnd_console_register_item "V" "$SGND_GROUP_RUNTIME" "$(_sgnd_console_label_verbose)" "_sgnd_console_toggle_verbose" "Toggle verbose output" 1 0 1
 
-        sgnd_console_register_item "C" "$SGND_GROUP_SESSION" "$(__sgnd_console_label_clearonrender)" "__sgnd_console_toggle_clearonrender" "Toggle clear screen before rendering" 1 0 0
-        sgnd_console_register_item "<" "$SGND_GROUP_SESSION" "Previous page" "__sgnd_console_prevpage" "Show previous menu page" 1 0 0
-        sgnd_console_register_item ">" "$SGND_GROUP_SESSION" "Next page" "__sgnd_console_nextpage" "Show next menu page" 1 0 0
-        sgnd_console_register_item "R" "$SGND_GROUP_SESSION" "Redraw menu" "__sgnd_console_redraw" "Refresh console display" 1 0 1
-        sgnd_console_register_item "Q" "$SGND_GROUP_SESSION" "Quit" "__sgnd_console_quit" "Exit console" 1 0 1
+        sgnd_console_register_item "C" "$SGND_GROUP_SESSION" "$(_sgnd_console_label_clearonrender)" "_sgnd_console_toggle_clearonrender" "Toggle clear screen before rendering" 1 0 0
+        sgnd_console_register_item "<" "$SGND_GROUP_SESSION" "Previous page" "_sgnd_console_prevpage" "Show previous menu page" 1 0 0
+        sgnd_console_register_item ">" "$SGND_GROUP_SESSION" "Next page" "_sgnd_console_nextpage" "Show next menu page" 1 0 0
+        sgnd_console_register_item "R" "$SGND_GROUP_SESSION" "Redraw menu" "_sgnd_console_redraw" "Refresh console display" 1 0 1
+        sgnd_console_register_item "Q" "$SGND_GROUP_SESSION" "Quit" "_sgnd_console_quit" "Exit console" 1 0 1
     }
 
-    # __sgnd_console_register_fallback_group
+    # _sgnd_console_register_fallback_group
         # Purpose:
         #   Register a fallback group for an item that references an unknown group key.
         #
@@ -487,11 +487,11 @@ set -uo pipefail
         #   Non-zero if registration fails
         #
         # Usage:
-        #   __sgnd_console_register_fallback_group "$group_key"
+        #   _sgnd_console_register_fallback_group "$group_key"
         #
         # Examples:
-        #   __sgnd_console_register_fallback_group "module:devtools"
-    __sgnd_console_register_fallback_group() {
+        #   _sgnd_console_register_fallback_group "module:devtools"
+    _sgnd_console_register_fallback_group() {
         local key="${1:?missing group key}"
         local label="Other"
         local module_id=""
@@ -522,7 +522,7 @@ set -uo pipefail
         sgnd_console_register_group "$key" "$label" "" 0 1 800
     }
 
-    # __sgnd_console_group_exists
+    # _sgnd_console_group_exists
         # Purpose:
         #   Test whether a group key already exists in the console group model.
         #
@@ -535,17 +535,17 @@ set -uo pipefail
         #   1 if the group does not exist
         #
         # Usage:
-        #   if __sgnd_console_group_exists "$group"; then ...
+        #   if _sgnd_console_group_exists "$group"; then ...
         #
         # Examples:
-        #   __sgnd_console_group_exists "runtime"
-    __sgnd_console_group_exists() {
+        #   _sgnd_console_group_exists "runtime"
+    _sgnd_console_group_exists() {
         local key="${1:?missing group key}"
 
         sgnd_dt_has_row "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS key "$key"
     }
 
-    # __sgnd_console_load_config
+    # _sgnd_console_load_config
         # Purpose:
         #   Load console-specific configuration and resolve the module directory.
         #
@@ -580,11 +580,11 @@ set -uo pipefail
         #   127 config could not be created or written
         #
         # Usage:
-        #   __sgnd_console_load_config || return $?
+        #   _sgnd_console_load_config || return $?
         #
         # Examples:
-        #   __sgnd_console_load_config
-    __sgnd_console_load_config() {
+        #   _sgnd_console_load_config
+    _sgnd_console_load_config() {
         local cfg="${VAL_APPCFG-}"
         local cfg_dir
 
@@ -599,7 +599,7 @@ set -uo pipefail
 
         if [[ -n "$cfg" ]]; then
             if [[ ! -e "$cfg" ]]; then
-                __sgnd_console_create_appcfg "$cfg" || return $?
+                _sgnd_console_create_appcfg "$cfg" || return $?
             fi
 
             [[ -r "$cfg" ]] || {
@@ -630,7 +630,7 @@ set -uo pipefail
         saydebug "Module dir    : $SGND_CONSOLE_MODULE_DIR"
     }
 
-    # __sgnd_console_create_appcfg
+    # _sgnd_console_create_appcfg
         # Purpose:
         #   Create a new console app configuration file with sensible defaults.
         #
@@ -650,11 +650,11 @@ set -uo pipefail
         #   127 config directory or file could not be created
         #
         # Usage:
-        #   __sgnd_console_create_appcfg "$cfg"
+        #   _sgnd_console_create_appcfg "$cfg"
         #
         # Examples:
-        #   __sgnd_console_create_appcfg "./my-console.cfg"
-    __sgnd_console_create_appcfg() {
+        #   _sgnd_console_create_appcfg "./my-console.cfg"
+    _sgnd_console_create_appcfg() {
         local cfg="${1:?missing cfg path}"
         local cfg_dir
         local cfg_title="Solidground Console"
@@ -696,7 +696,7 @@ set -uo pipefail
         sayok "Created appcfg: $cfg"
     }
 
-    # __sgnd_console_load_modules
+    # _sgnd_console_load_modules
         # Purpose:
         #   Source all console module scripts from the configured module directory.
         #
@@ -718,11 +718,11 @@ set -uo pipefail
         #   126 module directory missing or module load failed
         #
         # Usage:
-        #   __sgnd_console_load_modules || return $?
+        #   _sgnd_console_load_modules || return $?
         #
         # Examples:
-        #   __sgnd_console_load_modules
-    __sgnd_console_load_modules() {
+        #   _sgnd_console_load_modules
+    _sgnd_console_load_modules() {
         local mod_dir="${SGND_CONSOLE_MODULE_DIR:?missing module dir}"
         local mod
         local found=0
@@ -753,7 +753,7 @@ set -uo pipefail
     }
 
 # --- Script execution ----------------------------------------------------------------
-    # __sgnd_run_script
+    # _sgnd_run_script
         # Purpose:
         #   Resolve and execute a script within the sgnd-console environment.
         #
@@ -781,14 +781,14 @@ set -uo pipefail
         #   1 if validation fails
         #
         # Usage:
-        #   __sgnd_run_script "jobs/import.sh" --customer 42
+        #   _sgnd_run_script "jobs/import.sh" --customer 42
         #
         # Examples:
-        #   __sgnd_run_script "./tools/build.sh" --release
+        #   _sgnd_run_script "./tools/build.sh" --release
         #
         # Notes:
         #   - Uses argument arrays to preserve proper quoting.
-    __sgnd_run_script() {
+    _sgnd_run_script() {
         local script="${1:?missing script}"
         shift || true
 
@@ -816,10 +816,10 @@ set -uo pipefail
             return 1
         }
 
-        __sgnd_flag_is_on "${FLAG_DRYRUN:-0}"        && script_args+=("--dryrun")
-        __sgnd_flag_is_on "${FLAG_VERBOSE:-0}"       && script_args+=("--verbose")
-        __sgnd_flag_is_on "${FLAG_DEBUG:-0}"         && script_args+=("--debug")
-        __sgnd_flag_is_on "${SGND_LOGFILE_ENABLED:-0}" && [[ -n "${LOG_FILE:-}" ]] && script_args+=("--logfile" "$LOG_FILE")
+        _sgnd_flag_is_on "${FLAG_DRYRUN:-0}"        && script_args+=("--dryrun")
+        _sgnd_flag_is_on "${FLAG_VERBOSE:-0}"       && script_args+=("--verbose")
+        _sgnd_flag_is_on "${FLAG_DEBUG:-0}"         && script_args+=("--debug")
+        _sgnd_flag_is_on "${SGND_LOGFILE_ENABLED:-0}" && [[ -n "${LOG_FILE:-}" ]] && script_args+=("--logfile" "$LOG_FILE")
 
         script_args+=("$@")
 
@@ -828,7 +828,7 @@ set -uo pipefail
         "$resolved" "${script_args[@]}"
     }
 
-    # __sgnd_flag_is_on
+    # _sgnd_flag_is_on
         # Purpose:
         #   Evaluate whether a value represents a logical "true".
         #
@@ -844,11 +844,11 @@ set -uo pipefail
         #   1 otherwise
         #
         # Usage:
-        #   if __sgnd_flag_is_on "${FLAG_DEBUG:-0}"; then ...
+        #   if _sgnd_flag_is_on "${FLAG_DEBUG:-0}"; then ...
         #
         # Examples:
-        #   __sgnd_flag_is_on "${SGND_LOGFILE_ENABLED:-0}"
-    __sgnd_flag_is_on() {
+        #   _sgnd_flag_is_on "${SGND_LOGFILE_ENABLED:-0}"
+    _sgnd_flag_is_on() {
         case "${1:-}" in
             1|true|TRUE|yes|YES|on|ON) return 0 ;;
             *) return 1 ;;
@@ -856,7 +856,7 @@ set -uo pipefail
     }
 
 # --- Console loop --------------------------------------------------------------------
-    # __sgnd_console_run
+    # _sgnd_console_run
         # Purpose:
         #   Run the interactive console event loop.
         #
@@ -873,18 +873,18 @@ set -uo pipefail
         #   1 on input or dispatch failure
         #
         # Usage:
-        #   __sgnd_console_run
+        #   _sgnd_console_run
         #
         # Examples:
-        #   __sgnd_console_run
-    __sgnd_console_run() {
+        #   _sgnd_console_run
+    _sgnd_console_run() {
         local choice=""
         local valid_choices=""
         local rc=0
 
         while true; do
-            __sgnd_console_render_menu
-            valid_choices="$(__sgnd_console_valid_choices_csv)"
+            _sgnd_console_render_menu
+            valid_choices="$(_sgnd_console_valid_choices_csv)"
             
             sgnd_print_sectionheader --border "$DL_H" --maxwidth "$(sgnd_terminal_width)"
             ask_choose_immediate \
@@ -895,7 +895,7 @@ set -uo pipefail
                 --keepasking 1 \
                 --var choice
 
-            __sgnd_console_dispatch "$choice"
+            _sgnd_console_dispatch "$choice"
             rc=$?
 
             if (( rc == 200 )); then
@@ -946,7 +946,7 @@ set -uo pipefail
         #   1 on validation or append failure
         #
         # Usage:
-        #   sgnd_console_register_item "Q" "session" "Quit" "__sgnd_console_quit" "Exit console" 1 0 1
+        #   sgnd_console_register_item "Q" "session" "Quit" "_sgnd_console_quit" "Exit console" 1 0 1
         #
         # Examples:
         #   sgnd_console_register_item "sys-status" "system" "System status" "sys_status" "Show system status" 0 15 1
@@ -975,8 +975,8 @@ set -uo pipefail
             group="module:${SGND_CURRENT_MODULE:-default}"
         fi
 
-        if ! __sgnd_console_group_exists "$group"; then
-            __sgnd_console_register_fallback_group "$group"
+        if ! _sgnd_console_group_exists "$group"; then
+            _sgnd_console_register_fallback_group "$group"
         fi
 
         sgnd_dt_append "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS \
@@ -1099,15 +1099,15 @@ set -uo pipefail
             sayfail "td-datatable.sh did not load correctly"
             exit 126
         }
-        __sgnd_console_load_config || exit $?
-        __sgnd_console_register_builtin_items || exit $?
-        __sgnd_console_load_modules || exit $?
+        _sgnd_console_load_config || exit $?
+        _sgnd_console_register_builtin_items || exit $?
+        _sgnd_console_load_modules || exit $?
 
         if (( $(sgnd_dt_row_count SGND_ITEM_ROWS) == 0 )); then
             saywarning "No menu items registered"
         fi
 
-            __sgnd_console_run
+            _sgnd_console_run
     }
 
     # Entrypoint: sgnd_bootstrap will split framework args from script args.

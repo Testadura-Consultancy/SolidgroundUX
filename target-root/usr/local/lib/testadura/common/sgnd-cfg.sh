@@ -92,7 +92,7 @@ set -uo pipefail
     # - Accepts only names: [A-Za-z_][A-Za-z0-9_]*
     # - Loads via printf -v assignment (value preserved as-is)
 
-    # __sgnd_is_ident
+    # _sgnd_is_ident
         # Purpose:
         #   Test whether a string is a valid shell identifier.
         #
@@ -110,17 +110,17 @@ set -uo pipefail
         #   1 otherwise.
         #
         # Usage:
-        #   __sgnd_is_ident NAME
+        #   _sgnd_is_ident NAME
         #
         # Examples:
-        #   if __sgnd_is_ident "APP_TITLE"; then
+        #   if _sgnd_is_ident "APP_TITLE"; then
         #       printf 'valid\n'
         #   fi
-    __sgnd_is_ident() {
+    _sgnd_is_ident() {
             [[ "${1:-}" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]
         }
    
-    # __sgnd_kv_load_file
+    # _sgnd_kv_load_file
         # Purpose:
         #   Load KEY=VALUE pairs from a file into shell variables.
         #
@@ -144,13 +144,13 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   __sgnd_kv_load_file FILE
+        #   _sgnd_kv_load_file FILE
         #
         # Examples:
-        #   __sgnd_kv_load_file "$SGND_CFG_FILE"
+        #   _sgnd_kv_load_file "$SGND_CFG_FILE"
         #
-        #   [[ -r "$file" ]] && __sgnd_kv_load_file "$file"
-    __sgnd_kv_load_file() {
+        #   [[ -r "$file" ]] && _sgnd_kv_load_file "$file"
+    _sgnd_kv_load_file() {
         local file="$1"
         [[ -f "$file" ]] || return 0
 
@@ -184,7 +184,7 @@ set -uo pipefail
         done < "$file"
     }
 
-    # __sgnd_kv_set
+    # _sgnd_kv_set
         # Purpose:
         #   Write or update a KEY=VALUE entry in a file.
         #
@@ -211,13 +211,13 @@ set -uo pipefail
         #   1 on invalid key or write failure.
         #
         # Usage:
-        #   __sgnd_kv_set FILE KEY VALUE
+        #   _sgnd_kv_set FILE KEY VALUE
         #
         # Examples:
-        #   __sgnd_kv_set "$SGND_CFG_FILE" "APP_TITLE" "SolidGround"
+        #   _sgnd_kv_set "$SGND_CFG_FILE" "APP_TITLE" "SolidGround"
         #
-        #   __sgnd_kv_set "$SGND_STATE_FILE" "CURRENT_PAGE" "2"
-    __sgnd_kv_set() {
+        #   _sgnd_kv_set "$SGND_STATE_FILE" "CURRENT_PAGE" "2"
+    _sgnd_kv_set() {
         local file="$1" key="$2" val="$3"
         [[ "$key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || return 1
 
@@ -262,7 +262,7 @@ set -uo pipefail
         return 0
     }
 
-    # __sgnd_kv_unset
+    # _sgnd_kv_unset
         # Purpose:
         #   Remove a KEY=VALUE entry from a file.
         #
@@ -286,13 +286,13 @@ set -uo pipefail
         #   1 on invalid key or write failure.
         #
         # Usage:
-        #   __sgnd_kv_unset FILE KEY
+        #   _sgnd_kv_unset FILE KEY
         #
         # Examples:
-        #   __sgnd_kv_unset "$SGND_CFG_FILE" "APP_TITLE"
+        #   _sgnd_kv_unset "$SGND_CFG_FILE" "APP_TITLE"
         #
-        #   __sgnd_kv_unset "$SGND_STATE_FILE" "CURRENT_PAGE"
-    __sgnd_kv_unset() {
+        #   _sgnd_kv_unset "$SGND_STATE_FILE" "CURRENT_PAGE"
+    _sgnd_kv_unset() {
         local file="$1" key="$2"
         [[ "$key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || return 1
         [[ -f "$file" ]] || return 0
@@ -312,7 +312,7 @@ set -uo pipefail
         rm -f -- "$tmp"
     }
 
-    # __sgnd_kv_reset_file
+    # _sgnd_kv_reset_file
         # Purpose:
         #   Hard-delete a KEY=VALUE file.
         #
@@ -324,12 +324,12 @@ set -uo pipefail
         #
         # Returns:
         #   0 always (rm -f semantics).
-    __sgnd_kv_reset_file() {
+    _sgnd_kv_reset_file() {
         local file="$1"
         rm -f "$file"
     }
 
-    # __sgnd_kv_get
+    # _sgnd_kv_get
         # Purpose:
         #   Read a value for a key from a KEY=VALUE file.
         #
@@ -352,17 +352,17 @@ set -uo pipefail
         #   1 if the key is not present.
         #
         # Usage:
-        #   __sgnd_kv_get FILE KEY
+        #   _sgnd_kv_get FILE KEY
         #
         # Examples:
-        #   value="$(__sgnd_kv_get "$SGND_CFG_FILE" "APP_TITLE")" || value=""
+        #   value="$(_sgnd_kv_get "$SGND_CFG_FILE" "APP_TITLE")" || value=""
         #
-        #   __sgnd_kv_get "$SGND_STATE_FILE" "CURRENT_PAGE"
-    __sgnd_kv_get() {
+        #   _sgnd_kv_get "$SGND_STATE_FILE" "CURRENT_PAGE"
+    _sgnd_kv_get() {
         local file="$1" key="$2"
 
         [[ -n "$file" && -n "$key" ]] || return 2
-        __sgnd_is_ident "$key"        || return 2
+        _sgnd_is_ident "$key"        || return 2
         [[ -r "$file" ]]            || return 2
 
         local line
@@ -373,7 +373,7 @@ set -uo pipefail
         return 0
     }
 
-    # __sgnd_kv_has
+    # _sgnd_kv_has
         # Purpose:
         #   Test whether a KEY exists in a KEY=VALUE file (even if empty).
         #
@@ -385,17 +385,17 @@ set -uo pipefail
         #   0 if present,
         #   1 if not present,
         #   2 on argument/read error.
-    __sgnd_kv_has() {
+    _sgnd_kv_has() {
         local file="$1" key="$2"
 
         [[ -n "$file" && -n "$key" ]] || return 2
-        __sgnd_is_ident "$key" || return 2
+        _sgnd_is_ident "$key" || return 2
         [[ -r "$file" ]] || return 2
 
         grep -q -E "^[[:space:]]*${key}[[:space:]]*=" -- "$file" 2>/dev/null
     }
 
-    # __sgnd_kv_list_keys
+    # _sgnd_kv_list_keys
         # Purpose:
         #   Emit file contents as 'key|value' lines (order preserved).
         #
@@ -410,7 +410,7 @@ set -uo pipefail
         #
         # Notes:
         #   - Intended for display/debug; not a stable interchange format.
-    __sgnd_kv_list_keys() {
+    _sgnd_kv_list_keys() {
         local file="$1"
         [[ -r "$file" ]] || return 1
 
@@ -471,7 +471,7 @@ set -uo pipefail
         #   - Missing files are not treated as an error.
     sgnd_cfg_load() {
         local file="${1:-$SGND_CFG_FILE}"
-        __sgnd_kv_load_file "$file"
+        _sgnd_kv_load_file "$file"
     }
 
     # sgnd_cfg_set
@@ -512,10 +512,10 @@ set -uo pipefail
         #   sgnd_cfg_set "SGND_PAGE_MAX_ROWS" "15"
     sgnd_cfg_set() {
         local key="$1" val="$2"
-        __sgnd_is_ident "$key" || { saywarning "Skipping invalid cfg key: '$key'"; return 1; }
+        _sgnd_is_ident "$key" || { saywarning "Skipping invalid cfg key: '$key'"; return 1; }
         local file
         file="${SGND_CFG_FILE}"
-        __sgnd_kv_set "$file" "$key" "$val"
+        _sgnd_kv_set "$file" "$key" "$val"
         printf -v "$key" '%s' "$val"
     }
 
@@ -555,10 +555,10 @@ set -uo pipefail
         #   sgnd_cfg_unset "SGND_PAGE_MAX_ROWS"
     sgnd_cfg_unset() {
         local key="$1"
-        __sgnd_is_ident "$key" || { saywarning "Skipping invalid cfg key: '$key'"; return 1; }
+        _sgnd_is_ident "$key" || { saywarning "Skipping invalid cfg key: '$key'"; return 1; }
         local file
         file="${SGND_CFG_FILE}"
-        __sgnd_kv_unset "$file" "$key"
+        _sgnd_kv_unset "$file" "$key"
         unset "$key" || true
     }
 
@@ -591,7 +591,7 @@ set -uo pipefail
     sgnd_cfg_reset() {
         local file
         file="${SGND_CFG_FILE}"
-        __sgnd_kv_reset_file "$file"
+        _sgnd_kv_reset_file "$file"
     }
 
     # sgnd_cfg_get
@@ -629,11 +629,11 @@ set -uo pipefail
         #   sgnd_cfg_get "SGND_PAGE_MAX_ROWS"
     sgnd_cfg_get() {
         local key="$1"
-        __sgnd_is_ident "$key" || {
+        _sgnd_is_ident "$key" || {
             saywarning "Skipping invalid cfg key: '$key'"
             return 1
         }
-        __sgnd_kv_get "$SGND_CFG_FILE" "$key"
+        _sgnd_kv_get "$SGND_CFG_FILE" "$key"
     }
 
     # sgnd_cfg_has
@@ -670,11 +670,11 @@ set -uo pipefail
         #   sgnd_cfg_has "SGND_PAGE_MAX_ROWS"
     sgnd_cfg_has() {
         local key="$1"
-        __sgnd_is_ident "$key" || {
+        _sgnd_is_ident "$key" || {
             saywarning "Skipping invalid cfg key: '$key'"
             return 1
         }
-        __sgnd_kv_has "$SGND_CFG_FILE" "$key"
+        _sgnd_kv_has "$SGND_CFG_FILE" "$key"
     }
     
     # sgnd_cfg_show_keys
@@ -1133,7 +1133,7 @@ set -uo pipefail
         #   sgnd_state_load
     sgnd_state_load() {
         saydebug "Loading state from file ${SGND_STATE_FILE}"
-        __sgnd_kv_load_file "$SGND_STATE_FILE"
+        _sgnd_kv_load_file "$SGND_STATE_FILE"
     }
 
     # sgnd_state_set
@@ -1175,14 +1175,14 @@ set -uo pipefail
         #   sgnd_state_set "LAST_MODULE" "devtools"
     sgnd_state_set() {
         local key="$1" val="$2"
-        __sgnd_is_ident "$key" || {
+        _sgnd_is_ident "$key" || {
             saywarning "Skipping invalid state key: '$key'"
             return 1
         }   
 
         saydebug "Setting state key '$key' to '$val' in file ${SGND_STATE_FILE}"
 
-        __sgnd_kv_set "$SGND_STATE_FILE" "$key" "$val"
+        _sgnd_kv_set "$SGND_STATE_FILE" "$key" "$val"
         printf -v "$key" '%s' "$val"
     }
 
@@ -1223,14 +1223,14 @@ set -uo pipefail
         #   sgnd_state_unset "LAST_MODULE"
     sgnd_state_unset() {
         local key="$1"
-        __sgnd_is_ident "$key" || {
+        _sgnd_is_ident "$key" || {
             saywarning "Skipping invalid state key: '$key'"
             return 1
         }   
 
         saydebug "Unsetting state key '$key' in file ${SGND_STATE_FILE}"
 
-        __sgnd_kv_unset "$SGND_STATE_FILE" "$key"
+        _sgnd_kv_unset "$SGND_STATE_FILE" "$key"
         unset "$key" || true
     }
 
@@ -1261,7 +1261,7 @@ set -uo pipefail
     sgnd_state_reset() {
         [[ -n "$SGND_STATE_FILE" ]] || return 0
         saydebug "Deleting statefile $SGND_STATE_FILE"
-        __sgnd_kv_reset_file "$SGND_STATE_FILE"
+        _sgnd_kv_reset_file "$SGND_STATE_FILE"
     }
 
     # sgnd_state_get
@@ -1299,11 +1299,11 @@ set -uo pipefail
         #   sgnd_state_get "LAST_MODULE"
     sgnd_state_get() {
         local key="$1"
-        __sgnd_is_ident "$key" || {
+        _sgnd_is_ident "$key" || {
                 saywarning "Skipping invalid state key: '$key'"
                 return 1
         }
-        __sgnd_kv_get "$SGND_STATE_FILE" "$key"
+        _sgnd_kv_get "$SGND_STATE_FILE" "$key"
     }
 
     # sgnd_state_has
@@ -1340,12 +1340,12 @@ set -uo pipefail
         #   sgnd_state_has "LAST_MODULE"
     sgnd_state_has() {
         local key="$1"
-        __sgnd_is_ident "$key" || {
+        _sgnd_is_ident "$key" || {
                 saywarning "Skipping invalid state key: '$key'"
                 return 1
         }
         
-        __sgnd_kv_has "$SGND_STATE_FILE" "$key"
+        _sgnd_kv_has "$SGND_STATE_FILE" "$key"
     }
 
     # sgnd_state_save_keys
@@ -1382,7 +1382,7 @@ set -uo pipefail
     sgnd_state_save_keys() {
         local key val
         for key in "$@"; do
-            __sgnd_is_ident "$key" || { saywarning "Skipping invalid state key: '$key'"; continue; }
+            _sgnd_is_ident "$key" || { saywarning "Skipping invalid state key: '$key'"; continue; }
 
             # Safe under set -u
             val="${!key-}"
@@ -1430,7 +1430,7 @@ set -uo pipefail
     sgnd_state_load_keys() {
         local key val
         for key in "$@"; do
-             __sgnd_is_ident "$key" || {
+             _sgnd_is_ident "$key" || {
                 saywarning "Skipping invalid state key: '$key'"
                 continue
             }
@@ -1466,5 +1466,5 @@ set -uo pipefail
         #   sgnd_state_list_keys
     sgnd_state_list_keys() {
         [[ -r "${SGND_STATE_FILE:-}" ]] || return 0
-        __sgnd_kv_list_keys "$SGND_STATE_FILE"
+        _sgnd_kv_list_keys "$SGND_STATE_FILE"
     }

@@ -167,7 +167,7 @@ set -uo pipefail
         #   Resolve and source the framework bootstrap library.
         #
         # Behavior:
-        #   - Calls __framework_locator to establish framework roots.
+        #   - Calls _framework_locator to establish framework roots.
         #   - Derives the sgnd-bootstrap.sh path from SGND_FRAMEWORK_ROOT.
         #   - Verifies that the bootstrap library is readable.
         #   - Sources sgnd-bootstrap.sh into the current shell.
@@ -434,7 +434,7 @@ set -uo pipefail
 
 # --- local script functions ----------------------------------------------------------
  # -- Manifests
-    # __manifest_source_id
+    # _manifest_source_id
         # Purpose:
         #   Derive a stable manifest namespace identifier from SRC_ROOT.
         #
@@ -452,16 +452,16 @@ set -uo pipefail
         #   0 on success
         #
         # Usage:
-        #   id="$(__manifest_source_id)"
+        #   id="$(_manifest_source_id)"
         #
         # Notes:
         #   - Used to group manifests by source root
         #   - Keeps on-disk manifest paths safe and deterministic
-    __manifest_source_id() {
+    _manifest_source_id() {
         printf '%s' "$SRC_ROOT" | sha256sum | awk '{print $1}'
     }
 
-    # __manifest_source_dir
+    # _manifest_source_dir
         # Purpose:
         #   Resolve the manifest directory for the current SRC_ROOT.
         #
@@ -481,14 +481,14 @@ set -uo pipefail
         #   0 on success
         #
         # Usage:
-        #   dir="$(__manifest_source_dir)"
-    __manifest_source_dir() {
+        #   dir="$(_manifest_source_dir)"
+    _manifest_source_dir() {
         local id
-        id="$(__manifest_source_id)"
+        id="$(_manifest_source_id)"
         printf '%s/%s\n' "$MANIFEST_BASE_DIR" "$id"
     }
 
-    # __manifest_init
+    # _manifest_init
         # Purpose:
         #   Initialize a new manifest for the current deployment run.
         #
@@ -522,16 +522,16 @@ set -uo pipefail
         #   1 on failure
         #
         # Usage:
-        #   __manifest_init || return $?
+        #   _manifest_init || return $?
         #
         # Notes:
         #   - In dry-run mode, no manifest file is created
-        #   - Caller must later invoke __manifest_commit or __manifest_discard
-    __manifest_init() {
+        #   - Caller must later invoke _manifest_commit or _manifest_discard
+    _manifest_init() {
         local stamp
 
-        MANIFEST_SOURCE_ID="$(__manifest_source_id)"
-        MANIFEST_SOURCE_DIR="$(__manifest_source_dir)"
+        MANIFEST_SOURCE_ID="$(_manifest_source_id)"
+        MANIFEST_SOURCE_DIR="$(_manifest_source_dir)"
 
         if [[ "${FLAG_DRYRUN:-0}" -eq 1 ]]; then
             stamp="$(date +%Y%m%dT%H%M%S)"
@@ -568,7 +568,7 @@ set -uo pipefail
         return 0
     }
 
-    # __manifest_add_file
+    # _manifest_add_file
         # Purpose:
         #   Record a file CREATED during the current deployment run.
         #
@@ -591,11 +591,11 @@ set -uo pipefail
         #   1 on write failure
         #
         # Usage:
-        #   __manifest_add_file "/usr/local/bin/foo"
+        #   _manifest_add_file "/usr/local/bin/foo"
         #
         # Notes:
         #   - Only call this when the target file did not exist prior to install
-    __manifest_add_file() {
+    _manifest_add_file() {
         local abs_rel="$1"
 
         if [[ "${FLAG_DRYRUN:-0}" -eq 1 ]]; then
@@ -609,7 +609,7 @@ set -uo pipefail
         }
     }
 
-    # __manifest_add_dir
+    # _manifest_add_dir
         # Purpose:
         #   Record a directory CREATED during the current deployment run.
         #
@@ -632,11 +632,11 @@ set -uo pipefail
         #   1 on write failure
         #
         # Usage:
-        #   __manifest_add_dir "/etc/testadura"
+        #   _manifest_add_dir "/etc/testadura"
         #
         # Notes:
         #   - Only call this when the target directory did not exist prior to creation
-    __manifest_add_dir() {
+    _manifest_add_dir() {
         local abs_rel="$1"
 
         if [[ "${FLAG_DRYRUN:-0}" -eq 1 ]]; then
@@ -650,7 +650,7 @@ set -uo pipefail
         }
     }
 
-    # __manifest_commit
+    # _manifest_commit
         # Purpose:
         #   Finalize the current manifest after a successful deployment run.
         #
@@ -668,11 +668,11 @@ set -uo pipefail
         #   1 on failure
         #
         # Usage:
-        #   __manifest_commit || return $?
+        #   _manifest_commit || return $?
         #
         # Notes:
         #   - Should only be called after deploy completed successfully
-    __manifest_commit() {
+    _manifest_commit() {
         if [[ "${FLAG_DRYRUN:-0}" -eq 1 ]]; then
             sayinfo "Would commit manifest: $MANIFEST_PATH"
             return 0
@@ -687,7 +687,7 @@ set -uo pipefail
         return 0
     }
 
-    # __manifest_discard
+    # _manifest_discard
         # Purpose:
         #   Remove the temporary manifest after an interrupted or failed deployment run.
         #
@@ -703,11 +703,11 @@ set -uo pipefail
         #   0 always
         #
         # Usage:
-        #   __manifest_discard
+        #   _manifest_discard
         #
         # Notes:
         #   - Safe to call multiple times
-    __manifest_discard() {
+    _manifest_discard() {
         if [[ "${FLAG_DRYRUN:-0}" -eq 1 ]]; then
             return 0
         fi
@@ -720,7 +720,7 @@ set -uo pipefail
         return 0
     }
 
-    # __manifest_resolve_for_undeploy
+    # _manifest_resolve_for_undeploy
         # Purpose:
         #   Resolve which manifest should be used for undeploy.
         #
@@ -748,15 +748,15 @@ set -uo pipefail
         #   1 if no suitable manifest is found
         #
         # Usage:
-        #   __manifest_resolve_for_undeploy || return $?
+        #   _manifest_resolve_for_undeploy || return $?
         #
         # Notes:
         #   - Assumes manifest names are time-sortable when auto-generated
-    __manifest_resolve_for_undeploy() {
+    _manifest_resolve_for_undeploy() {
         local latest
 
-        MANIFEST_SOURCE_ID="$(__manifest_source_id)"
-        MANIFEST_SOURCE_DIR="$(__manifest_source_dir)"
+        MANIFEST_SOURCE_ID="$(_manifest_source_id)"
+        MANIFEST_SOURCE_DIR="$(_manifest_source_dir)"
 
         [[ -d "$MANIFEST_SOURCE_DIR" ]] || {
             sayfail "No manifest directory found for source root: $SRC_ROOT"
@@ -789,7 +789,7 @@ set -uo pipefail
         return 0
     }
 
-    # __manifest_list
+    # _manifest_list
         # Purpose:
         #   List available manifests for the current source root.
         #
@@ -806,10 +806,10 @@ set -uo pipefail
         #   1 if manifest directory does not exist
         #
         # Usage:
-        #   __manifest_list
-    __manifest_list() {
+        #   _manifest_list
+    _manifest_list() {
         local dir
-        dir="$(__manifest_source_dir)"
+        dir="$(_manifest_source_dir)"
 
         [[ -d "$dir" ]] || {
             sayfail "No manifest directory found for source root: $SRC_ROOT"
@@ -820,7 +820,7 @@ set -uo pipefail
         return 0
     }
 
-    # __manifest_verify_target
+    # _manifest_verify_target
         # Purpose:
         #   Verify that the resolved manifest belongs to the current DEST_ROOT.
         #
@@ -838,11 +838,11 @@ set -uo pipefail
         #   1 when target differs or cannot be read
         #
         # Usage:
-        #   __manifest_verify_target || return $?
+        #   _manifest_verify_target || return $?
         #
         # Notes:
         #   - Prevents undeploy from applying a manifest to the wrong target root
-    __manifest_verify_target() {
+    _manifest_verify_target() {
         local manifest_target=""
         manifest_target="$(
             awk -F= '/^target=/{print substr($0,8); exit}' "$MANIFEST_PATH"
@@ -862,7 +862,7 @@ set -uo pipefail
     }
 
  # -- Main sequence  
-    # __perm_resolve
+    # _perm_resolve
         # Purpose:
         #   Resolve the effective permission mode for a given path based on PERMISSION_RULES.
         #
@@ -886,11 +886,11 @@ set -uo pipefail
         #   dir  → 755
         #
         # Usage:
-        #   mode="$(__perm_resolve "/usr/local/bin/foo" "file")"
+        #   mode="$(_perm_resolve "/usr/local/bin/foo" "file")"
         #
         # Examples:
-        #   dir_mode="$(__perm_resolve "/usr/local/bin" "dir")"
-    __perm_resolve() {
+        #   dir_mode="$(_perm_resolve "/usr/local/bin" "dir")"
+    _perm_resolve() {
         local abs_rel="$1"   # e.g. "/usr/local/sbin/td-foo"
         local kind="$2"      # "file" or "dir"
 
@@ -919,7 +919,7 @@ set -uo pipefail
         fi
     }
 
-    # __update_lastdeployinfo
+    # _update_lastdeployinfo
         # Purpose:
         #   Persist metadata of the last deployment run for reuse (e.g. auto mode).
         #
@@ -941,8 +941,8 @@ set -uo pipefail
         #   0 on success
         #
         # Usage:
-        #   __update_lastdeployinfo
-    __update_lastdeployinfo() {
+        #   _update_lastdeployinfo
+    _update_lastdeployinfo() {
         if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
             sayinfo "Would have saved lastdeployinfo"
         else
@@ -953,7 +953,7 @@ set -uo pipefail
         fi
     }
 
-    # __getparameters
+    # _getparameters
         # Purpose:
         #   Collect deployment parameters (source and target roots).
         #
@@ -978,11 +978,11 @@ set -uo pipefail
         #   1 → aborted
         #
         # Usage:
-        #   __getparameters || return $?
+        #   _getparameters || return $?
         #
         # Notes:
         #   - Uses ask and ask_ok_redo_quit
-    __getparameters() {
+    _getparameters() {
         local default_src default_dst
         default_src="${last_deploy_source:-$HOME/dev}"
         default_dst="${last_deploy_target:-/}"
@@ -1043,7 +1043,7 @@ set -uo pipefail
         return 0
     }
 
-    # __deploy
+    # _deploy
         # Purpose:
         #   Deploy workspace files from SRC_ROOT into DEST_ROOT.
         #
@@ -1067,8 +1067,8 @@ set -uo pipefail
         #   - Finalizes manifest only after successful completion
         #
         # Permissions:
-        #   - File mode via __perm_resolve(abs_rel,"file")
-        #   - Directory mode via __perm_resolve(abs_rel,"dir")
+        #   - File mode via _perm_resolve(abs_rel,"file")
+        #   - Directory mode via _perm_resolve(abs_rel,"dir")
         #
         # Dry run:
         #   - When FLAG_DRYRUN=1, only reports actions
@@ -1084,12 +1084,12 @@ set -uo pipefail
         #   1 on fatal deployment/manifest failure
         #
         # Usage:
-        #   __deploy
+        #   _deploy
         #
         # Notes:
         #   - Uses install for atomic writes and permission control
         #   - Manifest records created artifacts only; it is not full rollback state
-    __deploy() {
+    _deploy() {
         SRC_ROOT="${SRC_ROOT%/}"
         DEST_ROOT="${DEST_ROOT%/}"
 
@@ -1100,14 +1100,14 @@ set -uo pipefail
 
         saystart "Starting deployment from $SRC_ROOT to ${DEST_ROOT:-/}"
 
-        __manifest_init || return $?
+        _manifest_init || return $?
 
         while IFS= read -r file; do
             rel="${file#"$SRC_ROOT"/}"
 
             if [[ "$rel" == "$file" || "$rel" == /* ]]; then
                 sayfail "Bad rel path: file='$file' SRC_ROOT='$SRC_ROOT' rel='$rel'"
-                __manifest_discard
+                _manifest_discard
                 return 1
             fi
 
@@ -1123,7 +1123,7 @@ set -uo pipefail
             fi
 
             if [[ ! -e "$dst" || "$file" -nt "$dst" ]]; then
-                perms="$(__perm_resolve "$abs_rel" "file")"
+                perms="$(_perm_resolve "$abs_rel" "file")"
                 dst_dir="$(dirname "$dst")"
 
                 if [[ "${FLAG_DRYRUN:-0}" -eq 0 ]]; then
@@ -1138,16 +1138,16 @@ set -uo pipefail
                     for (( i=${#missing_dirs[@]}-1; i>=0; i-- )); do
                         dir_abs_rel="${missing_dirs[$i]#"${DEST_ROOT:-}"}"
                         dir_abs_rel="${dir_abs_rel:-/}"
-                        dir_mode="$(__perm_resolve "$dir_abs_rel" "dir")"
+                        dir_mode="$(_perm_resolve "$dir_abs_rel" "dir")"
 
                         install -d -m "$dir_mode" "${missing_dirs[$i]}" || {
                             sayfail "Failed to create directory: ${missing_dirs[$i]}"
-                            __manifest_discard
+                            _manifest_discard
                             return 1
                         }
 
-                        __manifest_add_dir "$dir_abs_rel" || {
-                            __manifest_discard
+                        _manifest_add_dir "$dir_abs_rel" || {
+                            _manifest_discard
                             return 1
                         }
                     done
@@ -1158,13 +1158,13 @@ set -uo pipefail
                     sayinfo "Installing $file --> $dst, with $perms permissions"
                     install -m "$perms" "$file" "$dst" || {
                         sayfail "Failed to install file: $file -> $dst"
-                        __manifest_discard
+                        _manifest_discard
                         return 1
                     }
 
                     if [[ "$dst_existed" -eq 0 ]]; then
-                        __manifest_add_file "$abs_rel" || {
-                            __manifest_discard
+                        _manifest_add_file "$abs_rel" || {
+                            _manifest_discard
                             return 1
                         }
                     fi
@@ -1176,13 +1176,13 @@ set -uo pipefail
             fi
         done < <(find "$SRC_ROOT" -type f)
 
-        __manifest_commit || return $?
+        _manifest_commit || return $?
 
         sayend "End deployment complete."
         return 0
     }
 
-    # __undeploy
+    # _undeploy
         # Purpose:
         #   Remove previously deployed files and directories using a manifest.
         #
@@ -1212,16 +1212,16 @@ set -uo pipefail
         #   1 if manifest resolution fails
         #
         # Usage:
-        #   __undeploy
+        #   _undeploy
         #
         # Notes:
         #   - This is a manifest-based inverse of created artifacts only
         #   - Updated pre-existing files are not restored or removed
-    __undeploy() {
+    _undeploy() {
         local kind path dst
 
-        __manifest_resolve_for_undeploy || return $?
-        __manifest_verify_target || return $?
+        _manifest_resolve_for_undeploy || return $?
+        _manifest_verify_target || return $?
 
         saystart "Starting UNINSTALL using manifest $MANIFEST_PATH"
 
@@ -1322,14 +1322,14 @@ set -uo pipefail
             sgnd_print_titlebar
 
         # -- Main script logic
-            __getparameters || return $?
+            _getparameters || return $?
 
             # -- Deploy or undeploy                    
             if [[ "${FLAG_UNDEPLOY:-0}" -eq 0 ]]; then
-                __deploy || return $?
-                __update_lastdeployinfo
+                _deploy || return $?
+                _update_lastdeployinfo
             else
-                __undeploy
+                _undeploy
             fi
     }
 

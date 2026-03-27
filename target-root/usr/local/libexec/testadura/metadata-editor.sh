@@ -186,7 +186,7 @@ set -uo pipefail
         #   Resolve and source the framework bootstrap library.
         #
         # Behavior:
-        #   - Calls __framework_locator to establish framework roots.
+        #   - Calls _framework_locator to establish framework roots.
         #   - Derives the sgnd-bootstrap.sh path from SGND_FRAMEWORK_ROOT.
         #   - Verifies that the bootstrap library is readable.
         #   - Sources sgnd-bootstrap.sh into the current shell.
@@ -358,7 +358,7 @@ set -uo pipefail
     _sect_lp=2
 
 # --- Local UI ------------------------------------------------------------------------
-    # __print_section_labeledvalues
+    # _print_section_labeledvalues
         # Purpose:
         #   Print all rows from one metadata section as labeled values.
         #
@@ -380,11 +380,11 @@ set -uo pipefail
         #   1  failed to read datatable contents
         #
         # Usage:
-        #   __print_section_labeledvalues "$META_SCHEMA" META_ROWS "Metadata"
+        #   _print_section_labeledvalues "$META_SCHEMA" META_ROWS "Metadata"
         #
         # Examples:
-        #   __print_section_labeledvalues "$META_SCHEMA" META_ROWS "Attribution"
-    __print_section_labeledvalues() {
+        #   _print_section_labeledvalues "$META_SCHEMA" META_ROWS "Attribution"
+    _print_section_labeledvalues() {
         local schema="${1:?missing schema}"
         local table_name="${2:?missing table name}"
         local wanted_section="${3:?missing section}"
@@ -410,7 +410,7 @@ set -uo pipefail
         done
     }
 
-    # __show_current_metadata
+    # _show_current_metadata
         # Purpose:
         #   Render the currently loaded metadata for the active script.
         #
@@ -428,23 +428,23 @@ set -uo pipefail
         #   1  failed to render section contents
         #
         # Usage:
-        #   __show_current_metadata
+        #   _show_current_metadata
         #
         # Examples:
-        #   __get_metadata || return 1
-        #   __show_current_metadata
-    __show_current_metadata(){
+        #   _get_metadata || return 1
+        #   _show_current_metadata
+    _show_current_metadata(){
         sgnd_print
         sgnd_print_sectionheader "Current data" --border "${LN_H}" --padleft 2
 
-        __print_section_labeledvalues "$META_SCHEMA" META_ROWS "Metadata"
-        __print_section_labeledvalues "$META_SCHEMA" META_ROWS "Attribution"
+        _print_section_labeledvalues "$META_SCHEMA" META_ROWS "Metadata"
+        _print_section_labeledvalues "$META_SCHEMA" META_ROWS "Attribution"
 
         sgnd_print
         sgnd_print_sectionheader --border "${LN_H}" --padleft 0
     }
 
-    # __show_pending_value_buffer
+    # _show_pending_value_buffer
         # Purpose:
         #   Show a summary of changed fields in the pending value buffer.
         #
@@ -468,11 +468,11 @@ set -uo pipefail
         #   1  failed to read metadata rows
         #
         # Usage:
-        #   __show_pending_value_buffer value_buffer
+        #   _show_pending_value_buffer value_buffer
         #
         # Examples:
-        #   __show_pending_value_buffer io_buffer
-    __show_pending_value_buffer() {
+        #   _show_pending_value_buffer io_buffer
+    _show_pending_value_buffer() {
         local -n in_buffer="$1"
         local i=0
         local section=""
@@ -512,7 +512,7 @@ set -uo pipefail
     }
 
 # --- Local script functions ----------------------------------------------------------
-    # __field_is_selected
+    # _field_is_selected
         # Purpose:
         #   Test whether a field is included in the interactive prompt selection.
         #
@@ -534,22 +534,22 @@ set -uo pipefail
         #   1  field is not selected
         #
         # Usage:
-        #   __field_is_selected "Version"
+        #   _field_is_selected "Version"
         #
         # Examples:
-        #   if __field_is_selected "$field"; then
+        #   if _field_is_selected "$field"; then
         #       :
         #   fi
-    __field_is_selected() {
+    _field_is_selected() {
         local wanted="${1:?missing field}"
         local item=""
         local list="${VAL_PROMPTFOR:-}"
 
         [[ -n "$list" ]] || return 0
 
-        IFS=',' read -r -a __me_promptfor <<< "$list"
+        IFS=',' read -r -a _me_promptfor <<< "$list"
 
-        for item in "${__me_promptfor[@]}"; do
+        for item in "${_me_promptfor[@]}"; do
             item="${item#"${item%%[![:space:]]*}"}"
             item="${item%"${item##*[![:space:]]}"}"
 
@@ -559,12 +559,12 @@ set -uo pipefail
         return 1
     }
 
-    # __resolve_source
+    # _resolve_source
         # Purpose:
         #   Resolve effective processing targets into SOURCE_FILES.
         #
         # Behavior:
-        #   - Normalizes folder and file mask via __resolve_source_input().
+        #   - Normalizes folder and file mask via _resolve_source_input().
         #   - Combines folder + mask into a single glob expression.
         #   - Expands matches using shell globbing.
         #   - Keeps only regular readable files.
@@ -583,11 +583,11 @@ set -uo pipefail
         #   1  invalid folder or no readable matches found
         #
         # Usage:
-        #   __resolve_source || return 1
+        #   _resolve_source || return 1
         #
         # Examples:
-        #   __resolve_source
-    __resolve_source() {
+        #   _resolve_source
+    _resolve_source() {
         local folder=""
         local mask=""
         local fullmask=""
@@ -595,7 +595,7 @@ set -uo pipefail
 
         SOURCE_FILES=()
 
-        __resolve_source_input
+        _resolve_source_input
 
         folder="${VAL_FOLDER}"
         mask="${VAL_FILE}"
@@ -627,7 +627,7 @@ set -uo pipefail
         return 0
     }
 
-    # __get_metadata
+    # _get_metadata
         # Purpose:
         #   Load header metadata for the current script into META_ROWS.
         #
@@ -648,12 +648,12 @@ set -uo pipefail
         #   1  failed to load one or more header sections
         #
         # Usage:
-        #   __get_metadata || return 1
+        #   _get_metadata || return 1
         #
         # Examples:
         #   current_script="$file"
-        #   __get_metadata
-    __get_metadata() {
+        #   _get_metadata
+    _get_metadata() {
         local -a meta_rows=()
         local -a attr_rows=()
 
@@ -666,7 +666,7 @@ set -uo pipefail
         META_ROWS+=( "${attr_rows[@]}" )
     }
 
-    # __resolve_bump_mode
+    # _resolve_bump_mode
         # Purpose:
         #   Resolve the effective non-interactive version update mode from flags.
         #
@@ -690,11 +690,11 @@ set -uo pipefail
         #   1  conflicting bump flags supplied
         #
         # Usage:
-        #   __resolve_bump_mode || exit 2
+        #   _resolve_bump_mode || exit 2
         #
         # Examples:
-        #   __resolve_bump_mode
-    __resolve_bump_mode() {
+        #   _resolve_bump_mode
+    _resolve_bump_mode() {
         local bump_count=0
 
         BUMP_MODE="none"
@@ -722,7 +722,7 @@ set -uo pipefail
         return 0
     }
 
-    # __validate_auto_args
+    # _validate_auto_args
         # Purpose:
         #   Validate required arguments for automatic field update mode.
         #
@@ -746,11 +746,11 @@ set -uo pipefail
         #   1  missing required auto-mode arguments
         #
         # Usage:
-        #   __validate_auto_args || exit 2
+        #   _validate_auto_args || exit 2
         #
         # Examples:
-        #   __validate_auto_args
-    __validate_auto_args() {
+        #   _validate_auto_args
+    _validate_auto_args() {
         (( ${FLAG_AUTO:-0} )) || return 0
 
         if [[ -z "${VAL_FILE:-}" && -z "${VAL_FOLDER:-}" ]]; then
@@ -776,7 +776,7 @@ set -uo pipefail
         return 0
     }
 
-    # __validate_bump_args
+    # _validate_bump_args
         # Purpose:
         #   Validate required arguments for version metadata update mode.
         #
@@ -797,11 +797,11 @@ set -uo pipefail
         #   1  invalid or missing bump-mode target arguments
         #
         # Usage:
-        #   __validate_bump_args || exit 2
+        #   _validate_bump_args || exit 2
         #
         # Examples:
-        #   __validate_bump_args
-    __validate_bump_args() {
+        #   _validate_bump_args
+    _validate_bump_args() {
         if (( ${FLAG_BUMPVERSION:-0} || ${FLAG_BUMPMAJOR:-0} || ${FLAG_BUMPMINOR:-0} )); then
             if [[ -z "${VAL_FILE:-}" && -z "${VAL_FOLDER:-}" ]]; then
                 sayfail "Version bump mode requires --file or --folder"
@@ -817,7 +817,7 @@ set -uo pipefail
         return 0
     }
 
-    # __auto_update_files
+    # _auto_update_files
         # Purpose:
         #   Apply one direct field update to all resolved target files.
         #
@@ -836,17 +836,17 @@ set -uo pipefail
         #   1  target resolution failed or one or more updates failed
         #
         # Usage:
-        #   __auto_update_files || exit $?
+        #   _auto_update_files || exit $?
         #
         # Examples:
-        #   __auto_update_files
-    __auto_update_files() {
+        #   _auto_update_files
+    _auto_update_files() {
         local file=""
         local rc=0
         local changed=0
         local failed=0
 
-        __resolve_source || return 1
+        _resolve_source || return 1
 
         for file in "${SOURCE_FILES[@]}"; do
             if sgnd_header_set_field "$file" "$VAL_SECTION" "$VAL_FIELD" "$VAL_VALUE"; then
@@ -870,7 +870,7 @@ set -uo pipefail
         (( failed == 0 ))
     }
 
-    # __bump_one_file
+    # _bump_one_file
         # Purpose:
         #   Apply a version bump to one file, respecting dry-run.
         #
@@ -881,7 +881,7 @@ set -uo pipefail
         # Returns:
         #   0  success
         #   1  failure
-    __bump_one_file() {
+    _bump_one_file() {
         local file="${1:?missing file}"
         local mode="${2:-none}"
 
@@ -897,13 +897,13 @@ set -uo pipefail
         sgnd_header_bump_version "$file" "$mode"
     }
 
-    # __bump_version_files
+    # _bump_version_files
         # Purpose:
         #   Apply the resolved version metadata update mode to all target files.
         #
         # Behavior:
         #   - Resolves target files from --file or --folder.
-        #   - Applies __bump_one_file() to each target.
+        #   - Applies _bump_one_file() to each target.
         #   - Reports per-file results and a final summary.
         #
         # Inputs (globals):
@@ -914,19 +914,19 @@ set -uo pipefail
         #   1  target resolution failed or one or more updates failed
         #
         # Usage:
-        #   __bump_version_files || exit $?
+        #   _bump_version_files || exit $?
         #
         # Examples:
-        #   __bump_version_files
-    __bump_version_files() {
+        #   _bump_version_files
+    _bump_version_files() {
         local file=""
         local changed=0
         local failed=0
 
-        __resolve_source || return 1
+        _resolve_source || return 1
 
         for file in "${SOURCE_FILES[@]}"; do
-            if __bump_one_file "$file" "$BUMP_MODE"; then
+            if _bump_one_file "$file" "$BUMP_MODE"; then
                 case "$BUMP_MODE" in
                     major) sayok "Bumped major version in $file" ;;
                     minor) sayok "Bumped minor version in $file" ;;
@@ -943,7 +943,7 @@ set -uo pipefail
         (( failed == 0 ))
     }
 
-    # __collect_changed_fields
+    # _collect_changed_fields
         # Purpose:
         #   Collect the names of fields whose pending values differ from current metadata.
         #
@@ -952,7 +952,7 @@ set -uo pipefail
         #
         # Outputs:
         #   Writes changed field names to stdout, one per line.
-    __collect_changed_fields() {
+    _collect_changed_fields() {
         local -n in_buffer="$1"
         local i=0
         local field=""
@@ -970,7 +970,7 @@ set -uo pipefail
     }
 
 # --- User input ----------------------------------------------------------------------
-    # __resolve_source_input
+    # _resolve_source_input
         # Purpose:
         #   Normalize and optionally prompt for target folder and file mask.
         #
@@ -1000,35 +1000,35 @@ set -uo pipefail
         #   0  success
         #
         # Usage:
-        #   __resolve_source_input
+        #   _resolve_source_input
         #
         # Examples:
-        #   __resolve_source_input
-    __resolve_source_input() {
-        local __folder="${VAL_FOLDER:-}"
-        local __mask="${VAL_FILE:-}"
+        #   _resolve_source_input
+    _resolve_source_input() {
+        local _folder="${VAL_FOLDER:-}"
+        local _mask="${VAL_FILE:-}"
 
         # If file contains a path, split it
-        if [[ -z "$__folder" && -n "$__mask" && "$__mask" == */* ]]; then
-            __folder="$(dirname "$__mask")"
-            __mask="$(basename "$__mask")"
+        if [[ -z "$_folder" && -n "$_mask" && "$_mask" == */* ]]; then
+            _folder="$(dirname "$_mask")"
+            _mask="$(basename "$_mask")"
         fi
 
         # Defaults
-        [[ -n "$__folder" ]] || __folder="."
-        [[ -n "$__mask"   ]] || __mask="*.sh"
+        [[ -n "$_folder" ]] || _folder="."
+        [[ -n "$_mask"   ]] || _mask="*.sh"
 
         # Interactive prompt (TTY only)
         if [[ -t 0 && -t 1 ]]; then
-            ask --label "Folder"    --default "$__folder" --var __folder --pad "$_ask_lp" --default "$VAL_FOLDER" --labelwidth "$_ask_lw" --labelclr "${CYAN}"
-            ask --label "File mask" --default "$__mask"   --var __mask --pad "$_ask_lp" --default "$VAL_FILE" --labelwidth "$_ask_lw" --labelclr "${CYAN}"
+            ask --label "Folder"    --default "$_folder" --var _folder --pad "$_ask_lp" --default "$VAL_FOLDER" --labelwidth "$_ask_lw" --labelclr "${CYAN}"
+            ask --label "File mask" --default "$_mask"   --var _mask --pad "$_ask_lp" --default "$VAL_FILE" --labelwidth "$_ask_lw" --labelclr "${CYAN}"
         fi
 
-        VAL_FOLDER="$__folder"
-        VAL_FILE="$__mask"
+        VAL_FOLDER="$_folder"
+        VAL_FILE="$_mask"
     }
 
-    # __build_value_buffer_from_meta
+    # _build_value_buffer_from_meta
         # Purpose:
         #   Build an editable value buffer from the current metadata rows.
         #
@@ -1053,11 +1053,11 @@ set -uo pipefail
         #   1  failed to read metadata rows
         #
         # Usage:
-        #   __build_value_buffer_from_meta value_buffer
+        #   _build_value_buffer_from_meta value_buffer
         #
         # Examples:
-        #   __build_value_buffer_from_meta io_buffer
-    __build_value_buffer_from_meta() {
+        #   _build_value_buffer_from_meta io_buffer
+    _build_value_buffer_from_meta() {
         local -n out_buffer="$1"
         local i=0
         local value=""
@@ -1070,13 +1070,13 @@ set -uo pipefail
         done
     }
 
-    # __prompt_value_buffer
+    # _prompt_value_buffer
         # Purpose:
         #   Prompt interactively for editable field values and update the buffer in place.
         #
         # Behavior:
         #   - Iterates through META_ROWS in order.
-        #   - Prompts only for fields selected by __field_is_selected().
+        #   - Prompts only for fields selected by _field_is_selected().
         #   - Groups prompts by section.
         #   - Uses the current buffer value as the editable default.
         #   - Writes accepted values back into the supplied buffer.
@@ -1103,11 +1103,11 @@ set -uo pipefail
         #   1  failed to read metadata rows
         #
         # Usage:
-        #   __prompt_value_buffer value_buffer normal
+        #   _prompt_value_buffer value_buffer normal
         #
         # Examples:
-        #   __prompt_value_buffer io_buffer idem
-    __prompt_value_buffer() {
+        #   _prompt_value_buffer io_buffer idem
+    _prompt_value_buffer() {
         local -n buffer_ref="$1"
         local prompt_mode="${2:-normal}"
         local i=0
@@ -1130,7 +1130,7 @@ set -uo pipefail
             field="$(sgnd_dt_get "$META_SCHEMA" META_ROWS "$i" "field")" || return 1
             current_value="${buffer_ref[$i]-}"
 
-            __field_is_selected "$field" || continue
+            _field_is_selected "$field" || continue
 
             if [[ "$prompt_mode" == "idem" ]]; then
                 continue
@@ -1150,7 +1150,7 @@ set -uo pipefail
         sgnd_print_sectionheader --border "${LN_H}"
     }
 
-    # __ask_interactive_action
+    # _ask_interactive_action
         # Purpose:
         #   Ask which interactive action to apply to the selected targets.
         #
@@ -1171,18 +1171,18 @@ set -uo pipefail
         #   0  success
         #
         # Usage:
-        #   __ask_interactive_action action
+        #   _ask_interactive_action action
         #
         # Examples:
         #   local action=""
-        #   __ask_interactive_action action
+        #   _ask_interactive_action action
             # Purpose:
             #   Ask whether to edit fields or bump version.
             #
             # Outputs:
             #   Writes selected action token to stdout:
             #     edit | bump | cancel
-    __ask_interactive_action() {
+    _ask_interactive_action() {
         local -n out_action="$1"
         local choice=""
 
@@ -1209,7 +1209,7 @@ set -uo pipefail
         esac
     }
 
-    # __ask_bump_mode
+    # _ask_bump_mode
         # Purpose:
         #   Ask which version metadata update mode to apply.
         #
@@ -1230,18 +1230,18 @@ set -uo pipefail
         #   0  success
         #
         # Usage:
-        #   __ask_bump_mode mode
+        #   _ask_bump_mode mode
         #
         # Examples:
         #   local mode=""
-        #   __ask_bump_mode mode
+        #   _ask_bump_mode mode
             # Purpose:
             #   Ask which semantic version bump to apply.
             #
             # Outputs:
             #   Writes selected mode token to stdout:
             #     major | minor | cancel
-    __ask_bump_mode() {
+    _ask_bump_mode() {
         local -n out_mode="$1"
         local choice=""
         local lw=4
@@ -1266,7 +1266,7 @@ set -uo pipefail
         esac
     }
     
-    # __apply_value_buffer_to_file
+    # _apply_value_buffer_to_file
         # Purpose:
         #   Apply changed values from the pending buffer to the current script header.
         #
@@ -1292,11 +1292,11 @@ set -uo pipefail
         #   1  one or more field updates failed
         #
         # Usage:
-        #   __apply_value_buffer_to_file value_buffer
+        #   _apply_value_buffer_to_file value_buffer
         #
         # Examples:
-        #   __apply_value_buffer_to_file io_buffer
-    __apply_value_buffer_to_file() {
+        #   _apply_value_buffer_to_file io_buffer
+    _apply_value_buffer_to_file() {
         local -n in_buffer="$1"
         local i=0
         local section=""
@@ -1341,7 +1341,7 @@ set -uo pipefail
     }
 
 # --- Main ----------------------------------------------------------------------------
-    # __interactive_bump_files
+    # _interactive_bump_files
         # Purpose:
         #   Apply an interactive version metadata update to the first file or all files.
         #
@@ -1364,18 +1364,18 @@ set -uo pipefail
         #   2  cancelled
         #
         # Usage:
-        #   __interactive_bump_files 0
+        #   _interactive_bump_files 0
         #
         # Examples:
-        #   __interactive_bump_files "$apply_all_answers"
-    __interactive_bump_files() {
+        #   _interactive_bump_files "$apply_all_answers"
+    _interactive_bump_files() {
         local apply_all="${1:-0}"
         local mode=""
         local file=""
         local -a bump_files=()
 
         local mode=""
-        __ask_bump_mode mode
+        _ask_bump_mode mode
 
         case "$mode" in
             cancel) return 2 ;;
@@ -1390,7 +1390,7 @@ set -uo pipefail
         fi
 
         for file in "${bump_files[@]}"; do
-            if __bump_one_file "$file" "$mode"; then
+            if _bump_one_file "$file" "$mode"; then
                 case "$mode" in
                     major) sayok "Bumped major version in $file" ;;
                     minor) sayok "Bumped minor version in $file" ;;
@@ -1404,7 +1404,7 @@ set -uo pipefail
         return 0
     }
 
-    # __interactive_edit_current_file
+    # _interactive_edit_current_file
         # Purpose:
         #   Interactively edit metadata for the current script using a fresh value buffer.
         #
@@ -1424,33 +1424,33 @@ set -uo pipefail
         #   1  failure or user abort
         #
         # Usage:
-        #   __interactive_edit_current_file
+        #   _interactive_edit_current_file
         #
         # Examples:
         #   current_script="$file"
-        #   __interactive_edit_current_file
-    __interactive_edit_current_file() {
+        #   _interactive_edit_current_file
+    _interactive_edit_current_file() {
         local -a value_buffer=()
         local -a changed_fields=()
         local field_list=""
         local field_word="fields"
 
-        __get_metadata || return 1
-        __build_value_buffer_from_meta value_buffer || return 1
+        _get_metadata || return 1
+        _build_value_buffer_from_meta value_buffer || return 1
 
         while true; do
             sayinfo "Editing: $current_script"
-            __show_current_metadata
+            _show_current_metadata
             echo
 
-            __prompt_value_buffer value_buffer || return 1
+            _prompt_value_buffer value_buffer || return 1
 
             echo
             sayinfo "Pending changes:"
-            __show_pending_value_buffer value_buffer || return 1
+            _show_pending_value_buffer value_buffer || return 1
             echo
 
-            mapfile -t changed_fields < <(__collect_changed_fields value_buffer) || return 1
+            mapfile -t changed_fields < <(_collect_changed_fields value_buffer) || return 1
             field_list="$(sgnd_join ", " "${changed_fields[@]}")"
 
             if (( ${#changed_fields[@]} == 0 )); then
@@ -1467,7 +1467,7 @@ set -uo pipefail
 
             case $? in
                 0)
-                    __apply_value_buffer_to_file value_buffer || return 1
+                    _apply_value_buffer_to_file value_buffer || return 1
                     break
                     ;;
                 1)
@@ -1485,7 +1485,7 @@ set -uo pipefail
         done
     }
 
-    # __interactive_edit_current_file_with_buffer
+    # _interactive_edit_current_file_with_buffer
         # Purpose:
         #   Interactively edit metadata for the current script using a supplied value buffer.
         #
@@ -1514,11 +1514,11 @@ set -uo pipefail
         #   2  cancelled
         #
         # Usage:
-        #   __interactive_edit_current_file_with_buffer value_buffer normal
+        #   _interactive_edit_current_file_with_buffer value_buffer normal
         #
         # Examples:
-        #   __interactive_edit_current_file_with_buffer value_buffer idem_reuse
-    __interactive_edit_current_file_with_buffer() {
+        #   _interactive_edit_current_file_with_buffer value_buffer idem_reuse
+    _interactive_edit_current_file_with_buffer() {
             local -n io_buffer="$1"
             local prompt_mode="${2:-normal}"
             local -a changed_fields=()
@@ -1527,16 +1527,16 @@ set -uo pipefail
 
             while true; do
                 sayinfo "Editing: $current_script"
-                __show_current_metadata
+                _show_current_metadata
                 echo
 
                 if [[ "$prompt_mode" == "idem_reuse" ]]; then
                     sayinfo "Reusing previous answers (--idem)"
                 else
-                    __prompt_value_buffer io_buffer normal || return 1
+                    _prompt_value_buffer io_buffer normal || return 1
                 fi
 
-                mapfile -t changed_fields < <(__collect_changed_fields io_buffer) || return 1
+                mapfile -t changed_fields < <(_collect_changed_fields io_buffer) || return 1
                 field_list="$(sgnd_join ", " "${changed_fields[@]}")"
 
                 if (( ${#changed_fields[@]} == 0 )); then
@@ -1552,7 +1552,7 @@ set -uo pipefail
 
                 case $? in
                     0|1)
-                        __apply_value_buffer_to_file io_buffer || return 1
+                        _apply_value_buffer_to_file io_buffer || return 1
                         break
                         ;;
                     2)
@@ -1572,7 +1572,7 @@ set -uo pipefail
 
     
     
-    # __interactive_edit_files
+    # _interactive_edit_files
         # Purpose:
         #   Interactive entry flow for target files.
         #
@@ -1585,7 +1585,7 @@ set -uo pipefail
         #   0  success
         #   1  failure
         #   2  cancelled
-    __interactive_edit_files() {
+    _interactive_edit_files() {
         local file=""
         local rc=0
         local action=""
@@ -1604,23 +1604,23 @@ set -uo pipefail
             sgnd_print_labeledvalue "File count" "${#SOURCE_FILES[@]}" --pad "$_ask_lp" --labelwidth "$_ask_lw" --labelclr "$(sgnd_sgr "$SILVER" "$FX_ITALIC")" --valueclr "$(sgnd_sgr "$SILVER" "$FX_ITALIC")"
             sgnd_print
 
-            ask --label "Apply first file's answers to all?" --var __resp --default "Y" --colorize both --labelclr "${CYAN}" --pad "$_ask_lp" --labelwidth "$_ask_lw"
+            ask --label "Apply first file's answers to all?" --var _resp --default "Y" --colorize both --labelclr "${CYAN}" --pad "$_ask_lp" --labelwidth "$_ask_lw"
 
-            case "$__resp" in
+            case "$_resp" in
                 0) apply_all_answers=1 ;;
                 1) apply_all_answers=0 ;;
                 *) apply_all_answers=0 ;;
             esac
         fi
 
-        __ask_interactive_action action
+        _ask_interactive_action action
         case "$action" in
             cancel)
                 saycancel "Aborting as per user request."
                 return 2
                 ;;
             bump)
-                __interactive_bump_files "$apply_all_answers"
+                _interactive_bump_files "$apply_all_answers"
                 return $?
                 ;;
             edit)
@@ -1633,11 +1633,11 @@ set -uo pipefail
 
         for file in "${SOURCE_FILES[@]}"; do
             current_script="$file"
-            __get_metadata || return 1
+            _get_metadata || return 1
 
             if [[ "$file" == "$first_file" ]]; then
-                __build_value_buffer_from_meta value_buffer || return 1
-                __interactive_edit_current_file_with_buffer value_buffer "normal"
+                _build_value_buffer_from_meta value_buffer || return 1
+                _interactive_edit_current_file_with_buffer value_buffer "normal"
                 rc=$?
                 case "$rc" in
                     0) ;;
@@ -1648,10 +1648,10 @@ set -uo pipefail
             fi
 
             if (( apply_all_answers )); then
-                __interactive_edit_current_file_with_buffer value_buffer "idem_reuse"
+                _interactive_edit_current_file_with_buffer value_buffer "idem_reuse"
             else
-                __build_value_buffer_from_meta value_buffer || return 1
-                __interactive_edit_current_file_with_buffer value_buffer "normal"
+                _build_value_buffer_from_meta value_buffer || return 1
+                _interactive_edit_current_file_with_buffer value_buffer "normal"
             fi
 
             rc=$?
@@ -1716,9 +1716,9 @@ set -uo pipefail
             sgnd_print_titlebar
 
         # -- Main script logic
-        __resolve_bump_mode || exit 2
-        __validate_auto_args || exit 2
-        __validate_bump_args || exit 2
+        _resolve_bump_mode || exit 2
+        _validate_auto_args || exit 2
+        _validate_bump_args || exit 2
 
         if (( ${FLAG_AUTO:-0} )) && (( ${FLAG_IDEM:-0} )); then
             saywarning "--idem is ignored in --auto mode"
@@ -1734,18 +1734,18 @@ set -uo pipefail
         fi
 
         if (( ${FLAG_AUTO:-0} )); then
-            __auto_update_files || exit $?
+            _auto_update_files || exit $?
             exit 0
         fi
 
         if (( ${FLAG_BUMPVERSION:-0} || ${FLAG_BUMPMAJOR:-0} || ${FLAG_BUMPMINOR:-0} )); then
-            __bump_version_files || exit $?
+            _bump_version_files || exit $?
             exit 0
         fi
 
-        __resolve_source || exit $?
+        _resolve_source || exit $?
         
-        __interactive_edit_files || exit $?
+        _interactive_edit_files || exit $?
     }
 
     # Entrypoint: sgnd_bootstrap will split framework args from script args.

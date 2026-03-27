@@ -87,7 +87,7 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Internal helpers ---------------------------------------------------------------
-    # sgnd__dt_array_length
+    # sgnd_dt_array_length
         # Purpose:
         #   Return the length of an indexed array by name.
         #
@@ -101,17 +101,17 @@ set -uo pipefail
         #   0  success
         #
         # Usage:
-        #   sgnd__dt_array_length ARRAY_NAME
+        #   sgnd_dt_array_length ARRAY_NAME
         #
         # Examples:
-        #   count="$(sgnd__dt_array_length MY_ROWS)"
-    sgnd__dt_array_length() {
+        #   count="$(sgnd_dt_array_length MY_ROWS)"
+    sgnd_dt_array_length() {
         local array_name="${1:?missing array name}"
 
         eval "printf '%s\n' \"\${#$array_name[@]}\""
     }
 
-    # sgnd__dt_split_schema
+    # sgnd_dt_split_schema
         # Purpose:
         #   Split a schema string into positional column names.
         #
@@ -125,19 +125,19 @@ set -uo pipefail
         #   0  success
         #
         # Usage:
-        #   sgnd__dt_split_schema "$SCHEMA"
+        #   sgnd_dt_split_schema "$SCHEMA"
         #
         # Examples:
-        #   sgnd__dt_split_schema "id|name|desc"
+        #   sgnd_dt_split_schema "id|name|desc"
         #   echo "${SGND_DT_SPLIT[1]}"   # name
         #   0  success
-    sgnd__dt_split_schema() {
+    sgnd_dt_split_schema() {
         local schema="${1:?missing schema}"
 
         IFS='|' read -r -a SGND_DT_SPLIT <<< "$schema"
     }
 
-    # sgnd__dt_split_row
+    # sgnd_dt_split_row
         # Purpose:
         #   Split a row string into positional field values.
         #
@@ -156,19 +156,19 @@ set -uo pipefail
         #   0  success
         #
         # Usage:
-        #   sgnd__dt_split_row "$ROW"
+        #   sgnd_dt_split_row "$ROW"
         #
         # Examples:
-        #   sgnd__dt_split_row "1|Tools|Utility"
+        #   sgnd_dt_split_row "1|Tools|Utility"
         #   echo "${SGND_DT_SPLIT[2]}"   # Utility
         #
-        #   sgnd__dt_split_row "1|Tools|"
+        #   sgnd_dt_split_row "1|Tools|"
         #   echo "${SGND_DT_SPLIT[2]}"   # (empty string)
-    sgnd__dt_split_row() {
+    sgnd_dt_split_row() {
         local row="${1-}"
         local tmp=""
 
-        tmp="${row}|__SGND_SENTINEL__"
+        tmp="${row}|_SGND_SENTINEL_"
         IFS='|' read -r -a SGND_DT_SPLIT <<< "$tmp"
 
         unset 'SGND_DT_SPLIT[${#SGND_DT_SPLIT[@]}-1]'
@@ -235,7 +235,7 @@ set -uo pipefail
 
         [[ -n "$schema" ]] || return 1
 
-        sgnd__dt_split_schema "$schema"
+        sgnd_dt_split_schema "$schema"
 
         (( ${#SGND_DT_SPLIT[@]} > 0 )) || return 1
 
@@ -275,7 +275,7 @@ set -uo pipefail
         local column="${2:?missing column name}"
         local i
 
-        sgnd__dt_split_schema "$schema"
+        sgnd_dt_split_schema "$schema"
 
         for (( i=0; i<${#SGND_DT_SPLIT[@]}; i++ )); do
             [[ "${SGND_DT_SPLIT[i]}" == "$column" ]] || continue
@@ -301,7 +301,7 @@ set -uo pipefail
     sgnd_dt_column_count() {
         local schema="${1:?missing schema}"
 
-        sgnd__dt_split_schema "$schema"
+        sgnd_dt_split_schema "$schema"
         printf '%s\n' "${#SGND_DT_SPLIT[@]}"
     }
 
@@ -405,7 +405,7 @@ set -uo pipefail
         local index=0
 
         index="$(sgnd_dt_column_index "$schema" "$column")" || return 1
-        sgnd__dt_split_row "$row"
+        sgnd_dt_split_row "$row"
 
         printf '%s\n' "${SGND_DT_SPLIT[index]-}"
     }
@@ -438,10 +438,10 @@ set -uo pipefail
         sgnd_dt_validate_value "$value" || return 1
         index="$(sgnd_dt_column_index "$schema" "$column")" || return 1
 
-        sgnd__dt_split_schema "$schema"
+        sgnd_dt_split_schema "$schema"
         local column_count="${#SGND_DT_SPLIT[@]}"
 
-        sgnd__dt_split_row "$row"
+        sgnd_dt_split_row "$row"
 
         for (( i=0; i<column_count; i++ )); do
             if (( i == index )); then
@@ -471,7 +471,7 @@ set -uo pipefail
     sgnd_dt_row_count() {
         local table_name="${1:?missing table name}"
 
-        sgnd__dt_array_length "$table_name"
+        sgnd_dt_array_length "$table_name"
     }
 
     # sgnd_dt_insert
@@ -503,7 +503,7 @@ set -uo pipefail
 
         expected="$(sgnd_dt_column_count "$schema")"
 
-        sgnd__dt_split_row "$row"
+        sgnd_dt_split_row "$row"
         [[ "${#SGND_DT_SPLIT[@]}" -eq "$expected" ]] || return 1
 
         eval "$table_name+=(\"\$row\")"
@@ -719,7 +719,7 @@ set -uo pipefail
 
         sgnd_dt_validate_schema "$schema" || return 1
 
-        sgnd__dt_split_schema "$schema"
+        sgnd_dt_split_schema "$schema"
         columns=("${SGND_DT_SPLIT[@]}")
         col_count="${#columns[@]}"
         row_count="$(sgnd_dt_row_count "$table_name")"
@@ -732,7 +732,7 @@ set -uo pipefail
         # Determine max width per column from row data
         for (( i=0; i<row_count; i++ )); do
             eval "row=\${$table_name[$i]}"
-            sgnd__dt_split_row "$row"
+            sgnd_dt_split_row "$row"
 
             for (( j=0; j<col_count; j++ )); do
                 cell="${SGND_DT_SPLIT[j]-}"
@@ -757,7 +757,7 @@ set -uo pipefail
         # Print rows
         for (( i=0; i<row_count; i++ )); do
             eval "row=\${$table_name[$i]}"
-            sgnd__dt_split_row "$row"
+            sgnd_dt_split_row "$row"
 
             for (( j=0; j<col_count; j++ )); do
                 cell="${SGND_DT_SPLIT[j]-}"

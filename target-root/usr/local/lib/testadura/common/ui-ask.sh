@@ -1046,7 +1046,7 @@ set -uo pipefail
         local labelclr=""
         local inputclr=""
 
-        local __rsp="" # Purposely ugly variablename to minimize risk of collisions
+        local _rsp="" # Purposely ugly variablename to minimize risk of collisions
 
         while [[ $# -gt 0 ]]; do
             case "$1" in
@@ -1076,7 +1076,7 @@ set -uo pipefail
             if [[ -n "$labelclr" || -n "$inputclr" || -n "$labelwidth" || -n "$pad" ]]; then
                 local -a ask_opts=(
                     --label "$label"
-                    --var __rsp
+                    --var _rsp
                     --colorize "$colorize"
                 )
                 [[ -n "$labelwidth" ]] && ask_opts+=( --labelwidth "$labelwidth" )
@@ -1086,20 +1086,20 @@ set -uo pipefail
 
                 ask "${ask_opts[@]}"
             else
-                ask --label "$label" --var __rsp --colorize "$colorize"
+                ask --label "$label" --var _rsp --colorize "$colorize"
             fi
 
             [[ -z "$choices" ]] && break
 
-            if _ask_choice_is_valid "$__rsp" "$choices"; then
+            if _ask_choice_is_valid "$_rsp" "$choices"; then
                 break
             fi
 
-            saywarning "Invalid choice: $__rsp"
+            saywarning "Invalid choice: $_rsp"
             (( keepasking )) || break
         done
 
-        printf -v "$varname" '%s' "$__rsp"
+        printf -v "$varname" '%s' "$_rsp"
     }
 
     # ask_choose_immediate
@@ -1204,7 +1204,7 @@ set -uo pipefail
         local inputclr=""
         local colorize="both"
 
-        local __rsp=""
+        local _rsp=""
 
         while [[ $# -gt 0 ]]; do
             case "$1" in
@@ -1255,7 +1255,7 @@ set -uo pipefail
                     "")
                         if [[ -n "$buffer" ]]; then
                             printf '\n' >/dev/tty
-                            __rsp="$buffer"
+                            _rsp="$buffer"
                             break
                         fi
                         ;;
@@ -1273,7 +1273,7 @@ set -uo pipefail
                         # --- Instant choice handling -----------------------------
                         if [[ -n "$instantchoices" ]] && _ask_choice_is_valid "$candidate" "$instantchoices"; then
                             printf '\n' >/dev/tty
-                            __rsp="$candidate"
+                            _rsp="$candidate"
                             break
                         fi
 
@@ -1291,15 +1291,15 @@ set -uo pipefail
 
             [[ -z "$choices" ]] && break
 
-            if _ask_choice_is_valid "$__rsp" "$choices"; then
+            if _ask_choice_is_valid "$_rsp" "$choices"; then
                 break
             fi
 
-            saywarning "Invalid choice: $__rsp"
+            saywarning "Invalid choice: $_rsp"
             (( keepasking )) || break
         done
 
-        printf -v "$varname" '%s' "$__rsp"
+        printf -v "$varname" '%s' "$_rsp"
     }
 
     # ask_prompt_form

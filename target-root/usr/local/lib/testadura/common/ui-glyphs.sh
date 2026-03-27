@@ -1,11 +1,11 @@
 # =====================================================================================
-# SolidgroundUX - UI Glyph
+# SolidgroundUX - UI Glyphs
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
 #   Build       : 2608203
 #   Checksum    : 3c8ef4f033b8fe85c70737865a81832f36637bc7365369bbc14e070456fd0734
-#   Source      : ui-glyph.sh
+#   Source      : ui-glyphs.sh
 #   Type        : library
 #   Purpose     : Provide glyph and symbol helpers for console rendering
 #

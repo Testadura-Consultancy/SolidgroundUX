@@ -164,7 +164,7 @@ set -uo pipefail
         #   Resolve and source the framework bootstrap library.
         #
         # Behavior:
-        #   - Calls __framework_locator to establish framework roots.
+        #   - Calls _framework_locator to establish framework roots.
         #   - Derives the sgnd-bootstrap.sh path from SGND_FRAMEWORK_ROOT.
         #   - Verifies that the bootstrap library is readable.
         #   - Sources sgnd-bootstrap.sh into the current shell.
@@ -397,7 +397,7 @@ set -uo pipefail
 
 # --- local script functions ----------------------------------------------------------
  # -- General helpers
-    # __normalize_project_flags
+    # _normalize_project_flags
         # Purpose:
         #   Normalize project selection flags into a coherent default state.
         #
@@ -416,7 +416,7 @@ set -uo pipefail
         #
         # Returns:
         #   0 on success
-    __normalize_project_flags() {
+    _normalize_project_flags() {
         if (( ! ${FLAG_EXE:-0} )) && (( ! ${FLAG_LIB:-0} )) && (( ! ${FLAG_MOD:-0} )); then
             FLAG_EXE=1
             FLAG_LIB=1
@@ -426,7 +426,7 @@ set -uo pipefail
         return 0
     }
 
-    # __copy_template_file
+    # _copy_template_file
         # Purpose:
         #   Copy a single template file to a target location.
         #
@@ -443,7 +443,7 @@ set -uo pipefail
         # Returns:
         #   0 on success
         #   1 on failure
-    __copy_template_file() {
+    _copy_template_file() {
         local src="$1"
         local dst="$2"
         local existed=0
@@ -464,13 +464,13 @@ set -uo pipefail
         cp "$src" "$dst" || return 1
 
         if (( ! existed )); then
-            __manifest_record_file "$dst"
+            _manifest_record_file "$dst"
         fi
 
         sayinfo "Copied template $src -> $dst"
     }
 
-    # __get_template_filenames
+    # _get_template_filenames
         # Purpose:
         #   Determine output filenames for selected template types.
         #
@@ -478,7 +478,7 @@ set -uo pipefail
         #   $1  Name reference for exe filename
         #   $2  Name reference for lib filename
         #   $3  Name reference for mod filename
-    __get_template_filenames() {
+    _get_template_filenames() {
         local -n exe_ref=$1
         local -n lib_ref=$2
         local -n mod_ref=$3
@@ -498,7 +498,7 @@ set -uo pipefail
         mod_ref="mod-${project_slug}.sh"
     }
 
-    # __copy_project_templates
+    # _copy_project_templates
         # Purpose:
         #   Copy the appropriate template file(s) for the selected project components.
         #
@@ -519,7 +519,7 @@ set -uo pipefail
         # Returns:
         #   0 on success
         #   1 on failure
-    __copy_project_templates() {
+    _copy_project_templates() {
         local template_dir=""
         local exe_file=""
         local lib_file=""
@@ -536,31 +536,31 @@ set -uo pipefail
             return 0
         }
 
-        __get_template_filenames exe_file lib_file mod_file
+        _get_template_filenames exe_file lib_file mod_file
 
         if (( ${FLAG_EXE:-0} )); then
-            __copy_template_file \
+            _copy_template_file \
                 "${template_dir}/exe-template.sh" \
                 "${PROJECT_FOLDER}/target-root/usr/local/libexec/${exe_file}" \
                 || return 1
         fi
 
         if (( ${FLAG_LIB:-0} )); then
-            __copy_template_file \
+            _copy_template_file \
                 "${template_dir}/lib-template.sh" \
                 "${PROJECT_FOLDER}/target-root/usr/local/lib/${lib_file}" \
                 || return 1
         fi
 
         if (( ${FLAG_MOD:-0} )); then
-            __copy_template_file \
+            _copy_template_file \
                 "${template_dir}/mod-template.sh" \
                 "${PROJECT_FOLDER}/target-root/usr/local/libexec/${project_slug}/${mod_file}" \
                 || return 1
         fi
     }
 
-    # __get_project_directories
+    # _get_project_directories
         # Purpose:
         #   Build the directory list required for the selected project components.
         #
@@ -581,7 +581,7 @@ set -uo pipefail
         #
         # Returns:
         #   0 on success
-    __get_project_directories() {
+    _get_project_directories() {
         local -n out_ref=$1
         local project_slug=""
 
@@ -624,7 +624,7 @@ set -uo pipefail
     }
 
  # -- Manifest helpers
-    # __manifest_init
+    # _manifest_init
         # Purpose:
         #   Initialize the workspace creation manifest.
         #
@@ -644,7 +644,7 @@ set -uo pipefail
         # Returns:
         #   0 on success
         #   Non-zero on failure
-    __manifest_init() {
+    _manifest_init() {
         WORKSPACE_MANIFEST="${PROJECT_FOLDER}/.create-workspace.manifest"
 
         if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
@@ -661,7 +661,7 @@ set -uo pipefail
         } > "$WORKSPACE_MANIFEST" || return 1
     }
 
-    # __manifest_record_file
+    # _manifest_record_file
         # Purpose:
         #   Append a file entry to the workspace manifest.
         #
@@ -675,7 +675,7 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
-    __manifest_record_file() {
+    _manifest_record_file() {
         local path="$1"
 
         [[ -n "${WORKSPACE_MANIFEST:-}" ]] || return 0
@@ -684,7 +684,7 @@ set -uo pipefail
         printf 'FILE|%s\n' "$path" >> "$WORKSPACE_MANIFEST"
     }
 
-    # __manifest_record_dir
+    # _manifest_record_dir
         # Purpose:
         #   Append a directory entry to the workspace manifest.
         #
@@ -698,7 +698,7 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
-    __manifest_record_dir() {
+    _manifest_record_dir() {
         local path="$1"
 
         [[ -n "${WORKSPACE_MANIFEST:-}" ]] || return 0
@@ -707,7 +707,7 @@ set -uo pipefail
         printf 'DIR|%s\n' "$path" >> "$WORKSPACE_MANIFEST"
     }
 
-    # __uncreate_from_manifest
+    # _uncreate_from_manifest
         # Purpose:
         #   Remove files and directories listed in a workspace manifest.
         #
@@ -726,7 +726,7 @@ set -uo pipefail
         # Returns:
         #   0 on success
         #   1 when the manifest does not exist
-    __uncreate_from_manifest() {
+    _uncreate_from_manifest() {
         local manifest="$1"
         local line=""
         local kind=""
@@ -789,7 +789,7 @@ set -uo pipefail
     }
 
  # -- Main sequence
-    # __resolve_project_settings
+    # _resolve_project_settings
         # Purpose:
         #   Resolve and confirm the project name and target folder for a new workspace.
         #
@@ -813,17 +813,17 @@ set -uo pipefail
         #   1  user aborted or an unexpected response occurred
         #
         # Usage:
-        #   __resolve_project_settings || return $?
+        #   _resolve_project_settings || return $?
         #
         # Examples:
-        #   if __resolve_project_settings; then
+        #   if _resolve_project_settings; then
         #       sayinfo "Creating workspace at $PROJECT_FOLDER"
         #   fi
         #
         # Notes:
         #   - Uses ask() and ask_ok_redo_quit() for interactive input.
         #   - Confirmation includes a short auto-continue timeout.
-    __resolve_project_settings(){
+    _resolve_project_settings(){
         local slug=""
         local default_folder=""
         local default_projectname="Project"
@@ -947,7 +947,7 @@ set -uo pipefail
         done
     }
     
-    # __create_repository
+    # _create_repository
         # Purpose:
         #   Create the project repository structure and copy template files.
         #
@@ -969,7 +969,7 @@ set -uo pipefail
         # Returns:
         #   0 on success
         #   Non-zero if required filesystem operations fail
-    __create_repository(){
+    _create_repository(){
         local d=""
         local -a dirs=()
 
@@ -979,11 +979,11 @@ set -uo pipefail
             if [[ ! -d "$PROJECT_FOLDER" ]]; then
                 saydebug "Creating folder ${PROJECT_FOLDER}"
                 mkdir -p "$PROJECT_FOLDER" || return 1
-                __manifest_record_dir "${PROJECT_FOLDER}"
+                _manifest_record_dir "${PROJECT_FOLDER}"
             fi
         fi
 
-        __get_project_directories dirs || return 1
+        _get_project_directories dirs || return 1
 
         for d in "${dirs[@]}"; do
             if [[ "$d" == "." ]]; then
@@ -994,17 +994,17 @@ set -uo pipefail
                 if [[ ! -d "${PROJECT_FOLDER}/${d}" ]]; then
                     mkdir -p "${PROJECT_FOLDER}/${d}" || return 1
                     sayinfo "Created folder ${PROJECT_FOLDER}/${d}"
-                    __manifest_record_dir "${PROJECT_FOLDER}/${d}"
+                    _manifest_record_dir "${PROJECT_FOLDER}/${d}"
                 fi
             else
                 sayinfo "Would have created folder ${PROJECT_FOLDER}/${d}"
             fi
         done
 
-        __copy_project_templates || return 1
+        _copy_project_templates || return 1
     }
 
-    # __create_workspace_file
+    # _create_workspace_file
         # Purpose:
         #   Generate a VS Code workspace file for the new project.
         #
@@ -1028,14 +1028,14 @@ set -uo pipefail
         #   Non-zero if file creation fails
         #
         # Usage:
-        #   __create_workspace_file
+        #   _create_workspace_file
         #
         # Examples:
-        #   __create_workspace_file || return 1
+        #   _create_workspace_file || return 1
         #
         # Notes:
         #   - The generated workspace assumes the project root as the workspace folder.
-    __create_workspace_file(){
+    _create_workspace_file(){
         local workspace_file="${PROJECT_FOLDER}/${PROJECT_NAME}.code-workspace"
         local existed=0
 
@@ -1062,13 +1062,13 @@ set -uo pipefail
         } > "$workspace_file" || return 1
 
         if (( ! existed )); then
-            __manifest_record_file "$workspace_file"
+            _manifest_record_file "$workspace_file"
         fi
 
         sayinfo "Created VS Code workspace file ${workspace_file}"
     }
 
-    # __create_gitignore_file
+    # _create_gitignore_file
         # Purpose:
         #   Create a standard .gitignore file in the project workspace root.
         #
@@ -1091,14 +1091,14 @@ set -uo pipefail
         #   0 on success
         #
         # Usage:
-        #   __create_gitignore_file
+        #   _create_gitignore_file
         #
         # Examples:
-        #   __create_gitignore_file
+        #   _create_gitignore_file
         #
         # Notes:
         #   - The ignore rules are intentionally generic and safe for most script-based projects.
-    __create_gitignore_file(){
+    _create_gitignore_file(){
         local gitignore_file="${PROJECT_FOLDER}/.gitignore"
         local existed=0
 
@@ -1173,11 +1173,11 @@ set -uo pipefail
         > "$gitignore_file" || return 1
 
         if (( ! existed )); then
-            __manifest_record_file "$gitignore_file"
+            _manifest_record_file "$gitignore_file"
         fi
     }
 
-    # __create_mod_appcfg
+    # _create_mod_appcfg
         # Purpose:
         #   Create a console-module application configuration file.
         #
@@ -1196,7 +1196,7 @@ set -uo pipefail
         # Returns:
         #   0 on success
         #   Non-zero on failure
-    __create_mod_appcfg() {
+    _create_mod_appcfg() {
         local project_slug=""
         local appcfg_file=""
         local existed=0
@@ -1219,7 +1219,7 @@ set -uo pipefail
         mkdir -p "$MOD_FOLDER" || return 1
 
         if (( ! mod_folder_existed )); then
-            __manifest_record_dir "$MOD_FOLDER"
+            _manifest_record_dir "$MOD_FOLDER"
         fi
 
         {
@@ -1234,7 +1234,7 @@ set -uo pipefail
         } > "$appcfg_file" || return 1
 
         if (( ! existed )); then
-            __manifest_record_file "$appcfg_file"
+            _manifest_record_file "$appcfg_file"
         fi
 
         sayinfo "Created module app config ${appcfg_file}"
@@ -1335,14 +1335,14 @@ set -uo pipefail
                     2) saycancel "Aborted."; exit 0 ;;
                 esac
 
-                __uncreate_from_manifest "$manifest" || exit $?
+                _uncreate_from_manifest "$manifest" || exit $?
 
                 sayok "Uncreate completed"
                 exit 0
             fi
           # -- 'Normal' operation
             # Resolve settings (0=OK, 1=abort, 2=skip template)
-            if __resolve_project_settings; then
+            if _resolve_project_settings; then
                 proceed=0
             else
                 proceed=$?
@@ -1354,13 +1354,13 @@ set -uo pipefail
             fi
 
             # For 0 (OK) and 2 (skip template) we still create repo + workspace
-            __manifest_init || exit $?
-            __create_repository || exit $?
-            __create_workspace_file || exit $?
-            __create_gitignore_file || exit $?
+            _manifest_init || exit $?
+            _create_repository || exit $?
+            _create_workspace_file || exit $?
+            _create_gitignore_file || exit $?
             
             if (( ${FLAG_MOD:-0} )); then
-                __create_mod_appcfg || exit $?
+                _create_mod_appcfg || exit $?
             fi
 
             if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
