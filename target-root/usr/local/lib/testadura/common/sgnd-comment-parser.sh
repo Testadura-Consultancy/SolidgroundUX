@@ -2,9 +2,9 @@
 # SolidgroundUX - Comment Parser
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0
-#   Build       : 2608211
-#   Checksum    : 8b41be36113a0f9f4195607b0389d8fd2a36082eaccb2bf4f2397fa0c866587f
+#   Version     : 1.1
+#   Build       : 2608700
+#   Checksum    : 519f67b85e1fc628e7bc74d5737ce5512035683e71b52d8913b0840b95406116
 #   Source      : sgnd-comment-parser.sh
 #   Type        : library
 #   Purpose     : Parse and update structured header comments in SolidgroundUX scripts

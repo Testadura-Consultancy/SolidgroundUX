@@ -2,9 +2,9 @@
 # SolidgroundUX - Datatable
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0
-#   Build       : 2608203
-#   Checksum    : 8558c003868728dcc3faacf82fadaf4b5c989e3e4d500c472bdef082b7a9c42b
+#   Version     : 1.1
+#   Build       : 2608700
+#   Checksum    : e96dcfc8b37e79695859e2342768b4aa09caa2df05759f252f7ead6d118b10fc
 #   Source      : sgnd-datatable.sh
 #   Type        : library
 #   Purpose     : Provide lightweight tabular data structures and utilities

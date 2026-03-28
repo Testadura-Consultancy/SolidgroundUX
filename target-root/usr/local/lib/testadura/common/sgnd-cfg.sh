@@ -2,9 +2,9 @@
 # SolidgroundUX - Configuration Management
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0
-#   Build       : 2608203
-#   Checksum    : efe31761d18a3682bdf4bbfbf387da919358abc74098a7b6768d14b7d81733af
+#   Version     : 1.1
+#   Build       : 2608700
+#   Checksum    : 06097ead048dac2abba0156e13337ab911745a350090589fa538cee9bee8e24e
 #   Source      : sgnd-cfg.sh
 #   Type        : library
 #   Purpose     : Load, manage, and persist configuration settings

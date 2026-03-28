@@ -2,9 +2,9 @@
 # SolidgroundUX Console Module Template
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0
-#   Build       : 2608203
-#   Checksum    : 5e8ef3a4a6bdaa01dd143b8919fe5e8067c287e849b29470b4bbbdea2254c6b0
+#   Version     : 1.1
+#   Build       : 2608700
+#   Checksum    : af003805271692fbe71088c934b2b3e2ca046ee17718dc34f61e680f5f841ea2
 #   Sourcefile  : mod-template.sh
 #   Type        : module
 #   Purpose     : Canonical template for sgnd-console modules

@@ -2,9 +2,9 @@
 # SolidgroundUX - Console Menu System
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0
-#   Build       : 2608203
-#   Checksum    : d87a50732c0bf248455d58a2bf65284dbaa61520cbba9eb4bf7da07309557080
+#   Version     : 1.1
+#   Build       : 2608700
+#   Checksum    : 0146c66fc4331bf410c9c179d76f763b3503a734693947369e2ca610121c133e
 #   Source      : sgnd-console-menu.sh
 #   Type        : library
 #   Purpose     : Provide menu definition and rendering logic for sgnd-console

@@ -2,9 +2,9 @@
 # SolidgroundUX Library Template
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0
-#   Build       : 2608203
-#   Checksum    : 5d109b9fab30aff78568930093f7f339c14455bb83207b4c8e05b0bfe6463068
+#   Version     : 1.1
+#   Build       : 2608700
+#   Checksum    : 3b23558fe88f392e7aa41e1cd23993b52cb0ce2df1b72aa43950c5f81ab0737c
 #   Sourcefile  : exe-template.sh
 #   Type        : library
 #   Purpose     : Canonical executable template for Testadura scripts

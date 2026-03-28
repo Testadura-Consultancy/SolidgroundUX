@@ -2,9 +2,9 @@
 # SolidgroundUX - Bootstrap Environment
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0
-#   Build       : 2608203
-#   Checksum    : feab4407bb5ca3da3142233f7ef3951213548810d8fb410d7d65c59997c32a74
+#   Version     : 1.1
+#   Build       : 2608700
+#   Checksum    : bb68d813d8375b2a46f23c1d752f923ff78a9576235ead0c684328aaa6647120
 #   Source      : sgnd-bootstrap-env.sh
 #   Type        : library
 #   Purpose     : Initialize framework environment variables and directory structure

@@ -2,8 +2,8 @@
 # SolidgroundUX - Default UI Palette
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0
-#   Build       : 2608201
+#   Version     : 1.1
+#   Build       : 2608700
 #   Checksum    : ad102287cd5a57337888778c0b63be7ed03f007a53664c816a78f33aa78e931b
 #   Source      : defaultui-palette.sh
 #   Type        : library

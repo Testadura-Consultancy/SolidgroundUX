@@ -2,9 +2,9 @@
 # SolidgroundUX - UI Rendering
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0
-#   Build       : 2608211
-#   Checksum    : c1112d90e5984c770dd129fd66dacda9ade5434339b23909b5d92898a1c192f2
+#   Version     : 1.1
+#   Build       : 2608700
+#   Checksum    : 5ba92dc4d1bc14b92bd7d5e7adac9e082883bafdb18ba49c5cc6ac151916c9de
 #   Source      : ui.sh
 #   Type        : library
 #   Purpose     : Provide terminal rendering utilities for styled console output

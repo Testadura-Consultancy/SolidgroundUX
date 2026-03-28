@@ -2,9 +2,9 @@
 # SolidgroundUX - Bootstrap Core
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0
-#   Build       : 2608301
-#   Checksum    : c9d5cc692027d55637c8d5ec896f7e66bda8161876e65c093063e76c88f2fd44
+#   Version     : 1.1
+#   Build       : 2608700
+#   Checksum    : e56ed59194c3afaf7752890aecae684b3cf8d4026f90a00cbb889647a98b9c8a
 #   Source      : sgnd-bootstrap.sh
 #   Type        : library
 #   Purpose     : Initialize the SolidgroundUX framework and load core modules

@@ -2,9 +2,9 @@
 # SolidgroundUX - Core Utilities
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0
-#   Build       : 2608210
-#   Checksum    : 68106af8dfdc328c03146dbeb208e168ff4bcaddcad97e3dbc6fd5ab5cf3ec3e
+#   Version     : 1.1
+#   Build       : 2608700
+#   Checksum    : a3fb66965e83505978bec8d1b6ddfd7d068c1365509e408d8fadda01e1662ead
 #   Source      : sgnd-core.sh
 #   Type        : library
 #   Purpose     : Provide foundational utility functions and shared primitives

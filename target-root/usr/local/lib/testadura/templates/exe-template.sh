@@ -3,9 +3,9 @@
 # SolidgroundUX - Executable Script Template
 # ------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0
-#   Build       : 2608201
-#   Checksum    : 7cbe590e8865baa6dfc442f37e17bc21565a352a558250246960ada941ed608b
+#   Version     : 1.1
+#   Build       : 2608700
+#   Checksum    : 1e0ab653b02a6965c46f6b54eeb3c0e72c9410748540a6feaa5793973b2a47bd
 #   Source      : exe-template.sh
 #   Type        : script
 #   Purpose     : Canonical executable template for Testadura scripts.

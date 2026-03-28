@@ -2,7 +2,7 @@
 # SolidgroundUX - Argument Parsing
 # -------------------------------------------------------------------------------------
 # Metadata: 
-#   Version     : 1.0
+#   Version     : 1.1
 #   Build       : 2608203
 #   Checksum    : 8514965960d1becba4459cc212b011b1bd6e9b51a2d41a9570cba36ff0e9354d
 #   Source      : sgnd-args.sh

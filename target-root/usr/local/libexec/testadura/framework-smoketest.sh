@@ -3,9 +3,9 @@
 # SolidgroundUX — Framework smoke tester
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0
-#   Build       : 2608201
-#   Checksum    : 327f319cbbbf7d32572af9814d927ae0312c4e6538a0f63f70028909cfd8324e
+#   Version     : 1.1
+#   Build       : 2608700
+#   Checksum    : 4da5ec140b7c8f8edd2b4c7fa71b64ecd4e312aa2bfc8742d55afc82becc77a9
 #   Source      : framework-smoketest.sh
 #   Type        : script
 #   Purpose     : Exercise and validate core SolidgroundUX framework functionality

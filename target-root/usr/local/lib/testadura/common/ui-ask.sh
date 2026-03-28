@@ -2,9 +2,9 @@
 # SolidgroundUX - UI Ask
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.1
-#   Build       : 2608501
-#   Checksum    :
+#   Version     : 1.2
+#   Build       : 2608700
+#   Checksum    :dff6fe73ee6826fe02ccda820afe458709f2f4550516bbb0cda37129e49bab1e
 #   Source      : ui-ask.sh
 #   Type        : library
 #   Purpose     : Provide interactive prompting and lightweight dialog utilities

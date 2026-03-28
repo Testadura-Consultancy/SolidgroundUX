@@ -3,9 +3,9 @@
 # SolidgroundUX - Prepare Release
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0
-#   Build       : 2608301
-#   Checksum    : d3bc648060f0a904ebc96c50b710cd3378066bdfb731f3dec616f664b29a7566
+#   Version     : 1.1
+#   Build       : 2608700
+#   Checksum    : 78cfbfaf1128d82e9cbf9f300a0113d3365bcf2d2eaaa2ef602bee9b45119b4f
 #   Source      : prepare-release.sh
 #   Type        : script
 #   Purpose     : Prepare framework scripts for release
@@ -574,8 +574,8 @@ set -uo pipefail
             else
                 upd="N"
             fi
-            ask --label "Cleanup staging files after run (Y/N)" --var cleanup --default "$upd" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
-            if [[ "$cleanup" == "Y" || "$cleanup" == "y" ]]; then
+            ask --label "Update build and checksum (Y/N)" --var upd --default "$upd" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+            if [[ "$upd" == "Y" || "$upd" == "y" ]]; then
                 FLAG_UPDATEBUILD=1
             else
                 FLAG_UPDATEBUILD=0
@@ -875,7 +875,6 @@ set -uo pipefail
                 fi
             else
                 saywarning "Skipping unmanaged file (no valid header): $file"
-                failed=1
             fi
         done < <(find "$SOURCE_DIR" -type f -name '*.sh' -not -path '*/releases/*' -print0)
 

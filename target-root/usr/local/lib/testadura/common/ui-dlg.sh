@@ -2,9 +2,9 @@
 # SolidgroundUX - UI Dialogs
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0
-#   Build       : 2608203
-#   Checksum    : 5062a88702de3b8db54c1a0ed6b9033ed1951debbfd7c694873235abb8b82fa8
+#   Version     : 1.1
+#   Build       : 2608700
+#   Checksum    : 2df0e709171ec597ebb49edccbf080412c6103a1fd8ffae244556f2686341327
 #   Source      : ui-dlg.sh
 #   Type        : library
 #   Purpose     : Provide dialog-style user interaction helpers

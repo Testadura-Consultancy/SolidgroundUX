@@ -3,9 +3,9 @@
 # SolidgroundUX - Metadata Editor
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0
-#   Build       : 2608201
-#   Checksum    : 7c4b13ee1c6da83fe99f3b13920bc3b0913175e9e68f60bd8feed6baab918b94
+#   Version     : 1.1
+#   Build       : 2608700
+#   Checksum    : 5ba467af9945d004a1e8354e89171c1dd8c4b99c36d728173c0191802f26028c
 #   Source      : metadata-editor.sh
 #   Type        : script
 #   Purpose     : Inspect, edit, and version script metadata in a controlled workflow

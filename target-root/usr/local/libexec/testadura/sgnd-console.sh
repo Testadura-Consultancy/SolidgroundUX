@@ -3,9 +3,9 @@
 # SolidgroundUX - Console Host
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0
-#   Build       : 2608201
-#   Checksum    : 3acf1fe2a30f39ec5c533adb2911ef50ea96f75f86a76e0ffb6fa89c6a45c520
+#   Version     : 1.1
+#   Build       : 2608700
+#   Checksum    : 9bb3473b1ad1b5db621f3d068c86136eeb7c1c228c07ea78854e23485b6cbf8d
 #   Source      : sgnd-console.sh
 #   Type        : script
 #   Purpose     : Provide a modular console interface for SolidgroundUX tooling

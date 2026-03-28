@@ -3,9 +3,9 @@
 # SolidgroundUX — bootstrap-test
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0
-#   Build       : 2608201
-#   Checksum    : 327f319cbbbf7d32572af9814d927ae0312c4e6538a0f63f70028909cfd8324e
+#   Version     : 1.1
+#   Build       : 2608700
+#   Checksum    : d251b7f9140f90334f914ab27223ec8cba4fd7ddb985e2384f374d8a1198e2e3
 #   Source      : boottrap-test.sh
 #   Type        : script
 #   Purpose     : Testscript testing some basic framework functions

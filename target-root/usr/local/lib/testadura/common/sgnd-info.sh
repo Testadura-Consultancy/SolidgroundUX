@@ -2,9 +2,9 @@
 # SolidgroundUX - Framework Information
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0
-#   Build       : 2608203
-#   Checksum    : 03f59c4cec14617b06e7430af98ad6ffdd07f737588f11fcac0bcc27c8fe0df4
+#   Version     : 1.1
+#   Build       : 2608700
+#   Checksum    : 126b688c42d1004194a985f90c439982f3558a103de14fd97004d3aabca95623
 #   Source      : sgnd-info.sh
 #   Type        : library
 #   Purpose     : Provide framework metadata and runtime information helpers
