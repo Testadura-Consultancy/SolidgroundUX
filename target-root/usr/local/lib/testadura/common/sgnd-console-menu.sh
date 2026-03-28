@@ -249,7 +249,7 @@ set -uo pipefail
     }
 
 # --- Builtin actions -----------------------------------------------------------------
-     # _sgnd_console_toggle_clearonrender
+    # _sgnd_console_toggle_clearonrender
         # Purpose:
         #   Toggle whether the console clears the screen before each render.
         #
@@ -386,8 +386,15 @@ set -uo pipefail
         # Purpose:
         #   Advance to the next rendered menu page when available.
         #
+        # Behavior:
+        #   - Rebuilds the current paging model.
+        #   - Increments SGND_PAGE_INDEX only when a later page exists.
+        #
         # Returns:
-        #   0 always
+        #   0 always.
+        #
+        # Usage:
+        #   _sgnd_console_nextpage
     _sgnd_console_nextpage() {
         _sgnd_console_build_pages
 
@@ -402,9 +409,14 @@ set -uo pipefail
         # Purpose:
         #   Return to the previous rendered menu page when available.
         #
+        # Behavior:
+        #   - Decrements SGND_PAGE_INDEX only when the current page is not the first page.
+        #
         # Returns:
-        #   0 always
-
+        #   0 always.
+        #
+        # Usage:
+        #   _sgnd_console_prevpage
     _sgnd_console_prevpage() {
         if (( SGND_PAGE_INDEX > 0 )); then
             SGND_PAGE_INDEX=$(( SGND_PAGE_INDEX - 1 ))
@@ -416,13 +428,22 @@ set -uo pipefail
 # --- Menu layout ---------------------------------------------------------------------
     # _sgnd_console_build_pages
         # Purpose:
-        #   Simulate pagination and determine the start item of each page.
+        #   Simulate pagination and determine the start item of each rendered page.
         #
-        # Output:
-        #   Populates SGND_PAGE_STARTS with visible item indexes.
+        # Behavior:
+        #   - Rebuilds visible item order.
+        #   - Calculates how many rendered lines each item and group header will consume.
+        #   - Starts a new page when the next item would exceed body height.
+        #   - Stores the visible item start index for each page.
+        #
+        # Outputs (globals):
+        #   SGND_PAGE_STARTS
         #
         # Returns:
-        #   0 always
+        #   0 always.
+        #
+        # Usage:
+        #   _sgnd_console_build_pages
     _sgnd_console_build_pages() {
         local body_height=0
         local used_lines=0
@@ -476,14 +497,11 @@ set -uo pipefail
     }
 
     # _sgnd_console_body_height
-        # Purpose:
-        #   Return the maximum number of body rows to render on one page.
-        #
-        # Output:
-        #   Prints the configured maximum body row count.
-        #
         # Returns:
-        #   0 always
+        #   Prints the effective maximum number of body rows for one rendered page.
+        #
+        # Usage:
+        #   _sgnd_console_body_height
     _sgnd_console_body_height() {
         local body_height="${SGND_PAGE_MAX_ROWS:-20}"
 
@@ -495,14 +513,23 @@ set -uo pipefail
         # Purpose:
         #   Measure how many screen lines a menu item will occupy when rendered.
         #
+        # Behavior:
+        #   - Returns 1 when the item has no description text.
+        #   - Wraps the description to the current right-column width.
+        #   - Counts the wrapped output lines.
+        #
         # Arguments:
-        #   $1  ROW_INDEX   Row index in SGND_ITEM_ROWS
+        #   $1  ROW_INDEX
+        #       Row index in SGND_ITEM_ROWS.
         #
         # Output:
         #   Prints the rendered line count.
         #
         # Returns:
-        #   0 always
+        #   0 always.
+        #
+        # Usage:
+        #   _sgnd_console_measure_item_lines "$row_index"
     _sgnd_console_measure_item_lines() {
         local row_index="${1:?missing row index}"
         local desc=""
@@ -534,17 +561,40 @@ set -uo pipefail
     }
 
     # _sgnd_console_measure_group_header_lines
+        # Returns:
+        #   Prints the rendered line count for one group header block.
+        #
+        # Usage:
+        #   _sgnd_console_measure_group_header_lines
     _sgnd_console_measure_group_header_lines() {
         # group label + underline
         printf '2\n'
     }
 
     # _sgnd_console_visible_item_count
+        # Returns:
+        #   Prints the current number of visible non-builtin menu items.
+        #
+        # Usage:
+        #   _sgnd_console_visible_item_count
     _sgnd_console_visible_item_count() {
         printf '%s\n' "${#SGND_VISIBLE_ITEM_INDEXES[@]}"
     }
 
     # _sgnd_console_get_visible_row_index
+        # Purpose:
+        #   Resolve a visible item position to its underlying SGND_ITEM_ROWS row index.
+        #
+        # Arguments:
+        #   $1  VISIBLE_INDEX
+        #       Zero-based index in SGND_VISIBLE_ITEM_INDEXES.
+        #
+        # Returns:
+        #   0 if the index is valid.
+        #   1 otherwise.
+        #
+        # Usage:
+        #   _sgnd_console_get_visible_row_index "$visible_index"
     _sgnd_console_get_visible_row_index() {
         local visible_index="${1:?missing visible index}"
 
@@ -856,7 +906,8 @@ set -uo pipefail
         #
         # Behavior:
         #   - Clears the screen first when SGND_CLEAR_ONRENDER is enabled.
-        #   - Prints the console title and description with section borders.
+        #   - Prints the console title and description.
+        #   - Wraps them in the standard section borders.
         #
         # Returns:
         #   0 always
@@ -934,7 +985,7 @@ set -uo pipefail
         visible_count="${#SGND_VISIBLE_ITEM_INDEXES[@]}"
         body_height="$(_sgnd_console_body_height)"
 
-                    SGND_PAGE_HAS_PREV=0
+        SGND_PAGE_HAS_PREV=0
         SGND_PAGE_HAS_NEXT=0
 
         if (( visible_count == 0 )); then

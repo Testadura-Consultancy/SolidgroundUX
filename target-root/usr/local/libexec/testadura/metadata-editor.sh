@@ -260,11 +260,6 @@ set -uo pipefail
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
     
-# --- Script metadata (identity) ------------------------------------------------------
-    SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
-    SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"
-    SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
-    SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
 
 # --- Script metadata (identity) ------------------------------------------------------
     SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
@@ -363,7 +358,7 @@ set -uo pipefail
         #   Print all rows from one metadata section as labeled values.
         #
         # Behavior:
-        #   - Reads rows from the supplied td-datatable.
+        #   - Reads rows from the supplied sgnd-datatable.
         #   - Filters rows by the requested section name.
         #   - Prints each matching field/value pair using sgnd_print_labeledvalue().
         #

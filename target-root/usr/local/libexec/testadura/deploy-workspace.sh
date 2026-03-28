@@ -241,11 +241,7 @@ set -uo pipefail
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
     
-# --- Script metadata (identity) ------------------------------------------------------
-    SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
-    SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"
-    SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
-    SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
+
 
 # --- Script metadata (identity) ------------------------------------------------------
     SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"

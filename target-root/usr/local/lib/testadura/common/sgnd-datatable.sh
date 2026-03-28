@@ -38,11 +38,12 @@
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
-#   Client      : 
+#   Client      :
 #   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
 set -uo pipefail
+
 # --- Library guard ------------------------------------------------------------------
     # _sgnd_lib_guard
         # Purpose:
@@ -98,7 +99,7 @@ set -uo pipefail
         #   Prints array length to stdout.
         #
         # Returns:
-        #   0  success
+        #   0 on success.
         #
         # Usage:
         #   sgnd_dt_array_length ARRAY_NAME
@@ -107,8 +108,9 @@ set -uo pipefail
         #   count="$(sgnd_dt_array_length MY_ROWS)"
     sgnd_dt_array_length() {
         local array_name="${1:?missing array name}"
+        local -n array_ref="$array_name"
 
-        eval "printf '%s\n' \"\${#$array_name[@]}\""
+        printf '%s\n' "${#array_ref[@]}"
     }
 
     # sgnd_dt_split_schema
@@ -122,15 +124,14 @@ set -uo pipefail
         #   Writes column names into global helper array SGND_DT_SPLIT.
         #
         # Returns:
-        #   0  success
+        #   0 on success.
         #
         # Usage:
         #   sgnd_dt_split_schema "$SCHEMA"
         #
         # Examples:
         #   sgnd_dt_split_schema "id|name|desc"
-        #   echo "${SGND_DT_SPLIT[1]}"   # name
-        #   0  success
+        #   printf '%s\n' "${SGND_DT_SPLIT[1]}"   # name
     sgnd_dt_split_schema() {
         local schema="${1:?missing schema}"
 
@@ -142,9 +143,9 @@ set -uo pipefail
         #   Split a row string into positional field values.
         #
         # Behavior:
-        #   - Splits on pipe ('|') delimiter
-        #   - Preserves empty fields, including trailing empty values
-        #   - Guarantees column count consistency with schema-based rows
+        #   - Splits on pipe ('|') delimiter.
+        #   - Preserves empty fields, including trailing empty values.
+        #   - Guarantees column count consistency with schema-based rows.
         #
         # Arguments:
         #   $1  ROW
@@ -153,20 +154,20 @@ set -uo pipefail
         #   Writes field values into global helper array SGND_DT_SPLIT.
         #
         # Returns:
-        #   0  success
+        #   0 on success.
         #
         # Usage:
         #   sgnd_dt_split_row "$ROW"
         #
         # Examples:
         #   sgnd_dt_split_row "1|Tools|Utility"
-        #   echo "${SGND_DT_SPLIT[2]}"   # Utility
+        #   printf '%s\n' "${SGND_DT_SPLIT[2]}"   # Utility
         #
         #   sgnd_dt_split_row "1|Tools|"
-        #   echo "${SGND_DT_SPLIT[2]}"   # (empty string)
+        #   printf '%s\n' "${SGND_DT_SPLIT[2]}"   # (empty string)
     sgnd_dt_split_row() {
         local row="${1-}"
-        local tmp=""
+        local tmp
 
         tmp="${row}|_SGND_SENTINEL_"
         IFS='|' read -r -a SGND_DT_SPLIT <<< "$tmp"
@@ -187,8 +188,8 @@ set -uo pipefail
         #   $1  VALUE
         #
         # Returns:
-        #   0  value is valid
-        #   1  value contains unsupported characters
+        #   0 if value is valid.
+        #   1 if value contains unsupported characters.
         #
         # Usage:
         #   sgnd_dt_validate_value VALUE
@@ -218,8 +219,8 @@ set -uo pipefail
         #   $1  SCHEMA
         #
         # Returns:
-        #   0  schema is valid
-        #   1  schema is invalid
+        #   0 if schema is valid.
+        #   1 if schema is invalid.
         #
         # Usage:
         #   sgnd_dt_validate_schema "$SCHEMA"
@@ -236,7 +237,6 @@ set -uo pipefail
         [[ -n "$schema" ]] || return 1
 
         sgnd_dt_split_schema "$schema"
-
         (( ${#SGND_DT_SPLIT[@]} > 0 )) || return 1
 
         for (( i=0; i<${#SGND_DT_SPLIT[@]}; i++ )); do
@@ -262,8 +262,8 @@ set -uo pipefail
         #   Prints the zero-based column index to stdout.
         #
         # Returns:
-        #   0  column found
-        #   1  column not found
+        #   0 if the column is found.
+        #   1 if the column is not found.
         #
         # Usage:
         #   sgnd_dt_column_index "$SCHEMA" COLUMN
@@ -297,7 +297,10 @@ set -uo pipefail
         #   Prints column count to stdout.
         #
         # Returns:
-        #   0  success
+        #   0 on success.
+        #
+        # Usage:
+        #   sgnd_dt_column_count "$SCHEMA"
     sgnd_dt_column_count() {
         local schema="${1:?missing schema}"
 
@@ -317,8 +320,8 @@ set -uo pipefail
         #   Prints the constructed row string to stdout.
         #
         # Returns:
-        #   0  success
-        #   1  wrong field count or invalid field value
+        #   0 on success.
+        #   1 on wrong field count or invalid field value.
         #
         # Usage:
         #   sgnd_dt_make_row "$SCHEMA" VALUE1 VALUE2 ...
@@ -340,7 +343,6 @@ set -uo pipefail
 
         for (( i=1; i<=actual; i++ )); do
             field="${!i}"
-
             sgnd_dt_validate_value "$field" || return 1
 
             [[ -z "$row" ]] || row+="|"
@@ -348,7 +350,7 @@ set -uo pipefail
         done
 
         printf '%s\n' "$row"
-    }   
+    }
 
     # sgnd_dt_has_row
         # Purpose:
@@ -367,10 +369,13 @@ set -uo pipefail
         #   $4  VALUE              Value to match
         #
         # Returns:
-        #   0  At least one matching row exists
-        #   1  No matching row found or column does not exist
+        #   0 if at least one matching row exists.
+        #   1 if no matching row is found or the column does not exist.
         #
-        # Example:
+        # Usage:
+        #   sgnd_dt_has_row "$SCHEMA" MY_ROWS key "Q"
+        #
+        # Examples:
         #   if sgnd_dt_has_row "$MY_SCHEMA" MY_ROWS key "Q"; then
         #       sayinfo "Quit item already registered"
         #   fi
@@ -382,7 +387,7 @@ set -uo pipefail
 
         sgnd_dt_find_first "$schema" "$table_name" "$column" "$value" >/dev/null 2>&1
     }
-    
+
     # sgnd_dt_row_get
         # Purpose:
         #   Get the value of one column from a row string.
@@ -396,8 +401,11 @@ set -uo pipefail
         #   Prints the field value to stdout.
         #
         # Returns:
-        #   0  success
-        #   1  column not found
+        #   0 on success.
+        #   1 if the column is not found.
+        #
+        # Usage:
+        #   sgnd_dt_row_get "$SCHEMA" "$ROW" COLUMN_NAME
     sgnd_dt_row_get() {
         local schema="${1:?missing schema}"
         local row="${2-}"
@@ -424,8 +432,11 @@ set -uo pipefail
         #   Prints the updated row string to stdout.
         #
         # Returns:
-        #   0  success
-        #   1  invalid column or invalid value
+        #   0 on success.
+        #   1 on invalid column or invalid value.
+        #
+        # Usage:
+        #   sgnd_dt_row_set "$SCHEMA" "$ROW" COLUMN_NAME VALUE
     sgnd_dt_row_set() {
         local schema="${1:?missing schema}"
         local row="${2-}"
@@ -434,21 +445,22 @@ set -uo pipefail
         local index=0
         local i
         local out=""
+        local column_count=0
 
         sgnd_dt_validate_value "$value" || return 1
         index="$(sgnd_dt_column_index "$schema" "$column")" || return 1
 
         sgnd_dt_split_schema "$schema"
-        local column_count="${#SGND_DT_SPLIT[@]}"
+        column_count="${#SGND_DT_SPLIT[@]}"
 
         sgnd_dt_split_row "$row"
 
         for (( i=0; i<column_count; i++ )); do
+            [[ -z "$out" ]] || out+="|"
+
             if (( i == index )); then
-                [[ -z "$out" ]] || out+="|"
                 out+="$value"
             else
-                [[ -z "$out" ]] || out+="|"
                 out+="${SGND_DT_SPLIT[i]-}"
             fi
         done
@@ -467,7 +479,10 @@ set -uo pipefail
         #   Prints row count to stdout.
         #
         # Returns:
-        #   0  success
+        #   0 on success.
+        #
+        # Usage:
+        #   sgnd_dt_row_count TABLE_ARRAY_NAME
     sgnd_dt_row_count() {
         local table_name="${1:?missing table name}"
 
@@ -484,8 +499,8 @@ set -uo pipefail
         #   $3  ROW
         #
         # Returns:
-        #   0  success
-        #   1  invalid schema or row width mismatch
+        #   0 on success.
+        #   1 on invalid schema or row width mismatch.
         #
         # Usage:
         #   sgnd_dt_insert "$SCHEMA" ARRAY_NAME ROW
@@ -496,17 +511,16 @@ set -uo pipefail
         local schema="${1:?missing schema}"
         local table_name="${2:?missing table name}"
         local row="${3-}"
-
         local expected=0
+        local -n table_ref="$table_name"
 
         sgnd_dt_validate_schema "$schema" || return 1
-
         expected="$(sgnd_dt_column_count "$schema")"
 
         sgnd_dt_split_row "$row"
         [[ "${#SGND_DT_SPLIT[@]}" -eq "$expected" ]] || return 1
 
-        eval "$table_name+=(\"\$row\")"
+        table_ref+=("$row")
     }
 
     # sgnd_dt_delete
@@ -518,20 +532,24 @@ set -uo pipefail
         #   $2  ROW_INDEX
         #
         # Returns:
-        #   0  success
-        #   1  invalid row index
+        #   0 on success.
+        #   1 on invalid row index.
+        #
+        # Usage:
+        #   sgnd_dt_delete TABLE_ARRAY_NAME ROW_INDEX
     sgnd_dt_delete() {
         local table_name="${1:?missing table name}"
         local row_index="${2:?missing row index}"
         local row_count=0
+        local -n table_ref="$table_name"
 
         [[ "$row_index" =~ ^[0-9]+$ ]] || return 1
 
         row_count="$(sgnd_dt_row_count "$table_name")"
         (( row_index < row_count )) || return 1
 
-        eval "unset '$table_name[$row_index]'"
-        eval "$table_name=(\"\${$table_name[@]}\")"
+        unset 'table_ref[row_index]'
+        table_ref=("${table_ref[@]}")
     }
 
     # sgnd_dt_get
@@ -548,8 +566,8 @@ set -uo pipefail
         #   Prints the field value to stdout.
         #
         # Returns:
-        #   0  success
-        #   1  invalid row index or invalid column
+        #   0 on success.
+        #   1 on invalid row index or invalid column.
         #
         # Usage:
         #   sgnd_dt_get "$SCHEMA" ARRAY INDEX COLUMN
@@ -562,15 +580,14 @@ set -uo pipefail
         local row_index="${3:?missing row index}"
         local column="${4:?missing column name}"
         local row_count=0
-        local row=""
+        local -n table_ref="$table_name"
 
         [[ "$row_index" =~ ^[0-9]+$ ]] || return 1
 
         row_count="$(sgnd_dt_row_count "$table_name")"
         (( row_index < row_count )) || return 1
 
-        eval "row=\${$table_name[$row_index]}"
-        sgnd_dt_row_get "$schema" "$row" "$column"
+        sgnd_dt_row_get "$schema" "${table_ref[row_index]}" "$column"
     }
 
     # sgnd_dt_set
@@ -585,8 +602,8 @@ set -uo pipefail
         #   $5  VALUE
         #
         # Returns:
-        #   0  success
-        #   1  invalid row index, invalid column, or invalid value
+        #   0 on success.
+        #   1 on invalid row index, invalid column, or invalid value.
         #
         # Usage:
         #   sgnd_dt_set "$SCHEMA" ARRAY INDEX COLUMN VALUE
@@ -600,17 +617,16 @@ set -uo pipefail
         local column="${4:?missing column name}"
         local value="${5-}"
         local row_count=0
-        local row=""
         local updated=""
+        local -n table_ref="$table_name"
 
         [[ "$row_index" =~ ^[0-9]+$ ]] || return 1
 
         row_count="$(sgnd_dt_row_count "$table_name")"
         (( row_index < row_count )) || return 1
 
-        eval "row=\${$table_name[$row_index]}"
-        updated="$(sgnd_dt_row_set "$schema" "$row" "$column" "$value")" || return 1
-        eval "$table_name[$row_index]=\"\$updated\""
+        updated="$(sgnd_dt_row_set "$schema" "${table_ref[row_index]}" "$column" "$value")" || return 1
+        table_ref[row_index]="$updated"
     }
 
     # sgnd_dt_find_first
@@ -627,8 +643,8 @@ set -uo pipefail
         #   Prints the first matching row index to stdout.
         #
         # Returns:
-        #   0  match found
-        #   1  no match
+        #   0 if a match is found.
+        #   1 if no match is found.
         #
         # Usage:
         #   sgnd_dt_find_first "$SCHEMA" ARRAY COLUMN VALUE
@@ -666,8 +682,8 @@ set -uo pipefail
         #   $3+  VALUES
         #
         # Returns:
-        #   0  success
-        #   1  invalid values or width mismatch
+        #   0 on success.
+        #   1 on invalid values or width mismatch.
         #
         # Usage:
         #   sgnd_dt_append "$SCHEMA" ARRAY VALUE1 VALUE2 ...
@@ -677,9 +693,9 @@ set -uo pipefail
     sgnd_dt_append() {
         local schema="${1:?missing schema}"
         local table_name="${2:?missing table name}"
-        shift 2
-
         local row=""
+
+        shift 2
 
         row="$(sgnd_dt_make_row "$schema" "$@")" || return 1
         sgnd_dt_insert "$schema" "$table_name" "$row"
@@ -694,8 +710,8 @@ set -uo pipefail
         #   $2  TABLE_ARRAY_NAME
         #
         # Returns:
-        #   0  success
-        #   1  invalid schema
+        #   0 on success.
+        #   1 on invalid schema.
         #
         # Usage:
         #   sgnd_dt_print_table "$SCHEMA" ARRAY_NAME
@@ -705,17 +721,15 @@ set -uo pipefail
     sgnd_dt_print_table() {
         local schema="${1:?missing schema}"
         local table_name="${2:?missing table name}"
-
         local row_count=0
         local col_count=0
         local i=0
         local j=0
         local cell=""
         local row=""
-        local header=""
-        local sep=""
         local -a widths=()
         local -a columns=()
+        local -n table_ref="$table_name"
 
         sgnd_dt_validate_schema "$schema" || return 1
 
@@ -724,14 +738,12 @@ set -uo pipefail
         col_count="${#columns[@]}"
         row_count="$(sgnd_dt_row_count "$table_name")"
 
-        # Initialize widths from header names
         for (( j=0; j<col_count; j++ )); do
             widths[j]="${#columns[j]}"
         done
 
-        # Determine max width per column from row data
         for (( i=0; i<row_count; i++ )); do
-            eval "row=\${$table_name[$i]}"
+            row="${table_ref[i]}"
             sgnd_dt_split_row "$row"
 
             for (( j=0; j<col_count; j++ )); do
@@ -740,23 +752,20 @@ set -uo pipefail
             done
         done
 
-        # Print header
         for (( j=0; j<col_count; j++ )); do
             printf '%-*s' "${widths[j]}" "${columns[j]}"
             (( j < col_count - 1 )) && printf '  '
         done
         printf '\n'
 
-        # Print separator
         for (( j=0; j<col_count; j++ )); do
             printf '%-*s' "${widths[j]}" ''
             (( j < col_count - 1 )) && printf '  '
         done | tr ' ' '-'
         printf '\n'
 
-        # Print rows
         for (( i=0; i<row_count; i++ )); do
-            eval "row=\${$table_name[$i]}"
+            row="${table_ref[i]}"
             sgnd_dt_split_row "$row"
 
             for (( j=0; j<col_count; j++ )); do

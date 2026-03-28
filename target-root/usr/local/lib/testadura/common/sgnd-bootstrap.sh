@@ -44,7 +44,7 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
 set -uo pipefail
-# --- Library guard ------------------------------------------------------------------
+# --- Library guard -------------------------------------------------------------------
     # _sgnd_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
@@ -86,21 +86,33 @@ set -uo pipefail
     unset -f _sgnd_lib_guard
 
     # _boot_fail
-        # Emit a bootstrap failure message with caller context and return a code.
+        # Purpose:
+        #   Emit a bootstrap failure message with caller context and return a code.
         #
-        # Usage:
-        #   cmd || { local rc=$?; _boot_fail "Message" "$rc"; return "$rc"; }
+        # Behavior:
+        #   - Captures caller file, function, and line information.
+        #   - Formats one contextual failure message.
+        #   - Writes the message through sayfail.
+        #   - Returns the supplied status code unchanged.
         #
         # Arguments:
-        #   $1  Message to display
-        #   $2  Return code to propagate (defaults to 1)
+        #   $1  MESSAGE
+        #       Failure text to report.
+        #   $2  RETURN_CODE
+        #       Code to return to the caller.
+        #       Default: 1
         #
         # Output:
-        #   Writes one FAIL line to stderr (via sayfail), including:
-        #     - calling file, line number, and function.
+        #   Writes one formatted FAIL message to stderr.
         #
         # Returns:
-        #   The provided return code ($2).
+        #   The supplied return code.
+        #
+        # Usage:
+        #   cmd || { local rc=$?; _boot_fail "Step failed" "$rc"; return "$rc"; }
+        #
+        # Examples:
+        #   _boot_fail "Framework cfg load failed" 1
     _boot_fail() {
         local msg="${1:-Bootstrap step failed}"
         local rc="${2:-1}"
@@ -181,26 +193,33 @@ set -uo pipefail
 
     # _init_bootstrap
         # Purpose:
-        #   Initialize the SolidgroundUX bootstrap environment (env, defaults, roots, derived paths).
+        #   Initialize the early bootstrap environment before core library loading.
+        #
+        # Behavior:
+        #   - Resolves SGND_BOOTSTRAP_DIR from the current file location.
+        #   - Sources sgnd-comment-parser.sh and sgnd-bootstrap-env.sh.
+        #   - Initializes bootstrap-related module metadata once header parsing is available.
+        #   - Initializes executable metadata for the calling script.
+        #   - Applies default framework values.
+        #   - Rebuilds derived directories and framework cfg paths.
+        #   - Ensures required framework directories exist.
         #
         # Outputs (globals):
         #   SGND_BOOTSTRAP_DIR
-        #     Absolute directory of this file.
-        #
-        # Behavior:
-        #   - Resolves SGND_BOOTSTRAP_DIR.
-        #   - Sources td-bootstrap-env.sh from SGND_BOOTSTRAP_DIR.
-        #   - Applies defaults, loads bootstrap cfg, and rebases derived directories/paths.
         #
         # Side effects:
-        #   - Sources td-bootstrap-env.sh (may define variables/functions).
-        #   - Loads bootstrap cfg via sgnd_load_bootstrap_cfg.
+        #   - Sources bootstrap support libraries.
+        #   - Populates bootstrap and script metadata variables.
+        #   - Recomputes framework path globals.
+        #   - Creates required directories when missing.
         #
         # Returns:
-        #   Propagates failures from sourced/bootstrap routines.
+        #   0 on success.
+        #   Non-zero if a sourced dependency or bootstrap step fails.
         #
         # Notes:
-        #   May run multiple times across process boundaries when root re-exec occurs.
+        #   - Runs before core libraries are sourced.
+        #   - May execute more than once across process boundaries when root re-exec occurs.
     _init_bootstrap() {
         sayinfo "Sourcing bootstrap environment"
         SGND_BOOTSTRAP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -460,7 +479,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Derives a canonical module prefix from the library filename.
-        #       e.g. td-comment-parser.sh → SGND_COMMENT_PARSER
+        #       e.g. sgnd-comment-parser.sh → SGND_COMMENT_PARSER
         #   - Defines structural variables:
         #       SGND_<MODULE>_FILE
         #       SGND_<MODULE>_DIR
@@ -744,28 +763,46 @@ set -uo pipefail
     }
 
     # sgnd_check_license
-        # Ensure the current license has been accepted (hash-based acceptance).
+        # Purpose:
+        #   Verify that the current framework license has been accepted.
         #
         # Behavior:
-            #   - Computes SHA-256 of the current license file (SGND_DOCS_DIR/SGND_LICENSE_FILE).
-            #   - If an acceptance file exists (SGND_STATE_DIR/<license>.accepted) and its
-            #     hash matches the current license hash, license is considered accepted.
-            #   - Otherwise, prints the license and prompts the user to accept.
-            #   - On acceptance, writes the current hash to the acceptance file.
+        #   - Computes the hash of the current license file.
+        #   - Checks whether a stored acceptance record exists.
+        #   - Compares the stored hash with the current license hash.
+        #   - Prints the license and prompts the user when acceptance is missing or outdated.
+        #   - Stores the current license hash when the user accepts.
+        #   - Updates SGND_LICENSE_ACCEPTED to reflect the resulting state.
+        #
+        # Inputs (globals):
+        #   SGND_DOCS_DIR
+        #   SGND_LICENSE_FILE
+        #   SGND_STATE_DIR
+        #
+        # Outputs (globals):
+        #   SGND_LICENSE_ACCEPTED
         #
         # Side effects:
-            #   - May prompt the user (ask_yesno) and print the license text.
-            #   - Writes acceptance state to: SGND_STATE_DIR/<license>.accepted
-            #   - Sets SGND_LICENSE_ACCEPTED (1 accepted, 0 not accepted)
+        #   - May print the license text.
+        #   - May prompt the user for acceptance.
+        #   - May write an acceptance file under SGND_STATE_DIR.
         #
         # Returns:
-            #   0  License accepted (already accepted or accepted now)
-            #   2  User declined/cancelled acceptance
-            #   1  Error (e.g., cannot hash license file or cannot write acceptance state)
+        #   0 if the license is accepted.
+        #   2 if the user declines or cancels.
+        #   1 on operational failure.
+        #
+        # Usage:
+        #   sgnd_check_license || return $?
+        #
+        # Examples:
+        #   sgnd_check_license
         #
         # Notes:
-            #   - Called only after root constraints are resolved to avoid double prompting
-            #     across sudo re-exec.
+        #   - Intended to run only after root/non-root re-exec decisions are complete,
+        #     to avoid prompting twice.
+        #   - Called only after root constraints are resolved to avoid double prompting
+        #     across sudo re-exec.
     sgnd_check_license() {
         local license_file="$SGND_DOCS_DIR/$SGND_LICENSE_FILE"
         local accepted_file="$SGND_STATE_DIR/$SGND_LICENSE_FILE.accepted"
@@ -824,16 +861,32 @@ set -uo pipefail
     }
 
     # sgnd_load_ui_style
-        # Load the active UI palette and style definitions.
+        # Purpose:
+        #   Load the active UI palette and style definitions.
         #
         # Behavior:
-            #   - Resolves SGND_UI_PALETTE and SGND_UI_STYLE; if a value is a basename,
-            #     it is resolved relative to SGND_STYLE_DIR.
-            #   - Sources palette first, then style.
+        #   - Resolves SGND_UI_PALETTE and SGND_UI_STYLE to full paths when needed.
+        #   - Treats basename-only values as files under SGND_STYLE_DIR.
+        #   - Sources the palette file first.
+        #   - Sources the style file second.
+        #
+        # Inputs (globals):
+        #   SGND_UI_PALETTE
+        #   SGND_UI_STYLE
+        #   SGND_STYLE_DIR
+        #
+        # Side effects:
+        #   - Sources palette and style files into the current shell.
         #
         # Returns:
-            #   0 on success
-            #   1 if palette/style file is missing or unreadable
+        #   0 on success.
+        #   1 if either file is missing or unreadable.
+        #
+        # Usage:
+        #   sgnd_load_ui_style || return 1
+        #
+        # Examples:
+        #   sgnd_load_ui_style
     sgnd_load_ui_style() {
         local style_path palette_path
 
@@ -853,13 +906,13 @@ set -uo pipefail
         source "$style_path"
     }
     
- # --- Main ------------------------------------------------------------------------
+# --- Main ----------------------------------------------------------------------------
     # sgnd_bootstrap
         # Purpose:
         #   Initialize the Testadura framework runtime environment.
         #
         # Behavior:
-        #   - Sources td-bootstrap-env.sh.
+        #   - Sources sgnd-bootstrap-env.sh.
         #   - Applies default configuration values.
         #   - Derives framework directory and cfg paths.
         #   - Ensures required directories exist.

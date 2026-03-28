@@ -5,9 +5,9 @@
 #   Version     : 1.1
 #   Build       : 2608700
 #   Checksum    : 3b23558fe88f392e7aa41e1cd23993b52cb0ce2df1b72aa43950c5f81ab0737c
-#   Sourcefile  : exe-template.sh
+#   Source      : lib-template.sh
 #   Type        : library
-#   Purpose     : Canonical executable template for Testadura scripts
+#   Purpose     : Canonical template for source-only framework libraries
 #
 # Description:
 #   Provides the standard structure for framework libraries, including:
@@ -85,12 +85,12 @@ set -uo pipefail
 
 # --- Internal helpers -------------------------------------------------------------
     # Naming:
-    #   - Prefix internal-only helpers with "__" (never "sgnd_")
+    #   - Prefix internal-only helpers with "_" (never "sgnd_")
     # Example:
     #   __<libname>_helper() { :; }
-# --- Public API ------------------------------------------------------------------=
+# --- Public API -------------------------------------------------------------------
     # Naming:
-    #   - Prefix public functions with "sgnd_" (never "__")
+    #   - Prefix public functions with "sgnd_" (never "_")
     # Example:
     #   sgnd_<libname>_do_something() { :; }
 

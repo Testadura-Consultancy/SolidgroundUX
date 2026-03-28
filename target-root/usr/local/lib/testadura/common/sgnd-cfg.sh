@@ -88,10 +88,6 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Internal: file and value manipulation -------------------------------------------
-    # - Ignores empty lines and comments
-    # - Accepts only names: [A-Za-z_][A-Za-z0-9_]*
-    # - Loads via printf -v assignment (value preserved as-is)
-
     # _sgnd_is_ident
         # Purpose:
         #   Test whether a string is a valid shell identifier.
@@ -118,7 +114,7 @@ set -uo pipefail
         #   fi
     _sgnd_is_ident() {
             [[ "${1:-}" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]
-        }
+    }
    
     # _sgnd_kv_load_file
         # Purpose:

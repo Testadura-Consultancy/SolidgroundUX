@@ -2,22 +2,22 @@
 # SolidgroundUX - Core Utilities
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.1
-#   Build       : 2608700
-#   Checksum    : a3fb66965e83505978bec8d1b6ddfd7d068c1365509e408d8fadda01e1662ead
+#   Version     : 1.2
+#   Build       : 2608701
+#   Checksum    : c90f5b872c54ef8e69f92fbf1449f5d5b8af81f632ccae5c9afeac5fa7eeef7c
 #   Source      : sgnd-core.sh
 #   Type        : library
 #   Purpose     : Provide foundational utility functions and shared primitives
 #
 # Description:
-#   Contains the core utility functions used throughout the SolidgroundUX framework.
+#   Contains the lowest-level generic helpers used throughout the SolidgroundUX
+#   framework.
 #
 #   The library:
-#     - Defines common helper functions used across modules
-#     - Provides string, array, and general-purpose utilities
-#     - Implements shared conventions and low-level abstractions
-#     - Serves as a dependency for higher-level libraries
-#     - Avoids duplication by centralizing frequently used logic
+#     - Defines generic reusable helper functions
+#     - Provides string, array, and low-level utility primitives
+#     - Implements shared conventions and diagnostics helpers
+#     - Avoids system-, UI-, and business-specific behavior where possible
 #
 # Design principles:
 #   - Keep utilities generic and broadly reusable
@@ -33,16 +33,18 @@
 # Non-goals:
 #   - Business logic or application-specific behavior
 #   - UI rendering or user interaction handling
+#   - System administration and host/runtime operations (handled in sgnd-system)
 #   - Configuration or state management (handled in dedicated modules)
 #
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
-#   Client      : 
+#   Client      :
 #   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
 set -uo pipefail
+
 # --- Library guard ------------------------------------------------------------------
     # _sgnd_lib_guard
         # Purpose:
@@ -54,8 +56,8 @@ set -uo pipefail
         #   - Sets the guard variable on first load.
         #   - Skips initialization if the library was already loaded.
         #
-        # Inputs:
-        #   BASH_SOURCE[0]
+        # Inputs (globals):
+        #   BASH_SOURCE
         #   $0
         #
         # Outputs (globals):
@@ -86,187 +88,40 @@ set -uo pipefail
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
-# --- Internals -----------------------------------------------------------------------
-  # _sh_err
-      # Purpose:
-      #   Print an error message to stderr (internal helper).
-      #
-      # Arguments:
-      #   $@  Message tokens. If none given, prints "(no message)".
-      #
-      # Outputs:
-      #   Writes to stderr.
-      #
-      # Returns:
-      #   0 always.
-      #
-      # Notes:
-      #   - Intended for internal use only (minimal; no UI formatting).
-  _sh_err(){ printf '%s\n' "${*:-(no message)}" >&2; }
-
-# --- Requirement checks --------------------------------------------------------------
- # -- Possibly exiting requirement checks -----------------------------------------
-    # sgnd_need_cmd
-        # Purpose:
-        #   Require a command to be available on PATH; exit on failure.
-        #
-        # Arguments:
-        #   $1  Command name to check.
-        #
-        # Behavior:
-        #   - Calls sgnd_have "$1".
-        #   - Exits the process with rc=1 if missing.
-        #
-        # Outputs:
-        #   Writes an error to stderr on failure.
-        #
+# --- Requirement checks -------------------------------------------------------------
+    # sgnd_have
         # Returns:
-        #   Does not return on failure (exits).
-    sgnd_need_cmd(){ sgnd_have "$1" || { _sh_err "Missing required command: $1"; exit 1; }; }
-
-    # sgnd_need_root
-        # Purpose:
-        #   Require the script to run as root, re-executing through sudo when needed.
-        #
-        # Behavior:
-        #   - Detects whether the current process already runs with effective UID 0.
-        #   - If not root and SGND_ALREADY_ROOT is unset, re-executes the current script via sudo.
-        #   - Preserves selected environment variables across the sudo boundary.
-        #   - Uses SGND_ALREADY_ROOT as a loop guard to prevent repeated elevation attempts.
-        #
-        # Arguments:
-        #   $@  ARGS
-        #       Original script arguments forwarded to the re-exec call.
-        #
-        # Inputs (globals):
-        #   SGND_ALREADY_ROOT
-        #   SGND_FRAMEWORK_ROOT
-        #   SGND_APPLICATION_ROOT
-        #   PATH
-        #
-        # Side effects:
-        #   - May replace the current process via exec sudo.
-        #   - Writes informational/debug output through sayinfo/saydebug.
-        #
-        # Returns:
-        #   0 when already running as root and execution may continue.
-        #   Does not return when re-exec succeeds.
+        #   0 if the command exists on PATH; non-zero otherwise.
         #
         # Usage:
-        #   sgnd_need_root "$@"
-        #
-        # Examples:
-        #   sgnd_need_root "$@"
-        #
-        #   sgnd_need_root "$@" || exit 1
-        #
-        # Notes:
-        #   - Intended as a guard near the top of privileged scripts.
-    sgnd_need_root() {
-      sayinfo "Script requires root permissions"
-      if [[ ${EUID:-$(id -u)} -ne 0 && -z "${SGND_ALREADY_ROOT:-}" ]]; then
-        exec sudo \
-            --preserve-env=SGND_FRAMEWORK_ROOT,SGND_APPLICATION_ROOT,PATH \
-            -- env SGND_ALREADY_ROOT=1 "$0" "$@"
-        saydebug "Restarting as root"
-      else
-        saydebug "Already root, no restart required"
-      fi
-    }
+        #   sgnd_have COMMAND
+    sgnd_have() { command -v "$1" >/dev/null 2>&1; }
 
-    # sgnd_cannot_root
-        # Purpose:
-        #   Require the script to NOT run as root; exit if root.
-        #
-        # Behavior:
-        #   - If EUID == 0: prints failure via sayfail and exits rc=1.
-        #   - Otherwise continues.
-        #
-        # Outputs:
-        #   Uses sayinfo/sayfail.
-        #
+    # sgnd_need_cmd
         # Returns:
-        #   0 when not root; does not return when root (exits).
-    sgnd_cannot_root() {
-      sayinfo "Script requires NOT having root permissions"
-      if [[ ${EUID:-$(id -u)} -eq 0 ]]; then
-          sayfail "Do not run this script as root. Exiting..."
-          exit 1
-      fi
-    }
+        #   0 when the command exists; exits 1 otherwise.
+        #
+        # Usage:
+        #   sgnd_need_cmd COMMAND
+    sgnd_need_cmd() { sgnd_have "$1" || { printf 'Missing required command: %s\n' "$1" >&2; exit 1; }; }
 
     # sgnd_need_bash
-        # Purpose:
-        #   Require Bash and (optionally) a minimum major version; exit on failure.
-        #
-        # Arguments:
-        #   $1  Minimum major version (default: 4).
-        #
-        # Inputs:
-        #   BASH_VERSINFO
-        #
-        # Outputs:
-        #   Writes an error to stderr on failure.
-        #
         # Returns:
-        #   Does not return on failure (exits rc=1).
-    sgnd_need_bash(){ (( BASH_VERSINFO[0] >= ${1:-4} )) || { _sh_err "Bash ${1:-4}+ required."; exit 1; }; }
+        #   0 when the current Bash major version is sufficient; exits 1 otherwise.
+        #
+        # Usage:
+        #   sgnd_need_bash [MIN_MAJOR]
+    sgnd_need_bash() { (( BASH_VERSINFO[0] >= ${1:-4} )) || { printf 'Bash %s+ required.\n' "${1:-4}" >&2; exit 1; }; }
 
-    # sgnd_need_systemd
-        # Purpose:
-        #   Require systemd tooling (systemctl); exit on failure.
-        #
-        # Behavior:
-        #   - Calls sgnd_have systemctl.
-        #
-        # Outputs:
-        #   Writes an error to stderr on failure.
-        #
-        # Returns:
-        #   Does not return on failure (exits rc=1).
-    sgnd_need_systemd(){ sgnd_have systemctl || { _sh_err "Systemd not available."; exit 1; }; }
-
-    # sgnd_need_writable
-        # Purpose:
-        #   Require a path to be writable; exit on failure.
-        #
-        # Arguments:
-        #   $1  Path to test with [[ -w ]].
-        #
-        # Outputs:
-        #   Writes an error to stderr on failure.
-        #
-        # Returns:
-        #   Does not return on failure (exits rc=1).
-    sgnd_need_writable(){ [[ -w "$1" ]] || { _sh_err "Not writable: $1"; exit 1; }; }
-
- # -- Non lethal requirement checks (return 1 on failure, do not exit) ------------
     # sgnd_need_tty
-        # Purpose:
-        #   Require stdout to be a TTY; return non-zero if not.
-        #
-        # Behavior:
-        #   - Tests [[ -t 1 ]].
-        #
-        # Outputs:
-        #   Writes an error to stderr on failure.
-        #
         # Returns:
         #   0 if stdout is a TTY; 1 otherwise.
-    sgnd_need_tty(){ [[ -t 1 ]] || { _sh_err "No TTY attached."; return 1; }; }
-
-    # sgnd_is_active
-        # Purpose:
-        #   Test whether a systemd unit is active.
         #
-        # Arguments:
-        #   $1  Unit name (e.g. ssh.service).
-        #
-        # Returns:
-        #   0 if active; non-zero otherwise (as per systemctl).
-    sgnd_is_active(){ systemctl is-active --quiet "$1"; }
+        # Usage:
+        #   sgnd_need_tty
+    sgnd_need_tty() { [[ -t 1 ]] || { printf 'No TTY attached.\n' >&2; return 1; }; }
 
-# --- Filesystem Helpers --------------------------------------------------------------
+# --- Filesystem helpers -------------------------------------------------------------
     # sgnd_can_append
         # Purpose:
         #   Test whether a file can be appended to, or created for later appending.
@@ -290,37 +145,23 @@ set -uo pipefail
         #
         # Usage:
         #   sgnd_can_append FILE
-        #
-        # Examples:
-        #   if sgnd_can_append "$SGND_LOG_PATH"; then
-        #       printf 'log target ok\n'
-        #   fi
-        #
-        #   sgnd_can_append "/var/log/testadura/app.log" || return 1
-        #
-        # Notes:
-        #   - Does not verify available disk space or future write success.
     sgnd_can_append() {
-        # Returns 0 if we can append to $1 (file exists and writable, or dir writable to create)
         local f="$1"
         local d
 
         [[ -n "$f" ]] || return 1
         d="$(dirname -- "$f")"
 
-        # Existing file must be writable
         if [[ -e "$f" ]]; then
             [[ -f "$f" && -w "$f" ]] || return 1
             return 0
         fi
 
-        # Non-existing file: directory must exist and be writable, OR be creatable (mkdir -p)
         if [[ -d "$d" ]]; then
             [[ -w "$d" ]] || return 1
             return 0
         fi
 
-        # Try to create directory path (silently)
         mkdir -p -- "$d" 2>/dev/null || return 1
         [[ -w "$d" ]] || return 1
         return 0
@@ -328,162 +169,62 @@ set -uo pipefail
 
     # sgnd_ensure_dir
         # Purpose:
-        #   Ensure a directory exists (mkdir -p if needed).
+        #   Ensure a directory exists.
         #
         # Arguments:
         #   $1  Directory path.
         #
-        # Behavior:
-        #   - If dir is empty => returns 2.
-        #   - If dir does not exist => mkdir -p.
-        #
         # Returns:
-        #   0 on success; 2 on missing argument; otherwise mkdir's rc.
+        #   0 on success.
+        #   2 if the argument is missing.
+        #   Otherwise mkdir's exit status.
+        #
+        # Usage:
+        #   sgnd_ensure_dir DIR
     sgnd_ensure_dir() {
         local dir="${1:-}"
         [[ -n "$dir" ]] || return 2
         [[ -d "$dir" ]] || mkdir -p -- "$dir"
     }
 
-    # sgnd_ensure_writable_dir
-        # Purpose:
-        #   Ensure a directory exists and is suitable for user-scoped writing.
-        #
-        # Behavior:
-        #   - Validates that a directory argument was supplied.
-        #   - Creates the directory path when missing.
-        #   - When running via sudo and the directory was newly created, attempts to chown it to SUDO_USER and that user's primary group.
-        #   - Verifies that the directory exists before returning success.
-        #
-        # Arguments:
-        #   $1  DIR
-        #       Directory path to ensure.
-        #
-        # Inputs (globals):
-        #   SUDO_USER
-        #
-        # Side effects:
-        #   - May create directories with mkdir -p.
-        #   - May change ownership with chown.
-        #
+    # sgnd_abs_path
         # Returns:
-        #   0 on success.
-        #   2 if DIR is missing or empty.
-        #   3 if mkdir -p fails.
-        #   4 if the directory still does not exist afterward.
+        #   0 on success; 127 if no supported resolver is available.
         #
         # Usage:
-        #   sgnd_ensure_writable_dir DIR
-        #
-        # Examples:
-        #   sgnd_ensure_writable_dir "$SGND_USRCFG_DIR" || return 1
-        #
-        #   sgnd_ensure_writable_dir "$(sgnd_real_home)/.config/testadura"
-        #
-        # Notes:
-        #   - Ownership correction is only attempted for newly created directories.
-    sgnd_ensure_writable_dir() {
-        local dir="${1:-}"
-        [[ -n "$dir" ]] || return 2
-
-        local created=0
-        if [[ ! -d "$dir" ]]; then
-            mkdir -p -- "$dir" || return 3
-            created=1
+        #   sgnd_abs_path PATH
+    sgnd_abs_path() {
+        if sgnd_have readlink; then
+            readlink -f -- "$1" 2>/dev/null && return 0
         fi
 
-        # If running under sudo, ensure user-owned directory for user-scoped paths
-        if [[ -n "${SUDO_USER:-}" ]]; then
-            local grp
-            grp="$(id -gn "$SUDO_USER" 2>/dev/null || printf '%s' "$SUDO_USER")"
-
-            if (( created )); then
-                chown "$SUDO_USER:$grp" "$dir" 2>/dev/null || true
-            fi
+        if sgnd_have realpath; then
+            realpath -- "$1"
+            return $?
         fi
 
-        [[ -d "$dir" ]] || return 4
-        return 0
+        return 127
     }
 
-    # sgnd_exists
-      # Purpose:
-      #   Test whether a regular file exists.
-      #
-      # Arguments:
-      #   $1  File path.
-      #
-      # Returns:
-      #   0 if exists and is a regular file; non-zero otherwise.
-    sgnd_exists(){ [[ -f "$1" ]]; }
-
-    # sgnd_is_dir
-      # Purpose:
-      #   Test whether a directory exists.
-      #
-      # Arguments:
-      #   $1  Directory path.
-      #
-      # Returns:
-      #   0 if exists and is a directory; non-zero otherwise.
-    sgnd_is_dir(){ [[ -d "$1" ]]; }
-
-    # sgnd_is_nonempty
-      # Purpose:
-      #   Test whether a file exists and is non-empty.
-      #
-      # Arguments:
-      #   $1  File path.
-      #
-      # Returns:
-      #   0 if file exists and size > 0; non-zero otherwise.
-    sgnd_is_nonempty(){ [[ -s "$1" ]]; }
-
-    # sgnd_abs_path
-        # Purpose:
-        #   Resolve an absolute canonical path.
-        #
-        # Arguments:
-        #   $1  Path to resolve.
-        #
-        # Behavior:
-        #   - Uses readlink -f when available; falls back to realpath.
-        #
-        # Outputs:
-        #   Prints resolved path to stdout.
-        #
-        # Returns:
-        #   0 on success; non-zero if both resolvers fail.
-    sgnd_abs_path(){ readlink -f "$1" 2>/dev/null || realpath "$1"; }
-
     # sgnd_mktemp_dir
-      # Purpose:
-      #   Create a temporary directory and print its path.
-      #
-      # Outputs:
-      #   Prints directory path to stdout.
-      #
-      # Returns:
-      #   0 on success; non-zero on failure.
-      #
-      # Notes:
-      #   - Uses mktemp -d; falls back to TMPDIR-based template.
-    sgnd_mktemp_dir(){ mktemp -d 2>/dev/null || TMPDIR=${TMPDIR:-/tmp} mktemp -d "${TMPDIR%/}/XXXXXX"; }
-
-    # sgnd_mktemp_file
-        # Purpose:
-        #   Create a temporary file and print its path.
-        #
-        # Outputs:
-        #   Prints file path to stdout.
-        #
         # Returns:
         #   0 on success; non-zero on failure.
-    sgnd_mktemp_file(){ TMPDIR=${TMPDIR:-/tmp} mktemp "${TMPDIR%/}/XXXXXX"; }
+        #
+        # Usage:
+        #   sgnd_mktemp_dir
+    sgnd_mktemp_dir() { mktemp -d 2>/dev/null || TMPDIR=${TMPDIR:-/tmp} mktemp -d "${TMPDIR%/}/XXXXXX"; }
+
+    # sgnd_mktemp_file
+        # Returns:
+        #   0 on success; non-zero on failure.
+        #
+        # Usage:
+        #   sgnd_mktemp_file
+    sgnd_mktemp_file() { TMPDIR=${TMPDIR:-/tmp} mktemp "${TMPDIR%/}/XXXXXX"; }
 
     # sgnd_slugify
         # Purpose:
-        #   Convert arbitrary text into a lowercase, filename-safe slug.
+        #   Convert text into a lowercase filename-safe slug.
         #
         # Behavior:
         #   - Lowercases the input text.
@@ -494,7 +235,6 @@ set -uo pipefail
         #
         # Arguments:
         #   $1  TEXT
-        #       Source text to normalize.
         #
         # Output:
         #   Prints the slug to stdout.
@@ -504,29 +244,17 @@ set -uo pipefail
         #
         # Usage:
         #   sgnd_slugify TEXT
-        #
-        # Examples:
-        #   sgnd_slugify "Some Title!!"
-        #
-        #   slug="$(sgnd_slugify "$menu_title")"
     sgnd_slugify() {
-        # Usage: sgnd_slugify "Some Title!!"
-        # Output: some-title
         local s="${1:-}"
 
-        # Lowercase (bash 4+)
         s="${s,,}"
-
-        # Replace whitespace with dash
         s="$(printf '%s' "$s" | tr -s '[:space:]' '-')"
-
-        # Remove anything not [a-z0-9-_.]
         s="$(printf '%s' "$s" | tr -cd 'a-z0-9-_.')"
 
-        # Collapse multiple dashes
-        while [[ "$s" == *--* ]]; do s="${s//--/-}"; done
+        while [[ "$s" == *--* ]]; do
+            s="${s//--/-}"
+        done
 
-        # Trim leading/trailing dashes
         s="${s#-}"
         s="${s%-}"
 
@@ -538,15 +266,8 @@ set -uo pipefail
         # Purpose:
         #   Compute and print the SHA-256 hash of a readable file.
         #
-        # Behavior:
-        #   - Validates that the target file is readable.
-        #   - Uses sha256sum when available.
-        #   - Falls back to shasum -a 256 when sha256sum is unavailable.
-        #   - Prints only the hexadecimal hash value, not the filename.
-        #
         # Arguments:
         #   $1  FILE
-        #       File path to hash.
         #
         # Output:
         #   Prints the SHA-256 hash to stdout.
@@ -559,26 +280,19 @@ set -uo pipefail
         #
         # Usage:
         #   sgnd_hash_sha256_file FILE
-        #
-        # Examples:
-        #   hash="$(sgnd_hash_sha256_file "$archive")" || return 1
-        #
-        #   sgnd_hash_sha256_file "./release.tar.gz"
     sgnd_hash_sha256_file() {
         local file="$1"
+        local out
 
         [[ -r "$file" ]] || return 2
 
-        if command -v sha256sum >/dev/null 2>&1; then
-            # sha256sum prints: "<hash>  filename"
-            local out
+        if sgnd_have sha256sum; then
             out="$(sha256sum "$file")" || return 3
             printf '%s\n' "${out%% *}"
             return 0
         fi
 
-        if command -v shasum >/dev/null 2>&1; then
-            local out
+        if sgnd_have shasum; then
             out="$(shasum -a 256 "$file")" || return 3
             printf '%s\n' "${out%% *}"
             return 0
@@ -589,34 +303,17 @@ set -uo pipefail
 
     # sgnd_safe_replace_file
         # Purpose:
-        #   Safely replace a destination file with a source file while preserving
-        #   the original file's permissions.
-        #
-        # Behavior:
-        #   - Copies the permission bits (mode) from the destination file to the source file.
-        #   - Replaces the destination file atomically using mv.
-        #   - Ensures executable flags and other mode settings are preserved.
-        #
-        # Notes:
-        #   - Intended for use with temporary files (e.g., mktemp output).
-        #   - The destination file must already exist.
-        #   - Does not preserve ownership (only mode). Add chown --reference if needed.
+        #   Replace a destination file with a source file while preserving mode bits.
         #
         # Arguments:
-        #   $1  SRC   source file (temporary file)
-        #   $2  DST   destination file (existing file to replace)
+        #   $1  SRC
+        #   $2  DST
         #
         # Returns:
-        #   0  success
-        #   1  failure (missing file, chmod failure, or mv failure)
+        #   0 on success; 1 on failure.
         #
         # Usage:
-        #   sgnd_safe_replace_file "$tmp_file" "$file"
-        #
-        # Examples:
-        #   tmp="$(mktemp)"
-        #   echo "new content" > "$tmp"
-        #   sgnd_safe_replace_file "$tmp" "/path/to/script.sh"
+        #   sgnd_safe_replace_file SRC DST
     sgnd_safe_replace_file() {
         local src="${1:?missing source}"
         local dst="${2:?missing destination}"
@@ -627,93 +324,23 @@ set -uo pipefail
         chmod --reference="$dst" "$src" || return 1
         mv "$src" "$dst" || return 1
     }
-    
-# --- Systeminfo ----------------------------------------------------------------------
-    # sgnd_get_primary_nic
-      # Purpose:
-      #   Return the interface name for the default route (best-effort).
-      #
-      # Behavior:
-      #   - Parses `ip route show default` and prints column 5 of the first line.
-      #
-      # Outputs:
-      #   Prints interface name to stdout (may be empty).
-      #
-      # Returns:
-      #   0 always (awk/ip failures may result in empty output).
-    sgnd_get_primary_nic() {
-        ip route show default 2>/dev/null | awk 'NR==1 {print $5}'
-    }
-# --- Network Helpers -----------------------------------------------------------------
-    # sgnd_ping_ok
-        # Purpose:
-        #   Test whether a host responds to a single ICMP ping.
-        #
-        # Arguments:
-        #   $1  Hostname or IP.
-        #
-        # Returns:
-        #   0 if ping succeeds; non-zero otherwise.
-    sgnd_ping_ok(){ ping -c1 -W1 "$1" &>/dev/null; }
 
-    # sgnd_port_open
-      # Purpose:
-      #   Test whether a TCP port on a host appears open.
-      #
-      # Arguments:
-      #   $1  Hostname or IP.
-      #   $2  TCP port number.
-      #
-      # Behavior:
-      #   - Prefers nc -z when available.
-      #   - Falls back to bash /dev/tcp.
-      #
-      # Returns:
-      #   0 if connection succeeds; non-zero otherwise.
-    sgnd_port_open(){
-      local h="$1" p="$2"
-      if sgnd_have nc; then nc -z "$h" "$p" &>/dev/null; else
-        (exec 3<>"/dev/tcp/$h/$p") &>/dev/null
-      fi
-    }
-
-    # sgnd_get_ip
-      # Purpose:
-      #   Return the first non-loopback IP from hostname -I (best-effort).
-      #
-      # Outputs:
-      #   Prints IP to stdout (may be empty).
-      #
-      # Returns:
-      #   0 always (command failures may result in empty output).
-    sgnd_get_ip(){ hostname -I 2>/dev/null | awk '{print $1}'; }
-
-# --- Argument & Environment Helpers---------------------------------------------------
+# --- Argument & environment helpers -------------------------------------------------
     # sgnd_is_set
-      # Purpose:
-      #   Test whether a variable name is set/defined in the shell.
-      #
-      # Arguments:
-      #   $1  Variable name.
-      #
-      # Returns:
-      #   0 if defined; non-zero otherwise.
-    sgnd_is_set(){ [[ -v "$1" ]]; }
+        # Returns:
+        #   0 if the variable name is defined; non-zero otherwise.
+        #
+        # Usage:
+        #   sgnd_is_set VAR_NAME
+    sgnd_is_set() { [[ -v "$1" ]]; }
 
     # sgnd_default
         # Purpose:
         #   Assign a default value to a variable when it is unset or empty.
         #
-        # Behavior:
-        #   - Uses shell parameter expansion in an eval expression.
-        #   - Leaves the variable unchanged when it already has a non-empty value.
-        #   - Assigns the supplied default expression otherwise.
-        #
         # Arguments:
         #   $1  VAR_NAME
-        #       Variable name to initialize.
         #   $2  DEFAULT
-        #       Default value expression.
         #
         # Side effects:
         #   - Sets the target variable in the current shell.
@@ -723,299 +350,86 @@ set -uo pipefail
         #
         # Usage:
         #   sgnd_default VAR_NAME DEFAULT
-        #
-        # Examples:
-        #   sgnd_default SGND_UI_STYLE "default"
-        #
-        #   sgnd_default FLAG_VERBOSE "0"
-        #
-        # Notes:
-        #   - Uses eval, so both arguments must be trusted.
-    sgnd_default(){ eval "${1}=\${${1}:-$2}"; }
+    sgnd_default() {
+        local name="$1"
+        local default="${2-}"
+        local -n ref="$name"
+
+        [[ -n "${ref:-}" ]] || ref="$default"
+    }
 
     # sgnd_is_number
-      # Purpose:
-      #   Test whether a value contains only digits (0-9).
-      #
-      # Arguments:
-      #   $1  Value to test.
-      #
-      # Returns:
-      #   0 if digits-only; non-zero otherwise.
-    sgnd_is_number(){ [[ "$1" =~ ^[0-9]+$ ]]; }
-
-    # sgnd_is_bool
-      # Purpose:
-      #   Test whether a value is a common boolean-like token.
-      #
-      # Arguments:
-      #   $1  Token to test.
-      #
-      # Returns:
-      #   0 if matches (true|false|yes|no|on|off|1|0); non-zero otherwise.
-    sgnd_is_bool(){ [[ "$1" =~ ^(true|false|yes|no|on|off|1|0)$ ]]; }
+        # Returns:
+        #   0 if the value contains only digits; non-zero otherwise.
+        #
+        # Usage:
+        #   sgnd_is_number VALUE
+    sgnd_is_number() { [[ "$1" =~ ^[0-9]+$ ]]; }
 
     # sgnd_array_has_items
-      # Purpose:
-      #   Test whether a named array variable exists and contains at least one element.
-      #
-      # Arguments:
-      #   $1  Array variable name.
-      #
-      # Returns:
-      #   0 if array exists and length > 0; non-zero otherwise.
-      #
-      # Requires:
-      #   bash 4.3+ (nameref).
-    sgnd_array_has_items(){
-      declare -p "$1" &>/dev/null || return 1
-      local -n _arr="$1"
-      (( ${#_arr[@]} > 0 ))
+        # Returns:
+        #   0 if the named array exists and contains at least one element; non-zero otherwise.
+        #
+        # Usage:
+        #   sgnd_array_has_items ARRAY_NAME
+    sgnd_array_has_items() {
+        declare -p "$1" &>/dev/null || return 1
+        local -n _arr="$1"
+        (( ${#_arr[@]} > 0 ))
     }
 
     # sgnd_is_true
-        # Purpose:
-        #   Test whether a value represents "true" (case-insensitive).
-        #
-        # Arguments:
-        #   $1  Token to test.
-        #
         # Returns:
-        #   0 if token is one of: y, yes, 1, true; non-zero otherwise.
+        #   0 if the token is one of: y, yes, 1, true; non-zero otherwise.
+        #
+        # Usage:
+        #   sgnd_is_true VALUE
     sgnd_is_true() {
-      case "${1,,}" in
-          y|yes|1|true) return 0 ;;
-          *)            return 1 ;;
-      esac
+        case "${1,,}" in
+            y|yes|1|true) return 0 ;;
+            *)            return 1 ;;
+        esac
     }
 
-    # sgnd_real_user
-        # Purpose:
-        #   Resolve the real invoking user, even when the current process runs under sudo.
+# --- Process & state helpers --------------------------------------------------------
+    # sgnd_proc_exists
+        # Returns:
+        #   0 if a process with the exact name is running; non-zero otherwise.
         #
-        # Behavior:
-        #   - Returns SUDO_USER when it is set and not equal to root.
-        #   - Otherwise returns the current effective username via id -un.
+        # Usage:
+        #   sgnd_proc_exists PROCESS_NAME
+    sgnd_proc_exists() { pgrep -x "$1" &>/dev/null; }
+
+    # sgnd_wait_for_exit
+        # Returns:
+        #   0 when the named process is no longer running.
         #
-        # Inputs (globals):
-        #   SUDO_USER
-        #
-        # Output:
-        #   Prints the resolved username to stdout.
-        #
+        # Usage:
+        #   sgnd_wait_for_exit PROCESS_NAME [INTERVAL]
+    sgnd_wait_for_exit() {
+        local name="$1"
+        local interval="${2:-0.5}"
+
+        while sgnd_proc_exists "$name"; do
+            sleep "$interval"
+        done
+    }
+
+    # sgnd_kill_if_running
         # Returns:
         #   0 always.
         #
         # Usage:
-        #   sgnd_real_user
-        #
-        # Examples:
-        #   user="$(sgnd_real_user)"
-        #
-        #   printf 'real user: %s\n' "$(sgnd_real_user)"
-    sgnd_real_user() {
-        if [[ -n "${SUDO_USER-}" && "${SUDO_USER}" != "root" ]]; then
-            printf '%s\n' "${SUDO_USER}"
-        else
-            id -un
-        fi
-    }
-
-    # sgnd_real_home
-        # Purpose:
-        #   Resolve the home directory of the real invoking user.
-        #
-        # Behavior:
-        #   - Determines the effective invoking user through sgnd_real_user().
-        #   - Looks up that user in the system account database using getent passwd.
-        #   - Prints the home directory field from the passwd entry.
-        #
-        # Output:
-        #   Prints the absolute home directory path to stdout.
-        #
-        # Returns:
-        #   0 on success.
-        #   Non-zero if the user lookup fails.
-        #
-        # Usage:
-        #   sgnd_real_home
-        #
-        # Examples:
-        #   home_dir="$(sgnd_real_home)"
-        #
-        #   sgnd_ensure_writable_dir "$(sgnd_real_home)/workspace"
-        #
-        # Notes:
-        #   - Avoids relying on HOME, which may point to /root under sudo.
-    sgnd_real_home() {
-        local user
-        user="$(sgnd_real_user)"
-        getent passwd "${user}" | cut -d: -f6
-    }
-
-    # sgnd_run_as_real_user
-        # Purpose:
-        #   Execute a command as the invoking non-root user when currently running as root.
-        #
-        # Behavior:
-        #   - Resolves the real user via sgnd_real_user().
-        #   - If the current process runs as root and the real user is not root, executes the command through sudo -u <user> -H.
-        #   - Otherwise executes the command directly in the current context.
-        #
-        # Arguments:
-        #   $@  COMMAND
-        #       Command and arguments to execute.
-        #
-        # Side effects:
-        #   - May launch a subprocess under a different user context.
-        #
-        # Returns:
-        #   Returns the exit status of the executed command.
-        #
-        # Usage:
-        #   sgnd_run_as_real_user COMMAND [ARG ...]
-        #
-        # Examples:
-        #   sgnd_run_as_real_user mkdir -p "$(sgnd_real_home)/workspace"
-        #
-        #   sgnd_run_as_real_user cp template.txt "$target_dir/"
-        #
-        # Notes:
-        #   - The -H flag ensures HOME is set correctly for the target user.
-    sgnd_run_as_real_user() {
-        local user
-        user="$(sgnd_real_user)"
-
-        if (( EUID == 0 )) && [[ "${user}" != "root" ]]; then
-            sudo -u "${user}" -H -- "$@"
-        else
-            "$@"
-        fi
-    }
-
-    # sgnd_fix_ownership
-        # Purpose:
-        #   Recursively change ownership of a path to the real invoking user.
-        #
-        # Behavior:
-        #   - Resolves the real user via sgnd_real_user().
-        #   - Resolves that user's primary group via id -gn.
-        #   - Applies chown -R to the requested path.
-        #
-        # Arguments:
-        #   $1  PATH
-        #       Path whose ownership should be corrected.
-        #
-        # Side effects:
-        #   - Recursively changes ownership on disk.
-        #
-        # Returns:
-        #   0 on success.
-        #   Non-zero if chown fails.
-        #
-        # Usage:
-        #   sgnd_fix_ownership PATH
-        #
-        # Examples:
-        #   sgnd_fix_ownership "$workspace_dir"
-        #
-        #   sgnd_fix_ownership "$(sgnd_real_home)/.config/testadura"
-    sgnd_fix_ownership() {
-        local path="$1"
-        local user group
-        user="$(sgnd_real_user)"
-        group="$(id -gn "${user}")"
-
-        chown -R "${user}:${group}" "${path}"
-    }
-  
-    # sgnd_fix_permissions
-        # Purpose:
-        #   Normalize directory and file permissions under a path.
-        #
-        # Behavior:
-        #   - Sets directories to mode 755.
-        #   - Sets regular files to mode 644.
-        #   - Processes the target path recursively using find.
-        #
-        # Arguments:
-        #   $1  PATH
-        #       Root path whose permissions should be normalized.
-        #
-        # Side effects:
-        #   - Recursively changes file and directory permissions on disk.
-        #
-        # Returns:
-        #   0 on success.
-        #   Non-zero if any chmod operation fails.
-        #
-        # Usage:
-        #   sgnd_fix_permissions PATH
-        #
-        # Examples:
-        #   sgnd_fix_permissions "$publish_root"
-        #
-        #   sgnd_fix_permissions "./target-root"
-        #
-        # Notes:
-        #   - Executable bits are not preserved for regular files.
-    sgnd_fix_permissions() {
-        local path="$1"
-
-        # Directories: 755, files: 644 (tweak if you want executable scripts kept executable)
-        find "${path}" -type d -exec chmod 755 {} +
-        find "${path}" -type f -exec chmod 644 {} +
-    }
-# --- Process & State Helpers ---------------------------------------------------------
-    # sgnd_proc_exists
-      # Purpose:
-      #   Test whether a process with an exact name is running.
-      #
-      # Arguments:
-      #   $1  Process name (exact match; pgrep -x).
-      #
-      # Returns:
-      #   0 if found; non-zero otherwise.
-    sgnd_proc_exists(){ pgrep -x "$1" &>/dev/null; }
-
-    # sgnd_wait_for_exit
-      # Purpose:
-      #   Block until a named process is no longer running.
-      #
-      # Arguments:
-      #   $1  Process name.
-      #
-      # Behavior:
-      #   - Polls every 0.5 seconds.
-      #
-      # Returns:
-      #   0 always (terminates when process is gone).
-    sgnd_wait_for_exit(){ while sgnd_proc_exists "$1"; do sleep 0.5; done; }
-
-    # sgnd_kill_if_running
-      # Purpose:
-      #   Terminate all processes with an exact name if running.
-      #
-      # Arguments:
-      #   $1  Process name (exact match; pkill -x).
-      #
-      # Returns:
-      #   0 always (pkill failures suppressed).
-    sgnd_kill_if_running(){ pkill -x "$1" &>/dev/null || true; }
+        #   sgnd_kill_if_running PROCESS_NAME
+    sgnd_kill_if_running() { pkill -x "$1" &>/dev/null || true; }
 
     # sgnd_caller_id
         # Purpose:
         #   Build a compact caller identifier string for diagnostics.
         #
-        # Behavior:
-        #   - Reads file, function, and line information from the Bash call stack.
-        #   - Uses the requested stack depth to select the caller frame.
-        #   - Formats the result as: file:line (function)
-        #
         # Arguments:
         #   $1  DEPTH
-        #       Optional stack depth.
-        #       Default: 1
+        #       Optional stack depth. Default: 1
         #
         # Output:
         #   Prints the caller identifier to stdout.
@@ -1025,29 +439,18 @@ set -uo pipefail
         #
         # Usage:
         #   sgnd_caller_id [DEPTH]
-        #
-        # Examples:
-        #   sgnd_caller_id
-        #
-        #   saydebug "Called from $(sgnd_caller_id 2)"
     sgnd_caller_id() {
         local depth="${1:-1}"
-
         local file="${BASH_SOURCE[$depth]}"
         local func="${FUNCNAME[$depth]}"
         local line="${BASH_LINENO[$((depth-1))]}"
 
         printf '%s:%s (%s)' "${file##*/}" "$line" "$func"
     }
-  
+
     # sgnd_stack_trace
         # Purpose:
         #   Print a simple stack trace with the most recent caller first.
-        #
-        # Behavior:
-        #   - Iterates over the Bash call stack arrays.
-        #   - Skips the sgnd_stack_trace frame itself.
-        #   - Prints one formatted line per caller frame.
         #
         # Output:
         #   Prints stack trace lines to stdout.
@@ -1056,9 +459,6 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   sgnd_stack_trace
-        #
-        # Examples:
         #   sgnd_stack_trace
     sgnd_stack_trace() {
         local i
@@ -1071,194 +471,140 @@ set -uo pipefail
     }
 
     # sgnd_has_tty
-        # Purpose:
-        #   Test whether /dev/tty is available for reading and writing.
-        #
         # Returns:
-        #   0 if /dev/tty is readable and writable.
-        #   1 otherwise.
+        #   0 if /dev/tty is readable and writable; 1 otherwise.
         #
         # Usage:
         #   sgnd_has_tty
-        #
-        # Examples:
-        #   sgnd_has_tty || return 1
-    sgnd_has_tty() {
-        [[ -r /dev/tty && -w /dev/tty ]]
-    }
-# --- Version & OS Helpers ------------------------------------------------------------
-    # sgnd_get_os
-      # Purpose:
-      #   Return OS ID from /etc/os-release (e.g., ubuntu, debian).
-      #
-      # Outputs:
-      #   Prints ID value to stdout.
-      #
-      # Returns:
-      #   0 on success; non-zero if /etc/os-release is missing/unreadable.
-    sgnd_get_os(){ grep -E '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"' ; }
+    sgnd_has_tty() { [[ -r /dev/tty && -w /dev/tty ]]; }
 
-    # sgnd_get_os_version
-      # Purpose:
-      #   Return OS VERSION_ID from /etc/os-release.
-      #
-      # Outputs:
-      #   Prints VERSION_ID to stdout.
-      #
-      # Returns:
-      #   0 on success; non-zero if /etc/os-release is missing/unreadable.
-    sgnd_get_os_version(){ grep -E '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '"' ; }
-
+# --- Version helpers ----------------------------------------------------------------
     # sgnd_version_ge
-        # Purpose:
-        #   Compare two version strings using sort -V (A >= B).
-        #
-        # Arguments:
-        #   $1  Version A.
-        #   $2  Version B.
-        #
         # Returns:
-        #   0 if A >= B; 1 otherwise.
-    sgnd_version_ge(){ [[ "$(printf '%s\n' "$2" "$1" | sort -V | head -n1)" == "$2" ]]; }
+        #   0 if version A is greater than or equal to version B; 1 otherwise.
+        #
+        # Usage:
+        #   sgnd_version_ge VERSION_A VERSION_B
+    sgnd_version_ge() { [[ "$(printf '%s\n' "$2" "$1" | sort -V | head -n1)" == "$2" ]]; }
 
-# --- Misc Utilities ------------------------------------------------------------------
+    # --- Misc utilities -----------------------------------------------------------------
     # sgnd_timestamp
-        # Purpose:
-        #   Return current local timestamp in "YYYY-MM-DD HH:MM:SS".
-        #
-        # Outputs:
-        #   Prints timestamp to stdout.
-        #
         # Returns:
         #   0 always.
-    sgnd_timestamp(){ date +"%Y-%m-%d %H:%M:%S"; }
+        #
+        # Usage:
+        #   sgnd_timestamp
+    sgnd_timestamp() { date +"%Y-%m-%d %H:%M:%S"; }
 
     # sgnd_retry
         # Purpose:
         #   Retry a command up to N times with a delay between attempts.
         #
         # Arguments:
-        #   $1  N attempts (integer >= 1).
-        #   $2  Delay in seconds between attempts.
-        #   $@  Command to execute (after shifting N and delay).
+        #   $1  ATTEMPTS
+        #   $2  DELAY_SECONDS
+        #   $@  COMMAND
         #
         # Returns:
-        #   0 if the command succeeds within N attempts; 1 otherwise.
-    sgnd_retry(){
-        local n="$1" d="$2"; shift 2
+        #   0 if the command succeeds within the retry budget.
+        #   1 if all attempts fail.
+        #   2 on invalid arguments.
+        #
+        # Usage:
+        #   sgnd_retry ATTEMPTS DELAY COMMAND [ARG ...]
+    sgnd_retry() {
+        local n="$1"
+        local d="$2"
         local i
-        for ((i=1;i<=n;i++)); do
-        "$@" && return 0
-        (( i < n )) && sleep "$d"
+
+        shift 2
+        (( n >= 1 )) || return 2
+        (( $# >= 1 )) || return 2
+
+        for (( i=1; i<=n; i++ )); do
+            "$@" && return 0
+            (( i < n )) && sleep "$d"
         done
+
         return 1
     }
 
     # sgnd_join
-      # Purpose:
-      #   Join arguments into a single string using a separator.
-      #
-      # Arguments:
-      #   $1  Separator string (assigned to IFS).
-      #   $@  Items to join.
-      #
-      # Outputs:
-      #   Prints joined string to stdout (with printf).
-      #
-      # Returns:
-      #   0 always.
-      #
-      # Notes:
-      #   - Uses echo "$*"; this preserves spaces via IFS join semantics.
-      #   - Not safe for binary data; intended for display/logging.
-    sgnd_join() { local IFS="$1"; shift; printf '%s' "$*"; }
-
-    # sgnd_array_union
-    # Purpose:
-    #   Build a stable union of one or more source arrays into a destination array.
-    #
-    # Arguments:
-    #   $1  DEST_ARRAY name (will be overwritten).
-    #   $@  One or more SRC_ARRAY names.
-    #
-    # Behavior:
-    #   - Preserves order (SRC1 first, then SRC2, ...).
-    #   - Removes duplicates.
-    #   - Ignores empty items.
-    #   - Skips non-existent source arrays silently.
-    #
-    # Outputs (globals):
-    #   Writes the destination array via nameref.
-    #
-    # Returns:
-    #   0 on success; 1 on invalid args.
-    #
-    # Requires:
-    #   bash 4.3+ (nameref) and associative arrays.
-    sgnd_array_union() {
-    local dest_name="$1"
-    shift || true
-
-    [[ -n "${dest_name:-}" && $# -ge 1 ]] || return 1
-
-    local -n _dest="$dest_name"
-    local -A _seen=()
-    _dest=()
-
-    local src_name
-    local item
-
-    for src_name in "$@"; do
-        [[ -n "${src_name:-}" ]] || continue
-
-        # If source array doesn't exist, skip it quietly
-        declare -p "$src_name" >/dev/null 2>&1 || continue
-
-        local -n _src="$src_name"
-        for item in "${_src[@]:-}"; do
-            [[ -n "${item:-}" ]] || continue
-            if [[ -z "${_seen[$item]+x}" ]]; then
-                _dest+=( "$item" )
-                _seen["$item"]=1
-            fi
-        done
-    done
-
-    return 0
+        # Returns:
+        #   0 always.
+        #
+        # Usage:
+        #   sgnd_join SEPARATOR ITEM [ITEM ...]
+    sgnd_join() {
+        local IFS="$1"
+        shift
+        printf '%s' "$*"
     }
 
-# --- Text functions ------------------------------------------------------------------
-    # sgnd_trim
+    # sgnd_array_union
         # Purpose:
-        #   Trim leading and trailing whitespace from a string.
+        #   Build a stable union of one or more source arrays into a destination array.
         #
         # Arguments:
-        #   $@  String tokens (treated as a single string).
-        #
-        # Outputs:
-        #   Prints trimmed string to stdout.
+        #   $1  DEST_ARRAY name.
+        #   $@  One or more SRC_ARRAY names.
         #
         # Returns:
+        #   0 on success; 1 on invalid arguments.
+        #
+        # Usage:
+        #   sgnd_array_union DEST_ARRAY SRC_ARRAY [SRC_ARRAY ...]
+    sgnd_array_union() {
+        local dest_name="$1"
+        local src_name
+        local item
+        local -A _seen=()
+
+        shift || true
+        [[ -n "${dest_name:-}" && $# -ge 1 ]] || return 1
+
+        local -n _dest="$dest_name"
+        _dest=()
+
+        for src_name in "$@"; do
+            [[ -n "${src_name:-}" ]] || continue
+            declare -p "$src_name" >/dev/null 2>&1 || continue
+
+            local -n _src="$src_name"
+            for item in "${_src[@]:-}"; do
+                [[ -n "${item:-}" ]] || continue
+                if [[ -z "${_seen[$item]+x}" ]]; then
+                    _dest+=( "$item" )
+                    _seen["$item"]=1
+                fi
+            done
+        done
+
+        return 0
+    }
+
+# --- Text functions -----------------------------------------------------------------
+    # sgnd_trim
+        # Returns:
         #   0 always.
-    sgnd_trim(){ local v="${*:-}"; v="${v#"${v%%[![:space:]]*}"}"; echo "${v%"${v##*[![:space:]]}"}"; }
+        #
+        # Usage:
+        #   sgnd_trim TEXT
+    sgnd_trim() {
+        local v="${*:-}"
+        v="${v#"${v%%[![:space:]]*}"}"
+        printf '%s' "${v%"${v##*[![:space:]]}"}"
+    }
 
     # sgnd_string_repeat
-        # Purpose:
-        #   Repeat a string N times.
-        #
-        # Arguments:
-        #   $1  String to repeat (default: single space).
-        #   $2  Repeat count (default: 0).
-        #
-        # Outputs:
-        #   Prints repeated string to stdout.
-        #
         # Returns:
         #   0 always.
+        #
+        # Usage:
+        #   sgnd_string_repeat STRING COUNT
     sgnd_string_repeat() {
         local s="${1- }"
         local n="${2-0}"
-
         local out=""
         local i=0
 
@@ -1272,87 +618,61 @@ set -uo pipefail
     }
 
     # sgnd_fill_left
-        # Purpose:
-        #   Left-pad a string to a given total length using a fill character.
-        #
-        # Arguments:
-        #   $1  Source string.
-        #   $2  Total width (default: 20).
-        #   $3  Fill character/string (default: space).
-        #
-        # Outputs:
-        #   Prints padded string to stdout.
-        #
         # Returns:
         #   0 always.
+        #
+        # Usage:
+        #   sgnd_fill_left TEXT [WIDTH] [FILL]
     sgnd_fill_left() {
         local source="${1-}"
         local maxlength="${2-20}"
         local char="${3- }"
-
         local padcount=$(( maxlength - ${#source} ))
-        (( padcount > 0 )) || { printf '%s' "$source"; return 0; }
-
         local pad
-        pad="$(sgnd_string_repeat "$char" "$padcount")"
 
+        (( padcount > 0 )) || { printf '%s' "$source"; return 0; }
+        pad="$(sgnd_string_repeat "$char" "$padcount")"
         printf '%s%s' "$pad" "$source"
     }
 
     # sgnd_fill_right
-      # Purpose:
-      #   Right-pad a string to a given total length using a fill character.
-      #
-      # Arguments:
-      #   $1  Source string.
-      #   $2  Total width (default: 20).
-      #   $3  Fill character/string (default: space).
-      #
-      # Outputs:
-      #   Prints padded string to stdout.
-      #
-      # Returns:
-      #   0 always.
+        # Returns:
+        #   0 always.
+        #
+        # Usage:
+        #   sgnd_fill_right TEXT [WIDTH] [FILL]
     sgnd_fill_right() {
         local source="${1-}"
         local maxlength="${2-20}"
         local char="${3- }"
-
         local padcount=$(( maxlength - ${#source} ))
-        (( padcount > 0 )) || { printf '%s' "$source"; return 0; }
-
         local pad
-        pad="$(sgnd_string_repeat "$char" "$padcount")"
 
+        (( padcount > 0 )) || { printf '%s' "$source"; return 0; }
+        pad="$(sgnd_string_repeat "$char" "$padcount")"
         printf '%s%s' "$source" "$pad"
     }
 
     # sgnd_fill_center
-      # Purpose:
-      #   Center-pad a string to a given total length using a fill character.
-      #
-      # Arguments:
-      #   $1  Source string.
-      #   $2  Total width (default: 20).
-      #   $3  Fill character/string (default: space).
-      #
-      # Outputs:
-      #   Prints padded string to stdout.
-      #
-      # Returns:
-      #   0 always.
+        # Returns:
+        #   0 always.
+        #
+        # Usage:
+        #   sgnd_fill_center TEXT [WIDTH] [FILL]
     sgnd_fill_center() {
         local source="${1-}"
         local maxlength="${2-20}"
         local char="${3- }"
-
         local padcount=$(( maxlength - ${#source} ))
+        local left
+        local right
+        local pad_left
+        local pad_right
+
         (( padcount > 0 )) || { printf '%s' "$source"; return 0; }
 
-        local left=$(( padcount / 2 ))
-        local right=$(( padcount - left ))
-
-        local pad_left pad_right
+        left=$(( padcount / 2 ))
+        right=$(( padcount - left ))
         pad_left="$(sgnd_string_repeat "$char" "$left")"
         pad_right="$(sgnd_string_repeat "$char" "$right")"
 
@@ -1361,27 +681,19 @@ set -uo pipefail
 
     # sgnd_visible_length
         # Purpose:
-        #   Measure the visible character length of a string, ignoring ANSI escape sequences.
-        #
-        # Behavior:
-        #   - Strips ANSI SGR-style escape codes from the input text.
-        #   - Counts the remaining visible characters.
+        #   Measure the character length of text after stripping ANSI escape sequences.
         #
         # Arguments:
         #   $1  TEXT
-        #       Text whose visible width should be measured.
         #
         # Output:
-        #   Prints the visible character count to stdout.
+        #   Prints the stripped character count to stdout.
         #
         # Returns:
         #   0 always.
         #
         # Usage:
         #   sgnd_visible_length TEXT
-        #
-        # Examples:
-        #   sgnd_visible_length "$colored_text"
     sgnd_visible_length() {
         local text="${1-}"
 
@@ -1390,34 +702,16 @@ set -uo pipefail
     }
 
     # sgnd_terminal_width
-        # Purpose:
-        #   Determine the effective terminal render width within configured limits.
-        #
-        # Behavior:
-        #   - Reads the terminal width through tput cols when available.
-        #   - Falls back to 80 columns on failure.
-        #   - Caps the width at SGND_MAX_RENDER_WIDTH.
-        #   - Enforces a minimum width of 40.
-        #
-        # Inputs (globals):
-        #   SGND_MAX_RENDER_WIDTH
-        #
-        # Output:
-        #   Prints the effective terminal width to stdout.
-        #
         # Returns:
         #   0 always.
         #
         # Usage:
         #   sgnd_terminal_width
-        #
-        # Examples:
-        #   render_width="$(sgnd_terminal_width)"
     sgnd_terminal_width() {
         local term_width=80
         local max_render_width="${SGND_MAX_RENDER_WIDTH:-140}"
 
-        if command -v tput >/dev/null 2>&1; then
+        if sgnd_have tput; then
             term_width="$(tput cols 2>/dev/null || printf '80')"
         fi
         [[ "$term_width" =~ ^[0-9]+$ ]] || term_width=80
@@ -1429,31 +723,11 @@ set -uo pipefail
     }
 
     # sgnd_padded_visible
-        # Purpose:
-        #   Pad a string to a target visible width while accounting for ANSI escape sequences.
-        #
-        # Behavior:
-        #   - Measures visible length through sgnd_visible_length().
-        #   - Appends the required number of trailing spaces.
-        #   - Never truncates the input text.
-        #
-        # Arguments:
-        #   $1  TEXT
-        #       Text to pad.
-        #   $2  WIDTH
-        #       Target visible width.
-        #
-        # Output:
-        #   Prints the padded string to stdout.
-        #
         # Returns:
         #   0 always.
         #
         # Usage:
         #   sgnd_padded_visible TEXT WIDTH
-        #
-        # Examples:
-        #   sgnd_padded_visible "$label" 20
     sgnd_padded_visible() {
         local text="${1-}"
         local width="${2:-0}"
@@ -1471,20 +745,9 @@ set -uo pipefail
         # Purpose:
         #   Wrap a text string to a fixed width on word boundaries.
         #
-        # Behavior:
-        #   - Accepts --width and --text named arguments.
-        #   - Splits the input text on collapsed whitespace.
-        #   - Builds output lines without exceeding the requested width where possible.
-        #   - Prints each wrapped line separately.
-        #
         # Arguments:
         #   --width N
-        #       Wrap width. Default: 80
         #   --text STR
-        #       Text to wrap.
-        #
-        # Output:
-        #   Prints wrapped text to stdout.
         #
         # Returns:
         #   0 on success, including empty text.
@@ -1492,17 +755,16 @@ set -uo pipefail
         #
         # Usage:
         #   sgnd_wrap_words --width N --text STR
-        #
-        # Examples:
-        #   sgnd_wrap_words --width 60 --text "$long_text"
-        #
-        #   sgnd_wrap_words --width "$render_width" --text "This is a wrapped sentence."
     sgnd_wrap_words() {
-        local width=80 text=""
+        local width=80
+        local text=""
+        local line=""
+        local word=""
+
         while [[ $# -gt 0 ]]; do
             case "$1" in
                 --width) width="$2"; shift 2 ;;
-                --text)  text="$2";  shift 2 ;;
+                --text)  text="$2"; shift 2 ;;
                 --) shift; break ;;
                 *) return 2 ;;
             esac
@@ -1511,10 +773,6 @@ set -uo pipefail
         [[ -z "$text" ]] && return 0
         (( width < 1 )) && printf '%s\n' "$text" && return 0
 
-        local line="" word=""
-
-        # Split into words on whitespace (same semantics as your array approach),
-        # but without building an array.
         while read -r word; do
             if [[ -z "$line" ]]; then
                 line="$word"
@@ -1529,199 +787,68 @@ set -uo pipefail
         [[ -n "$line" ]] && printf '%s\n' "$line"
     }
 
-# --- Error handlers ------------------------------------------------------------------
-    # sgnd_die
-        # Purpose:
-        #   Terminate the script with a formatted fatal error message.
-        #
-        # Behavior:
-        #   - Uses the supplied message and exit code, or defaults when omitted.
-        #   - When FLAG_VERBOSE is non-zero, prints a stack trace.
-        #   - Otherwise appends a compact caller identifier.
-        #   - Exits the process with the requested return code.
-        #
-        # Arguments:
-        #   $1  MESSAGE
-        #       Optional fatal error message.
-        #   $2  RC
-        #       Optional exit code. Default: 1
-        #
-        # Inputs (globals):
-        #   FLAG_VERBOSE
-        #
-        # Side effects:
-        #   - Writes failure output through sayfail.
-        #   - May print a stack trace.
-        #   - Terminates the current process.
-        #
+# --- Validators ---------------------------------------------------------------------
+    # sgnd_validate_ipv4
         # Returns:
-        #   Does not return.
+        #   0 if the value is a syntactically valid IPv4 address; 1 otherwise.
         #
         # Usage:
-        #   sgnd_die [MESSAGE] [RC]
-        #
-        # Examples:
-        #   sgnd_die "Configuration invalid"
-        #
-        #   sgnd_die "Unable to continue" 2
-    sgnd_die() {
-      local msg="${1-}"
-      local rc="${2-1}"
+        #   sgnd_validate_ipv4 IP
+    sgnd_validate_ipv4() {
+        local ip="$1"
+        local IFS='.'
+        local octets
+        local o
 
-      local ci=""
-      if (( ${FLAG_VERBOSE:-0} )); then
-          sayfail "$rc ${msg:-Fatal error}"
-          sgnd_stack_trace
-      else
-          sayfail "$rc ${msg:-Fatal error} ($(sgnd_caller_id 2))"
-      fi
-      exit "$rc"
-    }
-
-    # sgnd_require
-        # Purpose:
-        #   Execute a command and report failure without terminating the script.
-        #
-        # Behavior:
-        #   - Runs the supplied command.
-        #   - Captures its return code.
-        #   - When the command fails, emits a diagnostic including the caller location.
-        #   - Returns the original command exit code unchanged.
-        #
-        # Arguments:
-        #   $@  COMMAND
-        #       Command and arguments to execute.
-        #
-        # Side effects:
-        #   - May write failure output through sayfail.
-        #
-        # Returns:
-        #   Returns the executed command's exit code.
-        #
-        # Usage:
-        #   sgnd_require COMMAND [ARG ...]
-        #
-        # Examples:
-        #   sgnd_require cp "$src" "$dst" || return 1
-        #
-        #   sgnd_require systemctl restart ssh
-    sgnd_require() {
-        "$@"
-        local rc=$?
-
-        if (( rc != 0 )); then
-            # script -> sgnd_require -> sgnd_caller_id
-            sayfail "Command failed (rc=$rc): $* ($(sgnd_caller_id 2))"
-        fi
-
-        return "$rc"
-    }
-
-    # sgnd_must
-        # Purpose:
-        #   Execute a command and terminate the script when it fails.
-        #
-        # Behavior:
-        #   - Runs the supplied command.
-        #   - Returns immediately when the command succeeds.
-        #   - On failure, delegates to sgnd_die with the original exit code.
-        #
-        # Arguments:
-        #   $@  COMMAND
-        #       Command and arguments to execute.
-        #
-        # Side effects:
-        #   - May terminate the current process through sgnd_die.
-        #
-        # Returns:
-        #   0 if the command succeeds.
-        #   Does not return on failure.
-        #
-        # Usage:
-        #   sgnd_must COMMAND [ARG ...]
-        #
-        # Examples:
-        #   sgnd_must mkdir -p "$target_dir"
-        #
-        #   sgnd_must cp "$source" "$target"
-    sgnd_must() {
-        "$@"
-        local rc=$?
-
-        (( rc == 0 )) && return 0
-
-        # Do NOT add caller-id here; sgnd_die will do that (and optional stack trace)
-        sgnd_die "Fatal: $* (rc=$rc)" "$rc"
-    }
-
-# --- Validators ----------------------------------------------------------------------
- # --- Type validations ---------------------------------------------------------------
-      # sgnd_validate_ipv4
-          # Purpose:
-          #   Validate whether a string is a syntactically valid IPv4 address.
-          #
-          # Behavior:
-          #   - Splits the input on dots into four octets.
-          #   - Requires exactly four octets.
-          #   - Requires each octet to contain only digits.
-          #   - Requires each octet value to be in the range 0..255.
-          #
-          # Arguments:
-          #   $1  IP
-          #       Candidate IPv4 address.
-          #
-          # Returns:
-          #   0 if IP is valid.
-          #   1 otherwise.
-          #
-          # Usage:
-          #   sgnd_validate_ipv4 IP
-          #
-          # Examples:
-          #   if sgnd_validate_ipv4 "$server_ip"; then
-          #       printf 'ok\n'
-          #   fi
-          #
-          #   sgnd_validate_ipv4 "192.168.1.10"
-      sgnd_validate_ipv4(){
-        local ip="$1" IFS='.' octets o
-        IFS='.' read -r -a octets <<<"$ip"
+        read -r -a octets <<<"$ip"
         [[ ${#octets[@]} -eq 4 ]] || return 1
+
         for o in "${octets[@]}"; do
-          [[ "$o" =~ ^[0-9]+$ ]] || return 1
-          (( o >= 0 && o <= 255 )) || return 1
+            [[ "$o" =~ ^[0-9]+$ ]] || return 1
+            (( o >= 0 && o <= 255 )) || return 1
         done
+
         return 0
-      }
+    }
 
     # sgnd_validate_yesno
-      # Purpose:
-      #   Validate whether a value is a single-char Y/y/N/n token.
-      #
-      # Arguments:
-      #   $1  Value to test.
-      #
-      # Returns:
-      #   0 if matches ^[YyNn]$; non-zero otherwise.
-    sgnd_validate_yesno(){
-      [[ "$1" =~ ^[YyNn]$ ]]
-    }
+        # Returns:
+        #   0 if the value is a single-char Y/y/N/n token; non-zero otherwise.
+        #
+        # Usage:
+        #   sgnd_validate_yesno VALUE
+    sgnd_validate_yesno() { [[ "$1" =~ ^[YyNn]$ ]]; }
 
-    sgnd_validate_int() {
-        [[ "$1" =~ ^-?[0-9]+$ ]] && return 0
-        return 1
-    }
+    # sgnd_validate_int
+        # Returns:
+        #   0 if the value is a signed integer; 1 otherwise.
+        #
+        # Usage:
+        #   sgnd_validate_int VALUE
+    sgnd_validate_int() { [[ "$1" =~ ^-?[0-9]+$ ]]; }
 
-    sgnd_validate_numeric() {
-        [[ "$1" =~ ^-?[0-9]+([.][0-9]+)?$ ]] && return 0
-        return 1
-    }
+    # sgnd_validate_numeric
+        # Returns:
+        #   0 if the value is numeric; 1 otherwise.
+        #
+        # Usage:
+        #   sgnd_validate_numeric VALUE
+    sgnd_validate_numeric() { [[ "$1" =~ ^-?[0-9]+([.][0-9]+)?$ ]]; }
 
-    sgnd_validate_text() {
-        [[ -n "$1" ]] && return 0
-        return 1
-    }
+    # sgnd_validate_text
+        # Returns:
+        #   0 if the value is non-empty; 1 otherwise.
+        #
+        # Usage:
+        #   sgnd_validate_text VALUE
+    sgnd_validate_text() { [[ -n "$1" ]]; }
 
+    # sgnd_validate_bool
+        # Returns:
+        #   0 if the value is a recognized boolean token; 1 otherwise.
+        #
+        # Usage:
+        #   sgnd_validate_bool VALUE
     sgnd_validate_bool() {
         case "${1,,}" in
             y|yes|n|no|true|false|1|0) return 0 ;;
@@ -1729,65 +856,77 @@ set -uo pipefail
         esac
     }
 
-    sgnd_validate_date() {
-        [[ "$1" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] && return 0
-        return 1
-    }
+    # sgnd_validate_date
+        # Returns:
+        #   0 if the value matches YYYY-MM-DD; 1 otherwise.
+        #
+        # Usage:
+        #   sgnd_validate_date VALUE
+    sgnd_validate_date() { [[ "$1" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; }
 
-    sgnd_validate_ip() {
-        local ip="$1"
-        local IFS='.'
-        local -a octets=()
-        local o=0
+    # sgnd_validate_cidr
+        # Returns:
+        #   0 if the value is a CIDR prefix length from 0 to 32; 1 otherwise.
+        #
+        # Usage:
+        #   sgnd_validate_cidr VALUE
+    sgnd_validate_cidr() { [[ "$1" =~ ^([0-9]|[12][0-9]|3[0-2])$ ]]; }
 
-        [[ "$ip" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || return 1
-        read -r -a octets <<< "$ip"
+    # sgnd_validate_slug
+        # Returns:
+        #   0 if the value matches the lowercase slug character set; 1 otherwise.
+        #
+        # Usage:
+        #   sgnd_validate_slug VALUE
+    sgnd_validate_slug() { [[ "$1" =~ ^[a-z0-9._-]+$ ]]; }
 
-        for o in "${octets[@]}"; do
-            (( o >= 0 && o <= 255 )) || return 1
-        done
+    # sgnd_validate_fs_name
+        # Returns:
+        #   0 if the value contains only filesystem-safe name characters; 1 otherwise.
+        #
+        # Usage:
+        #   sgnd_validate_fs_name VALUE
+    sgnd_validate_fs_name() { [[ "$1" =~ ^[A-Za-z0-9._-]+$ ]]; }
 
-        return 0
-    }
-
-    sgnd_validate_cidr() {
-        [[ "$1" =~ ^([0-9]|[12][0-9]|3[0-2])$ ]] && return 0
-        return 1
-    }
-
-    sgnd_validate_slug() {
-        [[ "$1" =~ ^[a-zA-Z0-9._-]+$ ]] && return 0
-        return 1
-    }
-
-    sgnd_validate_fs_name() {
-        [[ "$1" =~ ^[A-Za-z0-9._-]+$ ]] && return 0
-        return 1
-    }
-
- # --- File system validations --------------------------------------------------------
+    # sgnd_validate_file_exists
+        # Returns:
+        #   0 if the path is an existing regular file; 1 otherwise.
+        #
+        # Usage:
+        #   sgnd_validate_file_exists PATH
     sgnd_validate_file_exists() {
         local path="$1"
-        [[ -f "$path" ]] && return 0
-        return 1
+        [[ -f "$path" ]]
     }
 
-    sgnd_validate_path_exists() {
-        [[ -e "$1" ]] && return 0
-        return 1
-    }
+    # sgnd_validate_path_exists
+        # Returns:
+        #   0 if the path exists; 1 otherwise.
+        #
+        # Usage:
+        #   sgnd_validate_path_exists PATH
+    sgnd_validate_path_exists() { [[ -e "$1" ]]; }
 
-    sgnd_validate_dir_exists() {
-        [[ -d "$1" ]] && return 0
-        return 1
-    }
+    # sgnd_validate_dir_exists
+        # Returns:
+        #   0 if the path is an existing directory; 1 otherwise.
+        #
+        # Usage:
+        #   sgnd_validate_dir_exists PATH
+    sgnd_validate_dir_exists() { [[ -d "$1" ]]; }
 
-    sgnd_validate_executable() {
-        [[ -x "$1" ]] && return 0
-        return 1
-    }
+    # sgnd_validate_executable
+        # Returns:
+        #   0 if the path is executable; 1 otherwise.
+        #
+        # Usage:
+        #   sgnd_validate_executable PATH
+    sgnd_validate_executable() { [[ -x "$1" ]]; }
 
-    sgnd_validate_file_not_exists() {
-        [[ ! -f "$1" ]] && return 0
-        return 1
-    }
+    # sgnd_validate_file_not_exists
+        # Returns:
+        #   0 if the path is not an existing regular file; 1 otherwise.
+        #
+        # Usage:
+        #   sgnd_validate_file_not_exists PATH
+    sgnd_validate_file_not_exists() { [[ ! -f "$1" ]]; }

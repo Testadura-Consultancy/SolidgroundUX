@@ -5,7 +5,7 @@
 #   Version     : 1.1
 #   Build       : 2608700
 #   Checksum    : af003805271692fbe71088c934b2b3e2ca046ee17718dc34f61e680f5f841ea2
-#   Sourcefile  : mod-template.sh
+#   Source      : mod-template.sh
 #   Type        : module
 #   Purpose     : Canonical template for sgnd-console modules
 #
@@ -47,7 +47,6 @@
 #   License       : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # ==================================================================================
 set -uo pipefail
-# --- Library guard ------------------------------------------------------------------
 # --- Library guard ------------------------------------------------------------------
     # _sgnd_lib_guard
         # Purpose:
@@ -93,11 +92,11 @@ set -uo pipefail
     
 # --- Internal helpers -------------------------------------------------------------
     # Naming:
-    #   - Prefix internal-only helpers with "__"
+    #   - Prefix internal-only helpers with "_"
     #   - Keep internal helpers module-local and menu-focused
     #
     # Example:
-    #   __sample_format_status() { :; }
+    #   _sample_format_status() { :; }
 
 # --- Public module actions --------------------------------------------------------
     # Naming:

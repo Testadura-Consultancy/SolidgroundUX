@@ -16,7 +16,7 @@
 #   The library:
 #     - Detects and reads canonical header sections
 #     - Extracts field/value pairs from structured comment blocks
-#     - Loads header data into td-datatable structures
+#     - Loads header data into sgnd-datatable structures
 #     - Updates existing metadata field values while preserving formatting
 #     - Adds missing fields where required
 #     - Supports version, build, and checksum metadata workflows
@@ -86,7 +86,6 @@ set -uo pipefail
     _sgnd_lib_guard
     unset -f _sgnd_lib_guard
 
-# --- Internal helpers ---------------------------------------------------------------
 # --- Public API ---------------------------------------------------------------------
   # Load and info
     # sgnd_header_read
@@ -145,19 +144,35 @@ set -uo pipefail
         printf '%s' "${result%$'\n'}"
     }
 
-    # _sgnd_header_load_section_to_dt
-            # Purpose:
-            #   Load all key/value pairs from a header section into a td-datatable.
-            #
-            # Arguments:
-            #   $1  FILE
-            #   $2  SECTION
-            #   $3  SCHEMA
-            #   $4  TABLE_NAME
-            #
-            # Returns:
-            #   0  success
-            #   1  failure (e.g. sgnd_dt_append error)
+    # sgnd_header_load_section_to_dt
+        # Purpose:
+        #   Load all key/value pairs from a header section into an sgnd-datatable.
+        #
+        # Behavior:
+        #   - Scans the requested section from the file header.
+        #   - Stops at the next top-level section header.
+        #   - Trims surrounding whitespace from keys and values.
+        #   - Appends one row per field to the target datatable.
+        #
+        # Arguments:
+        #   $1  FILE
+        #       Script file to read.
+        #   $2  SECTION
+        #       Header section name to scan.
+        #   $3  SCHEMA
+        #       Datatable schema name.
+        #   $4  TABLE_NAME
+        #       Datatable variable name.
+        #
+        # Side effects:
+        #   - Appends rows through sgnd_dt_append.
+        #
+        # Returns:
+        #   0 on success.
+        #   1 if row append fails.
+        #
+        # Usage:
+        #   sgnd_header_load_section_to_dt "$file" "Metadata" "$schema" "$table_name"
     sgnd_header_load_section_to_dt() {
         local file="${1:?missing file}"
         local section="${2:?missing section}"
@@ -201,14 +216,22 @@ set -uo pipefail
 
     # sgnd_header_is_section_header
         # Purpose:
-        #   Determine whether a line is a top-level script header section marker.
+        #   Determine whether a line is a top-level structured header section marker.
+        #
+        # Behavior:
+        #   - Matches canonical section lines such as "# Metadata:".
+        #   - Rejects indented field lines within sections.
         #
         # Arguments:
         #   $1  LINE
+        #       Raw header line to test.
         #
         # Returns:
-        #   0  line is a section header
-        #   1  line is not a section header
+        #   0 if LINE is a section header.
+        #   1 otherwise.
+        #
+        # Usage:
+        #   sgnd_header_is_section_header "$line"
     sgnd_header_is_section_header() {
         local line="${1-}"
 
@@ -219,14 +242,27 @@ set -uo pipefail
 
     # sgnd_header_buffer_load
         # Purpose:
-        #   Load a script header into the shared header buffer.
+        #   Load a script header into the shared in-memory header buffer.
+        #
+        # Behavior:
+        #   - Verifies that the target file is readable.
+        #   - Stores the file path in SGND_HEADER_BUFFER_FILE.
+        #   - Stores the canonical header text in SGND_HEADER_BUFFER_TEXT.
         #
         # Arguments:
         #   $1  FILE
+        #       Script file to buffer.
+        #
+        # Outputs (globals):
+        #   SGND_HEADER_BUFFER_FILE
+        #   SGND_HEADER_BUFFER_TEXT
         #
         # Returns:
-        #   0  success
-        #   1  failure
+        #   0 on success.
+        #   1 if the file is unreadable or the header cannot be read.
+        #
+        # Usage:
+        #   sgnd_header_buffer_load "$file"
     sgnd_header_buffer_load() {
         local file="${1:?missing file}"
 
@@ -238,15 +274,28 @@ set -uo pipefail
 
     # sgnd_header_buffer_get_section
         # Purpose:
-        #   Extract a named section from the current header buffer.
+        #   Extract a named section from the current shared header buffer.
+        #
+        # Behavior:
+        #   - Reads from SGND_HEADER_BUFFER_TEXT.
+        #   - Delegates parsing to sgnd_header_get_section_from_text.
+        #   - Writes the extracted section body to the requested output variable.
         #
         # Arguments:
         #   $1  SECTION
+        #       Header section name.
         #   $2  OUTVAR
+        #       Variable name that receives the section body.
+        #
+        # Inputs (globals):
+        #   SGND_HEADER_BUFFER_TEXT
         #
         # Returns:
-        #   0  section found
-        #   1  section not found or buffer empty
+        #   0 if the section is found.
+        #   1 if the buffer is empty or the section is not found.
+        #
+        # Usage:
+        #   sgnd_header_buffer_get_section "Metadata" metadata
     sgnd_header_buffer_get_section() {
         local section="${1:?missing section}"
         local _outvar="${2:?missing outvar}"
@@ -261,16 +310,24 @@ set -uo pipefail
         #   Calculate a stable checksum for a script while ignoring self-updating metadata fields.
         #
         # Behavior:
-        #   - Hashes the full file content.
-        #   - Excludes Metadata lines for Version, Build, and Checksum from the hash input.
-        #   - Prints the SHA256 checksum to stdout.
+        #   - Reads the full file content.
+        #   - Excludes Metadata lines for Version, Build, and Checksum.
+        #   - Hashes the normalized content with SHA-256.
+        #   - Prints the resulting checksum to stdout.
         #
         # Arguments:
         #   $1  FILE
+        #       Script file to hash.
+        #
+        # Output:
+        #   Writes the checksum to stdout.
         #
         # Returns:
-        #   0  success
-        #   1  file missing or checksum tool failed
+        #   0 on success.
+        #   1 if the file is unreadable or hashing fails.
+        #
+        # Usage:
+        #   sgnd_header_calc_checksum "$file"
     sgnd_header_calc_checksum() {
         local file="${1:?missing file}"
 
@@ -461,19 +518,25 @@ set -uo pipefail
         #   Extract the body of a named header section from buffered header text.
         #
         # Behavior:
-        #   - Scans the supplied text line by line.
+        #   - Scans the supplied header text line by line.
         #   - Starts capturing after the requested section header.
-        #   - Stops when the next section header is encountered.
-        #   - Returns only the body lines of the section.
+        #   - Stops when the next top-level section header is encountered.
+        #   - Writes only the section body lines to the requested output variable.
         #
         # Arguments:
         #   $1  HEADER_TEXT
+        #       Buffered header text.
         #   $2  SECTION
+        #       Header section name.
         #   $3  OUTVAR
+        #       Variable name that receives the section body.
         #
         # Returns:
-        #   0  section found
-        #   1  section not found
+        #   0 if the section is found.
+        #   1 if the section is not found.
+        #
+        # Usage:
+        #   sgnd_header_get_section_from_text "$text" "Metadata" metadata
     sgnd_header_get_section_from_text() {
         local text="${1-}"
         local section="${2:?missing section}"
@@ -562,28 +625,12 @@ set -uo pipefail
         return 1
     }
 
-    # sgnd_header_get_field
-        # Purpose:
-        #   Retrieve the value of a specific field within a header section.
-        #
-        # Behavior:
-        #   - Scans the file header for the given section.
-        #   - Parses lines in "Key : Value" format.
-        #   - Trims surrounding whitespace from key and value.
-        #   - Stops at the next section header.
-        #
-        # Arguments:
-        #   $1  FILE
-        #   $2  SECTION
-        #   $3  FIELD
-        #   $4  RESULT_VAR (name of variable to receive value)
-        #
-        # Output:
-        #   RESULT_VAR contains the field value (empty if not found).
-        #
+    # sgnd_header_get_field_value
         # Returns:
-        #   0  field found
-        #   1  field not found or not in section
+        #   Prints the requested field value to stdout, or an empty string if not found.
+        #
+        # Usage:
+        #   sgnd_header_get_field_value "$file" "Metadata" "Version"
     sgnd_header_get_field() {
         local file="${1:?missing file}"
         local section="${2:?missing section}"
@@ -778,16 +825,33 @@ set -uo pipefail
         # Purpose:
         #   Insert a new field into an existing named header section.
         #
+        # Behavior:
+        #   - Scans the file until the requested section is found.
+        #   - Inserts the new field before the next section header,
+        #     or at the end of the section when it is the final section.
+        #   - Honors FLAG_DRYRUN by reporting the intended change without writing.
+        #
         # Arguments:
         #   $1  FILE
+        #       Target script file.
         #   $2  SECTION
+        #       Header section name.
         #   $3  FIELD
+        #       Field name to insert.
         #   $4  VALUE
+        #       Field value to write.
+        #
+        # Side effects:
+        #   - May rewrite the target file.
+        #   - May emit informational output in dry-run mode.
         #
         # Returns:
-        #   0  field inserted
-        #   1  write or temp-file failure
-        #   2  section not found
+        #   0 if the field was inserted.
+        #   1 on write or temp-file failure.
+        #   2 if the section does not exist.
+        #
+        # Usage:
+        #   sgnd_header_add_field "$file" "Metadata" "Checksum" "$checksum"
     sgnd_header_add_field() {
         local file="${1:?missing file}"
         local section="${2:?missing section}"
@@ -853,16 +917,28 @@ set -uo pipefail
         # Purpose:
         #   Update a field when present or insert it when missing from an existing section.
         #
+        # Behavior:
+        #   - Attempts to update the field in place first.
+        #   - Falls back to inserting the field when it does not yet exist.
+        #   - Propagates other write failures unchanged.
+        #
         # Arguments:
         #   $1  FILE
+        #       Target script file.
         #   $2  SECTION
+        #       Header section name.
         #   $3  FIELD
+        #       Field name to update or insert.
         #   $4  VALUE
+        #       Value to write.
         #
         # Returns:
-        #   0  field updated or inserted
-        #   1  write or temp-file failure
-        #   2  section not found
+        #   0 if the field was updated or inserted.
+        #   1 on write or temp-file failure.
+        #   2 if the section does not exist.
+        #
+        # Usage:
+        #   sgnd_header_upsert_field "$file" "Metadata" "Build" "$build"
     sgnd_header_upsert_field() {
         local file="${1:?missing file}"
         local section="${2:?missing section}"
@@ -882,25 +958,33 @@ set -uo pipefail
    
     # sgnd_header_set_field
         # Purpose:
-        #   Replace the value of an existing field inside a named header section,
+        #   Replace the value of an existing field inside a named header section
         #   while preserving the original line formatting.
         #
         # Behavior:
         #   - Scans only the requested header section.
         #   - Matches the requested field by trimmed key name.
-        #   - Preserves the original indentation, label spacing, and separator spacing.
-        #   - Replaces only the field value.
+        #   - Preserves original indentation, label spacing, and separator spacing.
+        #   - Replaces only the value portion of the matched field line.
+        #   - Honors FLAG_DRYRUN by reporting the intended change without writing.
         #
         # Arguments:
         #   $1  FILE
+        #       Target script file.
         #   $2  SECTION
+        #       Header section name.
         #   $3  FIELD
+        #       Field name to update.
         #   $4  VALUE
+        #       Replacement value.
         #
         # Returns:
-        #   0  field updated
-        #   1  write or temp-file failure
-        #   2  field not found
+        #   0 if the field was updated.
+        #   1 on write or temp-file failure.
+        #   2 if the field is not found.
+        #
+        # Usage:
+        #   sgnd_header_set_field "$file" "Metadata" "Version" "1.2"
     sgnd_header_set_field() {
         local file="${1:?missing file}"
         local section="${2:?missing section}"

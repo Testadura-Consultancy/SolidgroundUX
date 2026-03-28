@@ -5,7 +5,7 @@
 #   Version     : 1.1
 #   Build       : 2608700
 #   Checksum    : 0e61a67209771aa8e2cbfba9576593a90a3a6951c4a4f80b14340e7d5c3f693b
-#   Sourcefile  : console-devtools.sh
+#   Source      : console-devtools.sh
 #   Type        : module
 #   Purpose     : sgnd-console module exposing developer tooling actions
 #

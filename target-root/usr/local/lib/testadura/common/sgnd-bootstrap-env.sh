@@ -31,8 +31,8 @@
 #   - Provides foundational paths and variables used across all modules
 #
 # Non-goals:
-#   - Argument parsing (handled by args.sh)
-#   - Configuration loading (handled by cfg.sh)
+#   - Argument parsing (handled by sgnd-args.sh)
+#   - Configuration loading (handled by sgnd-cfg.sh)
 #   - UI or user interaction
 #
 # Attribution:
@@ -87,7 +87,8 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Framework identity --------------------------------------------------------------
-    # Product/branding metadata used by framework-info, logging headers, and about text.
+    # Framework branding and license metadata used by framework info, about text,
+    # and related informational output.
     SGND_PRODUCT="SolidgroundUX"
     SGND_VERSION="1.0-R2-beta"
     SGND_VERSION_DATE="2026-01-08"
@@ -100,9 +101,13 @@ set -uo pipefail
 
 # --- Framework metadata --------------------------------------------------------------
     # SGND_FRAMEWORK_GLOBALS spec format:
-        #   audience|VARNAME|Human-readable description|extra
-        #   - audience: system | user | both
-        #   - extra: reserved for future metadata (currently unused)
+        #   audience|VARNAME|Description|extra
+        #
+        # Fields:
+        #   audience    system | user | both
+        #   VARNAME     Framework global variable name
+        #   Description Human-readable meaning for cfg/help rendering
+        #   extra       Reserved for future metadata
     SGND_FRAMEWORK_GLOBALS=(
         "system|SGND_SYSCFG_DIR|Framework-wide system configuration directory|"
         "system|SGND_DOCS_DIR|Framework-wide documentation directory|"
@@ -127,13 +132,18 @@ set -uo pipefail
         "user|SAY_DATE_FORMAT|Default date/time format for console output|"
     )
 
-    # SGND_CORE_LIBS:
-        #   Core libraries sourced by td-bootstrap in this exact order.
-        #   Ordering is part of the bootstrap contract.
+    # SGND_CORE_LIBS
+        # Purpose:
+        #   Define the core libraries that sgnd-bootstrap loads in fixed order.
+        #
+        # Notes:
+        #   - Ordering is part of the bootstrap contract.
+        #   - Earlier libraries may be required by later ones.
     SGND_CORE_LIBS=(
         sgnd-args.sh
         sgnd-info.sh
         sgnd-cfg.sh
+        sgnd-system.sh
         sgnd-core.sh
         ui.sh
         ui-say.sh
@@ -141,9 +151,43 @@ set -uo pipefail
         ui-glyphs.sh
     )
 
+    # Rebuilt path specification list consumed by sgnd_ensure_dirs.
+        # Entries use the format:
+        #   s|/path   system-owned directory
+        #   u|/path   user-owned directory
     SGND_FRAMEWORK_DIRS=(
     )
+
 # --- Helpers -------------------------------------------------------------------------
+    # _build_framework_dirs
+        # Purpose:
+        #   Rebuild the canonical list of framework directories from current path globals.
+        #
+        # Behavior:
+        #   - Populates SGND_FRAMEWORK_DIRS with system and user directory specifications.
+        #   - Marks each entry with its ownership class:
+        #       s = system
+        #       u = user
+        #   - Derives log parent directories from the configured log paths.
+        #
+        # Inputs (globals):
+        #   SGND_COMMON_LIB
+        #   SGND_SYSCFG_DIR
+        #   SGND_USRCFG_DIR
+        #   SGND_STATE_DIR
+        #   SGND_STYLE_DIR
+        #   SGND_DOCS_DIR
+        #   SGND_LOG_PATH
+        #   SGND_ALTLOG_PATH
+        #
+        # Outputs (globals):
+        #   SGND_FRAMEWORK_DIRS
+        #
+        # Returns:
+        #   0 always.
+        #
+        # Usage:
+        #   _build_framework_dirs    
     _build_framework_dirs(){
         SGND_FRAMEWORK_DIRS=(
             "s|$SGND_COMMON_LIB"
@@ -219,20 +263,20 @@ set -uo pipefail
 
     # sgnd_defaults_reset
         # Purpose:
-        #   Reset all framework-global configuration variables to their default state.
+        #   Reset framework-global configuration variables to their default state.
         #
         # Behavior:
-        #   - Iterates over SGND_FRAMEWORK_GLOBALS specifications.
-        #   - Extracts each declared variable name.
-        #   - Unsets those variables (ignores unset failures).
-        #   - Re-applies defaults via sgnd_defaults_apply().
+        #   - Iterates over SGND_FRAMEWORK_GLOBALS.
+        #   - Extracts each declared framework variable name.
+        #   - Unsets those variables when present.
+        #   - Re-applies default values through sgnd_apply_defaults.
         #
         # Inputs (globals):
         #   SGND_FRAMEWORK_GLOBALS
         #
         # Side effects:
-        #   - Unsets variables declared in SGND_FRAMEWORK_GLOBALS.
-        #   - Reinitializes them according to sgnd_defaults_apply().
+        #   - Unsets framework globals declared in SGND_FRAMEWORK_GLOBALS.
+        #   - Reinitializes them to their default values.
         #
         # Returns:
         #   0 always.
@@ -244,8 +288,8 @@ set -uo pipefail
         #   sgnd_defaults_reset
         #
         # Notes:
-        #   - Intended for development/testing and controlled reinitialization.
-        #   - SGND_FRAMEWORK_GLOBALS is the authoritative list of resettable globals.
+        #   - Intended for controlled reinitialization during development or testing.
+        #   - SGND_FRAMEWORK_GLOBALS is the authoritative list of resettable framework globals.
     sgnd_defaults_reset() {
         local spec audience var desc extra
         for spec in "${SGND_FRAMEWORK_GLOBALS[@]}"; do
@@ -255,12 +299,12 @@ set -uo pipefail
         done
 
 
-        sgnd_defaults_apply
+        sgnd_apply_defaults
     }
 
     # sgnd_rebase_directories
         # Purpose:
-        #   Derive standard framework directory and file paths from current root settings.
+        #   Recompute framework, user, and script-scoped paths from current root settings.
         #
         # Behavior:
         #   - Computes framework-scoped directories from:

@@ -162,10 +162,10 @@ set -uo pipefail
         #   Resolve and source the framework bootstrap library.
         #
         # Behavior:
-        #   - Calls __framework_locator to establish framework roots.
-        #   - Derives the td-bootstrap.sh path from SGND_FRAMEWORK_ROOT.
+        #   - Calls _framework_locator to establish framework roots.
+        #   - Derives the sgnd-bootstrap.sh path from SGND_FRAMEWORK_ROOT.
         #   - Verifies that the bootstrap library is readable.
-        #   - Sources td-bootstrap.sh into the current shell.
+        #   - Sources sgnd-bootstrap.sh into the current shell.
         #
         # Inputs (globals):
         #   SGND_FRAMEWORK_ROOT
