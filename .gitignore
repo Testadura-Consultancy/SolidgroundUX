@@ -1,4 +1,3 @@
-releases/
 .env
 .config/
 .cache/
@@ -7,3 +6,23 @@ releases/
 .hidden-folder/
 .DS_Store
 *.state
+
+# Ignore everything in target-root/var
+target-root/var/*
+
+# Keep structure down to releases
+!target-root/var/lib/
+!target-root/var/lib/solidgroundux/
+!target-root/var/lib/solidgroundux/releases/
+
+# Ignore everything inside releases
+target-root/var/lib/solidgroundux/releases/*
+
+# Explicit generated artifacts
+target-root/var/lib/solidgroundux/releases/*.tar*
+target-root/var/lib/solidgroundux/releases/*.manifest*
+target-root/var/lib/solidgroundux/releases/*.sha256
+
+# Allow installer scripts
+!target-root/var/lib/solidgroundux/releases/sgnd-install.sh
+!target-root/var/lib/solidgroundux/releases/sgnd-uninstall.sh
