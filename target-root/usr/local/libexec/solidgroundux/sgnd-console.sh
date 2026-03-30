@@ -75,19 +75,22 @@ set -uo pipefail
         #
         # Notes:
         #   - Under sudo, configuration is resolved relative to SUDO_USER instead of /root.
-    _framework_locator (){
+        #   - SGND_FRAMEWORK_ROOT is treated as a filesystem root/prefix.
+    _framework_locator() {
         local cfg_home="$HOME"
+        local cfg_user=""
+        local cfg_sys="/etc/solidgroundux/solidgroundux.cfg"
+        local cfg=""
+        local framework_root="/"
+        local app_root="$framework_root"
+        local reply=""
 
-        if [[ $EUID -eq 0 && -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]]; then
+        if [[ $EUID -eq 0 && -n "${SUDO_USER:-}" && "$SUDO_USER" != "root" ]]; then
             cfg_home="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
+            [[ -n "$cfg_home" ]] || cfg_home="$HOME"
         fi
 
-        local cfg_user="$cfg_home/.config/testadura/solidgroundux.cfg"
-        local cfg_sys="/etc/testadura/solidgroundux.cfg"
-        local cfg=""
-        local fw_root="/"
-        local app_root="$fw_root"
-        local reply
+        cfg_user="$cfg_home/.config/solidgroundux/solidgroundux.cfg"
 
         # Determine existing configuration
         if [[ -r "$cfg_user" ]]; then
@@ -105,41 +108,45 @@ set -uo pipefail
             fi
 
             # Interactive prompts (first run only)
-            if [[ -t 0 && -t 1 ]]; then
-
+            if [[ -r /dev/tty && -w /dev/tty ]]; then
                 sayinfo "SolidGroundUX bootstrap configuration"
                 sayinfo "No configuration file found."
                 sayinfo "Creating: $cfg"
 
                 printf "SGND_FRAMEWORK_ROOT [/] : " > /dev/tty
                 read -r reply < /dev/tty
-                fw_root="${reply:-/}"
+                framework_root="${reply:-/}"
 
-                printf "SGND_APPLICATION_ROOT [/] : " > /dev/tty
+                printf "SGND_APPLICATION_ROOT [%s] : " "$framework_root" > /dev/tty
                 read -r reply < /dev/tty
-                app_root="${reply:-$fw_root}"
+                app_root="${reply:-$framework_root}"
             fi
 
             # Validate paths (must be absolute)
-            case "$fw_root" in
+            case "$framework_root" in
                 /*) ;;
-                *) sayfail "ERR: SGND_FRAMEWORK_ROOT must be an absolute path"; return 126 ;;
+                *)
+                    sayfail "ERR: SGND_FRAMEWORK_ROOT must be an absolute path"
+                    return 126
+                    ;;
             esac
 
             case "$app_root" in
                 /*) ;;
-                *) sayfail "ERR: SGND_APPLICATION_ROOT must be an absolute path"; return 126 ;;
+                *)
+                    sayfail "ERR: SGND_APPLICATION_ROOT must be an absolute path"
+                    return 126
+                    ;;
             esac
 
-            # Create configuration file
+            # Create bootstrap configuration file
             mkdir -p "$(dirname "$cfg")" || return 127
 
-            # write cfg file 
             {
                 printf '%s\n' "# SolidGroundUX bootstrap configuration"
                 printf '%s\n' "# Auto-generated on first run"
                 printf '\n'
-                printf 'SGND_FRAMEWORK_ROOT=%q\n' "$fw_root"
+                printf 'SGND_FRAMEWORK_ROOT=%q\n' "$framework_root"
                 printf 'SGND_APPLICATION_ROOT=%q\n' "$app_root"
             } > "$cfg" || return 127
 
@@ -147,19 +154,18 @@ set -uo pipefail
         fi
 
         # Load configuration
-        if [[ -r "$cfg" ]]; then
-            # shellcheck source=/dev/null
-            source "$cfg"
-
-            : "${SGND_FRAMEWORK_ROOT:=/}"
-            : "${SGND_APPLICATION_ROOT:=$SGND_FRAMEWORK_ROOT}"
-        else
+        [[ -r "$cfg" ]] || {
             sayfail "Cannot read bootstrap cfg: $cfg"
             return 126
-        fi
+        }
+
+        # shellcheck source=/dev/null
+        source "$cfg"
+
+        : "${SGND_FRAMEWORK_ROOT:=/}"
+        : "${SGND_APPLICATION_ROOT:=$SGND_FRAMEWORK_ROOT}"
 
         saydebug "Bootstrap cfg loaded: $cfg, SGND_FRAMEWORK_ROOT=$SGND_FRAMEWORK_ROOT, SGND_APPLICATION_ROOT=$SGND_APPLICATION_ROOT"
-
     }
 
     # _load_bootstrapper
@@ -187,24 +193,21 @@ set -uo pipefail
         #
         # Notes:
         #   - This is executable-level startup logic, not reusable framework behavior.
-    _load_bootstrapper(){
+        #   - SGND_FRAMEWORK_ROOT is treated as a filesystem root/prefix.
+    _load_bootstrapper() {
         local bootstrap=""
 
         _framework_locator || return $?
 
-        if [[ "$SGND_FRAMEWORK_ROOT" == "/" ]]; then
-            bootstrap="/usr/local/lib/testadura/common/sgnd-bootstrap.sh"
-        else
-            bootstrap="${SGND_FRAMEWORK_ROOT%/}/usr/local/lib/testadura/common/sgnd-bootstrap.sh"
-        fi
+        bootstrap="${SGND_FRAMEWORK_ROOT%/}/usr/local/lib/solidgroundux/common/sgnd-bootstrap.sh"
 
         [[ -r "$bootstrap" ]] || {
             printf "FATAL: Cannot read bootstrap: %s\n" "$bootstrap" >&2
             return 126
         }
-        
-        saydebug "Loading $bootstrap"
-            
+
+        saydebug "Loading bootstrap: $bootstrap"
+
         # shellcheck source=/dev/null
         source "$bootstrap"
     }

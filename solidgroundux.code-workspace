@@ -3,6 +3,12 @@
 		{
 			"name": "solidgroundux",
 			"path": "."
+		},
+		{
+			"path": "../../../../etc/solidgroundux"
+		},
+		{
+			"path": "../../.config/solidgroundux"
 		}
 	],
 	"settings": {

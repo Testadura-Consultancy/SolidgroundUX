@@ -840,13 +840,26 @@ set -uo pipefail
             fi
 
             sgnd_print_license 
-
-            if ask_yesno "$question_text"; then
-                echo "$current_hash" > "$accepted_file"
-            else
-                saywarning "Cancelled by user."
-                return 2
-            fi
+            
+            local accepted="Y"
+            ask --label "$question_text" --var accepted --default "$accepted" --colorize both --labelclr "${CYAN}" 
+            case $? in
+                0)
+                    echo "$current_hash" > "$accepted_file"
+                    ;;
+                1)
+                    saywarning "Cancelled by user."
+                    return 2
+                    ;;
+                2)
+                    saywarning "Cancelled by user."
+                    return 2
+                    ;;
+                *)
+                    sayfail "Aborting (unexpected response)."
+                    return 1
+                    ;;
+            esac
                        
             sayinfo "sgnd_check_license: license not accepted; prompting user"
         fi

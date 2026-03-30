@@ -90,7 +90,7 @@ set -uo pipefail
     # Framework branding and license metadata used by framework info, about text,
     # and related informational output.
     SGND_PRODUCT="SolidgroundUX"
-    SGND_VERSION="1.0-R2-beta"
+    SGND_VERSION="1.1"
     SGND_VERSION_DATE="2026-01-08"
     SGND_COMPANY="Testadura Consultancy"
     SGND_COPYRIGHT="© 2025 Mark Fieten — Testadura Consultancy"
@@ -339,17 +339,22 @@ set -uo pipefail
         #   SGND_SCRIPT_NAME="install"
         #   sgnd_rebase_directories
     sgnd_rebase_directories() {
+        local product=""
+
         saydebug "Rebasing directories"
-        SGND_COMMON_LIB="$SGND_FRAMEWORK_ROOT/usr/local/lib/testadura/common"
-        SGND_SYSCFG_DIR="$SGND_APPLICATION_ROOT/etc/testadura"
-        SGND_USRCFG_DIR="$SGND_USER_HOME/.config/testadura"
-        SGND_STATE_DIR="$SGND_USER_HOME/.state/testadura"
-        SGND_STYLE_DIR="$SGND_FRAMEWORK_ROOT/usr/local/lib/testadura/styles"
-        SGND_DOCS_DIR="$SGND_FRAMEWORK_ROOT/usr/local/share/doc/solidgroundux"   # May be absent in dev/minimal installs
+
+        product="$(printf '%s' "${SGND_PRODUCT:-solidgroundux}" | tr '[:upper:]' '[:lower:]')"
+
+        SGND_COMMON_LIB="$SGND_FRAMEWORK_ROOT/usr/local/lib/$product/common"
+        SGND_SYSCFG_DIR="$SGND_APPLICATION_ROOT/etc/$product"
+        SGND_USRCFG_DIR="$SGND_USER_HOME/.config/$product"
+        SGND_STATE_DIR="$SGND_USER_HOME/.state/$product"
+        SGND_STYLE_DIR="$SGND_FRAMEWORK_ROOT/usr/local/lib/$product/styles"
+        SGND_DOCS_DIR="$SGND_FRAMEWORK_ROOT/usr/local/share/doc/$product"   # May be absent in dev/minimal installs
 
         # logs (paths only)
-        SGND_LOG_PATH="$SGND_FRAMEWORK_ROOT/var/log/testadura/solidgroundux.log"
-        SGND_ALTLOG_PATH="$SGND_USER_HOME/.log/testadura/solidgroundux.log"
+        SGND_LOG_PATH="$SGND_FRAMEWORK_ROOT/var/log/$product.log"
+        SGND_ALTLOG_PATH="$SGND_USER_HOME/.log/$product.log"
 
         # script-scoped paths
         if [[ -n "${SGND_SCRIPT_NAME:-}" ]]; then
