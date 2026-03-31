@@ -399,7 +399,7 @@ set -uo pipefail
         # Theme root (where palettes/ and styles/ live)
         if [[ -z "${SGND_UI_THEME_DIR-}" ]]; then
             if [[ -n "${SGND_FRAMEWORK_ROOT-}" ]]; then
-                SGND_UI_THEME_DIR="${SGND_FRAMEWORK_ROOT%/}/usr/local/lib/testadura/common/ui"
+                SGND_UI_THEME_DIR="${SGND_FRAMEWORK_ROOT%/}/usr/local/lib/solidgroundux/common/ui"
             else
                 # fallback: relative to this file if possible
                 SGND_UI_THEME_DIR=""

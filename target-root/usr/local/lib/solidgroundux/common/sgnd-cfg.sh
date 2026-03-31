@@ -461,7 +461,7 @@ set -uo pipefail
         # Examples:
         #   sgnd_cfg_load
         #
-        #   sgnd_cfg_load "/etc/testadura/myapp.cfg"
+        #   sgnd_cfg_load "/etc/solidgroundux/myapp.cfg"
         #
         # Notes:
         #   - Missing files are not treated as an error.

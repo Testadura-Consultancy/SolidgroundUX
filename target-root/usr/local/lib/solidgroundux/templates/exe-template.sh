@@ -77,8 +77,8 @@ set -uo pipefail
             cfg_home="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
         fi
 
-        local cfg_user="$cfg_home/.config/testadura/solidgroundux.cfg"
-        local cfg_sys="/etc/testadura/solidgroundux.cfg"
+        local cfg_user="$cfg_home/.config/solidgroundux/solidgroundux.cfg"
+        local cfg_sys="/etc/solidgroundux/solidgroundux.cfg"
         local cfg=""
         local fw_root="/"
         local app_root="$fw_root"
@@ -188,9 +188,9 @@ set -uo pipefail
         _framework_locator || return $?
 
         if [[ "$SGND_FRAMEWORK_ROOT" == "/" ]]; then
-            bootstrap="/usr/local/lib/testadura/common/sgnd-bootstrap.sh"
+            bootstrap="/usr/local/lib/solidgroundux/common/sgnd-bootstrap.sh"
         else
-            bootstrap="${SGND_FRAMEWORK_ROOT%/}/usr/local/lib/testadura/common/sgnd-bootstrap.sh"
+            bootstrap="${SGND_FRAMEWORK_ROOT%/}/usr/local/lib/solidgroundux/common/sgnd-bootstrap.sh"
         fi
 
         [[ -r "$bootstrap" ]] || {

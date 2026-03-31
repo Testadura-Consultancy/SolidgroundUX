@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-exec bash /usr/local/libexec/testadura/sgnd-console.sh "$@"
+exec bash /usr/local/libexec/solidgroundux/sgnd-console.sh "$@"

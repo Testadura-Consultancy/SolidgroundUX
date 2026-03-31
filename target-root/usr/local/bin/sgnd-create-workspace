@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-exec bash /usr/local/libexec/testadura/create-workspace.sh "$@"
+exec bash /usr/local/libexec/solidgroundux/create-workspace.sh "$@"

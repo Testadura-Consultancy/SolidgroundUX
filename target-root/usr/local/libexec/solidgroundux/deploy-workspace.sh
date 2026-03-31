@@ -260,7 +260,7 @@ set -uo pipefail
     : "${SGND_SCRIPT_COPYRIGHT:=© 2025 Mark Fieten — Testadura Consultancy}"
     : "${SGND_SCRIPT_LICENSE:=Testadura Non-Commercial License (TD-NC) v1.0}"
 
-    MANIFEST_BASE_DIR="/var/lib/testadura/deploy-workspace"
+    MANIFEST_BASE_DIR="/var/lib/solidgroundux/deploy-workspace"
     MANIFEST_SOURCE_ID=""
     MANIFEST_SOURCE_DIR=""
     MANIFEST_NAME=""
@@ -425,10 +425,10 @@ set -uo pipefail
         "/usr/local/bin|755|755|User entry points"
         "/usr/local/sbin|755|755|Admin entry points"
         "/etc/update-motd.d|755|755|Executed by system"
-        "/usr/local/lib/testadura|644|755|Implementation only"
-        "/usr/local/lib/testadura/common/tools|755|755|Implementation only"
-        "/etc/testadura|640|750|Configuration"
-        "/var/lib/testadura|600|700|Application state"
+        "/usr/local/lib/solidgroundux|644|755|Implementation only"
+        "/usr/local/lib/solidgroundux/common/tools|755|755|Implementation only"
+        "/etc/solidgroundux|640|750|Configuration"
+        "/var/lib/solidgroundux|600|700|Application state"
     )
 
 # --- local script functions ----------------------------------------------------------
@@ -613,7 +613,7 @@ set -uo pipefail
         #   Record a directory CREATED during the current deployment run.
         #
         # Arguments:
-        #   $1  abs_rel   Absolute-style relative target path (e.g. "/etc/testadura")
+        #   $1  abs_rel   Absolute-style relative target path (e.g. "/etc/solidgroundux")
         #
         # Behavior:
         #   - Appends a directory entry to the current manifest temp file
@@ -631,7 +631,7 @@ set -uo pipefail
         #   1 on write failure
         #
         # Usage:
-        #   _manifest_add_dir "/etc/testadura"
+        #   _manifest_add_dir "/etc/solidgroundux"
         #
         # Notes:
         #   - Only call this when the target directory did not exist prior to creation

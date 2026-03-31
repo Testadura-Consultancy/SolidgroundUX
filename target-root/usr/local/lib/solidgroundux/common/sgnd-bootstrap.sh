@@ -956,7 +956,7 @@ set -uo pipefail
         #   sgnd_bootstrap
         #
         #   # Override root before bootstrap
-        #   SGND_FRAMEWORK_ROOT="/opt/testadura"
+        #   SGND_FRAMEWORK_ROOT="/opt/solidgroundux"
         #   sgnd_bootstrap
     sgnd_bootstrap() {
         saystart "Initializing framework"

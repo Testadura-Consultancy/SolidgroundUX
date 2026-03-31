@@ -604,14 +604,14 @@ set -uo pipefail
                 "target-root/usr/local/bin"
                 "target-root/usr/local/sbin"
                 "target-root/usr/local/libexec"
-                "target-root/var/lib/testadura/releases"
+                "target-root/var/lib/solidgroundux/releases"
             )
         fi
 
         if (( ${FLAG_LIB:-0} )); then
             out_ref+=(
                 "target-root/usr/local/lib"
-                "target-root/usr/local/lib/testadura/templates"
+                "target-root/usr/local/lib/solidgroundux/templates"
             )
         fi
 
