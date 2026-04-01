@@ -297,8 +297,8 @@ set -uo pipefail
         #   - -h / --help is built in, you don't need to define it here.
         #   - After parsing you can use: FLAG_VERBOSE, VAL_CONFIG, ENUM_MODE, ...
     SGND_ARGS_SPEC=(
-        "auto|a|flag|FLAG_AUTO|Repeat with last settings|"
-        "undeploy|u|flag|FLAG_UNDEPLOY|Remove files from main root|"
+        "auto|a|flag|FLAG_AUTO|Repeat with last settings|0|"
+        "undeploy|u|flag|FLAG_UNDEPLOY|Remove files from main root|0|"
         "source|s|value|SRC_ROOT|Set Source directory|"
         "target|t|value|DEST_ROOT|Set Target directory|"
         "manifest|m|value|MANIFEST_NAME|Use a specific manifest name for undeploy|"
@@ -431,7 +431,7 @@ set -uo pipefail
         "/var/lib/solidgroundux|600|700|Application state"
     )
 
-# --- local script functions ----------------------------------------------------------
+# --- local script functions ----------------------------------------------------------tree
  # -- Manifests
     # _manifest_source_id
         # Purpose:

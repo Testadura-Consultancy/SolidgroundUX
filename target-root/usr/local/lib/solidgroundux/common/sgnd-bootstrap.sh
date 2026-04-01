@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.1
-#   Build       : 2608700
-#   Checksum    : e56ed59194c3afaf7752890aecae684b3cf8d4026f90a00cbb889647a98b9c8a
+#   Build       : 2609100
+#   Checksum    : 20fb63472d1d804a40d05bfb8f0bc8f688c034fdd9609b4abf5bfa62b27f6621
 #   Source      : sgnd-bootstrap.sh
 #   Type        : library
 #   Purpose     : Initialize the SolidgroundUX framework and load core modules
@@ -1010,8 +1010,8 @@ set -uo pipefail
                 _sgnd_script_args=( "${SGND_BOOTSTRAP_REST[@]}" )
 
             saydebug "Parsing arguments $SGND_BUILTIN_ARGS ${_sgnd_script_args[@]}"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
-            sgnd_parse_args --stop-at-unknown "${_sgnd_script_args[@]}" \
-                || { local rc=$?; _boot_fail "Error parsing builtins" "$rc"; return "$rc"; }
+            sgnd_parse_args --stop-at-unknown "${_sgnd_script_args[@]}" || { local rc=$?; _boot_fail "Error parsing builtins" "$rc"; return "$rc"; }
+            
             _sgnd_after_builtins=( "${SGND_POSITIONAL[@]}" )
 
         # Final basic settings

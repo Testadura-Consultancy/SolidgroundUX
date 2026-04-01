@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.1
-#   Build       : 2608700
-#   Checksum    : 78cfbfaf1128d82e9cbf9f300a0113d3365bcf2d2eaaa2ef602bee9b45119b4f
+#   Build       : 2609100
+#   Checksum    : 3eb95e91721b977ee06150666997fa2466e96b405be4294ecd6e12a048acc583
 #   Source      : prepare-release.sh
 #   Type        : script
 #   Purpose     : Prepare framework scripts for release
@@ -277,9 +277,9 @@ set -uo pipefail
         #   - -h / --help is built in, you don't need to define it here.
         #   - After parsing you can use: FLAG_VERBOSE, VAL_CONFIG, ENUM_MODE, ...
     SGND_ARGS_SPEC=(
-        "auto|a|flag|FLAG_AUTO|Repeat with last settings|"
-        "cleanup|c|flag|FLAG_CLEANUP|Cleanup staging files after run|"
-        "useexisting|u|flag|FLAG_USEEXISTING|Use existing staging files|"
+        "auto|a|flag|FLAG_AUTO|Repeat with last settings|0|"
+        "cleanup|c|flag|FLAG_CLEANUP|Cleanup staging files after run|1|"
+        "useexisting|u|flag|FLAG_USEEXISTING|Use existing staging files|1|"
         "bumpmajor||flag|FLAG_BUMP_MAJOR|Bump major version in source headers before packaging|"
         "bumpminor||flag|FLAG_BUMP_MINOR|Bump minor version in source headers before packaging|"
         "updatebuild||flag|FLAG_UPDATEBUILD|Update source header metadata before packaging|"

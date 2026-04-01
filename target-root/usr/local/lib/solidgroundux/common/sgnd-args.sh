@@ -127,7 +127,7 @@ set -uo pipefail
         #   - Intended as an internal helper for spec-driven parsing.
     _sgnd_arg_split() {
         local spec="$1"
-        IFS='|' read -r _sgnd_name _sgnd_short _sgnd_type _sgnd_var _sgnd_help _sgnd_choices <<< "$spec"
+        IFS='|' read -r _sgnd_name _sgnd_short _sgnd_type _sgnd_var _sgnd_help _sgnd_default _sgnd_choices <<< "$spec"
     }
 
     # _sgnd_arg_find_spec
@@ -232,9 +232,9 @@ set -uo pipefail
         # Behavior:
         #   - Selects argument specs from SGND_BUILTIN_ARGS, SGND_ARGS_SPEC, or both.
         #   - Initializes each declared option variable according to its type:
-        #       flag  -> 0
-        #       value -> ""
-        #       enum  -> ""
+        #       flag  -> spec default or 0
+        #       value -> spec default or ""
+        #       enum  -> spec default or ""
         #   - Rebuilds SGND_EFFECTIVE_ARGS_SPEC in parse order.
         #
         # Arguments:
@@ -293,15 +293,25 @@ set -uo pipefail
         esac
 
         local spec
+        local init_value
+
         for spec in "${args[@]}"; do
             _sgnd_arg_split "$spec"
             [[ -n "${_sgnd_var:-}" && -n "${_sgnd_type:-}" ]] || continue
 
             case "$_sgnd_type" in
-                flag)  printf -v "$_sgnd_var" '0' ;;
-                value) printf -v "$_sgnd_var" ''  ;;
-                enum)  printf -v "$_sgnd_var" ''  ;;
+                flag)
+                    init_value="${_sgnd_default:-0}"
+                    ;;
+                value|enum)
+                    init_value="${_sgnd_default:-}"
+                    ;;
+                *)
+                    continue
+                    ;;
             esac
+
+            printf -v "$_sgnd_var" '%s' "$init_value"
         done
 
         SGND_EFFECTIVE_ARGS_SPEC=( "${args[@]}" )

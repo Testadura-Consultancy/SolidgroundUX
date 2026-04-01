@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.1
-#   Build       : 2608700
-#   Checksum    : 9bb3473b1ad1b5db621f3d068c86136eeb7c1c228c07ea78854e23485b6cbf8d
+#   Build       : 2609100
+#   Checksum    : ef152f3d52e888d59e77f5896d311e27c29da8e55b7cd2b49de050601cb7ea9e
 #   Source      : sgnd-console.sh
 #   Type        : script
 #   Purpose     : Provide a modular console interface for SolidgroundUX tooling
@@ -292,7 +292,7 @@ set -uo pipefail
         #   - After parsing you can use: FLAG_VERBOSE, VAL_CONFIG, ENUM_MODE, ...
     SGND_ARGS_SPEC=(
         "appcfg||value|VAL_APPCFG|Path to console app config file|"
-        "maxrows||value|VAL_MAXROWS|Maximum menu rows per page|"
+        "maxrows||value|VAL_MAXROWS|Maximum menu rows per page|10|"
     )
 
     # SGND_SCRIPT_EXAMPLES

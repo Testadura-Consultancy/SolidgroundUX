@@ -1,0 +1,487 @@
+#!/usr/bin/env bash
+# =====================================================================================
+# SolidgroundUX - Documentation Generator
+# ------------------------------------------------------------------------------------
+# Metadata:
+#   Version     : 1.0
+#   Build       : 2609100
+#   Checksum    : none
+#   Source      : doc-generator.sh
+#   Type        : script
+#   Purpose     : Generate documentation from source code comments using the sgnd-comment-parser library.
+#
+# Description:
+#
+# Design principles:
+#
+# Role in framework:
+# Non-goals:
+#
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      : 
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# =====================================================================================
+set -uo pipefail
+# --- Bootstrap -----------------------------------------------------------------------
+    # _framework_locator
+        # Purpose:
+        #   Locate, create, and load the SolidGroundUX bootstrap configuration.
+        #
+        # Behavior:
+        #   - Searches user and system bootstrap configuration locations.
+        #   - Prefers the invoking user's config over the system config.
+        #   - Creates a new bootstrap config when none exists.
+        #   - Prompts for framework/application roots in interactive mode.
+        #   - Applies default values when running non-interactively.
+        #   - Sources the selected configuration file.
+        #
+        # Outputs (globals):
+        #   SGND_FRAMEWORK_ROOT
+        #   SGND_APPLICATION_ROOT
+        #
+        # Returns:
+        #   0   success
+        #   126 configuration unreadable or invalid
+        #   127 configuration directory or file could not be created
+        #
+        # Usage:
+        #   _framework_locator || return $?
+        #
+        # Examples:
+        #   _framework_locator
+        #
+        # Notes:
+        #   - Under sudo, configuration is resolved relative to SUDO_USER instead of /root.
+    _framework_locator (){
+        local cfg_home="$HOME"
+
+        if [[ $EUID -eq 0 && -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]]; then
+            cfg_home="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
+        fi
+
+        local cfg_user="$cfg_home/.config/solidgroundux/solidgroundux.cfg"
+        local cfg_sys="/etc/solidgroundux/solidgroundux.cfg"
+        local cfg=""
+        local fw_root="/"
+        local app_root="$fw_root"
+        local reply
+
+        # Determine existing configuration
+        if [[ -r "$cfg_user" ]]; then
+            cfg="$cfg_user"
+
+        elif [[ -r "$cfg_sys" ]]; then
+            cfg="$cfg_sys"
+
+        else
+            # Determine creation location
+            if [[ $EUID -eq 0 ]]; then
+                cfg="$cfg_sys"
+            else
+                cfg="$cfg_user"
+            fi
+
+            # Interactive prompts (first run only)
+            if [[ -t 0 && -t 1 ]]; then
+
+                sayinfo "SolidGroundUX bootstrap configuration"
+                sayinfo "No configuration file found."
+                sayinfo "Creating: $cfg"
+
+                printf "SGND_FRAMEWORK_ROOT [/] : " > /dev/tty
+                read -r reply < /dev/tty
+                fw_root="${reply:-/}"
+
+                printf "SGND_APPLICATION_ROOT [/] : " > /dev/tty
+                read -r reply < /dev/tty
+                app_root="${reply:-$fw_root}"
+            fi
+
+            # Validate paths (must be absolute)
+            case "$fw_root" in
+                /*) ;;
+                *) sayfail "ERR: SGND_FRAMEWORK_ROOT must be an absolute path"; return 126 ;;
+            esac
+
+            case "$app_root" in
+                /*) ;;
+                *) sayfail "ERR: SGND_APPLICATION_ROOT must be an absolute path"; return 126 ;;
+            esac
+
+            # Create configuration file
+            mkdir -p "$(dirname "$cfg")" || return 127
+
+            # write cfg file 
+            {
+                printf '%s\n' "# SolidGroundUX bootstrap configuration"
+                printf '%s\n' "# Auto-generated on first run"
+                printf '\n'
+                printf 'SGND_FRAMEWORK_ROOT=%q\n' "$fw_root"
+                printf 'SGND_APPLICATION_ROOT=%q\n' "$app_root"
+            } > "$cfg" || return 127
+
+            saydebug "Created bootstrap cfg: $cfg"
+        fi
+
+        # Load configuration
+        if [[ -r "$cfg" ]]; then
+            # shellcheck source=/dev/null
+            source "$cfg"
+
+            : "${SGND_FRAMEWORK_ROOT:=/}"
+            : "${SGND_APPLICATION_ROOT:=$SGND_FRAMEWORK_ROOT}"
+        else
+            sayfail "Cannot read bootstrap cfg: $cfg"
+            return 126
+        fi
+
+        saydebug "Bootstrap cfg loaded: $cfg, SGND_FRAMEWORK_ROOT=$SGND_FRAMEWORK_ROOT, SGND_APPLICATION_ROOT=$SGND_APPLICATION_ROOT"
+
+    }
+
+    # _load_bootstrapper
+        # Purpose:
+        #   Resolve and source the framework bootstrap library.
+        #
+        # Behavior:
+        #   - Calls _framework_locator to establish framework roots.
+        #   - Derives the sgnd-bootstrap.sh path from SGND_FRAMEWORK_ROOT.
+        #   - Verifies that the bootstrap library is readable.
+        #   - Sources sgnd-bootstrap.sh into the current shell.
+        #
+        # Inputs (globals):
+        #   SGND_FRAMEWORK_ROOT
+        #
+        # Returns:
+        #   0   success
+        #   126 bootstrap library unreadable
+        #
+        # Usage:
+        #   _load_bootstrapper || return $?
+        #
+        # Examples:
+        #   _load_bootstrapper
+        #
+        # Notes:
+        #   - This is executable-level startup logic, not reusable framework behavior.
+    _load_bootstrapper(){
+        local bootstrap=""
+
+        _framework_locator || return $?
+
+        if [[ "$SGND_FRAMEWORK_ROOT" == "/" ]]; then
+            bootstrap="/usr/local/lib/solidgroundux/common/sgnd-bootstrap.sh"
+        else
+            bootstrap="${SGND_FRAMEWORK_ROOT%/}/usr/local/lib/solidgroundux/common/sgnd-bootstrap.sh"
+        fi
+
+        [[ -r "$bootstrap" ]] || {
+            printf "FATAL: Cannot read bootstrap: %s\n" "$bootstrap" >&2
+            return 126
+        }
+        
+        saydebug "Loading $bootstrap"
+            
+        # shellcheck source=/dev/null
+        source "$bootstrap"
+    }
+
+    # Minimal colors
+    MSG_CLR_INFO=$'\e[38;5;250m'
+    MSG_CLR_STRT=$'\e[38;5;82m'
+    MSG_CLR_OK=$'\e[38;5;82m'
+    MSG_CLR_WARN=$'\e[1;38;5;208m'
+    MSG_CLR_FAIL=$'\e[38;5;196m'
+    MSG_CLR_CNCL=$'\e[0;33m'
+    MSG_CLR_END=$'\e[38;5;82m'
+    MSG_CLR_EMPTY=$'\e[2;38;5;250m'
+    MSG_CLR_DEBUG=$'\e[1;35m'
+
+    TUI_COMMIT=$'\e[2;37m'
+    RESET=$'\e[0m'
+
+    # Minimal UI
+    saystart()   { printf '%sSTART%s\t%s\n' "${MSG_CLR_STRT-}" "${RESET-}" "$*" >&2; }
+    sayinfo()    { 
+        if (( ${FLAG_VERBOSE:-0} )); then
+            printf '%sINFO%s \t%s\n' "${MSG_CLR_INFO-}" "${RESET-}" "$*" >&2; 
+        fi
+    }
+    sayok()      { printf '%sOK%s   \t%s\n' "${MSG_CLR_OK-}"   "${RESET-}" "$*" >&2; }
+    saywarning() { printf '%sWARN%s \t%s\n' "${MSG_CLR_WARN-}" "${RESET-}" "$*" >&2; }
+    sayfail()    { printf '%sFAIL%s \t%s\n' "${MSG_CLR_FAIL-}" "${RESET-}" "$*" >&2; }
+    saydebug() {
+        if (( ${FLAG_DEBUG:-0} )); then
+            printf '%sDEBUG%s \t%s\n' "${MSG_CLR_DEBUG-}" "${RESET-}" "$*" >&2;
+        fi
+    }
+    saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
+    sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
+    
+# --- Script metadata (identity) ------------------------------------------------------
+    SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
+    SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"
+    SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
+    SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
+
+# --- Script metadata (framework integration) -----------------------------------------
+    # SGND_USING
+        # Libraries to source from SGND_COMMON_LIB.
+        # These are loaded automatically by sgnd_bootstrap AFTER core libraries.
+        #
+        # Example:
+        #   SGND_USING=( net.sh fs.sh )
+        #
+        # Leave empty if no extra libs are needed.
+    SGND_USING=(
+        sgnd-comment-parser.sh
+    )
+
+    # SGND_ARGS_SPEC 
+        # Optional: script-specific arguments
+        # --- Example: Arguments
+        # Each entry:
+        #   "name|short|type|var|help|choices"
+        #
+        #   name    = long option name WITHOUT leading --
+        #   short   - short option name WITHOUT leading -
+        #   type    = flag | value | enum
+        #   var     = shell variable that will be set
+        #   help    = help string for auto-generated --help output
+        #   default   Default value applied before parsing
+        #   choices = for enum: comma-separated values (e.g. fast,slow,auto)
+        #             for flag/value: leave empty
+        #
+        # Notes:
+        #   - -h / --help is built in, you don't need to define it here.
+        #   - After parsing you can use: FLAG_VERBOSE, VAL_CONFIG, ENUM_MODE, ...
+    SGND_ARGS_SPEC=(
+        "srcdir|s|value|VAL_SRCDIR|Source directory to scan||"
+        "file|f|value|VAL_FILE|Single file to scan||"
+        "mask|m|value|VAL_MASK|Filename mask for source scanning|*.sh|"
+        "outdir|o|value|VAL_OUTDIR|Output directory for generated docs||"
+        "recursive|r|flag|FLAG_RECURSIVE_SCAN|Recursively scan source directory|1|"
+    )
+
+    # SGND_SCRIPT_EXAMPLES
+        # Optional: examples for --help output.
+        # Each entry is a string that will be printed verbatim.
+        #
+        # Example:
+        #   SGND_SCRIPT_EXAMPLES=(
+        #       "Example usage:"
+        #       "  script.sh --verbose --mode fast"
+        #       "  script.sh -v -m slow"
+        #   )
+        #
+        # Leave empty if no examples are needed.
+    SGND_SCRIPT_EXAMPLES=(
+        "Run in dry-run mode:"
+        "  $SGND_SCRIPT_NAME --dryrun"
+        ""
+        "Show verbose logging"
+        "  $SGND_SCRIPT_NAME --verbose"
+    ) 
+
+    # SGND_SCRIPT_GLOBALS
+        # Explicit declaration of global variables intentionally used by this script.
+        #
+        # Purpose:
+        #   - Declares which globals are part of the script’s public/config contract.
+        #   - Enables optional configuration loading when non-empty.
+        #
+        # Behavior:
+        #   - If this array is non-empty, sgnd_bootstrap enables config integration.
+        #   - Variables listed here may be populated from configuration files.
+        #   - Unlisted globals will NOT be auto-populated.
+        #
+        # Use this to:
+        #   - Document intentional globals
+        #   - Prevent accidental namespace leakage
+        #   - Make configuration behavior explicit and predictable
+        #
+        # Only list:
+        #   - Variables that must be globally accessible
+        #   - Variables that may be defined in config files
+        #
+        # Leave empty if:
+        #   - The script does not use configuration-driven globals
+    SGND_SCRIPT_GLOBALS=(
+    )
+
+    # SGND_STATE_VARIABLES
+        # List of variables participating in persistent state.
+        #
+        # Purpose:
+        #   - Declares which variables should be saved/restored when state is enabled.
+        #
+        # Behavior:
+        #   - Only used when sgnd_bootstrap is invoked with --state.
+        #   - Variables listed here are serialized on exit (if SGND_STATE_SAVE=1).
+        #   - On startup, previously saved values are restored before main logic runs.
+        #
+        # Contract:
+        #   - Variables must be simple scalars (no arrays/associatives unless explicitly supported).
+        #   - Script remains fully functional when state is disabled.
+        #
+        # Leave empty if:
+        #   - The script does not use persistent state.
+    SGND_STATE_VARIABLES=(
+    )
+
+    # SGND_ON_EXIT_HANDLERS
+        # List of functions to be invoked on script termination.
+        #
+        # Purpose:
+        #   - Allows scripts to register cleanup or finalization hooks.
+        #
+        # Behavior:
+        #   - Functions listed here are executed during framework exit handling.
+        #   - Execution order follows array order.
+        #   - Handlers run regardless of normal exit or controlled termination.
+        #
+        # Contract:
+        #   - Functions must exist before exit occurs.
+        #   - Handlers must not call exit directly.
+        #   - Handlers should be idempotent (safe if executed once).
+        #
+        # Typical uses:
+        #   - Cleanup temporary files
+        #   - Persist additional state
+        #   - Release locks
+        #
+        # Leave empty if:
+        #   - No custom exit behavior is required.
+    SGND_ON_EXIT_HANDLERS=(
+    )
+    
+    # State persistence is opt-in.
+        # Scripts that want persistent state must:
+        #   1) set SGND_STATE_SAVE=1
+        #   2) call sgnd_bootstrap --state
+    SGND_STATE_SAVE=0
+
+# --- Local script Declarations -------------------------------------------------------
+    # Put script-local constants and defaults here (NOT framework config).
+    # Prefer local variables inside functions unless a value must be shared.
+
+# --- Local script functions ----------------------------------------------------------
+
+    _resolve_parameters(){
+        DOC_SOURCE="${VAL_SRCDIR:-${DOC_SOURCE:-$SGND_APPLICATION_ROOT}}"
+        DOC_FILE="${VAL_FILE:-${DOC_FILE:-}}"
+        DOC_MASK="${VAL_MASK:-${DOC_MASK:-$*.sh}}"
+        DOC_OUTDIR="${VAL_OUTDIR:-${DOC_OUTDIR:-$SGND_DOCS_DIR}}"
+        RECURSIVE_SCAN="${FLAG_RECURSIVE_SCAN:-${RECURSIVE_SCAN:-1}}"
+
+        local lw=20
+        local lp=4
+
+        while true; do
+            sgnd_print
+            sgnd_print_sectionheader "Enter Documentation Generator Parameters" --padend 0
+            ask --label "Source directory" --var DOC_SOURCE --default "$DOC_SOURCE" --validate sgnd_validate_dir_exists --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+            ask --label "Source file" --var DOC_FILE --default "$DOC_FILE"  --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+            ask --label "Filename mask" --var DOC_MASK --default "$DOC_MASK"  --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+            ask --label "Output directory" --var DOC_OUTDIR --default "$DOC_OUTDIR"  --validate sgnd_validate_dir_exists --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+
+            local recursive_default="No"
+            local answ=""
+            if (( RECURSIVE_SCAN )); then
+                recursive_default="Yes"
+            fi
+            ask --label "Recursive scan (Y/N)" --var answ --type flag --default "$recursive_default" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+            answ="${answ,,}"
+
+            if [[ "$answ" == "y" || "$answ" == "yes" ]]; then
+                RECURSIVE_SCAN=1
+            else
+                RECURSIVE_SCAN=0
+            fi
+
+            sgnd_print_sectionheader --maxwidth "$lw"
+            ask_dlg_autocontinue \
+                --seconds 15 \
+                --message "Continue with these settings?" \
+                --redo \
+                --cancel
+
+            case $? in
+                0|1) break ;;
+                2) saycancel "Aborting as per user request."; return 1 ;;
+                3) PROJECT_NAME=""; PROJECT_FOLDER=""; continue ;;
+                *) sayfail "Aborting (unexpected response)."; return 1 ;;
+            esac
+        done
+    }
+
+
+    
+# --- Main ----------------------------------------------------------------------------
+    # main
+        # Purpose:
+        #   Canonical entry point for executable scripts.
+        #
+        # Behavior:
+        #   - Loads the framework bootstrapper.
+        #   - Initializes runtime via sgnd_bootstrap.
+        #   - Handles built-in framework arguments.
+        #   - Prepares UI state (runmode + title bar).
+        #   - Executes script-specific logic.
+        #
+        # Arguments:
+        #   $@  Command-line arguments (framework + script-specific).
+        #
+        # Returns:
+        #   Exits with the resulting status code from bootstrap or script logic.
+        #
+        # Usage:
+        #   main "$@"
+        #
+        # Examples:
+        #   # Standard script entrypoint
+        #   main "$@"
+        #
+        # Notes:
+        #   - sgnd_bootstrap splits framework and script arguments automatically..
+    main() {
+        # -- Bootstrap
+            local rc=0
+
+            _load_bootstrapper || exit $?            
+
+            # Recognized switches:
+            #     --state      -> enable saving state variables 
+            #     --autostate  -> enable state support and auto-save SGND_STATE_VARIABLES on exit
+            #     --needroot   -> restart script if not root
+            #     --cannotroot -> exit script if root
+            #     --log        -> enable file logging
+            #     --console    -> enable console logging
+            # Example:
+            #   sgnd_bootstrap --state --needroot -- "$@"
+            sgnd_bootstrap -- "$@"
+            rc=$?
+
+            saydebug "After bootstrap: $rc"
+            (( rc != 0 )) && exit "$rc"
+                        
+        # -- Handle builtin arguments
+            saydebug "Calling builtinarg handler"
+            sgnd_builtinarg_handler
+            saydebug "Exited builtinarg handler"
+
+        # -- UI
+            sgnd_update_runmode
+            sgnd_print_titlebar
+
+        # -- Main script logic
+            _resolve_parameters || exit $?
+           # _process_files || exit $?
+
+    }
+
+    # Entrypoint: sgnd_bootstrap will split framework args from script args.
+    main "$@"

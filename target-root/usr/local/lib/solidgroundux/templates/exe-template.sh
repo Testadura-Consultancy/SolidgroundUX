@@ -4,8 +4,8 @@
 # ------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.1
-#   Build       : 2608700
-#   Checksum    : 1e0ab653b02a6965c46f6b54eeb3c0e72c9410748540a6feaa5793973b2a47bd
+#   Build       : 2609100
+#   Checksum    : 155bea5342369c5e31a81149d4b8a9e3b58ecd70b991b3e0466eb4b5d235d90a
 #   Source      : exe-template.sh
 #   Type        : script
 #   Purpose     : Canonical executable template for Testadura scripts.
@@ -252,7 +252,6 @@ set -uo pipefail
         #
         # Leave empty if no extra libs are needed.
     SGND_USING=(
-        sgnd-comment-parser.sh
     )
 
     # SGND_ARGS_SPEC 
@@ -273,12 +272,6 @@ set -uo pipefail
         #   - -h / --help is built in, you don't need to define it here.
         #   - After parsing you can use: FLAG_VERBOSE, VAL_CONFIG, ENUM_MODE, ...
     SGND_ARGS_SPEC=(
-        "auto|a|flag|FLAG_AUTO|Repeat with last settings|"
-        "cleanup|c|flag|FLAG_CLEANUP|Cleanup staging files after run|"
-        "useexisting|u|flag|FLAG_USEEXISTING|Use existing staging files|"
-        "bumpmajor||flag|FLAG_BUMP_MAJOR|Bump major version in source headers before packaging|"
-        "bumpminor||flag|FLAG_BUMP_MINOR|Bump minor version in source headers before packaging|"
-        "nosourceupdate||flag|FLAG_NOSOURCEUPDATE|Do not update source header metadata before packaging|"
     )
 
     # SGND_SCRIPT_EXAMPLES

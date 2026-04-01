@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.1
-#   Build       : 2608700
-#   Checksum    : c666e1ad4dfa014ffd8fe0c3ac86784e43515b3cfa23b80e72354e9e7052559c
+#   Build       : 2609100
+#   Checksum    : c9f36b0ce0df57a7a2bdb4b5f871d33194fbb418920779a97cfd673f1121246c
 #   Source      : create-workspace.sh
 #   Type        : script
 #   Purpose     : Create a new development workspace from templates
@@ -288,13 +288,13 @@ set -uo pipefail
         #   - -h / --help is built in and does not need to be defined here.
         #   - Parsed values become available in the configured target variables.
     SGND_ARGS_SPEC=(
-        "exe|e|flag|FLAG_EXE|Create executable template and folders|"
-        "lib|l|flag|FLAG_LIB|Create library template and folders|"
-        "mod|m|flag|FLAG_MOD|Create console module template and folders|"
+        "exe|e|flag|FLAG_EXE|Create executable template and folders|0|"
+        "lib|l|flag|FLAG_LIB|Create library template and folders|0|"
+        "mod|m|flag|FLAG_MOD|Create console module template and folders|0|"
         "modfolder|M|value|MOD_FOLDER|Location of console module (optional)|"
         "project|p|value|PROJECT_NAME|Project name|"
         "folder|f|value|PROJECT_FOLDER|Set project folder|"
-        "uncreate|u|flag|FLAG_UNCREATE|Remove items listed in workspace manifest|"
+        "uncreate|u|flag|FLAG_UNCREATE|Remove items listed in workspace manifest|0|"
     )
     # SGND_SCRIPT_EXAMPLES
         # Optional: examples for --help output.

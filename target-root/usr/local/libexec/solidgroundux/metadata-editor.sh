@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.1
-#   Build       : 2608700
-#   Checksum    : 5ba467af9945d004a1e8354e89171c1dd8c4b99c36d728173c0191802f26028c
+#   Build       : 2609100
+#   Checksum    : 65884ad57f319d8135ddafe3b0da3dbf86eb85d4cc17634dac5d97449757e7b6
 #   Source      : metadata-editor.sh
 #   Type        : script
 #   Purpose     : Inspect, edit, and version script metadata in a controlled workflow
@@ -288,9 +288,9 @@ set -uo pipefail
         "section|s|enum|VAL_SECTION|Header section to update|Metadata,Attribution"
         "field||value|VAL_FIELD|Field name to update|"
         "value||value|VAL_VALUE|New value to write|"
-        "auto|a|flag|FLAG_AUTO|Run non-interactively and update immediately|"
+        "auto|a|flag|FLAG_AUTO|Run non-interactively and update immediately|0|"
         "promptfor||value|VAL_PROMPTFOR|Comma-separated list of field names to prompt for|"
-        "idem||flag|FLAG_IDEM|In multi-file mode, ask each selected field only once and reuse the answers|"
+        "idem||flag|FLAG_IDEM|In multi-file mode, ask each selected field only once and reuse the answers|1|"
         "bumpversion||flag|FLAG_BUMPVERSION|Refresh checksum/build metadata for target file(s)|"
         "bumpmajor||flag|FLAG_BUMPMAJOR|Bump major version and refresh checksum/build metadata|"
         "bumpminor||flag|FLAG_BUMPMINOR|Bump minor version and refresh checksum/build metadata|"
