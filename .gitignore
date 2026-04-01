@@ -6,6 +6,7 @@
 .hidden-folder/
 .DS_Store
 *.state
+/releases/
 
 # Ignore everything in target-root/var
 target-root/var/*
