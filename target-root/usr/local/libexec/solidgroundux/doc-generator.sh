@@ -228,7 +228,7 @@ set -uo pipefail
     SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
 
 # --- Script metadata (framework integration) -----------------------------------------
-    # SGND_USING
+    # var: SGND_USING
         # Libraries to source from SGND_COMMON_LIB.
         # These are loaded automatically by sgnd_bootstrap AFTER core libraries.
         #
@@ -237,10 +237,11 @@ set -uo pipefail
         #
         # Leave empty if no extra libs are needed.
     SGND_USING=(
+        sgnd-datatable.sh
         sgnd-comment-parser.sh
     )
 
-    # SGND_ARGS_SPEC 
+    # var: SGND_ARGS_SPEC 
         # Optional: script-specific arguments
         # --- Example: Arguments
         # Each entry:
@@ -266,7 +267,7 @@ set -uo pipefail
         "recursive|r|flag|FLAG_RECURSIVE_SCAN|Recursively scan source directory|1|"
     )
 
-    # SGND_SCRIPT_EXAMPLES
+    # var: SGND_SCRIPT_EXAMPLES
         # Optional: examples for --help output.
         # Each entry is a string that will be printed verbatim.
         #
@@ -286,7 +287,7 @@ set -uo pipefail
         "  $SGND_SCRIPT_NAME --verbose"
     ) 
 
-    # SGND_SCRIPT_GLOBALS
+    # var: SGND_SCRIPT_GLOBALS
         # Explicit declaration of global variables intentionally used by this script.
         #
         # Purpose:
@@ -312,7 +313,7 @@ set -uo pipefail
     SGND_SCRIPT_GLOBALS=(
     )
 
-    # SGND_STATE_VARIABLES
+    # var: SGND_STATE_VARIABLES
         # List of variables participating in persistent state.
         #
         # Purpose:
@@ -330,9 +331,14 @@ set -uo pipefail
         # Leave empty if:
         #   - The script does not use persistent state.
     SGND_STATE_VARIABLES=(
+        "DOC_SOURCE|Source Directory||"
+        "DOC_FILE|Source File||"
+        "DOC_MASK|Filename Mask|*.sh|"
+        "DOC_OUTDIR|Output Directory||"
+        "RECURSIVE_SCAN|Recursive Scan|0|"
     )
 
-    # SGND_ON_EXIT_HANDLERS
+    # var: SGND_ON_EXIT_HANDLERS
         # List of functions to be invoked on script termination.
         #
         # Purpose:
@@ -362,37 +368,204 @@ set -uo pipefail
         # Scripts that want persistent state must:
         #   1) set SGND_STATE_SAVE=1
         #   2) call sgnd_bootstrap --state
-    SGND_STATE_SAVE=0
+    SGND_STATE_SAVE=1
 
 # --- Local script Declarations -------------------------------------------------------
     # Put script-local constants and defaults here (NOT framework config).
     # Prefer local variables inside functions unless a value must be shared.
+    DOC_MODULE_SCHEMA="file|product|title|purpose|type|version|build"
+    DOC_MODULES=()
+    
+    DOC_FUNCTION_SCHEMA="file|line|major_section|minor_section|function_name|purpose"
+    DOC_FUNCTIONS=()
+    
+    DOC_SCAN_SCHEMA="file|line_nr|record_type|name|parent_section|text"
+    DOC_SCAN_ROWS=()
+
+# --- Local helpers -------------------------------------------------------------------
+    # fn: _is_header_separator
+        # Returns:
+        #   0 if LINE is a canonical header separator line.
+        #   1 otherwise.
+        #
+        # Usage:
+        #   _is_header_separator "$line"
+    _is_header_separator() {
+        [[ "$1" =~ ^[[:space:]]*#[[:space:]]*={3,}[[:space:]]*$ ]]
+    }
+
+    # fn: _is_header_section_line
+        # Returns:
+        #   0 if LINE is a canonical header section line.
+        #   1 otherwise.
+        #
+        # Usage:
+        #   _is_header_section_line "$line"
+    _is_header_section_line() {
+        [[ "$1" =~ ^#\ [A-Za-z][A-Za-z[:space:]-]*:[[:space:]]*$ ]]
+    }
+
+    # fn: _parse_header_section_line
+        # Returns:
+        #   Prints the parsed header section title to stdout.
+        #
+        # Usage:
+        #   _parse_header_section_line "$line"
+    _parse_header_section_line() {
+        local line="${1-}"
+        local value=""
+
+        value="${line#\# }"
+        value="${value%:}"
+        value="${value%"${value##*[![:space:]]}"}"
+
+        printf '%s\n' "$value"
+    }
+
+    # fn: _is_section_line
+    _is_section_line() {
+        [[ "$1" =~ ^[[:space:]]*#\ (-|--|---)\ ([^[:space:]].*)$ ]]
+    }
+
+    # fn: _get_section_level
+    _get_section_level() {
+        local line="${1-}"
+
+        [[ "$line" =~ ^[[:space:]]*#\ (-|--|---)\  ]] || return 1
+
+        case "${BASH_REMATCH[1]}" in
+            ---) printf '1\n' ;;
+            --)  printf '2\n' ;;
+            -)   printf '3\n' ;;
+            *)   return 1 ;;
+        esac
+    }
+
+    # fn: _parse_section_line
+    _parse_section_line() {
+        local line="${1-}"
+
+        [[ "$line" =~ ^[[:space:]]*#\ (-|--|---)\ (.*)$ ]] || return 1
+        printf '%s\n' "${BASH_REMATCH[2]}"
+    }
+
+    # fn: _is_detail_comment_start
+    _is_detail_comment_start() {
+        [[ "$1" =~ ^[[:space:]]*#[[:space:]]*(fn|var):[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*$ ]]
+    }
+
+    # fn: _parse_detail_kind
+    _parse_detail_kind() {
+        local line="${1-}"
+
+        [[ "$line" =~ ^[[:space:]]*#[[:space:]]*(fn|var):[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*$ ]] || return 1
+        printf '%s\n' "${BASH_REMATCH[1]}"
+    }
+
+    # fn: _parse_detail_name
+    _parse_detail_name() {
+        local line="${1-}"
+
+        [[ "$line" =~ ^[[:space:]]*#[[:space:]]*(fn|var):[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*$ ]] || return 1
+        printf '%s\n' "${BASH_REMATCH[2]}"
+    }
+
+    # fn: _detail_matches_declaration
+    _detail_matches_declaration() {
+        local kind="${1:?missing kind}"
+        local name="${2:?missing name}"
+        local line="${3-}"
+
+        case "$kind" in
+            fn)
+                [[ "$line" =~ ^[[:space:]]*${name}[[:space:]]*\(\)[[:space:]]*\{[[:space:]]*$ ]]
+                ;;
+            var)
+                [[ "$line" =~ ^[[:space:]]*${name}= ]]
+                ;;
+            *)
+                return 1
+                ;;
+        esac
+    }
+
+    # fn: _normalize_comment_line
+        # Remove leading comment marker and one optional following space.
+    _normalize_comment_line() {
+        local line="${1-}"
+
+        if [[ "$line" =~ ^[[:space:]]*#[[:space:]]?(.*)$ ]]; then
+            printf '%s\n' "${BASH_REMATCH[1]}"
+        else
+            printf '%s\n' "$line"
+        fi
+    }
 
 # --- Local script functions ----------------------------------------------------------
-
-    _resolve_parameters(){
+    # fn: _resolve_parameters
+        # Purpose:
+        #   Resolve effective documentation generator input parameters from
+        #   command-line values, existing globals, and interactive prompts.
+        #
+        # Behavior:
+        #   - Establishes effective values for source directory, optional
+        #     single-file mode, filename mask, output directory, and recursive scan.
+        #   - Prefers parsed command-line values when present.
+        #   - Falls back to existing globals or framework defaults when needed.
+        #   - Prompts the user interactively to review or modify the resolved values.
+        #   - Converts the recursive scan answer into the numeric flag
+        #     RECURSIVE_SCAN (1 or 0).
+        #   - Repeats the prompt cycle when the user chooses redo.
+        #
+        # Inputs (globals):
+        #   VAL_SRCDIR
+        #   VAL_FILE
+        #   VAL_MASK
+        #   VAL_OUTDIR
+        #   FLAG_RECURSIVE_SCAN
+        #   SGND_APPLICATION_ROOT
+        #   SGND_DOCS_DIR
+        #
+        # Outputs (globals):
+        #   DOC_SOURCE
+        #   DOC_FILE
+        #   DOC_MASK
+        #   DOC_OUTDIR
+        #   RECURSIVE_SCAN
+        #
+        # Returns:
+        #   0 on success.
+        #   1 if the user cancels or an unexpected dialog result occurs.
+        #
+        # Notes:
+        #   - When DOC_FILE is specified later in processing, it takes precedence
+        #     over directory scanning.
+        #   - DOC_MASK should default to "*.sh".
+    _resolve_parameters() {
         DOC_SOURCE="${VAL_SRCDIR:-${DOC_SOURCE:-$SGND_APPLICATION_ROOT}}"
         DOC_FILE="${VAL_FILE:-${DOC_FILE:-}}"
-        DOC_MASK="${VAL_MASK:-${DOC_MASK:-$*.sh}}"
+        DOC_MASK="${VAL_MASK:-${DOC_MASK:-*.sh}}"
         DOC_OUTDIR="${VAL_OUTDIR:-${DOC_OUTDIR:-$SGND_DOCS_DIR}}"
         RECURSIVE_SCAN="${FLAG_RECURSIVE_SCAN:-${RECURSIVE_SCAN:-1}}"
-
-        local lw=20
+        DOC_SOURCE="/home/sysadmin/dev/SolidgroundUX/target-root/usr/local/libexec/solidgroundux"
+        DOC_FILE="doc-generator.sh"
+        local lw=25
         local lp=4
 
         while true; do
             sgnd_print
             sgnd_print_sectionheader "Enter Documentation Generator Parameters" --padend 0
             ask --label "Source directory" --var DOC_SOURCE --default "$DOC_SOURCE" --validate sgnd_validate_dir_exists --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
-            ask --label "Source file" --var DOC_FILE --default "$DOC_FILE"  --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
-            ask --label "Filename mask" --var DOC_MASK --default "$DOC_MASK"  --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
-            ask --label "Output directory" --var DOC_OUTDIR --default "$DOC_OUTDIR"  --validate sgnd_validate_dir_exists --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+            ask --label "Source file" --var DOC_FILE --default "$DOC_FILE" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+            ask --label "Filename mask" --var DOC_MASK --default "$DOC_MASK" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+            ask --label "Output directory" --var DOC_OUTDIR --default "$DOC_OUTDIR" --validate sgnd_validate_dir_exists --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
 
             local recursive_default="No"
             local answ=""
             if (( RECURSIVE_SCAN )); then
                 recursive_default="Yes"
             fi
+
             ask --label "Recursive scan (Y/N)" --var answ --type flag --default "$recursive_default" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
             answ="${answ,,}"
 
@@ -403,11 +576,8 @@ set -uo pipefail
             fi
 
             sgnd_print_sectionheader --maxwidth "$lw"
-            ask_dlg_autocontinue \
-                --seconds 15 \
-                --message "Continue with these settings?" \
-                --redo \
-                --cancel
+            sgnd_print
+            ask_dlg_autocontinue --seconds 15 --message "Continue with these settings?" --redo --cancel --pause
 
             case $? in
                 0|1) break ;;
@@ -418,10 +588,329 @@ set -uo pipefail
         done
     }
 
+    # fn: _process_files
+        # Purpose:
+        #   Scan the selected source file set and populate the documentation
+        #   datatables through the sgnd-comment-parser scan hooks.
+        #
+        # Behavior:
+        #   - Clears previously collected module and function rows.
+        #   - Uses DOC_FILE when a single file was explicitly specified.
+        #   - Otherwise scans DOC_SOURCE for files matching DOC_MASK.
+        #   - Honors RECURSIVE_SCAN when scanning a source directory.
+        #   - Calls sgnd_scan_file for each matched file.
+        #   - Relies on sgnd_scan_emit_module_hook and
+        #     sgnd_scan_emit_function_hook to append normalized rows.
+        #
+        # Arguments:
+        #   None.
+        #
+        # Inputs (globals):
+        #   DOC_FILE
+        #   DOC_SOURCE
+        #   DOC_MASK
+        #   RECURSIVE_SCAN
+        #   DOC_MODULE_SCHEMA
+        #   DOC_FUNCTION_SCHEMA
+        #
+        # Outputs (globals):
+        #   DOC_MODULES
+        #   DOC_FUNCTIONS
+        #
+        # Returns:
+        #   0 on success.
+        #   1 on invalid input or scan failure.
+        #
+        # Notes:
+        #   - Single-file mode takes precedence over directory scanning.
+        #   - Filename collection uses find -print0 to safely support spaces.
+    _process_files() {
+        local -a files=()
+        local file=""
+        local scanned_count=0
+        local mask="${DOC_MASK:-*.sh}"
 
+        DOC_MODULES=()
+        DOC_FUNCTIONS=()
+
+        # Assemble file list
+        if [[ -n "${DOC_FILE:-}" ]]; then
+            [[ -f "$DOC_FILE" ]] || {
+                sayfail "Specified file does not exist: $DOC_FILE"
+                return 1
+            }
+
+            [[ -r "$DOC_FILE" ]] || {
+                sayfail "Specified file is not readable: $DOC_FILE"
+                return 1
+            }
+
+            files+=("$DOC_FILE")
+        else
+            [[ -n "${DOC_SOURCE:-}" ]] || {
+                sayfail "No source directory was specified."
+                return 1
+            }
+
+            [[ -d "$DOC_SOURCE" ]] || {
+                sayfail "Source directory does not exist: $DOC_SOURCE"
+                return 1
+            }
+
+            if (( ${RECURSIVE_SCAN:-0} )); then
+                while IFS= read -r -d '' file; do
+                    files+=("$file")
+                done < <(
+                    find "$DOC_SOURCE" -type f -name "$mask" -print0
+                )
+            else
+                while IFS= read -r -d '' file; do
+                    files+=("$file")
+                done < <(
+                    find "$DOC_SOURCE" -maxdepth 1 -type f -name "$mask" -print0
+                )
+            fi
+        fi
+
+        if (( ${#files[@]} == 0 )); then
+            saywarning "No matching files found."
+            return 0
+        fi
+
+        saystart "Scanning ${#files[@]} file(s)..."
+        
+        total="${#files[@]}"
+        current=0
+
+        for file in "${files[@]}"; do
+            current=$((current + 1))
+
+
+            _scan_file "$file" || {
+               sayprogress_done
+               sayfail "Failed to scan file: $file"
+               return 0
+            }
+
+            sayprogress \
+                --current "$current" \
+                --total "$total" \
+                --label "Processing file: $(basename "$file")" \
+                --type 5 \
+                --padleft 4
+        done
+        sayprogress_done
+
+        sayok "Scanned $total file(s)"
+        sayinfo "Collected $(sgnd_dt_row_count DOC_MODULES) module row(s)"
+        sayinfo "Collected $(sgnd_dt_row_count DOC_FUNCTIONS) function row(s)"
+
+        return 0
+    }
+
+    # fn: _scan_file
+        # Purpose:
+        #   Scan one source file line by line and store normalized structural
+        #   records in the documentation scan table.
+        #
+        # Behavior:
+        #   - Detects the canonical top-of-file header between the first two
+        #     header separator lines and stores one row per inner header line.
+        #   - Detects section marker lines in three levels:
+        #       # --- major
+        #       # --  minor
+        #       # -   micro
+        #   - Detects explicit detail comment blocks:
+        #       # fn: <name>
+        #       # var: <name>
+        #   - Collects subsequent comment lines as detail text.
+        #   - Confirms a detail block only when a matching declaration line is found:
+        #       fn  -> <name>() {
+        #       var -> <name>=...
+        #   - Discards pending detail blocks that are interrupted by unrelated code
+        #     or a new structural marker.
+        #
+        # Arguments:
+        #   $1  FILE
+        #       Readable source file to scan.
+        #
+        # Inputs (globals):
+        #   DOC_SCAN_SCHEMA
+        #   DOC_SCAN_ROWS
+        #
+        # Returns:
+        #   0 on success.
+        #   1 on invalid input or append failure.
+    _scan_file() {
+        local file="${1:?missing file}"
+        local line=""
+        local line_nr=0
+        local text=""
+
+        local in_header=0
+        local header_done=0
+        local header_sep_count=0
+        local current_header_section=""
+
+        local current_major_section=""
+        local current_minor_section=""
+        local current_micro_section=""
+
+        local pending_kind=""
+        local pending_name=""
+        local pending_major_section=""
+        local pending_minor_section=""
+        local pending_micro_section=""
+        local pending_count=0
+        local -a pending_lines=()
+        local -a pending_line_nrs=()
+
+        local i=0
+
+        [[ -r "$file" ]] || return 1
+
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            line_nr=$((line_nr + 1))
+            line="${line%$'\r'}"
+
+            # --- Header ---------------------------------------------------------
+            if (( ! header_done )); then
+                if _is_header_separator "$line"; then
+                    header_sep_count=$((header_sep_count + 1))
+
+                    if (( header_sep_count == 1 )); then
+                        in_header=1
+                        current_header_section=""
+                        continue
+                    fi
+
+                    if (( header_sep_count == 2 )); then
+                        in_header=0
+                        header_done=1
+                        current_header_section=""
+                        continue
+                    fi
+                fi
+
+                if (( in_header )); then
+                    if _is_header_section_line "$line"; then
+                        current_header_section="$(_parse_header_section_line "$line")"
+
+                        sgnd_dt_append "$DOC_SCAN_SCHEMA" DOC_SCAN_ROWS \
+                            "$file" \
+                            "$line_nr" \
+                            "headersection" \
+                            "$current_header_section" \
+                            "" \
+                            "$current_header_section" || return 1
+                    else
+                        text="$(_normalize_comment_line "$line")"
+
+                        sgnd_dt_append "$DOC_SCAN_SCHEMA" DOC_SCAN_ROWS \
+                            "$file" \
+                            "$line_nr" \
+                            "headerline" \
+                            "" \
+                            "$current_header_section" \
+                            "$text" || return 1
+                    fi
+
+                    continue
+                fi
+            fi
+
+            # --- Section markers ------------------------------------------------
+            if _is_section_line "$line"; then
+                text="$(_parse_section_line "$line")"
+
+                case "$(_get_section_level "$line")" in
+                    1)
+                        current_major_section="$text"
+                        current_minor_section=""
+                        current_micro_section=""
+                        ;;
+                    2)
+                        current_minor_section="$text"
+                        current_micro_section=""
+                        ;;
+                    3)
+                        current_micro_section="$text"
+                        ;;
+                esac
+
+                sgnd_dt_append "$DOC_SCAN_SCHEMA" DOC_SCAN_ROWS \
+                    "$file" \
+                    "$line_nr" \
+                    "section" \
+                    "$text" \
+                    "$current_major_section" \
+                    "$text" || return 1
+
+                pending_kind=""
+                pending_name=""
+                pending_count=0
+                pending_lines=()
+                pending_line_nrs=()
+                continue
+            fi
+
+            # --- Start detail block --------------------------------------------
+            if (( pending_count == 0 )) && _is_detail_comment_start "$line"; then
+                pending_kind="$(_parse_detail_kind "$line")"
+                pending_name="$(_parse_detail_name "$line")"
+                pending_major_section="$current_major_section"
+                pending_minor_section="$current_minor_section"
+                pending_micro_section="$current_micro_section"
+
+                pending_count=0
+                pending_lines=()
+                pending_line_nrs=()
+
+                pending_lines[pending_count]="$line"
+                pending_line_nrs[pending_count]="$line_nr"
+                pending_count=$((pending_count + 1))
+
+                saydebug "PENDING START: $pending_kind : $pending_name @ $line_nr"
+                continue
+            fi
+
+            # --- Continue / confirm / discard detail block ----------------------
+            if (( pending_count > 0 )); then
+                if [[ "$line" =~ ^[[:space:]]*# ]]; then
+                    pending_lines[pending_count]="$line"
+                    pending_line_nrs[pending_count]="$line_nr"
+                    pending_count=$((pending_count + 1))
+                    saydebug "PENDING ADD: $pending_kind : $pending_name @ $line_nr :: $line"
+                    continue
+                fi
+
+                if _detail_matches_declaration "$pending_kind" "$pending_name" "$line"; then
+                    for (( i=0; i<pending_count; i++ )); do
+                        text="$(_normalize_comment_line "${pending_lines[i]}")"
+
+                        sgnd_dt_append "$DOC_SCAN_SCHEMA" DOC_SCAN_ROWS \
+                            "$file" \
+                            "${pending_line_nrs[i]}" \
+                            "$pending_kind" \
+                            "$pending_name" \
+                            "$pending_major_section" \
+                            "$text" || return 1
+                    done
+                fi
+
+                pending_kind=""
+                pending_name=""
+                pending_count=0
+                pending_lines=()
+                pending_line_nrs=()
+            fi
+        done < "$file"
+
+        return 0
+    }
     
 # --- Main ----------------------------------------------------------------------------
-    # main
+    # fn: main
         # Purpose:
         #   Canonical entry point for executable scripts.
         #
@@ -462,7 +951,7 @@ set -uo pipefail
             #     --console    -> enable console logging
             # Example:
             #   sgnd_bootstrap --state --needroot -- "$@"
-            sgnd_bootstrap -- "$@"
+            sgnd_bootstrap --state -- "$@"
             rc=$?
 
             saydebug "After bootstrap: $rc"
@@ -479,8 +968,13 @@ set -uo pipefail
 
         # -- Main script logic
             _resolve_parameters || exit $?
-           # _process_files || exit $?
+           _process_files || exit $?
 
+           sgnd_dt_print_table "$DOC_SCAN_SCHEMA" DOC_SCAN_ROWS
+            printf "\n\n"   
+
+           #sgnd_dt_display "${DOC_MODULE_SCHEMA}" "${DOC_MODULES}"
+           #sgnd_dt_display "${DOC_FUNCTION_SCHEMA}" "${DOC_FUNCTIONS}"
     }
 
     # Entrypoint: sgnd_bootstrap will split framework args from script args.

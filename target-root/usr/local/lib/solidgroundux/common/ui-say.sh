@@ -583,6 +583,179 @@ set -uo pipefail
         _say_write_log "$type" "$msg" "$date_str"
     }
 
+    # sayprogress
+        # Purpose:
+        #   Render single-line progress output on stderr and update it in place.
+        #
+        # Behavior:
+        #   - Reuses the same console line using carriage return.
+        #   - Builds the rendered output from selected progress parts.
+        #   - Supports absolute counters, percentage, and progress bar output.
+        #   - Applies optional colors independently to bar, indicators, and label.
+        #   - Supports optional left padding.
+        #   - Pads the rendered line so older longer text is cleared.
+        #   - Does not print a trailing newline.
+        #
+        # Options:
+        #   --current N
+        #       Current position.
+        #   --total N
+        #       Total number of items.
+        #   --label TEXT
+        #       Optional label text to append.
+        #   --type N
+        #       Bitmask selecting which progress parts to show:
+        #         1 = absolute counter
+        #         2 = percentage
+        #         4 = progress bar
+        #   --barcolor SGR
+        #       ANSI SGR sequence for the progress bar.
+        #   --labelcolor SGR
+        #       ANSI SGR sequence for the label.
+        #   --indicatorcolor SGR
+        #       ANSI SGR sequence for percentage and absolute indicators.
+        #   --padleft N
+        #       Number of spaces to prefix before rendered output.
+        #   --width N
+        #       Width of the progress bar in characters.
+        #
+        # Returns:
+        #   0 on success.
+        #   1 on invalid option.
+    sayprogress() {
+        local current=0
+        local total=1
+        local label=""
+        local progress_type=7
+        local bar_color="${PROG_BAR_CLR:-CYAN}"
+        local label_color="${PROG_TEXT_CLR:-WHITE}"
+        local indicator_color="${PROG_IND_CLR:-CYAN}"
+        local padleft=0
+        local width=30
+
+        local percent=0
+        local filled=0
+        local empty=0
+        local bar_filled=""
+        local bar_empty=""
+        local text=""
+        local part=""
+        local prefix=""
+        local reset="${RESET-}"
+
+        while (($#)); do
+            case "$1" in
+                --current)        current="${2:-0}"; shift 2 ;;
+                --total)          total="${2:?missing value for --total}"; shift 2 ;;
+                --label)          label="${2:?missing value for --label}"; shift 2 ;;
+                --type)           progress_type="${2:-0}"; shift 2 ;;
+                --barcolor)       bar_color="${2-}"; shift 2 ;;
+                --labelcolor)     label_color="${2-}"; shift 2 ;;
+                --indicatorcolor) indicator_color="${2-}"; shift 2 ;;
+                --padleft)        padleft="${2:?missing value for --padleft}"; shift 2 ;;
+                --width)          width="${2:?missing value for --width}"; shift 2 ;;
+                --) shift; break ;;
+                *) return 1 ;;
+            esac
+        done
+
+        (( total > 0 )) || total=1
+        (( current < 0 )) && current=0
+        (( current > total )) && current=$total
+        (( progress_type > 0 )) || progress_type=1
+        (( width > 0 )) || width=30
+        (( padleft >= 0 )) || padleft=0
+
+        percent=$(( current * 100 / total ))
+        filled=$(( current * width / total ))
+        empty=$(( width - filled ))
+
+        if (( padleft > 0 )); then
+            printf -v prefix '%*s' "$padleft" ''
+        fi
+
+        # Progress bar
+        if (( progress_type & 4 )); then
+            [[ -n "$text" ]] && text+="  "
+
+            printf -v bar_filled '%*s' "$filled" ''
+            bar_filled="${bar_filled// /#}"
+
+            printf -v bar_empty '%*s' "$empty" ''
+            bar_empty="${bar_empty// /.}"
+
+            part="[${bar_filled}${bar_empty}]"
+
+            if [[ -n "$bar_color" ]]; then
+                part="${bar_color}${part}${reset}"
+            fi
+
+            text+="$part"
+        fi
+
+        # Percentage indicator
+        if (( progress_type & 2 )); then
+            [[ -n "$text" ]] && text+="  "
+
+            printf -v part '%3d%%' "$percent"
+
+            if [[ -n "$indicator_color" ]]; then
+                part="${indicator_color}${part}${reset}"
+            fi
+
+            text+="$part"
+        fi
+
+        # Absolute progress indicator
+        if (( progress_type & 1 )); then
+            [[ -n "$text" ]] && text+="  "
+
+            part="${current}/${total}"
+
+            if [[ -n "$indicator_color" ]]; then
+                part="${indicator_color}${part}${reset}"
+            fi
+
+            text+="$part"
+        fi
+
+        # Label
+        if [[ -n "$label" ]]; then
+            [[ -n "$text" ]] && text+="  "
+
+            part="$label"
+
+            if [[ -n "$label_color" ]]; then
+                part="${label_color}${part}${reset}"
+            fi
+
+            text+="$part"
+        fi
+
+        text="${prefix}${text}"
+
+        printf '\r%-140s' "$text" >&2
+    }
+
+    # sayprogress_done
+        # Purpose:
+        #   Finalize progress output by printing a newline.
+        #
+        # Behavior:
+        #   - Prints a newline to stderr to move past the progress line.
+        #
+        # Usage:
+        #   sayprogress_done
+        #
+        # Examples:
+        #   sayprogress_done
+        #
+        # Returns:
+        #   0 always.
+    sayprogress_done() {
+        printf '\n' >&2
+    }
+
     # -- Convenience wrappers for say() with a fixed TYPE.
         # sayinfo
             # Purpose:
