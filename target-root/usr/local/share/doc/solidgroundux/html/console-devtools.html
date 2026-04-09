@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>4. console-devtools.sh</title>
+<style>
+body { font-family: sans-serif; line-height: 1.35; margin: 2rem; max-width: 1100px; }
+p, li { line-height: 1.4; margin-top: 0.15rem; margin-bottom: 0.35rem; }
+h1, h2, h3, h4 { line-height: 1.2; margin-top: 1rem; margin-bottom: 0.35rem; }
+code { background: #f4f4f4; padding: 0.08rem 0.25rem; border-radius: 0.2rem; }
+a { text-decoration: none; }
+a:hover { text-decoration: underline; }
+.summary { margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+<p>SolidgroundUX — Developer Tools Console Module</p>
+<p>----------------------------------------------------------------------------------</p>
+<h1>4. console-devtools.sh</h1>
+<h2>4.1 Description</h2>
+<p>Provides a console module that registers developer-oriented actions in</p>
+<p>sgnd-console, allowing common tooling scripts to be launched from the</p>
+<p>interactive console host.</p>
+<p>The module currently exposes actions for:</p>
+<p>- creating a new workspace</p>
+<p>- deploying a workspace</p>
+<p>- preparing a release archive</p>
+<p><a href="index.html">Back to index</a></p>
+<h2>4.2 Design principles</h2>
+<p>- Console modules are source-only plugin libraries</p>
+<p>- Functions are defined first, then registered explicitly</p>
+<p>- Registration is the only intended load-time side effect</p>
+<p>- Module actions delegate execution to the shared sgnd-console runtime</p>
+<h2>4.3 Role in framework</h2>
+<p>- Extends sgnd-console with developer workflow actions</p>
+<p>- Acts as a lightweight plugin layer on top of the console host</p>
+<p>- Uses _sgnd_run_script to execute related tooling scripts consistently</p>
+<h2>4.4 Assumptions</h2>
+<p>- Loaded by sgnd-console after framework bootstrap is complete</p>
+<p>- sgnd_console_register_group and sgnd_console_register_item are available</p>
+<p>- _sgnd_run_script is available in the host environment</p>
+<h2>4.5 Non-goals</h2>
+<p>- Standalone execution</p>
+<p>- Framework bootstrap or path resolution</p>
+<p>- Direct implementation of workspace/deploy/release logic</p>
+<h2>4.6 Library guard ------------------------------------------------------------------</h2>
+<h2>4.7 Internal helpers -------------------------------------------------------------</h2>
+<h2>4.8 Public API -------------------------------------------------------------------</h2>
+<h2>4.9 Console registration --------------------------------------------------------</h2>
+</body>
+</html>

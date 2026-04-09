@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>23. sgnd-bootstrap-env.sh</title>
+<style>
+body { font-family: sans-serif; line-height: 1.35; margin: 2rem; max-width: 1100px; }
+p, li { line-height: 1.4; margin-top: 0.15rem; margin-bottom: 0.35rem; }
+h1, h2, h3, h4 { line-height: 1.2; margin-top: 1rem; margin-bottom: 0.35rem; }
+code { background: #f4f4f4; padding: 0.08rem 0.25rem; border-radius: 0.2rem; }
+a { text-decoration: none; }
+a:hover { text-decoration: underline; }
+.summary { margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+<p>SolidgroundUX - Bootstrap Environment</p>
+<p>-------------------------------------------------------------------------------------</p>
+<h1>23. sgnd-bootstrap-env.sh</h1>
+<h2>23.1 Description</h2>
+<p>Establishes the runtime environment for SolidgroundUX scripts.</p>
+<p>The library:</p>
+<p>- Defines and initializes core framework directories</p>
+<p>- Resolves system and user paths (config, state, logs, etc.)</p>
+<p>- Ensures required directories exist with proper permissions</p>
+<p>- Applies default values for environment variables when unset</p>
+<p>- Normalizes environment behavior across different execution contexts</p>
+<p><a href="index.html">Back to index</a></p>
+<h2>23.2 Design principles</h2>
+<p>- Deterministic environment setup regardless of execution context</p>
+<p>- Clear separation between framework root and application root</p>
+<p>- Safe defaults with minimal assumptions about host system</p>
+<p>- Idempotent setup (safe to run multiple times)</p>
+<h2>23.3 Role in framework</h2>
+<p>- Core bootstrap layer responsible for environment initialization</p>
+<p>- Runs early in the bootstrap process before other libraries depend on it</p>
+<p>- Provides foundational paths and variables used across all modules</p>
+<h2>23.4 Non-goals</h2>
+<p>- Argument parsing (handled by sgnd-args.sh)</p>
+<p>- Configuration loading (handled by sgnd-cfg.sh)</p>
+<p>- UI or user interaction</p>
+<h2>23.5 Library guard ------------------------------------------------------------------</h2>
+<h2>23.6 Framework identity --------------------------------------------------------------</h2>
+<h2>23.7 Framework metadata --------------------------------------------------------------</h2>
+<h2>23.8 Helpers -------------------------------------------------------------------------</h2>
+<h2>23.9 Public API ----------------------------------------------------------------------</h2>
+</body>
+</html>

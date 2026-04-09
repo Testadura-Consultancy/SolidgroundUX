@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>22. sgnd-cfg.sh</title>
+<style>
+body { font-family: sans-serif; line-height: 1.35; margin: 2rem; max-width: 1100px; }
+p, li { line-height: 1.4; margin-top: 0.15rem; margin-bottom: 0.35rem; }
+h1, h2, h3, h4 { line-height: 1.2; margin-top: 1rem; margin-bottom: 0.35rem; }
+code { background: #f4f4f4; padding: 0.08rem 0.25rem; border-radius: 0.2rem; }
+a { text-decoration: none; }
+a:hover { text-decoration: underline; }
+.summary { margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+<p>SolidgroundUX - Configuration Management</p>
+<p>-------------------------------------------------------------------------------------</p>
+<h1>22. sgnd-cfg.sh</h1>
+<h2>22.1 Description</h2>
+<p>Provides configuration handling for the SolidgroundUX framework.</p>
+<p>The library:</p>
+<p>- Loads configuration from system and user locations</p>
+<p>- Resolves effective configuration using precedence rules</p>
+<p>- Supports reading and writing key-value configuration files</p>
+<p>- Ensures required configuration values are present</p>
+<p>- Provides helper functions for accessing configuration values</p>
+<p><a href="index.html">Back to index</a></p>
+<p>- Integrates with bootstrap and runtime state handling</p>
+<h2>22.2 Design principles</h2>
+<p>- Clear separation between system-level and user-level configuration</p>
+<p>- Deterministic resolution of configuration values</p>
+<p>- Minimal and transparent configuration format</p>
+<p>- Safe defaults with optional overrides</p>
+<h2>22.3 Role in framework</h2>
+<p>- Central configuration layer used during bootstrap and runtime</p>
+<p>- Supplies paths, settings, and environment-specific values</p>
+<p>- Supports scripts and modules requiring persistent configuration</p>
+<h2>22.4 Non-goals</h2>
+<p>- Complex hierarchical configuration systems</p>
+<p>- External configuration formats (JSON, YAML, etc.)</p>
+<p>- Runtime hot-reloading of configuration</p>
+<h2>22.5 Library guard ------------------------------------------------------------------</h2>
+<h2>22.6 Internal: file and value manipulation -------------------------------------------</h2>
+<h2>22.7 Public API: Config management ---------------------------------------------------</h2>
+<h2>22.8 Bootstrap/advanced: cfg domain loading ------------------------------------------</h2>
+<h2>22.9 Bootstrap/advanced: State loading -----------------------------------------------</h2>
+</body>
+</html>

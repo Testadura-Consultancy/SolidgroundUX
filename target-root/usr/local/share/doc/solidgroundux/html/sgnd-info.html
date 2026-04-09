@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>24. sgnd-info.sh</title>
+<style>
+body { font-family: sans-serif; line-height: 1.35; margin: 2rem; max-width: 1100px; }
+p, li { line-height: 1.4; margin-top: 0.15rem; margin-bottom: 0.35rem; }
+h1, h2, h3, h4 { line-height: 1.2; margin-top: 1rem; margin-bottom: 0.35rem; }
+code { background: #f4f4f4; padding: 0.08rem 0.25rem; border-radius: 0.2rem; }
+a { text-decoration: none; }
+a:hover { text-decoration: underline; }
+.summary { margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+<p>SolidgroundUX - Framework Information</p>
+<p>-------------------------------------------------------------------------------------</p>
+<h1>24. sgnd-info.sh</h1>
+<h2>24.1 Description</h2>
+<p>Exposes information about the SolidgroundUX framework and runtime environment.</p>
+<p>The library:</p>
+<p>- Provides access to framework identity (name, version, paths)</p>
+<p>- Exposes resolved bootstrap values such as SGND_FRAMEWORK_ROOT and SGND_APPLICATION_ROOT</p>
+<p>- Supplies helper functions for displaying framework and environment details</p>
+<p>- Supports diagnostics, logging, and informational output</p>
+<h2>24.2 Design principles</h2>
+<p><a href="index.html">Back to index</a></p>
+<p>- Keep information access centralized and consistent</p>
+<p>- Avoid duplication of framework identity data across modules</p>
+<p>- Ensure values reflect the active runtime environment</p>
+<p>- Keep implementation lightweight and dependency-free where possible</p>
+<h2>24.3 Role in framework</h2>
+<p>- Provides introspection capabilities for scripts and tools</p>
+<p>- Supports diagnostics, debugging, and informational commands</p>
+<p>- Complements bootstrap and configuration modules</p>
+<h2>24.4 Non-goals</h2>
+<p>- Configuration management (handled by cfg.sh)</p>
+<p>- Argument parsing or user interaction</p>
+<p>- Persistent state tracking</p>
+<h2>24.5 Library guard ------------------------------------------------------------------</h2>
+<h2>24.6 Internal helpers ----------------------------------------------------------------</h2>
+<h2>24.7 Public API ----------------------------------------------------------------------</h2>
+</body>
+</html>

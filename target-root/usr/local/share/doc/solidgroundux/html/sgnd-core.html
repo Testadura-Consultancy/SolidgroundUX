@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>17. sgnd-core.sh</title>
+<style>
+body { font-family: sans-serif; line-height: 1.35; margin: 2rem; max-width: 1100px; }
+p, li { line-height: 1.4; margin-top: 0.15rem; margin-bottom: 0.35rem; }
+h1, h2, h3, h4 { line-height: 1.2; margin-top: 1rem; margin-bottom: 0.35rem; }
+code { background: #f4f4f4; padding: 0.08rem 0.25rem; border-radius: 0.2rem; }
+a { text-decoration: none; }
+a:hover { text-decoration: underline; }
+.summary { margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+<p>SolidgroundUX - Core Utilities</p>
+<p>-------------------------------------------------------------------------------------</p>
+<h1>17. sgnd-core.sh</h1>
+<h2>17.1 Description</h2>
+<p>Contains the lowest-level generic helpers used throughout the SolidgroundUX</p>
+<p>framework.</p>
+<p>The library:</p>
+<p>- Defines generic reusable helper functions</p>
+<p>- Provides string, array, and low-level utility primitives</p>
+<p>- Implements shared conventions and diagnostics helpers</p>
+<p>- Avoids system-, UI-, and business-specific behavior where possible</p>
+<p><a href="index.html">Back to index</a></p>
+<h2>17.2 Design principles</h2>
+<p>- Keep utilities generic and broadly reusable</p>
+<p>- Avoid domain-specific logic in core helpers</p>
+<p>- Prefer clarity and predictability over cleverness</p>
+<p>- Minimize dependencies to keep the core lightweight</p>
+<h2>17.3 Role in framework</h2>
+<p>- Foundational layer used by nearly all other libraries</p>
+<p>- Supports argument parsing, configuration, UI, and script logic</p>
+<p>- Acts as the lowest-level shared functionality layer</p>
+<h2>17.4 Non-goals</h2>
+<p>- Business logic or application-specific behavior</p>
+<p>- UI rendering or user interaction handling</p>
+<p>- System administration and host/runtime operations (handled in sgnd-system)</p>
+<p>- Configuration or state management (handled in dedicated modules)</p>
+<h2>17.5 Library guard ------------------------------------------------------------------</h2>
+<h2>17.6 Requirement checks -------------------------------------------------------------</h2>
+<h2>17.7 Filesystem helpers -------------------------------------------------------------</h2>
+<h2>17.8 Argument &amp; environment helpers -------------------------------------------------</h2>
+<h2>17.9 Process &amp; state helpers --------------------------------------------------------</h2>
+<h3>17.9.1 Function: <code>sgnd_is_ui_mode()</code></h3>
+<p>Purpose:</p>
+<p>Determine whether the current execution context supports interactive UI.</p>
+<p>Behavior:</p>
+<p>- Honors explicit runmode flags when present</p>
+<p>- Falls back to TTY detection</p>
+<p>Returns:</p>
+<p>0 if UI mode is active</p>
+<p>1 otherwise</p>
+<h3>17.9.2 Function: <code>sgnd_is_desktop_mode()</code></h3>
+<p>Purpose:</p>
+<p>Detect whether a graphical desktop environment is available.</p>
+<p>Behavior:</p>
+<p>- Detects X11 or Wayland session</p>
+<p>- Does not guarantee UI interactivity (separate concern)</p>
+<p>Returns:</p>
+<p>0 if desktop environment is available</p>
+<p>1 otherwise</p>
+<h2>17.10 Version helpers ----------------------------------------------------------------</h2>
+<h2>17.11 Misc utilities -----------------------------------------------------------------</h2>
+<h2>17.12 Text functions -----------------------------------------------------------------</h2>
+<h2>17.13 Validators ---------------------------------------------------------------------</h2>
+</body>
+</html>

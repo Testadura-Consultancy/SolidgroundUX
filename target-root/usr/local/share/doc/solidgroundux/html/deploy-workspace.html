@@ -1,0 +1,266 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>8. deploy-workspace.sh</title>
+<style>
+body { font-family: sans-serif; line-height: 1.35; margin: 2rem; max-width: 1100px; }
+p, li { line-height: 1.4; margin-top: 0.15rem; margin-bottom: 0.35rem; }
+h1, h2, h3, h4 { line-height: 1.2; margin-top: 1rem; margin-bottom: 0.35rem; }
+code { background: #f4f4f4; padding: 0.08rem 0.25rem; border-radius: 0.2rem; }
+a { text-decoration: none; }
+a:hover { text-decoration: underline; }
+.summary { margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+<p>SolidgroundUX - Deploy Workspace</p>
+<p>-------------------------------------------------------------------------------------</p>
+<h1>8. deploy-workspace.sh</h1>
+<h2>8.1 Description</h2>
+<p>Provides a deployment utility that synchronizes a structured workspace</p>
+<p>into a target filesystem root.</p>
+<p>The script:</p>
+<p>- Copies files from source to target while preserving structure</p>
+<p>- Creates destination directories as required</p>
+<p>- Applies permission policy based on PERMISSION_RULES</p>
+<p>- Skips private, hidden, and non-deployable files by convention</p>
+<p><a href="index.html">Back to index</a></p>
+<p>- Records created files and directories in a deploy manifest</p>
+<p>- Supports manifest-based undeploy operations</p>
+<h2>8.2 Design principles</h2>
+<p>- Deployment behavior is explicit and predictable</p>
+<p>- Only created artifacts are tracked for undeploy</p>
+<p>- Honors dry-run, verbose, and debug run modes</p>
+<p>- Avoids destructive rollback behavior outside recorded manifests</p>
+<h2>8.3 Role in framework</h2>
+<p>- Entry point for deploying prepared workspaces into target roots</p>
+<p>- Supports controlled install and removal workflows for SolidgroundUX assets</p>
+<h2>8.4 Non-goals</h2>
+<p>- Full rollback of all modified target files</p>
+<p>- Generic backup or restore functionality</p>
+<p>- Arbitrary synchronization outside the workspace deployment model</p>
+<h2>8.5 Bootstrap -----------------------------------------------------------------------</h2>
+<h2>8.6 Script metadata (identity) ------------------------------------------------------</h2>
+<h2>8.7 Script metadata (framework integration) -----------------------------------------</h2>
+<h3>8.7.1 Variable: <code>SGND_USING</code></h3>
+<p>Libraries to source from SGND_COMMON_LIB.</p>
+<p>These are loaded automatically by sgnd_bootstrap AFTER core libraries.</p>
+<p>Example:</p>
+<p>SGND_USING=( net.sh fs.sh )</p>
+<p>Leave empty if no extra libs are needed.</p>
+<h2>8.8 Example: Arguments</h2>
+<h3>8.8.1 Variable: <code>SGND_SCRIPT_EXAMPLES</code></h3>
+<p>Optional: examples for --help output.</p>
+<p>Each entry is a string that will be printed verbatim.</p>
+<p>Example:</p>
+<p>SGND_SCRIPT_EXAMPLES=(</p>
+<p>"Example usage:"</p>
+<p>" script.sh --verbose --mode fast"</p>
+<p>" script.sh -v -m slow"</p>
+<p>)</p>
+<p>Leave empty if no examples are needed.</p>
+<h3>8.8.2 Variable: <code>SGND_SCRIPT_GLOBALS</code></h3>
+<p>Explicit declaration of global variables intentionally used by this script.</p>
+<p>IMPORTANT:</p>
+<p>- If this array is non-empty, sgnd_bootstrap will enable config loading.</p>
+<p>- Variables listed here may be populated from configuration files.</p>
+<p>- This makes SGND_SCRIPT_GLOBALS part of the script’s configuration contract.</p>
+<p>Use this to:</p>
+<p>- Document intentional globals</p>
+<p>- Prevent accidental namespace leakage</p>
+<p>- Enable cfg integration in a predictable way</p>
+<p>Only list:</p>
+<p>- Variables that are meant to be globally accessible</p>
+<p>- Variables that may be set via config files</p>
+<p>Leave empty if:</p>
+<p>- The script does not use config-driven globals</p>
+<h3>8.8.3 Variable: <code>SGND_STATE_VARIABLES</code></h3>
+<p>List of variables participating in persistent state.</p>
+<p>Purpose:</p>
+<p>- Declares which variables should be saved/restored when state is enabled.</p>
+<p>Behavior:</p>
+<p>- Only used when sgnd_bootstrap is invoked with --state.</p>
+<p>- Variables listed here are serialized on exit (if SGND_STATE_SAVE=1).</p>
+<p>- On startup, previously saved values are restored before main logic runs.</p>
+<p>Contract:</p>
+<p>- Variables must be simple scalars (no arrays/associatives unless explicitly supported).</p>
+<p>- Script remains fully functional when state is disabled.</p>
+<p>Leave empty if:</p>
+<p>- The script does not use persistent state.</p>
+<h3>8.8.4 Variable: <code>SGND_ON_EXIT_HANDLERS</code></h3>
+<p>List of functions to be invoked on script termination.</p>
+<p>Purpose:</p>
+<p>- Allows scripts to register cleanup or finalization hooks.</p>
+<p>Behavior:</p>
+<p>- Functions listed here are executed during framework exit handling.</p>
+<p>- Execution order follows array order.</p>
+<p>- Handlers run regardless of normal exit or controlled termination.</p>
+<p>Contract:</p>
+<p>- Functions must exist before exit occurs.</p>
+<p>- Handlers must not call exit directly.</p>
+<p>- Handlers should be idempotent (safe if executed once).</p>
+<p>Typical uses:</p>
+<p>- Cleanup temporary files</p>
+<p>- Persist additional state</p>
+<p>- Release locks</p>
+<p>Leave empty if:</p>
+<p>- No custom exit behavior is required.</p>
+<h2>8.9 Local script Declarations -------------------------------------------------------</h2>
+<h2>8.10 local script functions ----------------------------------------------------------tree</h2>
+<h2>8.11 Manifests</h2>
+<h2>8.12 Main sequence  </h2>
+<h3>8.12.1 Function: <code>_perm_resolve()</code></h3>
+<p>Purpose:</p>
+<p>Resolve the effective permission mode for a given path based on PERMISSION_RULES.</p>
+<p>Arguments:</p>
+<p>$1 abs_rel Absolute path relative to root (e.g. "/usr/local/bin/foo")</p>
+<p>$2 kind "file" or "dir"</p>
+<p>Behavior:</p>
+<p>- Applies longest-prefix match against PERMISSION_RULES</p>
+<p>- Returns file_mode or dir_mode depending on kind</p>
+<p>- Falls back to defaults when no rule matches</p>
+<p>Output:</p>
+<p>Prints the resolved mode to stdout (no newline)</p>
+<p>Returns:</p>
+<p>0 always</p>
+<p>Defaults:</p>
+<p>file → 644</p>
+<p>dir → 755</p>
+<p>Usage:</p>
+<p>mode="$(_perm_resolve "/usr/local/bin/foo" "file")"</p>
+<p>Examples:</p>
+<p>dir_mode="$(_perm_resolve "/usr/local/bin" "dir")"</p>
+<h3>8.12.2 Function: <code>_update_lastdeployinfo()</code></h3>
+<p>Purpose:</p>
+<p>Persist metadata of the last deployment run for reuse (e.g. auto mode).</p>
+<p>Behavior:</p>
+<p>- Stores timestamp, source, and target in state for later reuse</p>
+<p>- Skips writes when FLAG_DRYRUN is enabled</p>
+<p>Writes:</p>
+<p>last_deploy_run</p>
+<p>last_deploy_source</p>
+<p>last_deploy_target</p>
+<p>Inputs (globals):</p>
+<p>SRC_ROOT</p>
+<p>DEST_ROOT</p>
+<p>FLAG_DRYRUN</p>
+<p>Returns:</p>
+<p>0 on success</p>
+<p>Usage:</p>
+<p>_update_lastdeployinfo</p>
+<h3>8.12.3 Function: <code>_getparameters()</code></h3>
+<p>Purpose:</p>
+<p>Collect deployment parameters (source and target roots).</p>
+<p>Behavior:</p>
+<p>- Auto mode:</p>
+<p>Uses last deployment settings when available</p>
+<p>- Interactive mode:</p>
+<p>Prompts for SRC_ROOT and DEST_ROOT</p>
+<p>Validates SRC_ROOT structure (advisory only)</p>
+<p>Asks for confirmation (OK/Redo/Quit)</p>
+<p>Validation:</p>
+<p>- SRC_ROOT is considered valid if it contains "etc/" or "usr/"</p>
+<p>- Validation is advisory only (does not block execution)</p>
+<p>Outputs (globals):</p>
+<p>SRC_ROOT</p>
+<p>DEST_ROOT</p>
+<p>Returns:</p>
+<p>0 → confirmed</p>
+<p>1 → aborted</p>
+<p>Usage:</p>
+<p>_getparameters ; return $?</p>
+<p>Notes:</p>
+<p>- Uses ask and ask_ok_redo_quit</p>
+<h2>8.13 Auto mode --------------------------------------------------------------</h2>
+<h2>8.14 Interactive mode -------------------------------------------------------</h2>
+<h2>8.15 Source root --------------------------------------------------------</h2>
+<h2>8.16 Target root --------------------------------------------------------</h2>
+<h3>8.16.1 Function: <code>_deploy()</code></h3>
+<p>Purpose:</p>
+<p>Deploy workspace files from SRC_ROOT into DEST_ROOT.</p>
+<p>Behavior:</p>
+<p>- Recursively processes files under SRC_ROOT</p>
+<p>- Computes relative path and destination path</p>
+<p>- Skips:</p>
+<p>- top-level files</p>
+<p>- "_" prefixed files</p>
+<p>- ".old" files</p>
+<p>- hidden or "_" directories</p>
+<p>Update logic:</p>
+<p>- Installs when destination is missing or source is newer</p>
+<p>Manifest behavior:</p>
+<p>- Initializes a new manifest at start of deployment</p>
+<p>- Records only files CREATED by this run</p>
+<p>- Records only directories CREATED by this run</p>
+<p>- Updated pre-existing files are not recorded</p>
+<p>- Finalizes manifest only after successful completion</p>
+<p>Permissions:</p>
+<p>- File mode via _perm_resolve(abs_rel,"file")</p>
+<p>- Directory mode via _perm_resolve(abs_rel,"dir")</p>
+<p>Dry run:</p>
+<p>- When FLAG_DRYRUN=1, only reports actions</p>
+<p>Inputs (globals):</p>
+<p>SRC_ROOT</p>
+<p>DEST_ROOT</p>
+<p>FLAG_DRYRUN</p>
+<p>PERMISSION_RULES</p>
+<p>Returns:</p>
+<p>0 on success</p>
+<p>1 on fatal deployment/manifest failure</p>
+<p>Usage:</p>
+<p>_deploy</p>
+<p>Notes:</p>
+<p>- Uses install for atomic writes and permission control</p>
+<p>- Manifest records created artifacts only; it is not full rollback state</p>
+<h3>8.16.2 Function: <code>_undeploy()</code></h3>
+<p>Purpose:</p>
+<p>Remove previously deployed files and directories using a manifest.</p>
+<p>Behavior:</p>
+<p>- Resolves a manifest for the current SRC_ROOT</p>
+<p>- Uses MANIFEST_NAME when provided</p>
+<p>- Otherwise uses the latest manifest for the source root</p>
+<p>- Removes recorded files first</p>
+<p>- Removes recorded directories afterward in reverse-depth order</p>
+<p>Manifest rules:</p>
+<p>- Only files recorded as created by deploy are removed</p>
+<p>- Only directories recorded as created by deploy are considered</p>
+<p>- Directories are removed only if empty</p>
+<p>Dry run:</p>
+<p>- When FLAG_DRYRUN=1, only reports actions</p>
+<p>Inputs (globals):</p>
+<p>SRC_ROOT</p>
+<p>DEST_ROOT</p>
+<p>MANIFEST_NAME</p>
+<p>FLAG_DRYRUN</p>
+<p>Returns:</p>
+<p>0 on success</p>
+<p>1 if manifest resolution fails</p>
+<p>Usage:</p>
+<p>_undeploy</p>
+<p>Notes:</p>
+<p>- This is a manifest-based inverse of created artifacts only</p>
+<p>- Updated pre-existing files are not restored or removed</p>
+<h2>8.17 Main ----------------------------------------------------------------------------</h2>
+<h3>8.17.1 Function: <code>main()</code></h3>
+<p>Purpose:</p>
+<p>Execute the workspace deployment workflow.</p>
+<p>Behavior:</p>
+<p>- Loads and initializes the framework bootstrap</p>
+<p>- Handles builtin arguments</p>
+<p>- Displays title bar</p>
+<p>- Collects parameters</p>
+<p>- Executes deploy or undeploy</p>
+<p>- Persists deployment metadata</p>
+<p>Arguments:</p>
+<p>$@ Framework and script-specific arguments</p>
+<p>Returns:</p>
+<p>Exit status from executed operations</p>
+<p>Usage:</p>
+<p>main "$@"</p>
+<h2>8.18 Bootstrap</h2>
+<h2>8.19 Handle builtin arguments</h2>
+<h2>8.20 UI</h2>
+<h2>8.21 Main script logic</h2>
+</body>
+</html>

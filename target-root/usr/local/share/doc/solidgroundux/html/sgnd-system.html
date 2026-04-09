@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>20. sgnd-system.sh</title>
+<style>
+body { font-family: sans-serif; line-height: 1.35; margin: 2rem; max-width: 1100px; }
+p, li { line-height: 1.4; margin-top: 0.15rem; margin-bottom: 0.35rem; }
+h1, h2, h3, h4 { line-height: 1.2; margin-top: 1rem; margin-bottom: 0.35rem; }
+code { background: #f4f4f4; padding: 0.08rem 0.25rem; border-radius: 0.2rem; }
+a { text-decoration: none; }
+a:hover { text-decoration: underline; }
+.summary { margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+<p>SolidgroundUX - System Utilities</p>
+<p>-------------------------------------------------------------------------------------</p>
+<h1>20. sgnd-system.sh</h1>
+<h2>20.1 Description</h2>
+<p>Contains environment-aware helpers that sit above sgnd-core.</p>
+<p>The library:</p>
+<p>- Provides root/sudo/runtime guards</p>
+<p>- Exposes OS, network, and service-state helpers</p>
+<p>- Includes ownership and permission normalization helpers</p>
+<p>- Keeps operational/debug output close to procedural system actions</p>
+<h2>20.2 Design principles</h2>
+<p><a href="index.html">Back to index</a></p>
+<p>- Keep system behavior out of sgnd-core</p>
+<p>- Depend on framework bootstrap guarantees for minimal say* functions</p>
+<p>- Prefer explicit operational helpers over mixing host logic into generic primitives</p>
+<p>- Keep behavior predictable and side effects documented</p>
+<h2>20.3 Role in framework</h2>
+<p>- System/runtime layer above sgnd-core</p>
+<p>- Used by installers, setup routines, and host-aware modules</p>
+<p>- Centralizes platform and privilege helpers</p>
+<h2>20.4 Non-goals</h2>
+<p>- Business logic or application-specific behavior</p>
+<p>- Interactive UI rendering or menu behavior</p>
+<p>- Generic string/array/text helpers (handled in sgnd-core)</p>
+<h2>20.5 Library guard ------------------------------------------------------------------</h2>
+<h2>20.6 Requirement checks -------------------------------------------------------------</h2>
+<h2>20.7 Filesystem helpers -------------------------------------------------------------</h2>
+<h2>20.8 System helpers -----------------------------------------------------------------</h2>
+<h2>20.9 Error handlers -----------------------------------------------------------------</h2>
+</body>
+</html>

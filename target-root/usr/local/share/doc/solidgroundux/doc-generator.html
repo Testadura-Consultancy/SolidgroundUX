@@ -1,0 +1,255 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>doc-generator.sh</title></head><body>
+<h1>doc-generator.sh</h1>
+<p><a href="index.html">Back to index</a></p>
+<p>SolidgroundUX - Documentation Generator</p>
+<p>------------------------------------------------------------------------------------</p>
+<h2>Metadata</h2>
+<p>  Version     : 1.0</p>
+<p>  Build       : 2609100</p>
+<p>  Checksum    : none</p>
+<p>  Source      : doc-generator.sh</p>
+<p>  Type        : script</p>
+<p>  Purpose     : Generate documentation from source code comments using the sgnd-comment-parser library.</p>
+<p></p>
+<h2>Description</h2>
+<p></p>
+<h2>Design principles</h2>
+<p></p>
+<h2>Role in framework</h2>
+<h2>Non-goals</h2>
+<p></p>
+<h2>Attribution</h2>
+<p>  Developers  : Mark Fieten</p>
+<p>  Company     : Testadura Consultancy</p>
+<p>  Client      : </p>
+<p>  Copyright   : © 2025 Mark Fieten — Testadura Consultancy</p>
+<p>  License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.</p>
+<h2>Bootstrap -----------------------------------------------------------------------</h2>
+<h2>Script metadata (identity) ------------------------------------------------------</h2>
+<h2>Script metadata (framework integration) -----------------------------------------</h2>
+<h3>Variable: <code>SGND_USING</code></h3>
+<p>Libraries to source from SGND_COMMON_LIB.</p>
+<p>These are loaded automatically by sgnd_bootstrap AFTER core libraries.</p>
+<p></p>
+<p>Example:</p>
+<p>  SGND_USING=( net.sh fs.sh )</p>
+<p></p>
+<p>Leave empty if no extra libs are needed.</p>
+<h2>Example: Arguments</h2>
+<h3>Variable: <code>SGND_SCRIPT_EXAMPLES</code></h3>
+<p>Optional: examples for --help output.</p>
+<p>Each entry is a string that will be printed verbatim.</p>
+<p></p>
+<p>Example:</p>
+<p>  SGND_SCRIPT_EXAMPLES=(</p>
+<p>      "Example usage:"</p>
+<p>      "  script.sh --verbose --mode fast"</p>
+<p>      "  script.sh -v -m slow"</p>
+<p>  )</p>
+<p></p>
+<p>Leave empty if no examples are needed.</p>
+<h3>Variable: <code>SGND_SCRIPT_GLOBALS</code></h3>
+<p>Explicit declaration of global variables intentionally used by this script.</p>
+<p></p>
+<p>Purpose:</p>
+<p>  - Declares which globals are part of the script’s public/config contract.</p>
+<p>  - Enables optional configuration loading when non-empty.</p>
+<p></p>
+<p>Behavior:</p>
+<p>  - If this array is non-empty, sgnd_bootstrap enables config integration.</p>
+<p>  - Variables listed here may be populated from configuration files.</p>
+<p>  - Unlisted globals will NOT be auto-populated.</p>
+<p></p>
+<p>Use this to:</p>
+<p>  - Document intentional globals</p>
+<p>  - Prevent accidental namespace leakage</p>
+<p>  - Make configuration behavior explicit and predictable</p>
+<p></p>
+<p>Only list:</p>
+<p>  - Variables that must be globally accessible</p>
+<p>  - Variables that may be defined in config files</p>
+<p></p>
+<p>Leave empty if:</p>
+<p>  - The script does not use configuration-driven globals</p>
+<h3>Variable: <code>SGND_STATE_VARIABLES</code></h3>
+<p>List of variables participating in persistent state.</p>
+<p></p>
+<p>Purpose:</p>
+<p>  - Declares which variables should be saved/restored when state is enabled.</p>
+<p></p>
+<p>Behavior:</p>
+<p>  - Only used when sgnd_bootstrap is invoked with --state.</p>
+<p>  - Variables listed here are serialized on exit (if SGND_STATE_SAVE=1).</p>
+<p>  - On startup, previously saved values are restored before main logic runs.</p>
+<p></p>
+<p>Contract:</p>
+<p>  - Variables must be simple scalars (no arrays/associatives unless explicitly supported).</p>
+<p>  - Script remains fully functional when state is disabled.</p>
+<p></p>
+<p>Leave empty if:</p>
+<p>  - The script does not use persistent state.</p>
+<h3>Variable: <code>SGND_ON_EXIT_HANDLERS</code></h3>
+<p>List of functions to be invoked on script termination.</p>
+<p></p>
+<p>Purpose:</p>
+<p>  - Allows scripts to register cleanup or finalization hooks.</p>
+<p></p>
+<p>Behavior:</p>
+<p>  - Functions listed here are executed during framework exit handling.</p>
+<p>  - Execution order follows array order.</p>
+<p>  - Handlers run regardless of normal exit or controlled termination.</p>
+<p></p>
+<p>Contract:</p>
+<p>  - Functions must exist before exit occurs.</p>
+<p>  - Handlers must not call exit directly.</p>
+<p>  - Handlers should be idempotent (safe if executed once).</p>
+<p></p>
+<p>Typical uses:</p>
+<p>  - Cleanup temporary files</p>
+<p>  - Persist additional state</p>
+<p>  - Release locks</p>
+<p></p>
+<p>Leave empty if:</p>
+<p>  - No custom exit behavior is required.</p>
+<h2>Local script Declarations -------------------------------------------------------</h2>
+<h2>Local helpers -------------------------------------------------------------------</h2>
+<h3>Function: <code>_is_header_separator()</code></h3>
+<p>Returns:</p>
+<p>  0 if LINE is a canonical header separator line.</p>
+<p>  1 otherwise.</p>
+<p></p>
+<p>Usage:</p>
+<p>  _is_header_separator "$line"</p>
+<h3>Function: <code>_is_header_section_line()</code></h3>
+<p>Returns:</p>
+<p>  0 if LINE is a canonical header section line.</p>
+<p>  1 otherwise.</p>
+<p></p>
+<p>Usage:</p>
+<p>  _is_header_section_line "$line"</p>
+<h3>Function: <code>_parse_header_section_line()</code></h3>
+<p>Returns:</p>
+<p>  Prints the parsed header section title to stdout.</p>
+<p></p>
+<p>Usage:</p>
+<p>  _parse_header_section_line "$line"</p>
+<h3>Function: <code>_is_section_line()</code></h3>
+<h3>Function: <code>_get_section_level()</code></h3>
+<h3>Function: <code>_parse_section_line()</code></h3>
+<h3>Function: <code>_is_detail_comment_start()</code></h3>
+<h3>Function: <code>_parse_detail_kind()</code></h3>
+<h3>Function: <code>_parse_detail_name()</code></h3>
+<h3>Function: <code>_detail_matches_declaration()</code></h3>
+<h3>Function: <code>_normalize_comment_line()</code></h3>
+<p>Remove leading comment marker and one optional following space.</p>
+<h2>Local script functions ----------------------------------------------------------</h2>
+<h3>Function: <code>_resolve_parameters()</code></h3>
+<p>Purpose:</p>
+<p>  Resolve effective documentation generator input parameters from</p>
+<p>  command-line values, existing globals, and interactive prompts.</p>
+<p></p>
+<p>Behavior:</p>
+<p>  - Establishes effective values for source directory, optional</p>
+<p>    single-file mode, filename mask, output directory, and recursive scan.</p>
+<p>  - Prefers parsed command-line values when present.</p>
+<p>  - Falls back to existing globals or framework defaults when needed.</p>
+<p>  - Prompts the user interactively to review or modify the resolved values.</p>
+<p>  - Converts the recursive scan answer into the numeric flag</p>
+<p>    RECURSIVE_SCAN (1 or 0).</p>
+<p>  - Repeats the prompt cycle when the user chooses redo.</p>
+<p></p>
+<p>Inputs (globals):</p>
+<p>  VAL_SRCDIR</p>
+<p>  VAL_FILE</p>
+<p>  VAL_MASK</p>
+<p>  VAL_OUTDIR</p>
+<p>  FLAG_RECURSIVE_SCAN</p>
+<p>  SGND_APPLICATION_ROOT</p>
+<p>  SGND_DOCS_DIR</p>
+<p></p>
+<p>Outputs (globals):</p>
+<p>  DOC_SOURCE</p>
+<p>  DOC_FILE</p>
+<p>  DOC_MASK</p>
+<p>  DOC_OUTDIR</p>
+<p>  RECURSIVE_SCAN</p>
+<p></p>
+<p>Returns:</p>
+<p>  0 on success.</p>
+<p>  1 if the user cancels or an unexpected dialog result occurs.</p>
+<p></p>
+<p>Notes:</p>
+<p>  - When DOC_FILE is specified later in processing, it takes precedence</p>
+<p>    over directory scanning.</p>
+<p>  - DOC_MASK should default to "*.sh".</p>
+<h3>Function: <code>_scan_file()</code></h3>
+<p>Purpose:</p>
+<p>  Scan one source file line by line and store normalized structural</p>
+<p>  records in the documentation scan table.</p>
+<p></p>
+<p>Behavior:</p>
+<p>  - Detects the canonical top-of-file header between the first two</p>
+<p>    header separator lines and stores one row per inner header line.</p>
+<p>  - Detects section marker lines in three levels:</p>
+<p>      # --- major</p>
+<p>      # --  minor</p>
+<p>      # -   micro</p>
+<p>  - Detects explicit detail comment blocks:</p>
+<p>      # fn: <lt;name>gt;</p>
+<p>      # var: <lt;name>gt;</p>
+<p>  - Collects subsequent comment lines as detail text.</p>
+<p>  - Confirms a detail block only when a matching declaration line is found:</p>
+<p>      fn  ->gt; <lt;name>gt;() {</p>
+<p>      var ->gt; <lt;name>gt;=...</p>
+<p>  - Discards pending detail blocks that are interrupted by unrelated code</p>
+<p>    or a new structural marker.</p>
+<p></p>
+<p>Arguments:</p>
+<p>  $1  FILE</p>
+<p>      Readable source file to scan.</p>
+<p></p>
+<p>Inputs (globals):</p>
+<p>  DOC_SCAN_SCHEMA</p>
+<p>  DOC_SCAN_ROWS</p>
+<p></p>
+<p>Returns:</p>
+<p>  0 on success.</p>
+<p>  1 on invalid input or append failure.</p>
+<h2>Header ---------------------------------------------------------</h2>
+<h2>Section markers ------------------------------------------------</h2>
+<h2>Start detail block --------------------------------------------</h2>
+<h2>Continue / confirm / discard detail block ----------------------</h2>
+<h3>Function: <code>_list_modules()</code></h3>
+<h2>Main ----------------------------------------------------------------------------</h2>
+<h3>Function: <code>main()</code></h3>
+<p>Purpose:</p>
+<p>  Canonical entry point for executable scripts.</p>
+<p></p>
+<p>Behavior:</p>
+<p>  - Loads the framework bootstrapper.</p>
+<p>  - Initializes runtime via sgnd_bootstrap.</p>
+<p>  - Handles built-in framework arguments.</p>
+<p>  - Prepares UI state (runmode + title bar).</p>
+<p>  - Executes script-specific logic.</p>
+<p></p>
+<p>Arguments:</p>
+<p>  $@  Command-line arguments (framework + script-specific).</p>
+<p></p>
+<p>Returns:</p>
+<p>  Exits with the resulting status code from bootstrap or script logic.</p>
+<p></p>
+<p>Usage:</p>
+<p>  main "$@"</p>
+<p></p>
+<p>Examples:</p>
+<p>  # Standard script entrypoint</p>
+<p>  main "$@"</p>
+<p></p>
+<p>Notes:</p>
+<p>  - sgnd_bootstrap splits framework and script arguments automatically..</p>
+<h2>Bootstrap</h2>
+<h2>Handle builtin arguments</h2>
+<h2>UI</h2>
+<h2>Main script logic</h2>
+</body></html>

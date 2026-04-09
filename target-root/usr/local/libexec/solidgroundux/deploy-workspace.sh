@@ -268,7 +268,7 @@ set -uo pipefail
     MANIFEST_TMP=""
 
 # --- Script metadata (framework integration) -----------------------------------------
-    # SGND_USING
+    # var: SGND_USING
         # Libraries to source from SGND_COMMON_LIB.
         # These are loaded automatically by sgnd_bootstrap AFTER core libraries.
         #
@@ -279,7 +279,7 @@ set -uo pipefail
     SGND_USING=(
     )
 
-    # SGND_ARGS_SPEC 
+    # var: SGND_ARGS_SPEC 
         # Optional: script-specific arguments
         # --- Example: Arguments
         # Each entry:
@@ -304,7 +304,7 @@ set -uo pipefail
         "manifest|m|value|MANIFEST_NAME|Use a specific manifest name for undeploy|"
     )
 
-    # SGND_SCRIPT_EXAMPLES
+    # var: SGND_SCRIPT_EXAMPLES
         # Optional: examples for --help output.
         # Each entry is a string that will be printed verbatim.
         #
@@ -325,7 +325,7 @@ set -uo pipefail
         "  $SGND_SCRIPT_NAME -u"
     ) 
 
-    # SGND_SCRIPT_GLOBALS
+    # var: SGND_SCRIPT_GLOBALS
         # Explicit declaration of global variables intentionally used by this script.
         #
         # IMPORTANT:
@@ -348,7 +348,7 @@ set -uo pipefail
     SGND_SCRIPT_GLOBALS=(
     )
 
-    # SGND_STATE_VARIABLES
+    # var: SGND_STATE_VARIABLES
         # List of variables participating in persistent state.
         #
         # Purpose:
@@ -368,7 +368,7 @@ set -uo pipefail
     SGND_STATE_VARIABLES=(
     )
 
-    # SGND_ON_EXIT_HANDLERS
+    # var: SGND_ON_EXIT_HANDLERS
         # List of functions to be invoked on script termination.
         #
         # Purpose:
@@ -394,7 +394,7 @@ set -uo pipefail
     SGND_ON_EXIT_HANDLERS=(
     )
     
-    # State persistence is opt-in.
+    # var: State persistence is opt-in.
         # Scripts that want persistent state must:
         #   1) set SGND_STATE_SAVE=1
         #   2) call sgnd_bootstrap --state
@@ -861,7 +861,7 @@ set -uo pipefail
     }
 
  # -- Main sequence  
-    # _perm_resolve
+    # fn: _perm_resolve
         # Purpose:
         #   Resolve the effective permission mode for a given path based on PERMISSION_RULES.
         #
@@ -918,7 +918,7 @@ set -uo pipefail
         fi
     }
 
-    # _update_lastdeployinfo
+    # fn: _update_lastdeployinfo
         # Purpose:
         #   Persist metadata of the last deployment run for reuse (e.g. auto mode).
         #
@@ -952,7 +952,7 @@ set -uo pipefail
         fi
     }
 
-    # _getparameters
+    # fn: _getparameters
         # Purpose:
         #   Collect deployment parameters (source and target roots).
         #
@@ -977,7 +977,7 @@ set -uo pipefail
         #   1 → aborted
         #
         # Usage:
-        #   _getparameters || return $?
+        #   _getparameters ; return $?
         #
         # Notes:
         #   - Uses ask and ask_ok_redo_quit
@@ -1042,7 +1042,7 @@ set -uo pipefail
         return 0
     }
 
-    # _deploy
+    # fn: _deploy
         # Purpose:
         #   Deploy workspace files from SRC_ROOT into DEST_ROOT.
         #
@@ -1181,7 +1181,7 @@ set -uo pipefail
         return 0
     }
 
-    # _undeploy
+    # fn: _undeploy
         # Purpose:
         #   Remove previously deployed files and directories using a manifest.
         #
@@ -1270,7 +1270,7 @@ set -uo pipefail
     }
 
 # --- Main ----------------------------------------------------------------------------
-    # main
+    # fn: main
         # Purpose:
         #   Execute the workspace deployment workflow.
         #
@@ -1323,7 +1323,7 @@ set -uo pipefail
         # -- Main script logic
             _getparameters || return $?
 
-            # -- Deploy or undeploy                    
+            # Deploy or undeploy                    
             if [[ "${FLAG_UNDEPLOY:-0}" -eq 0 ]]; then
                 _deploy || return $?
                 _update_lastdeployinfo

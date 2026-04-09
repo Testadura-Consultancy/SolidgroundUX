@@ -1,0 +1,56 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>console-devtools.sh</title></head><body>
+<h1>console-devtools.sh</h1>
+<p><a href="index.html">Back to index</a></p>
+<p>SolidgroundUX — Developer Tools Console Module</p>
+<p>----------------------------------------------------------------------------------</p>
+<h2>Metadata</h2>
+<p>  Version     : 1.1</p>
+<p>  Build       : 2609100</p>
+<p>  Checksum    : e72edae0572cbf7d0d5ac7fd17357b54f972e5bdb7688e85be6154765a370dd6</p>
+<p>  Source      : console-devtools.sh</p>
+<p>  Type        : module</p>
+<p>  Purpose     : sgnd-console module exposing developer tooling actions</p>
+<p></p>
+<h2>Description</h2>
+<p>  Provides a console module that registers developer-oriented actions in</p>
+<p>  sgnd-console, allowing common tooling scripts to be launched from the</p>
+<p>  interactive console host.</p>
+<p></p>
+<p>  The module currently exposes actions for:</p>
+<p>    - creating a new workspace</p>
+<p>    - deploying a workspace</p>
+<p>    - preparing a release archive</p>
+<p></p>
+<h2>Design principles</h2>
+<p>  - Console modules are source-only plugin libraries</p>
+<p>  - Functions are defined first, then registered explicitly</p>
+<p>  - Registration is the only intended load-time side effect</p>
+<p>  - Module actions delegate execution to the shared sgnd-console runtime</p>
+<p></p>
+<h2>Role in framework</h2>
+<p>  - Extends sgnd-console with developer workflow actions</p>
+<p>  - Acts as a lightweight plugin layer on top of the console host</p>
+<p>  - Uses _sgnd_run_script to execute related tooling scripts consistently</p>
+<p></p>
+<h2>Assumptions</h2>
+<p>  - Loaded by sgnd-console after framework bootstrap is complete</p>
+<p>  - sgnd_console_register_group and sgnd_console_register_item are available</p>
+<p>  - _sgnd_run_script is available in the host environment</p>
+<p></p>
+<h2>Non-goals</h2>
+<p>  - Standalone execution</p>
+<p>  - Framework bootstrap or path resolution</p>
+<p>  - Direct implementation of workspace/deploy/release logic</p>
+<p></p>
+<h2>Attribution</h2>
+<p>  Developers    : Mark Fieten</p>
+<p>  Company       : Testadura Consultancy</p>
+<p>  Client        : </p>
+<p>  Copyright     : © 2025 Mark Fieten — Testadura Consultancy</p>
+<p>  License       : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.</p>
+<h2>Library guard ------------------------------------------------------------------</h2>
+<h2>Internal helpers -------------------------------------------------------------</h2>
+<h2>Public API -------------------------------------------------------------------</h2>
+<h2>Console registration --------------------------------------------------------</h2>
+</body></html>

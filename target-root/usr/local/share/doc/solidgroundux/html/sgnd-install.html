@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>35. sgnd-install.sh</title>
+<style>
+body { font-family: sans-serif; line-height: 1.35; margin: 2rem; max-width: 1100px; }
+p, li { line-height: 1.4; margin-top: 0.15rem; margin-bottom: 0.35rem; }
+h1, h2, h3, h4 { line-height: 1.2; margin-top: 1rem; margin-bottom: 0.35rem; }
+code { background: #f4f4f4; padding: 0.08rem 0.25rem; border-radius: 0.2rem; }
+a { text-decoration: none; }
+a:hover { text-decoration: underline; }
+.summary { margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+<p>SolidgroundUX - Install Release Package</p>
+<p>-------------------------------------------------------------------------------------</p>
+<h1>35. sgnd-install.sh</h1>
+<h2>35.1 Description</h2>
+<p>Standalone installer for SolidgroundUX release archives.</p>
+<p>The script:</p>
+<p>- Scans a releases directory for .tar.gz release archives</p>
+<p>- Selects the newest matching release automatically by build number</p>
+<p>- Optionally allows manual package selection</p>
+<p>- Verifies archive and manifest checksum files before installation</p>
+<p>- Backs up existing files and directories affected by the manifest</p>
+<p><a href="index.html">Back to index</a></p>
+<p>- Extracts the selected archive into a target root</p>
+<p>- Writes install metadata and an install manifest to the target system</p>
+<h2>35.2 Design principles</h2>
+<p>- Standalone first: no framework bootstrap or library dependency</p>
+<p>- Safe by default: verify and back up before extracting</p>
+<p>- Deterministic automatic package selection</p>
+<p>- Explicit manual override when desired</p>
+<p>- Suitable for first-time framework installation</p>
+<h2>35.3 Defaults ------------------------------------------------------------------------</h2>
+<h2>35.4 Minimal UI ----------------------------------------------------------------------</h2>
+</body>
+</html>

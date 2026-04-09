@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>30. sgnd-args.sh</title>
+<style>
+body { font-family: sans-serif; line-height: 1.35; margin: 2rem; max-width: 1100px; }
+p, li { line-height: 1.4; margin-top: 0.15rem; margin-bottom: 0.35rem; }
+h1, h2, h3, h4 { line-height: 1.2; margin-top: 1rem; margin-bottom: 0.35rem; }
+code { background: #f4f4f4; padding: 0.08rem 0.25rem; border-radius: 0.2rem; }
+a { text-decoration: none; }
+a:hover { text-decoration: underline; }
+.summary { margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+<p>SolidgroundUX - Argument Parsing</p>
+<p>-------------------------------------------------------------------------------------</p>
+<h2>30.1 Metadata:</h2>
+<p>Version : 1.1</p>
+<p>Build : 2608203</p>
+<p>Checksum : 8514965960d1becba4459cc212b011b1bd6e9b51a2d41a9570cba36ff0e9354d</p>
+<p>Source : sgnd-args.sh</p>
+<p>Type : library</p>
+<p>Purpose : Parse and manage command-line arguments for scripts</p>
+<h1>30. sgnd-args.sh</h1>
+<h2>30.2 Description</h2>
+<p>Provides a structured argument parsing system for SolidgroundUX scripts.</p>
+<p>The library:</p>
+<p>- Parses short and long command-line arguments</p>
+<p>- Supports flags, values, and enumerated options</p>
+<p>- Maps arguments to strongly defined variables</p>
+<p>- Validates input against argument specifications</p>
+<p>- Separates framework arguments from script-specific arguments</p>
+<p><a href="index.html">Back to index</a></p>
+<p>- Generates consistent help and usage output</p>
+<h2>30.3 Design principles</h2>
+<p>- Declarative argument specification via SGND_ARGS_SPEC</p>
+<p>- Predictable and consistent parsing behavior across scripts</p>
+<p>- Clear separation between parsing and business logic</p>
+<p>- Minimal runtime surprises through validation and normalization</p>
+<h2>30.4 Role in framework</h2>
+<p>- Core infrastructure for all executable scripts</p>
+<p>- Used during bootstrap to interpret command-line input</p>
+<p>- Enables standardized CLI behavior across the framework</p>
+<h2>30.5 Non-goals</h2>
+<p>- Complex subcommand frameworks (e.g., git-style commands)</p>
+<p>- Interactive input handling (handled by ui-ask/ui-dlg)</p>
+<p>- Dynamic runtime argument schema mutation</p>
+<h2>30.6 Library guard ------------------------------------------------------------------</h2>
+<h2>30.7 Helper functions ----------------------------------------------------------------</h2>
+<h2>30.8 Public API ----------------------------------------------------------------------</h2>
+</body>
+</html>

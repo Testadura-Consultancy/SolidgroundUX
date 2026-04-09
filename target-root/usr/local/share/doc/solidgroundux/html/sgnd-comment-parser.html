@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>21. sgnd-comment-parser.sh</title>
+<style>
+body { font-family: sans-serif; line-height: 1.35; margin: 2rem; max-width: 1100px; }
+p, li { line-height: 1.4; margin-top: 0.15rem; margin-bottom: 0.35rem; }
+h1, h2, h3, h4 { line-height: 1.2; margin-top: 1rem; margin-bottom: 0.35rem; }
+code { background: #f4f4f4; padding: 0.08rem 0.25rem; border-radius: 0.2rem; }
+a { text-decoration: none; }
+a:hover { text-decoration: underline; }
+.summary { margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+<p>SolidgroundUX - Comment Parser</p>
+<p>-------------------------------------------------------------------------------------</p>
+<h1>21. sgnd-comment-parser.sh</h1>
+<h2>21.1 Description</h2>
+<p>Provides parsing and update utilities for structured script header comments</p>
+<p>used throughout the SolidgroundUX framework.</p>
+<p>The library:</p>
+<p>- Detects and reads canonical header sections</p>
+<p>- Extracts field/value pairs from structured comment blocks</p>
+<p>- Loads header data into sgnd-datatable structures</p>
+<p>- Updates existing metadata field values while preserving formatting</p>
+<p>- Adds missing fields where required</p>
+<p><a href="index.html">Back to index</a></p>
+<p>- Supports version, build, and checksum metadata workflows</p>
+<h2>21.2 Design principles</h2>
+<p>- Header comments are treated as structured, machine-readable data</p>
+<p>- Parsing logic is independent from higher-level UI workflows</p>
+<p>- Existing formatting is preserved when updating field values</p>
+<p>- Header manipulation remains predictable and convention-based</p>
+<h2>21.3 Role in framework</h2>
+<p>- Core metadata parsing and update layer for script tooling</p>
+<p>- Supports metadata-editor and other header-aware utilities</p>
+<h2>21.4 Non-goals</h2>
+<p>- Parsing arbitrary free-form comments outside canonical header sections</p>
+<p>- Acting as a general-purpose text processing library</p>
+<p>- Defining project policy beyond header comment conventions</p>
+<h2>21.5 Library guard ------------------------------------------------------------------</h2>
+<h2>21.6 Public API ---------------------------------------------------------------------</h2>
+</body>
+</html>

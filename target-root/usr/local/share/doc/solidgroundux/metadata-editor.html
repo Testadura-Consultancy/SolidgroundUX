@@ -1,0 +1,79 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>metadata-editor.sh</title></head><body>
+<h1>metadata-editor.sh</h1>
+<p><a href="index.html">Back to index</a></p>
+<p>SolidgroundUX - Metadata Editor</p>
+<p>-------------------------------------------------------------------------------------</p>
+<h2>Metadata</h2>
+<p>  Version     : 1.1</p>
+<p>  Build       : 2609100</p>
+<p>  Checksum    : 65884ad57f319d8135ddafe3b0da3dbf86eb85d4cc17634dac5d97449757e7b6</p>
+<p>  Source      : metadata-editor.sh</p>
+<p>  Type        : script</p>
+<p>  Purpose     : Inspect, edit, and version script metadata in a controlled workflow</p>
+<p></p>
+<h2>Description</h2>
+<p>  Provides an interactive and automated tool for managing script header metadata</p>
+<p>  across SolidgroundUX workspaces.</p>
+<p></p>
+<p>  The script operates on one or more source files and allows:</p>
+<p>    - Interactive editing of metadata fields (with validation and preview)</p>
+<p>    - Controlled version bumping (build, minor, major)</p>
+<p>    - Batch processing of multiple scripts with optional answer reuse (--idem)</p>
+<p>    - Safe execution through dry-run simulation</p>
+<p></p>
+<p>  Metadata is treated as structured data and processed through the framework's</p>
+<p>  datatable and comment-parser abstractions.</p>
+<p></p>
+<h2>Core capabilities</h2>
+<p>  - Discover source files via folder + mask or explicit file selection</p>
+<p>  - Parse header sections into structured data tables</p>
+<p>  - Present metadata in a readable, sectioned UI</p>
+<p>  - Collect user input through aligned, validated prompts</p>
+<p>  - Apply only actual changes (delta-based updates)</p>
+<p>  - Maintain consistency of Version, Build, and Checksum fields</p>
+<p></p>
+<h2>Interaction model</h2>
+<p>  - Interactive mode:</p>
+<p>      Guides the user through editing or versioning workflows</p>
+<p>  - Auto mode (--auto):</p>
+<p>      Applies direct updates without prompts</p>
+<p>  - Version mode (--bump*):</p>
+<p>      Updates version metadata deterministically</p>
+<p></p>
+<h2>Design principles</h2>
+<p>  - Metadata is treated as data, not text</p>
+<p>  - Changes are explicit, minimal, and traceable</p>
+<p>  - Interactive workflows remain predictable and reversible</p>
+<p>  - Batch operations remain safe and transparent</p>
+<p>  - UX consistency across all SolidgroundUX scripts</p>
+<p></p>
+<h2>Role in framework</h2>
+<p>  - Primary tool for maintaining script header integrity</p>
+<p>  - Supports release preparation workflows</p>
+<p>  - Acts as reference implementation for interactive CLI UX patterns</p>
+<p></p>
+<h2>Non-goals</h2>
+<p>  - Packaging or distributing artifacts</p>
+<p>  - Version control operations (commit, tag, push)</p>
+<p>  - Dependency or build management</p>
+<p></p>
+<h2>Attribution</h2>
+<p>  Developers  : Mark Fieten</p>
+<p>  Company     : Testadura Consultancy</p>
+<p>  Client      :</p>
+<p>  Copyright   : © 2025 Mark Fieten — Testadura Consultancy</p>
+<p>  License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.</p>
+<h2>Bootstrap -----------------------------------------------------------------------</h2>
+<h2>Script metadata (identity) ------------------------------------------------------</h2>
+<h2>Script metadata (framework integration) -----------------------------------------</h2>
+<h2>Local script Declarations -------------------------------------------------------</h2>
+<h2>Local UI ------------------------------------------------------------------------</h2>
+<h2>Local script functions ----------------------------------------------------------</h2>
+<h2>User input ----------------------------------------------------------------------</h2>
+<h2>Main ----------------------------------------------------------------------------</h2>
+<h2>Bootstrap</h2>
+<h2>Handle builtin arguments</h2>
+<h2>UI</h2>
+<h2>Main script logic</h2>
+</body></html>

@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>33. mod-template.sh</title>
+<style>
+body { font-family: sans-serif; line-height: 1.35; margin: 2rem; max-width: 1100px; }
+p, li { line-height: 1.4; margin-top: 0.15rem; margin-bottom: 0.35rem; }
+h1, h2, h3, h4 { line-height: 1.2; margin-top: 1rem; margin-bottom: 0.35rem; }
+code { background: #f4f4f4; padding: 0.08rem 0.25rem; border-radius: 0.2rem; }
+a { text-decoration: none; }
+a:hover { text-decoration: underline; }
+.summary { margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+<p>SolidgroundUX Console Module Template</p>
+<p>----------------------------------------------------------------------------------</p>
+<h1>33. mod-template.sh</h1>
+<h2>33.1 Description</h2>
+<p>Provides the standard structure for modules that extend sgnd-console with:</p>
+<p>- one or more menu groups</p>
+<p>- one or more registered menu actions</p>
+<p>- optional internal helper functions</p>
+<p>Console modules are source-only plugin libraries. Their only intended</p>
+<p>load-time side effect is self-registration with sgnd-console.</p>
+<h2>33.2 Design principles</h2>
+<p><a href="index.html">Back to index</a></p>
+<p>- Modules define functions first, then register themselves explicitly</p>
+<p>- Registration is data-driven through sgnd_console_register_group/item</p>
+<p>- Keep module logic local and menu-facing</p>
+<p>- Avoid framework-wide policy decisions inside modules</p>
+<h2>33.3 Role in framework</h2>
+<p>- Extends sgnd-console with domain-specific actions and menu entries</p>
+<p>- Acts as a lightweight plugin layer on top of the console host</p>
+<p>- May depend on framework and sgnd-console primitives already being loaded</p>
+<h2>33.4 Assumptions</h2>
+<p>- Loaded by sgnd-console after framework bootstrap is complete</p>
+<p>- sgnd_console_register_group and sgnd_console_register_item are available</p>
+<p>- Framework helpers such as say* and sgnd_print_* may be used</p>
+<h2>33.5 Non-goals</h2>
+<p>- Standalone execution</p>
+<p>- Bootstrap, path resolution, or framework initialization</p>
+<p>- Full-screen UI behavior outside the sgnd-console host</p>
+<h2>33.6 Library guard ------------------------------------------------------------------</h2>
+<h2>33.7 Internal helpers -------------------------------------------------------------</h2>
+<h2>33.8 Public module actions --------------------------------------------------------</h2>
+<h2>33.9 Console registration ---------------------------------------------------------</h2>
+</body>
+</html>

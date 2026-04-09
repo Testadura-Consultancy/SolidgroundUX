@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>34. lib-template.sh</title>
+<style>
+body { font-family: sans-serif; line-height: 1.35; margin: 2rem; max-width: 1100px; }
+p, li { line-height: 1.4; margin-top: 0.15rem; margin-bottom: 0.35rem; }
+h1, h2, h3, h4 { line-height: 1.2; margin-top: 1rem; margin-bottom: 0.35rem; }
+code { background: #f4f4f4; padding: 0.08rem 0.25rem; border-radius: 0.2rem; }
+a { text-decoration: none; }
+a:hover { text-decoration: underline; }
+.summary { margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+<p>SolidgroundUX Library Template</p>
+<p>----------------------------------------------------------------------------------</p>
+<h1>34. lib-template.sh</h1>
+<h2>34.1 Description</h2>
+<p>Provides the standard structure for framework libraries, including:</p>
+<p>- canonical script header sections</p>
+<p>- library-only execution guard (must be sourced, never executed)</p>
+<p>- idempotent load guard</p>
+<p>- naming conventions for internal and public functions</p>
+<p>- reference function header layout</p>
+<h2>34.2 Design principles</h2>
+<p><a href="index.html">Back to index</a></p>
+<p>- Libraries define functions and constants only</p>
+<p>- No auto-execution (must always be sourced)</p>
+<p>- Keep behavior deterministic and side-effect aware</p>
+<p>- Separate mechanism (library) from policy (caller)</p>
+<h2>34.3 Role in framework</h2>
+<p>- Base template for all SolidGroundUX library modules</p>
+<p>- Defines structure, conventions, and documentation standards</p>
+<h2>34.4 Non-goals</h2>
+<p>- Executable scripts (use exe-template.sh)</p>
+<p>- Application logic</p>
+<p>- Framework bootstrap or path resolution</p>
+<h2>34.5 Library guard ------------------------------------------------------------------</h2>
+<h2>34.6 Internal helpers -------------------------------------------------------------</h2>
+<h2>34.7 Public API -------------------------------------------------------------------</h2>
+</body>
+</html>

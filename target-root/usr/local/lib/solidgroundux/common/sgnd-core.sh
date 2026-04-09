@@ -478,6 +478,43 @@ set -uo pipefail
         #   sgnd_has_tty
     sgnd_has_tty() { [[ -r /dev/tty && -w /dev/tty ]]; }
 
+    # fn: sgnd_is_ui_mode
+        # Purpose:
+        #   Determine whether the current execution context supports interactive UI.
+        #
+        # Behavior:
+        #   - Honors explicit runmode flags when present
+        #   - Falls back to TTY detection
+        #
+        # Returns:
+        #   0 if UI mode is active
+        #   1 otherwise
+    sgnd_is_ui_mode() {
+        # Explicit overrides first (future-proof)
+        (( ${FLAG_NOUI:-0} ))   && return 1
+        (( ${FLAG_BATCH:-0} ))  && return 1
+        (( ${FLAG_UI:-0} ))     && return 0
+
+        # Fallback: interactive terminal
+        [[ -t 0 && -t 1 ]]
+    }
+    
+    # fn: sgnd_is_desktop_mode
+        # Purpose:
+        #   Detect whether a graphical desktop environment is available.
+        #
+        # Behavior:
+        #   - Detects X11 or Wayland session
+        #   - Does not guarantee UI interactivity (separate concern)
+        #
+        # Returns:
+        #   0 if desktop environment is available
+        #   1 otherwise
+    sgnd_is_desktop_mode() {
+        [[ -n "${DISPLAY:-}" ]] && return 0
+        [[ -n "${WAYLAND_DISPLAY:-}" ]] && return 0
+        return 1
+    }
 # --- Version helpers ----------------------------------------------------------------
     # sgnd_version_ge
         # Returns:

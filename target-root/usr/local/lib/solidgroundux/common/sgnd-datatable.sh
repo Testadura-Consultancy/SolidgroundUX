@@ -698,6 +698,7 @@ set -uo pipefail
         shift 2
 
         row="$(sgnd_dt_make_row "$schema" "$@")" || return 1
+        saydebug "Appending row to $schema $table_name: $row"
         sgnd_dt_insert "$schema" "$table_name" "$row"
     }
 
