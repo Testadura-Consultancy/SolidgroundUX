@@ -7,6 +7,7 @@
 #   Checksum    : ad102287cd5a57337888778c0b63be7ed03f007a53664c816a78f33aa78e931b
 #   Source      : defaultui-palette.sh
 #   Type        : library
+#   Group       : Styles
 #   Purpose     : Define default color palette and styling for console UI
 #
 # Description:

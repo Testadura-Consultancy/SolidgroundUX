@@ -2,7 +2,7 @@
 
 [Back to index](index.md)
 
-SolidgroundUX — Framework smoke tester
+SolidgroundUX - Framework smoke tester
 ----------------------------------------------------------------------------------
 ## 7.1 Description
 

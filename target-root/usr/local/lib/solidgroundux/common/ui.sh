@@ -7,6 +7,7 @@
 #   Checksum    : 55af892cb1cae6053bb501f67ea1eb1a616097a16ee6ae8f5da95bb386604662
 #   Source      : ui.sh
 #   Type        : library
+#   Group       : UI
 #   Purpose     : Provide terminal rendering utilities for styled console output
 #
 # Description:

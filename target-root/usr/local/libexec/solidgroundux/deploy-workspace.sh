@@ -8,6 +8,7 @@
 #   Checksum    : a2d4f9ae263c8a47930125f935dbb66f6632e2d58db07f1e502d9761be267a7e
 #   Source      : deploy-workspace.sh
 #   Type        : script
+#   Group       : Developer Tools
 #   Purpose     : Deploy or remove a development workspace to or from a target root
 #
 # Description:

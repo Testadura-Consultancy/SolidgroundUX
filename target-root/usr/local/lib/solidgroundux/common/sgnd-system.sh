@@ -7,6 +7,7 @@
 #   Checksum    : 70f97a9b49e80808bdf6c21d1259c5ec8ced58f71564512ad8dd5e4cb87dc700
 #   Source      : sgnd-system.sh
 #   Type        : library
+#   Group       : Common
 #   Purpose     : Provide host, runtime, and operating-system utility helpers
 #
 # Description:

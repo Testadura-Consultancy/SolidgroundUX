@@ -8,6 +8,7 @@
 #   Checksum    : ef152f3d52e888d59e77f5896d311e27c29da8e55b7cd2b49de050601cb7ea9e
 #   Source      : sgnd-console.sh
 #   Type        : script
+#   Group       : Solidground Console
 #   Purpose     : Provide a modular console interface for SolidgroundUX tooling
 #
 # Description:

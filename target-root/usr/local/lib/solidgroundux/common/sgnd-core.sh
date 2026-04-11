@@ -7,6 +7,7 @@
 #   Checksum    : 6034f64b9ad377a4336278a4ad14be211c19c367f36ba7d4b935226c1ad2fbd6
 #   Source      : sgnd-core.sh
 #   Type        : library
+#   Group       : Common
 #   Purpose     : Provide foundational utility functions and shared primitives
 #
 # Description:

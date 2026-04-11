@@ -600,25 +600,35 @@ set -uo pipefail
         local _title_var="${3:?missing title var}"
 
         local line=""
-        local content=""
+        local banner_line=""
+        local found_sep=0
         local product=""
         local title=""
 
         while IFS= read -r line; do
-            [[ "$line" == \#* ]] || continue
-            [[ "$line" =~ ^\#[[:space:]]*[=-]+[[:space:]]*$ ]] && continue
-
-            content="${line#\# }"
-
-            if [[ "$content" == *" - "* ]]; then
-                product="${content%% - *}"
-                title="${content#* - }"
-
-                printf -v "$_product_var" '%s' "$product"
-                printf -v "$_title_var" '%s' "$title"
-                return 0
+            if (( ! found_sep )); then
+                if [[ "$line" =~ ^\#[[:space:]]*={3,}[[:space:]]*$ ]]; then
+                    found_sep=1
+                fi
+                continue
             fi
+
+            banner_line="$line"
+            break
         done <<< "$text"
+
+        if [[ "$banner_line" =~ ^\#[[:space:]]*(.+)[[:space:]]-[[:space:]](.+)[[:space:]]*$ ]]; then
+            product="${BASH_REMATCH[1]}"
+            title="${BASH_REMATCH[2]}"
+
+            product="${product%"${product##*[![:space:]]}"}"
+            title="${title#"${title%%[![:space:]]*}"}"
+            title="${title%"${title##*[![:space:]]}"}"
+
+            printf -v "$_product_var" '%s' "$product"
+            printf -v "$_title_var" '%s' "$title"
+            return 0
+        fi
 
         printf -v "$_product_var" '%s' ""
         printf -v "$_title_var" '%s' ""
@@ -706,75 +716,63 @@ set -uo pipefail
 
     # sgnd_header_get_banner_parts
         # Purpose:
-        #   Extract product and title from the script banner line.
+        #   Extract product and title from the banner line.
         #
         # Behavior:
-        #   - Scans the header comment from the top of the file.
-        #   - Skips separator lines (==== / ----).
-        #   - Looks for the first line matching the pattern:
-        #       "# <Product> - <Title>"
-        #   - Splits the line into:
-        #       Product (left of " - ")
-        #       Title   (right of " - ")
-        #   - Stops scanning at first non-comment line.
+        #   - Finds the first header separator line.
+        #   - Reads the first comment line directly below it as the banner line.
+        #   - Expects canonical format:
+        #       # <Product> - <Title>
         #
         # Arguments:
         #   $1  FILE
-        #   $2  PRODUCT_VAR (name of variable to receive product)
-        #   $3  TITLE_VAR   (name of variable to receive title)
-        #
-        # Output:
-        #   PRODUCT_VAR contains the extracted product name
-        #   TITLE_VAR   contains the extracted title
+        #   $2  PRODUCT_VAR
+        #   $3  TITLE_VAR
         #
         # Returns:
-        #   0  banner found and parsed
-        #   1  no valid banner line found
-        #
-        # Usage:
-        #   sgnd_header_get_banner_parts "$SGND_SCRIPT_FILE" SGND_SCRIPT_PRODUCT SGND_SCRIPT_TITLE
-        #
-        # Examples:
-        #   # SolidgroundUX - Comment Parser
-        #   → Product = SolidgroundUX
-        #   → Title   = Comment Parser
-        #
-        # Notes:
-        #   - Assumes canonical banner format "<Product> - <Title>".
-        #   - Leading "# " is stripped before parsing.
-        #   - Does not validate content beyond delimiter presence.
+        #   0 if banner found and parsed
+        #   1 otherwise
     sgnd_header_get_banner_parts() {
         local file="${1:?missing file}"
         local _product_var="${2:?missing product var}"
         local _title_var="${3:?missing title var}"
 
         local line=""
-        local content=""
+        local banner_line=""
+        local found_sep=0
         local product=""
         local title=""
 
         while IFS= read -r line; do
-            [[ "$line" == \#* ]] || break
-            [[ "$line" =~ ^\#[[:space:]]*[=-]+[[:space:]]*$ ]] && continue
-
-            content="${line#\# }"
-
-            if [[ "$content" == *" - "* ]]; then
-                product="${content%% - *}"
-                title="${content#* - }"
-
-                printf -v "$_product_var" '%s' "$product"
-                printf -v "$_title_var" '%s' "$title"
-                return 0
+            if (( ! found_sep )); then
+                if [[ "$line" =~ ^\#[[:space:]]*={3,}[[:space:]]*$ ]]; then
+                    found_sep=1
+                fi
+                continue
             fi
+
+            banner_line="$line"
+            break
         done < "$file"
+
+        if [[ "$banner_line" =~ ^\#[[:space:]]*(.+)[[:space:]]-[[:space:]](.+)[[:space:]]*$ ]]; then
+            product="${BASH_REMATCH[1]}"
+            title="${BASH_REMATCH[2]}"
+
+            product="${product%"${product##*[![:space:]]}"}"
+            title="${title#"${title%%[![:space:]]*}"}"
+            title="${title%"${title##*[![:space:]]}"}"
+
+            printf -v "$_product_var" '%s' "$product"
+            printf -v "$_title_var" '%s' "$title"
+            return 0
+        fi
 
         printf -v "$_product_var" '%s' ""
         printf -v "$_title_var" '%s' ""
         return 1
     }
-
-     # sgnd_section_get_field_value
+    # sgnd_section_get_field_value
         # Purpose:
         #   Extract a field value from a section string.
         #

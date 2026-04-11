@@ -1,5 +1,5 @@
 # ==================================================================================
-# SolidgroundUX Library Template
+# SolidgroundUX - Library Template
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.1
@@ -7,6 +7,7 @@
 #   Checksum    : a440a95a7ab18f6601c079bf1ddffdac8dcc7ce6fd5982eb7d98f38d49acf808
 #   Source      : lib-template.sh
 #   Type        : library
+#   Group       : Templates
 #   Purpose     : Canonical template for source-only framework libraries
 #
 # Description:

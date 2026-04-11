@@ -8,6 +8,7 @@
 #   Checksum    : 155bea5342369c5e31a81149d4b8a9e3b58ecd70b991b3e0466eb4b5d235d90a
 #   Source      : exe-template.sh
 #   Type        : script
+#   Group       : Templates
 #   Purpose     : Canonical executable template for Testadura scripts.
 #
 # Description:

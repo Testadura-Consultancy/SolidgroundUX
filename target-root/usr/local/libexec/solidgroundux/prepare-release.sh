@@ -8,6 +8,7 @@
 #   Checksum    : 3eb95e91721b977ee06150666997fa2466e96b405be4294ecd6e12a048acc583
 #   Source      : prepare-release.sh
 #   Type        : script
+#   Group       : Developer Tools
 #   Purpose     : Prepare framework scripts for release
 #
 # Description:

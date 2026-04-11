@@ -2,7 +2,7 @@
 
 [Back to index](index.md)
 
-SolidgroundUX Library Template
+SolidgroundUX - Library Template
 ----------------------------------------------------------------------------------
 ## 34.1 Description
 

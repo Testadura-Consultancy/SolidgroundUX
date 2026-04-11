@@ -7,6 +7,7 @@
 #   Checksum    :dff6fe73ee6826fe02ccda820afe458709f2f4550516bbb0cda37129e49bab1e
 #   Source      : ui-ask.sh
 #   Type        : library
+#   Group       : UI
 #   Purpose     : Provide interactive prompting and lightweight dialog utilities
 #
 # Description:

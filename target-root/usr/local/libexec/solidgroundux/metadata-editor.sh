@@ -8,6 +8,7 @@
 #   Checksum    : 65884ad57f319d8135ddafe3b0da3dbf86eb85d4cc17634dac5d97449757e7b6
 #   Source      : metadata-editor.sh
 #   Type        : script
+#   Group       : Developer Tools
 #   Purpose     : Inspect, edit, and version script metadata in a controlled workflow
 #
 # Description:

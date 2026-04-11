@@ -11,6 +11,7 @@ Build : 2608203
 Checksum : 8514965960d1becba4459cc212b011b1bd6e9b51a2d41a9570cba36ff0e9354d
 Source : sgnd-args.sh
 Type : library
+Group : Common
 Purpose : Parse and manage command-line arguments for scripts
 ## 30.2 Description
 

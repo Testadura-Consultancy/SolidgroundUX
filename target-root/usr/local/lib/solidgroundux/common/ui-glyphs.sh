@@ -7,6 +7,7 @@
 #   Checksum    : 8ebc3d54151c1111ff4418082d1b0626cc590689a7134a33b3b543a0636eb836
 #   Source      : ui-glyphs.sh
 #   Type        : library
+#   Group       : UI
 #   Purpose     : Provide glyph and symbol helpers for console rendering
 #
 # Description:

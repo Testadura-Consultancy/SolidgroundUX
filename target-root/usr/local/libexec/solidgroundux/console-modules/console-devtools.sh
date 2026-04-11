@@ -1,5 +1,5 @@
 # ==================================================================================
-# SolidgroundUX — Developer Tools Console Module
+# SolidgroundUX - Developer Tools Console Module
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.1
@@ -7,6 +7,7 @@
 #   Checksum    : e72edae0572cbf7d0d5ac7fd17357b54f972e5bdb7688e85be6154765a370dd6
 #   Source      : console-devtools.sh
 #   Type        : module
+#   Group       : Solidground Console
 #   Purpose     : sgnd-console module exposing developer tooling actions
 #
 # Description:

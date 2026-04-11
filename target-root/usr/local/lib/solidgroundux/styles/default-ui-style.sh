@@ -7,6 +7,7 @@
 #   Checksum    : 8c840adf092daf880ea9cc21de6cb6be06cf5b530527cf120cb874b082ced5bd
 #   Source      : default-ui-style.sh
 #   Type        : library
+#   Group       : Styles
 #   Purpose     : Define default UI layout, spacing, and styling conventions
 #
 # Description:

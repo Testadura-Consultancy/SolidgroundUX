@@ -7,6 +7,7 @@
 #   Checksum    : 6d3cd36bf2a3aa3115f2e860532886c8eddc73d25c4ffd5ce2b7b773845723c5
 #   Source      : sgnd-bootstrap-env.sh
 #   Type        : library
+#   Group       : Bootstrap
 #   Purpose     : Initialize framework environment variables and directory structure
 #
 # Description:

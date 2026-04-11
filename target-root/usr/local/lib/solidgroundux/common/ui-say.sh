@@ -7,6 +7,7 @@
 #   Checksum    : f7e4267783fd0613aceb52b88074ab5baa838b5643fd7b834e6015adca4703b5
 #   Source      : ui-say.sh
 #   Type        : library
+#   Group       : UI
 #   Purpose     : Provide standardized console messaging helpers
 #
 # Description:

@@ -7,6 +7,7 @@
 #   Checksum    : 2df0e709171ec597ebb49edccbf080412c6103a1fd8ffae244556f2686341327
 #   Source      : ui-dlg.sh
 #   Type        : library
+#   Group       : UI
 #   Purpose     : Provide dialog-style user interaction helpers
 #
 # Description:

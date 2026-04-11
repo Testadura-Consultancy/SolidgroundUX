@@ -2,7 +2,7 @@
 
 [Back to index](index.md)
 
-SolidgroundUX Console Module Template
+SolidgroundUX - Console Module Template
 ----------------------------------------------------------------------------------
 ## 33.1 Description
 

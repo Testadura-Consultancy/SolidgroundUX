@@ -7,6 +7,7 @@
 #   Checksum    : 20fb63472d1d804a40d05bfb8f0bc8f688c034fdd9609b4abf5bfa62b27f6621
 #   Source      : sgnd-bootstrap.sh
 #   Type        : library
+#   Group       : Bootstrap
 #   Purpose     : Initialize the SolidgroundUX framework and load core modules
 #
 # Description:

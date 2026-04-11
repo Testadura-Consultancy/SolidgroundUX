@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==================================================================================
-# SolidgroundUX — Framework smoke tester
+# SolidgroundUX - Framework smoke tester
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.1

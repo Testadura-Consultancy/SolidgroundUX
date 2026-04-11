@@ -2,7 +2,7 @@
 
 [Back to index](index.md)
 
-SolidgroundUX — Developer Tools Console Module
+SolidgroundUX - Developer Tools Console Module
 ----------------------------------------------------------------------------------
 ## 4.1 Description
 

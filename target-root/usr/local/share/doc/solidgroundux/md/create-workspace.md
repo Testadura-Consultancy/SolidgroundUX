@@ -29,31 +29,29 @@ The script:
 - Managing existing workspaces beyond initial scaffolding
 ## 6.5 Bootstrap -----------------------------------------------------------------------
 
-## 6.6 Bootstrap -----------------------------------------------------------------------
+## 6.6 Script metadata -----------------------------------------------------------------
 
-## 6.7 Script metadata -----------------------------------------------------------------
+## 6.7 Script metadata (framework integration) -----------------------------------------
 
-## 6.8 Script metadata (framework integration) -----------------------------------------
+## 6.8 local script functions ----------------------------------------------------------
 
-## 6.9 local script functions ----------------------------------------------------------
+## 6.9 General helpers
 
-## 6.10 General helpers
+## 6.10 Manifest helpers
 
-## 6.11 Manifest helpers
+## 6.11 Main sequence
 
-## 6.12 Main sequence
+## 6.12 main ----------------------------------------------------------------------------
 
-## 6.13 main ----------------------------------------------------------------------------
+## 6.13 Bootstrap
 
-## 6.14 Bootstrap
+## 6.14 Handle builtin arguments
 
-## 6.15 Handle builtin arguments
+## 6.15 UI
 
-## 6.16 UI
+## 6.16 Main script logic
 
-## 6.17 Main script logic
+## 6.17 Uncreate mode
 
-## 6.18 Uncreate mode
-
-## 6.19 'Normal' operation
+## 6.18 'Normal' operation
 

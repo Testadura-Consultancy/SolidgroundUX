@@ -8,6 +8,7 @@
 #   Checksum    : c9f36b0ce0df57a7a2bdb4b5f871d33194fbb418920779a97cfd673f1121246c
 #   Source      : create-workspace.sh
 #   Type        : script
+#   Group       : Developer Tools
 #   Purpose     : Create a new development workspace from templates
 #
 # Description:
@@ -42,7 +43,6 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
 set -uo pipefail
-# --- Bootstrap -----------------------------------------------------------------------
 # --- Bootstrap -----------------------------------------------------------------------
     # _framework_locator
         # Purpose:
