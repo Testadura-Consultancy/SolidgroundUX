@@ -43,6 +43,8 @@ Normalize whitespace for compact paragraph rendering.
 
 ### 25.4.5 Function: `_author_module()`
 
+### 25.4.6 Function: `_write_output_files()`
+
 ## 25.5 Public API ----------------------------------------------------------------------
 
 ### 25.5.1 Function: `sgnd_doc_write_all()`
@@ -56,5 +58,3 @@ DOC_OUTDIR
 DOC_OUTPUT_SCHEMA
 Outputs (globals):
 DOC_OUTPUT_ROWS
-### 25.5.2 Function: `_write_output_files()`
-

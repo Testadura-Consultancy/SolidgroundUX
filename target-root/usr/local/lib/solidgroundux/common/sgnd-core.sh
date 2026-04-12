@@ -516,6 +516,32 @@ set -uo pipefail
         [[ -n "${WAYLAND_DISPLAY:-}" ]] && return 0
         return 1
     }
+
+    # fn: sgnd_internal_call_guard
+        # Purpose:
+        #   Warn when an internal helper is called from outside the expected API flow.
+        #
+        # Behavior:
+        #   - Inspects the Bash call stack.
+        #   - Treats callers named sgnd_* as public framework entry points.
+        #   - Treats callers named _* as internal helper flow.
+        #   - Emits a warning when the guarded internal function appears to be called
+        #     directly from outside that convention.
+        #
+        # Arguments:
+        #   $1  FUNCTION_NAME
+        #       Name of the internal function being guarded.
+    sgnd_internal_call_guard() {
+        local func="${1:?missing function name}"
+
+        case "${FUNCNAME[1]}" in
+            sgnd_*) return 0 ;;   # called from public function → OK
+            _*)     return 0 ;;   # called from another internal → OK
+            *)
+                printf "WARN: Internal function '%s' called from outside API\n" "$func" >&2
+                ;;
+        esac
+    }
 # --- Version helpers ----------------------------------------------------------------
     # sgnd_version_ge
         # Returns:

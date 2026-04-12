@@ -327,6 +327,7 @@ set -uo pipefail
         "dryrun|D|flag|FLAG_DRYRUN|Emulate only; do not perform actions|"
         "debug||flag|FLAG_DEBUG|Show debug messages|"
         "help|H|flag|FLAG_HELP|Show command-line help and exit|"
+        "quiet|Q|flag|FLAG_QUIET|Suppress non-error output|"
         "showargs|A|flag|FLAG_SHOWARGS|Print parsed arguments and exit|"
         "showcfg|C|flag|FLAG_SHOWCFG|Print configuration values and exit|"
         "showenv|E|flag|FLAG_SHOWENV|Print all info (args, cfg, state) and exit|"
@@ -784,6 +785,13 @@ set -uo pipefail
             sgnd_print_readme
             sayend "Information displayed"
             exit 0
+        fi
+
+        if (( FLAG_QUIET )); then
+            SGND_LOG_TO_CONSOLE=0
+            saydebug "Quiet mode enabled; non-error output will be suppressed"
+        else
+            SGND_LOG_TO_CONSOLE=1
         fi
 
         # Mutating builtins: perform action and CONTINUE.

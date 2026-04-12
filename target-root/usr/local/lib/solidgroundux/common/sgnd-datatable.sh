@@ -7,6 +7,7 @@
 #   Checksum    : 04a600c528f05c9a51dbc339d327704fe02a4d9e5298a5d5fef74db9e83262b3
 #   Source      : sgnd-datatable.sh
 #   Type        : library
+#   Group       : Common
 #   Purpose     : Provide lightweight tabular data structures and utilities
 #
 # Description:

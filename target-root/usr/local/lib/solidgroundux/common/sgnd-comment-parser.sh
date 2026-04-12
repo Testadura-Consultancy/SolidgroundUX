@@ -7,6 +7,7 @@
 #   Checksum    : 7af1dfc30947c5549b1735208d53a4e7295a3b2acfdbf911c333450b06804b5c
 #   Source      : sgnd-comment-parser.sh
 #   Type        : library
+#   Group       : Developer tools
 #   Purpose     : Parse and update structured header comments in SolidgroundUX scripts
 #
 # Description:

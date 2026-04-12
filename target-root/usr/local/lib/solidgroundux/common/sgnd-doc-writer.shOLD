@@ -8,6 +8,7 @@
 #   Checksum    : none
 #   Source      : sgnd-doc-writer.sh
 #   Type        : library
+#   Group       : Developer tools
 #   Purpose     : Render normalized documentation scan rows to Markdown and HTML output.
 #
 # Description:
@@ -227,7 +228,7 @@ set -uo pipefail
         local current=0
 
         for module_row in "${DOC_MODULES[@]}"; do
-            IFS='|' read -r module_file module_id <<< "$module_row"
+            IFS='|' read -r module_file module_id module_title module_group module_slug <<< "$module_row"
 
             module_name="$(basename "$module_file")"
             module_slug="$(_slugify_module_name "$module_name")"
@@ -240,7 +241,7 @@ set -uo pipefail
                 --type 5 \
                 --padleft 4
 
-            _append_output_line "md" "index.md" "" "$(printf '%06d' $((1000 + module_id)))" "line" "- [${module_id}. ${module_name}](${module_slug}.md)" || return 1
+            _append_output_line "md" "index.md" "" "$(printf '%06d' $((1000 + module_id)))" "line" "- [${module_id}. ${module_title}](${module_slug}.md)" || return 1
         done
 
 
@@ -264,8 +265,8 @@ set -uo pipefail
         saystart "Authoring index.html"
 
         _append_html_prolog "index.html" "SolidGroundUX Documentation" "" || return 1
-        _append_output_line "html" "index.html" "" "001100" "line" "<h1>SolidGroundUX Documentation</h1>" || return 1
-        _append_output_line "html" "index.html" "" "001200" "line" "<h2>Modules</h2>" || return 1
+        _append_output_line "html" "index.html" "" "000010" "line" "<h1>SolidGroundUX Documentation</h1>" || return 1
+        _append_output_line "html" "index.html" "" "000020" "line" "<h2>Modules</h2>" || return 1
         _append_output_line "html" "index.html" "" "001300" "line" "<ul>" || return 1
 
 
@@ -273,7 +274,7 @@ set -uo pipefail
         local current=0
 
         for module_row in "${DOC_MODULES[@]}"; do
-            IFS='|' read -r module_file module_id <<< "$module_row"
+            IFS='|' read -r module_file module_id module_title module_group module_slug <<< "$module_row"
 
             module_name="$(basename "$module_file")"
             module_slug="$(_slugify_module_name "$module_name")"
@@ -285,7 +286,7 @@ set -uo pipefail
                             --type 5 \
                             --padleft 4
 
-            _append_output_line "html" "index.html" "" "$(printf '%06d' $((1000 + module_id)))" "line" "<li><a href=\"${module_slug}.html\">${module_id}. $(_escape_html "$module_name")</a></li>" || return 1
+            _append_output_line "html" "index.html" "" "$(printf '%06d' $((1000 + module_id)))" "line" "<li><a href=\"${module_slug}.html\">${module_id}. $(_escape_html "$module_title")</a></li>" || return 1
         done
 
         _append_output_line "html" "index.html" "" "009100" "line" "</ul>" || return 1
@@ -316,7 +317,7 @@ set -uo pipefail
         local current=0
 
         for module_row in "${DOC_MODULES[@]}"; do
-            IFS='|' read -r module_file module_id <<< "$module_row"
+            IFS='|' read -r module_file module_id module_title module_group module_slug <<< "$module_row"
 
             module_name="$(basename "$module_file")"
             _collect_header_summary "$module_file"
@@ -356,15 +357,14 @@ set -uo pipefail
 
         saystart "Authoring header-summary.html"
 
-        _append_html_prolog "header-summary.html" "Metadata and Attribution Summary" "" || return 1
-        _append_output_line "html" "header-summary.html" "" "001100" "line" "<h1>Metadata and Attribution Summary</h1>" || return 1
-        _append_output_line "html" "header-summary.html" "" "001200" "line" "<p><a href=\"index.html\">Back to index</a></p>" || return 1
+        _append_output_line "html" "header-summary.html" "" "000010" "line" "<h1>Metadata and Attribution Summary</h1>" || return 1
+        _append_output_line "html" "header-summary.html" "" "000020" "line" "<p><a href=\"index.html\">Back to index</a></p>" || return 1
 
         local total="${#DOC_MODULES[@]}"
         local current=0
         
         for module_row in "${DOC_MODULES[@]}"; do
-            IFS='|' read -r module_file module_id <<< "$module_row"
+            IFS='|' read -r module_file module_id module_title module_group module_slug <<< "$module_row"
 
             ((current++))
             module_name="$(basename "$module_file")"
@@ -549,48 +549,6 @@ set -uo pipefail
         _append_html_epilog "$html_target" "$module_name" || return 1
     }
 
-# --- Public API ----------------------------------------------------------------------
-    # fn: sgnd_doc_write_all
-        # Purpose:
-        #   Render all documentation outputs and write them to disk.
-        #
-        # Inputs (globals):
-        #   DOC_MODULES
-        #   DOC_SCAN_ROWS
-        #   DOC_OUTDIR
-        #   DOC_OUTPUT_SCHEMA
-        #
-        # Outputs (globals):
-        #   DOC_OUTPUT_ROWS
-    sgnd_doc_write_all() {
-        local module_row=""
-        local module_file=""
-        local module_id=""
-
-        DOC_OUTPUT_ROWS=()
-
-        saystart "Authoring documentation outputs"
-
-        _author_index_md || return 1
-        _author_index_html || return 1
-        _author_header_summary_md || return 1
-        _author_header_summary_html || return 1
-
-        for module_row in "${DOC_MODULES[@]}"; do
-            IFS='|' read -r module_file module_id <<< "$module_row"
-            saydebug "Authoring module: $(basename "$module_file") (id: $module_id)"
-            _author_module "$module_file" "$module_id" || return 1
-        done
-
-        sayend "Authored documentation outputs"
-
-        if (( ${FLAG_CLEAN_OUTPUT:-0} )); then
-            _clean_output_directories || return 1
-        fi
-
-        _write_output_files || return 1
-    }
-
     # fn: _write_output_files
     _write_output_files() {
         local row=""
@@ -647,3 +605,46 @@ set -uo pipefail
 
         sayend "Wrote Markdown files to: ${DOC_OUTDIR%/}/md, wrote HTML files to: ${DOC_OUTDIR%/}/html"
     }
+
+# --- Public API ----------------------------------------------------------------------
+    # fn: sgnd_doc_write_all
+        # Purpose:
+        #   Render all documentation outputs and write them to disk.
+        #
+        # Inputs (globals):
+        #   DOC_MODULES
+        #   DOC_SCAN_ROWS
+        #   DOC_OUTDIR
+        #   DOC_OUTPUT_SCHEMA
+        #
+        # Outputs (globals):
+        #   DOC_OUTPUT_ROWS
+    sgnd_doc_write_all() {
+        local module_row=""
+        local module_file=""
+        local module_id=""
+
+        DOC_OUTPUT_ROWS=()
+
+        saystart "Authoring documentation outputs"
+
+        _author_index_md || return 1
+        _author_index_html || return 1
+        _author_header_summary_md || return 1
+        _author_header_summary_html || return 1
+
+        for module_row in "${DOC_MODULES[@]}"; do
+            IFS='|' read -r module_file module_id module_title module_group module_slug <<< "$module_row"
+            saydebug "Authoring module: $(basename "$module_file") (id: $module_id)"
+            _author_module "$module_file" "$module_id" || return 1
+        done
+
+        sayend "Authored documentation outputs"
+
+        if (( ${FLAG_CLEAN_OUTPUT:-0} )); then
+            _clean_output_directories || return 1
+        fi
+
+        _write_output_files || return 1
+    }
+

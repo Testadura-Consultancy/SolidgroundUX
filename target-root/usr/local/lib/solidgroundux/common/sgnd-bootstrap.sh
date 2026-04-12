@@ -366,7 +366,7 @@ set -uo pipefail
         local rc=$?   # capture immediately!
 
         # Only run state save on clean exit
-        if (( rc == 0 )); then
+        if (( rc == 0 && SGND_STATE_SAVE == 1 )); then
             sgnd_save_state
         elif (( rc == 130 )); then
             saydebug "Interrupted (Ctrl+C), not saving state"

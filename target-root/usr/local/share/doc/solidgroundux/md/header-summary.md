@@ -9,7 +9,7 @@
 
 ## 2. doc-generator.sh
 
-**Metadata:** Version : 1.0 Build : 2609100 Checksum : none Source : doc-generator.sh Type : script Purpose : Generate documentation from source code comments using the sgnd-comment-parser library.
+**Metadata:** Version : 1.0 Build : 2609100 Checksum : none Source : doc-generator.sh Type : script Group : Developer tools Purpose : Generate documentation from source code comments using the sgnd-comment-parser library.
 **Attribution:** Developers : Mark Fieten Company : Testadura Consultancy Client : Copyright : © 2025 Mark Fieten — Testadura Consultancy License : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 
 ## 3. metadata-editor.sh
@@ -94,7 +94,7 @@
 
 ## 21. sgnd-comment-parser.sh
 
-**Metadata:** Version : 1.1 Build : 2609100 Checksum : 7af1dfc30947c5549b1735208d53a4e7295a3b2acfdbf911c333450b06804b5c Source : sgnd-comment-parser.sh Type : library Purpose : Parse and update structured header comments in SolidgroundUX scripts
+**Metadata:** Version : 1.1 Build : 2609100 Checksum : 7af1dfc30947c5549b1735208d53a4e7295a3b2acfdbf911c333450b06804b5c Source : sgnd-comment-parser.sh Type : library Group : Developer tools Purpose : Parse and update structured header comments in SolidgroundUX scripts
 **Attribution:** Developers : Mark Fieten Company : Testadura Consultancy Client : Copyright : © 2025 Mark Fieten — Testadura Consultancy License : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 
 ## 22. sgnd-cfg.sh
@@ -114,7 +114,7 @@
 
 ## 25. sgnd-doc-writer.sh
 
-**Metadata:** Version : 1.0 Build : 2609100 Checksum : none Source : sgnd-doc-writer.sh Type : library Purpose : Render normalized documentation scan rows to Markdown and HTML output.
+**Metadata:** Version : 1.0 Build : 2609100 Checksum : none Source : sgnd-doc-writer.sh Type : library Group : Developer tools Purpose : Render normalized documentation scan rows to Markdown and HTML output.
 **Attribution:** Developers : Mark Fieten Company : Testadura Consultancy Client : Copyright : © 2025 Mark Fieten — Testadura Consultancy License : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 
 ## 26. ui-dlg.sh
@@ -124,7 +124,7 @@
 
 ## 27. sgnd-datatable.sh
 
-**Metadata:** Version : 1.1 Build : 2609100 Checksum : 04a600c528f05c9a51dbc339d327704fe02a4d9e5298a5d5fef74db9e83262b3 Source : sgnd-datatable.sh Type : library Purpose : Provide lightweight tabular data structures and utilities
+**Metadata:** Version : 1.1 Build : 2609100 Checksum : 04a600c528f05c9a51dbc339d327704fe02a4d9e5298a5d5fef74db9e83262b3 Source : sgnd-datatable.sh Type : library Group : Common Purpose : Provide lightweight tabular data structures and utilities
 **Attribution:** Developers : Mark Fieten Company : Testadura Consultancy Client : Copyright : © 2025 Mark Fieten — Testadura Consultancy License : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 
 ## 28. sgnd-console-menu.sh
