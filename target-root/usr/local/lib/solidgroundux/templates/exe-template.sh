@@ -41,8 +41,8 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
 set -uo pipefail
-# --- Bootstrap -----------------------------------------------------------------------
-    # _framework_locator
+# - Bootstrap -----------------------------------------------------------------------
+    # tmp: _framework_locator
         # Purpose:
         #   Locate, create, and load the SolidGroundUX bootstrap configuration.
         #
@@ -158,7 +158,7 @@ set -uo pipefail
 
     }
 
-    # _load_bootstrapper
+    # tmp: _load_bootstrapper
         # Purpose:
         #   Resolve and source the framework bootstrap library.
         #
@@ -195,7 +195,7 @@ set -uo pipefail
         fi
 
         [[ -r "$bootstrap" ]] || {
-            printf "FATAL: Cannot read bootstrap: %s\n" "$bootstrap" >&2
+            sayfail "FATAL: Cannot read bootstrap: %s\n" "$bootstrap" >&2
             return 126
         }
         
@@ -237,13 +237,13 @@ set -uo pipefail
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
     
-# --- Script metadata (identity) ------------------------------------------------------
+# - Script metadata (identity) ------------------------------------------------------
     SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
     SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"
     SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
     SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
 
-# --- Script metadata (framework integration) -----------------------------------------
+# - Script metadata (framework integration) -----------------------------------------
     # SGND_USING
         # Libraries to source from SGND_COMMON_LIB.
         # These are loaded automatically by sgnd_bootstrap AFTER core libraries.
@@ -373,14 +373,26 @@ set -uo pipefail
         #   2) call sgnd_bootstrap --state
     SGND_STATE_SAVE=0
 
-# --- Local script Declarations -------------------------------------------------------
+# - Local script Declarations -------------------------------------------------------
     # Put script-local constants and defaults here (NOT framework config).
     # Prefer local variables inside functions unless a value must be shared.
 
-# --- Local script functions ----------------------------------------------------------
+# - Local script functions ----------------------------------------------------------
+# Organize script-specific functions here. These are not reusable framework behavior, but rather the implementation of the script's unique logic and features.
+# Suggested organization:
+#   A
+#   B Initialization
+# -- Local script helpers
+# --- Layout
+# --- Graphical
+# -- Input handling
+# --- Business logic
+# - Validation
+# -- Reporting
+# -- Cleanup
 
-# --- Main ----------------------------------------------------------------------------
-    # main
+# - Main ----------------------------------------------------------------------------
+    # fn: main
         # Purpose:
         #   Canonical entry point for executable scripts.
         #

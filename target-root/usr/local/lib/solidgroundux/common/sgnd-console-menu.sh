@@ -6,6 +6,7 @@
 #   Build       : 2609100
 #   Checksum    : 6ce6e6f1331489241354cb68bf443f9001894bc4f2e03393f127a69094eaccf3
 #   Source      : sgnd-console-menu.sh
+#   Group       : Solidground Console
 #   Type        : library
 #   Purpose     : Provide menu definition and rendering logic for sgnd-console
 #

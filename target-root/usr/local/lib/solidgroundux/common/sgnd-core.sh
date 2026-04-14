@@ -7,7 +7,7 @@
 #   Checksum    : 6034f64b9ad377a4336278a4ad14be211c19c367f36ba7d4b935226c1ad2fbd6
 #   Source      : sgnd-core.sh
 #   Type        : library
-#   Group       : Common
+#   Group       : Common Core
 #   Purpose     : Provide foundational utility functions and shared primitives
 #
 # Description:
@@ -324,7 +324,7 @@ set -uo pipefail
 
         chmod --reference="$dst" "$src" || return 1
         mv "$src" "$dst" || return 1
-    }
+    }    
 
 # --- Argument & environment helpers -------------------------------------------------
     # sgnd_is_set

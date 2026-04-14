@@ -4,10 +4,10 @@
 # Metadata:
 #   Version     : 1.1
 #   Build       : 2609100
-#   Checksum    :36ee14ed3707e34e6fb4eb4b9e7fc469811c10f6409e70fc83db24e181b2eeb4
+#   Checksum    : 36ee14ed3707e34e6fb4eb4b9e7fc469811c10f6409e70fc83db24e181b2eeb4
 #   Source      : sgnd-info.sh
 #   Type        : library
-#   Group       : Common
+#   Group       : Common Core
 #   Purpose     : Provide framework metadata and runtime information helpers
 #
 # Description:

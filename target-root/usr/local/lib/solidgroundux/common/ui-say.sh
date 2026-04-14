@@ -104,6 +104,8 @@ set -uo pipefail
     SAY_WRITELOG_DEFAULT="${SAY_WRITELOG_DEFAULT:-0}"     # 0 = no log, 1 = log
     SAY_DATE_FORMAT="${SAY_DATE_FORMAT:-%Y-%m-%d %H:%M:%S}"  # date format for --date
 
+    SGND_LINEBREAK_PENDING=0  # Internal flag to track if a line break is needed before the next message (used by sayprogress)
+
 # --- Helpers ------------------------------------------------------------------------
     # _say_should_print_console
         # Purpose:
@@ -139,7 +141,13 @@ set -uo pipefail
         local list="${SGND_CONSOLE_MSGTYPES:-INFO|STRT|WARN|FAIL|CNCL|OK|END|EMPTY}"
         list="${list^^}"
 
-        [[ "${SGND_LOG_TO_CONSOLE:-1}" -eq 0 ]] && return 1
+        if [[ "${SGND_LOG_TO_CONSOLE:-1}" -eq 0 ]]; then
+            case "$type" in
+                WARN|FAIL) return 0 ;;
+                *)         return 1 ;;
+            esac
+        fi
+        
         [[ "${FLAG_VERBOSE:-0}" -eq 1 ]] && return 0
 
         if [[ "$type" == "DEBUG" ]]; then
@@ -578,6 +586,10 @@ set -uo pipefail
         fi
 
         if _say_should_print_console "$type"; then
+            if (( SGND_LINEBREAK_PENDING )); then
+                printf '\n' >&2
+                SGND_LINEBREAK_PENDING=0
+            fi
             printf '%s\n' "$fnl $RESET"
         fi
 
@@ -735,6 +747,7 @@ set -uo pipefail
 
         text="${prefix}${text}"
 
+        SGND_LINEBREAK_PENDING=1
         printf '\r%-140s' "$text" >&2
     }
 
@@ -754,6 +767,7 @@ set -uo pipefail
         # Returns:
         #   0 always.
     sayprogress_done() {
+        SGND_LINEBREAK_PENDING=0    
         printf '\n' >&2
     }
 

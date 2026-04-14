@@ -7,7 +7,7 @@
 #   Checksum    : 8514965960d1becba4459cc212b011b1bd6e9b51a2d41a9570cba36ff0e9354d
 #   Source      : sgnd-args.sh
 #   Type        : library
-#   Group       : Common
+#   Group       : Common Core
 #   Purpose     : Parse and manage command-line arguments for scripts
 #
 # Description:

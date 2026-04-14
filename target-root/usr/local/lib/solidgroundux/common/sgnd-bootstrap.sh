@@ -182,8 +182,8 @@ set -uo pipefail
                     exe_root=2; shift ;;
                 --log)
                     SGND_LOGFILE_ENABLED=1; shift ;;
-                --console)
-                    SGND_LOG_TO_CONSOLE=1; shift ;; 
+                --quiet)
+                    SGND_LOG_TO_CONSOLE=0; shift ;;
                 --) 
                     shift; SGND_BOOTSTRAP_REST=("$@"); return 0 ;;
                 *) 

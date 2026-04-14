@@ -45,7 +45,7 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
 set -uo pipefail
-# --- Bootstrap -----------------------------------------------------------------------
+# - Bootstrap -----------------------------------------------------------------------
     # tmp: _framework_locator
         # Purpose:
         #   Locate, create, and load the SolidGroundUX bootstrap configuration.
@@ -241,13 +241,13 @@ set -uo pipefail
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
     
-# --- Script metadata (identity) ------------------------------------------------------
+# - Script metadata (identity) ------------------------------------------------------
     SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
     SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"
     SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
     SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
 
-# --- Script metadata (framework integration) -----------------------------------------
+# - Script metadata (framework integration) -----------------------------------------
     # SGND_USING
         # Libraries to source from SGND_COMMON_LIB.
         # These are loaded automatically by sgnd_bootstrap AFTER core libraries.
@@ -258,7 +258,6 @@ set -uo pipefail
         # Leave empty if no extra libs are needed.
     SGND_USING=(
             sgnd-comment-parser.sh
-            sgnd-doc-collector.sh
     )
 
     # SGND_ARGS_SPEC 
@@ -351,14 +350,14 @@ set -uo pipefail
         #
         # Leave empty if:
         #   - The script does not use persistent state.
-        SGND_STATE_VARIABLES=(
-            "VAL_SRCDIR|Source Directory||"
-            "VAL_FILESPEC|Filename mask||"
-            "VAL_OUTDIR|Output Directory||"
-            "FLAG_RECURSIVE_SCAN|Recursive Scan||"
-            "FLAG_CLEAN_OUTPUT|Clean Output Directory||"
-            "FLAG_VIEW_RESULTS|Automatically open generated docs in browser after generation (desktop mode only)||"
-        )
+    SGND_STATE_VARIABLES=(
+        "VAL_SRCDIR|Source Directory||"
+        "VAL_FILESPEC|Filename mask||"
+        "VAL_OUTDIR|Output Directory||"
+        "FLAG_RECURSIVE_SCAN|Recursive Scan||"
+        "FLAG_CLEAN_OUTPUT|Clean Output Directory||"
+        "FLAG_VIEW_RESULTS|Automatically open generated docs in browser after generation (desktop mode only)||"
+    )
 
     # SGND_ON_EXIT_HANDLERS
         # List of functions to be invoked on script termination.
@@ -392,8 +391,8 @@ set -uo pipefail
         #   2) call sgnd_bootstrap --state
     SGND_STATE_SAVE=1
 
-# --- Local script Declarations -------------------------------------------------------
-    # -- Datamodel
+# - Local script Declarations -------------------------------------------------------
+# -- Datamodel
     MODULE_META_SCHEMA="file|product|title|type|group|purpose"
     MODULE_META=()
 
@@ -409,7 +408,31 @@ set -uo pipefail
     MODULE_ITEMS_SCHEMA="file|linenr|access|type|section|paragraph|name|content"
     MODULE_ITEMS=()
 
-# --- Local script functions ----------------------------------------------------------
+# -- State variables for parsing
+    _parsing_header=0
+
+    _line_nr=0
+    _line_parse_index=0
+
+
+    # Module data
+    SGND_HEADER_FIELDS=(
+        version
+        build
+        checksum
+        type
+        group
+        purpose
+        developers
+        company
+        client
+        copyright
+        license
+    )
+
+
+# - Local script functions ----------------------------------------------------------
+# -- Main sequence functions 
     # fn: _init_parameters
         # Purpose:
         #   Initialize parameter variables from defaults when still unset.
@@ -439,7 +462,7 @@ set -uo pipefail
         FLAG_VIEW_RESULTS="${FLAG_VIEW_RESULTS:-1}"
     }
 
-        # fn: _get_userinput
+    # fn: _get_userinput
         # Purpose:
         #   Interactively collect and confirm documentation generator parameters.
         #
@@ -570,7 +593,169 @@ set -uo pipefail
             sgnd_showenvironment
         done
     }
-# --- Main ----------------------------------------------------------------------------
+    
+    # _iterate_files
+        # Purpose:
+        #   Iterate over files in a directory using a file mask,
+        #   optionally recursing into subdirectories.
+        #
+        # Behavior:
+        #   - Expands file_spec within source_dir
+        #   - Supports recursive and non-recursive modes
+        #   - Calls a callback function for each matched file
+        #   - Skips non-regular files
+        #
+        # Arguments:
+        #   $1  SOURCE_DIR
+        #   $2  FILE_SPEC
+        #   $3  FLAG_RECURSIVE   (0 = no recursion, 1 = recursive)
+        #   $4  CALLBACK_FUNC
+        #
+        # Returns:
+        #   0 on success
+        #   1 on invalid input
+        #
+        # Usage:
+        #   _iterate_files "./src" "*.sh" 1 sgnd_doc_process_file
+    _iterate_files() {
+        local source_dir="$1"
+        local file_spec="$2"
+        local recursive="$3"
+        local callback="$4"
+
+        # -- Validate input
+        [[ -z "$source_dir" || -z "$file_spec" || -z "$callback" ]] && return 1
+        [[ ! -d "$source_dir" ]] && return 1
+        declare -F "$callback" >/dev/null || return 1
+
+        local files_ttl=0
+        local files_proc=0
+        # -- Non-recursive
+
+        
+        if [[ "$recursive" -eq 0 ]]; then
+            local file
+            shopt -s nullglob
+
+            # Count files first for progress tracking
+            for file in "$source_dir"/$file_spec; do
+                ((files_ttl++))
+            done
+
+            for file in "$source_dir"/$file_spec; do
+                ((files_proc++))
+                name="${file##*/}"
+
+                sayprogress \
+                --current "$files_proc" \
+                --total "$files_ttl" \
+                --label "Processing file: $name, through : $callback" \
+                --type 5 \
+                --padleft 0
+
+                [[ -f "$file" ]] || continue
+                "$callback" "$file"
+
+                ((files_proc++))
+            done
+
+            shopt -u nullglob
+
+            sayprogress_done
+            return 0
+        fi
+
+        # -- Recursive
+        # Count files first for progress tracking
+        while IFS= read -r -d '' file; do
+            ((files_ttl++))
+        done < <(find "$source_dir" -type f -name "$file_spec" -print0)
+
+        while IFS= read -r -d '' file; do
+
+            ((files_proc++))
+            name="${file##*/}"
+            
+            sayprogress \
+                --current "$files_proc" \
+                --total "$files_ttl" \
+                --label "Processing file: $name, through : $callback" \
+                --type 5 \
+                --padleft 0
+
+            "$callback" "$file" || saywarning "Callback $callback failed for file: $file"
+        done < <(find "$source_dir" -type f -name "$file_spec" -print0)
+
+        sayprogress_done
+        return 0
+    }
+
+    # fn: _init_module_metadata
+        # Purpose:
+        #   Initialize parsed metadata variables for a new source file.
+        #
+        # Behavior:
+        #   - Resets all parsed header field variables listed in SGND_HEADER_FIELDS
+        #   - Initializes checksum to "none"
+        #   - Initializes all other parsed fields to an empty string
+        #
+        # Outputs (globals):
+        #   _parsed_<field>
+        #
+        # Returns:
+        #   0
+        #
+        # Usage:
+        #   _init_module_metadata
+        #
+        # Examples:
+        #   _init_module_metadata
+    _init_module_metadata() {
+        local field
+
+        for field in "${SGND_HEADER_FIELDS[@]}"; do
+            if [[ "$field" == "checksum" ]]; then
+                printf -v "module_${field}" '%s' "none"
+            else
+                printf -v "module_${field}" '%s' ""
+            fi
+        done
+    }
+
+    # fn: _assemble_module_metadata
+        # Purpose:
+        #   Parse known metadata fields from one header line.
+        #
+        # Arguments:
+        #   $1  LINE
+        #
+        # Returns:
+        #   0
+        #
+        # Usage:
+        #   _assemble_module_metadata "$line"
+    _assemble_module_metadata() {
+        local line="$1"
+        local field
+        local var_name
+        local var_value
+
+        for field in "${SGND_HEADER_FIELDS[@]}"; do
+            sgnd_get_comment_fieldvalue "$line" "$field" "module" || continue
+
+            # Report
+            var_name="module_${field}"
+            var_value="${!var_name-}"
+            sayinfo "Parsed metadata: ${field} = ${var_value}"
+            
+            return 0
+        done
+
+        # If no fields matched, just return without error (not all lines will contain metadata)
+        return 1
+    }
+
+# - Main ----------------------------------------------------------------------------
     # fn: main
         # Purpose:
         #   Provide the canonical executable entry point for the documentation generator.
@@ -631,13 +816,16 @@ set -uo pipefail
             sgnd_print_titlebar
 
         # -- Main script logic
+        
+        # Initialize parameters with defaults where not set by arguments or state
         _init_parameters
 
-        if (( !FLAG_AUTO_RUN )); then
-            # Prompt for user input if not auto-running        
+        # Prompt for user input if not auto-running  
+        if (( !FLAG_AUTO_RUN )); then      
             _get_userinput || return $?
         fi
-    
+
+        _iterate_files "$VAL_SRCDIR" "$VAL_FILESPEC" "$FLAG_RECURSIVE_SCAN" sgnd_parse_module_file
     }
 
     # Entrypoint: sgnd_bootstrap will split framework args from script args.

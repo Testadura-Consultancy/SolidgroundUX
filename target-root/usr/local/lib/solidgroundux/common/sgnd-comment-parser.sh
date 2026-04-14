@@ -46,7 +46,7 @@
 # =====================================================================================
 
 set -uo pipefail
-# --- Library guard ------------------------------------------------------------------
+# - Library guard ------------------------------------------------------------------
     # _sgnd_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
@@ -87,8 +87,8 @@ set -uo pipefail
     _sgnd_lib_guard
     unset -f _sgnd_lib_guard
 
-# --- Public API ---------------------------------------------------------------------
-  # Load and info
+# - Public API ---------------------------------------------------------------------
+# -- Load and info
     # sgnd_header_read
         # Purpose:
         #   Read the canonical header comment block from the top of a script file.
@@ -304,8 +304,7 @@ set -uo pipefail
         [[ -n "${SGND_HEADER_BUFFER_TEXT:-}" ]] || return 1
         sgnd_header_get_section_from_text "$SGND_HEADER_BUFFER_TEXT" "$section" "$_outvar"
     }
-
-  # Version control
+# -- Version control
     # sgnd_header_calc_checksum
         # Purpose:
         #   Calculate a stable checksum for a script while ignoring self-updating metadata fields.
@@ -458,8 +457,7 @@ set -uo pipefail
 
         return 0
     }
-
-  # Header CRUD
+# -- Header CRUD
     # sgnd_header_get_section
         # Purpose:
         #   Retrieve the full contents of a header section from a file.
@@ -619,6 +617,45 @@ set -uo pipefail
         done <<< "$text"
 
         if [[ "$banner_line" =~ ^\#[[:space:]]*(.+)[[:space:]]-[[:space:]](.+)[[:space:]]*$ ]]; then
+            product="${BASH_REMATCH[1]}"
+            title="${BASH_REMATCH[2]}"
+
+            product="${product%"${product##*[![:space:]]}"}"
+            title="${title#"${title%%[![:space:]]*}"}"
+            title="${title%"${title##*[![:space:]]}"}"
+
+            printf -v "$_product_var" '%s' "$product"
+            printf -v "$_title_var" '%s' "$title"
+            return 0
+        fi
+
+        printf -v "$_product_var" '%s' ""
+        printf -v "$_title_var" '%s' ""
+        return 1
+    }
+
+    # sgnd_header_parse_banner_line
+        # Purpose:
+        #   Extract product and title from a single header banner line.
+        #
+        # Arguments:
+        #   $1  LINE
+        #   $2  PRODUCT_VAR
+        #   $3  TITLE_VAR
+        #
+        # Returns:
+        #   0 if parsed
+        #   1 otherwise
+        #
+    sgnd_header_parse_banner_line() {
+        local line="${1-}"
+        local _product_var="${2:?missing product var}"
+        local _title_var="${3:?missing title var}"
+
+        local product=""
+        local title=""
+
+        if [[ "$line" =~ ^\#[[:space:]]*(.+)[[:space:]]-[[:space:]](.+)[[:space:]]*$ ]]; then
             product="${BASH_REMATCH[1]}"
             title="${BASH_REMATCH[2]}"
 
@@ -1070,6 +1107,303 @@ set -uo pipefail
         rm -f "$tmp_file"
         return 2
     }
+    
+# -- Comment parsing
+    # Comment header marker line (e.g. "# ======")
+        # =~ regex explanation:
+        #   ^           : start of line
+        #   \#          : literal #
+        #   [[:space:]] : at least one whitespace character
+        #   =+          : one or more literal = characters
+        #   [[:space:]] : at least one whitespace character
+        #   $           : end of line
+    RGX_HEADER_MARKER='^\#[[:space:]]*=+[[:space:]]*$'
+    # Comment field marker line (e.g. "# Field : Value")
+    RGX_COMMENT_FIELD='^\#[[:space:]]*([A-Za-z]+)[[:space:]]*:[[:space:]]*(.*)$'
+    # Comment section marker (e.g. "# --- SectionName")
+    RGX_SECTION_HEADER='^#[[:space:]]*(---|--|-)[[:space:]](.*[^[:space:]-])[[:space:]-]*$'
+
+    # Current section tracking
+    _current_section="maindoc"
+    _current_parentsection=""
+    _current_grandparentsection=""
+    _current_section_level=0 # 0 = maindoc, 1 = first-level section, etc.
+
+ 
+    # fn: sgnd_get_comment_fieldvalue
+        # Purpose:
+        #   Parse a canonical comment field line and assign the value to a prefixed variable.
+        #
+        # Behavior:
+        #   - Matches comment lines of the form: "#   Field : Value"
+        #   - Extracts field name and value from the line
+        #   - Normalizes the field name to lowercase
+        #   - Assigns the value to the corresponding "<prefix><field>" variable
+        #   - Ignores lines that do not match the canonical field format
+        #
+        # Arguments:
+        #   $1  LINE
+        #   $2  PREFIX
+        #
+        # Returns:
+        #   0 if a field was parsed and assigned.
+        #   1 if the line is not a recognized field line.
+        #
+        # Usage:
+        #   sgnd_get_comment_fieldvalue "$line" "_parsed_"
+        #
+        # Examples:
+        #   sgnd_get_comment_fieldvalue "#   Version     : 1.1" "_parsed_"
+        #   sgnd_get_comment_fieldvalue "#   Purpose     : Generate documentation" "meta_"
+        #
+    sgnd_get_comment_fieldvalue() {
+        local line="$1"
+        local field="$2"
+        local prefix="$3"
+        local found_field=""
+        local value=""
+        local var_name=""
+
+        [[ "$line" =~ $RGX_COMMENT_FIELD ]] || return 1
+
+        found_field="${BASH_REMATCH[1],,}"
+        value="${BASH_REMATCH[2]}"
+        field="${field,,}"
+
+        [[ "$found_field" == "$field" ]] || return 1
+
+        var_name="${prefix}_${field}"
+        printf -v "$var_name" '%s' "$value"
+        return 0
+    }
+
+    # fn: sgnd_get_current_section
+        # Purpose:
+        #   Detect and register the current section header for one parsed line.
+        #
+        # Arguments:
+        #   $1  LINE
+        #
+        # Returns:
+        #   0 if a section header was detected.
+        #   1 otherwise.
+        #
+        # Usage:
+        #   sgnd_get_current_section "$line"
+    sgnd_get_current_section() {
+        local line="$1"
+        local marker=""
+        local title=""
+
+        [[ "$line" =~ $RGX_SECTION_HEADER ]] || return 1
+
+        marker="${BASH_REMATCH[1]}"
+        title="${BASH_REMATCH[2]}"
+        # Normalize title by trimming '-' and spaces from both ends
+        title="${title##[-[:space:]]}"
+        title="${title%%[-[:space:]]}"
+
+        case "$marker" in
+            -)
+                # First-level section
+                # Start a new top-level branch under maindoc.
+                _current_section="$title"
+                _current_parentsection="maindoc"
+                _current_grandparentsection=""
+                _current_section_index="$title"
+                _current_section_level=1
+                ;;
+
+            --)
+                # Second-level section
+                case "${_current_section_level:-0}" in
+                    1)
+                        # Coming from level 1:
+                        # current section becomes parent of new level-2 section.
+                        _current_grandparentsection="maindoc"
+                        _current_parentsection="$_current_section"
+                        ;;
+                    2)
+                        # Staying on level 2:
+                        # keep existing parent/grandparent, just replace current section.
+                        ;;
+                    3)
+                        # Coming from level 3:
+                        # step one level up, so grandparent becomes parent.
+                        _current_parentsection="$_current_grandparentsection"
+                        _current_grandparentsection="maindoc"
+                        ;;
+                    *)
+                        # No prior section context:
+                        # treat as child of maindoc.
+                        _current_grandparentsection=""
+                        _current_parentsection="maindoc"
+                        ;;
+                esac
+
+                _current_section="$title"
+                _current_section_level=2
+                ;;
+
+            ---)
+                # Third-level section
+                case "${_current_section_level:-0}" in
+                    1)
+                        # Coming straight from level 1:
+                        # current section becomes parent, maindoc becomes grandparent.
+                        _current_grandparentsection="maindoc"
+                        _current_parentsection="$_current_section"
+                        ;;
+                    2|3)
+                        # Coming from level 2 or staying on level 3:
+                        # current parent becomes grandparent, current section becomes parent.
+                        _current_grandparentsection="$_current_parentsection"
+                        _current_parentsection="$_current_section"
+                        ;;
+                    *)
+                        # No prior section context:
+                        # treat as nested under maindoc.
+                        _current_grandparentsection=""
+                        _current_parentsection="maindoc"
+                        ;;
+                esac
+
+                _current_section="$title"
+                _current_section_level=3
+                ;;
+
+            *)
+                return 1
+                ;;
+        esac
+
+        return 0
+    }
+
+    # fn: sgnd_parse_module_file
+        # Purpose:
+        #   Parse one source file and initialize parser state for line-by-line processing.
+        #
+        # Behavior:
+        #   - Normalizes the input file path
+        #   - Resets parsed metadata and parser state variables
+        #   - Stores the current filename for downstream parsing logic
+        #   - Iterates through the file line by line
+        #   - Delegates line handling to sgnd_parse_module_line
+        #
+        # Arguments:
+        #   $1  FILE
+        #
+        # Outputs (globals):
+        #   _parsed_filename
+        #   _line_nr
+        #   _line_parse_index
+        #   _parsing_header
+        #   _current_section
+        #   _current_parentsection
+        #
+        # Returns:
+        #   0 on success.
+        #   1 if FILE is unreadable.
+        #
+        # Usage:
+        #   sgnd_parse_module_file "$file"
+    sgnd_parse_module_file() {
+        local file="$1"
+        local line_ttl
+        local line=""
+
+        [[ -r "$file" ]] || return 1
+
+        file="${file%/}"
+        _parsed_filename="${file##*/}"
+
+        _init_module_metadata
+
+        saydebug "Parsing source file: $file"
+        _line_nr=0
+        _line_parse_index=0
+        _parsing_header=0
+
+        _current_section="header"
+        _current_parentsection=""
+
+        line_ttl=$(awk 'END {print NR}' "$file")
+
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            ((_line_nr++))
+            sgnd_parse_module_line "$line" "$file" "$_line_nr"
+        done < "$file"
+
+        return 0
+    }
+    
+    # fn: sgnd_parse_module_line
+        # Purpose:
+        #   Process one source line and detect structural markers for documentation parsing.
+        #
+        # Behavior:
+        #   - Detects the start of the canonical module header comment
+        #   - Extracts product and title from the banner line
+        #   - Detects the end of the canonical module header comment
+        #   - Parses metadata fields while header parsing is active
+        #   - Leaves section detection to later parser stages
+        #
+        # Arguments:
+        #   $1  LINE
+        #   $2  FILE
+        #   $3  LINENR
+        #
+        # Returns:
+        #   0
+        #
+        # Usage:
+        #   sgnd_parse_module_line "$line" "$file" "$linenr"
+        #
+        # Examples:
+        #   sgnd_parse_module_line "#   Version     : 1.0" "module.sh" 12
+    sgnd_parse_module_line() {
+        local line="$1"
+        local file="${2:-}"
+        local linenr="${3:-}"
+
+        _line_parse_index=$(( _line_parse_index + 1 ))
+
+        # Detect start of module header ----------------------------------------
+        if (( !_parsing_header )) && [[ "$line" =~ $RGX_HEADER_MARKER ]]; then
+            _parsing_header=1
+            sayinfo "Detected header start at line $linenr in $file"
+            return 0
+        fi
+
+        # Extract product and title from header banner -------------------------
+        if (( _parsing_header && _line_parse_index == 2 )); then
+            sgnd_header_parse_banner_line "$line" "_parsed_product" "_parsed_title" || {
+                saywarning "Failed to parse product and title from header banner in $_parsed_filename: $line"
+            }
+            sayinfo "Parsed product: $_parsed_product, title: $_parsed_title from header in $_parsed_filename"
+            return 0
+        fi
+
+        # Detect end of module header ------------------------------------------
+        if (( _parsing_header )) && [[ "$line" =~ $RGX_HEADER_MARKER ]]; then
+            _parsing_header=0
+            sayinfo "Detected header end at line $linenr in $file"
+            return 0
+        fi
+
+        # Gather module metadata fields while parsing header -------------------
+        if (( _parsing_header )); then
+            _assemble_module_metadata "$line" && return 0
+        fi
+
+        # Detect section -------------------------------------------------------
+        sgnd_get_current_section "$line" && {
+            sayinfo "Section level $_current_section_level: $_current_section (parent: $_current_parentsection, grandparent: $_current_grandparentsection) at line $linenr"
+            return 0
+        }
+
+    }      
 
 
 

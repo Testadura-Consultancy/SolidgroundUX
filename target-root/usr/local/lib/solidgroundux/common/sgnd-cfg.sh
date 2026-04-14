@@ -7,7 +7,7 @@
 #   Checksum    : 9caaefc2f13eb7acf0f9168a51c38e0a481aa9e1dee10dde1471cffa876d9fec
 #   Source      : sgnd-cfg.sh
 #   Type        : library
-#   Group       : Common
+#   Group       : Common Core
 #   Purpose     : Load, manage, and persist configuration settings
 #
 # Description:
