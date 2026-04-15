@@ -1129,6 +1129,8 @@ set -uo pipefail
     # Typed comment block marker (e.g. "# fn: function_name")
     RGX_BLOCK_MARKER='^[[:space:]]*#[[:space:]]*(fn|var|doc|tmp):[[:space:]](.*)$'
 
+    RGX_COMMENT_SECTION='^[[:space:]]*#[[:space:]]*([A-Za-z][A-Za-z[:space:]-]*):[[:space:]]*$'
+
     # Current section tracking
     _parsing_header=0
     _parsing_block=0
@@ -1573,16 +1575,34 @@ set -uo pipefail
             return 0
         }
 
-        # Detect typed block --------------------------------------------------
+        # Detect typed block -------------------------------------------------
         _block_start_detector "$line" "$file" "$linenr" && return 0
         
+        # Detect block end --------------------------------------------------
         _block_end_detector "$line" && {
             _parsing_block=0
             _parsing_block_type=""
             _parsing_block_name=""
+
+            _current_comment_section=""
+            _current_comment_paragraph=0
             return 0
         }   
 
+        # Detect comment section header --------------------------------------
+        if (( _parsing_block )) && [[ "$line" =~ $RGX_COMMENT_SECTION ]]; then
+            local section_name="${BASH_REMATCH[1]}"
+
+            # Trim whitespace
+            section_name="${section_name#"${section_name%%[![:space:]]*}"}"
+            section_name="${section_name%"${section_name##*[![:space:]]}"}"
+
+            _current_comment_section="$section_name"
+            _current_comment_paragraph=1
+
+            sayinfo "Comment section: $_current_comment_section (line $linenr)"
+            return 0
+        fi
     }      
 
 
