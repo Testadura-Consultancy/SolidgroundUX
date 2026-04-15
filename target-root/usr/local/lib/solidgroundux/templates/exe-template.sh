@@ -244,7 +244,7 @@ set -uo pipefail
     SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
 
 # - Script metadata (framework integration) -----------------------------------------
-    # SGND_USING
+    # var: SGND_USING
         # Libraries to source from SGND_COMMON_LIB.
         # These are loaded automatically by sgnd_bootstrap AFTER core libraries.
         #

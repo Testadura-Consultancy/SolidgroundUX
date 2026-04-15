@@ -41,8 +41,8 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # ==================================================================================
 set -uo pipefail
-# --- Library guard ------------------------------------------------------------------
-    # _sgnd_lib_guard
+# - Library guard ------------------------------------------------------------------
+    # tmp: _sgnd_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
         #
@@ -84,12 +84,12 @@ set -uo pipefail
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
-# --- Internal helpers -------------------------------------------------------------
+# - Internal helpers -------------------------------------------------------------
     # Naming:
     #   - Prefix internal-only helpers with "_" (never "sgnd_")
     # Example:
     #   __<libname>_helper() { :; }
-# --- Public API -------------------------------------------------------------------
+# - Public API -------------------------------------------------------------------
     # Naming:
     #   - Prefix public functions with "sgnd_" (never "_")
     # Example:

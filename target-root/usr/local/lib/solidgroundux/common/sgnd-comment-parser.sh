@@ -14,7 +14,7 @@
 #   Provides parsing and update utilities for structured script header comments
 #   used throughout the SolidgroundUX framework.
 #
-#   The library:
+#  The library:
 #     - Detects and reads canonical header sections
 #     - Extracts field/value pairs from structured comment blocks
 #     - Loads header data into sgnd-datatable structures
@@ -1118,12 +1118,26 @@ set -uo pipefail
         #   [[:space:]] : at least one whitespace character
         #   $           : end of line
     RGX_HEADER_MARKER='^\#[[:space:]]*=+[[:space:]]*$'
+    
+    RGX_HDR_START='^[[:space:]]*#[[:space:]]*Description:[[:space:]]*$'
+    RGX_HDR_END='^[[:space:]]*#[[:space:]]*Attribution:[[:space:]]*$'
+
     # Comment field marker line (e.g. "# Field : Value")
     RGX_COMMENT_FIELD='^\#[[:space:]]*([A-Za-z]+)[[:space:]]*:[[:space:]]*(.*)$'
     # Comment section marker (e.g. "# --- SectionName")
-    RGX_SECTION_HEADER='^#[[:space:]]*(---|--|-)[[:space:]](.*[^[:space:]-])[[:space:]-]*$'
+    RGX_SECTION_MARKER='^[[:space:]]*# (---|--|-) (.*[^[:space:]-])[[:space:]-]*$'
+    # Typed comment block marker (e.g. "# fn: function_name")
+    RGX_BLOCK_MARKER='^[[:space:]]*#[[:space:]]*(fn|var|doc|tmp):[[:space:]](.*)$'
 
     # Current section tracking
+    _parsing_header=0
+    _parsing_block=0
+    _parsing_block_type=""
+    _parsing_block_name=""
+
+    _line_nr=0
+    _line_parse_index=0
+    
     _current_section="maindoc"
     _current_parentsection=""
     _current_grandparentsection=""
@@ -1195,7 +1209,7 @@ set -uo pipefail
         local marker=""
         local title=""
 
-        [[ "$line" =~ $RGX_SECTION_HEADER ]] || return 1
+        [[ "$line" =~ $RGX_SECTION_MARKER ]] || return 1
 
         marker="${BASH_REMATCH[1]}"
         title="${BASH_REMATCH[2]}"
@@ -1247,27 +1261,11 @@ set -uo pipefail
 
             ---)
                 # Third-level section
-                case "${_current_section_level:-0}" in
-                    1)
-                        # Coming straight from level 1:
-                        # current section becomes parent, maindoc becomes grandparent.
-                        _current_grandparentsection="maindoc"
-                        _current_parentsection="$_current_section"
-                        ;;
-                    2|3)
-                        # Coming from level 2 or staying on level 3:
-                        # current parent becomes grandparent, current section becomes parent.
-                        _current_grandparentsection="$_current_parentsection"
-                        _current_parentsection="$_current_section"
-                        ;;
-                    *)
-                        # No prior section context:
-                        # treat as nested under maindoc.
-                        _current_grandparentsection=""
-                        _current_parentsection="maindoc"
-                        ;;
-                esac
+                # Only valid directly under an existing level-2 section.
+                [[ "${_current_section_level:-0}" -eq 2 ]] || return 1
 
+                _current_grandparentsection="$_current_parentsection"
+                _current_parentsection="$_current_section"
                 _current_section="$title"
                 _current_section_level=3
                 ;;
@@ -1276,7 +1274,10 @@ set -uo pipefail
                 return 1
                 ;;
         esac
-
+        
+        _parsing_block=1
+        _parsing_block_type="sec"
+        
         return 0
     }
 
@@ -1337,7 +1338,150 @@ set -uo pipefail
 
         return 0
     }
-    
+
+    # fn: _block_start_detector
+        # Purpose:
+        #   Detect whether a line starts a structured documentation block marker.
+        #
+        # Behavior:
+        #   - Matches block markers of the form:
+        #       # fn: <name>
+        #       # var: <name>
+        #       # doc: <name>
+        #       # tmp: <name>
+        #   - Allows indentation before the comment marker.
+        #   - Allows optional spacing between '#' and the block type.
+        #   - Requires exactly one space after ':'.
+        #   - Extracts the block type and block name from the marker line.
+        #   - Normalizes the extracted block name by trimming surrounding whitespace.
+        #
+        # Arguments:
+        #   $1  LINE
+        #
+        # Outputs (globals):
+        #   _parsing_block_type
+        #   _parsing_block_name
+        #
+        # Returns:
+        #   0 if a block marker was detected and parsed.
+        #   1 otherwise.
+        #
+        # Usage:
+        #   _block_start_detector "$line"
+        #
+        # Examples:
+        #   _block_start_detector "# fn: my_function"
+        #   _block_start_detector "    # var: MY_VALUE"
+    _block_start_detector() {
+        local line="$1"
+        local file="${2:-}"
+        local linenr="${3:-}"
+        local block_type_code=""
+        local block_name=""
+
+        if [[ "$line" =~ $RGX_BLOCK_MARKER ]]; then
+            block_type_code="${BASH_REMATCH[1]}"
+            block_name="${BASH_REMATCH[2]}"
+
+            case "$block_type_code" in
+                fn|var|doc|tmp)
+                    _parsing_block_type="$block_type_code"
+                    ;;
+                *)
+                    return 1
+                    ;;
+            esac
+
+            # trim leading whitespace
+            block_name="${block_name#"${block_name%%[![:space:]]*}"}"
+            # trim trailing whitespace
+            block_name="${block_name%"${block_name##*[![:space:]]}"}"
+            _parsing_block_name="$block_name"
+
+            sayinfo "Detected block begin: type=$_parsing_block_type, name=$_parsing_block_name at line $linenr"
+
+            return 0
+        fi
+
+        return 1
+    }
+
+    # fn: _block_end_detector
+        # Purpose:
+        #   Detect whether the current structured documentation block ends on the given line.
+        #
+        # Behavior:
+        #   - Ends any active block on a completely empty line.
+        #   - Ends fn blocks when the matching function declaration is encountered.
+        #   - Ends var blocks when the matching variable assignment is encountered.
+        #   - Leaves doc and tmp blocks to end only on an empty line.
+        #
+        # Arguments:
+        #   $1  LINE
+        #
+        # Inputs (globals):
+        #   _parsing_block_type
+        #   _parsing_block_name
+        #
+        # Returns:
+        #   0 if the current block ends on this line.
+        #   1 otherwise.
+        #
+        # Usage:
+        #   _block_end_detector "$line"
+        #
+        # Examples:
+        #   _block_end_detector "my_function() {"
+        #   _block_end_detector "MY_VAR=value"
+        #   _block_end_detector ""
+    _block_end_detector() {
+        local line="$1"
+        local name=""
+
+        name="${_parsing_block_name:-}"
+        [[ -n "${_parsing_block_type:-}" ]] || return 1
+
+        # -- Any completely empty line ends the current block
+        [[ "$line" =~ ^[[:space:]]*$ ]] && return 0
+
+        case "$_parsing_block_type" in
+            fn|tmp)
+                # Match:
+                #   my_function()
+                #   my_function () 
+                #   my_function() {
+                #   my_function () {
+                [[ "$line" =~ ^[[:space:]]*${name}[[:space:]]*\(\)[[:space:]]*(\{|$) ]] && {
+                    sayinfo "Detected end of block type=$_parsing_block_type, name=$_parsing_block_name at line $linenr"
+                    return 0
+                }
+                ;;
+
+            var)
+                # Match:
+                #   my_var=
+                #   my_var =
+                #   my_var=123
+                #   my_var ="x"
+                [[ "$line" =~ ^[[:space:]]*${name}[[:space:]]*= ]] && {
+                    
+                    sayinfo "Detected end of block type=$_parsing_block_type, name=$_parsing_block_name at line $linenr"
+                    return 0
+                }
+                ;;
+
+            doc|tmp)
+                return 1
+                ;;
+
+            *)
+                return 1
+                ;;
+        esac
+
+        return 1
+    }
+
     # fn: sgnd_parse_module_line
         # Purpose:
         #   Process one source line and detect structural markers for documentation parsing.
@@ -1372,7 +1516,26 @@ set -uo pipefail
         # Detect start of module header ----------------------------------------
         if (( !_parsing_header )) && [[ "$line" =~ $RGX_HEADER_MARKER ]]; then
             _parsing_header=1
+            _parsing_block_type="header"
             sayinfo "Detected header start at line $linenr in $file"
+            return 0
+        fi
+
+        # Detect header block start
+        if (( _parsing_header )) && [[ "$line" =~ $RGX_HDR_START ]]; then
+            _parsing_block=1
+            _parsing_block_type="hdr"
+            _parsing_block_name="header"
+            sayinfo "Detected hdr block start at line $linenr"
+            return 0
+        fi
+
+        # Detect header block end
+        if (( _parsing_header )) && [[ "$line" =~ $RGX_HDR_END ]]; then
+            _parsing_block=0
+            _parsing_block_type=""
+            _parsing_block_name="header"
+            sayinfo "Detected hdr block end at line $linenr"
             return 0
         fi
 
@@ -1388,6 +1551,7 @@ set -uo pipefail
         # Detect end of module header ------------------------------------------
         if (( _parsing_header )) && [[ "$line" =~ $RGX_HEADER_MARKER ]]; then
             _parsing_header=0
+            _parsing_block_type=""
             sayinfo "Detected header end at line $linenr in $file"
             return 0
         fi
@@ -1397,11 +1561,27 @@ set -uo pipefail
             _assemble_module_metadata "$line" && return 0
         fi
 
-        # Detect section -------------------------------------------------------
-        sgnd_get_current_section "$line" && {
+        # Detect section start ------------------------------------------------
+        sgnd_get_current_section "$line" && 
+        {
             sayinfo "Section level $_current_section_level: $_current_section (parent: $_current_parentsection, grandparent: $_current_grandparentsection) at line $linenr"
+
+            _parsing_block=1
+            _parsing_block_type="sec"
+            _parsing_block_name="$_current_section"
+            sayinfo "Detected section start: $_current_section at line $linenr"
             return 0
         }
+
+        # Detect typed block --------------------------------------------------
+        _block_start_detector "$line" "$file" "$linenr" && return 0
+        
+        _block_end_detector "$line" && {
+            _parsing_block=0
+            _parsing_block_type=""
+            _parsing_block_name=""
+            return 0
+        }   
 
     }      
 

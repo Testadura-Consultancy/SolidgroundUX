@@ -409,12 +409,6 @@ set -uo pipefail
     MODULE_ITEMS=()
 
 # -- State variables for parsing
-    _parsing_header=0
-
-    _line_nr=0
-    _line_parse_index=0
-
-
     # Module data
     SGND_HEADER_FIELDS=(
         version
