@@ -87,8 +87,8 @@ set -uo pipefail
     _sgnd_lib_guard
     unset -f _sgnd_lib_guard
 
-# - Public API ---------------------------------------------------------------------   
-# -- Local definitions for comment parsing -----------------------------------------
+ 
+# - Local definitions for comment parsing ------------------------------------------
     # Comment header marker line (e.g. "# ======")
         # =~ regex explanation:
         #   ^           : start of line
@@ -125,7 +125,73 @@ set -uo pipefail
     _current_grandparentsection=""
     _current_section_level=0 # 0 = maindoc, 1 = first-level section, etc.
 
- 
+# - Local helpers
+    # fn: _init_module_metadata
+        # Purpose:
+        #   Initialize parsed metadata variables for a new source file.
+        #
+        # Behavior:
+        #   - Resets all parsed header field variables listed in SGND_HEADER_FIELDS
+        #   - Initializes checksum to "none"
+        #   - Initializes all other parsed fields to an empty string
+        #
+        # Outputs (globals):
+        #   _parsed_<field>
+        #
+        # Returns:
+        #   0
+        #
+        # Usage:
+        #   _init_module_metadata
+        #
+        # Examples:
+        #   _init_module_metadata
+    _init_module_metadata() {
+        local field
+
+        for field in "${SGND_HEADER_FIELDS[@]}"; do
+            if [[ "$field" == "checksum" ]]; then
+                printf -v "module_${field}" '%s' "none"
+            else
+                printf -v "module_${field}" '%s' ""
+            fi
+        done
+    }
+
+    # fn: _assemble_module_metadata
+        # Purpose:
+        #   Parse known metadata fields from one header line.
+        #
+        # Arguments:
+        #   $1  LINE
+        #
+        # Returns:
+        #   0
+        #
+        # Usage:
+        #   _assemble_module_metadata "$line"
+    _assemble_module_metadata() {
+        local line="$1"
+        local field
+        local var_name
+        local var_value
+
+        for field in "${SGND_HEADER_FIELDS[@]}"; do
+            sgnd_get_comment_fieldvalue "$line" "$field" "module" || continue
+
+            # Report
+            var_name="module_${field}"
+            var_value="${!var_name-}"
+            sayinfo "Parsed metadata: ${field} = ${var_value}"
+            
+            return 0
+        done
+
+        # If no fields matched, just return without error (not all lines will contain metadata)
+        return 1
+    }
+
+# - Public API -------------------------------------------------------------------   
     # fn: sgnd_get_comment_fieldvalue
         # Purpose:
         #   Parse a canonical comment field line and assign the value to a prefixed variable.
