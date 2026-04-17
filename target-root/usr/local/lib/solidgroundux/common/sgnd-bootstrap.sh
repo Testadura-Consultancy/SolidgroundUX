@@ -198,7 +198,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Resolves SGND_BOOTSTRAP_DIR from the current file location.
-        #   - Sources sgnd-comment-parser.sh and sgnd-bootstrap-env.sh.
+        #   - Sources sgnd-comment-header-parser.sh and sgnd-bootstrap-env.sh.
         #   - Initializes bootstrap-related module metadata once header parsing is available.
         #   - Initializes executable metadata for the calling script.
         #   - Applies default framework values.
@@ -226,13 +226,13 @@ set -uo pipefail
         SGND_BOOTSTRAP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
         
         # shellcheck source=/dev/null
-        source "$SGND_BOOTSTRAP_DIR/sgnd-comment-parser.sh"
+        source "$SGND_BOOTSTRAP_DIR/sgnd-comment-header-parser.sh"
         source "$SGND_BOOTSTRAP_DIR/sgnd-bootstrap-env.sh"
 
         # Core modules cannot self-initialize metadata during early source phase.
         # Initialize them here once header parsing helpers are available.     
         sgnd_module_init_metadata "$SGND_BOOTSTRAP_DIR/sgnd-bootstrap.sh"
-        sgnd_module_init_metadata "$SGND_BOOTSTRAP_DIR/sgnd-comment-parser.sh"
+        sgnd_module_init_metadata "$SGND_BOOTSTRAP_DIR/sgnd-comment-header-parser.sh"
         sgnd_module_init_metadata "$SGND_BOOTSTRAP_DIR/sgnd-bootstrap-env.sh"
 
         sgnd_script_init_metadata

@@ -278,7 +278,7 @@ set -uo pipefail
         # Libraries to source from SGND_COMMON_LIB.
         # These are loaded automatically by sgnd_bootstrap AFTER core libraries.
     SGND_USING=(
-        sgnd-comment-parser.sh
+        sgnd-comment-header-parser.sh
         sgnd-datatable.sh
     )
 

@@ -258,6 +258,7 @@ set -uo pipefail
         # Leave empty if no extra libs are needed.
     SGND_USING=(
             sgnd-comment-parser.sh
+            sgnd-comment-header-parser.sh
     )
 
     # SGND_ARGS_SPEC 
