@@ -259,6 +259,7 @@ set -uo pipefail
     SGND_USING=(
             sgnd-comment-parser.sh
             sgnd-comment-header-parser.sh
+            sgnd-datatable.sh
     )
 
     # SGND_ARGS_SPEC 
@@ -392,42 +393,8 @@ set -uo pipefail
         #   2) call sgnd_bootstrap --state
     SGND_STATE_SAVE=1
 
-# - Local script Declarations -------------------------------------------------------
-# -- Datamodel
-    MODULE_META_SCHEMA="file|product|title|type|group|purpose"
-    MODULE_META=()
-
-    MODULE_INFO_SCHEMA="file|version|build|checksum|developers|company|client|copyright|license"
-    MODULE_INFO=()
-
-    SOURCE_SECTIONS_SCHEMA="file|parent|section|comments"
-    SOURCE_SECTIONS=()
-
-    MODULE_HEADER_SCHEMA="file|linenr|section|paragraph|content"
-    MODULE_HEADER=()
-    
-    MODULE_ITEMS_SCHEMA="file|linenr|access|type|section|paragraph|name|content"
-    MODULE_ITEMS=()
-
-# -- State variables for parsing
-    # Module data
-    SGND_HEADER_FIELDS=(
-        version
-        build
-        checksum
-        type
-        group
-        purpose
-        developers
-        company
-        client
-        copyright
-        license
-    )
-
 
 # - Local script functions ----------------------------------------------------------
-# -- Main sequence functions 
     # fn: _init_parameters
         # Purpose:
         #   Initialize parameter variables from defaults when still unset.
@@ -756,6 +723,11 @@ set -uo pipefail
         fi
 
         _iterate_files "$VAL_SRCDIR" "$VAL_FILESPEC" "$FLAG_RECURSIVE_SCAN" sgnd_parse_module_file
+
+        sgnd_dt_print_table $MODULE_TABLE_SCHEMA MODULE_TABLE
+        sgnd_dt_print_table $DOC_SECTIONS_SCHEMA DOC_SECTIONS
+        sgnd_dt_print_table $DOC_ITEMS_SCHEMA DOC_ITEMS
+        sgnd_dt_print_table $DOC_CONTENT_SCHEMA DOC_CONTENT
     }
 
     # Entrypoint: sgnd_bootstrap will split framework args from script args.
