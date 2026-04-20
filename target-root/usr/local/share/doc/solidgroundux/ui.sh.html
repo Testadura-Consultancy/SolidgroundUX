@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UI Rendering</title>
+<style>
+body { font-family: Arial, Helvetica, sans-serif; margin: 2rem auto; max-width: 1100px; line-height: 1.45; color: #222; }
+a { color: #0a58ca; text-decoration: none; }
+a:hover { text-decoration: underline; }
+header, main, nav, section, article { display: block; }
+.site-header { border-bottom: 1px solid #ddd; margin-bottom: 1.5rem; padding-bottom: 0.75rem; }
+.meta-block, .attr-block, .toc-block, .glossary-block { background: #f7f7f8; border: 1px solid #e2e2e2; padding: 0.9rem 1rem; margin: 1rem 0; }
+.meta-block p, .attr-block p { margin: 0.2rem 0; }
+.chapter-title { margin-bottom: 0.2rem; }
+.section-block { margin-top: 2rem; }
+.section-title { border-bottom: 1px solid #e1e1e1; padding-bottom: 0.2rem; }
+.item-block { margin: 1rem 0 1.2rem 1rem; padding-left: 1rem; border-left: 3px solid #e1e1e1; }
+.item-header { margin-bottom: 0.35rem; }
+.item-type { font-weight: 700; text-transform: uppercase; font-size: 0.8rem; color: #666; margin-right: 0.45rem; }
+.item-access-private { color: #8b0000; }
+.item-access-public { color: #006400; }
+.content-comment-section { font-weight: 700; margin-top: 0.8rem; }
+.content-body { margin: 0.25rem 0; white-space: pre-wrap; }
+.content-empty { height: 0.4rem; }
+.toc-block ul, .glossary-block ul { margin: 0.35rem 0 0 1.25rem; }
+.toc-block li, .glossary-block li { margin: 0.15rem 0; }
+.small-note { color: #666; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<header class="site-header">
+<p class="small-note">Chapter 32</p>
+<h1 class="chapter-title">UI Rendering</h1>
+<p class="small-note">ui.sh</p>
+</header>
+<main>
+<section class="meta-block">
+<strong>Metadata</strong>
+<p><strong>Script:</strong> ui.sh</p>
+<p><strong>Purpose:</strong> Provide terminal rendering utilities for styled console output</p>
+<p><strong>Version:</strong> 1.1</p>
+<p><strong>Type:</strong> library</p>
+<p><strong>Group:</strong> UI</p>
+</section>
+<section class="attr-block">
+<strong>Attribution</strong>
+<p><strong>Developers:</strong> Mark Fieten</p>
+<p><strong>Company:</strong> Testadura Consultancy</p>
+<p><strong>Copyright:</strong> © 2025 Mark Fieten — Testadura Consultancy</p>
+<p><strong>License:</strong> Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.</p>
+</section>
+<nav class="toc-block">
+<strong>Contents</strong>
+<ul>
+<li><a href="#section-public-helpers">0.1 Public helpers</a>
+<ul>
+</ul>
+</li>
+<li><a href="#section-theme-loading">0.2 Theme loading</a>
+<ul>
+</ul>
+</li>
+<li><a href="#section-resolve-palette-style">0.2.1 resolve palette/style</a>
+<ul>
+</ul>
+</li>
+<li><a href="#section-styling-helpers">0.3 Styling helpers</a>
+<ul>
+</ul>
+</li>
+<li><a href="#section-runmode-indicators">0.4 Runmode indicators</a>
+<ul>
+</ul>
+</li>
+<li><a href="#section-rendering-primitives">0.5 Rendering primitives</a>
+<ul>
+</ul>
+</li>
+<li><a href="#section-parse-options">0.5.1 Parse options</a>
+<ul>
+</ul>
+</li>
+<li><a href="#section-parse-options">0.5.1 Parse options</a>
+<ul>
+</ul>
+</li>
+<li><a href="#section-numeric-safety">0.7 Numeric safety</a>
+<ul>
+</ul>
+</li>
+<li><a href="#section-parse-options">0.5.1 Parse options</a>
+<ul>
+</ul>
+</li>
+<li><a href="#section-numeric-safety">0.7 Numeric safety</a>
+<ul>
+</ul>
+</li>
+<li><a href="#section-assemble-line-plain-parts-first-add-color-last">0.10 Assemble line (PLAIN parts first; add color last)</a>
+<ul>
+</ul>
+</li>
+<li><a href="#section-parse-options">0.5.1 Parse options</a>
+<ul>
+</ul>
+</li>
+<li><a href="#section-externals">0.11 Externals</a>
+<ul>
+</ul>
+</li>
+<li><a href="#section-sample-demo-renderers">0.12 Sample/demo renderers</a>
+<ul>
+</ul>
+</li>
+</ul>
+</nav>
+<section class="glossary-block">
+<strong>Function glossary</strong>
+<ul>
+</ul>
+</section>
+<section class="section-block" id="section-public-helpers">
+<h3 class="section-title">0.1 Public helpers</h3>
+</section>
+<section class="section-block" id="section-theme-loading">
+<h3 class="section-title">0.2 Theme loading</h3>
+</section>
+<section class="section-block" id="section-resolve-palette-style">
+<h4 class="section-title">0.2.1 resolve palette/style</h4>
+</section>
+<section class="section-block" id="section-styling-helpers">
+<h3 class="section-title">0.3 Styling helpers</h3>
+</section>
+<section class="section-block" id="section-runmode-indicators">
+<h3 class="section-title">0.4 Runmode indicators</h3>
+</section>
+<section class="section-block" id="section-rendering-primitives">
+<h3 class="section-title">0.5 Rendering primitives</h3>
+</section>
+<section class="section-block" id="section-parse-options">
+<h4 class="section-title">0.5.1 Parse options</h4>
+</section>
+<section class="section-block" id="section-parse-options">
+<h3 class="section-title">0.5.1 Parse options</h3>
+</section>
+<section class="section-block" id="section-numeric-safety">
+<h3 class="section-title">0.7 Numeric safety</h3>
+</section>
+<section class="section-block" id="section-parse-options">
+<h3 class="section-title">0.5.1 Parse options</h3>
+</section>
+<section class="section-block" id="section-numeric-safety">
+<h3 class="section-title">0.7 Numeric safety</h3>
+</section>
+<section class="section-block" id="section-assemble-line-plain-parts-first-add-color-last">
+<h3 class="section-title">0.10 Assemble line (PLAIN parts first; add color last)</h3>
+</section>
+<section class="section-block" id="section-parse-options">
+<h4 class="section-title">0.5.1 Parse options</h4>
+</section>
+<section class="section-block" id="section-externals">
+<h3 class="section-title">0.11 Externals</h3>
+</section>
+<section class="section-block" id="section-sample-demo-renderers">
+<h3 class="section-title">0.12 Sample/demo renderers</h3>
+</section>
+</main>
+</body>
+</html>

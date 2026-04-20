@@ -259,6 +259,7 @@ set -uo pipefail
     SGND_USING=(
             sgnd-comment-parser.sh
             sgnd-comment-header-parser.sh
+            doc-renderer.sh
             sgnd-datatable.sh
     )
 
@@ -724,10 +725,12 @@ set -uo pipefail
 
         _iterate_files "$VAL_SRCDIR" "$VAL_FILESPEC" "$FLAG_RECURSIVE_SCAN" sgnd_parse_module_file
 
-        sgnd_dt_print_table $MODULE_TABLE_SCHEMA MODULE_TABLE
-        sgnd_dt_print_table $DOC_SECTIONS_SCHEMA DOC_SECTIONS
-        sgnd_dt_print_table $DOC_ITEMS_SCHEMA DOC_ITEMS
-        sgnd_dt_print_table $DOC_CONTENT_SCHEMA DOC_CONTENT
+        #sgnd_dt_print_table $MODULE_TABLE_SCHEMA MODULE_TABLE
+        #sgnd_dt_print_table $DOC_SECTIONS_SCHEMA DOC_SECTIONS
+        #sgnd_dt_print_table $DOC_ITEMS_SCHEMA DOC_ITEMS
+        #sgnd_dt_print_table $DOC_CONTENT_SCHEMA DOC_CONTENT
+        
+        sgnd_doc_render_site "$VAL_OUTDIR"
     }
 
     # Entrypoint: sgnd_bootstrap will split framework args from script args.

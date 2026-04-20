@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deploy Workspace</title>
+<style>
+body { font-family: Arial, Helvetica, sans-serif; margin: 2rem auto; max-width: 1100px; line-height: 1.45; color: #222; }
+a { color: #0a58ca; text-decoration: none; }
+a:hover { text-decoration: underline; }
+header, main, nav, section, article { display: block; }
+.site-header { border-bottom: 1px solid #ddd; margin-bottom: 1.5rem; padding-bottom: 0.75rem; }
+.meta-block, .attr-block, .toc-block, .glossary-block { background: #f7f7f8; border: 1px solid #e2e2e2; padding: 0.9rem 1rem; margin: 1rem 0; }
+.meta-block p, .attr-block p { margin: 0.2rem 0; }
+.chapter-title { margin-bottom: 0.2rem; }
+.section-block { margin-top: 2rem; }
+.section-title { border-bottom: 1px solid #e1e1e1; padding-bottom: 0.2rem; }
+.item-block { margin: 1rem 0 1.2rem 1rem; padding-left: 1rem; border-left: 3px solid #e1e1e1; }
+.item-header { margin-bottom: 0.35rem; }
+.item-type { font-weight: 700; text-transform: uppercase; font-size: 0.8rem; color: #666; margin-right: 0.45rem; }
+.item-access-private { color: #8b0000; }
+.item-access-public { color: #006400; }
+.content-comment-section { font-weight: 700; margin-top: 0.8rem; }
+.content-body { margin: 0.25rem 0; white-space: pre-wrap; }
+.content-empty { height: 0.4rem; }
+.toc-block ul, .glossary-block ul { margin: 0.35rem 0 0 1.25rem; }
+.toc-block li, .glossary-block li { margin: 0.15rem 0; }
+.small-note { color: #666; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<header class="site-header">
+<p class="small-note">Chapter 8</p>
+<h1 class="chapter-title">Deploy Workspace</h1>
+<p class="small-note">deploy-workspace.sh</p>
+</header>
+<main>
+<section class="meta-block">
+<strong>Metadata</strong>
+<p><strong>Script:</strong> deploy-workspace.sh</p>
+<p><strong>Purpose:</strong> Deploy or remove a development workspace to or from a target root</p>
+<p><strong>Version:</strong> 1.1</p>
+<p><strong>Type:</strong> script</p>
+<p><strong>Group:</strong> Developer Tools</p>
+</section>
+<section class="attr-block">
+<strong>Attribution</strong>
+<p><strong>Developers:</strong> Mark Fieten</p>
+<p><strong>Company:</strong> Testadura Consultancy</p>
+<p><strong>Copyright:</strong> © 2025 Mark Fieten — Testadura Consultancy</p>
+<p><strong>License:</strong> Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.</p>
+</section>
+<nav class="toc-block">
+<strong>Contents</strong>
+<ul>
+<li><a href="#section-manifests">0.1 Manifests</a>
+<ul>
+</ul>
+</li>
+<li><a href="#section-main-sequence">0.2 Main sequence</a>
+<ul>
+<li><a href="#item-_perm_resolve">0.2.1 fn: _perm_resolve</a></li>
+<li><a href="#item-_update_lastdeployinfo">0.2.2 fn: _update_lastdeployinfo</a></li>
+<li><a href="#item-_getparameters">0.2.3 fn: _getparameters</a></li>
+</ul>
+</li>
+<li><a href="#section-auto-mode">0.2.1 Auto mode</a>
+<ul>
+<li><a href="#item-_deploy">0.2.1.1 fn: _deploy</a></li>
+<li><a href="#item-_undeploy">0.2.1.2 fn: _undeploy</a></li>
+<li><a href="#item-main">0.2.1.3 fn: main</a></li>
+</ul>
+</li>
+<li><a href="#section-bootstrap">0.3 Bootstrap</a>
+<ul>
+</ul>
+</li>
+<li><a href="#section-handle-builtin-arguments">0.4 Handle builtin arguments</a>
+<ul>
+</ul>
+</li>
+<li><a href="#section-ui">0.5 UI</a>
+<ul>
+</ul>
+</li>
+<li><a href="#section-main-script-logic">0.6 Main script logic</a>
+<ul>
+</ul>
+</li>
+</ul>
+</nav>
+<section class="glossary-block">
+<strong>Function glossary</strong>
+<ul>
+<li><a href="#item-_deploy"><strong>_deploy</strong></a> —   Deploy workspace files from SRC_ROOT into DEST_ROOT. <span class="small-note">[private]</span></li>
+<li><a href="#item-_getparameters"><strong>_getparameters</strong></a> —   Collect deployment parameters (source and target roots). <span class="small-note">[private]</span></li>
+<li><a href="#item-main"><strong>main</strong></a> —   Execute the workspace deployment workflow. <span class="small-note">[public]</span></li>
+<li><a href="#item-_perm_resolve"><strong>_perm_resolve</strong></a> —   Resolve the effective permission mode for a given path based on PERMISSION_RULES. <span class="small-note">[private]</span></li>
+<li><a href="#item-_undeploy"><strong>_undeploy</strong></a> —   Remove previously deployed files and directories using a manifest. <span class="small-note">[private]</span></li>
+<li><a href="#item-_update_lastdeployinfo"><strong>_update_lastdeployinfo</strong></a> —   Persist metadata of the last deployment run for reuse (e.g. auto mode). <span class="small-note">[private]</span></li>
+</ul>
+</section>
+<section class="section-block" id="section-manifests">
+<h3 class="section-title">0.1 Manifests</h3>
+</section>
+<section class="section-block" id="section-main-sequence">
+<h3 class="section-title">0.2 Main sequence</h3>
+<article class="item-block" id="item-_perm_resolve">
+<div class="item-header"><span class="item-type">fn</span><strong>0.2.1 _perm_resolve</strong> <span class="item-access-private">[private]</span></div>
+<div class="content-comment-section">Purpose:</div>
+<p class="content-body">  Resolve the effective permission mode for a given path based on PERMISSION_RULES.</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Arguments:</div>
+<p class="content-body">  $1  abs_rel   Absolute path relative to root (e.g. "quot;/usr/local/bin/foo"quot;)</p>
+<p class="content-body">  $2  kind      "quot;file"quot; or "quot;dir"quot;</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Behavior:</div>
+<p class="content-body">  - Applies longest-prefix match against PERMISSION_RULES</p>
+<p class="content-body">  - Returns file_mode or dir_mode depending on kind</p>
+<p class="content-body">  - Falls back to defaults when no rule matches</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Output:</div>
+<p class="content-body">  Prints the resolved mode to stdout (no newline)</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Returns:</div>
+<p class="content-body">  0 always</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Defaults:</div>
+<p class="content-body">  file → 644</p>
+<p class="content-body">  dir  → 755</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Usage:</div>
+<p class="content-body">  mode="quot;$(_perm_resolve "quot;/usr/local/bin/foo"quot; "quot;file"quot;)"quot;</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Examples:</div>
+<p class="content-body">  dir_mode="quot;$(_perm_resolve "quot;/usr/local/bin"quot; "quot;dir"quot;)"quot;</p>
+</article>
+<article class="item-block" id="item-_update_lastdeployinfo">
+<div class="item-header"><span class="item-type">fn</span><strong>0.2.2 _update_lastdeployinfo</strong> <span class="item-access-private">[private]</span></div>
+<div class="content-comment-section">Purpose:</div>
+<p class="content-body">  Persist metadata of the last deployment run for reuse (e.g. auto mode).</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Behavior:</div>
+<p class="content-body">  - Stores timestamp, source, and target in state for later reuse</p>
+<p class="content-body">  - Skips writes when FLAG_DRYRUN is enabled</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Writes:</div>
+<p class="content-body">  last_deploy_run</p>
+<p class="content-body">  last_deploy_source</p>
+<p class="content-body">  last_deploy_target</p>
+<div class="content-empty"></div>
+<p class="content-body">Inputs (globals):</p>
+<p class="content-body">  SRC_ROOT</p>
+<p class="content-body">  DEST_ROOT</p>
+<p class="content-body">  FLAG_DRYRUN</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Returns:</div>
+<p class="content-body">  0 on success</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Usage:</div>
+<p class="content-body">  _update_lastdeployinfo</p>
+</article>
+<article class="item-block" id="item-_getparameters">
+<div class="item-header"><span class="item-type">fn</span><strong>0.2.3 _getparameters</strong> <span class="item-access-private">[private]</span></div>
+<div class="content-comment-section">Purpose:</div>
+<p class="content-body">  Collect deployment parameters (source and target roots).</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Behavior:</div>
+<p class="content-body">  - Auto mode:</p>
+<p class="content-body">      Uses last deployment settings when available</p>
+<p class="content-body">  - Interactive mode:</p>
+<p class="content-body">      Prompts for SRC_ROOT and DEST_ROOT</p>
+<p class="content-body">      Validates SRC_ROOT structure (advisory only)</p>
+<p class="content-body">      Asks for confirmation (OK/Redo/Quit)</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Validation:</div>
+<p class="content-body">  - SRC_ROOT is considered valid if it contains "quot;etc/"quot; or "quot;usr/"quot;</p>
+<p class="content-body">  - Validation is advisory only (does not block execution)</p>
+<div class="content-empty"></div>
+<p class="content-body">Outputs (globals):</p>
+<p class="content-body">  SRC_ROOT</p>
+<p class="content-body">  DEST_ROOT</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Returns:</div>
+<p class="content-body">  0 → confirmed</p>
+<p class="content-body">  1 → aborted</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Usage:</div>
+<p class="content-body">  _getparameters ; return $?</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Notes:</div>
+<p class="content-body">  - Uses ask and ask_ok_redo_quit</p>
+</article>
+</section>
+<section class="section-block" id="section-auto-mode">
+<h4 class="section-title">0.2.1 Auto mode</h4>
+<article class="item-block" id="item-_deploy">
+<div class="item-header"><span class="item-type">fn</span><strong>0.2.1.1 _deploy</strong> <span class="item-access-private">[private]</span></div>
+<div class="content-comment-section">Purpose:</div>
+<p class="content-body">  Deploy workspace files from SRC_ROOT into DEST_ROOT.</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Behavior:</div>
+<p class="content-body">  - Recursively processes files under SRC_ROOT</p>
+<p class="content-body">  - Computes relative path and destination path</p>
+<p class="content-body">  - Skips:</p>
+<p class="content-body">      - top-level files</p>
+<p class="content-body">      - "quot;_"quot; prefixed files</p>
+<p class="content-body">      - "quot;.old"quot; files</p>
+<p class="content-body">      - hidden or "quot;_"quot; directories</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Update logic:</div>
+<p class="content-body">  - Installs when destination is missing or source is newer</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Manifest behavior:</div>
+<p class="content-body">  - Initializes a new manifest at start of deployment</p>
+<p class="content-body">  - Records only files CREATED by this run</p>
+<p class="content-body">  - Records only directories CREATED by this run</p>
+<p class="content-body">  - Updated pre-existing files are not recorded</p>
+<p class="content-body">  - Finalizes manifest only after successful completion</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Permissions:</div>
+<p class="content-body">  - File mode via _perm_resolve(abs_rel,"quot;file"quot;)</p>
+<p class="content-body">  - Directory mode via _perm_resolve(abs_rel,"quot;dir"quot;)</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Dry run:</div>
+<p class="content-body">  - When FLAG_DRYRUN=1, only reports actions</p>
+<div class="content-empty"></div>
+<p class="content-body">Inputs (globals):</p>
+<p class="content-body">  SRC_ROOT</p>
+<p class="content-body">  DEST_ROOT</p>
+<p class="content-body">  FLAG_DRYRUN</p>
+<p class="content-body">  PERMISSION_RULES</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Returns:</div>
+<p class="content-body">  0 on success</p>
+<p class="content-body">  1 on fatal deployment/manifest failure</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Usage:</div>
+<p class="content-body">  _deploy</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Notes:</div>
+<p class="content-body">  - Uses install for atomic writes and permission control</p>
+<p class="content-body">  - Manifest records created artifacts only; it is not full rollback state</p>
+</article>
+<article class="item-block" id="item-_undeploy">
+<div class="item-header"><span class="item-type">fn</span><strong>0.2.1.2 _undeploy</strong> <span class="item-access-private">[private]</span></div>
+<div class="content-comment-section">Purpose:</div>
+<p class="content-body">  Remove previously deployed files and directories using a manifest.</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Behavior:</div>
+<p class="content-body">  - Resolves a manifest for the current SRC_ROOT</p>
+<p class="content-body">  - Uses MANIFEST_NAME when provided</p>
+<p class="content-body">  - Otherwise uses the latest manifest for the source root</p>
+<p class="content-body">  - Removes recorded files first</p>
+<p class="content-body">  - Removes recorded directories afterward in reverse-depth order</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Manifest rules:</div>
+<p class="content-body">  - Only files recorded as created by deploy are removed</p>
+<p class="content-body">  - Only directories recorded as created by deploy are considered</p>
+<p class="content-body">  - Directories are removed only if empty</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Dry run:</div>
+<p class="content-body">  - When FLAG_DRYRUN=1, only reports actions</p>
+<div class="content-empty"></div>
+<p class="content-body">Inputs (globals):</p>
+<p class="content-body">  SRC_ROOT</p>
+<p class="content-body">  DEST_ROOT</p>
+<p class="content-body">  MANIFEST_NAME</p>
+<p class="content-body">  FLAG_DRYRUN</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Returns:</div>
+<p class="content-body">  0 on success</p>
+<p class="content-body">  1 if manifest resolution fails</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Usage:</div>
+<p class="content-body">  _undeploy</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Notes:</div>
+<p class="content-body">  - This is a manifest-based inverse of created artifacts only</p>
+<p class="content-body">  - Updated pre-existing files are not restored or removed</p>
+</article>
+<article class="item-block" id="item-main">
+<div class="item-header"><span class="item-type">fn</span><strong>0.2.1.3 main</strong> <span class="item-access-public">[public]</span></div>
+<div class="content-comment-section">Purpose:</div>
+<p class="content-body">  Execute the workspace deployment workflow.</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Behavior:</div>
+<p class="content-body">  - Loads and initializes the framework bootstrap</p>
+<p class="content-body">  - Handles builtin arguments</p>
+<p class="content-body">  - Displays title bar</p>
+<p class="content-body">  - Collects parameters</p>
+<p class="content-body">  - Executes deploy or undeploy</p>
+<p class="content-body">  - Persists deployment metadata</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Arguments:</div>
+<p class="content-body">  $@  Framework and script-specific arguments</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Returns:</div>
+<p class="content-body">  Exit status from executed operations</p>
+<div class="content-empty"></div>
+<div class="content-comment-section">Usage:</div>
+<p class="content-body">  main "quot;$@"quot;</p>
+</article>
+</section>
+<section class="section-block" id="section-bootstrap">
+<h3 class="section-title">0.3 Bootstrap</h3>
+</section>
+<section class="section-block" id="section-handle-builtin-arguments">
+<h3 class="section-title">0.4 Handle builtin arguments</h3>
+</section>
+<section class="section-block" id="section-ui">
+<h3 class="section-title">0.5 UI</h3>
+</section>
+<section class="section-block" id="section-main-script-logic">
+<h3 class="section-title">0.6 Main script logic</h3>
+</section>
+</main>
+</body>
+</html>
