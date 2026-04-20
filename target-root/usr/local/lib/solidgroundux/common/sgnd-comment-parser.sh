@@ -348,6 +348,7 @@ set -uo pipefail
         local line="$1"
         local block_type_code=""
         local block_name=""
+        local access="public"
 
         [[ "$line" =~ $RGX_BLOCK_MARKER ]] || return 1
 
@@ -367,9 +368,8 @@ set -uo pipefail
         _current_comment_section=""
         _current_comment_paragraph=0
 
-        _emit_doc_item "public" "$block_type_code" "$block_name"
-        _content_type="item_header"
-        _emit_module_content "$block_name"
+        [[ "$block_name" == _* ]] && access="private"
+        _emit_doc_item "$access" "$block_type_code" "$block_name"
         return 0
     }
 
@@ -481,16 +481,9 @@ set -uo pipefail
         #   Collect header metadata and header content lines.
     _handle_header_content() {
         local line="$1"
-
         (( _parsing_header )) || return 1
 
         _assemble_module_metadata "$line" || true
-
-    [[ "$line" =~ ^[[:space:]]*#[[:space:]]*-+[[:space:]]*$ ]] && return 0
-    [[ "$line" =~ ^[[:space:]]*#[[:space:]]*$ ]] && return 0
-
-        _content_type="metadata"
-        _emit_module_content "$line"
         return 0
     }
 
@@ -502,11 +495,6 @@ set -uo pipefail
 
         (( _parsing_header )) && return 1
         _detect_section "$line" || return 1
-
-        _content_type="section_header"
-        _parsing_block_name=""
-        _emit_module_content "$_current_section"
-        _parsing_block_name="$_current_section"
         return 0
     }
 
