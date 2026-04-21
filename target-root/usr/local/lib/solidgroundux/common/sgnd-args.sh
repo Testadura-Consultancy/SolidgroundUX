@@ -325,22 +325,17 @@ set -uo pipefail
     # Global Arrays
     SGND_BUILTIN_ARGS=(
         "dryrun|D|flag|FLAG_DRYRUN|Emulate only; do not perform actions|"
-        "debug||flag|FLAG_DEBUG|Show debug messages|"
         "help|H|flag|FLAG_HELP|Show command-line help and exit|"
-        "quiet|Q|flag|FLAG_QUIET|Suppress non-error output|"
-        "showargs|A|flag|FLAG_SHOWARGS|Print parsed arguments and exit|"
-        "showcfg|C|flag|FLAG_SHOWCFG|Print configuration values and exit|"
-        "showenv|E|flag|FLAG_SHOWENV|Print all info (args, cfg, state) and exit|"
-        "showmeta|M|flag|FLAG_SHOWMETA|Shows framework and script metadata and exit|"
-        "showstate|S|flag|FLAG_SHOWSTATE|Print state values and exit|"
-        "showlicense|L|flag|FLAG_SHOWLICENSE|Show framework license and exit|"
-        "showreadme||flag|FLAG_SHOWREADME|Show framework README and exit|"
+        "log|G|flag|FLAG_LOG|Enable logfile output|"
+        "loglevel||enum|ARG_LOGLEVEL|Set console output level|normal|off,quiet,normal,debug"
+        "show||enum|ARG_SHOW|Show internal information and exit||args,cfg,state,meta,license,readme,env"
         "statereset|R|flag|FLAG_STATERESET|Reset the state file|"
-        "verbose|V|flag|FLAG_VERBOSE|Enable verbose output|"
     )
 
     SGND_BUILTIN_EXAMPLES=(
-         "  ${SGND_SCRIPT_NAME:-<script>} --dryrun --verbose"
+         "  ${SGND_SCRIPT_NAME:-<script>} --dryrun --loglevel debug"
+         "  ${SGND_SCRIPT_NAME:-<script>} --log --loglevel off"
+         "  ${SGND_SCRIPT_NAME:-<script>} --show env"
     ) 
 
     # fn: sgnd_show_help
@@ -695,9 +690,9 @@ set -uo pipefail
         #   Apply framework-defined built-in argument behavior after argument parsing.
         #
         # Behavior:
-        #   - Evaluates built-in framework flags after sgnd_parse_args has populated them.
-        #   - Applies common runtime settings such as debug, verbose, dryrun, and logging.
-        #   - Handles immediate built-in actions such as help or version display when present.
+        #   - Evaluates built-in framework arguments after sgnd_parse_args has populated them.
+        #   - Applies common runtime settings such as dryrun and loglevel mapping.
+        #   - Handles immediate built-in actions such as help or internal info display when present.
         #   - Exits early when a built-in action fully satisfies program flow.
         #
         # Inputs (globals):
@@ -705,7 +700,7 @@ set -uo pipefail
         #   SGND_SCRIPT_NAME
         #   SGND_SCRIPT_VERSION
         #   SGND_LOGFILE_ENABLED
-        #   SGND_LOG_TO_CONSOLE
+        #   SGND_LOG_LEVEL
         #
         # Side effects:
         #   - Updates framework runtime globals based on parsed built-in options.
@@ -731,6 +726,23 @@ set -uo pipefail
         #   - Intended to be called immediately after sgnd_parse_args.
         #   - Centralizes framework-level option behavior so scripts do not need to duplicate it.
     sgnd_builtinarg_handler(){
+        local show_target="${ARG_SHOW:-}"
+        local loglevel="${ARG_LOGLEVEL:-normal}"
+
+        if (( ${FLAG_LOG:-0} )); then
+            SGND_LOGFILE_ENABLED=1
+        fi
+
+        # Apply loglevel first so downstream output follows the requested policy.
+        case "$loglevel" in
+            off|quiet|debug)
+                SGND_LOG_LEVEL="$loglevel"
+                ;;
+            normal|*)
+                SGND_LOG_LEVEL="normal"
+                ;;
+        esac
+
         # Info-only builtins: perform action and EXIT.
         if (( FLAG_HELP )); then
             sgnd_show_help
@@ -738,61 +750,56 @@ set -uo pipefail
             exit 0
         fi
 
-        if (( FLAG_SHOWARGS )); then
-            sgnd_print_args
-            sayend "Information displayed"
-            exit 0
-        fi
-
-        if (( FLAG_SHOWMETA )); then
-            sgnd_print_metadata
-            sgnd_print
-            sgnd_print_framework_metadata
-            sayend "Information displayed"
-            exit 0
-        fi
-        
-        if (( FLAG_SHOWCFG )); then
-            sgnd_print_sectionheader --text "Script configuration ($SGND_SCRIPT_NAME.cfg)"
-            sgnd_print_cfg SGND_SCRIPT_GLOBALS both
-            sgnd_print_sectionheader --border "-" --text "Framework configuration ($SGND_FRAMEWORK_CFG_BASENAME)"
-            sgnd_print_cfg SGND_FRAMEWORK_GLOBALS both
-            sayend "Information displayed"
-            exit 0
-        fi
-
-        if (( FLAG_SHOWSTATE )); then
-            sgnd_print_state
-            sayend "Information displayed"
-            exit 0
-        fi
-
-        if (( FLAG_SHOWENV )); then
-            sgnd_showenvironment
-            sayend "Information displayed"
-            exit 0
-        fi
-
-        if (( FLAG_SHOWLICENSE )); then
-            saydebug "Showing license as requested"
-            sgnd_print_license
-            sayend "Information displayed"
-            exit 0
-        fi
-
-        if (( FLAG_SHOWREADME )); then
-            saydebug "Showing README as requested"
-            sgnd_print_readme
-            sayend "Information displayed"
-            exit 0
-        fi
-
-        if (( FLAG_QUIET )); then
-            SGND_LOG_TO_CONSOLE=0
-            saydebug "Quiet mode enabled; non-error output will be suppressed"
-        else
-            SGND_LOG_TO_CONSOLE=1
-        fi
+        case "$show_target" in
+            args)
+                sgnd_print_args
+                sayend "Information displayed"
+                exit 0
+                ;;
+            meta)
+                sgnd_print_metadata
+                sgnd_print
+                sgnd_print_framework_metadata
+                sayend "Information displayed"
+                exit 0
+                ;;
+            cfg)
+                sgnd_print_sectionheader --text "Script configuration ($SGND_SCRIPT_NAME.cfg)"
+                sgnd_print_cfg SGND_SCRIPT_GLOBALS both
+                sgnd_print_sectionheader --border "-" --text "Framework configuration ($SGND_FRAMEWORK_CFG_BASENAME)"
+                sgnd_print_cfg SGND_FRAMEWORK_GLOBALS both
+                sayend "Information displayed"
+                exit 0
+                ;;
+            state)
+                sgnd_print_state
+                sayend "Information displayed"
+                exit 0
+                ;;
+            env)
+                sgnd_showenvironment
+                sayend "Information displayed"
+                exit 0
+                ;;
+            license)
+                saydebug "Showing license as requested"
+                sgnd_print_license
+                sayend "Information displayed"
+                exit 0
+                ;;
+            readme)
+                saydebug "Showing README as requested"
+                sgnd_print_readme
+                sayend "Information displayed"
+                exit 0
+                ;;
+            "")
+                ;;
+            *)
+                sayfail "Unknown show target: $show_target"
+                return 1
+                ;;
+        esac
 
         # Mutating builtins: perform action and CONTINUE.
         if (( FLAG_STATERESET )); then

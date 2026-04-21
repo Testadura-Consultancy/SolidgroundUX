@@ -23,7 +23,7 @@
 # Design principles:
 #   - Consistent message semantics across all scripts
 #   - Separation of message intent (type) from rendering and output policy
-#   - Respect global verbosity, debug, and console filtering rules
+#   - Respect the framework log-level policy consistently
 #   - Keep output predictable and script-friendly
 #
 # Role in framework:
@@ -37,10 +37,9 @@
 #   - Replacement for dedicated logging systems
 #
 # Notes:
-#   - Console output is governed by:
-#       SGND_LOG_TO_CONSOLE and SGND_CONSOLE_MSGTYPES
-#   - DEBUG messages are controlled separately via FLAG_DEBUG
-#   - File logging is optional and best-effort; failures do not affect execution
+#   - Console output is governed by SGND_LOG_LEVEL (off, quiet, normal, debug).
+#   - File logging is optional and best-effort; failures do not affect execution.
+#   - Logfile writing is independent from console visibility.
 #
 # Attribution:
 #   Developers  : Mark Fieten
@@ -113,21 +112,22 @@ set -uo pipefail
         #   according to the current output policy.
         #
         # Behavior:
-        #   - SGND_LOG_TO_CONSOLE=0 suppresses all console output.
-        #   - FLAG_VERBOSE=1 overrides all filters (always prints).
-        #   - DEBUG messages require FLAG_DEBUG=1 (unless verbose).
-        #   - All other types must be present in SGND_CONSOLE_MSGTYPES.
+        #   - Uses SGND_LOG_LEVEL as the single console visibility control.
+        #   - off    suppresses all console output.
+        #   - quiet  shows only WARN and FAIL.
+        #   - normal shows all non-DEBUG message types.
+        #   - debug  shows all message types.
         #
         # Arguments:
         #   $1  TYPE
         #       Message type token (case-insensitive).
         #
         # Inputs (globals):
-        #   FLAG_VERBOSE, SGND_LOG_TO_CONSOLE, FLAG_DEBUG, SGND_CONSOLE_MSGTYPES
+        #   SGND_LOG_LEVEL
         #
         # Returns:
-        #   0 if the message should be printed
-        #   1 otherwise
+        #   0 if the message should be printed.
+        #   1 otherwise.
         #
         # Usage:
         #   if _say_should_print_console "INFO"; then
@@ -138,24 +138,28 @@ set -uo pipefail
         #   _say_should_print_console "DEBUG" || return
     _say_should_print_console() {
         local type="${1^^}"
-        local list="${SGND_CONSOLE_MSGTYPES:-INFO|STRT|WARN|FAIL|CNCL|OK|END|EMPTY}"
-        list="${list^^}"
+        local level="${SGND_LOG_LEVEL:-normal}"
 
-        if [[ "${SGND_LOG_TO_CONSOLE:-1}" -eq 0 ]]; then
-            case "$type" in
-                WARN|FAIL) return 0 ;;
-                *)         return 1 ;;
-            esac
-        fi
-        
-        [[ "${FLAG_VERBOSE:-0}" -eq 1 ]] && return 0
-
-        if [[ "$type" == "DEBUG" ]]; then
-            [[ "${FLAG_DEBUG:-0}" -eq 1 ]] && return 0
-            return 1
-        fi
-
-        [[ "|$list|" == *"|$type|"* ]]
+        case "$level" in
+            off)
+                return 1
+                ;;
+            quiet)
+                case "$type" in
+                    WARN|FAIL) return 0 ;;
+                    *)         return 1 ;;
+                esac
+                ;;
+            debug)
+                return 0
+                ;;
+            normal|*)
+                case "$type" in
+                    DEBUG) return 1 ;;
+                    *)     return 0 ;;
+                esac
+                ;;
+        esac
     }
 
 
@@ -778,11 +782,10 @@ set -uo pipefail
             #
             # Behavior:
             #   - Delegates to say INFO.
-            #   - Only emits when FLAG_VERBOSE=1.
-            #   - Always returns 0, even when suppressed.
+            #   -             #   - Always returns 0, even when suppressed.
             #
             # Inputs (globals):
-            #   FLAG_VERBOSE
+            #   SGND_LOG_LEVEL
             #
             # Returns:
             #   0 always.
@@ -925,11 +928,11 @@ set -uo pipefail
 
         # fn: saydebug
             # Purpose:
-            #   Emit a DEBUG message with optional caller context.
+            #   Emit a DEBUG message with caller context.
             #
             # Behavior:
-            #   - Only active when FLAG_DEBUG=1.
-            #   - Adds caller info when FLAG_VERBOSE=1.
+            #   - Only active when SGND_LOG_LEVEL=debug.
+            #   - Appends caller file, function, and line.
             #   - Delegates to say DEBUG.
             #
             # Usage:
@@ -938,18 +941,12 @@ set -uo pipefail
             # Examples:
             #   saydebug "Entering function"
         saydebug() {
-            if [[ ${FLAG_DEBUG:-0} -eq 1 ]]; then
+            if [[ "${SGND_LOG_LEVEL:-normal}" == "debug" ]]; then
+                local src="${BASH_SOURCE[1]##*/}"
+                local func="${FUNCNAME[1]}"
+                local line="${BASH_LINENO[0]}"
 
-                if [[ ${FLAG_VERBOSE:-0} -eq 1 ]]; then
-                    # Stack level 1 = caller of saydebug
-                    local src="${BASH_SOURCE[1]##*/}"
-                    local func="${FUNCNAME[1]}"
-                    local line="${BASH_LINENO[0]}"
-
-                    say DEBUG "$@" "[$src:$func:$line]"
-                else
-                    say DEBUG "$@"
-                fi
+                say DEBUG "$@" "[$src:$func:$line]"
             fi
             return 0
         }

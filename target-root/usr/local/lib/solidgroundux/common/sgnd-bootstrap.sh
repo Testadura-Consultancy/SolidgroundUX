@@ -160,7 +160,7 @@ set -uo pipefail
         #     --needroot   -> exe_root=1
         #     --cannotroot -> exe_root=2
         #     --log        -> SGND_LOGFILE_ENABLED=1
-        #     --console    -> SGND_LOG_TO_CONSOLE=1
+        #     --quiet      -> SGND_LOG_LEVEL=quiet (legacy early bootstrap alias)
         #     --           -> explicit end of bootstrap switches
         #     <unknown>    -> implicit end of bootstrap switches
 
@@ -183,7 +183,8 @@ set -uo pipefail
                 --log)
                     SGND_LOGFILE_ENABLED=1; shift ;;
                 --quiet)
-                    SGND_LOG_TO_CONSOLE=0; shift ;;
+                    SGND_LOG_LEVEL="quiet"
+                    shift ;;
                 --) 
                     shift; SGND_BOOTSTRAP_REST=("$@"); return 0 ;;
                 *) 
@@ -966,13 +967,13 @@ set -uo pipefail
             : "${TUI_DRYRUN:=$(printf '\e[38;5;214m')}"
             : "${RESET:=$(printf '\e[0m')}"
             : "${RUN_MODE:="${TUI_COMMIT}COMMIT${RESET}"}"
-            : "${FLAG_DEBUG:=0}"
             : "${FLAG_DRYRUN:=0}"
-            : "${FLAG_VERBOSE:=0}"
             : "${FLAG_STATERESET:=0}"
             : "${FLAG_INIT_CONFIG:=0}"
-            : "${FLAG_SHOWARGS:=0}"
             : "${FLAG_HELP:=0}"
+            : "${FLAG_LOG:=0}"
+            : "${ARG_SHOW:=}"
+            : "${ARG_LOGLEVEL:=normal}"
 
             if ! declare -p SGND_SCRIPT_GLOBALS >/dev/null 2>&1; then
                 declare -ag SGND_SCRIPT_GLOBALS=()

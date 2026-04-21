@@ -113,8 +113,7 @@ set -uo pipefail
         "system|SGND_SYSCFG_DIR|Framework-wide system configuration directory|"
         "system|SGND_DOCS_DIR|Framework-wide documentation directory|"
         "system|SGND_LOGFILE_ENABLED|Enable or disable logfile output|"
-        "both|SGND_LOG_TO_CONSOLE|Enable or disable console logging|"
-        "both|SGND_CONSOLE_MSGTYPES|Console message types to display|"          # <- both
+        "both|SGND_LOG_LEVEL|Console output level (off, quiet, normal, debug)|"
         "system|SGND_LOG_PATH|Primary log file or directory path|"
         "both|SGND_ALTLOG_PATH|Alternate log path override|"                    # <- both
         "system|SGND_LOG_MAX_BYTES|Maximum log file size before rotation|"
@@ -215,7 +214,7 @@ set -uo pipefail
         # Outputs (globals):
         #   SGND_FRAMEWORK_ROOT, SGND_APPLICATION_ROOT
         #   SGND_USER_HOME
-        #   SGND_LOG_*, SGND_LOGFILE_ENABLED, SGND_LOG_TO_CONSOLE, SGND_CONSOLE_MSGTYPES
+        #   SGND_LOG_*, SGND_LOGFILE_ENABLED, SGND_LOG_LEVEL
         #   SGND_UI_STYLE, SGND_UI_PALETTE
         #   SAY_* defaults
         #   SGND_FRAMEWORK_CFG_BASENAME
@@ -241,8 +240,7 @@ set -uo pipefail
         : "${SGND_LOG_COMPRESS:=1}"
 
         : "${SGND_LOGFILE_ENABLED:=0}"
-        : "${SGND_LOG_TO_CONSOLE:=1}"
-        : "${SGND_CONSOLE_MSGTYPES:=STRT|WARN|FAIL|INFO|END}"
+        : "${SGND_LOG_LEVEL:=normal}"
 
         if [[ -n "${SUDO_USER:-}" ]]; then
             SGND_USER_HOME="$(getent passwd "$SUDO_USER" | cut -d: -f6)"

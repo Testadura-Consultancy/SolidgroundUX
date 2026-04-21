@@ -723,6 +723,8 @@ set -uo pipefail
             _get_userinput || return $?
         fi
 
+        local start_time=$(date +%s)
+        saystart "Documentation generation started at $start_time"
         _iterate_files "$VAL_SRCDIR" "$VAL_FILESPEC" "$FLAG_RECURSIVE_SCAN" sgnd_parse_module_file
 
         #sgnd_dt_print_table $MODULE_TABLE_SCHEMA MODULE_TABLE
@@ -731,6 +733,9 @@ set -uo pipefail
         #sgnd_dt_print_table $DOC_CONTENT_SCHEMA DOC_CONTENT
         
         sgnd_doc_render_site "$VAL_OUTDIR"
+
+        local end_time=$(date +%s)
+        sayok "Documentation generation completed successfully at $end_time (duration: $(( end_time - start_time )) seconds)"
     }
 
     # Entrypoint: sgnd_bootstrap will split framework args from script args.
