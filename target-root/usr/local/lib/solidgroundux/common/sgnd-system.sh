@@ -45,7 +45,7 @@
 set -uo pipefail
 
 # --- Library guard ------------------------------------------------------------------
-    # _sgnd_lib_guard
+    # _tmp: sgnd_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
         #
@@ -88,7 +88,7 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Requirement checks -------------------------------------------------------------
-    # sgnd_need_root
+    # fn: sgnd_need_root
         # Purpose:
         #   Require the script to run as root, re-executing through sudo when needed.
         #
@@ -121,7 +121,7 @@ set -uo pipefail
         return 0
     }
 
-    # sgnd_cannot_root
+    # fn: sgnd_cannot_root
         # Returns:
         #   0 when not running as root; exits 1 otherwise.
         #
@@ -136,7 +136,7 @@ set -uo pipefail
         fi
     }
 
-    # sgnd_need_systemd
+    # fn: sgnd_need_systemd
         # Returns:
         #   0 when systemctl is available; exits 1 otherwise.
         #
@@ -144,7 +144,7 @@ set -uo pipefail
         #   sgnd_need_systemd
     sgnd_need_systemd() { sgnd_have systemctl || { sayfail "Systemd not available."; exit 1; }; }
 
-    # sgnd_need_writable
+    # fn: sgnd_need_writable
         # Returns:
         #   0 when the path is writable; exits 1 otherwise.
         #
@@ -152,7 +152,7 @@ set -uo pipefail
         #   sgnd_need_writable PATH
     sgnd_need_writable() { [[ -w "$1" ]] || { sayfail "Not writable: $1"; exit 1; }; }
 
-    # sgnd_is_active
+    # fn: sgnd_is_active
         # Returns:
         #   0 if the systemd unit is active; non-zero otherwise.
         #
@@ -161,7 +161,7 @@ set -uo pipefail
     sgnd_is_active() { systemctl is-active --quiet "$1"; }
 
     # --- Filesystem helpers -------------------------------------------------------------
-    # sgnd_ensure_writable_dir
+    # fn: sgnd_ensure_writable_dir
         # Purpose:
         #   Ensure a directory exists and is suitable for user-scoped writing.
         #
@@ -203,7 +203,7 @@ set -uo pipefail
     }
 
 # --- System helpers -----------------------------------------------------------------
-    # sgnd_get_primary_nic
+    # fn: sgnd_get_primary_nic
         # Returns:
         #   0 always; output may be empty on failure.
         #
@@ -211,7 +211,7 @@ set -uo pipefail
         #   sgnd_get_primary_nic
     sgnd_get_primary_nic() { ip route show default 2>/dev/null | awk 'NR==1 {print $5}'; }
 
-    # sgnd_ping_ok
+    # fn: sgnd_ping_ok
         # Returns:
         #   0 if the host responds to a single ICMP ping; non-zero otherwise.
         #
@@ -219,7 +219,7 @@ set -uo pipefail
         #   sgnd_ping_ok HOST
     sgnd_ping_ok() { ping -c1 -W1 "$1" &>/dev/null; }
 
-    # sgnd_port_open
+    # fn: sgnd_port_open
         # Returns:
         #   0 if a TCP connection succeeds; non-zero otherwise.
         #
@@ -236,7 +236,7 @@ set -uo pipefail
         fi
     }
 
-    # sgnd_get_ip
+    # fn: sgnd_get_ip
         # Returns:
         #   0 always; output may be empty on failure.
         #
@@ -244,7 +244,7 @@ set -uo pipefail
         #   sgnd_get_ip
     sgnd_get_ip() { hostname -I 2>/dev/null | awk '{print $1}'; }
 
-    # sgnd_real_user
+    # fn: sgnd_real_user
         # Returns:
         #   0 always.
         #
@@ -258,7 +258,7 @@ set -uo pipefail
         fi
     }
 
-    # sgnd_real_home
+    # fn: sgnd_real_home
         # Returns:
         #   0 on success; non-zero if the account lookup fails.
         #
@@ -270,7 +270,7 @@ set -uo pipefail
         getent passwd "${user}" | cut -d: -f6
     }
 
-    # sgnd_run_as_real_user
+    # fn: sgnd_run_as_real_user
         # Returns:
         #   The executed command's exit status.
         #
@@ -287,7 +287,7 @@ set -uo pipefail
         fi
     }
 
-    # sgnd_fix_ownership
+    # fn: sgnd_fix_ownership
         # Returns:
         #   0 on success; non-zero on failure.
         #
@@ -303,7 +303,7 @@ set -uo pipefail
         chown -R "${user}:${group}" "${path}"
     }
 
-    # sgnd_fix_permissions
+    # fn: sgnd_fix_permissions
         # Returns:
         #   0 on success; non-zero on failure.
         #
@@ -316,7 +316,7 @@ set -uo pipefail
         find "${path}" -type f -exec chmod 644 {} +
     }
 
-    # sgnd_get_os
+    # fn: sgnd_get_os
         # Returns:
         #   0 on success; non-zero if /etc/os-release cannot be read.
         #
@@ -324,7 +324,7 @@ set -uo pipefail
         #   sgnd_get_os
     sgnd_get_os() { grep -E '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"'; }
 
-    # sgnd_get_os_version
+    # fn: sgnd_get_os_version
         # Returns:
         #   0 on success; non-zero if /etc/os-release cannot be read.
         #
@@ -333,7 +333,7 @@ set -uo pipefail
     sgnd_get_os_version() { grep -E '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '"'; }
 
 # --- Error handlers -----------------------------------------------------------------
-    # sgnd_die
+    # fn: sgnd_die
         # Purpose:
         #   Terminate the script with a formatted fatal error message.
         #
@@ -363,7 +363,7 @@ set -uo pipefail
         exit "$rc"
     }
 
-    # sgnd_require
+    # fn: sgnd_require
         # Returns:
         #   The executed command's exit status.
         #
@@ -380,7 +380,7 @@ set -uo pipefail
         return "$rc"
     }
 
-    # sgnd_must
+    # fn: sgnd_must
         # Returns:
         #   0 if the command succeeds; does not return on failure.
         #

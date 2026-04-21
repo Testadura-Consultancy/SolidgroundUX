@@ -8,72 +8,75 @@
 body { font-family: Arial, Helvetica, sans-serif; margin: 2rem auto; max-width: 1100px; line-height: 1.45; color: #222; }
 a { color: #0a58ca; text-decoration: none; }
 a:hover { text-decoration: underline; }
-header, main, nav, section, article { display: block; }
+header, main, nav, section, article, details, summary { display: block; }
 .site-header { border-bottom: 1px solid #ddd; margin-bottom: 1.5rem; padding-bottom: 0.75rem; }
-.meta-block, .attr-block, .toc-block, .glossary-block { background: #f7f7f8; border: 1px solid #e2e2e2; padding: 0.9rem 1rem; margin: 1rem 0; }
-.meta-block p, .attr-block p { margin: 0.2rem 0; }
+.site-nav { margin-bottom: 0.75rem; }
+.home-button { display: inline-block; padding: 0.35rem 0.7rem; border: 1px solid #cfcfcf; background: #f7f7f8; border-radius: 0.35rem; font-size: 0.95rem; }
+.home-button:hover { background: #efeff1; text-decoration: none; }
+.meta-block, .attr-block, .glossary-block, .header-block { background: #f7f7f8; border: 1px solid #e2e2e2; padding: 0.9rem 1rem; margin: 1rem 0; }
+.meta-block p, .attr-block p, .header-block p { margin: 0.2rem 0; }
 .chapter-title { margin-bottom: 0.2rem; }
 .section-block { margin-top: 2rem; }
 .section-title { border-bottom: 1px solid #e1e1e1; padding-bottom: 0.2rem; }
 .item-block { margin: 1rem 0 1.2rem 1rem; padding-left: 1rem; border-left: 3px solid #e1e1e1; }
-.item-header { margin-bottom: 0.35rem; }
-.item-type { font-weight: 700; text-transform: uppercase; font-size: 0.8rem; color: #666; margin-right: 0.45rem; }
+.item-header { margin-bottom: 0.45rem; }
+.item-title-row { font-size: 1.15rem; line-height: 1.35; }
+.item-title { font-size: 1.15em; }
+.item-type { font-weight: 700; text-transform: uppercase; font-size: 0.9rem; color: #666; margin-right: 0.45rem; }
 .item-access-private { color: #8b0000; }
 .item-access-public { color: #006400; }
 .content-comment-section { font-weight: 700; margin-top: 0.8rem; }
 .content-body { margin: 0.25rem 0; white-space: pre-wrap; }
-.content-empty { height: 0.4rem; }
-.toc-block ul, .glossary-block ul { margin: 0.35rem 0 0 1.25rem; }
-.toc-block li, .glossary-block li { margin: 0.15rem 0; }
 .small-note { color: #666; font-size: 0.9rem; }
+.nav-group, .group-module { margin: 0.65rem 0; }
+.nav-group summary, .group-module summary { cursor: pointer; font-weight: 700; }
+.group-module-glossary { margin: 0.5rem 0 0.5rem 1.25rem; }
+.group-module-glossary ul, .group-module-glossary li, .group-list, .group-list li { margin-top: 0.2rem; }
+.header-block-title { margin: 0 0 0.5rem 0; }
 </style>
 </head>
 <body>
 <header class="site-header">
+<div class="site-nav"><a class="home-button" href="index.html">Home</a></div>
 <h1 class="chapter-title">SolidgroundUX</h1>
-<p class="small-note">Generated documentation index</p>
+<p class="small-note">Documentation groups</p>
 </header>
 <main>
 <section class="meta-block">
-<strong>Modules</strong>
+<strong>Groups</strong>
+<details class="nav-group" open>
+<summary><a href="group-bootstrap.html">Bootstrap</a></summary>
+</details>
+<details class="nav-group" open>
+<summary><a href="group-common-core.html">Common Core</a></summary>
+</details>
+<details class="nav-group" open>
+<summary><a href="group-common-extensions.html">Common Extensions</a></summary>
+</details>
+<details class="nav-group" open>
+<summary><a href="group-developer-tools.html">Developer tools</a></summary>
+</details>
+<details class="nav-group" open>
+<summary><a href="group-solidground-console.html">Solidground Console</a></summary>
+</details>
+<details class="nav-group" open>
+<summary><a href="group-styles.html">Styles</a></summary>
+</details>
+<details class="nav-group" open>
+<summary><a href="group-templates.html">Templates</a></summary>
+</details>
+<details class="nav-group" open>
+<summary><a href="group-ui.html">UI</a></summary>
+</details>
+<details class="nav-group" open>
+<summary><a href="group-ungrouped.html">Ungrouped</a></summary>
+</details>
+</section>
+<section class="meta-block">
+<strong>Appendix</strong>
 <ul>
-<li><a href="sgnd-console.sh.html">1 Console Host</a> — Provide a modular console interface for SolidgroundUX tooling</li>
-<li><a href="doc-generator.sh.html">2 Documentation Generator Script</a> — Collect and prepare documentation data from source files using the</li>
-<li><a href="metadata-editor.sh.html">3 Metadata Editor</a> — Inspect, edit, and version script metadata in a controlled workflow</li>
-<li><a href="console-devtools.sh.html">4 Developer Tools Console Module</a> — sgnd-console module exposing developer tooling actions</li>
-<li><a href="prepare-release.sh.html">5 Prepare Release</a> — Prepare framework scripts for release</li>
-<li><a href="create-workspace.sh.html">6 Create Workspace</a> — Create a new development workspace from templates</li>
-<li><a href="framework-smoketest.sh.html">7 Framework smoke tester</a> — Exercise and validate core SolidgroundUX framework functionality</li>
-<li><a href="deploy-workspace.sh.html">8 Deploy Workspace</a> — Deploy or remove a development workspace to or from a target root</li>
-<li><a href="style-monogreen.sh.html">9 </a></li>
-<li><a href="style-monoblack.sh.html">10 </a></li>
-<li><a href="style-carnaval.sh.html">11 </a></li>
-<li><a href="style-greenyellow.sh.html">12 </a></li>
-<li><a href="default-ui-style.sh.html">13 Default UI Style</a> — Define default UI layout, spacing, and styling conventions</li>
-<li><a href="style-monoamber.sh.html">14 </a></li>
-<li><a href="default-ui-palette.sh.html">15 Default UI Palette</a> — Define default color palette and styling for console UI</li>
-<li><a href="ui-say.sh.html">16 UI Messaging</a> — Provide standardized console messaging helpers</li>
-<li><a href="sgnd-core.sh.html">17 Core Utilities</a> — Provide foundational utility functions and shared primitives</li>
-<li><a href="sgnd-bootstrap.sh.html">18 Bootstrap Core</a> — Initialize the SolidgroundUX framework and load core modules</li>
-<li><a href="ui-ask.sh.html">19 UI Ask</a> — Provide interactive prompting and lightweight dialog utilities</li>
-<li><a href="sgnd-system.sh.html">20 System Utilities</a> — Provide host, runtime, and operating-system utility helpers</li>
-<li><a href="sgnd-comment-parser.sh.html">21 Comment Parser</a> — Parse structured inline documentation comments in SolidgroundUX source files</li>
-<li><a href="sgnd-cfg.sh.html">22 Configuration Management</a> — Load, manage, and persist configuration settings</li>
-<li><a href="sgnd-bootstrap-env.sh.html">23 Bootstrap Environment</a> — Initialize framework environment variables and directory structure</li>
-<li><a href="sgnd-info.sh.html">24 Framework Information</a> — Provide framework metadata and runtime information helpers</li>
-<li><a href="doc-renderer.sh.html">25 Documentation Renderer</a> — Render collected documentation tables into a prototype HTML site</li>
-<li><a href="sgnd-comment-header-parser.sh.html">26 Header Parser</a> — Read, parse, and update canonical script header comments in SolidgroundUX files</li>
-<li><a href="ui-dlg.sh.html">27 UI Dialogs</a> — Provide dialog-style user interaction helpers</li>
-<li><a href="sgnd-datatable.sh.html">28 Datatable</a> — Provide lightweight tabular data structures and utilities</li>
-<li><a href="sgnd-console-menu.sh.html">29 Console Menu System</a> — Provide menu definition and rendering logic for sgnd-console</li>
-<li><a href="ui-glyphs.sh.html">30 UI Glyphs</a> — Provide glyph and symbol helpers for console rendering</li>
-<li><a href="sgnd-args.sh.html">31 Argument Parsing</a> — Parse and manage command-line arguments for scripts</li>
-<li><a href="ui.sh.html">32 UI Rendering</a> — Provide terminal rendering utilities for styled console output</li>
-<li><a href="exe-template.sh.html">33 Executable Script Template</a> — Canonical executable template for Testadura scripts.</li>
-<li><a href="mod-template.sh.html">34 Console Module Template</a> — Canonical template for sgnd-console modules</li>
-<li><a href="lib-template.sh.html">35 Library Template</a> — Canonical template for source-only framework libraries</li>
-<li><a href="sgnd-install.sh.html">36 Install Release Package</a> — Install a packaged SolidgroundUX release into a target root</li>
-<li><a href="sgnd-uninstall.sh.html">37 Uninstall Installed Release</a> — Uninstall a previously installed SolidgroundUX release from a target root</li>
+<li><a href="appendix-a-attribution-data.html">Appendix A — Attribution data</a></li>
+<li><a href="appendix-b-function-glossary.html">Appendix B — Function glossary</a></li>
 </ul>
 </section>
 </main>

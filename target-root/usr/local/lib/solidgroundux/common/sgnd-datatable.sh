@@ -46,7 +46,7 @@
 set -uo pipefail
 
 # --- Library guard ------------------------------------------------------------------
-    # _sgnd_lib_guard
+    # tmp: _sgnd_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
         #
@@ -89,7 +89,7 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Internal helpers ---------------------------------------------------------------
-    # sgnd_dt_array_length
+    # fn: sgnd_dt_array_length
         # Purpose:
         #   Return the length of an indexed array by name.
         #
@@ -114,7 +114,7 @@ set -uo pipefail
         printf '%s\n' "${#array_ref[@]}"
     }
 
-    # sgnd_dt_split_schema
+    # fn: sgnd_dt_split_schema
         # Purpose:
         #   Split a schema string into positional column names.
         #
@@ -139,7 +139,7 @@ set -uo pipefail
         IFS='|' read -r -a SGND_DT_SPLIT <<< "$schema"
     }
 
-    # sgnd_dt_split_row
+    # fn: sgnd_dt_split_row
         # Purpose:
         #   Split a row string into positional field values.
         #
@@ -177,7 +177,7 @@ set -uo pipefail
     }
 
 # --- Public API ---------------------------------------------------------------------
-    # sgnd_dt_validate_value
+    # fn: sgnd_dt_validate_value
         # Purpose:
         #   Validate whether a field value is supported by v1 storage rules.
         #
@@ -207,7 +207,7 @@ set -uo pipefail
         return 0
     }
 
-    # sgnd_dt_validate_schema
+    # fn: sgnd_dt_validate_schema
         # Purpose:
         #   Validate a schema string.
         #
@@ -251,7 +251,7 @@ set -uo pipefail
         return 0
     }
 
-    # sgnd_dt_column_index
+    # fn: sgnd_dt_column_index
         # Purpose:
         #   Resolve a column name to its zero-based index within a schema.
         #
@@ -287,7 +287,7 @@ set -uo pipefail
         return 1
     }
 
-    # sgnd_dt_column_count
+    # fn: sgnd_dt_column_count
         # Purpose:
         #   Return the number of columns in a schema.
         #
@@ -309,7 +309,7 @@ set -uo pipefail
         printf '%s\n' "${#SGND_DT_SPLIT[@]}"
     }
 
-    # sgnd_dt_make_row
+    # fn: sgnd_dt_make_row
         # Purpose:
         #   Build a row string from positional field values.
         #
@@ -353,7 +353,7 @@ set -uo pipefail
         printf '%s\n' "$row"
     }
 
-    # sgnd_dt_has_row
+    # fn: sgnd_dt_has_row
         # Purpose:
         #   Test whether a table contains at least one row where a given column
         #   equals the specified value.
@@ -389,7 +389,7 @@ set -uo pipefail
         sgnd_dt_find_first "$schema" "$table_name" "$column" "$value" >/dev/null 2>&1
     }
 
-    # sgnd_dt_row_get
+    # fn: sgnd_dt_row_get
         # Purpose:
         #   Get the value of one column from a row string.
         #
@@ -419,7 +419,7 @@ set -uo pipefail
         printf '%s\n' "${SGND_DT_SPLIT[index]-}"
     }
 
-    # sgnd_dt_row_set
+    # fn: sgnd_dt_row_set
         # Purpose:
         #   Set the value of one column within a row string.
         #
@@ -469,7 +469,7 @@ set -uo pipefail
         printf '%s\n' "$out"
     }
 
-    # sgnd_dt_row_count
+    # fn: sgnd_dt_row_count
         # Purpose:
         #   Return the number of rows in a table array.
         #
@@ -490,7 +490,7 @@ set -uo pipefail
         sgnd_dt_array_length "$table_name"
     }
 
-    # sgnd_dt_insert
+    # fn: sgnd_dt_insert
         # Purpose:
         #   Append a row string to a table array.
         #
@@ -524,7 +524,7 @@ set -uo pipefail
         table_ref+=("$row")
     }
 
-    # sgnd_dt_delete
+    # fn: sgnd_dt_delete
         # Purpose:
         #   Delete one row from a table array by index.
         #
@@ -553,7 +553,7 @@ set -uo pipefail
         table_ref=("${table_ref[@]}")
     }
 
-    # sgnd_dt_get
+    # fn: sgnd_dt_get
         # Purpose:
         #   Get one cell value from a table by row index and column name.
         #
@@ -591,7 +591,7 @@ set -uo pipefail
         sgnd_dt_row_get "$schema" "${table_ref[row_index]}" "$column"
     }
 
-    # sgnd_dt_set
+    # fn: sgnd_dt_set
         # Purpose:
         #   Set one cell value in a table by row index and column name.
         #
@@ -630,7 +630,7 @@ set -uo pipefail
         table_ref[row_index]="$updated"
     }
 
-    # sgnd_dt_find_first
+    # fn: sgnd_dt_find_first
         # Purpose:
         #   Find the first row index where COLUMN_NAME equals VALUE.
         #
@@ -673,7 +673,7 @@ set -uo pipefail
         return 1
     }
 
-    # sgnd_dt_append
+    # fn: sgnd_dt_append
         # Purpose:
         #   Build and append a row from positional values.
         #
@@ -703,7 +703,7 @@ set -uo pipefail
         sgnd_dt_insert "$schema" "$table_name" "$row"
     }
 
-    # sgnd_dt_print_table
+    # fn: sgnd_dt_print_table
         # Purpose:
         #   Print a table in aligned column form.
         #

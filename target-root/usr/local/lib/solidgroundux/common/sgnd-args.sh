@@ -46,7 +46,7 @@
 # =====================================================================================
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------
-    # _sgnd_lib_guard
+    # tmp: _sgnd_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
         #
@@ -89,7 +89,7 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Helper functions ----------------------------------------------------------------
-    # _sgnd_arg_split
+    # fn: _sgnd_arg_split
         # Purpose:
         #   Split a single SGND_ARGS_SPEC definition into internal scratch variables.
         #
@@ -131,7 +131,7 @@ set -uo pipefail
         IFS='|' read -r _sgnd_name _sgnd_short _sgnd_type _sgnd_var _sgnd_help _sgnd_default _sgnd_choices <<< "$spec"
     }
 
-    # _sgnd_arg_find_spec
+    # fn: _sgnd_arg_find_spec
         # Purpose:
         #   Find the effective argument specification that matches a long or short option token.
         #
@@ -181,7 +181,7 @@ set -uo pipefail
         return 1
     }
     
-    # _sgnd_arg_validate_enum
+    # fn: _sgnd_arg_validate_enum
         # Purpose:
         #   Validate whether a value is present in a comma-separated enum choice list.
         #
@@ -226,7 +226,7 @@ set -uo pipefail
         [[ "$ok" -eq 1 ]]
     }
 
-    # _sgnd_arg_init_defaults
+    # fn: _sgnd_arg_init_defaults
         # Purpose:
         #   Initialize option variables and build the effective argument specification list.
         #
@@ -343,7 +343,7 @@ set -uo pipefail
          "  ${SGND_SCRIPT_NAME:-<script>} --dryrun --verbose"
     ) 
 
-    # sgnd_show_help
+    # fn: sgnd_show_help
         # Purpose:
         #   Render and display the generated help text for the current script.
         #
@@ -480,7 +480,7 @@ set -uo pipefail
         sgnd_print_sectionheader
     }
 
-    # sgnd_parse_args
+    # fn: sgnd_parse_args
         # Purpose:
         #   Parse command-line arguments according to the effective argument specification.
         #
@@ -690,7 +690,7 @@ set -uo pipefail
         return 0
     }
 
-    # sgnd_builtinarg_handler
+    # fn: sgnd_builtinarg_handler
         # Purpose:
         #   Apply framework-defined built-in argument behavior after argument parsing.
         #

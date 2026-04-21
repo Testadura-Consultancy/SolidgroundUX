@@ -46,7 +46,7 @@
 # =====================================================================================
 set -uo pipefail
 # --- Library guard -------------------------------------------------------------------
-    # _sgnd_lib_guard
+    # tmp: _sgnd_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
         #
@@ -130,7 +130,7 @@ set -uo pipefail
     }
 
 # --- Main sequence helpers + EXIT dispatch -------------------------------------------
-    # _parse_bootstrap_args
+    # fn: _parse_bootstrap_args
         # Purpose:
         #   Parse framework-level bootstrap switches before script/builtin parsing.
         #
@@ -192,7 +192,7 @@ set -uo pipefail
         done
     }
 
-    # _init_bootstrap
+    # fn: _init_bootstrap
         # Purpose:
         #   Initialize the early bootstrap environment before core library loading.
         #
@@ -248,7 +248,7 @@ set -uo pipefail
 
     }
 
-    # _source_corelibs
+    # fn: _source_corelibs
         # Purpose:
         #   Source core framework libraries in the defined order (SGND_CORE_LIBS).
         #
@@ -277,7 +277,7 @@ set -uo pipefail
         done
     }
 
-    # _source_usinglibs
+    # fn: _source_usinglibs
         # Purpose:
         #   Source optional script-requested libraries from SGND_COMMON_LIB.
         #
@@ -314,7 +314,7 @@ set -uo pipefail
         done
     }
 
-    # _sgnd_on_exit_run
+    # fn: _sgnd_on_exit_run
         # Purpose:
         #   Execute registered EXIT handlers (LIFO) while preserving the original exit code.
         #
@@ -348,7 +348,7 @@ set -uo pipefail
         return "$rc"
     }
 
-    # _sgnd_save_state_dispatch
+    # fn: _sgnd_save_state_dispatch
         # Purpose:
         #   Save state on EXIT only for clean exits.
         #
@@ -378,7 +378,7 @@ set -uo pipefail
     }
 
 # --- Public API ----------------------------------------------------------------------
-    # sgnd_script_init_metadata
+    # fn: sgnd_script_init_metadata
         # Purpose:
         #   Initialize executable metadata from structured header comments.
         #
@@ -473,7 +473,7 @@ set -uo pipefail
         return 0
     }
 
-    # sgnd_module_init_metadata
+    # fn: sgnd_module_init_metadata
         # Purpose:
         #   Define module-scoped metadata variables for a sourced library and
         #   populate them from the library header comment.
@@ -608,7 +608,7 @@ set -uo pipefail
         return 0
     }
 
-    # sgnd_on_exit_install
+    # fn: sgnd_on_exit_install
         # Purpose:
         #   Install the framework EXIT dispatcher (trap) exactly once per process.
         #
@@ -633,7 +633,7 @@ set -uo pipefail
         trap '_sgnd_on_exit_run' EXIT
     }
 
-    # sgnd_parse_statespec
+    # fn: sgnd_parse_statespec
         # Purpose:
         #   Parse a pipe-delimited state specification into component fields.
         #
@@ -664,7 +664,7 @@ set -uo pipefail
         IFS='|' read -r _statekey _statelabel _statedefault _statevalidate _statecolorize <<< "$spec"
     }
     
-    # sgnd_enable_save_state
+    # fn: sgnd_enable_save_state
         # Purpose:
         #   Enable automatic state persistence.
         #
@@ -675,7 +675,7 @@ set -uo pipefail
         SGND_STATE_SAVE=1
     }
 
-    # sgnd_disable_save_state
+    # fn: sgnd_disable_save_state
         # Purpose:
         #   Disable automatic state persistence.
         #
@@ -686,7 +686,7 @@ set -uo pipefail
         SGND_STATE_SAVE=0
     }
 
-    # sgnd_save_state
+    # fn: sgnd_save_state
         # Purpose:
         #   Persist selected state variables to storage (as configured by SGND_STATE_VARIABLES).
         #
@@ -738,7 +738,7 @@ set -uo pipefail
         fi
     }    
 
-    # sgnd_on_exit_add
+    # fn: sgnd_on_exit_add
         # Purpose:
         #   Register a new EXIT handler to be executed by the EXIT dispatcher.
         #
@@ -763,7 +763,7 @@ set -uo pipefail
         SGND_ON_EXIT_HANDLERS+=( "$*" )
     }
 
-    # sgnd_check_license
+    # fn: sgnd_check_license
         # Purpose:
         #   Verify that the current framework license has been accepted.
         #
@@ -874,7 +874,7 @@ set -uo pipefail
         SGND_LICENSE_ACCEPTED=$isaccepted
     }
 
-    # sgnd_load_ui_style
+    # fn: sgnd_load_ui_style
         # Purpose:
         #   Load the active UI palette and style definitions.
         #
@@ -921,7 +921,7 @@ set -uo pipefail
     }
     
 # --- Main ----------------------------------------------------------------------------
-    # sgnd_bootstrap
+    # fn: sgnd_bootstrap
         # Purpose:
         #   Initialize the Testadura framework runtime environment.
         #

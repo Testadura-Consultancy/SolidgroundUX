@@ -47,7 +47,7 @@
 set -uo pipefail
 
 # --- Library guard ------------------------------------------------------------------
-    # _sgnd_lib_guard
+    # tmp: _sgnd_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
         #
@@ -90,7 +90,7 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Requirement checks -------------------------------------------------------------
-    # sgnd_have
+    # fn: sgnd_have
         # Returns:
         #   0 if the command exists on PATH; non-zero otherwise.
         #
@@ -98,7 +98,7 @@ set -uo pipefail
         #   sgnd_have COMMAND
     sgnd_have() { command -v "$1" >/dev/null 2>&1; }
 
-    # sgnd_need_cmd
+    # fn: sgnd_need_cmd
         # Returns:
         #   0 when the command exists; exits 1 otherwise.
         #
@@ -106,7 +106,7 @@ set -uo pipefail
         #   sgnd_need_cmd COMMAND
     sgnd_need_cmd() { sgnd_have "$1" || { printf 'Missing required command: %s\n' "$1" >&2; exit 1; }; }
 
-    # sgnd_need_bash
+    # fn: sgnd_need_bash
         # Returns:
         #   0 when the current Bash major version is sufficient; exits 1 otherwise.
         #
@@ -114,7 +114,7 @@ set -uo pipefail
         #   sgnd_need_bash [MIN_MAJOR]
     sgnd_need_bash() { (( BASH_VERSINFO[0] >= ${1:-4} )) || { printf 'Bash %s+ required.\n' "${1:-4}" >&2; exit 1; }; }
 
-    # sgnd_need_tty
+    # fn: sgnd_need_tty
         # Returns:
         #   0 if stdout is a TTY; 1 otherwise.
         #
@@ -123,7 +123,7 @@ set -uo pipefail
     sgnd_need_tty() { [[ -t 1 ]] || { printf 'No TTY attached.\n' >&2; return 1; }; }
 
 # --- Filesystem helpers -------------------------------------------------------------
-    # sgnd_can_append
+    # fn: sgnd_can_append
         # Purpose:
         #   Test whether a file can be appended to, or created for later appending.
         #
@@ -168,7 +168,7 @@ set -uo pipefail
         return 0
     }
 
-    # sgnd_ensure_dir
+    # fn: sgnd_ensure_dir
         # Purpose:
         #   Ensure a directory exists.
         #
@@ -188,7 +188,7 @@ set -uo pipefail
         [[ -d "$dir" ]] || mkdir -p -- "$dir"
     }
 
-    # sgnd_abs_path
+    # fn: sgnd_abs_path
         # Returns:
         #   0 on success; 127 if no supported resolver is available.
         #
@@ -207,7 +207,7 @@ set -uo pipefail
         return 127
     }
 
-    # sgnd_mktemp_dir
+    # fn: sgnd_mktemp_dir
         # Returns:
         #   0 on success; non-zero on failure.
         #
@@ -215,7 +215,7 @@ set -uo pipefail
         #   sgnd_mktemp_dir
     sgnd_mktemp_dir() { mktemp -d 2>/dev/null || TMPDIR=${TMPDIR:-/tmp} mktemp -d "${TMPDIR%/}/XXXXXX"; }
 
-    # sgnd_mktemp_file
+    # fn: sgnd_mktemp_file
         # Returns:
         #   0 on success; non-zero on failure.
         #
@@ -223,7 +223,7 @@ set -uo pipefail
         #   sgnd_mktemp_file
     sgnd_mktemp_file() { TMPDIR=${TMPDIR:-/tmp} mktemp "${TMPDIR%/}/XXXXXX"; }
 
-    # sgnd_slugify
+    # fn: sgnd_slugify
         # Purpose:
         #   Convert text into a lowercase filename-safe slug.
         #
@@ -263,7 +263,7 @@ set -uo pipefail
         printf '%s' "$s"
     }
 
-    # sgnd_hash_sha256_file
+    # fn: sgnd_hash_sha256_file
         # Purpose:
         #   Compute and print the SHA-256 hash of a readable file.
         #
@@ -302,7 +302,7 @@ set -uo pipefail
         return 127
     }
 
-    # sgnd_safe_replace_file
+    # fn: sgnd_safe_replace_file
         # Purpose:
         #   Replace a destination file with a source file while preserving mode bits.
         #
@@ -327,7 +327,7 @@ set -uo pipefail
     }    
 
 # --- Argument & environment helpers -------------------------------------------------
-    # sgnd_is_set
+    # fn: sgnd_is_set
         # Returns:
         #   0 if the variable name is defined; non-zero otherwise.
         #
@@ -335,7 +335,7 @@ set -uo pipefail
         #   sgnd_is_set VAR_NAME
     sgnd_is_set() { [[ -v "$1" ]]; }
 
-    # sgnd_default
+    # fn: sgnd_default
         # Purpose:
         #   Assign a default value to a variable when it is unset or empty.
         #
@@ -359,7 +359,7 @@ set -uo pipefail
         [[ -n "${ref:-}" ]] || ref="$default"
     }
 
-    # sgnd_is_number
+    # fn: sgnd_is_number
         # Returns:
         #   0 if the value contains only digits; non-zero otherwise.
         #
@@ -367,7 +367,7 @@ set -uo pipefail
         #   sgnd_is_number VALUE
     sgnd_is_number() { [[ "$1" =~ ^[0-9]+$ ]]; }
 
-    # sgnd_array_has_items
+    # fn: sgnd_array_has_items
         # Returns:
         #   0 if the named array exists and contains at least one element; non-zero otherwise.
         #
@@ -379,7 +379,7 @@ set -uo pipefail
         (( ${#_arr[@]} > 0 ))
     }
 
-    # sgnd_is_true
+    # fn: sgnd_is_true
         # Returns:
         #   0 if the token is one of: y, yes, 1, true; non-zero otherwise.
         #
@@ -393,7 +393,7 @@ set -uo pipefail
     }
 
 # --- Process & state helpers --------------------------------------------------------
-    # sgnd_proc_exists
+    # fn: sgnd_proc_exists
         # Returns:
         #   0 if a process with the exact name is running; non-zero otherwise.
         #
@@ -401,7 +401,7 @@ set -uo pipefail
         #   sgnd_proc_exists PROCESS_NAME
     sgnd_proc_exists() { pgrep -x "$1" &>/dev/null; }
 
-    # sgnd_wait_for_exit
+    # fn: sgnd_wait_for_exit
         # Returns:
         #   0 when the named process is no longer running.
         #
@@ -416,7 +416,7 @@ set -uo pipefail
         done
     }
 
-    # sgnd_kill_if_running
+    # fn: sgnd_kill_if_running
         # Returns:
         #   0 always.
         #
@@ -424,7 +424,7 @@ set -uo pipefail
         #   sgnd_kill_if_running PROCESS_NAME
     sgnd_kill_if_running() { pkill -x "$1" &>/dev/null || true; }
 
-    # sgnd_caller_id
+    # fn: sgnd_caller_id
         # Purpose:
         #   Build a compact caller identifier string for diagnostics.
         #
@@ -449,7 +449,7 @@ set -uo pipefail
         printf '%s:%s (%s)' "${file##*/}" "$line" "$func"
     }
 
-    # sgnd_stack_trace
+    # fn: sgnd_stack_trace
         # Purpose:
         #   Print a simple stack trace with the most recent caller first.
         #
@@ -471,7 +471,7 @@ set -uo pipefail
         done
     }
 
-    # sgnd_has_tty
+    # fn: sgnd_has_tty
         # Returns:
         #   0 if /dev/tty is readable and writable; 1 otherwise.
         #
@@ -543,7 +543,7 @@ set -uo pipefail
         esac
     }
 # --- Version helpers ----------------------------------------------------------------
-    # sgnd_version_ge
+    # fn: sgnd_version_ge
         # Returns:
         #   0 if version A is greater than or equal to version B; 1 otherwise.
         #
@@ -552,7 +552,7 @@ set -uo pipefail
     sgnd_version_ge() { [[ "$(printf '%s\n' "$2" "$1" | sort -V | head -n1)" == "$2" ]]; }
 
     # --- Misc utilities -----------------------------------------------------------------
-    # sgnd_timestamp
+    # fn: sgnd_timestamp
         # Returns:
         #   0 always.
         #
@@ -560,7 +560,7 @@ set -uo pipefail
         #   sgnd_timestamp
     sgnd_timestamp() { date +"%Y-%m-%d %H:%M:%S"; }
 
-    # sgnd_retry
+    # fn: sgnd_retry
         # Purpose:
         #   Retry a command up to N times with a delay between attempts.
         #
@@ -593,7 +593,7 @@ set -uo pipefail
         return 1
     }
 
-    # sgnd_join
+    # fn: sgnd_join
         # Returns:
         #   0 always.
         #
@@ -605,7 +605,7 @@ set -uo pipefail
         printf '%s' "$*"
     }
 
-    # sgnd_array_union
+    # fn: sgnd_array_union
         # Purpose:
         #   Build a stable union of one or more source arrays into a destination array.
         #
@@ -648,7 +648,7 @@ set -uo pipefail
     }
 
 # --- Text functions -----------------------------------------------------------------
-    # sgnd_trim
+    # fn: sgnd_trim
         # Returns:
         #   0 always.
         #
@@ -660,7 +660,7 @@ set -uo pipefail
         printf '%s' "${v%"${v##*[![:space:]]}"}"
     }
 
-    # sgnd_string_repeat
+    # fn: sgnd_string_repeat
         # Returns:
         #   0 always.
         #
@@ -681,7 +681,7 @@ set -uo pipefail
         printf '%s' "$out"
     }
 
-    # sgnd_fill_left
+    # fn: sgnd_fill_left
         # Returns:
         #   0 always.
         #
@@ -699,7 +699,7 @@ set -uo pipefail
         printf '%s%s' "$pad" "$source"
     }
 
-    # sgnd_fill_right
+    # fn: sgnd_fill_right
         # Returns:
         #   0 always.
         #
@@ -717,7 +717,7 @@ set -uo pipefail
         printf '%s%s' "$source" "$pad"
     }
 
-    # sgnd_fill_center
+    # fn: sgnd_fill_center
         # Returns:
         #   0 always.
         #
@@ -743,7 +743,7 @@ set -uo pipefail
         printf '%s%s%s' "$pad_left" "$source" "$pad_right"
     }
 
-    # sgnd_visible_length
+    # fn: sgnd_visible_length
         # Purpose:
         #   Measure the character length of text after stripping ANSI escape sequences.
         #
@@ -765,7 +765,7 @@ set -uo pipefail
         printf '%s' "$text" | wc -m
     }
 
-    # sgnd_terminal_width
+    # fn: sgnd_terminal_width
         # Returns:
         #   0 always.
         #
@@ -786,7 +786,7 @@ set -uo pipefail
         printf '%s\n' "$term_width"
     }
 
-    # sgnd_padded_visible
+    # fn: sgnd_padded_visible
         # Returns:
         #   0 always.
         #
@@ -805,7 +805,7 @@ set -uo pipefail
         printf '%s%*s' "$text" "$pad_len" ""
     }
 
-    # sgnd_wrap_words
+    # fn: sgnd_wrap_words
         # Purpose:
         #   Wrap a text string to a fixed width on word boundaries.
         #
@@ -852,7 +852,7 @@ set -uo pipefail
     }
 
 # --- Validators ---------------------------------------------------------------------
-    # sgnd_validate_ipv4
+    # fn: sgnd_validate_ipv4
         # Returns:
         #   0 if the value is a syntactically valid IPv4 address; 1 otherwise.
         #
@@ -875,7 +875,7 @@ set -uo pipefail
         return 0
     }
 
-    # sgnd_validate_yesno
+    # fn: sgnd_validate_yesno
         # Returns:
         #   0 if the value is a single-char Y/y/N/n token; non-zero otherwise.
         #
@@ -883,7 +883,7 @@ set -uo pipefail
         #   sgnd_validate_yesno VALUE
     sgnd_validate_yesno() { [[ "$1" =~ ^[YyNn]$ ]]; }
 
-    # sgnd_validate_int
+    # fn: sgnd_validate_int
         # Returns:
         #   0 if the value is a signed integer; 1 otherwise.
         #
@@ -891,7 +891,7 @@ set -uo pipefail
         #   sgnd_validate_int VALUE
     sgnd_validate_int() { [[ "$1" =~ ^-?[0-9]+$ ]]; }
 
-    # sgnd_validate_numeric
+    # fn: sgnd_validate_numeric
         # Returns:
         #   0 if the value is numeric; 1 otherwise.
         #
@@ -899,7 +899,7 @@ set -uo pipefail
         #   sgnd_validate_numeric VALUE
     sgnd_validate_numeric() { [[ "$1" =~ ^-?[0-9]+([.][0-9]+)?$ ]]; }
 
-    # sgnd_validate_text
+    # fn: sgnd_validate_text
         # Returns:
         #   0 if the value is non-empty; 1 otherwise.
         #
@@ -907,7 +907,7 @@ set -uo pipefail
         #   sgnd_validate_text VALUE
     sgnd_validate_text() { [[ -n "$1" ]]; }
 
-    # sgnd_validate_bool
+    # fn: sgnd_validate_bool
         # Returns:
         #   0 if the value is a recognized boolean token; 1 otherwise.
         #
@@ -920,7 +920,7 @@ set -uo pipefail
         esac
     }
 
-    # sgnd_validate_date
+    # fn: sgnd_validate_date
         # Returns:
         #   0 if the value matches YYYY-MM-DD; 1 otherwise.
         #
@@ -928,7 +928,7 @@ set -uo pipefail
         #   sgnd_validate_date VALUE
     sgnd_validate_date() { [[ "$1" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; }
 
-    # sgnd_validate_cidr
+    # fn: sgnd_validate_cidr
         # Returns:
         #   0 if the value is a CIDR prefix length from 0 to 32; 1 otherwise.
         #
@@ -936,7 +936,7 @@ set -uo pipefail
         #   sgnd_validate_cidr VALUE
     sgnd_validate_cidr() { [[ "$1" =~ ^([0-9]|[12][0-9]|3[0-2])$ ]]; }
 
-    # sgnd_validate_slug
+    # fn: sgnd_validate_slug
         # Returns:
         #   0 if the value matches the lowercase slug character set; 1 otherwise.
         #
@@ -944,7 +944,7 @@ set -uo pipefail
         #   sgnd_validate_slug VALUE
     sgnd_validate_slug() { [[ "$1" =~ ^[a-z0-9._-]+$ ]]; }
 
-    # sgnd_validate_fs_name
+    # fn: sgnd_validate_fs_name
         # Returns:
         #   0 if the value contains only filesystem-safe name characters; 1 otherwise.
         #
@@ -952,7 +952,7 @@ set -uo pipefail
         #   sgnd_validate_fs_name VALUE
     sgnd_validate_fs_name() { [[ "$1" =~ ^[A-Za-z0-9._-]+$ ]]; }
 
-    # sgnd_validate_file_exists
+    # fn: sgnd_validate_file_exists
         # Returns:
         #   0 if the path is an existing regular file; 1 otherwise.
         #
@@ -963,7 +963,7 @@ set -uo pipefail
         [[ -f "$path" ]]
     }
 
-    # sgnd_validate_path_exists
+    # fn: sgnd_validate_path_exists
         # Returns:
         #   0 if the path exists; 1 otherwise.
         #
@@ -971,7 +971,7 @@ set -uo pipefail
         #   sgnd_validate_path_exists PATH
     sgnd_validate_path_exists() { [[ -e "$1" ]]; }
 
-    # sgnd_validate_dir_exists
+    # fn: sgnd_validate_dir_exists
         # Returns:
         #   0 if the path is an existing directory; 1 otherwise.
         #
@@ -979,7 +979,7 @@ set -uo pipefail
         #   sgnd_validate_dir_exists PATH
     sgnd_validate_dir_exists() { [[ -d "$1" ]]; }
 
-    # sgnd_validate_executable
+    # fn: sgnd_validate_executable
         # Returns:
         #   0 if the path is executable; 1 otherwise.
         #
@@ -987,7 +987,7 @@ set -uo pipefail
         #   sgnd_validate_executable PATH
     sgnd_validate_executable() { [[ -x "$1" ]]; }
 
-    # sgnd_validate_file_not_exists
+    # fn: sgnd_validate_file_not_exists
         # Returns:
         #   0 if the path is not an existing regular file; 1 otherwise.
         #

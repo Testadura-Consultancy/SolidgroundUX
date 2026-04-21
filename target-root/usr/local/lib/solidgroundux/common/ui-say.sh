@@ -107,7 +107,7 @@ set -uo pipefail
     SGND_LINEBREAK_PENDING=0  # Internal flag to track if a line break is needed before the next message (used by sayprogress)
 
 # --- Helpers ------------------------------------------------------------------------
-    # _say_should_print_console
+    # fn: say_should_print_console
         # Purpose:
         #   Determine whether a message type should be printed to the console
         #   according to the current output policy.
@@ -159,7 +159,7 @@ set -uo pipefail
     }
 
 
-    # _say_caller
+    # fn: say_caller
         # Purpose:
         #   Resolve the originating caller location for logging purposes.
         #
@@ -199,7 +199,7 @@ set -uo pipefail
         printf '<main>\t<unknown>\t?'
     }
 
-    # _say_write_log
+    # fn: say_write_log
         # Purpose:
         #   Append a formatted log record to the logfile with optional rotation.
         #
@@ -274,7 +274,7 @@ set -uo pipefail
         printf '%s\n' "$log_line" >>"$logfile" 2>/dev/null || true
     }
 
-    # _sgnd_rotate_logs
+    # fn: _sgnd_rotate_logs
         # Purpose:
         #   Perform size-based rotation of a logfile.
         #
@@ -333,7 +333,7 @@ set -uo pipefail
             rm -f -- "${logfile}.$((SGND_LOG_KEEP+1))" "${logfile}.$((SGND_LOG_KEEP+1)).gz" 2>/dev/null || true
     }
 
-    # _sgnd_logfile
+    # fn: _sgnd_logfile
         # Purpose:
         #   Resolve the effective logfile path based on configured priorities.
         #
@@ -374,7 +374,7 @@ set -uo pipefail
         return 1
     }
 # --- Public API ---------------------------------------------------------------------
-    # say
+    # fn: say
         # Purpose:
         #   Emit a typed message with formatting, colorization, and optional logging.
         #
@@ -596,7 +596,7 @@ set -uo pipefail
         _say_write_log "$type" "$msg" "$date_str"
     }
 
-    # sayprogress
+    # fn: sayprogress
         # Purpose:
         #   Render single-line progress output on stderr and update it in place.
         #
@@ -751,7 +751,7 @@ set -uo pipefail
         printf '\r%-140s' "$text" >&2
     }
 
-    # sayprogress_done
+    # fn: sayprogress_done
         # Purpose:
         #   Finalize progress output by printing a newline.
         #
@@ -772,7 +772,7 @@ set -uo pipefail
     }
 
     # -- Convenience wrappers for say() with a fixed TYPE.
-        # sayinfo
+        # fn: sayinfo
             # Purpose:
             #   Emit an INFO message.
             #
@@ -796,7 +796,7 @@ set -uo pipefail
                 say INFO "$@"
         }
 
-        # saystart
+        # fn: saystart
             # Purpose:
             #   Emit a STRT message.
             #
@@ -815,7 +815,7 @@ set -uo pipefail
             say STRT "$@"
         }
 
-        # saywarning
+        # fn: saywarning
             # Purpose:
             #   Emit a WARN message.
             #
@@ -831,7 +831,7 @@ set -uo pipefail
             say WARN "$@"
         }
 
-        # sayfail
+        # fn: sayfail
             # Purpose:
             #   Emit a FAIL message.
             #
@@ -850,7 +850,7 @@ set -uo pipefail
             say FAIL "$@"
         }
 
-        # saycancel
+        # fn: saycancel
             # Purpose:
             #   Emit a CNCL message.
             #
@@ -869,7 +869,7 @@ set -uo pipefail
             say CNCL "$@"
         }
 
-        # sayok
+        # fn: sayok
             # Purpose:
             #   Emit an OK message.
             #
@@ -888,7 +888,7 @@ set -uo pipefail
             say OK "$@"
         }
 
-        # sayend
+        # fn: sayend
             # Purpose:
             #   Emit an END message.
             #
@@ -923,7 +923,7 @@ set -uo pipefail
             printf '%s\n' "$@"
         }
 
-        # saydebug
+        # fn: saydebug
             # Purpose:
             #   Emit a DEBUG message with optional caller context.
             #

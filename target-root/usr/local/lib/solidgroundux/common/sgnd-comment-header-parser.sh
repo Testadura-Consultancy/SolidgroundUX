@@ -49,7 +49,7 @@
 
 set -uo pipefail
 # - Library guard ------------------------------------------------------------------
-    # _sgnd_lib_guard
+    # tmp: _sgnd_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
         #
@@ -91,7 +91,7 @@ set -uo pipefail
 
 # - Public API ---------------------------------------------------------------------
 # -- Load and info
-    # sgnd_header_read
+    # fn: sgnd_header_read
         # Purpose:
         #   Read the canonical header comment block from the top of a script file.
         #
@@ -147,7 +147,7 @@ set -uo pipefail
         printf '%s' "${result%$'\n'}"
     }
 
-    # sgnd_header_load_section_to_dt
+    # fn: sgnd_header_load_section_to_dt
         # Purpose:
         #   Load all key/value pairs from a header section into an sgnd-datatable.
         #
@@ -217,7 +217,7 @@ set -uo pipefail
         done < "$file"
     }
 
-    # sgnd_header_is_section_header
+    # fn: sgnd_header_is_section_header
         # Purpose:
         #   Determine whether a line is a top-level structured header section marker.
         #
@@ -243,7 +243,7 @@ set -uo pipefail
         return 0
     }
 
-    # sgnd_header_buffer_load
+    # fn: sgnd_header_buffer_load
         # Purpose:
         #   Load a script header into the shared in-memory header buffer.
         #
@@ -275,7 +275,7 @@ set -uo pipefail
         SGND_HEADER_BUFFER_TEXT="$(sgnd_header_read "$file")" || return 1
     }
 
-    # sgnd_header_buffer_get_section
+    # fn: sgnd_header_buffer_get_section
         # Purpose:
         #   Extract a named section from the current shared header buffer.
         #
@@ -307,7 +307,7 @@ set -uo pipefail
         sgnd_header_get_section_from_text "$SGND_HEADER_BUFFER_TEXT" "$section" "$_outvar"
     }
 # -- Version control
-    # sgnd_header_calc_checksum
+    # fn: sgnd_header_calc_checksum
         # Purpose:
         #   Calculate a stable checksum for a script while ignoring self-updating metadata fields.
         #
@@ -346,7 +346,7 @@ set -uo pipefail
         ' "$file" | sha256sum | awk '{print $1}'
     }
 
-    # sgnd_header_bump_version
+    # fn: sgnd_header_bump_version
         # Purpose:
         #   Refresh header checksum/build metadata and optionally bump semantic version fields.
         #
@@ -460,7 +460,7 @@ set -uo pipefail
         return 0
     }
 # -- Header CRUD
-    # sgnd_header_get_section
+    # fn: sgnd_header_get_section
         # Purpose:
         #   Retrieve the full contents of a header section from a file.
         #
@@ -514,7 +514,7 @@ set -uo pipefail
         printf -v "$_resultvar" '%s' "$result"
     }
 
-    # sgnd_header_get_section_from_text
+    # fn: sgnd_header_get_section_from_text
         # Purpose:
         #   Extract the body of a named header section from buffered header text.
         #
@@ -570,7 +570,7 @@ set -uo pipefail
         (( found ))
     }
 
-    # sgnd_header_get_banner_parts_from_text
+    # fn: sgnd_header_get_banner_parts_from_text
         # Purpose:
         #   Extract product and title from the banner line in buffered header text.
         #
@@ -636,7 +636,7 @@ set -uo pipefail
         return 1
     }
 
-    # sgnd_header_parse_banner_line
+    # fn: sgnd_header_parse_banner_line
         # Purpose:
         #   Extract product and title from a single header banner line.
         #
@@ -675,7 +675,7 @@ set -uo pipefail
         return 1
     }
 
-    # sgnd_header_get_field_value
+    # fn: sgnd_header_get_field_value
         # Returns:
         #   Prints the requested field value to stdout, or an empty string if not found.
         #
@@ -726,7 +726,7 @@ set -uo pipefail
         return 1
     }
 
-    # sgnd_header_get_field_value
+    # fn: sgnd_header_get_field_value
         # Purpose:
         #   Convenience wrapper to retrieve a field value and print it to stdout.
         #
@@ -754,7 +754,7 @@ set -uo pipefail
         printf '%s' "$value"
     }
 
-    # sgnd_header_get_banner_parts
+    # fn: sgnd_header_get_banner_parts
         # Purpose:
         #   Extract product and title from the banner line.
         #
@@ -812,7 +812,7 @@ set -uo pipefail
         printf -v "$_title_var" '%s' ""
         return 1
     }
-    # sgnd_section_get_field_value
+    # fn: sgnd_section_get_field_value
         # Purpose:
         #   Extract a field value from a section string.
         #
@@ -859,7 +859,7 @@ set -uo pipefail
         printf ''
     }
 
-    # sgnd_header_add_field
+    # fn: sgnd_header_add_field
         # Purpose:
         #   Insert a new field into an existing named header section.
         #
@@ -951,7 +951,7 @@ set -uo pipefail
         return 1
     }
 
-    # sgnd_header_upsert_field
+    # fn: sgnd_header_upsert_field
         # Purpose:
         #   Update a field when present or insert it when missing from an existing section.
         #
@@ -994,7 +994,7 @@ set -uo pipefail
         esac
     }
    
-    # sgnd_header_set_field
+    # fn: sgnd_header_set_field
         # Purpose:
         #   Replace the value of an existing field inside a named header section
         #   while preserving the original line formatting.

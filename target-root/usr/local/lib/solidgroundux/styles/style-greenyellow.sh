@@ -1,6 +1,28 @@
-#!/usr/bin/env bash
-# Green-Yellow (labels green, values yellow)
-
+# =====================================================================================
+# SolidgroundUX - Green Yellow Style
+# -------------------------------------------------------------------------------------
+# Metadata:
+#   Version     : 1.1
+#   Build       : 2608700
+#   Checksum    : none
+#   Source      : style-greenyellow.sh
+#   Type        : library
+#   Group       : Styles
+#   Purpose     : Alternative style for testing pruposes
+#
+# Description:
+#   Provides the default layout and styling rules used by the SolidgroundUX UI layer.
+#
+# Non-goals:
+#   A pretty or ensible style
+#
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      : 
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# =====================================================================================
 # --- say() global defaults ----------------------------------------------------
     SAY_DATE_DEFAULT=0       # 0 = no date, 1 = add date
     SAY_SHOW_DEFAULT="label, symbol"   # label|icon|symbol|all|label,icon|...

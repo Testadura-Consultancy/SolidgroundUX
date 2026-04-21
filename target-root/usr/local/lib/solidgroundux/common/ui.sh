@@ -45,7 +45,7 @@
 # =====================================================================================
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------
-    # _sgnd_lib_guard
+    # tmp: _sgnd_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
         #
@@ -122,7 +122,7 @@ set -uo pipefail
         fi
     }
 
-    # confirm
+    # fn: confirm
         # Purpose:
         #   Compatibility override for legacy yes/no confirmation prompts.
         #
@@ -170,7 +170,7 @@ set -uo pipefail
     }
 
 # --- Helpers ------------------------------------------------------------------------
-    # _sgnd_ui_resolve_theme_file
+    # fn: _sgnd_ui_resolve_theme_file
         # Purpose:
         #   Resolve a palette or style specification into a readable .sh file path.
         #
@@ -246,7 +246,7 @@ set -uo pipefail
 
 # --- Public API ---------------------------------------------------------------------
  # -- Public helpers --------------------------------------------------------------
-    # sgnd_strip_ansi
+    # fn: sgnd_strip_ansi
         # Purpose:
         #   Strip ANSI CSI escape sequences from a string.
         #
@@ -273,7 +273,7 @@ set -uo pipefail
         sed -r $'s/\x1B\\[[0-9;?]*[[:alpha:]]//g' <<<"$1"
     }
 
-    # sgnd_visible_len
+    # fn: sgnd_visible_len
         # Purpose:
         #   Return the visible character length of a string after stripping ANSI.
         #
@@ -306,7 +306,7 @@ set -uo pipefail
     }
 
  # -- Theme loading ---------------------------------------------------------------
-    # sgnd_ui_set_theme
+    # fn: sgnd_ui_set_theme
         # Purpose:
         #   Load a UI palette and style into the current shell.
         #
@@ -439,7 +439,7 @@ set -uo pipefail
         return 0
     }
 
-    # sgnd_ui_set_default_theme
+    # fn: sgnd_ui_set_default_theme
         # Purpose:
         #   Convenience wrapper to load the default UI palette and style.
         #
@@ -459,7 +459,7 @@ set -uo pipefail
     }
 
  # -- Styling helpers -------------------------------------------------------------
-    # sgnd_sgr
+    # fn: sgnd_sgr
         # Purpose:
         #   Build one canonical ANSI SGR escape sequence from mixed inputs.
         #
@@ -543,7 +543,7 @@ set -uo pipefail
         printf $'\e[%sm' "$(IFS=';'; echo "${parts[*]}")"
     }
 
-    # sgnd_fg
+    # fn: sgnd_fg
         # Purpose:
         #   Convenience wrapper to build a foreground-color SGR prefix.
         #
@@ -564,13 +564,13 @@ set -uo pipefail
         #
         # Examples:
         #   printf '%sText%s\n' "$(sgnd_fg "$WHITE" "$FX_ITALIC")" "$RESET"
-    sgnd_fg() {  # sgnd_fg <fg> [fx...]
+    sgnd_fg() {  # fn: sgnd_fg <fg> [fx...]
         local fg="${1:-}"
         shift || true
         sgnd_sgr "$fg" "" "$@"
     }
 
-    # sgnd_bg
+    # fn: sgnd_bg
         # Purpose:
         #   Convenience wrapper to build a background-color SGR prefix.
         #
@@ -591,14 +591,14 @@ set -uo pipefail
         #
         # Examples:
         #   printf '%sText%s\n' "$(sgnd_bg "$BG_RED" "$FX_BOLD")" "$RESET"
-    sgnd_bg() {  # sgnd_bg <bg> [fx...]
+    sgnd_bg() {  # fn: sgnd_bg <bg> [fx...]
         local bg="${1:-}"
         shift || true
         sgnd_sgr "" "$bg" "$@"
     }
 
  # -- Runmode indicators ----------------------------------------------------------
-    # sgnd_update_runmode
+    # fn: sgnd_update_runmode
         # Purpose:
         #   Update the styled global RUN_MODE indicator from the current dry-run state.
         #
@@ -631,7 +631,7 @@ set -uo pipefail
         fi
     }
 
-    # sgnd_runmode_color
+    # fn: sgnd_runmode_color
         # Purpose:
         #   Return the ANSI prefix associated with the current run mode.
         #
@@ -656,7 +656,7 @@ set -uo pipefail
     }
 
  # -- Rendering primitives --------------------------------------------------------
-    # sgnd_print_labeledvalue
+    # fn: sgnd_print_labeledvalue
         # Purpose:
         #   Print one aligned "Label : Value" line with optional styling.
         #
@@ -766,7 +766,7 @@ set -uo pipefail
             "${valueclr}${value}${RESET}"
     }
 
-    # sgnd_print_fill
+    # fn: sgnd_print_fill
         # Purpose:
         #   Print one line with left and right content separated by a fill region.
         #
@@ -867,7 +867,7 @@ set -uo pipefail
             ""
     }
 
-    # sgnd_print_titlebar
+    # fn: sgnd_print_titlebar
         # Purpose:
         #   Print a framed title bar with left/right header text and optional subtitle.
         #
@@ -967,7 +967,7 @@ set -uo pipefail
             --maxwidth "$maxwidth"
     }
 
-    # sgnd_print_sectionheader
+    # fn: sgnd_print_sectionheader
         # Purpose:
         #   Print a divider line with optional title text.
         #
@@ -1088,7 +1088,7 @@ set -uo pipefail
         printf '%s\n' "$fnl"
     }
 
-    # sgnd_print
+    # fn: sgnd_print
         # Purpose:
         #   Print formatted text with padding, justification, and optional wrapping.
         #
@@ -1200,7 +1200,7 @@ set -uo pipefail
         fi
     }
 
-    # sgnd_print_single
+    # fn: sgnd_print_single
         # Purpose:
         #   Render exactly one formatted line within a fixed width.
         #
@@ -1302,7 +1302,7 @@ set -uo pipefail
         printf "%b\n" "${textclr}${line}${RESET}"
     }
 
-    # sgnd_print_file
+    # fn: sgnd_print_file
         # Purpose:
         #   Print a text file to stdout, paging when interactive.
         #
@@ -1388,7 +1388,7 @@ set -uo pipefail
         fi
     }
     
-    # sgnd_print_cell
+    # fn: sgnd_print_cell
         # Purpose:
         #   Print a fixed-width cell that may contain ANSI styling sequences.
         #
@@ -1429,7 +1429,7 @@ set -uo pipefail
         printf '%s%*s' "$s" "$pad" ""
     }
 
-    # sgnd_module_show_metadata
+    # fn: sgnd_module_show_metadata
         # Purpose:
         #   Display metadata for a library module initialized via sgnd_module_init_metadata.
         #
@@ -1541,7 +1541,7 @@ set -uo pipefail
     }
  # -- Externals -------------------------------------------------------------------
  # -- Sample/demo renderers -------------------------------------------------------
-    # sgnd_color_samples
+    # fn: sgnd_color_samples
         # Purpose:
         #   Print a demo table of available palette colors and common effects.
         #
@@ -1579,7 +1579,7 @@ set -uo pipefail
 
     }
 
-    # sgnd_sample_row
+    # fn: sgnd_sample_row
         # Purpose:
         #   Render one sample row for one or more named palette variables.
         #
@@ -1650,7 +1650,7 @@ set -uo pipefail
         printf "\n"
     }
 
-    # sgnd_style_samples
+    # fn: sgnd_style_samples
         # Purpose:
         #   Print a demo of semantic message and UI style variables.
         #

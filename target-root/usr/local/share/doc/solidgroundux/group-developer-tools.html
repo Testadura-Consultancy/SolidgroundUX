@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Developer tools</title>
+<style>
+body { font-family: Arial, Helvetica, sans-serif; margin: 2rem auto; max-width: 1100px; line-height: 1.45; color: #222; }
+a { color: #0a58ca; text-decoration: none; }
+a:hover { text-decoration: underline; }
+header, main, nav, section, article, details, summary { display: block; }
+.site-header { border-bottom: 1px solid #ddd; margin-bottom: 1.5rem; padding-bottom: 0.75rem; }
+.site-nav { margin-bottom: 0.75rem; }
+.home-button { display: inline-block; padding: 0.35rem 0.7rem; border: 1px solid #cfcfcf; background: #f7f7f8; border-radius: 0.35rem; font-size: 0.95rem; }
+.home-button:hover { background: #efeff1; text-decoration: none; }
+.meta-block, .attr-block, .glossary-block, .header-block { background: #f7f7f8; border: 1px solid #e2e2e2; padding: 0.9rem 1rem; margin: 1rem 0; }
+.meta-block p, .attr-block p, .header-block p { margin: 0.2rem 0; }
+.chapter-title { margin-bottom: 0.2rem; }
+.section-block { margin-top: 2rem; }
+.section-title { border-bottom: 1px solid #e1e1e1; padding-bottom: 0.2rem; }
+.item-block { margin: 1rem 0 1.2rem 1rem; padding-left: 1rem; border-left: 3px solid #e1e1e1; }
+.item-header { margin-bottom: 0.45rem; }
+.item-title-row { font-size: 1.15rem; line-height: 1.35; }
+.item-title { font-size: 1.15em; }
+.item-type { font-weight: 700; text-transform: uppercase; font-size: 0.9rem; color: #666; margin-right: 0.45rem; }
+.item-access-private { color: #8b0000; }
+.item-access-public { color: #006400; }
+.content-comment-section { font-weight: 700; margin-top: 0.8rem; }
+.content-body { margin: 0.25rem 0; white-space: pre-wrap; }
+.small-note { color: #666; font-size: 0.9rem; }
+.nav-group, .group-module { margin: 0.65rem 0; }
+.nav-group summary, .group-module summary { cursor: pointer; font-weight: 700; }
+.group-module-glossary { margin: 0.5rem 0 0.5rem 1.25rem; }
+.group-module-glossary ul, .group-module-glossary li, .group-list, .group-list li { margin-top: 0.2rem; }
+.header-block-title { margin: 0 0 0.5rem 0; }
+</style>
+</head>
+<body>
+<header class="site-header">
+<div class="site-nav"><a class="home-button" href="index.html">Home</a></div>
+<h1 class="chapter-title">Developer tools</h1>
+<p class="small-note">Modules and function glossaries</p>
+</header>
+<main>
+<section class="meta-block">
+<strong>Modules</strong>
+<details class="group-module" open>
+<summary><a href="sgnd-comment-parser.sh.html"><strong>1 Comment Parser</strong></a> — Parse structured inline documentation comments in SolidgroundUX source files</summary>
+</details>
+<details class="group-module" open>
+<summary><a href="doc-generator.sh.html"><strong>2 Documentation Generator Script</strong></a> — Collect and prepare documentation data from source files using the</summary>
+<div class="group-module-glossary">
+<ul>
+<li><a href="doc-generator.sh.html#item-_get_userinput"><strong>_get_userinput</strong></a> —   Interactively collect and confirm documentation generator parameters. <span class="small-note">[private]</span></li>
+<li><a href="doc-generator.sh.html#item-_init_parameters"><strong>_init_parameters</strong></a> —   Initialize parameter variables from defaults when still unset. <span class="small-note">[private]</span></li>
+<li><a href="doc-generator.sh.html#item-main"><strong>main</strong></a> —   Provide the canonical executable entry point for the documentation generator. <span class="small-note">[public]</span></li>
+</ul>
+</div>
+</details>
+<details class="group-module" open>
+<summary><a href="sgnd-comment-header-parser.sh.html"><strong>3 Header Parser</strong></a> — Read, parse, and update canonical script header comments in SolidgroundUX files</summary>
+<div class="group-module-glossary">
+<ul>
+<li><a href="sgnd-comment-header-parser.sh.html#item-sgnd_header_add_field"><strong>sgnd_header_add_field</strong></a> —   Insert a new field into an existing named header section. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-comment-header-parser.sh.html#item-sgnd_header_buffer_get_section"><strong>sgnd_header_buffer_get_section</strong></a> —   Extract a named section from the current shared header buffer. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-comment-header-parser.sh.html#item-sgnd_header_buffer_load"><strong>sgnd_header_buffer_load</strong></a> —   Load a script header into the shared in-memory header buffer. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-comment-header-parser.sh.html#item-sgnd_header_bump_version"><strong>sgnd_header_bump_version</strong></a> —   Refresh header checksum/build metadata and optionally bump semantic version fields. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-comment-header-parser.sh.html#item-sgnd_header_calc_checksum"><strong>sgnd_header_calc_checksum</strong></a> —   Calculate a stable checksum for a script while ignoring self-updating metadata fields. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-comment-header-parser.sh.html#item-sgnd_header_get_banner_parts"><strong>sgnd_header_get_banner_parts</strong></a> —   Extract product and title from the banner line. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-comment-header-parser.sh.html#item-sgnd_header_get_banner_parts_from_text"><strong>sgnd_header_get_banner_parts_from_text</strong></a> —   Extract product and title from the banner line in buffered header text. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-comment-header-parser.sh.html#item-sgnd_header_get_field_value"><strong>sgnd_header_get_field_value</strong></a> —   Convenience wrapper to retrieve a field value and print it to stdout. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-comment-header-parser.sh.html#item-sgnd_header_get_field_value"><strong>sgnd_header_get_field_value</strong></a> —   Convenience wrapper to retrieve a field value and print it to stdout. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-comment-header-parser.sh.html#item-sgnd_header_get_section"><strong>sgnd_header_get_section</strong></a> —   Retrieve the full contents of a header section from a file. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-comment-header-parser.sh.html#item-sgnd_header_get_section_from_text"><strong>sgnd_header_get_section_from_text</strong></a> —   Extract the body of a named header section from buffered header text. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-comment-header-parser.sh.html#item-sgnd_header_is_section_header"><strong>sgnd_header_is_section_header</strong></a> —   Determine whether a line is a top-level structured header section marker. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-comment-header-parser.sh.html#item-sgnd_header_load_section_to_dt"><strong>sgnd_header_load_section_to_dt</strong></a> —   Load all key/value pairs from a header section into an sgnd-datatable. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-comment-header-parser.sh.html#item-sgnd_header_parse_banner_line"><strong>sgnd_header_parse_banner_line</strong></a> —   Extract product and title from a single header banner line. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-comment-header-parser.sh.html#item-sgnd_header_read"><strong>sgnd_header_read</strong></a> —   Read the canonical header comment block from the top of a script file. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-comment-header-parser.sh.html#item-sgnd_header_set_field"><strong>sgnd_header_set_field</strong></a> —   Replace the value of an existing field inside a named header section <span class="small-note">[public]</span></li>
+<li><a href="sgnd-comment-header-parser.sh.html#item-sgnd_header_upsert_field"><strong>sgnd_header_upsert_field</strong></a> —   Update a field when present or insert it when missing from an existing section. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-comment-header-parser.sh.html#item-sgnd_section_get_field_value"><strong>sgnd_section_get_field_value</strong></a> —   Extract a field value from a section string. <span class="small-note">[public]</span></li>
+</ul>
+</div>
+</details>
+</section>
+</main>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UI</title>
+<style>
+body { font-family: Arial, Helvetica, sans-serif; margin: 2rem auto; max-width: 1100px; line-height: 1.45; color: #222; }
+a { color: #0a58ca; text-decoration: none; }
+a:hover { text-decoration: underline; }
+header, main, nav, section, article, details, summary { display: block; }
+.site-header { border-bottom: 1px solid #ddd; margin-bottom: 1.5rem; padding-bottom: 0.75rem; }
+.site-nav { margin-bottom: 0.75rem; }
+.home-button { display: inline-block; padding: 0.35rem 0.7rem; border: 1px solid #cfcfcf; background: #f7f7f8; border-radius: 0.35rem; font-size: 0.95rem; }
+.home-button:hover { background: #efeff1; text-decoration: none; }
+.meta-block, .attr-block, .glossary-block, .header-block { background: #f7f7f8; border: 1px solid #e2e2e2; padding: 0.9rem 1rem; margin: 1rem 0; }
+.meta-block p, .attr-block p, .header-block p { margin: 0.2rem 0; }
+.chapter-title { margin-bottom: 0.2rem; }
+.section-block { margin-top: 2rem; }
+.section-title { border-bottom: 1px solid #e1e1e1; padding-bottom: 0.2rem; }
+.item-block { margin: 1rem 0 1.2rem 1rem; padding-left: 1rem; border-left: 3px solid #e1e1e1; }
+.item-header { margin-bottom: 0.45rem; }
+.item-title-row { font-size: 1.15rem; line-height: 1.35; }
+.item-title { font-size: 1.15em; }
+.item-type { font-weight: 700; text-transform: uppercase; font-size: 0.9rem; color: #666; margin-right: 0.45rem; }
+.item-access-private { color: #8b0000; }
+.item-access-public { color: #006400; }
+.content-comment-section { font-weight: 700; margin-top: 0.8rem; }
+.content-body { margin: 0.25rem 0; white-space: pre-wrap; }
+.small-note { color: #666; font-size: 0.9rem; }
+.nav-group, .group-module { margin: 0.65rem 0; }
+.nav-group summary, .group-module summary { cursor: pointer; font-weight: 700; }
+.group-module-glossary { margin: 0.5rem 0 0.5rem 1.25rem; }
+.group-module-glossary ul, .group-module-glossary li, .group-list, .group-list li { margin-top: 0.2rem; }
+.header-block-title { margin: 0 0 0.5rem 0; }
+</style>
+</head>
+<body>
+<header class="site-header">
+<div class="site-nav"><a class="home-button" href="index.html">Home</a></div>
+<h1 class="chapter-title">UI</h1>
+<p class="small-note">Modules and function glossaries</p>
+</header>
+<main>
+<section class="meta-block">
+<strong>Modules</strong>
+<details class="group-module" open>
+<summary><a href="ui-ask.sh.html"><strong>1 UI Ask</strong></a> — Provide interactive prompting and lightweight dialog utilities</summary>
+<div class="group-module-glossary">
+<ul>
+<li><a href="ui-ask.sh.html#item-ask"><strong>ask</strong></a> —   Prompt for interactive input from the controlling terminal (/dev/tty), <span class="small-note">[public]</span></li>
+<li><a href="ui-ask.sh.html#item-_ask_build_prompt"><strong>_ask_build_prompt</strong></a> —   Build a readline-safe prompt with visible-width padding and optional colors. <span class="small-note">[private]</span></li>
+<li><a href="ui-ask.sh.html#item-_ask_choice_is_valid"><strong>_ask_choice_is_valid</strong></a> —   Validate a single choice against a ask_choose-style choices list. <span class="small-note">[private]</span></li>
+<li><a href="ui-ask.sh.html#item-ask_choose"><strong>ask_choose</strong></a> —   Prompt for a constrained user choice using standard line input. <span class="small-note">[public]</span></li>
+<li><a href="ui-ask.sh.html#item-ask_choose_immediate"><strong>ask_choose_immediate</strong></a> —   Prompt for a constrained user choice using immediate-capable TTY input. <span class="small-note">[public]</span></li>
+<li><a href="ui-ask.sh.html#item-ask_decision"><strong>ask_decision</strong></a> —   Prompt for a constrained symbolic decision and store the canonical result. <span class="small-note">[public]</span></li>
+<li><a href="ui-ask.sh.html#item-_ask_decision_display"><strong>_ask_decision_display</strong></a> —   Build a compact display string from a decision specification. <span class="small-note">[private]</span></li>
+<li><a href="ui-ask.sh.html#item-_ask_decision_expand_choices"><strong>_ask_decision_expand_choices</strong></a> —   Expand a symbolic decision specification into canonical choices and aliases. <span class="small-note">[private]</span></li>
+<li><a href="ui-ask.sh.html#item-_ask_decision_map_dlg_rc"><strong>_ask_decision_map_dlg_rc</strong></a> —   Map ask_dlg_autocontinue return codes to a canonical decision when possible. <span class="small-note">[private]</span></li>
+<li><a href="ui-ask.sh.html#item-_ask_decision_normalize"><strong>_ask_decision_normalize</strong></a> —   Normalize a typed decision value to its canonical token. <span class="small-note">[private]</span></li>
+<li><a href="ui-ask.sh.html#item-ask_dlg_autocontinue"><strong>ask_dlg_autocontinue</strong></a> —   Show a lightweight timed auto-continue prompt on /dev/tty. <span class="small-note">[public]</span></li>
+<li><a href="ui-ask.sh.html#item-_ask_expand_choices"><strong>_ask_expand_choices</strong></a> —   Expand a comma-separated choice specification into individual allowed values. <span class="small-note">[private]</span></li>
+<li><a href="ui-ask.sh.html#item-_ask_is_ident"><strong>_ask_is_ident</strong></a> —   Test whether a value is a valid shell variable identifier. <span class="small-note">[private]</span></li>
+<li><a href="ui-ask.sh.html#item-_ask_parse_fieldspec"><strong>_ask_parse_fieldspec</strong></a> —   Parse a simple field-spec line into reusable globals for ask_prompt_form(). <span class="small-note">[private]</span></li>
+<li><a href="ui-ask.sh.html#item-ask_prompt_form"><strong>ask_prompt_form</strong></a> —   Prompt for a list of variables described by field-spec lines. <span class="small-note">[public]</span></li>
+<li><a href="ui-ask.sh.html#item-_ask_validate"><strong>_ask_validate</strong></a> —   Run a validation callback when provided. <span class="small-note">[private]</span></li>
+</ul>
+</div>
+</details>
+<details class="group-module" open>
+<summary><a href="ui-dlg.sh.html"><strong>2 UI Dialogs</strong></a> — Provide dialog-style user interaction helpers</summary>
+<div class="group-module-glossary">
+<ul>
+<li><a href="ui-dlg.sh.html#item-_dlg_keymap"><strong>_dlg_keymap</strong></a> —   Build a human-readable key legend string for the current dialog state. <span class="small-note">[private]</span></li>
+<li><a href="ui-dlg.sh.html#item-sgnd_ask_decision"><strong>sgnd_ask_decision</strong></a> —   Prompt for a constrained symbolic decision and normalize the result. <span class="small-note">[public]</span></li>
+<li><a href="ui-dlg.sh.html#item-sgnd_decision_display_choices"><strong>sgnd_decision_display_choices</strong></a> —   Build a compact display label for a decision specification. <span class="small-note">[public]</span></li>
+<li><a href="ui-dlg.sh.html#item-sgnd_decision_expand_choices"><strong>sgnd_decision_expand_choices</strong></a> —   Expand a symbolic decision specification into canonical choices and aliases. <span class="small-note">[public]</span></li>
+<li><a href="ui-dlg.sh.html#item-sgnd_decision_from_dialog_rc"><strong>sgnd_decision_from_dialog_rc</strong></a> —   Translate a sgnd_dlg_autocontinue() return code into a canonical decision token. <span class="small-note">[public]</span></li>
+<li><a href="ui-dlg.sh.html#item-sgnd_decision_normalize"><strong>sgnd_decision_normalize</strong></a> —   Normalize a typed value to its canonical decision token. <span class="small-note">[public]</span></li>
+<li><a href="ui-dlg.sh.html#item-sgnd_dlg_autocontinue"><strong>sgnd_dlg_autocontinue</strong></a> —   Render a timed dialog on /dev/tty with a countdown and simple key-driven actions. <span class="small-note">[public]</span></li>
+<li><a href="ui-dlg.sh.html#item-sgnd_prompt_fromlist"><strong>sgnd_prompt_fromlist</strong></a> —   Prompt for a list of state or configuration entries described by state-spec lines. <span class="small-note">[public]</span></li>
+</ul>
+</div>
+</details>
+<details class="group-module" open>
+<summary><a href="ui-glyphs.sh.html"><strong>3 UI Glyphs</strong></a> — Provide glyph and symbol helpers for console rendering</summary>
+</details>
+<details class="group-module" open>
+<summary><a href="ui-say.sh.html"><strong>4 UI Messaging</strong></a> — Provide standardized console messaging helpers</summary>
+<div class="group-module-glossary">
+<ul>
+<li><a href="ui-say.sh.html#item-say"><strong>say</strong></a> —   Emit a typed message with formatting, colorization, and optional logging. <span class="small-note">[public]</span></li>
+<li><a href="ui-say.sh.html#item-say_caller"><strong>say_caller</strong></a> —   Resolve the originating caller location for logging purposes. <span class="small-note">[public]</span></li>
+<li><a href="ui-say.sh.html#item-saycancel"><strong>saycancel</strong></a> —   Emit a CNCL message. <span class="small-note">[public]</span></li>
+<li><a href="ui-say.sh.html#item-saydebug"><strong>saydebug</strong></a> —   Emit a DEBUG message with optional caller context. <span class="small-note">[public]</span></li>
+<li><a href="ui-say.sh.html#item-sayend"><strong>sayend</strong></a> —   Emit an END message. <span class="small-note">[public]</span></li>
+<li><a href="ui-say.sh.html#item-sayfail"><strong>sayfail</strong></a> —   Emit a FAIL message. <span class="small-note">[public]</span></li>
+<li><a href="ui-say.sh.html#item-sayinfo"><strong>sayinfo</strong></a> —   Emit an INFO message. <span class="small-note">[public]</span></li>
+<li><a href="ui-say.sh.html#item-sayok"><strong>sayok</strong></a> —   Emit an OK message. <span class="small-note">[public]</span></li>
+<li><a href="ui-say.sh.html#item-sayprogress"><strong>sayprogress</strong></a> —   Render single-line progress output on stderr and update it in place. <span class="small-note">[public]</span></li>
+<li><a href="ui-say.sh.html#item-sayprogress_done"><strong>sayprogress_done</strong></a> —   Finalize progress output by printing a newline. <span class="small-note">[public]</span></li>
+<li><a href="ui-say.sh.html#item-say_should_print_console"><strong>say_should_print_console</strong></a> —   Determine whether a message type should be printed to the console <span class="small-note">[public]</span></li>
+<li><a href="ui-say.sh.html#item-saystart"><strong>saystart</strong></a> —   Emit a STRT message. <span class="small-note">[public]</span></li>
+<li><a href="ui-say.sh.html#item-saywarning"><strong>saywarning</strong></a> —   Emit a WARN message. <span class="small-note">[public]</span></li>
+<li><a href="ui-say.sh.html#item-say_write_log"><strong>say_write_log</strong></a> —   Append a formatted log record to the logfile with optional rotation. <span class="small-note">[public]</span></li>
+<li><a href="ui-say.sh.html#item-_sgnd_logfile"><strong>_sgnd_logfile</strong></a> —   Resolve the effective logfile path based on configured priorities. <span class="small-note">[private]</span></li>
+<li><a href="ui-say.sh.html#item-_sgnd_rotate_logs"><strong>_sgnd_rotate_logs</strong></a> —   Perform size-based rotation of a logfile. <span class="small-note">[private]</span></li>
+</ul>
+</div>
+</details>
+<details class="group-module" open>
+<summary><a href="ui.sh.html"><strong>5 UI Rendering</strong></a> — Provide terminal rendering utilities for styled console output</summary>
+<div class="group-module-glossary">
+<ul>
+<li><a href="ui.sh.html#item-confirm"><strong>confirm</strong></a> —   Compatibility override for legacy yes/no confirmation prompts. <span class="small-note">[public]</span></li>
+<li><a href="ui.sh.html#item-sgnd_bg"><strong>sgnd_bg</strong></a> —   Convenience wrapper to build a background-color SGR prefix. <span class="small-note">[public]</span></li>
+<li><a href="ui.sh.html#item-sgnd_color_samples"><strong>sgnd_color_samples</strong></a> —   Print a demo table of available palette colors and common effects. <span class="small-note">[public]</span></li>
+<li><a href="ui.sh.html#item-sgnd_fg"><strong>sgnd_fg</strong></a> —   Convenience wrapper to build a foreground-color SGR prefix. <span class="small-note">[public]</span></li>
+<li><a href="ui.sh.html#item-sgnd_module_show_metadata"><strong>sgnd_module_show_metadata</strong></a> —   Display metadata for a library module initialized via sgnd_module_init_metadata. <span class="small-note">[public]</span></li>
+<li><a href="ui.sh.html#item-sgnd_print"><strong>sgnd_print</strong></a> —   Print formatted text with padding, justification, and optional wrapping. <span class="small-note">[public]</span></li>
+<li><a href="ui.sh.html#item-sgnd_print_cell"><strong>sgnd_print_cell</strong></a> —   Print a fixed-width cell that may contain ANSI styling sequences. <span class="small-note">[public]</span></li>
+<li><a href="ui.sh.html#item-sgnd_print_file"><strong>sgnd_print_file</strong></a> —   Print a text file to stdout, paging when interactive. <span class="small-note">[public]</span></li>
+<li><a href="ui.sh.html#item-sgnd_print_fill"><strong>sgnd_print_fill</strong></a> —   Print one line with left and right content separated by a fill region. <span class="small-note">[public]</span></li>
+<li><a href="ui.sh.html#item-sgnd_print_labeledvalue"><strong>sgnd_print_labeledvalue</strong></a> —   Print one aligned "quot;Label : Value"quot; line with optional styling. <span class="small-note">[public]</span></li>
+<li><a href="ui.sh.html#item-sgnd_print_sectionheader"><strong>sgnd_print_sectionheader</strong></a> —   Print a divider line with optional title text. <span class="small-note">[public]</span></li>
+<li><a href="ui.sh.html#item-sgnd_print_single"><strong>sgnd_print_single</strong></a> —   Render exactly one formatted line within a fixed width. <span class="small-note">[public]</span></li>
+<li><a href="ui.sh.html#item-sgnd_print_titlebar"><strong>sgnd_print_titlebar</strong></a> —   Print a framed title bar with left/right header text and optional subtitle. <span class="small-note">[public]</span></li>
+<li><a href="ui.sh.html#item-sgnd_runmode_color"><strong>sgnd_runmode_color</strong></a> —   Return the ANSI prefix associated with the current run mode. <span class="small-note">[public]</span></li>
+<li><a href="ui.sh.html#item-sgnd_sample_row"><strong>sgnd_sample_row</strong></a> —   Render one sample row for one or more named palette variables. <span class="small-note">[public]</span></li>
+<li><a href="ui.sh.html#item-sgnd_sgr"><strong>sgnd_sgr</strong></a> —   Build one canonical ANSI SGR escape sequence from mixed inputs. <span class="small-note">[public]</span></li>
+<li><a href="ui.sh.html#item-sgnd_strip_ansi"><strong>sgnd_strip_ansi</strong></a> —   Strip ANSI CSI escape sequences from a string. <span class="small-note">[public]</span></li>
+<li><a href="ui.sh.html#item-sgnd_style_samples"><strong>sgnd_style_samples</strong></a> —   Print a demo of semantic message and UI style variables. <span class="small-note">[public]</span></li>
+<li><a href="ui.sh.html#item-_sgnd_ui_resolve_theme_file"><strong>_sgnd_ui_resolve_theme_file</strong></a> —   Resolve a palette or style specification into a readable .sh file path. <span class="small-note">[private]</span></li>
+<li><a href="ui.sh.html#item-sgnd_ui_set_default_theme"><strong>sgnd_ui_set_default_theme</strong></a> —   Convenience wrapper to load the default UI palette and style. <span class="small-note">[public]</span></li>
+<li><a href="ui.sh.html#item-sgnd_ui_set_theme"><strong>sgnd_ui_set_theme</strong></a> —   Load a UI palette and style into the current shell. <span class="small-note">[public]</span></li>
+<li><a href="ui.sh.html#item-sgnd_update_runmode"><strong>sgnd_update_runmode</strong></a> —   Update the styled global RUN_MODE indicator from the current dry-run state. <span class="small-note">[public]</span></li>
+<li><a href="ui.sh.html#item-sgnd_visible_len"><strong>sgnd_visible_len</strong></a> —   Return the visible character length of a string after stripping ANSI. <span class="small-note">[public]</span></li>
+</ul>
+</div>
+</details>
+</section>
+</main>
+</body>
+</html>

@@ -39,7 +39,7 @@
 # =====================================================================================
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------
-    # _sgnd_lib_guard
+    # tmp: _sgnd_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
         #
@@ -82,7 +82,7 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Internal helpers ----------------------------------------------------------------
-    # _ask_expand_choices
+    # fn: _ask_expand_choices
         # Purpose:
         #   Expand a comma-separated choice specification into individual allowed values.
         #
@@ -139,7 +139,7 @@ set -uo pipefail
         done
     }
 
-    # _ask_choice_is_valid
+    # fn: _ask_choice_is_valid
         # Purpose:
         #   Validate a single choice against a ask_choose-style choices list.
         #
@@ -168,7 +168,7 @@ set -uo pipefail
         return 1
     }
 
-    # _ask_build_prompt
+    # fn: _ask_build_prompt
         # Purpose:
         #   Build a readline-safe prompt with visible-width padding and optional colors.
         #
@@ -234,7 +234,7 @@ set -uo pipefail
         printf '%s' "$prompt"
     }
 
-    # _ask_validate
+    # fn: _ask_validate
         # Purpose:
         #   Run a validation callback when provided.
         #
@@ -253,7 +253,7 @@ set -uo pipefail
         "$fn" "$value"
     }
 
-    # _ask_decision_expand_choices
+    # fn: _ask_decision_expand_choices
         # Purpose:
         #   Expand a symbolic decision specification into canonical choices and aliases.
         #
@@ -291,7 +291,7 @@ set -uo pipefail
         done
     }
 
-    # _ask_decision_normalize
+    # fn: _ask_decision_normalize
         # Purpose:
         #   Normalize a typed decision value to its canonical token.
         #
@@ -328,7 +328,7 @@ set -uo pipefail
         return 1
     }
 
-    # _ask_decision_display
+    # fn: _ask_decision_display
         # Purpose:
         #   Build a compact display string from a decision specification.
         #
@@ -359,7 +359,7 @@ set -uo pipefail
         printf '%s\n' "$out"
     }
 
-    # _ask_decision_map_dlg_rc
+    # fn: _ask_decision_map_dlg_rc
         # Purpose:
         #   Map ask_dlg_autocontinue return codes to a canonical decision when possible.
         #
@@ -407,7 +407,7 @@ set -uo pipefail
         esac
     }
 
-    # _ask_parse_fieldspec
+    # fn: _ask_parse_fieldspec
         # Purpose:
         #   Parse a simple field-spec line into reusable globals for ask_prompt_form().
         #
@@ -443,7 +443,7 @@ set -uo pipefail
             <<< "$spec"
     }
 
-    # _ask_is_ident
+    # fn: _ask_is_ident
         # Purpose:
         #   Test whether a value is a valid shell variable identifier.
         #
@@ -458,7 +458,7 @@ set -uo pipefail
     }
 
 # --- Public API ---------------------------------------------------------------------
-    # ask
+    # fn: ask
         # Purpose:
         #   Prompt for interactive input from the controlling terminal (/dev/tty),
         #   with optional defaulting, validation, and direct assignment to a variable.
@@ -649,7 +649,7 @@ set -uo pipefail
         fi
     }
 
-    # ask_decision
+    # fn: ask_decision
         # Purpose:
         #   Prompt for a constrained symbolic decision and store the canonical result.
         #
@@ -781,7 +781,7 @@ set -uo pipefail
         printf -v "$var_name" '%s' "$canonical"
     }
 
-    # ask_dlg_autocontinue
+    # fn: ask_dlg_autocontinue
         # Purpose:
         #   Show a lightweight timed auto-continue prompt on /dev/tty.
         #
@@ -959,7 +959,7 @@ set -uo pipefail
         done
     }
 
-    # ask_choose
+    # fn: ask_choose
         # Purpose:
         #   Prompt for a constrained user choice using standard line input.
         #
@@ -1103,7 +1103,7 @@ set -uo pipefail
         printf -v "$varname" '%s' "$_rsp"
     }
 
-    # ask_choose_immediate
+    # fn: ask_choose_immediate
         # Purpose:
         #   Prompt for a constrained user choice using immediate-capable TTY input.
         #
@@ -1303,7 +1303,7 @@ set -uo pipefail
         printf -v "$varname" '%s' "$_rsp"
     }
 
-    # ask_prompt_form
+    # fn: ask_prompt_form
         # Purpose:
         #   Prompt for a list of variables described by field-spec lines.
         #

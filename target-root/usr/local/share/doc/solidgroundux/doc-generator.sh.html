@@ -8,29 +8,36 @@
 body { font-family: Arial, Helvetica, sans-serif; margin: 2rem auto; max-width: 1100px; line-height: 1.45; color: #222; }
 a { color: #0a58ca; text-decoration: none; }
 a:hover { text-decoration: underline; }
-header, main, nav, section, article { display: block; }
+header, main, nav, section, article, details, summary { display: block; }
 .site-header { border-bottom: 1px solid #ddd; margin-bottom: 1.5rem; padding-bottom: 0.75rem; }
-.meta-block, .attr-block, .toc-block, .glossary-block { background: #f7f7f8; border: 1px solid #e2e2e2; padding: 0.9rem 1rem; margin: 1rem 0; }
-.meta-block p, .attr-block p { margin: 0.2rem 0; }
+.site-nav { margin-bottom: 0.75rem; }
+.home-button { display: inline-block; padding: 0.35rem 0.7rem; border: 1px solid #cfcfcf; background: #f7f7f8; border-radius: 0.35rem; font-size: 0.95rem; }
+.home-button:hover { background: #efeff1; text-decoration: none; }
+.meta-block, .attr-block, .glossary-block, .header-block { background: #f7f7f8; border: 1px solid #e2e2e2; padding: 0.9rem 1rem; margin: 1rem 0; }
+.meta-block p, .attr-block p, .header-block p { margin: 0.2rem 0; }
 .chapter-title { margin-bottom: 0.2rem; }
 .section-block { margin-top: 2rem; }
 .section-title { border-bottom: 1px solid #e1e1e1; padding-bottom: 0.2rem; }
 .item-block { margin: 1rem 0 1.2rem 1rem; padding-left: 1rem; border-left: 3px solid #e1e1e1; }
-.item-header { margin-bottom: 0.35rem; }
-.item-type { font-weight: 700; text-transform: uppercase; font-size: 0.8rem; color: #666; margin-right: 0.45rem; }
+.item-header { margin-bottom: 0.45rem; }
+.item-title-row { font-size: 1.15rem; line-height: 1.35; }
+.item-title { font-size: 1.15em; }
+.item-type { font-weight: 700; text-transform: uppercase; font-size: 0.9rem; color: #666; margin-right: 0.45rem; }
 .item-access-private { color: #8b0000; }
 .item-access-public { color: #006400; }
 .content-comment-section { font-weight: 700; margin-top: 0.8rem; }
 .content-body { margin: 0.25rem 0; white-space: pre-wrap; }
-.content-empty { height: 0.4rem; }
-.toc-block ul, .glossary-block ul { margin: 0.35rem 0 0 1.25rem; }
-.toc-block li, .glossary-block li { margin: 0.15rem 0; }
 .small-note { color: #666; font-size: 0.9rem; }
+.nav-group, .group-module { margin: 0.65rem 0; }
+.nav-group summary, .group-module summary { cursor: pointer; font-weight: 700; }
+.group-module-glossary { margin: 0.5rem 0 0.5rem 1.25rem; }
+.group-module-glossary ul, .group-module-glossary li, .group-list, .group-list li { margin-top: 0.2rem; }
+.header-block-title { margin: 0 0 0.5rem 0; }
 </style>
 </head>
 <body>
 <header class="site-header">
-<p class="small-note">Chapter 2</p>
+<div class="site-nav"><a class="home-button" href="index.html">Home</a></div>
 <h1 class="chapter-title">Documentation Generator Script</h1>
 <p class="small-note">doc-generator.sh</p>
 </header>
@@ -43,117 +50,19 @@ header, main, nav, section, article { display: block; }
 <p><strong>Type:</strong> script</p>
 <p><strong>Group:</strong> Developer tools</p>
 </section>
-<section class="attr-block">
-<strong>Attribution</strong>
-<p><strong>Developers:</strong> Mark Fieten</p>
-<p><strong>Company:</strong> Testadura Consultancy</p>
-<p><strong>Copyright:</strong> © 2025 Mark Fieten — Testadura Consultancy</p>
-<p><strong>License:</strong> Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.</p>
-</section>
-<nav class="toc-block">
-<strong>Contents</strong>
-<ul>
-<li><a href="#section-bootstrap">1 Bootstrap</a>
-<ul>
-</ul>
-</li>
-<li><a href="#section-script-metadata-identity">2 Script metadata (identity)</a>
-<ul>
-</ul>
-</li>
-<li><a href="#section-script-metadata-framework-integration">3 Script metadata (framework integration)</a>
-<ul>
-</ul>
-</li>
-<li><a href="#section-local-script-functions">4 Local script functions</a>
-<ul>
-<li><a href="#item-_init_parameters">4.1 fn: _init_parameters</a></li>
-<li><a href="#item-_get_userinput">4.2 fn: _get_userinput</a></li>
-</ul>
-</li>
-<li><a href="#section-validate-input">4.1 Validate input</a>
-<ul>
-</ul>
-</li>
-<li><a href="#section-non-recursive">4.2 Non-recursive</a>
-<ul>
-</ul>
-</li>
-<li><a href="#section-recursive">4.3 Recursive</a>
-<ul>
-</ul>
-</li>
-<li><a href="#section-main">5 Main</a>
-<ul>
-<li><a href="#item-main">5.1 fn: main</a></li>
-</ul>
-</li>
-<li><a href="#section-bootstrap">1 Bootstrap</a>
-<ul>
-</ul>
-</li>
-<li><a href="#section-handle-builtin-arguments">5.2 Handle builtin arguments</a>
-<ul>
-</ul>
-</li>
-<li><a href="#section-ui">5.3 UI</a>
-<ul>
-</ul>
-</li>
-<li><a href="#section-main-script-logic">5.4 Main script logic</a>
-<ul>
-</ul>
-</li>
-</ul>
-</nav>
-<section class="glossary-block">
-<strong>Function glossary</strong>
-<ul>
-<li><a href="#item-_get_userinput"><strong>_get_userinput</strong></a> —   Interactively collect and confirm documentation generator parameters. <span class="small-note">[private]</span></li>
-<li><a href="#item-_init_parameters"><strong>_init_parameters</strong></a> —   Initialize parameter variables from defaults when still unset. <span class="small-note">[private]</span></li>
-<li><a href="#item-main"><strong>main</strong></a> —   Provide the canonical executable entry point for the documentation generator. <span class="small-note">[public]</span></li>
-</ul>
-</section>
-<section class="section-block" id="section-bootstrap">
-<h2 class="section-title">1 Bootstrap</h2>
-</section>
-<section class="section-block" id="section-script-metadata-identity">
-<h2 class="section-title">2 Script metadata (identity)</h2>
-</section>
-<section class="section-block" id="section-script-metadata-framework-integration">
-<h2 class="section-title">3 Script metadata (framework integration)</h2>
-</section>
 <section class="section-block" id="section-local-script-functions">
-<h2 class="section-title">4 Local script functions</h2>
-<article class="item-block" id="item-_init_parameters">
-<div class="item-header"><span class="item-type">fn</span><strong>4.1 _init_parameters</strong> <span class="item-access-private">[private]</span></div>
-<div class="content-comment-section">Purpose:</div>
-<p class="content-body">  Initialize parameter variables from defaults when still unset.</p>
-<div class="content-empty"></div>
-<div class="content-comment-section">Behavior:</div>
-<p class="content-body">  - Preserves values already supplied through parsed arguments or restored state.</p>
-<p class="content-body">  - Applies default values only where variables are unset or empty.</p>
-<p class="content-body">  - Does not validate or interpret parameter values.</p>
-<p class="content-body">  - Does not override explicit user input.</p>
-<p class="content-body">  - Does not perform interactive prompting.</p>
-<div class="content-empty"></div>
-<div class="content-comment-section">Usage:</div>
-<p class="content-body">  _init_parameters</p>
-<div class="content-empty"></div>
-<div class="content-comment-section">Examples:</div>
-<p class="content-body">  _init_parameters</p>
-</article>
+<h2 class="section-title">2 Local script functions</h2>
 <article class="item-block" id="item-_get_userinput">
-<div class="item-header"><span class="item-type">fn</span><strong>4.2 _get_userinput</strong> <span class="item-access-private">[private]</span></div>
+<div class="item-header">
+<div class="item-title-row"><span class="item-type">fn</span><strong class="item-title">2.1 _get_userinput</strong> <span class="item-access-private">[private]</span></div>
+</div>
 <div class="content-comment-section">Purpose:</div>
 <p class="content-body">  Interactively collect and confirm documentation generator parameters.</p>
-<div class="content-empty"></div>
 <div class="content-comment-section">Behavior:</div>
 <p class="content-body">  - Displays grouped prompts for source, destination, and behavioral flags.</p>
 <p class="content-body">  - Applies validation to supported fields.</p>
 <p class="content-body">  - Normalizes Y/N replies into numeric flag values.</p>
 <p class="content-body">  - Repeats until the user confirms, cancels, or requests redo.</p>
-<div class="content-empty"></div>
 <p class="content-body">Outputs (globals):</p>
 <p class="content-body">  VAL_SRCDIR</p>
 <p class="content-body">  VAL_FILESPEC</p>
@@ -162,34 +71,40 @@ header, main, nav, section, article { display: block; }
 <p class="content-body">  FLAG_RECURSIVE_SCAN</p>
 <p class="content-body">  FLAG_VIEW_RESULTS</p>
 <p class="content-body">  SGND_STATE_SAVE</p>
-<div class="content-empty"></div>
 <div class="content-comment-section">Returns:</div>
 <p class="content-body">  0 on confirmed input.</p>
 <p class="content-body">  1 if the user cancels or an unexpected dialog result occurs.</p>
-<div class="content-empty"></div>
 <div class="content-comment-section">Usage:</div>
 <p class="content-body">  _get_userinput || return $?</p>
-<div class="content-empty"></div>
 <div class="content-comment-section">Examples:</div>
 <p class="content-body">  _get_userinput</p>
 </article>
-</section>
-<section class="section-block" id="section-validate-input">
-<h3 class="section-title">4.1 Validate input</h3>
-</section>
-<section class="section-block" id="section-non-recursive">
-<h3 class="section-title">4.2 Non-recursive</h3>
-</section>
-<section class="section-block" id="section-recursive">
-<h3 class="section-title">4.3 Recursive</h3>
+<article class="item-block" id="item-_init_parameters">
+<div class="item-header">
+<div class="item-title-row"><span class="item-type">fn</span><strong class="item-title">2.2 _init_parameters</strong> <span class="item-access-private">[private]</span></div>
+</div>
+<div class="content-comment-section">Purpose:</div>
+<p class="content-body">  Initialize parameter variables from defaults when still unset.</p>
+<div class="content-comment-section">Behavior:</div>
+<p class="content-body">  - Preserves values already supplied through parsed arguments or restored state.</p>
+<p class="content-body">  - Applies default values only where variables are unset or empty.</p>
+<p class="content-body">  - Does not validate or interpret parameter values.</p>
+<p class="content-body">  - Does not override explicit user input.</p>
+<p class="content-body">  - Does not perform interactive prompting.</p>
+<div class="content-comment-section">Usage:</div>
+<p class="content-body">  _init_parameters</p>
+<div class="content-comment-section">Examples:</div>
+<p class="content-body">  _init_parameters</p>
+</article>
 </section>
 <section class="section-block" id="section-main">
-<h2 class="section-title">5 Main</h2>
+<h2 class="section-title">3 Main</h2>
 <article class="item-block" id="item-main">
-<div class="item-header"><span class="item-type">fn</span><strong>5.1 main</strong> <span class="item-access-public">[public]</span></div>
+<div class="item-header">
+<div class="item-title-row"><span class="item-type">fn</span><strong class="item-title">3.1 main</strong> <span class="item-access-public">[public]</span></div>
+</div>
 <div class="content-comment-section">Purpose:</div>
 <p class="content-body">  Provide the canonical executable entry point for the documentation generator.</p>
-<div class="content-empty"></div>
 <div class="content-comment-section">Behavior:</div>
 <p class="content-body">  - Loads the framework bootstrapper.</p>
 <p class="content-body">  - Initializes the runtime through sgnd_bootstrap.</p>
@@ -198,36 +113,19 @@ header, main, nav, section, article { display: block; }
 <p class="content-body">  - Initializes script parameters from defaults, state, and arguments.</p>
 <p class="content-body">  - Prompts for interactive input when auto-run is not enabled.</p>
 <p class="content-body">  - Hands off control to the script'#39;s main logic.</p>
-<div class="content-empty"></div>
 <div class="content-comment-section">Arguments:</div>
 <p class="content-body">  $@  Command-line arguments (framework and script-specific).</p>
-<div class="content-empty"></div>
 <div class="content-comment-section">Returns:</div>
 <p class="content-body">  0  on success.</p>
 <p class="content-body">  Non-zero on bootstrap, input, or script failure.</p>
-<div class="content-empty"></div>
 <div class="content-comment-section">Usage:</div>
 <p class="content-body">  main "quot;$@"quot;</p>
-<div class="content-empty"></div>
 <div class="content-comment-section">Examples:</div>
 <p class="content-body">  main "quot;$@"quot;</p>
-<div class="content-empty"></div>
 <div class="content-comment-section">Notes:</div>
 <p class="content-body">  - sgnd_bootstrap separates framework arguments from script arguments.</p>
 <p class="content-body">  - This function is script-owned orchestration logic, not template-only scaffolding.</p>
 </article>
-</section>
-<section class="section-block" id="section-bootstrap">
-<h3 class="section-title">1 Bootstrap</h3>
-</section>
-<section class="section-block" id="section-handle-builtin-arguments">
-<h3 class="section-title">5.2 Handle builtin arguments</h3>
-</section>
-<section class="section-block" id="section-ui">
-<h3 class="section-title">5.3 UI</h3>
-</section>
-<section class="section-block" id="section-main-script-logic">
-<h3 class="section-title">5.4 Main script logic</h3>
 </section>
 </main>
 </body>

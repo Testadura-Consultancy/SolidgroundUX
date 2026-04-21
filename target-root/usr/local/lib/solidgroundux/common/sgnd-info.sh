@@ -91,7 +91,7 @@ set -uo pipefail
     : "${_section_indent:=2}"
     : "${_items_indent:=4}"
 
-    # _sgnd_print_arg_spec_entry
+    # fn: _sgnd_print_arg_spec_entry
         # Purpose:
         #   Render a single SGND_ARGS_SPEC or SGND_BUILTIN_ARGS entry as a labeled value line.
         #
@@ -138,7 +138,7 @@ set -uo pipefail
         sgnd_print_labeledvalue "$label" "$value" --pad "$_items_indent"
     }
 
-    # _sgnd_print_arg_spec_list
+    # fn: _sgnd_print_arg_spec_list
         # Purpose:
         #   Print all argument spec entries from a named array, with a section header.
         #
@@ -177,7 +177,7 @@ set -uo pipefail
         done
     }
 
-    # _sgnd_print_cfg_pass
+    # fn: _sgnd_print_cfg_pass
         # Purpose:
         #   Print configuration values for selected scopes from a named spec array.
         #
@@ -234,7 +234,7 @@ set -uo pipefail
     }
 
 # --- Public API ----------------------------------------------------------------------
-    # sgnd_print_cfg
+    # fn: sgnd_print_cfg
         # Purpose:
         #   Print configuration variables described by a spec array.
         #
@@ -279,7 +279,7 @@ set -uo pipefail
         fi
     }
 
-    # sgnd_print_framework_metadata
+    # fn: sgnd_print_framework_metadata
         # Purpose:
         #   Print framework identity and versioning metadata.
         #
@@ -310,7 +310,7 @@ set -uo pipefail
         sgnd_print
     }
 
-    # sgnd_print_metadata
+    # fn: sgnd_print_metadata
         # Purpose:
         #   Print script identity and build metadata.
         #
@@ -338,7 +338,7 @@ set -uo pipefail
         sgnd_print
     }
 
-    # sgnd_print_args
+    # fn: sgnd_print_args
         # Purpose:
         #   Print a formatted overview of parsed arguments and their current values.
         #
@@ -375,7 +375,7 @@ set -uo pipefail
         sgnd_print
     }
 
-    # sgnd_print_state
+    # fn: sgnd_print_state
         # Purpose:
         #   Print the current persistent state key/value pairs.
         #
@@ -408,7 +408,7 @@ set -uo pipefail
         }
     }
 
-    # sgnd_print_license
+    # fn: sgnd_print_license
         # Purpose:
         #   Print the framework license text, including acceptance status.
         #
@@ -452,7 +452,7 @@ set -uo pipefail
         fi
     }
 
-    # sgnd_print_readme
+    # fn: sgnd_print_readme
         # Purpose:
         #   Print the framework README file if present.
         #
@@ -475,7 +475,7 @@ set -uo pipefail
         fi
     }
 
-    # sgnd_showenvironment
+    # fn: sgnd_showenvironment
         # Purpose:
         #   Print a full diagnostic snapshot of the current script/framework context.
         #

@@ -8,29 +8,36 @@
 body { font-family: Arial, Helvetica, sans-serif; margin: 2rem auto; max-width: 1100px; line-height: 1.45; color: #222; }
 a { color: #0a58ca; text-decoration: none; }
 a:hover { text-decoration: underline; }
-header, main, nav, section, article { display: block; }
+header, main, nav, section, article, details, summary { display: block; }
 .site-header { border-bottom: 1px solid #ddd; margin-bottom: 1.5rem; padding-bottom: 0.75rem; }
-.meta-block, .attr-block, .toc-block, .glossary-block { background: #f7f7f8; border: 1px solid #e2e2e2; padding: 0.9rem 1rem; margin: 1rem 0; }
-.meta-block p, .attr-block p { margin: 0.2rem 0; }
+.site-nav { margin-bottom: 0.75rem; }
+.home-button { display: inline-block; padding: 0.35rem 0.7rem; border: 1px solid #cfcfcf; background: #f7f7f8; border-radius: 0.35rem; font-size: 0.95rem; }
+.home-button:hover { background: #efeff1; text-decoration: none; }
+.meta-block, .attr-block, .glossary-block, .header-block { background: #f7f7f8; border: 1px solid #e2e2e2; padding: 0.9rem 1rem; margin: 1rem 0; }
+.meta-block p, .attr-block p, .header-block p { margin: 0.2rem 0; }
 .chapter-title { margin-bottom: 0.2rem; }
 .section-block { margin-top: 2rem; }
 .section-title { border-bottom: 1px solid #e1e1e1; padding-bottom: 0.2rem; }
 .item-block { margin: 1rem 0 1.2rem 1rem; padding-left: 1rem; border-left: 3px solid #e1e1e1; }
-.item-header { margin-bottom: 0.35rem; }
-.item-type { font-weight: 700; text-transform: uppercase; font-size: 0.8rem; color: #666; margin-right: 0.45rem; }
+.item-header { margin-bottom: 0.45rem; }
+.item-title-row { font-size: 1.15rem; line-height: 1.35; }
+.item-title { font-size: 1.15em; }
+.item-type { font-weight: 700; text-transform: uppercase; font-size: 0.9rem; color: #666; margin-right: 0.45rem; }
 .item-access-private { color: #8b0000; }
 .item-access-public { color: #006400; }
 .content-comment-section { font-weight: 700; margin-top: 0.8rem; }
 .content-body { margin: 0.25rem 0; white-space: pre-wrap; }
-.content-empty { height: 0.4rem; }
-.toc-block ul, .glossary-block ul { margin: 0.35rem 0 0 1.25rem; }
-.toc-block li, .glossary-block li { margin: 0.15rem 0; }
 .small-note { color: #666; font-size: 0.9rem; }
+.nav-group, .group-module { margin: 0.65rem 0; }
+.nav-group summary, .group-module summary { cursor: pointer; font-weight: 700; }
+.group-module-glossary { margin: 0.5rem 0 0.5rem 1.25rem; }
+.group-module-glossary ul, .group-module-glossary li, .group-list, .group-list li { margin-top: 0.2rem; }
+.header-block-title { margin: 0 0 0.5rem 0; }
 </style>
 </head>
 <body>
 <header class="site-header">
-<p class="small-note">Chapter 33</p>
+<div class="site-nav"><a class="home-button" href="index.html">Home</a></div>
 <h1 class="chapter-title">Executable Script Template</h1>
 <p class="small-note">exe-template.sh</p>
 </header>
@@ -43,182 +50,45 @@ header, main, nav, section, article { display: block; }
 <p><strong>Type:</strong> script</p>
 <p><strong>Group:</strong> Templates</p>
 </section>
-<section class="attr-block">
-<strong>Attribution</strong>
-<p><strong>Developers:</strong> Mark Fieten</p>
-<p><strong>Company:</strong> Testadura Consultancy</p>
-<p><strong>Copyright:</strong> © 2025 Mark Fieten — Testadura Consultancy</p>
-<p><strong>License:</strong> Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.</p>
-</section>
-<nav class="toc-block">
-<strong>Contents</strong>
-<ul>
-<li><a href="#section-bootstrap">1 Bootstrap</a>
-<ul>
-</ul>
-</li>
-<li><a href="#section-script-metadata-identity">2 Script metadata (identity)</a>
-<ul>
-</ul>
-</li>
-<li><a href="#section-script-metadata-framework-integration">3 Script metadata (framework integration)</a>
-<ul>
-<li><a href="#item-sgnd_using">3.1 var: SGND_USING</a></li>
-</ul>
-</li>
-<li><a href="#section-local-script-declarations">4 Local script Declarations</a>
-<ul>
-</ul>
-</li>
-<li><a href="#section-local-script-functions">5 Local script functions</a>
-<ul>
-</ul>
-</li>
-<li><a href="#section-local-script-helpers">5.1 Local script helpers</a>
-<ul>
-</ul>
-</li>
-<li><a href="#section-layout">5.1.1 Layout</a>
-<ul>
-</ul>
-</li>
-<li><a href="#section-input-handling">5.2 Input handling</a>
-<ul>
-</ul>
-</li>
-<li><a href="#section-business-logic">5.2.1 Business logic</a>
-<ul>
-</ul>
-</li>
-<li><a href="#section-validation">6 Validation</a>
-<ul>
-</ul>
-</li>
-<li><a href="#section-reporting">6.1 Reporting</a>
-<ul>
-</ul>
-</li>
-<li><a href="#section-cleanup">6.2 Cleanup</a>
-<ul>
-</ul>
-</li>
-<li><a href="#section-main">7 Main</a>
-<ul>
-<li><a href="#item-main">7.1 fn: main</a></li>
-</ul>
-</li>
-<li><a href="#section-bootstrap">1 Bootstrap</a>
-<ul>
-</ul>
-</li>
-<li><a href="#section-handle-builtin-arguments">7.2 Handle builtin arguments</a>
-<ul>
-</ul>
-</li>
-<li><a href="#section-ui">7.3 UI</a>
-<ul>
-</ul>
-</li>
-<li><a href="#section-main-script-logic">7.4 Main script logic</a>
-<ul>
-</ul>
-</li>
-</ul>
-</nav>
-<section class="glossary-block">
-<strong>Function glossary</strong>
-<ul>
-<li><a href="#item-main"><strong>main</strong></a> —   Canonical entry point for executable scripts. <span class="small-note">[public]</span></li>
-</ul>
-</section>
-<section class="section-block" id="section-bootstrap">
-<h2 class="section-title">1 Bootstrap</h2>
-</section>
-<section class="section-block" id="section-script-metadata-identity">
-<h2 class="section-title">2 Script metadata (identity)</h2>
-</section>
-<section class="section-block" id="section-script-metadata-framework-integration">
-<h2 class="section-title">3 Script metadata (framework integration)</h2>
-<article class="item-block" id="item-sgnd_using">
-<div class="item-header"><span class="item-type">var</span><strong>3.1 SGND_USING</strong> <span class="item-access-public">[public]</span></div>
-<p class="content-body">Libraries to source from SGND_COMMON_LIB.</p>
-<p class="content-body">These are loaded automatically by sgnd_bootstrap AFTER core libraries.</p>
-<div class="content-empty"></div>
-<div class="content-comment-section">Example:</div>
-<p class="content-body">  SGND_USING=( net.sh fs.sh )</p>
-<div class="content-empty"></div>
-<p class="content-body">Leave empty if no extra libs are needed.</p>
-</article>
-</section>
-<section class="section-block" id="section-local-script-declarations">
-<h2 class="section-title">4 Local script Declarations</h2>
-</section>
-<section class="section-block" id="section-local-script-functions">
-<h2 class="section-title">5 Local script functions</h2>
-</section>
-<section class="section-block" id="section-local-script-helpers">
-<h3 class="section-title">5.1 Local script helpers</h3>
-</section>
-<section class="section-block" id="section-layout">
-<h4 class="section-title">5.1.1 Layout</h4>
-</section>
-<section class="section-block" id="section-input-handling">
-<h3 class="section-title">5.2 Input handling</h3>
-</section>
-<section class="section-block" id="section-business-logic">
-<h4 class="section-title">5.2.1 Business logic</h4>
-</section>
-<section class="section-block" id="section-validation">
-<h2 class="section-title">6 Validation</h2>
-</section>
-<section class="section-block" id="section-reporting">
-<h3 class="section-title">6.1 Reporting</h3>
-</section>
-<section class="section-block" id="section-cleanup">
-<h3 class="section-title">6.2 Cleanup</h3>
-</section>
 <section class="section-block" id="section-main">
-<h2 class="section-title">7 Main</h2>
+<h2 class="section-title">4 Main</h2>
 <article class="item-block" id="item-main">
-<div class="item-header"><span class="item-type">fn</span><strong>7.1 main</strong> <span class="item-access-public">[public]</span></div>
+<div class="item-header">
+<div class="item-title-row"><span class="item-type">fn</span><strong class="item-title">4.1 main</strong> <span class="item-access-public">[public]</span></div>
+</div>
 <div class="content-comment-section">Purpose:</div>
 <p class="content-body">  Canonical entry point for executable scripts.</p>
-<div class="content-empty"></div>
 <div class="content-comment-section">Behavior:</div>
 <p class="content-body">  - Loads the framework bootstrapper.</p>
 <p class="content-body">  - Initializes runtime via sgnd_bootstrap.</p>
 <p class="content-body">  - Handles built-in framework arguments.</p>
 <p class="content-body">  - Prepares UI state (runmode + title bar).</p>
 <p class="content-body">  - Executes script-specific logic.</p>
-<div class="content-empty"></div>
 <div class="content-comment-section">Arguments:</div>
 <p class="content-body">  $@  Command-line arguments (framework + script-specific).</p>
-<div class="content-empty"></div>
 <div class="content-comment-section">Returns:</div>
 <p class="content-body">  Exits with the resulting status code from bootstrap or script logic.</p>
-<div class="content-empty"></div>
 <div class="content-comment-section">Usage:</div>
 <p class="content-body">  main "quot;$@"quot;</p>
-<div class="content-empty"></div>
 <div class="content-comment-section">Examples:</div>
 <p class="content-body">  # Standard script entrypoint</p>
 <p class="content-body">  main "quot;$@"quot;</p>
-<div class="content-empty"></div>
 <div class="content-comment-section">Notes:</div>
 <p class="content-body">  - sgnd_bootstrap splits framework and script arguments automatically..</p>
 </article>
 </section>
-<section class="section-block" id="section-bootstrap">
-<h3 class="section-title">1 Bootstrap</h3>
-</section>
-<section class="section-block" id="section-handle-builtin-arguments">
-<h3 class="section-title">7.2 Handle builtin arguments</h3>
-</section>
-<section class="section-block" id="section-ui">
-<h3 class="section-title">7.3 UI</h3>
-</section>
-<section class="section-block" id="section-main-script-logic">
-<h3 class="section-title">7.4 Main script logic</h3>
+<section class="section-block" id="section-script-metadata-framework-integration">
+<h2 class="section-title">5 Script metadata (framework integration)</h2>
+<article class="item-block" id="item-sgnd_using">
+<div class="item-header">
+<div class="item-title-row"><span class="item-type">var</span><strong class="item-title">5.1 SGND_USING</strong> <span class="item-access-public">[public]</span></div>
+</div>
+<p class="content-body">Libraries to source from SGND_COMMON_LIB.</p>
+<p class="content-body">These are loaded automatically by sgnd_bootstrap AFTER core libraries.</p>
+<div class="content-comment-section">Example:</div>
+<p class="content-body">  SGND_USING=( net.sh fs.sh )</p>
+<p class="content-body">Leave empty if no extra libs are needed.</p>
+</article>
 </section>
 </main>
 </body>

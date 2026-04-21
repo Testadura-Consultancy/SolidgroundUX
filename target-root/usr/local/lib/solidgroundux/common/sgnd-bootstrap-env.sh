@@ -45,7 +45,7 @@
 # =====================================================================================
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------
-    # _sgnd_lib_guard
+    # tmp: _sgnd_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
         #
@@ -101,7 +101,7 @@ set -uo pipefail
     SGND_README_FILE="README.md"
 
 # --- Framework metadata --------------------------------------------------------------
-    # SGND_FRAMEWORK_GLOBALS spec format:
+    # var: SGND_FRAMEWORK_GLOBALS spec format:
         #   audience|VARNAME|Description|extra
         #
         # Fields:
@@ -133,7 +133,7 @@ set -uo pipefail
         "user|SAY_DATE_FORMAT|Default date/time format for console output|"
     )
 
-    # SGND_CORE_LIBS
+    # var: SGND_CORE_LIBS
         # Purpose:
         #   Define the core libraries that sgnd-bootstrap loads in fixed order.
         #
@@ -152,7 +152,7 @@ set -uo pipefail
         ui-glyphs.sh
     )
 
-    # Rebuilt path specification list consumed by sgnd_ensure_dirs.
+    # var: Rebuilt path specification list consumed by sgnd_ensure_dirs.
         # Entries use the format:
         #   s|/path   system-owned directory
         #   u|/path   user-owned directory
@@ -160,7 +160,7 @@ set -uo pipefail
     )
 
 # --- Helpers -------------------------------------------------------------------------
-    # _build_framework_dirs
+    # fn: _build_framework_dirs
         # Purpose:
         #   Rebuild the canonical list of framework directories from current path globals.
         #
@@ -202,7 +202,7 @@ set -uo pipefail
         )
     }
 # --- Public API ----------------------------------------------------------------------
-    # sgnd_apply_defaults
+    # fn: sgnd_apply_defaults
         # Purpose:
         #   Apply default values for bootstrap globals if currently unset.
         #
@@ -262,7 +262,7 @@ set -uo pipefail
 
     }
 
-    # sgnd_defaults_reset
+    # fn: sgnd_defaults_reset
         # Purpose:
         #   Reset framework-global configuration variables to their default state.
         #
@@ -303,7 +303,7 @@ set -uo pipefail
         sgnd_apply_defaults
     }
 
-    # sgnd_rebase_directories
+    # fn: sgnd_rebase_directories
         # Purpose:
         #   Recompute framework, user, and script-scoped paths from current root settings.
         #
@@ -367,7 +367,7 @@ set -uo pipefail
         _build_framework_dirs
     }
 
-    # sgnd_rebase_framework_cfg_paths
+    # fn: sgnd_rebase_framework_cfg_paths
         # Purpose:
         #   Derive framework-global cfg file paths from current cfg directories.
         #
@@ -398,7 +398,7 @@ set -uo pipefail
         SGND_FRAMEWORK_USRCFG_FILE="$SGND_USRCFG_DIR/$SGND_FRAMEWORK_CFG_BASENAME"
     }
 
-    # sgnd_ensure_dirs
+    # fn: sgnd_ensure_dirs
         # Purpose:
         #   Ensure that framework directories exist and have appropriate ownership.
         #

@@ -1,5 +1,28 @@
-#!/usr/bin/env bash
-# Carnaval style
+# =====================================================================================
+# SolidgroundUX - Carnaval Style
+# -------------------------------------------------------------------------------------
+# Metadata:
+#   Version     : 1.1
+#   Build       : 2608700
+#   Checksum    : none
+#   Source      : style-carnaval.sh
+#   Type        : library
+#   Group       : Styles
+#   Purpose     : Alternative style for testing pruposes
+#
+# Description:
+#   Provides the default layout and styling rules used by the SolidgroundUX UI layer.
+#
+# Non-goals:
+#   A pretty or ensible style
+#
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      : 
+#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+# =====================================================================================
 
 # --- say() global defaults ----------------------------------------------------
     SAY_DATE_DEFAULT=1    # 0 = no date, 1 = add date

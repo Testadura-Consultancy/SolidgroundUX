@@ -46,7 +46,7 @@
 # =====================================================================================
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------
-    # _sgnd_lib_guard
+    # tmp: _sgnd_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
         #
@@ -89,7 +89,7 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Internal: file and value manipulation -------------------------------------------
-    # _sgnd_is_ident
+    # fn: _sgnd_is_ident
         # Purpose:
         #   Test whether a string is a valid shell identifier.
         #
@@ -117,7 +117,7 @@ set -uo pipefail
             [[ "${1:-}" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]
     }
    
-    # _sgnd_kv_load_file
+    # fn: _sgnd_kv_load_file
         # Purpose:
         #   Load KEY=VALUE pairs from a file into shell variables.
         #
@@ -181,7 +181,7 @@ set -uo pipefail
         done < "$file"
     }
 
-    # _sgnd_kv_set
+    # fn: _sgnd_kv_set
         # Purpose:
         #   Write or update a KEY=VALUE entry in a file.
         #
@@ -259,7 +259,7 @@ set -uo pipefail
         return 0
     }
 
-    # _sgnd_kv_unset
+    # fn: _sgnd_kv_unset
         # Purpose:
         #   Remove a KEY=VALUE entry from a file.
         #
@@ -309,7 +309,7 @@ set -uo pipefail
         rm -f -- "$tmp"
     }
 
-    # _sgnd_kv_reset_file
+    # fn: _sgnd_kv_reset_file
         # Purpose:
         #   Hard-delete a KEY=VALUE file.
         #
@@ -326,7 +326,7 @@ set -uo pipefail
         rm -f "$file"
     }
 
-    # _sgnd_kv_get
+    # fn: _sgnd_kv_get
         # Purpose:
         #   Read a value for a key from a KEY=VALUE file.
         #
@@ -370,7 +370,7 @@ set -uo pipefail
         return 0
     }
 
-    # _sgnd_kv_has
+    # fn: _sgnd_kv_has
         # Purpose:
         #   Test whether a KEY exists in a KEY=VALUE file (even if empty).
         #
@@ -392,7 +392,7 @@ set -uo pipefail
         grep -q -E "^[[:space:]]*${key}[[:space:]]*=" -- "$file" 2>/dev/null
     }
 
-    # _sgnd_kv_list_keys
+    # fn: _sgnd_kv_list_keys
         # Purpose:
         #   Emit file contents as 'key|value' lines (order preserved).
         #
@@ -433,7 +433,7 @@ set -uo pipefail
     }
 
 # --- Public API: Config management ---------------------------------------------------
-    # sgnd_cfg_load
+    # fn: sgnd_cfg_load
         # Purpose:
         #   Load a config file into shell variables.
         #
@@ -471,7 +471,7 @@ set -uo pipefail
         _sgnd_kv_load_file "$file"
     }
 
-    # sgnd_cfg_set
+    # fn: sgnd_cfg_set
         # Purpose:
         #   Persist a config KEY=VALUE pair and update the current shell variable.
         #
@@ -516,7 +516,7 @@ set -uo pipefail
         printf -v "$key" '%s' "$val"
     }
 
-    # sgnd_cfg_unset
+    # fn: sgnd_cfg_unset
         # Purpose:
         #   Remove a config key from the file and unset it in the current shell.
         #
@@ -559,7 +559,7 @@ set -uo pipefail
         unset "$key" || true
     }
 
-    # sgnd_cfg_reset
+    # fn: sgnd_cfg_reset
         # Purpose:
         #   Hard-reset the config file by deleting it.
         #
@@ -591,7 +591,7 @@ set -uo pipefail
         _sgnd_kv_reset_file "$file"
     }
 
-    # sgnd_cfg_get
+    # fn: sgnd_cfg_get
         # Purpose:
         #   Read a config value from the config file.
         #
@@ -633,7 +633,7 @@ set -uo pipefail
         _sgnd_kv_get "$SGND_CFG_FILE" "$key"
     }
 
-    # sgnd_cfg_has
+    # fn: sgnd_cfg_has
         # Purpose:
         #   Test whether a config key exists in the config file.
         #
@@ -674,7 +674,7 @@ set -uo pipefail
         _sgnd_kv_has "$SGND_CFG_FILE" "$key"
     }
     
-    # sgnd_cfg_show_keys
+    # fn: sgnd_cfg_show_keys
         # Purpose:
         #   Display selected config keys and their stored values.
         #
@@ -728,7 +728,7 @@ set -uo pipefail
     # These helpers implement "system + user cfg" behavior driven by a specs array.
     # Intended for bootstrap; stable but not part of the minimal surface area.
 
-    # sgnd_cfg_has_audience
+    # fn: sgnd_cfg_has_audience
         # Purpose:
         #   Test whether a cfg spec array contains entries for a requested audience.
         #
@@ -774,7 +774,7 @@ set -uo pipefail
         return 1
     }
 
-    # sgnd_cfg_warn_missing_syscfg
+    # fn: sgnd_cfg_warn_missing_syscfg
         # Purpose:
         #   Emit a warning when a required system cfg file is missing.
         #
@@ -831,7 +831,7 @@ set -uo pipefail
         fi
     }
 
-    # sgnd_cfg_ensure_files
+    # fn: sgnd_cfg_ensure_files
         # Purpose:
         #   Ensure required config files exist for a domain based on its specs.
         #
@@ -908,7 +908,7 @@ set -uo pipefail
         return 0
     }
 
-    # sgnd_cfg_write_skeleton_filtered
+    # fn: sgnd_cfg_write_skeleton_filtered
         # Purpose:
         #   Write an auto-generated cfg skeleton filtered by audience.
         #
@@ -973,7 +973,7 @@ set -uo pipefail
         return 0
     }
 
-    # sgnd_cfg_load_file
+    # fn: sgnd_cfg_load_file
         # Purpose:
         #   Load a specific cfg file into shell variables for domain-level processing.
         #
@@ -1036,7 +1036,7 @@ set -uo pipefail
         return 0
     }
 
-    # sgnd_cfg_domain_apply
+    # fn: sgnd_cfg_domain_apply
         # Purpose:
         #   Apply configuration for a domain from system and user cfg files.
         #
@@ -1102,7 +1102,7 @@ set -uo pipefail
     }
 
 # --- Bootstrap/advanced: State loading -----------------------------------------------
-    # sgnd_state_load
+    # fn: sgnd_state_load
         # Purpose:
         #   Load the state file into shell variables.
         #
@@ -1133,7 +1133,7 @@ set -uo pipefail
         _sgnd_kv_load_file "$SGND_STATE_FILE"
     }
 
-    # sgnd_state_set
+    # fn: sgnd_state_set
         # Purpose:
         #   Persist a state KEY=VALUE pair and update the current shell variable.
         #
@@ -1183,7 +1183,7 @@ set -uo pipefail
         printf -v "$key" '%s' "$val"
     }
 
-    # sgnd_state_unset
+    # fn: sgnd_state_unset
         # Purpose:
         #   Remove a state key from the file and unset it in the current shell.
         #
@@ -1231,7 +1231,7 @@ set -uo pipefail
         unset "$key" || true
     }
 
-    # sgnd_state_reset
+    # fn: sgnd_state_reset
         # Purpose:
         #   Hard-reset the state file by deleting it.
         #
@@ -1261,7 +1261,7 @@ set -uo pipefail
         _sgnd_kv_reset_file "$SGND_STATE_FILE"
     }
 
-    # sgnd_state_get
+    # fn: sgnd_state_get
         # Purpose:
         #   Read a state value from the state file.
         #
@@ -1303,7 +1303,7 @@ set -uo pipefail
         _sgnd_kv_get "$SGND_STATE_FILE" "$key"
     }
 
-    # sgnd_state_has
+    # fn: sgnd_state_has
         # Purpose:
         #   Test whether a state key exists in the state file.
         #
@@ -1345,7 +1345,7 @@ set -uo pipefail
         _sgnd_kv_has "$SGND_STATE_FILE" "$key"
     }
 
-    # sgnd_state_save_keys
+    # fn: sgnd_state_save_keys
         # Purpose:
         #   Persist a list of shell variables to the state store.
         #
@@ -1391,7 +1391,7 @@ set -uo pipefail
         done
     }
 
-    # sgnd_state_load_keys
+    # fn: sgnd_state_load_keys
         # Purpose:
         #   Load selected state keys from the state store into shell variables.
         #
@@ -1438,7 +1438,7 @@ set -uo pipefail
         done
     }
 
-    # sgnd_state_list_keys
+    # fn: sgnd_state_list_keys
         # Purpose:
         #   List keys currently present in the state file.
         #

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Common Core</title>
+<style>
+body { font-family: Arial, Helvetica, sans-serif; margin: 2rem auto; max-width: 1100px; line-height: 1.45; color: #222; }
+a { color: #0a58ca; text-decoration: none; }
+a:hover { text-decoration: underline; }
+header, main, nav, section, article, details, summary { display: block; }
+.site-header { border-bottom: 1px solid #ddd; margin-bottom: 1.5rem; padding-bottom: 0.75rem; }
+.site-nav { margin-bottom: 0.75rem; }
+.home-button { display: inline-block; padding: 0.35rem 0.7rem; border: 1px solid #cfcfcf; background: #f7f7f8; border-radius: 0.35rem; font-size: 0.95rem; }
+.home-button:hover { background: #efeff1; text-decoration: none; }
+.meta-block, .attr-block, .glossary-block, .header-block { background: #f7f7f8; border: 1px solid #e2e2e2; padding: 0.9rem 1rem; margin: 1rem 0; }
+.meta-block p, .attr-block p, .header-block p { margin: 0.2rem 0; }
+.chapter-title { margin-bottom: 0.2rem; }
+.section-block { margin-top: 2rem; }
+.section-title { border-bottom: 1px solid #e1e1e1; padding-bottom: 0.2rem; }
+.item-block { margin: 1rem 0 1.2rem 1rem; padding-left: 1rem; border-left: 3px solid #e1e1e1; }
+.item-header { margin-bottom: 0.45rem; }
+.item-title-row { font-size: 1.15rem; line-height: 1.35; }
+.item-title { font-size: 1.15em; }
+.item-type { font-weight: 700; text-transform: uppercase; font-size: 0.9rem; color: #666; margin-right: 0.45rem; }
+.item-access-private { color: #8b0000; }
+.item-access-public { color: #006400; }
+.content-comment-section { font-weight: 700; margin-top: 0.8rem; }
+.content-body { margin: 0.25rem 0; white-space: pre-wrap; }
+.small-note { color: #666; font-size: 0.9rem; }
+.nav-group, .group-module { margin: 0.65rem 0; }
+.nav-group summary, .group-module summary { cursor: pointer; font-weight: 700; }
+.group-module-glossary { margin: 0.5rem 0 0.5rem 1.25rem; }
+.group-module-glossary ul, .group-module-glossary li, .group-list, .group-list li { margin-top: 0.2rem; }
+.header-block-title { margin: 0 0 0.5rem 0; }
+</style>
+</head>
+<body>
+<header class="site-header">
+<div class="site-nav"><a class="home-button" href="index.html">Home</a></div>
+<h1 class="chapter-title">Common Core</h1>
+<p class="small-note">Modules and function glossaries</p>
+</header>
+<main>
+<section class="meta-block">
+<strong>Modules</strong>
+<details class="group-module" open>
+<summary><a href="sgnd-args.sh.html"><strong>1 Argument Parsing</strong></a> — Parse and manage command-line arguments for scripts</summary>
+<div class="group-module-glossary">
+<ul>
+<li><a href="sgnd-args.sh.html#item-_sgnd_arg_find_spec"><strong>_sgnd_arg_find_spec</strong></a> —   Find the effective argument specification that matches a long or short option token. <span class="small-note">[private]</span></li>
+<li><a href="sgnd-args.sh.html#item-_sgnd_arg_init_defaults"><strong>_sgnd_arg_init_defaults</strong></a> —   Initialize option variables and build the effective argument specification list. <span class="small-note">[private]</span></li>
+<li><a href="sgnd-args.sh.html#item-_sgnd_arg_split"><strong>_sgnd_arg_split</strong></a> —   Split a single SGND_ARGS_SPEC definition into internal scratch variables. <span class="small-note">[private]</span></li>
+<li><a href="sgnd-args.sh.html#item-_sgnd_arg_validate_enum"><strong>_sgnd_arg_validate_enum</strong></a> —   Validate whether a value is present in a comma-separated enum choice list. <span class="small-note">[private]</span></li>
+<li><a href="sgnd-args.sh.html#item-sgnd_builtinarg_handler"><strong>sgnd_builtinarg_handler</strong></a> —   Apply framework-defined built-in argument behavior after argument parsing. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-args.sh.html#item-sgnd_parse_args"><strong>sgnd_parse_args</strong></a> —   Parse command-line arguments according to the effective argument specification. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-args.sh.html#item-sgnd_show_help"><strong>sgnd_show_help</strong></a> —   Render and display the generated help text for the current script. <span class="small-note">[public]</span></li>
+</ul>
+</div>
+</details>
+<details class="group-module" open>
+<summary><a href="sgnd-cfg.sh.html"><strong>2 Configuration Management</strong></a> — Load, manage, and persist configuration settings</summary>
+<div class="group-module-glossary">
+<ul>
+<li><a href="sgnd-cfg.sh.html#item-sgnd_cfg_domain_apply"><strong>sgnd_cfg_domain_apply</strong></a> —   Apply configuration for a domain from system and user cfg files. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-sgnd_cfg_ensure_files"><strong>sgnd_cfg_ensure_files</strong></a> —   Ensure required config files exist for a domain based on its specs. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-sgnd_cfg_get"><strong>sgnd_cfg_get</strong></a> —   Read a config value from the config file. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-sgnd_cfg_has"><strong>sgnd_cfg_has</strong></a> —   Test whether a config key exists in the config file. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-sgnd_cfg_has_audience"><strong>sgnd_cfg_has_audience</strong></a> —   Test whether a cfg spec array contains entries for a requested audience. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-sgnd_cfg_load"><strong>sgnd_cfg_load</strong></a> —   Load a config file into shell variables. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-sgnd_cfg_load_file"><strong>sgnd_cfg_load_file</strong></a> —   Load a specific cfg file into shell variables for domain-level processing. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-sgnd_cfg_reset"><strong>sgnd_cfg_reset</strong></a> —   Hard-reset the config file by deleting it. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-sgnd_cfg_set"><strong>sgnd_cfg_set</strong></a> —   Persist a config KEY=VALUE pair and update the current shell variable. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-sgnd_cfg_show_keys"><strong>sgnd_cfg_show_keys</strong></a> —   Display selected config keys and their stored values. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-sgnd_cfg_unset"><strong>sgnd_cfg_unset</strong></a> —   Remove a config key from the file and unset it in the current shell. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-sgnd_cfg_warn_missing_syscfg"><strong>sgnd_cfg_warn_missing_syscfg</strong></a> —   Emit a warning when a required system cfg file is missing. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-sgnd_cfg_write_skeleton_filtered"><strong>sgnd_cfg_write_skeleton_filtered</strong></a> —   Write an auto-generated cfg skeleton filtered by audience. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-_sgnd_is_ident"><strong>_sgnd_is_ident</strong></a> —   Test whether a string is a valid shell identifier. <span class="small-note">[private]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-_sgnd_kv_get"><strong>_sgnd_kv_get</strong></a> —   Read a value for a key from a KEY=VALUE file. <span class="small-note">[private]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-_sgnd_kv_has"><strong>_sgnd_kv_has</strong></a> —   Test whether a KEY exists in a KEY=VALUE file (even if empty). <span class="small-note">[private]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-_sgnd_kv_list_keys"><strong>_sgnd_kv_list_keys</strong></a> —   Emit file contents as '#39;key <span class="small-note">[value'#39; lines (order preserved).|private]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-_sgnd_kv_load_file"><strong>_sgnd_kv_load_file</strong></a> —   Load KEY=VALUE pairs from a file into shell variables. <span class="small-note">[private]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-_sgnd_kv_reset_file"><strong>_sgnd_kv_reset_file</strong></a> —   Hard-delete a KEY=VALUE file. <span class="small-note">[private]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-_sgnd_kv_set"><strong>_sgnd_kv_set</strong></a> —   Write or update a KEY=VALUE entry in a file. <span class="small-note">[private]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-_sgnd_kv_unset"><strong>_sgnd_kv_unset</strong></a> —   Remove a KEY=VALUE entry from a file. <span class="small-note">[private]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-sgnd_state_get"><strong>sgnd_state_get</strong></a> —   Read a state value from the state file. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-sgnd_state_has"><strong>sgnd_state_has</strong></a> —   Test whether a state key exists in the state file. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-sgnd_state_list_keys"><strong>sgnd_state_list_keys</strong></a> —   List keys currently present in the state file. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-sgnd_state_load"><strong>sgnd_state_load</strong></a> —   Load the state file into shell variables. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-sgnd_state_load_keys"><strong>sgnd_state_load_keys</strong></a> —   Load selected state keys from the state store into shell variables. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-sgnd_state_reset"><strong>sgnd_state_reset</strong></a> —   Hard-reset the state file by deleting it. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-sgnd_state_save_keys"><strong>sgnd_state_save_keys</strong></a> —   Persist a list of shell variables to the state store. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-sgnd_state_set"><strong>sgnd_state_set</strong></a> —   Persist a state KEY=VALUE pair and update the current shell variable. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-cfg.sh.html#item-sgnd_state_unset"><strong>sgnd_state_unset</strong></a> —   Remove a state key from the file and unset it in the current shell. <span class="small-note">[public]</span></li>
+</ul>
+</div>
+</details>
+<details class="group-module" open>
+<summary><a href="sgnd-core.sh.html"><strong>3 Core Utilities</strong></a> — Provide foundational utility functions and shared primitives</summary>
+<div class="group-module-glossary">
+<ul>
+<li><a href="sgnd-core.sh.html#item-sgnd_abs_path"><strong>sgnd_abs_path</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_array_has_items"><strong>sgnd_array_has_items</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_array_union"><strong>sgnd_array_union</strong></a> —   Build a stable union of one or more source arrays into a destination array. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_caller_id"><strong>sgnd_caller_id</strong></a> —   Build a compact caller identifier string for diagnostics. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_can_append"><strong>sgnd_can_append</strong></a> —   Test whether a file can be appended to, or created for later appending. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_default"><strong>sgnd_default</strong></a> —   Assign a default value to a variable when it is unset or empty. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_ensure_dir"><strong>sgnd_ensure_dir</strong></a> —   Ensure a directory exists. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_fill_center"><strong>sgnd_fill_center</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_fill_left"><strong>sgnd_fill_left</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_fill_right"><strong>sgnd_fill_right</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_hash_sha256_file"><strong>sgnd_hash_sha256_file</strong></a> —   Compute and print the SHA-256 hash of a readable file. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_has_tty"><strong>sgnd_has_tty</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_have"><strong>sgnd_have</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_internal_call_guard"><strong>sgnd_internal_call_guard</strong></a> —   Warn when an internal helper is called from outside the expected API flow. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_is_desktop_mode"><strong>sgnd_is_desktop_mode</strong></a> —   Detect whether a graphical desktop environment is available. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_is_number"><strong>sgnd_is_number</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_is_set"><strong>sgnd_is_set</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_is_true"><strong>sgnd_is_true</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_is_ui_mode"><strong>sgnd_is_ui_mode</strong></a> —   Determine whether the current execution context supports interactive UI. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_join"><strong>sgnd_join</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_kill_if_running"><strong>sgnd_kill_if_running</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_mktemp_dir"><strong>sgnd_mktemp_dir</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_mktemp_file"><strong>sgnd_mktemp_file</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_need_bash"><strong>sgnd_need_bash</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_need_cmd"><strong>sgnd_need_cmd</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_need_tty"><strong>sgnd_need_tty</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_padded_visible"><strong>sgnd_padded_visible</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_proc_exists"><strong>sgnd_proc_exists</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_retry"><strong>sgnd_retry</strong></a> —   Retry a command up to N times with a delay between attempts. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_safe_replace_file"><strong>sgnd_safe_replace_file</strong></a> —   Replace a destination file with a source file while preserving mode bits. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_slugify"><strong>sgnd_slugify</strong></a> —   Convert text into a lowercase filename-safe slug. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_stack_trace"><strong>sgnd_stack_trace</strong></a> —   Print a simple stack trace with the most recent caller first. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_string_repeat"><strong>sgnd_string_repeat</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_terminal_width"><strong>sgnd_terminal_width</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_timestamp"><strong>sgnd_timestamp</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_trim"><strong>sgnd_trim</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_validate_bool"><strong>sgnd_validate_bool</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_validate_cidr"><strong>sgnd_validate_cidr</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_validate_date"><strong>sgnd_validate_date</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_validate_dir_exists"><strong>sgnd_validate_dir_exists</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_validate_executable"><strong>sgnd_validate_executable</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_validate_file_exists"><strong>sgnd_validate_file_exists</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_validate_file_not_exists"><strong>sgnd_validate_file_not_exists</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_validate_fs_name"><strong>sgnd_validate_fs_name</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_validate_int"><strong>sgnd_validate_int</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_validate_ipv4"><strong>sgnd_validate_ipv4</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_validate_numeric"><strong>sgnd_validate_numeric</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_validate_path_exists"><strong>sgnd_validate_path_exists</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_validate_slug"><strong>sgnd_validate_slug</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_validate_text"><strong>sgnd_validate_text</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_validate_yesno"><strong>sgnd_validate_yesno</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_version_ge"><strong>sgnd_version_ge</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_visible_length"><strong>sgnd_visible_length</strong></a> —   Measure the character length of text after stripping ANSI escape sequences. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_wait_for_exit"><strong>sgnd_wait_for_exit</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-core.sh.html#item-sgnd_wrap_words"><strong>sgnd_wrap_words</strong></a> —   Wrap a text string to a fixed width on word boundaries. <span class="small-note">[public]</span></li>
+</ul>
+</div>
+</details>
+<details class="group-module" open>
+<summary><a href="sgnd-info.sh.html"><strong>4 Framework Information</strong></a> — Provide framework metadata and runtime information helpers</summary>
+<div class="group-module-glossary">
+<ul>
+<li><a href="sgnd-info.sh.html#item-sgnd_print_args"><strong>sgnd_print_args</strong></a> —   Print a formatted overview of parsed arguments and their current values. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-info.sh.html#item-_sgnd_print_arg_spec_entry"><strong>_sgnd_print_arg_spec_entry</strong></a> —   Render a single SGND_ARGS_SPEC or SGND_BUILTIN_ARGS entry as a labeled value line. <span class="small-note">[private]</span></li>
+<li><a href="sgnd-info.sh.html#item-_sgnd_print_arg_spec_list"><strong>_sgnd_print_arg_spec_list</strong></a> —   Print all argument spec entries from a named array, with a section header. <span class="small-note">[private]</span></li>
+<li><a href="sgnd-info.sh.html#item-sgnd_print_cfg"><strong>sgnd_print_cfg</strong></a> —   Print configuration variables described by a spec array. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-info.sh.html#item-_sgnd_print_cfg_pass"><strong>_sgnd_print_cfg_pass</strong></a> —   Print configuration values for selected scopes from a named spec array. <span class="small-note">[private]</span></li>
+<li><a href="sgnd-info.sh.html#item-sgnd_print_framework_metadata"><strong>sgnd_print_framework_metadata</strong></a> —   Print framework identity and versioning metadata. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-info.sh.html#item-sgnd_print_license"><strong>sgnd_print_license</strong></a> —   Print the framework license text, including acceptance status. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-info.sh.html#item-sgnd_print_metadata"><strong>sgnd_print_metadata</strong></a> —   Print script identity and build metadata. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-info.sh.html#item-sgnd_print_readme"><strong>sgnd_print_readme</strong></a> —   Print the framework README file if present. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-info.sh.html#item-sgnd_print_state"><strong>sgnd_print_state</strong></a> —   Print the current persistent state key/value pairs. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-info.sh.html#item-sgnd_showenvironment"><strong>sgnd_showenvironment</strong></a> —   Print a full diagnostic snapshot of the current script/framework context. <span class="small-note">[public]</span></li>
+</ul>
+</div>
+</details>
+<details class="group-module" open>
+<summary><a href="sgnd-system.sh.html"><strong>5 System Utilities</strong></a> — Provide host, runtime, and operating-system utility helpers</summary>
+<div class="group-module-glossary">
+<ul>
+<li><a href="sgnd-system.sh.html#item-sgnd_cannot_root"><strong>sgnd_cannot_root</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-system.sh.html#item-sgnd_die"><strong>sgnd_die</strong></a> —   Terminate the script with a formatted fatal error message. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-system.sh.html#item-sgnd_ensure_writable_dir"><strong>sgnd_ensure_writable_dir</strong></a> —   Ensure a directory exists and is suitable for user-scoped writing. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-system.sh.html#item-sgnd_fix_ownership"><strong>sgnd_fix_ownership</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-system.sh.html#item-sgnd_fix_permissions"><strong>sgnd_fix_permissions</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-system.sh.html#item-sgnd_get_ip"><strong>sgnd_get_ip</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-system.sh.html#item-sgnd_get_os"><strong>sgnd_get_os</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-system.sh.html#item-sgnd_get_os_version"><strong>sgnd_get_os_version</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-system.sh.html#item-sgnd_get_primary_nic"><strong>sgnd_get_primary_nic</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-system.sh.html#item-sgnd_is_active"><strong>sgnd_is_active</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-system.sh.html#item-sgnd_must"><strong>sgnd_must</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-system.sh.html#item-sgnd_need_root"><strong>sgnd_need_root</strong></a> —   Require the script to run as root, re-executing through sudo when needed. <span class="small-note">[public]</span></li>
+<li><a href="sgnd-system.sh.html#item-sgnd_need_systemd"><strong>sgnd_need_systemd</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-system.sh.html#item-sgnd_need_writable"><strong>sgnd_need_writable</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-system.sh.html#item-sgnd_ping_ok"><strong>sgnd_ping_ok</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-system.sh.html#item-sgnd_port_open"><strong>sgnd_port_open</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-system.sh.html#item-sgnd_real_home"><strong>sgnd_real_home</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-system.sh.html#item-sgnd_real_user"><strong>sgnd_real_user</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-system.sh.html#item-sgnd_require"><strong>sgnd_require</strong></a> <span class="small-note">[public]</span></li>
+<li><a href="sgnd-system.sh.html#item-sgnd_run_as_real_user"><strong>sgnd_run_as_real_user</strong></a> <span class="small-note">[public]</span></li>
+</ul>
+</div>
+</details>
+</section>
+</main>
+</body>
+</html>

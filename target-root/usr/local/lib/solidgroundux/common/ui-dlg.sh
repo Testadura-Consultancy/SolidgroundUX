@@ -44,7 +44,7 @@
 # =====================================================================================
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------
-    # _td_lib_guard
+    # tmp: _td_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
         #
@@ -102,7 +102,7 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Internal helpers ------------------------------------------------------------------
-    # _dlg_keymap
+    # fn: _dlg_keymap
         # Purpose:
         #   Build a human-readable key legend string for the current dialog state.
         #
@@ -160,7 +160,7 @@ set -uo pipefail
         printf '%s' "$keymap"
     }
 
-    # sgnd_decision_expand_choices
+    # fn: sgnd_decision_expand_choices
         # Purpose:
         #   Expand a symbolic decision specification into canonical choices and aliases.
         #
@@ -208,7 +208,7 @@ set -uo pipefail
     }
 
 
-    # sgnd_decision_normalize
+    # fn: sgnd_decision_normalize
         # Purpose:
         #   Normalize a typed value to its canonical decision token.
         #
@@ -257,7 +257,7 @@ set -uo pipefail
         return 1
     }
 
-    # sgnd_decision_display_choices
+    # fn: sgnd_decision_display_choices
         # Purpose:
         #   Build a compact display label for a decision specification.
         #
@@ -298,7 +298,7 @@ set -uo pipefail
     }
 
 
-    # sgnd_decision_from_dialog_rc
+    # fn: sgnd_decision_from_dialog_rc
         # Purpose:
         #   Translate a sgnd_dlg_autocontinue() return code into a canonical decision token.
         #
@@ -360,7 +360,7 @@ set -uo pipefail
     }
 
 # --- Public API ---------------------------------------------------------------------
-    # sgnd_dlg_autocontinue
+    # fn: sgnd_dlg_autocontinue
         # Purpose:
         #   Render a timed dialog on /dev/tty with a countdown and simple key-driven actions.
         #
@@ -608,7 +608,7 @@ set -uo pipefail
         done
     }
 
-    # sgnd_prompt_fromlist
+    # fn: sgnd_prompt_fromlist
         # Purpose:
         #   Prompt for a list of state or configuration entries described by state-spec lines.
         #
@@ -748,7 +748,7 @@ set -uo pipefail
         done
     }
 
-    # sgnd_ask_decision
+    # fn: sgnd_ask_decision
         # Purpose:
         #   Prompt for a constrained symbolic decision and normalize the result.
         #
