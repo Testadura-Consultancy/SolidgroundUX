@@ -774,135 +774,125 @@ set -uo pipefail
         return 1
     }
 
-    # fn: sgnd_cfg_warn_missing_syscfg
+    # fn: _sgnd_cfg_write_template_header
         # Purpose:
-        #   Emit a warning when a required system cfg file is missing.
-        #
-        # Behavior:
-        #   - Tracks emitted warnings in SGND_CFG_WARNED_SYS.
-        #   - Suppresses duplicate warnings for the same domain/path combination.
-        #   - Adjusts the wording based on framework or script mode.
+        #   Write a standard auto-generated header for a cfg template file.
         #
         # Arguments:
         #   $1  DOMAIN
         #       Logical config domain name.
-        #   $2  SYSCFG
-        #       System cfg file path.
-        #   $3  MODE
-        #       Optional mode: "framework" or "script".
-        #       Default: script
+        #   $2  AUDIENCE
+        #       Config audience: system or user.
         #
-        # Outputs (globals):
-        #   SGND_CFG_WARNED_SYS
-        #
-        # Side effects:
-        #   - Updates SGND_CFG_WARNED_SYS.
-        #   - Writes a warning via saywarning.
+        # Output:
+        #   Prints header text to stdout.
         #
         # Returns:
         #   0 always.
-        #
-        # Usage:
-        #   sgnd_cfg_warn_missing_syscfg DOMAIN SYSCFG [MODE]
-        #
-        # Examples:
-        #   sgnd_cfg_warn_missing_syscfg "framework" "$SGND_SYSCFG_FILE" "framework"
-        #
-        #   sgnd_cfg_warn_missing_syscfg "script" "$SGND_SYSCFG_FILE"
-    sgnd_cfg_warn_missing_syscfg() {
-        local domain="${1:-}"
-        local syscfg="${2:-}"
-        local mode="${3:-script}"
+    _sgnd_cfg_write_template_header() {
+        local domain="${1:-configuration}"
+        local audience="${2:-user}"
+        local generated=""
 
-        [[ -n "$syscfg" ]] || return 0
+        generated="$(date '+%Y-%m-%d %H:%M:%S')"
 
-        : "${SGND_CFG_WARNED_SYS:=}"
-        local key="${domain}|${syscfg}"
+        printf '# =====================================================================================
+'
+        printf '# SolidgroundUX - %s configuration (%s)
+' "$domain" "$audience"
+        printf '# -------------------------------------------------------------------------------------
+'
+        printf '# Generated   : %s
+' "$generated"
+        printf '#
+'
+        printf '# Description:
+'
+        printf '#   Auto-generated configuration template based on current defaults.
+'
+        printf '#
+'
+        printf '# Precedence:
+'
+        printf '#   - System configuration is loaded first when present
+'
+        printf '#   - User configuration is loaded after system configuration
+'
+        printf '#   - User values override system values
+'
+        printf '#
+'
+        printf '# Notes:
+'
+        printf '#   - This file may be edited safely
+'
+        printf '#   - Only KEY=VALUE lines are processed
+'
+        printf '#   - Missing values fall back to in-memory defaults
+'
+        printf '# =====================================================================================
 
-        case " $SGND_CFG_WARNED_SYS " in
-            *" $key "*) return 0 ;;
-        esac
-        SGND_CFG_WARNED_SYS="$SGND_CFG_WARNED_SYS $key"
-
-        if [[ "$mode" == "framework" ]]; then
-            saywarning "[$domain] system cfg not found: $syscfg (using default settings; installer should create it)"
-        else
-            saywarning "[$domain] system cfg not found: $syscfg (using default settings; run as root once to create it)"
-        fi
+'
     }
 
-    # fn: sgnd_cfg_ensure_files
+    # fn: sgnd_cfg_create_missing_domain_files
         # Purpose:
-        #   Ensure required config files exist for a domain based on its specs.
+        #   Create missing cfg files for a domain from the active defaults/specs.
         #
         # Behavior:
-        #   - Creates a user cfg file when user-audience specs exist and the file is missing.
-        #   - Creates a system cfg file only in script mode and only when running as root.
-        #   - Defers system cfg creation in framework mode to the installer.
-        #   - Writes generated skeletons filtered by audience.
+        #   - Creates a system cfg when system-audience specs exist and the caller is root.
+        #   - Creates a user cfg when user-audience specs exist.
+        #   - In framework mode under sudo/root, creates both files when missing.
+        #   - Uses current in-memory variable values as the template defaults.
+        #   - Emits informative messages instead of missing-file warnings.
         #
         # Arguments:
         #   $1  DOMAIN
-        #       Logical config domain name.
         #   $2  SYSCFG
-        #       System cfg file path.
         #   $3  USRCFG
-        #       User cfg file path.
         #   $4  SPEC_ARRAY_NAME
-        #       Name of the cfg specs array.
         #   $5  MODE
-        #       Optional mode: "framework" or "script".
+        #       Optional mode: framework or script.
         #       Default: script
         #
         # Side effects:
         #   - Creates parent directories as needed.
         #   - Creates cfg files when required.
-        #   - Writes informational output to stdout.
+        #   - Writes informational output.
         #
         # Returns:
         #   0 on success.
         #   1 on invalid arguments or file creation failure.
-        #
-        # Usage:
-        #   sgnd_cfg_ensure_files DOMAIN SYSCFG USRCFG SPEC_ARRAY_NAME [MODE]
-        #
-        # Examples:
-        #   sgnd_cfg_ensure_files "framework" "$SGND_SYSCFG_FILE" "$SGND_USRCFG_FILE" SGND_FRAMEWORK_CFG_SPECS "framework"
-        #
-        #   sgnd_cfg_ensure_files "script" "$SGND_SYSCFG_FILE" "$SGND_USRCFG_FILE" SGND_SCRIPT_CFG_SPECS
-    sgnd_cfg_ensure_files() {
+    sgnd_cfg_create_missing_domain_files() {
         local domain="${1:-}"
         local syscfg="${2:-}"
         local usrcfg="${3:-}"
         local spec_array_name="${4:-}"
-        local mode="${5:-script}"   # "framework" or "script"
+        local mode="${5:-script}"
 
         [[ -n "$domain" && -n "$spec_array_name" ]] || return 1
 
         local is_root=0
         (( EUID == 0 )) && is_root=1
 
-        # system cfg ---
         if sgnd_cfg_has_audience "$spec_array_name" "system"; then
-            if [[ "$mode" == "script" ]]; then
-                if (( is_root )); then
-                    if [[ -n "$syscfg" && ! -f "$syscfg" ]]; then
-                        sgnd_ensure_writable_dir "$(dirname -- "$syscfg")" || return 1
-                        sgnd_cfg_write_skeleton_filtered "$syscfg" "system" "$spec_array_name" || return 1
-                        printf '%s\n' "INFO: [$domain] created system cfg: $syscfg"
-                    fi
-                fi
+            if (( is_root )) && [[ -n "$syscfg" && ! -f "$syscfg" ]]; then
+                sgnd_ensure_writable_dir "$(dirname -- "$syscfg")" || return 1
+                sgnd_cfg_write_skeleton_filtered "$syscfg" "system" "$spec_array_name" "$domain" || return 1
+                sayinfo "[$domain] created system cfg: $syscfg"
             fi
-            # framework mode: do not create syscfg here (installer responsibility)
         fi
 
-        # user cfg ---
         if sgnd_cfg_has_audience "$spec_array_name" "user"; then
             if [[ -n "$usrcfg" && ! -f "$usrcfg" ]]; then
                 sgnd_ensure_writable_dir "$(dirname -- "$usrcfg")" || return 1
-                sgnd_cfg_write_skeleton_filtered "$usrcfg" "user" "$spec_array_name" || return 1
-                printf '%s\n' "INFO: [$domain] created user cfg: $usrcfg"
+                sgnd_cfg_write_skeleton_filtered "$usrcfg" "user" "$spec_array_name" "$domain" || return 1
+                sayinfo "[$domain] created user cfg: $usrcfg"
             fi
+        fi
+
+        if sgnd_cfg_has_audience "$spec_array_name" "system" && [[ -n "$syscfg" && ! -f "$syscfg" ]] && (( ! is_root )); then
+            saydebug "[$domain] system cfg missing but not created because current session is not root"
         fi
 
         return 0
@@ -913,10 +903,11 @@ set -uo pipefail
         #   Write an auto-generated cfg skeleton filtered by audience.
         #
         # Behavior:
-        #   - Writes a plain KEY=VALUE config template.
+        #   - Writes a commented KEY=VALUE config template.
         #   - Includes only specs matching the requested audience.
         #   - Includes specs marked "both" for either audience.
         #   - Uses current shell values as initial defaults where available.
+        #   - Adds a standard auto-generated file header.
         #
         # Arguments:
         #   $1  FILE
@@ -925,6 +916,9 @@ set -uo pipefail
         #       Audience filter: "system" or "user".
         #   $3  SPEC_ARRAY_NAME
         #       Name of the cfg specs array.
+        #   $4  DOMAIN
+        #       Optional logical domain name for header text.
+        #       Default: configuration
         #
         # Side effects:
         #   - Creates or overwrites the target file.
@@ -934,37 +928,38 @@ set -uo pipefail
         #   1 on invalid arguments.
         #
         # Usage:
-        #   sgnd_cfg_write_skeleton_filtered FILE AUDIENCE SPEC_ARRAY_NAME
+        #   sgnd_cfg_write_skeleton_filtered FILE AUDIENCE SPEC_ARRAY_NAME [DOMAIN]
         #
         # Examples:
-        #   sgnd_cfg_write_skeleton_filtered "$SGND_USRCFG_FILE" "user" SGND_FRAMEWORK_CFG_SPECS
+        #   sgnd_cfg_write_skeleton_filtered "$SGND_USRCFG_FILE" "user" SGND_FRAMEWORK_GLOBALS "Framework"
         #
-        #   sgnd_cfg_write_skeleton_filtered "$SGND_SYSCFG_FILE" "system" SGND_SCRIPT_CFG_SPECS
+        #   sgnd_cfg_write_skeleton_filtered "$SGND_SYSCFG_FILE" "system" SGND_SCRIPT_GLOBALS "Script"
     sgnd_cfg_write_skeleton_filtered() {
         local file="${1:-}"
-        local audience_want="${2:-}"     # "system" or "user"
+        local audience_want="${2:-}"
         local spec_array_name="${3:-}"
+        local domain="${4:-configuration}"
 
         [[ -n "$file" && -n "$audience_want" && -n "$spec_array_name" ]] || return 1
 
         local -n specs="$spec_array_name"
 
         {
-            printf '%s\n' "# Auto-generated config ($audience_want)"
-            printf '%s\n' "# Lines must be VAR=VALUE. Other lines are ignored."
-            printf '\n'
+            _sgnd_cfg_write_template_header "$domain" "$audience_want"
 
-            local spec audience var desc extra
+            local spec audience var desc extra val
             for spec in "${specs[@]}"; do
                 IFS='|' read -r audience var desc extra <<< "$spec"
                 [[ -n "$var" ]] || continue
 
                 case "$audience" in
                     "$audience_want"|both)
-                        printf '# %s\n' "${desc:-$var}"
-                        local val
+                        printf '# %s
+' "${desc:-$var}"
                         val="${!var:-}"
-                        printf '%s=%s\n\n' "$var" "$val"
+                        printf '%s=%s
+
+' "$var" "$val"
                         ;;
                 esac
             done
@@ -1044,7 +1039,7 @@ set -uo pipefail
         #   - Ensures required cfg files exist for the domain.
         #   - Loads system cfg first when applicable.
         #   - Loads user cfg after system cfg so user values override system values.
-        #   - Warns once when a required system cfg file is missing.
+        #   - Creates missing cfg files from defaults when possible.
         #
         # Arguments:
         #   $1  DOMAIN
@@ -1062,7 +1057,7 @@ set -uo pipefail
         # Side effects:
         #   - May create cfg files.
         #   - Loads cfg values into shell variables.
-        #   - May emit warnings for missing system cfg.
+        #   - May create cfg templates from current defaults.
         #
         # Returns:
         #   0 on success.
@@ -1084,14 +1079,10 @@ set -uo pipefail
 
         [[ -n "$domain" && -n "$spec_array_name" ]] || return 1
 
-        sgnd_cfg_ensure_files "$domain" "$syscfg" "$usrcfg" "$spec_array_name" "$mode" || return 1
+        sgnd_cfg_create_missing_domain_files "$domain" "$syscfg" "$usrcfg" "$spec_array_name" "$mode" || return 1
 
         if sgnd_cfg_has_audience "$spec_array_name" "system"; then
-            if [[ -r "$syscfg" ]]; then
-                sgnd_cfg_load_file "$syscfg"
-            else
-                sgnd_cfg_warn_missing_syscfg "$domain" "$syscfg" "$mode"
-            fi
+            [[ -r "$syscfg" ]] && sgnd_cfg_load_file "$syscfg"
         fi
 
         if sgnd_cfg_has_audience "$spec_array_name" "user"; then
