@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>UI Rendering</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+<nav class="nav"><a href="index.html">Index</a></nav>
+<header class="module-header">
+  <h1>UI Rendering</h1>
+  <p>Provide terminal rendering utilities for styled console output</p>
+  <div class="meta-grid">
+    <div>Group</div><div>UI</div>
+    <div>Type</div><div>library</div>
+    <div>Version</div><div>1.1</div>
+    <div>Build</div><div>2609100</div>
+    <div>Developers</div><div>Mark Fieten</div>
+    <div>Company</div><div>Testadura Consultancy</div>
+    <div>License</div><div>Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.</div>
+  </div>
+</header>
+<h3 class="item-header" data-line="48">_sgnd_lib_guard <span>(tmp, private)</span></h3>
+<div class="comment-section-header" data-line="49">Purpose:</div>
+<div class="prose" data-line="50">  Ensure the file is sourced as a library and only initialized once.</div>
+<div class="comment-section-header" data-line="52">Behavior:</div>
+<div class="prose" data-line="53">  - Derives a unique guard variable name from the current filename.</div>
+<div class="prose" data-line="54">  - Aborts execution if the file is executed instead of sourced.</div>
+<div class="prose" data-line="55">  - Sets the guard variable on first load.</div>
+<div class="prose" data-line="56">  - Skips initialization if the library was already loaded.</div>
+<div class="comment-section-header" data-line="58">Inputs:</div>
+<div class="prose" data-line="59">  BASH_SOURCE[0]</div>
+<div class="prose" data-line="60">  $0</div>
+<div class="prose" data-line="62">Outputs (globals):</div>
+<div class="prose" data-line="63">  SGND_<lt;MODULE>gt;_LOADED</div>
+<div class="comment-section-header" data-line="65">Returns:</div>
+<div class="prose" data-line="66">  0 if already loaded or successfully initialized.</div>
+<div class="prose" data-line="67">  Exits with code 2 if executed instead of sourced.</div>
+<h3 class="item-header" data-line="125">confirm <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="126">Purpose:</div>
+<div class="prose" data-line="127">  Compatibility override for legacy yes/no confirmation prompts.</div>
+<div class="comment-section-header" data-line="129">Behavior:</div>
+<div class="prose" data-line="130">  - If ask() exists, delegates to ask() using yes/no validation.</div>
+<div class="prose" data-line="131">  - Otherwise falls back to a minimal read -rp prompt.</div>
+<div class="prose" data-line="132">  - Treats Y/y as confirmation and all other responses as no.</div>
+<div class="comment-section-header" data-line="134">Arguments:</div>
+<div class="prose" data-line="135">  $1  PROMPT</div>
+<div class="prose" data-line="136">      Optional confirmation prompt text.</div>
+<div class="comment-section-header" data-line="138">Returns:</div>
+<div class="prose" data-line="139">  0 if the user answered yes.</div>
+<div class="prose" data-line="140">  1 otherwise.</div>
+<div class="comment-section-header" data-line="142">Usage:</div>
+<div class="prose" data-line="143">  confirm "quot;Are you sure?"quot;</div>
+<div class="comment-section-header" data-line="145">Examples:</div>
+<div class="prose" data-line="146">  if confirm "quot;Delete existing config?"quot;; then</div>
+<div class="prose" data-line="147">      sgnd_cfg_reset</div>
+<div class="prose" data-line="148">  fi</div>
+<div class="comment-section-header" data-line="150">Notes:</div>
+<div class="prose" data-line="151">  - Higher-level prompt policy belongs in ui-ask.sh.</div>
+<h3 class="item-header" data-line="173">_sgnd_ui_resolve_theme_file <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="174">Purpose:</div>
+<div class="prose" data-line="175">  Resolve a palette or style specification into a readable .sh file path.</div>
+<div class="comment-section-header" data-line="177">Behavior:</div>
+<div class="prose" data-line="178">  - Treats values containing "quot;/"quot; or ending in "quot;.sh"quot; as explicit paths.</div>
+<div class="prose" data-line="179">  - Otherwise resolves logical names under:</div>
+<div class="prose" data-line="180">      $SGND_UI_THEME_DIR/<lt;kind>gt;/<lt;name>gt;.sh</div>
+<div class="prose" data-line="181">  - Verifies readability before returning success.</div>
+<div class="comment-section-header" data-line="183">Arguments:</div>
+<div class="prose" data-line="184">  $1  KIND</div>
+<div class="prose" data-line="185">      Theme kind: palettes | styles</div>
+<div class="prose" data-line="186">  $2  SPEC</div>
+<div class="prose" data-line="187">      Explicit path or logical theme name.</div>
+<div class="prose" data-line="189">Inputs (globals):</div>
+<div class="prose" data-line="190">  SGND_UI_THEME_DIR</div>
+<div class="comment-section-header" data-line="192">Output:</div>
+<div class="prose" data-line="193">  Prints the resolved readable file path to stdout.</div>
+<div class="comment-section-header" data-line="195">Returns:</div>
+<div class="prose" data-line="196">  0  resolved and readable</div>
+<div class="prose" data-line="197">  2  missing spec</div>
+<div class="prose" data-line="198">  3  explicit path unreadable</div>
+<div class="prose" data-line="199">  4  SGND_UI_THEME_DIR missing for named lookup</div>
+<div class="prose" data-line="200">  5  named theme not found</div>
+<div class="comment-section-header" data-line="202">Usage:</div>
+<div class="prose" data-line="203">  _sgnd_ui_resolve_theme_file palettes default-ui-palette</div>
+<div class="comment-section-header" data-line="205">Examples:</div>
+<div class="prose" data-line="206">  palette_file="quot;$(_sgnd_ui_resolve_theme_file "quot;palettes"quot; "quot;$palette_spec"quot;)"quot; || return $?</div>
+<h2 class="section-header" data-line="248">Public helpers</h2>
+<h3 class="item-header" data-line="249">sgnd_strip_ansi <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="250">Purpose:</div>
+<div class="prose" data-line="251">  Strip ANSI CSI escape sequences from a string.</div>
+<div class="comment-section-header" data-line="253">Behavior:</div>
+<div class="prose" data-line="254">  - Removes ESC[...<lt;alpha>gt; sequences from the supplied text.</div>
+<div class="prose" data-line="255">  - Intended primarily for SGR styling sequences used by the framework.</div>
+<div class="comment-section-header" data-line="257">Arguments:</div>
+<div class="prose" data-line="258">  $1  TEXT</div>
+<div class="prose" data-line="259">      Text that may contain ANSI escape sequences.</div>
+<div class="comment-section-header" data-line="261">Output:</div>
+<div class="prose" data-line="262">  Prints the sanitized string to stdout.</div>
+<div class="comment-section-header" data-line="264">Returns:</div>
+<div class="prose" data-line="265">  0 always.</div>
+<div class="comment-section-header" data-line="267">Usage:</div>
+<div class="prose" data-line="268">  sgnd_strip_ansi "quot;$text"quot;</div>
+<div class="comment-section-header" data-line="270">Examples:</div>
+<div class="prose" data-line="271">  plain="quot;$(sgnd_strip_ansi "quot;$colored_text"quot;)"quot;</div>
+<h3 class="item-header" data-line="276">sgnd_visible_len <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="277">Purpose:</div>
+<div class="prose" data-line="278">  Return the visible character length of a string after stripping ANSI.</div>
+<div class="comment-section-header" data-line="280">Behavior:</div>
+<div class="prose" data-line="281">  - Strips ANSI sequences using sgnd_strip_ansi().</div>
+<div class="prose" data-line="282">  - Returns the remaining string length.</div>
+<div class="comment-section-header" data-line="284">Arguments:</div>
+<div class="prose" data-line="285">  $1  TEXT</div>
+<div class="prose" data-line="286">      Text whose visible length should be measured.</div>
+<div class="comment-section-header" data-line="288">Output:</div>
+<div class="prose" data-line="289">  Prints the visible length to stdout.</div>
+<div class="comment-section-header" data-line="291">Returns:</div>
+<div class="prose" data-line="292">  0 always.</div>
+<div class="comment-section-header" data-line="294">Usage:</div>
+<div class="prose" data-line="295">  sgnd_visible_len "quot;$text"quot;</div>
+<div class="comment-section-header" data-line="297">Examples:</div>
+<div class="prose" data-line="298">  width="quot;$(sgnd_visible_len "quot;$RUN_MODE"quot;)"quot;</div>
+<div class="comment-section-header" data-line="300">Notes:</div>
+<div class="prose" data-line="301">  - Length is byte-based and assumes monospaced terminal rendering.</div>
+<h2 class="section-header" data-line="308">Theme loading</h2>
+<h3 class="item-header" data-line="309">sgnd_ui_set_theme <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="310">Purpose:</div>
+<div class="prose" data-line="311">  Load a UI palette and style into the current shell.</div>
+<div class="comment-section-header" data-line="313">Behavior:</div>
+<div class="prose" data-line="314">  - Accepts palette and style as explicit paths or logical names.</div>
+<div class="prose" data-line="315">  - Resolves logical names under SGND_UI_THEME_DIR.</div>
+<div class="prose" data-line="316">  - Derives SGND_UI_THEME_DIR from SGND_FRAMEWORK_ROOT when unset.</div>
+<div class="prose" data-line="317">  - Loads palette first, then style.</div>
+<div class="prose" data-line="318">  - Records the resolved files in SGND_UI_PALETTE_FILE and SGND_UI_STYLE_FILE.</div>
+<div class="comment-section-header" data-line="320">Arguments:</div>
+<div class="prose" data-line="321">  --palette SPEC</div>
+<div class="prose" data-line="322">      Palette file path or logical name.</div>
+<div class="prose" data-line="323">  --style SPEC</div>
+<div class="prose" data-line="324">      Style file path or logical name.</div>
+<div class="prose" data-line="325">  --default</div>
+<div class="prose" data-line="326">      Load default-ui-palette and default-ui-style.</div>
+<div class="prose" data-line="327">  -h | --help</div>
+<div class="prose" data-line="328">      Print usage help.</div>
+<div class="prose" data-line="330">Inputs (globals):</div>
+<div class="prose" data-line="331">  SGND_UI_THEME_DIR</div>
+<div class="prose" data-line="332">  SGND_FRAMEWORK_ROOT</div>
+<div class="prose" data-line="334">Outputs (globals):</div>
+<div class="prose" data-line="335">  SGND_UI_THEME_DIR</div>
+<div class="prose" data-line="336">  SGND_UI_PALETTE_FILE</div>
+<div class="prose" data-line="337">  SGND_UI_STYLE_FILE</div>
+<div class="prose" data-line="338">  Variables defined by the sourced palette and style files</div>
+<div class="comment-section-header" data-line="340">Side effects:</div>
+<div class="prose" data-line="341">  - Sources palette and style files into the current shell.</div>
+<div class="comment-section-header" data-line="343">Returns:</div>
+<div class="prose" data-line="344">  0   success or help shown</div>
+<div class="prose" data-line="345">  2   unexpected argument</div>
+<div class="prose" data-line="346">  3   explicit file unreadable</div>
+<div class="prose" data-line="347">  4   theme directory missing</div>
+<div class="prose" data-line="348">  5   named theme not found</div>
+<div class="prose" data-line="349">  10  palette load failed</div>
+<div class="prose" data-line="350">  11  palette did not define RESET</div>
+<div class="prose" data-line="351">  12  style load failed</div>
+<div class="comment-section-header" data-line="353">Usage:</div>
+<div class="prose" data-line="354">  sgnd_ui_set_theme --palette <lt;file|name>gt; --style <lt;file|name>gt;</div>
+<div class="prose" data-line="355">  sgnd_ui_set_theme --default</div>
+<div class="prose" data-line="356">  sgnd_ui_set_theme <lt;palette>gt; <lt;style>gt;</div>
+<div class="comment-section-header" data-line="358">Examples:</div>
+<div class="prose" data-line="359">  sgnd_ui_set_theme --default</div>
+<div class="prose" data-line="361">  sgnd_ui_set_theme "quot;default-ui-palette"quot; "quot;default-ui-style"quot;</div>
+<h2 class="section-header" data-line="410">resolve palette/style</h2>
+<h3 class="item-header" data-line="442">sgnd_ui_set_default_theme <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="443">Purpose:</div>
+<div class="prose" data-line="444">  Convenience wrapper to load the default UI palette and style.</div>
+<div class="comment-section-header" data-line="446">Behavior:</div>
+<div class="prose" data-line="447">  - Delegates directly to sgnd_ui_set_theme --default.</div>
+<div class="comment-section-header" data-line="449">Returns:</div>
+<div class="prose" data-line="450">  Whatever sgnd_ui_set_theme returns.</div>
+<div class="comment-section-header" data-line="452">Usage:</div>
+<div class="prose" data-line="453">  sgnd_ui_set_default_theme</div>
+<div class="comment-section-header" data-line="455">Examples:</div>
+<div class="prose" data-line="456">  sgnd_ui_set_default_theme || return 1</div>
+<h2 class="section-header" data-line="461">Styling helpers</h2>
+<h3 class="item-header" data-line="462">sgnd_sgr <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="463">Purpose:</div>
+<div class="prose" data-line="464">  Build one canonical ANSI SGR escape sequence from mixed inputs.</div>
+<div class="comment-section-header" data-line="466">Behavior:</div>
+<div class="prose" data-line="467">  - Accepts numeric SGR params, numeric param lists, and full ESC[...m sequences.</div>
+<div class="prose" data-line="468">  - Extracts and normalizes parameters into one combined SGR escape.</div>
+<div class="prose" data-line="469">  - Ignores empty or unsupported inputs.</div>
+<div class="prose" data-line="470">  - Returns RESET when no valid parts are supplied.</div>
+<div class="comment-section-header" data-line="472">Arguments:</div>
+<div class="prose" data-line="473">  $@  PARTS</div>
+<div class="comment-section-header" data-line="474">      Mixed SGR parts such as:</div>
+<div class="prose" data-line="475">      - numeric params: 1</div>
+<div class="prose" data-line="476">      - param lists: "quot;1,4"quot; or "quot;1;4"quot;</div>
+<div class="prose" data-line="477">      - full escapes: $'#39;\e[38;5;46m'#39;</div>
+<div class="prose" data-line="479">Inputs (globals):</div>
+<div class="prose" data-line="480">  RESET</div>
+<div class="comment-section-header" data-line="482">Output:</div>
+<div class="prose" data-line="483">  Prints one SGR prefix to stdout.</div>
+<div class="comment-section-header" data-line="485">Returns:</div>
+<div class="prose" data-line="486">  0 always.</div>
+<div class="comment-section-header" data-line="488">Usage:</div>
+<div class="prose" data-line="489">  sgnd_sgr "quot;$WHITE"quot; "quot;"quot; "quot;$FX_BOLD"quot;</div>
+<div class="comment-section-header" data-line="491">Examples:</div>
+<div class="prose" data-line="492">  clr="quot;$(sgnd_sgr "quot;$GREEN"quot; "quot;"quot; "quot;$FX_BOLD"quot;)"quot;</div>
+<div class="prose" data-line="494">  printf '#39;%sHello%s\n'#39; "quot;$(sgnd_sgr 1 4)"quot; "quot;$RESET"quot;</div>
+<h3 class="item-header" data-line="546">sgnd_fg <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="547">Purpose:</div>
+<div class="prose" data-line="548">  Convenience wrapper to build a foreground-color SGR prefix.</div>
+<div class="comment-section-header" data-line="550">Arguments:</div>
+<div class="prose" data-line="551">  $1  FG</div>
+<div class="prose" data-line="552">      Foreground color escape or SGR fragment.</div>
+<div class="prose" data-line="553">  $@  FX</div>
+<div class="prose" data-line="554">      Optional effect fragments.</div>
+<div class="comment-section-header" data-line="556">Output:</div>
+<div class="prose" data-line="557">  Prints an SGR prefix to stdout.</div>
+<div class="comment-section-header" data-line="559">Returns:</div>
+<div class="prose" data-line="560">  0 always.</div>
+<div class="comment-section-header" data-line="562">Usage:</div>
+<div class="prose" data-line="563">  sgnd_fg "quot;$GREEN"quot; "quot;$FX_BOLD"quot;</div>
+<div class="comment-section-header" data-line="565">Examples:</div>
+<div class="prose" data-line="566">  printf '#39;%sText%s\n'#39; "quot;$(sgnd_fg "quot;$WHITE"quot; "quot;$FX_ITALIC"quot;)"quot; "quot;$RESET"quot;</div>
+<h3 class="item-header" data-line="573">sgnd_bg <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="574">Purpose:</div>
+<div class="prose" data-line="575">  Convenience wrapper to build a background-color SGR prefix.</div>
+<div class="comment-section-header" data-line="577">Arguments:</div>
+<div class="prose" data-line="578">  $1  BG</div>
+<div class="prose" data-line="579">      Background color escape or SGR fragment.</div>
+<div class="prose" data-line="580">  $@  FX</div>
+<div class="prose" data-line="581">      Optional effect fragments.</div>
+<div class="comment-section-header" data-line="583">Output:</div>
+<div class="prose" data-line="584">  Prints an SGR prefix to stdout.</div>
+<div class="comment-section-header" data-line="586">Returns:</div>
+<div class="prose" data-line="587">  0 always.</div>
+<div class="comment-section-header" data-line="589">Usage:</div>
+<div class="prose" data-line="590">  sgnd_bg "quot;$BG_BLUE"quot;</div>
+<div class="comment-section-header" data-line="592">Examples:</div>
+<div class="prose" data-line="593">  printf '#39;%sText%s\n'#39; "quot;$(sgnd_bg "quot;$BG_RED"quot; "quot;$FX_BOLD"quot;)"quot; "quot;$RESET"quot;</div>
+<h2 class="section-header" data-line="600">Runmode indicators</h2>
+<h3 class="item-header" data-line="601">sgnd_update_runmode <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="602">Purpose:</div>
+<div class="prose" data-line="603">  Update the styled global RUN_MODE indicator from the current dry-run state.</div>
+<div class="comment-section-header" data-line="605">Behavior:</div>
+<div class="prose" data-line="606">  - Sets RUN_MODE to DRYRUN or COMMIT.</div>
+<div class="prose" data-line="607">  - Uses sgnd_runmode_color() for the prefix.</div>
+<div class="prose" data-line="608">  - Appends RESET so the string is safe for inline rendering.</div>
+<div class="prose" data-line="610">Inputs (globals):</div>
+<div class="prose" data-line="611">  FLAG_DRYRUN</div>
+<div class="prose" data-line="612">  RESET</div>
+<div class="prose" data-line="614">Outputs (globals):</div>
+<div class="prose" data-line="615">  RUN_MODE</div>
+<div class="comment-section-header" data-line="617">Returns:</div>
+<div class="prose" data-line="618">  0 always.</div>
+<div class="comment-section-header" data-line="620">Usage:</div>
+<div class="prose" data-line="621">  sgnd_update_runmode</div>
+<div class="comment-section-header" data-line="623">Examples:</div>
+<div class="prose" data-line="624">  FLAG_DRYRUN=1</div>
+<div class="prose" data-line="625">  sgnd_update_runmode</div>
+<h3 class="item-header" data-line="634">sgnd_runmode_color <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="635">Purpose:</div>
+<div class="prose" data-line="636">  Return the ANSI prefix associated with the current run mode.</div>
+<div class="prose" data-line="638">Inputs (globals):</div>
+<div class="prose" data-line="639">  FLAG_DRYRUN</div>
+<div class="prose" data-line="640">  TUI_DRYRUN</div>
+<div class="prose" data-line="641">  TUI_COMMIT</div>
+<div class="comment-section-header" data-line="643">Output:</div>
+<div class="prose" data-line="644">  Prints the active run-mode color prefix to stdout.</div>
+<div class="comment-section-header" data-line="646">Returns:</div>
+<div class="prose" data-line="647">  0 always.</div>
+<div class="comment-section-header" data-line="649">Usage:</div>
+<div class="prose" data-line="650">  sgnd_runmode_color</div>
+<div class="comment-section-header" data-line="652">Examples:</div>
+<div class="prose" data-line="653">  printf '#39;%s%s%s\n'#39; "quot;$(sgnd_runmode_color)"quot; "quot;COMMIT"quot; "quot;$RESET"quot;</div>
+<h2 class="section-header" data-line="658">Rendering primitives</h2>
+<h3 class="item-header" data-line="659">sgnd_print_labeledvalue <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="660">Purpose:</div>
+<div class="prose" data-line="661">  Print one aligned "quot;Label : Value"quot; line with optional styling.</div>
+<div class="comment-section-header" data-line="663">Behavior:</div>
+<div class="prose" data-line="664">  - Accepts positional or named arguments.</div>
+<div class="prose" data-line="665">  - Applies a fixed-width label column.</div>
+<div class="prose" data-line="666">  - Prints the value without truncation.</div>
+<div class="prose" data-line="667">  - Appends RESET after colored segments.</div>
+<div class="comment-section-header" data-line="669">Arguments:</div>
+<div class="prose" data-line="670">  --label TEXT</div>
+<div class="prose" data-line="671">      Label text.</div>
+<div class="prose" data-line="672">  --value TEXT</div>
+<div class="prose" data-line="673">      Value text.</div>
+<div class="prose" data-line="674">  --sep TEXT</div>
+<div class="prose" data-line="675">      Separator token. Default: :</div>
+<div class="prose" data-line="676">  --width N</div>
+<div class="prose" data-line="677">      Label width. Default: 25</div>
+<div class="prose" data-line="678">  --pad N</div>
+<div class="prose" data-line="679">      Left indentation. Default: 0</div>
+<div class="prose" data-line="680">  --labelclr ANSI</div>
+<div class="prose" data-line="681">      Label color prefix.</div>
+<div class="prose" data-line="682">  --valueclr ANSI</div>
+<div class="prose" data-line="683">      Value color prefix.</div>
+<div class="comment-section-header" data-line="685">Output:</div>
+<div class="prose" data-line="686">  Writes one formatted line to stdout.</div>
+<div class="comment-section-header" data-line="688">Returns:</div>
+<div class="prose" data-line="689">  0 always.</div>
+<div class="comment-section-header" data-line="691">Usage:</div>
+<div class="prose" data-line="692">  sgnd_print_labeledvalue "quot;Label"quot; "quot;Value"quot;</div>
+<div class="prose" data-line="693">  sgnd_print_labeledvalue --label "quot;Label"quot; --value "quot;Value"quot; [opts]</div>
+<div class="comment-section-header" data-line="695">Examples:</div>
+<div class="prose" data-line="696">  sgnd_print_labeledvalue "quot;Version"quot; "quot;$SGND_VERSION"quot;</div>
+<div class="prose" data-line="698">  sgnd_print_labeledvalue --label "quot;Mode"quot; --value "quot;$RUN_MODE"quot; --pad 4</div>
+<h2 class="section-header" data-line="709">Parse options</h2>
+<div class="prose" data-line="745">Allow positional fallback: label value</div>
+<h3 class="item-header" data-line="769">sgnd_print_fill <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="770">Purpose:</div>
+<div class="prose" data-line="771">  Print one line with left and right content separated by a fill region.</div>
+<div class="comment-section-header" data-line="773">Behavior:</div>
+<div class="prose" data-line="774">  - Accepts positional or named arguments.</div>
+<div class="prose" data-line="775">  - Computes fill width using ANSI-safe visible lengths.</div>
+<div class="prose" data-line="776">  - Applies optional left and right colors.</div>
+<div class="prose" data-line="777">  - Uses a single visible fill character across the gap.</div>
+<div class="comment-section-header" data-line="779">Arguments:</div>
+<div class="prose" data-line="780">  --left TEXT</div>
+<div class="prose" data-line="781">      Left-side content.</div>
+<div class="prose" data-line="782">  --right TEXT</div>
+<div class="prose" data-line="783">      Right-side content.</div>
+<div class="prose" data-line="784">  --padleft N</div>
+<div class="prose" data-line="785">      Left fill padding. Default: 2</div>
+<div class="prose" data-line="786">  --padright N</div>
+<div class="prose" data-line="787">      Right fill padding. Default: 1</div>
+<div class="prose" data-line="788">  --maxwidth N</div>
+<div class="prose" data-line="789">      Total width. Default: 80</div>
+<div class="prose" data-line="790">  --fillchar C</div>
+<div class="prose" data-line="791">      Fill character. Default: space</div>
+<div class="prose" data-line="792">  --leftclr ANSI</div>
+<div class="prose" data-line="793">      Left color prefix.</div>
+<div class="prose" data-line="794">  --rightclr ANSI</div>
+<div class="prose" data-line="795">      Right color prefix.</div>
+<div class="comment-section-header" data-line="797">Output:</div>
+<div class="prose" data-line="798">  Writes one formatted line to stdout.</div>
+<div class="comment-section-header" data-line="800">Returns:</div>
+<div class="prose" data-line="801">  0 always.</div>
+<div class="comment-section-header" data-line="803">Usage:</div>
+<div class="prose" data-line="804">  sgnd_print_fill "quot;Left"quot; "quot;Right"quot;</div>
+<div class="prose" data-line="805">  sgnd_print_fill --left "quot;Menu"quot; --right "quot;$RUN_MODE"quot; [opts]</div>
+<div class="comment-section-header" data-line="807">Examples:</div>
+<div class="prose" data-line="808">  sgnd_print_fill --left "quot;$SGND_SCRIPT_TITLE"quot; --right "quot;$RUN_MODE"quot; --maxwidth 100</div>
+<h3 class="item-header" data-line="870">sgnd_print_titlebar <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="871">Purpose:</div>
+<div class="prose" data-line="872">  Print a framed title bar with left/right header text and optional subtitle.</div>
+<div class="comment-section-header" data-line="874">Behavior:</div>
+<div class="prose" data-line="875">  - Prints a border line, one header line, an optional subtitle line,</div>
+<div class="prose" data-line="876">    and a closing border line.</div>
+<div class="prose" data-line="877">  - Uses SGND_SCRIPT_TITLE or SGND_SCRIPT_BASE as the default left title.</div>
+<div class="prose" data-line="878">  - Uses RUN_MODE as the default right-side text.</div>
+<div class="prose" data-line="879">  - Uses SGND_SCRIPT_DESC as the default subtitle.</div>
+<div class="prose" data-line="881">Inputs (globals):</div>
+<div class="prose" data-line="882">  SGND_SCRIPT_TITLE</div>
+<div class="prose" data-line="883">  SGND_SCRIPT_BASE</div>
+<div class="prose" data-line="884">  SGND_SCRIPT_DESC</div>
+<div class="prose" data-line="885">  RUN_MODE</div>
+<div class="comment-section-header" data-line="887">Output:</div>
+<div class="prose" data-line="888">  Writes multiple formatted lines to stdout.</div>
+<div class="comment-section-header" data-line="890">Returns:</div>
+<div class="prose" data-line="891">  0 always.</div>
+<div class="comment-section-header" data-line="893">Usage:</div>
+<div class="prose" data-line="894">  sgnd_print_titlebar [opts]</div>
+<div class="comment-section-header" data-line="896">Examples:</div>
+<div class="prose" data-line="897">  sgnd_print_titlebar</div>
+<div class="prose" data-line="899">  sgnd_print_titlebar --left "quot;SolidGround Console"quot; --right "quot;$RUN_MODE"quot; --sub "quot;$SGND_SCRIPT_DESC"quot;</div>
+<h2 class="section-header" data-line="914">Parse options</h2>
+<h2 class="section-header" data-line="936">Numeric safety</h2>
+<h3 class="item-header" data-line="970">sgnd_print_sectionheader <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="971">Purpose:</div>
+<div class="prose" data-line="972">  Print a divider line with optional title text.</div>
+<div class="comment-section-header" data-line="974">Behavior:</div>
+<div class="prose" data-line="975">  - Prints a full-width border when no title text is given.</div>
+<div class="prose" data-line="976">  - Prints a titled divider when text is supplied.</div>
+<div class="prose" data-line="977">  - Uses ANSI-safe width calculations for visible alignment.</div>
+<div class="comment-section-header" data-line="979">Arguments:</div>
+<div class="prose" data-line="980">  --text TEXT</div>
+<div class="prose" data-line="981">      Section title.</div>
+<div class="prose" data-line="982">  --textclr ANSI</div>
+<div class="prose" data-line="983">      Title color prefix.</div>
+<div class="prose" data-line="984">  --border C</div>
+<div class="prose" data-line="985">      Border character. Default: -</div>
+<div class="prose" data-line="986">  --borderclr ANSI</div>
+<div class="prose" data-line="987">      Border color prefix.</div>
+<div class="prose" data-line="988">  --padleft N</div>
+<div class="prose" data-line="989">      Border count before title. Default: 4</div>
+<div class="prose" data-line="990">  --padend 0|1</div>
+<div class="prose" data-line="991">      Fill remainder after title. Default: 1</div>
+<div class="prose" data-line="992">  --maxwidth N</div>
+<div class="prose" data-line="993">      Total width. Default: 80</div>
+<div class="comment-section-header" data-line="995">Output:</div>
+<div class="prose" data-line="996">  Writes one formatted divider line to stdout.</div>
+<div class="comment-section-header" data-line="998">Returns:</div>
+<div class="prose" data-line="999">  0 always.</div>
+<div class="comment-section-header" data-line="1001">Usage:</div>
+<div class="prose" data-line="1002">  sgnd_print_sectionheader</div>
+<div class="prose" data-line="1003">  sgnd_print_sectionheader "quot;Title"quot;</div>
+<div class="prose" data-line="1004">  sgnd_print_sectionheader --text "quot;Title"quot; [opts]</div>
+<div class="comment-section-header" data-line="1006">Examples:</div>
+<div class="prose" data-line="1007">  sgnd_print_sectionheader --text "quot;Framework metadata"quot;</div>
+<div class="prose" data-line="1009">  sgnd_print_sectionheader --border "quot;="quot; --maxwidth 100</div>
+<h2 class="section-header" data-line="1019">Parse options</h2>
+<div class="prose" data-line="1031">positional fallback</div>
+<h2 class="section-header" data-line="1038">Numeric safety</h2>
+<h2 class="section-header" data-line="1045">Assemble line (PLAIN parts first; add color last)</h2>
+<h3 class="item-header" data-line="1091">sgnd_print <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="1092">Purpose:</div>
+<div class="prose" data-line="1093">  Print formatted text with padding, justification, and optional wrapping.</div>
+<div class="comment-section-header" data-line="1095">Behavior:</div>
+<div class="prose" data-line="1096">  - Empty call prints a blank line.</div>
+<div class="prose" data-line="1097">  - Auto-wraps when text exceeds the available width unless wrap mode is forced.</div>
+<div class="prose" data-line="1098">  - Delegates single-line rendering to sgnd_print_single().</div>
+<div class="prose" data-line="1099">  - Delegates wrapping to sgnd_wrap_words().</div>
+<div class="comment-section-header" data-line="1101">Arguments:</div>
+<div class="prose" data-line="1102">  --text TEXT</div>
+<div class="prose" data-line="1103">      Text to print.</div>
+<div class="prose" data-line="1104">  --textclr ANSI</div>
+<div class="prose" data-line="1105">      Text color prefix.</div>
+<div class="prose" data-line="1106">  --justify L|C|R</div>
+<div class="prose" data-line="1107">      Justification. Default: L</div>
+<div class="prose" data-line="1108">  --wrap 0|1</div>
+<div class="prose" data-line="1109">      Explicit wrap mode.</div>
+<div class="prose" data-line="1110">  --pad N</div>
+<div class="prose" data-line="1111">      Left and right padding. Default: 0</div>
+<div class="prose" data-line="1112">  --rightmargin N</div>
+<div class="prose" data-line="1113">      Reserved right margin in wrap mode. Default: 0</div>
+<div class="prose" data-line="1114">  --maxwidth N</div>
+<div class="prose" data-line="1115">      Total width. Default: 80</div>
+<div class="comment-section-header" data-line="1117">Output:</div>
+<div class="prose" data-line="1118">  Writes one or more formatted lines to stdout.</div>
+<div class="comment-section-header" data-line="1120">Returns:</div>
+<div class="prose" data-line="1121">  0 always.</div>
+<div class="comment-section-header" data-line="1123">Usage:</div>
+<div class="prose" data-line="1124">  sgnd_print</div>
+<div class="prose" data-line="1125">  sgnd_print "quot;Text"quot;</div>
+<div class="prose" data-line="1126">  sgnd_print --text "quot;Text"quot; [opts]</div>
+<div class="comment-section-header" data-line="1128">Examples:</div>
+<div class="prose" data-line="1129">  sgnd_print --text "quot;$SGND_SCRIPT_DESC"quot; --justify C --pad 4</div>
+<div class="prose" data-line="1131">  sgnd_print --text "quot;$long_text"quot; --wrap 1 --maxwidth 100</div>
+<h2 class="section-header" data-line="1142">Parse options</h2>
+<h3 class="item-header" data-line="1203">sgnd_print_single <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="1204">Purpose:</div>
+<div class="prose" data-line="1205">  Render exactly one formatted line within a fixed width.</div>
+<div class="comment-section-header" data-line="1207">Behavior:</div>
+<div class="prose" data-line="1208">  - Empty call prints a blank line.</div>
+<div class="prose" data-line="1209">  - Applies justification and padding.</div>
+<div class="prose" data-line="1210">  - Truncates text when it exceeds the available width.</div>
+<div class="prose" data-line="1211">  - Does not perform wrapping.</div>
+<div class="comment-section-header" data-line="1213">Arguments:</div>
+<div class="prose" data-line="1214">  --text TEXT</div>
+<div class="prose" data-line="1215">      Text to render.</div>
+<div class="prose" data-line="1216">  --textclr ANSI</div>
+<div class="prose" data-line="1217">      Text color prefix.</div>
+<div class="prose" data-line="1218">  --justify L|C|R</div>
+<div class="prose" data-line="1219">      Justification. Default: L</div>
+<div class="prose" data-line="1220">  --pad N</div>
+<div class="prose" data-line="1221">      Left and right padding. Default: 0</div>
+<div class="prose" data-line="1222">  --maxwidth N</div>
+<div class="prose" data-line="1223">      Total width. Default: 80</div>
+<div class="comment-section-header" data-line="1225">Output:</div>
+<div class="prose" data-line="1226">  Writes one formatted line to stdout.</div>
+<div class="comment-section-header" data-line="1228">Returns:</div>
+<div class="prose" data-line="1229">  0 always.</div>
+<div class="comment-section-header" data-line="1231">Usage:</div>
+<div class="prose" data-line="1232">  sgnd_print_single</div>
+<div class="prose" data-line="1233">  sgnd_print_single "quot;Text"quot;</div>
+<div class="prose" data-line="1234">  sgnd_print_single --text "quot;Text"quot; [opts]</div>
+<div class="comment-section-header" data-line="1236">Examples:</div>
+<div class="prose" data-line="1237">  sgnd_print_single --text "quot;Done"quot; --justify R --maxwidth 40</div>
+<h3 class="item-header" data-line="1305">sgnd_print_file <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="1306">Purpose:</div>
+<div class="prose" data-line="1307">  Print a text file to stdout, paging when interactive.</div>
+<div class="comment-section-header" data-line="1309">Behavior:</div>
+<div class="prose" data-line="1310">  - Uses less for paging when stdout is a TTY and less is available.</div>
+<div class="prose" data-line="1311">  - For Markdown files, tries richer renderers before falling back to plain output.</div>
+<div class="prose" data-line="1312">  - Prints without paging for non-interactive output.</div>
+<div class="comment-section-header" data-line="1314">Arguments:</div>
+<div class="prose" data-line="1315">  $1  FILE</div>
+<div class="prose" data-line="1316">      Readable text file path.</div>
+<div class="comment-section-header" data-line="1318">Side effects:</div>
+<div class="prose" data-line="1319">  - May invoke external viewers such as less, glow, mdcat, bat, or pandoc.</div>
+<div class="comment-section-header" data-line="1321">Returns:</div>
+<div class="prose" data-line="1322">  0 on success</div>
+<div class="prose" data-line="1323">  2 on missing or unreadable file</div>
+<div class="comment-section-header" data-line="1325">Usage:</div>
+<div class="prose" data-line="1326">  sgnd_print_file <lt;path>gt;</div>
+<div class="comment-section-header" data-line="1328">Examples:</div>
+<div class="prose" data-line="1329">  sgnd_print_file "quot;$SGND_DOCS_DIR/README.md"quot;</div>
+<h3 class="item-header" data-line="1391">sgnd_print_cell <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="1392">Purpose:</div>
+<div class="prose" data-line="1393">  Print a fixed-width cell that may contain ANSI styling sequences.</div>
+<div class="comment-section-header" data-line="1395">Behavior:</div>
+<div class="prose" data-line="1396">  - Computes visible width after stripping ANSI CSI sequences.</div>
+<div class="prose" data-line="1397">  - Pads with spaces to the requested width.</div>
+<div class="prose" data-line="1398">  - Does not truncate when text exceeds the target width.</div>
+<div class="comment-section-header" data-line="1400">Arguments:</div>
+<div class="prose" data-line="1401">  $1  WIDTH</div>
+<div class="prose" data-line="1402">      Target visible width.</div>
+<div class="prose" data-line="1403">  $2  TEXT</div>
+<div class="prose" data-line="1404">      Cell content, optionally containing ANSI styling.</div>
+<div class="comment-section-header" data-line="1406">Output:</div>
+<div class="prose" data-line="1407">  Writes the padded cell to stdout without a newline.</div>
+<div class="comment-section-header" data-line="1409">Returns:</div>
+<div class="prose" data-line="1410">  0 always.</div>
+<div class="comment-section-header" data-line="1412">Usage:</div>
+<div class="prose" data-line="1413">  sgnd_print_cell 20 "quot;$text"quot;</div>
+<div class="comment-section-header" data-line="1415">Examples:</div>
+<div class="prose" data-line="1416">  sgnd_print_cell 20 "quot;${GREEN}OK${RESET}"quot;</div>
+<h3 class="item-header" data-line="1432">sgnd_module_show_metadata <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="1433">Purpose:</div>
+<div class="prose" data-line="1434">  Display metadata for a library module initialized via sgnd_module_init_metadata.</div>
+<div class="comment-section-header" data-line="1436">Behavior:</div>
+<div class="prose" data-line="1437">  - Accepts either:</div>
+<div class="prose" data-line="1438">      • a module prefix (e.g. SGND_COMMENT_PARSER)</div>
+<div class="prose" data-line="1439">      • a file path (derives module prefix)</div>
+<div class="prose" data-line="1440">  - Reads SGND_<lt;MODULE>gt;_* variables via indirect expansion</div>
+<div class="prose" data-line="1441">  - Prints values using sgnd_print_labeled_value</div>
+<div class="prose" data-line="1442">  - Displays Description as a separate block when present</div>
+<div class="comment-section-header" data-line="1444">Arguments:</div>
+<div class="prose" data-line="1445">  $1  MODULE_PREFIX_OR_FILE</div>
+<div class="comment-section-header" data-line="1447">Returns:</div>
+<div class="prose" data-line="1448">  0  success</div>
+<div class="prose" data-line="1449">  1  unable to resolve module</div>
+<div class="comment-section-header" data-line="1451">Usage:</div>
+<div class="prose" data-line="1452">  sgnd_module_show_metadata "quot;SGND_COMMENT_PARSER"quot;</div>
+<div class="prose" data-line="1453">  sgnd_module_show_metadata "quot;${BASH_SOURCE[0]}"quot;</div>
+<div class="comment-section-header" data-line="1455">Notes:</div>
+<div class="prose" data-line="1456">  - Intended for debugging, diagnostics, and inspection</div>
+<div class="prose" data-line="1457">  - Assumes sgnd_print_labeled_value exists</div>
+<h2 class="section-header" data-line="1542">Externals</h2>
+<h2 class="section-header" data-line="1543">Sample/demo renderers</h2>
+<h3 class="item-header" data-line="1544">sgnd_color_samples <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="1545">Purpose:</div>
+<div class="prose" data-line="1546">  Print a demo table of available palette colors and common effects.</div>
+<div class="comment-section-header" data-line="1548">Behavior:</div>
+<div class="prose" data-line="1549">  - Renders sample rows for the framework palette color variables.</div>
+<div class="prose" data-line="1550">  - Delegates row rendering to sgnd_sample_row().</div>
+<div class="comment-section-header" data-line="1552">Output:</div>
+<div class="prose" data-line="1553">  Writes a formatted color demo to stdout.</div>
+<div class="comment-section-header" data-line="1555">Returns:</div>
+<div class="prose" data-line="1556">  0 always.</div>
+<div class="comment-section-header" data-line="1558">Usage:</div>
+<div class="prose" data-line="1559">  sgnd_color_samples</div>
+<div class="comment-section-header" data-line="1561">Examples:</div>
+<div class="prose" data-line="1562">  sgnd_color_samples</div>
+<h3 class="item-header" data-line="1582">sgnd_sample_row <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="1583">Purpose:</div>
+<div class="prose" data-line="1584">  Render one sample row for one or more named palette variables.</div>
+<div class="comment-section-header" data-line="1586">Behavior:</div>
+<div class="prose" data-line="1587">  - Resolves each supplied variable name using eval.</div>
+<div class="prose" data-line="1588">  - Prints the variable name in its own style.</div>
+<div class="prose" data-line="1589">  - Prints samples for common text effects.</div>
+<div class="comment-section-header" data-line="1591">Arguments:</div>
+<div class="prose" data-line="1592">  $@  NAMES</div>
+<div class="prose" data-line="1593">      Variable names holding ANSI escape values.</div>
+<div class="comment-section-header" data-line="1595">Output:</div>
+<div class="prose" data-line="1596">  Writes one or more formatted sample lines to stdout.</div>
+<div class="comment-section-header" data-line="1598">Returns:</div>
+<div class="prose" data-line="1599">  0 always.</div>
+<div class="comment-section-header" data-line="1601">Usage:</div>
+<div class="prose" data-line="1602">  sgnd_sample_row BLUE BRIGHT_BLUE</div>
+<div class="comment-section-header" data-line="1604">Examples:</div>
+<div class="prose" data-line="1605">  sgnd_sample_row GREEN BRIGHT_GREEN DARK_GREEN</div>
+<div class="comment-section-header" data-line="1607">Notes:</div>
+<div class="prose" data-line="1608">  - Uses eval and expects trusted framework palette variable names.</div>
+<h3 class="item-header" data-line="1653">sgnd_style_samples <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="1654">Purpose:</div>
+<div class="prose" data-line="1655">  Print a demo of semantic message and UI style variables.</div>
+<div class="comment-section-header" data-line="1657">Behavior:</div>
+<div class="prose" data-line="1658">  - Prints sample output for MSG_CLR_* message colors.</div>
+<div class="prose" data-line="1659">  - Prints sample output for TUI_* semantic UI colors.</div>
+<div class="comment-section-header" data-line="1661">Output:</div>
+<div class="prose" data-line="1662">  Writes a formatted style demo to stdout.</div>
+<div class="comment-section-header" data-line="1664">Returns:</div>
+<div class="prose" data-line="1665">  0 always.</div>
+<div class="comment-section-header" data-line="1667">Usage:</div>
+<div class="prose" data-line="1668">  sgnd_style_samples</div>
+<div class="comment-section-header" data-line="1670">Examples:</div>
+<div class="prose" data-line="1671">  sgnd_style_samples</div>
+</div>
+</body>
+</html>

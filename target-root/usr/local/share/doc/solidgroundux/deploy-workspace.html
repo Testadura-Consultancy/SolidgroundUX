@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Deploy Workspace</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+<nav class="nav"><a href="index.html">Index</a></nav>
+<header class="module-header">
+  <h1>Deploy Workspace</h1>
+  <p>Deploy or remove a development workspace to or from a target root</p>
+  <div class="meta-grid">
+    <div>Group</div><div>Developer Tools</div>
+    <div>Type</div><div>script</div>
+    <div>Version</div><div>1.1</div>
+    <div>Build</div><div>2608700</div>
+    <div>Developers</div><div>Mark Fieten</div>
+    <div>Company</div><div>Testadura Consultancy</div>
+    <div>License</div><div>Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.</div>
+  </div>
+</header>
+<h3 class="item-header" data-line="272">SGND_USING <span>(var, public)</span></h3>
+<div class="prose" data-line="273">Libraries to source from SGND_COMMON_LIB.</div>
+<div class="prose" data-line="274">These are loaded automatically by sgnd_bootstrap AFTER core libraries.</div>
+<div class="comment-section-header" data-line="276">Example:</div>
+<div class="prose" data-line="277">  SGND_USING=( net.sh fs.sh )</div>
+<div class="prose" data-line="279">Leave empty if no extra libs are needed.</div>
+<h3 class="item-header" data-line="283">SGND_ARGS_SPEC <span>(var, public)</span></h3>
+<div class="prose" data-line="284">Optional: script-specific arguments</div>
+<div class="comment-section-header" data-line="286">Each entry:</div>
+<div class="prose" data-line="287">  "quot;name|short|type|var|help|choices"quot;</div>
+<div class="prose" data-line="289">  name    = long option name WITHOUT leading --</div>
+<div class="prose" data-line="290">  short   - short option name WITHOUT leading -</div>
+<div class="prose" data-line="291">  type    = flag | value | enum</div>
+<div class="prose" data-line="292">  var     = shell variable that will be set</div>
+<div class="prose" data-line="293">  help    = help string for auto-generated --help output</div>
+<div class="prose" data-line="294">  choices = for enum: comma-separated values (e.g. fast,slow,auto)</div>
+<div class="prose" data-line="295">            for flag/value: leave empty</div>
+<div class="comment-section-header" data-line="297">Notes:</div>
+<div class="prose" data-line="298">  - -h / --help is built in, you don'#39;t need to define it here.</div>
+<div class="prose" data-line="299">  - After parsing you can use: FLAG_VERBOSE, VAL_CONFIG, ENUM_MODE, ...</div>
+<h3 class="item-header" data-line="308">SGND_SCRIPT_EXAMPLES <span>(var, public)</span></h3>
+<div class="prose" data-line="309">Optional: examples for --help output.</div>
+<div class="prose" data-line="310">Each entry is a string that will be printed verbatim.</div>
+<div class="comment-section-header" data-line="312">Example:</div>
+<div class="prose" data-line="313">  SGND_SCRIPT_EXAMPLES=(</div>
+<div class="prose" data-line="314">      "quot;Example usage:"quot;</div>
+<div class="prose" data-line="315">      "quot;  script.sh --verbose --mode fast"quot;</div>
+<div class="prose" data-line="316">      "quot;  script.sh -v -m slow"quot;</div>
+<div class="prose" data-line="317">  )</div>
+<div class="prose" data-line="319">Leave empty if no examples are needed.</div>
+<h3 class="item-header" data-line="329">SGND_SCRIPT_GLOBALS <span>(var, public)</span></h3>
+<div class="prose" data-line="330">Explicit declaration of global variables intentionally used by this script.</div>
+<div class="comment-section-header" data-line="332">IMPORTANT:</div>
+<div class="prose" data-line="333">  - If this array is non-empty, sgnd_bootstrap will enable config loading.</div>
+<div class="prose" data-line="334">  - Variables listed here may be populated from configuration files.</div>
+<div class="prose" data-line="335">  - This makes SGND_SCRIPT_GLOBALS part of the script’s configuration contract.</div>
+<div class="comment-section-header" data-line="337">Use this to:</div>
+<div class="prose" data-line="338">  - Document intentional globals</div>
+<div class="prose" data-line="339">  - Prevent accidental namespace leakage</div>
+<div class="prose" data-line="340">  - Enable cfg integration in a predictable way</div>
+<div class="comment-section-header" data-line="342">Only list:</div>
+<div class="prose" data-line="343">  - Variables that are meant to be globally accessible</div>
+<div class="prose" data-line="344">  - Variables that may be set via config files</div>
+<div class="comment-section-header" data-line="346">Leave empty if:</div>
+<div class="prose" data-line="347">  - The script does not use config-driven globals</div>
+<h3 class="item-header" data-line="352">SGND_STATE_VARIABLES <span>(var, public)</span></h3>
+<div class="prose" data-line="353">List of variables participating in persistent state.</div>
+<div class="comment-section-header" data-line="355">Purpose:</div>
+<div class="prose" data-line="356">  - Declares which variables should be saved/restored when state is enabled.</div>
+<div class="comment-section-header" data-line="358">Behavior:</div>
+<div class="prose" data-line="359">  - Only used when sgnd_bootstrap is invoked with --state.</div>
+<div class="prose" data-line="360">  - Variables listed here are serialized on exit (if SGND_STATE_SAVE=1).</div>
+<div class="prose" data-line="361">  - On startup, previously saved values are restored before main logic runs.</div>
+<div class="comment-section-header" data-line="363">Contract:</div>
+<div class="prose" data-line="364">  - Variables must be simple scalars (no arrays/associatives unless explicitly supported).</div>
+<div class="prose" data-line="365">  - Script remains fully functional when state is disabled.</div>
+<div class="comment-section-header" data-line="367">Leave empty if:</div>
+<div class="prose" data-line="368">  - The script does not use persistent state.</div>
+<h3 class="item-header" data-line="372">SGND_ON_EXIT_HANDLERS <span>(var, public)</span></h3>
+<div class="prose" data-line="373">List of functions to be invoked on script termination.</div>
+<div class="comment-section-header" data-line="375">Purpose:</div>
+<div class="prose" data-line="376">  - Allows scripts to register cleanup or finalization hooks.</div>
+<div class="comment-section-header" data-line="378">Behavior:</div>
+<div class="prose" data-line="379">  - Functions listed here are executed during framework exit handling.</div>
+<div class="prose" data-line="380">  - Execution order follows array order.</div>
+<div class="prose" data-line="381">  - Handlers run regardless of normal exit or controlled termination.</div>
+<div class="comment-section-header" data-line="383">Contract:</div>
+<div class="prose" data-line="384">  - Functions must exist before exit occurs.</div>
+<div class="prose" data-line="385">  - Handlers must not call exit directly.</div>
+<div class="prose" data-line="386">  - Handlers should be idempotent (safe if executed once).</div>
+<div class="comment-section-header" data-line="388">Typical uses:</div>
+<div class="prose" data-line="389">  - Cleanup temporary files</div>
+<div class="prose" data-line="390">  - Persist additional state</div>
+<div class="prose" data-line="391">  - Release locks</div>
+<div class="comment-section-header" data-line="393">Leave empty if:</div>
+<div class="prose" data-line="394">  - No custom exit behavior is required.</div>
+<h3 class="item-header" data-line="398">State persistence is opt-in. <span>(var, public)</span></h3>
+<div class="comment-section-header" data-line="399">Scripts that want persistent state must:</div>
+<div class="prose" data-line="400">  1) set SGND_STATE_SAVE=1</div>
+<div class="prose" data-line="401">  2) call sgnd_bootstrap --state</div>
+<h2 class="section-header" data-line="436">Manifests</h2>
+<div class="prose" data-line="437">_manifest_source_id</div>
+<div class="comment-section-header" data-line="438">Purpose:</div>
+<div class="prose" data-line="439">  Derive a stable manifest namespace identifier from SRC_ROOT.</div>
+<div class="comment-section-header" data-line="441">Behavior:</div>
+<div class="prose" data-line="442">  - Hashes SRC_ROOT using sha256</div>
+<div class="prose" data-line="443">  - Prints the resulting identifier to stdout</div>
+<div class="prose" data-line="445">Inputs (globals):</div>
+<div class="prose" data-line="446">  SRC_ROOT</div>
+<div class="comment-section-header" data-line="448">Output:</div>
+<div class="prose" data-line="449">  Prints source-root identifier to stdout</div>
+<div class="comment-section-header" data-line="451">Returns:</div>
+<div class="prose" data-line="452">  0 on success</div>
+<div class="comment-section-header" data-line="454">Usage:</div>
+<div class="prose" data-line="455">  id="quot;$(_manifest_source_id)"quot;</div>
+<div class="comment-section-header" data-line="457">Notes:</div>
+<div class="prose" data-line="458">  - Used to group manifests by source root</div>
+<div class="prose" data-line="459">  - Keeps on-disk manifest paths safe and deterministic</div>
+<h2 class="section-header" data-line="864">Main sequence</h2>
+<h3 class="item-header" data-line="865">_perm_resolve <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="866">Purpose:</div>
+<div class="prose" data-line="867">  Resolve the effective permission mode for a given path based on PERMISSION_RULES.</div>
+<div class="comment-section-header" data-line="869">Arguments:</div>
+<div class="prose" data-line="870">  $1  abs_rel   Absolute path relative to root (e.g. "quot;/usr/local/bin/foo"quot;)</div>
+<div class="prose" data-line="871">  $2  kind      "quot;file"quot; or "quot;dir"quot;</div>
+<div class="comment-section-header" data-line="873">Behavior:</div>
+<div class="prose" data-line="874">  - Applies longest-prefix match against PERMISSION_RULES</div>
+<div class="prose" data-line="875">  - Returns file_mode or dir_mode depending on kind</div>
+<div class="prose" data-line="876">  - Falls back to defaults when no rule matches</div>
+<div class="comment-section-header" data-line="878">Output:</div>
+<div class="prose" data-line="879">  Prints the resolved mode to stdout (no newline)</div>
+<div class="comment-section-header" data-line="881">Returns:</div>
+<div class="prose" data-line="882">  0 always</div>
+<div class="comment-section-header" data-line="884">Defaults:</div>
+<div class="prose" data-line="885">  file → 644</div>
+<div class="prose" data-line="886">  dir  → 755</div>
+<div class="comment-section-header" data-line="888">Usage:</div>
+<div class="prose" data-line="889">  mode="quot;$(_perm_resolve "quot;/usr/local/bin/foo"quot; "quot;file"quot;)"quot;</div>
+<div class="comment-section-header" data-line="891">Examples:</div>
+<div class="prose" data-line="892">  dir_mode="quot;$(_perm_resolve "quot;/usr/local/bin"quot; "quot;dir"quot;)"quot;</div>
+<h3 class="item-header" data-line="922">_update_lastdeployinfo <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="923">Purpose:</div>
+<div class="prose" data-line="924">  Persist metadata of the last deployment run for reuse (e.g. auto mode).</div>
+<div class="comment-section-header" data-line="926">Behavior:</div>
+<div class="prose" data-line="927">  - Stores timestamp, source, and target in state for later reuse</div>
+<div class="prose" data-line="928">  - Skips writes when FLAG_DRYRUN is enabled</div>
+<div class="comment-section-header" data-line="930">Writes:</div>
+<div class="prose" data-line="931">  last_deploy_run</div>
+<div class="prose" data-line="932">  last_deploy_source</div>
+<div class="prose" data-line="933">  last_deploy_target</div>
+<div class="prose" data-line="935">Inputs (globals):</div>
+<div class="prose" data-line="936">  SRC_ROOT</div>
+<div class="prose" data-line="937">  DEST_ROOT</div>
+<div class="prose" data-line="938">  FLAG_DRYRUN</div>
+<div class="comment-section-header" data-line="940">Returns:</div>
+<div class="prose" data-line="941">  0 on success</div>
+<div class="comment-section-header" data-line="943">Usage:</div>
+<div class="prose" data-line="944">  _update_lastdeployinfo</div>
+<h3 class="item-header" data-line="956">_getparameters <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="957">Purpose:</div>
+<div class="prose" data-line="958">  Collect deployment parameters (source and target roots).</div>
+<div class="comment-section-header" data-line="960">Behavior:</div>
+<div class="prose" data-line="961">  - Auto mode:</div>
+<div class="prose" data-line="962">      Uses last deployment settings when available</div>
+<div class="prose" data-line="963">  - Interactive mode:</div>
+<div class="prose" data-line="964">      Prompts for SRC_ROOT and DEST_ROOT</div>
+<div class="prose" data-line="965">      Validates SRC_ROOT structure (advisory only)</div>
+<div class="prose" data-line="966">      Asks for confirmation (OK/Redo/Quit)</div>
+<div class="comment-section-header" data-line="968">Validation:</div>
+<div class="prose" data-line="969">  - SRC_ROOT is considered valid if it contains "quot;etc/"quot; or "quot;usr/"quot;</div>
+<div class="prose" data-line="970">  - Validation is advisory only (does not block execution)</div>
+<div class="prose" data-line="972">Outputs (globals):</div>
+<div class="prose" data-line="973">  SRC_ROOT</div>
+<div class="prose" data-line="974">  DEST_ROOT</div>
+<div class="comment-section-header" data-line="976">Returns:</div>
+<div class="prose" data-line="977">  0 → confirmed</div>
+<div class="prose" data-line="978">  1 → aborted</div>
+<div class="comment-section-header" data-line="980">Usage:</div>
+<div class="prose" data-line="981">  _getparameters ; return $?</div>
+<div class="comment-section-header" data-line="983">Notes:</div>
+<div class="prose" data-line="984">  - Uses ask and ask_ok_redo_quit</div>
+<h2 class="section-header" data-line="990">Auto mode</h2>
+<h3 class="item-header" data-line="1046">_deploy <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="1047">Purpose:</div>
+<div class="prose" data-line="1048">  Deploy workspace files from SRC_ROOT into DEST_ROOT.</div>
+<div class="comment-section-header" data-line="1050">Behavior:</div>
+<div class="prose" data-line="1051">  - Recursively processes files under SRC_ROOT</div>
+<div class="prose" data-line="1052">  - Computes relative path and destination path</div>
+<div class="prose" data-line="1053">  - Skips:</div>
+<div class="prose" data-line="1054">      - top-level files</div>
+<div class="prose" data-line="1055">      - "quot;_"quot; prefixed files</div>
+<div class="prose" data-line="1056">      - "quot;.old"quot; files</div>
+<div class="prose" data-line="1057">      - hidden or "quot;_"quot; directories</div>
+<div class="comment-section-header" data-line="1059">Update logic:</div>
+<div class="prose" data-line="1060">  - Installs when destination is missing or source is newer</div>
+<div class="comment-section-header" data-line="1062">Manifest behavior:</div>
+<div class="prose" data-line="1063">  - Initializes a new manifest at start of deployment</div>
+<div class="prose" data-line="1064">  - Records only files CREATED by this run</div>
+<div class="prose" data-line="1065">  - Records only directories CREATED by this run</div>
+<div class="prose" data-line="1066">  - Updated pre-existing files are not recorded</div>
+<div class="prose" data-line="1067">  - Finalizes manifest only after successful completion</div>
+<div class="comment-section-header" data-line="1069">Permissions:</div>
+<div class="prose" data-line="1070">  - File mode via _perm_resolve(abs_rel,"quot;file"quot;)</div>
+<div class="prose" data-line="1071">  - Directory mode via _perm_resolve(abs_rel,"quot;dir"quot;)</div>
+<div class="comment-section-header" data-line="1073">Dry run:</div>
+<div class="prose" data-line="1074">  - When FLAG_DRYRUN=1, only reports actions</div>
+<div class="prose" data-line="1076">Inputs (globals):</div>
+<div class="prose" data-line="1077">  SRC_ROOT</div>
+<div class="prose" data-line="1078">  DEST_ROOT</div>
+<div class="prose" data-line="1079">  FLAG_DRYRUN</div>
+<div class="prose" data-line="1080">  PERMISSION_RULES</div>
+<div class="comment-section-header" data-line="1082">Returns:</div>
+<div class="prose" data-line="1083">  0 on success</div>
+<div class="prose" data-line="1084">  1 on fatal deployment/manifest failure</div>
+<div class="comment-section-header" data-line="1086">Usage:</div>
+<div class="prose" data-line="1087">  _deploy</div>
+<div class="comment-section-header" data-line="1089">Notes:</div>
+<div class="prose" data-line="1090">  - Uses install for atomic writes and permission control</div>
+<div class="prose" data-line="1091">  - Manifest records created artifacts only; it is not full rollback state</div>
+<h3 class="item-header" data-line="1185">_undeploy <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="1186">Purpose:</div>
+<div class="prose" data-line="1187">  Remove previously deployed files and directories using a manifest.</div>
+<div class="comment-section-header" data-line="1189">Behavior:</div>
+<div class="prose" data-line="1190">  - Resolves a manifest for the current SRC_ROOT</div>
+<div class="prose" data-line="1191">  - Uses MANIFEST_NAME when provided</div>
+<div class="prose" data-line="1192">  - Otherwise uses the latest manifest for the source root</div>
+<div class="prose" data-line="1193">  - Removes recorded files first</div>
+<div class="prose" data-line="1194">  - Removes recorded directories afterward in reverse-depth order</div>
+<div class="comment-section-header" data-line="1196">Manifest rules:</div>
+<div class="prose" data-line="1197">  - Only files recorded as created by deploy are removed</div>
+<div class="prose" data-line="1198">  - Only directories recorded as created by deploy are considered</div>
+<div class="prose" data-line="1199">  - Directories are removed only if empty</div>
+<div class="comment-section-header" data-line="1201">Dry run:</div>
+<div class="prose" data-line="1202">  - When FLAG_DRYRUN=1, only reports actions</div>
+<div class="prose" data-line="1204">Inputs (globals):</div>
+<div class="prose" data-line="1205">  SRC_ROOT</div>
+<div class="prose" data-line="1206">  DEST_ROOT</div>
+<div class="prose" data-line="1207">  MANIFEST_NAME</div>
+<div class="prose" data-line="1208">  FLAG_DRYRUN</div>
+<div class="comment-section-header" data-line="1210">Returns:</div>
+<div class="prose" data-line="1211">  0 on success</div>
+<div class="prose" data-line="1212">  1 if manifest resolution fails</div>
+<div class="comment-section-header" data-line="1214">Usage:</div>
+<div class="prose" data-line="1215">  _undeploy</div>
+<div class="comment-section-header" data-line="1217">Notes:</div>
+<div class="prose" data-line="1218">  - This is a manifest-based inverse of created artifacts only</div>
+<div class="prose" data-line="1219">  - Updated pre-existing files are not restored or removed</div>
+<h3 class="item-header" data-line="1274">main <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="1275">Purpose:</div>
+<div class="prose" data-line="1276">  Execute the workspace deployment workflow.</div>
+<div class="comment-section-header" data-line="1278">Behavior:</div>
+<div class="prose" data-line="1279">  - Loads and initializes the framework bootstrap</div>
+<div class="prose" data-line="1280">  - Handles builtin arguments</div>
+<div class="prose" data-line="1281">  - Displays title bar</div>
+<div class="prose" data-line="1282">  - Collects parameters</div>
+<div class="prose" data-line="1283">  - Executes deploy or undeploy</div>
+<div class="prose" data-line="1284">  - Persists deployment metadata</div>
+<div class="comment-section-header" data-line="1286">Arguments:</div>
+<div class="prose" data-line="1287">  $@  Framework and script-specific arguments</div>
+<div class="comment-section-header" data-line="1289">Returns:</div>
+<div class="prose" data-line="1290">  Exit status from executed operations</div>
+<div class="comment-section-header" data-line="1292">Usage:</div>
+<div class="prose" data-line="1293">  main "quot;$@"quot;</div>
+<h2 class="section-header" data-line="1295">Bootstrap</h2>
+<h2 class="section-header" data-line="1315">Handle builtin arguments</h2>
+<h2 class="section-header" data-line="1320">UI</h2>
+<h2 class="section-header" data-line="1324">Main script logic</h2>
+</div>
+</body>
+</html>

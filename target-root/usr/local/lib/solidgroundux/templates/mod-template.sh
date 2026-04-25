@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 1.1
 #   Build       : 2609100
-#   Checksum    : 953b7de1cb803448b0f9494ec7edfecf554ff32053dc434820b01f1aae999e84
+#   Checksum    : none
 #   Source      : mod-template.sh
 #   Type        : module
 #   Group       : Templates

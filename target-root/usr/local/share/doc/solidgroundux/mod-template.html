@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Console Module Template</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+<nav class="nav"><a href="index.html">Index</a></nav>
+<header class="module-header">
+  <h1>Console Module Template</h1>
+  <p>Canonical template for sgnd-console modules</p>
+  <div class="meta-grid">
+    <div>Group</div><div>Templates</div>
+    <div>Type</div><div>module</div>
+    <div>Version</div><div>1.1</div>
+    <div>Build</div><div>2609100</div>
+    <div>Developers</div><div>Mark Fieten</div>
+    <div>Company</div><div>Testadura Consultancy</div>
+    <div>License</div><div>Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.</div>
+  </div>
+</header>
+<h2 class="section-header" data-line="51">Library guard</h2>
+<h3 class="item-header" data-line="52">_sgnd_lib_guard <span>(tmp, private)</span></h3>
+<div class="comment-section-header" data-line="53">Purpose:</div>
+<div class="prose" data-line="54">  Ensure the file is sourced as a library and only initialized once.</div>
+<div class="comment-section-header" data-line="56">Behavior:</div>
+<div class="prose" data-line="57">  - Derives a unique guard variable name from the current filename.</div>
+<div class="prose" data-line="58">  - Aborts execution if the file is executed instead of sourced.</div>
+<div class="prose" data-line="59">  - Sets the guard variable on first load.</div>
+<div class="prose" data-line="60">  - Skips initialization if the library was already loaded.</div>
+<div class="comment-section-header" data-line="62">Inputs:</div>
+<div class="prose" data-line="63">  BASH_SOURCE[0]</div>
+<div class="prose" data-line="64">  $0</div>
+<div class="prose" data-line="66">Outputs (globals):</div>
+<div class="prose" data-line="67">  SGND_<lt;MODULE>gt;_LOADED</div>
+<div class="comment-section-header" data-line="69">Returns:</div>
+<div class="prose" data-line="70">  0 if already loaded or successfully initialized.</div>
+<div class="prose" data-line="71">  Exits with code 2 if executed instead of sourced.</div>
+<h2 class="section-header" data-line="94">Internal helpers</h2>
+<div class="comment-section-header" data-line="95">Naming:</div>
+<div class="prose" data-line="96">  - Prefix internal-only helpers with "quot;_"quot;</div>
+<div class="prose" data-line="97">  - Keep internal helpers module-local and menu-focused</div>
+<div class="comment-section-header" data-line="99">Example:</div>
+<div class="prose" data-line="100">  _sample_format_status() { :; }</div>
+<h2 class="section-header" data-line="102">Public module actions</h2>
+<div class="comment-section-header" data-line="103">Naming:</div>
+<div class="prose" data-line="104">  - Use clear action-style names for functions registered as menu handlers</div>
+<div class="prose" data-line="105">  - Registered handlers do not need a sgnd_ prefix; they belong to the module surface</div>
+<div class="comment-section-header" data-line="107">Example:</div>
+<div class="prose" data-line="108">  sample_show_message() { :; }</div>
+<div class="prose" data-line="109">  sys_status() { :; }</div>
+<h2 class="section-header" data-line="111">Console registration</h2>
+<div class="comment-section-header" data-line="112">Allowed side effect:</div>
+<div class="prose" data-line="113">  - On source, the module may register groups and items with sgnd-console.</div>
+<div class="comment-section-header" data-line="115">Example:</div>
+<div class="prose" data-line="116">  sgnd_console_register_group "quot;system"quot; "quot;System tools"quot; "quot;General system operations"quot;</div>
+<div class="prose" data-line="118">  sgnd_console_register_item \</div>
+<div class="prose" data-line="119">      "quot;sys-status"quot; \</div>
+<div class="prose" data-line="120">      "quot;system"quot; \</div>
+<div class="prose" data-line="121">      "quot;System status"quot; \</div>
+<div class="prose" data-line="122">      "quot;sys_status"quot; \</div>
+<div class="prose" data-line="123">      "quot;Show system status"quot; \</div>
+<div class="prose" data-line="124">      0 \</div>
+<div class="prose" data-line="125">      15</div>
+</div>
+</body>
+</html>

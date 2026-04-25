@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Datatable</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+<nav class="nav"><a href="index.html">Index</a></nav>
+<header class="module-header">
+  <h1>Datatable</h1>
+  <p>Provide lightweight tabular data structures and utilities</p>
+  <div class="meta-grid">
+    <div>Group</div><div>Common Extensions</div>
+    <div>Type</div><div>library</div>
+    <div>Version</div><div>1.1</div>
+    <div>Build</div><div>2609100</div>
+    <div>Developers</div><div>Mark Fieten</div>
+    <div>Company</div><div>Testadura Consultancy</div>
+    <div>License</div><div>Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.</div>
+  </div>
+</header>
+<h3 class="item-header" data-line="49">_sgnd_lib_guard <span>(tmp, private)</span></h3>
+<div class="comment-section-header" data-line="50">Purpose:</div>
+<div class="prose" data-line="51">  Ensure the file is sourced as a library and only initialized once.</div>
+<div class="comment-section-header" data-line="53">Behavior:</div>
+<div class="prose" data-line="54">  - Derives a unique guard variable name from the current filename.</div>
+<div class="prose" data-line="55">  - Aborts execution if the file is executed instead of sourced.</div>
+<div class="prose" data-line="56">  - Sets the guard variable on first load.</div>
+<div class="prose" data-line="57">  - Skips initialization if the library was already loaded.</div>
+<div class="comment-section-header" data-line="59">Inputs:</div>
+<div class="prose" data-line="60">  BASH_SOURCE[0]</div>
+<div class="prose" data-line="61">  $0</div>
+<div class="prose" data-line="63">Outputs (globals):</div>
+<div class="prose" data-line="64">  SGND_<lt;MODULE>gt;_LOADED</div>
+<div class="comment-section-header" data-line="66">Returns:</div>
+<div class="prose" data-line="67">  0 if already loaded or successfully initialized.</div>
+<div class="prose" data-line="68">  Exits with code 2 if executed instead of sourced.</div>
+<h3 class="item-header" data-line="92">sgnd_dt_array_length <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="93">Purpose:</div>
+<div class="prose" data-line="94">  Return the length of an indexed array by name.</div>
+<div class="comment-section-header" data-line="96">Arguments:</div>
+<div class="prose" data-line="97">  $1  ARRAY_NAME</div>
+<div class="comment-section-header" data-line="99">Outputs:</div>
+<div class="prose" data-line="100">  Prints array length to stdout.</div>
+<div class="comment-section-header" data-line="102">Returns:</div>
+<div class="prose" data-line="103">  0 on success.</div>
+<div class="comment-section-header" data-line="105">Usage:</div>
+<div class="prose" data-line="106">  sgnd_dt_array_length ARRAY_NAME</div>
+<div class="comment-section-header" data-line="108">Examples:</div>
+<div class="prose" data-line="109">  count="quot;$(sgnd_dt_array_length MY_ROWS)"quot;</div>
+<h3 class="item-header" data-line="117">sgnd_dt_split_schema <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="118">Purpose:</div>
+<div class="prose" data-line="119">  Split a schema string into positional column names.</div>
+<div class="comment-section-header" data-line="121">Arguments:</div>
+<div class="prose" data-line="122">  $1  SCHEMA</div>
+<div class="comment-section-header" data-line="124">Outputs:</div>
+<div class="prose" data-line="125">  Writes column names into global helper array SGND_DT_SPLIT.</div>
+<div class="comment-section-header" data-line="127">Returns:</div>
+<div class="prose" data-line="128">  0 on success.</div>
+<div class="comment-section-header" data-line="130">Usage:</div>
+<div class="prose" data-line="131">  sgnd_dt_split_schema "quot;$SCHEMA"quot;</div>
+<div class="comment-section-header" data-line="133">Examples:</div>
+<div class="prose" data-line="134">  sgnd_dt_split_schema "quot;id|name|desc"quot;</div>
+<div class="prose" data-line="135">  printf '#39;%s\n'#39; "quot;${SGND_DT_SPLIT[1]}"quot;   # name</div>
+<h3 class="item-header" data-line="142">sgnd_dt_split_row <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="143">Purpose:</div>
+<div class="prose" data-line="144">  Split a row string into positional field values.</div>
+<div class="comment-section-header" data-line="146">Behavior:</div>
+<div class="prose" data-line="147">  - Splits on pipe ('#39;|'#39;) delimiter.</div>
+<div class="prose" data-line="148">  - Preserves empty fields, including trailing empty values.</div>
+<div class="prose" data-line="149">  - Guarantees column count consistency with schema-based rows.</div>
+<div class="comment-section-header" data-line="151">Arguments:</div>
+<div class="prose" data-line="152">  $1  ROW</div>
+<div class="comment-section-header" data-line="154">Outputs:</div>
+<div class="prose" data-line="155">  Writes field values into global helper array SGND_DT_SPLIT.</div>
+<div class="comment-section-header" data-line="157">Returns:</div>
+<div class="prose" data-line="158">  0 on success.</div>
+<div class="comment-section-header" data-line="160">Usage:</div>
+<div class="prose" data-line="161">  sgnd_dt_split_row "quot;$ROW"quot;</div>
+<div class="comment-section-header" data-line="163">Examples:</div>
+<div class="prose" data-line="164">  sgnd_dt_split_row "quot;1|Tools|Utility"quot;</div>
+<div class="prose" data-line="165">  printf '#39;%s\n'#39; "quot;${SGND_DT_SPLIT[2]}"quot;   # Utility</div>
+<div class="prose" data-line="167">  sgnd_dt_split_row "quot;1|Tools|"quot;</div>
+<div class="prose" data-line="168">  printf '#39;%s\n'#39; "quot;${SGND_DT_SPLIT[2]}"quot;   # (empty string)</div>
+<h3 class="item-header" data-line="180">sgnd_dt_validate_value <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="181">Purpose:</div>
+<div class="prose" data-line="182">  Validate whether a field value is supported by v1 storage rules.</div>
+<div class="comment-section-header" data-line="184">Rules:</div>
+<div class="prose" data-line="185">  - value must not contain a literal pipe character</div>
+<div class="prose" data-line="186">  - value must not contain a newline</div>
+<div class="comment-section-header" data-line="188">Arguments:</div>
+<div class="prose" data-line="189">  $1  VALUE</div>
+<div class="comment-section-header" data-line="191">Returns:</div>
+<div class="prose" data-line="192">  0 if value is valid.</div>
+<div class="prose" data-line="193">  1 if value contains unsupported characters.</div>
+<div class="comment-section-header" data-line="195">Usage:</div>
+<div class="prose" data-line="196">  sgnd_dt_validate_value VALUE</div>
+<div class="comment-section-header" data-line="198">Examples:</div>
+<div class="prose" data-line="199">  if sgnd_dt_validate_value "quot;$input"quot;; then</div>
+<div class="prose" data-line="200">      sayinfo "quot;Value OK"quot;</div>
+<div class="prose" data-line="201">  fi</div>
+<h3 class="item-header" data-line="210">sgnd_dt_validate_schema <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="211">Purpose:</div>
+<div class="prose" data-line="212">  Validate a schema string.</div>
+<div class="comment-section-header" data-line="214">Rules:</div>
+<div class="prose" data-line="215">  - schema must not be empty</div>
+<div class="prose" data-line="216">  - each column name must be non-empty</div>
+<div class="prose" data-line="217">  - duplicate column names are not allowed</div>
+<div class="comment-section-header" data-line="219">Arguments:</div>
+<div class="prose" data-line="220">  $1  SCHEMA</div>
+<div class="comment-section-header" data-line="222">Returns:</div>
+<div class="prose" data-line="223">  0 if schema is valid.</div>
+<div class="prose" data-line="224">  1 if schema is invalid.</div>
+<div class="comment-section-header" data-line="226">Usage:</div>
+<div class="prose" data-line="227">  sgnd_dt_validate_schema "quot;$SCHEMA"quot;</div>
+<div class="comment-section-header" data-line="229">Examples:</div>
+<div class="prose" data-line="230">  if ! sgnd_dt_validate_schema "quot;$MY_SCHEMA"quot;; then</div>
+<div class="prose" data-line="231">      sayfail "quot;Invalid schema"quot;</div>
+<div class="prose" data-line="232">  fi</div>
+<h3 class="item-header" data-line="254">sgnd_dt_column_index <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="255">Purpose:</div>
+<div class="prose" data-line="256">  Resolve a column name to its zero-based index within a schema.</div>
+<div class="comment-section-header" data-line="258">Arguments:</div>
+<div class="prose" data-line="259">  $1  SCHEMA</div>
+<div class="prose" data-line="260">  $2  COLUMN_NAME</div>
+<div class="comment-section-header" data-line="262">Outputs:</div>
+<div class="prose" data-line="263">  Prints the zero-based column index to stdout.</div>
+<div class="comment-section-header" data-line="265">Returns:</div>
+<div class="prose" data-line="266">  0 if the column is found.</div>
+<div class="prose" data-line="267">  1 if the column is not found.</div>
+<div class="comment-section-header" data-line="269">Usage:</div>
+<div class="prose" data-line="270">  sgnd_dt_column_index "quot;$SCHEMA"quot; COLUMN</div>
+<div class="comment-section-header" data-line="272">Examples:</div>
+<div class="prose" data-line="273">  idx="quot;$(sgnd_dt_column_index "quot;$MY_SCHEMA"quot; "quot;name"quot;)"quot;</div>
+<h3 class="item-header" data-line="290">sgnd_dt_column_count <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="291">Purpose:</div>
+<div class="prose" data-line="292">  Return the number of columns in a schema.</div>
+<div class="comment-section-header" data-line="294">Arguments:</div>
+<div class="prose" data-line="295">  $1  SCHEMA</div>
+<div class="comment-section-header" data-line="297">Outputs:</div>
+<div class="prose" data-line="298">  Prints column count to stdout.</div>
+<div class="comment-section-header" data-line="300">Returns:</div>
+<div class="prose" data-line="301">  0 on success.</div>
+<div class="comment-section-header" data-line="303">Usage:</div>
+<div class="prose" data-line="304">  sgnd_dt_column_count "quot;$SCHEMA"quot;</div>
+<h3 class="item-header" data-line="312">sgnd_dt_make_row <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="313">Purpose:</div>
+<div class="prose" data-line="314">  Build a row string from positional field values.</div>
+<div class="comment-section-header" data-line="316">Arguments:</div>
+<div class="prose" data-line="317">  $1   SCHEMA</div>
+<div class="prose" data-line="318">  $2+  VALUES matching schema order</div>
+<div class="comment-section-header" data-line="320">Outputs:</div>
+<div class="prose" data-line="321">  Prints the constructed row string to stdout.</div>
+<div class="comment-section-header" data-line="323">Returns:</div>
+<div class="prose" data-line="324">  0 on success.</div>
+<div class="prose" data-line="325">  1 on wrong field count or invalid field value.</div>
+<div class="comment-section-header" data-line="327">Usage:</div>
+<div class="prose" data-line="328">  sgnd_dt_make_row "quot;$SCHEMA"quot; VALUE1 VALUE2 ...</div>
+<div class="comment-section-header" data-line="330">Examples:</div>
+<div class="prose" data-line="331">  row="quot;$(sgnd_dt_make_row "quot;$MY_SCHEMA"quot; "quot;1"quot; "quot;Tools"quot; "quot;Utility module"quot;)"quot;</div>
+<h3 class="item-header" data-line="356">sgnd_dt_has_row <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="357">Purpose:</div>
+<div class="prose" data-line="358">  Test whether a table contains at least one row where a given column</div>
+<div class="prose" data-line="359">  equals the specified value.</div>
+<div class="comment-section-header" data-line="361">Behavior:</div>
+<div class="prose" data-line="362">  - Performs a linear scan over the table rows.</div>
+<div class="prose" data-line="363">  - Uses sgnd_dt_find_first internally.</div>
+<div class="prose" data-line="364">  - Produces no output; success/failure is indicated by the return code.</div>
+<div class="comment-section-header" data-line="366">Arguments:</div>
+<div class="prose" data-line="367">  $1  SCHEMA             Pipe-separated column definition string</div>
+<div class="prose" data-line="368">  $2  TABLE_ARRAY_NAME   Name of the indexed array containing row strings</div>
+<div class="prose" data-line="369">  $3  COLUMN_NAME        Column to test</div>
+<div class="prose" data-line="370">  $4  VALUE              Value to match</div>
+<div class="comment-section-header" data-line="372">Returns:</div>
+<div class="prose" data-line="373">  0 if at least one matching row exists.</div>
+<div class="prose" data-line="374">  1 if no matching row is found or the column does not exist.</div>
+<div class="comment-section-header" data-line="376">Usage:</div>
+<div class="prose" data-line="377">  sgnd_dt_has_row "quot;$SCHEMA"quot; MY_ROWS key "quot;Q"quot;</div>
+<div class="comment-section-header" data-line="379">Examples:</div>
+<div class="prose" data-line="380">  if sgnd_dt_has_row "quot;$MY_SCHEMA"quot; MY_ROWS key "quot;Q"quot;; then</div>
+<div class="prose" data-line="381">      sayinfo "quot;Quit item already registered"quot;</div>
+<div class="prose" data-line="382">  fi</div>
+<h3 class="item-header" data-line="392">sgnd_dt_row_get <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="393">Purpose:</div>
+<div class="prose" data-line="394">  Get the value of one column from a row string.</div>
+<div class="comment-section-header" data-line="396">Arguments:</div>
+<div class="prose" data-line="397">  $1  SCHEMA</div>
+<div class="prose" data-line="398">  $2  ROW</div>
+<div class="prose" data-line="399">  $3  COLUMN_NAME</div>
+<div class="comment-section-header" data-line="401">Outputs:</div>
+<div class="prose" data-line="402">  Prints the field value to stdout.</div>
+<div class="comment-section-header" data-line="404">Returns:</div>
+<div class="prose" data-line="405">  0 on success.</div>
+<div class="prose" data-line="406">  1 if the column is not found.</div>
+<div class="comment-section-header" data-line="408">Usage:</div>
+<div class="prose" data-line="409">  sgnd_dt_row_get "quot;$SCHEMA"quot; "quot;$ROW"quot; COLUMN_NAME</div>
+<h3 class="item-header" data-line="422">sgnd_dt_row_set <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="423">Purpose:</div>
+<div class="prose" data-line="424">  Set the value of one column within a row string.</div>
+<div class="comment-section-header" data-line="426">Arguments:</div>
+<div class="prose" data-line="427">  $1  SCHEMA</div>
+<div class="prose" data-line="428">  $2  ROW</div>
+<div class="prose" data-line="429">  $3  COLUMN_NAME</div>
+<div class="prose" data-line="430">  $4  VALUE</div>
+<div class="comment-section-header" data-line="432">Outputs:</div>
+<div class="prose" data-line="433">  Prints the updated row string to stdout.</div>
+<div class="comment-section-header" data-line="435">Returns:</div>
+<div class="prose" data-line="436">  0 on success.</div>
+<div class="prose" data-line="437">  1 on invalid column or invalid value.</div>
+<div class="comment-section-header" data-line="439">Usage:</div>
+<div class="prose" data-line="440">  sgnd_dt_row_set "quot;$SCHEMA"quot; "quot;$ROW"quot; COLUMN_NAME VALUE</div>
+<h3 class="item-header" data-line="472">sgnd_dt_row_count <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="473">Purpose:</div>
+<div class="prose" data-line="474">  Return the number of rows in a table array.</div>
+<div class="comment-section-header" data-line="476">Arguments:</div>
+<div class="prose" data-line="477">  $1  TABLE_ARRAY_NAME</div>
+<div class="comment-section-header" data-line="479">Outputs:</div>
+<div class="prose" data-line="480">  Prints row count to stdout.</div>
+<div class="comment-section-header" data-line="482">Returns:</div>
+<div class="prose" data-line="483">  0 on success.</div>
+<div class="comment-section-header" data-line="485">Usage:</div>
+<div class="prose" data-line="486">  sgnd_dt_row_count TABLE_ARRAY_NAME</div>
+<h3 class="item-header" data-line="493">sgnd_dt_insert <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="494">Purpose:</div>
+<div class="prose" data-line="495">  Append a row string to a table array.</div>
+<div class="comment-section-header" data-line="497">Arguments:</div>
+<div class="prose" data-line="498">  $1  SCHEMA</div>
+<div class="prose" data-line="499">  $2  TABLE_ARRAY_NAME</div>
+<div class="prose" data-line="500">  $3  ROW</div>
+<div class="comment-section-header" data-line="502">Returns:</div>
+<div class="prose" data-line="503">  0 on success.</div>
+<div class="prose" data-line="504">  1 on invalid schema or row width mismatch.</div>
+<div class="comment-section-header" data-line="506">Usage:</div>
+<div class="prose" data-line="507">  sgnd_dt_insert "quot;$SCHEMA"quot; ARRAY_NAME ROW</div>
+<div class="comment-section-header" data-line="509">Examples:</div>
+<div class="prose" data-line="510">  sgnd_dt_insert "quot;$MY_SCHEMA"quot; MY_ROWS "quot;1|Tools|Utility module"quot;</div>
+<h3 class="item-header" data-line="527">sgnd_dt_delete <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="528">Purpose:</div>
+<div class="prose" data-line="529">  Delete one row from a table array by index.</div>
+<div class="comment-section-header" data-line="531">Arguments:</div>
+<div class="prose" data-line="532">  $1  TABLE_ARRAY_NAME</div>
+<div class="prose" data-line="533">  $2  ROW_INDEX</div>
+<div class="comment-section-header" data-line="535">Returns:</div>
+<div class="prose" data-line="536">  0 on success.</div>
+<div class="prose" data-line="537">  1 on invalid row index.</div>
+<div class="comment-section-header" data-line="539">Usage:</div>
+<div class="prose" data-line="540">  sgnd_dt_delete TABLE_ARRAY_NAME ROW_INDEX</div>
+<h3 class="item-header" data-line="556">sgnd_dt_get <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="557">Purpose:</div>
+<div class="prose" data-line="558">  Get one cell value from a table by row index and column name.</div>
+<div class="comment-section-header" data-line="560">Arguments:</div>
+<div class="prose" data-line="561">  $1  SCHEMA</div>
+<div class="prose" data-line="562">  $2  TABLE_ARRAY_NAME</div>
+<div class="prose" data-line="563">  $3  ROW_INDEX</div>
+<div class="prose" data-line="564">  $4  COLUMN_NAME</div>
+<div class="comment-section-header" data-line="566">Outputs:</div>
+<div class="prose" data-line="567">  Prints the field value to stdout.</div>
+<div class="comment-section-header" data-line="569">Returns:</div>
+<div class="prose" data-line="570">  0 on success.</div>
+<div class="prose" data-line="571">  1 on invalid row index or invalid column.</div>
+<div class="comment-section-header" data-line="573">Usage:</div>
+<div class="prose" data-line="574">  sgnd_dt_get "quot;$SCHEMA"quot; ARRAY INDEX COLUMN</div>
+<div class="comment-section-header" data-line="576">Examples:</div>
+<div class="prose" data-line="577">  name="quot;$(sgnd_dt_get "quot;$MY_SCHEMA"quot; MY_ROWS 0 name)"quot;</div>
+<h3 class="item-header" data-line="594">sgnd_dt_set <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="595">Purpose:</div>
+<div class="prose" data-line="596">  Set one cell value in a table by row index and column name.</div>
+<div class="comment-section-header" data-line="598">Arguments:</div>
+<div class="prose" data-line="599">  $1  SCHEMA</div>
+<div class="prose" data-line="600">  $2  TABLE_ARRAY_NAME</div>
+<div class="prose" data-line="601">  $3  ROW_INDEX</div>
+<div class="prose" data-line="602">  $4  COLUMN_NAME</div>
+<div class="prose" data-line="603">  $5  VALUE</div>
+<div class="comment-section-header" data-line="605">Returns:</div>
+<div class="prose" data-line="606">  0 on success.</div>
+<div class="prose" data-line="607">  1 on invalid row index, invalid column, or invalid value.</div>
+<div class="comment-section-header" data-line="609">Usage:</div>
+<div class="prose" data-line="610">  sgnd_dt_set "quot;$SCHEMA"quot; ARRAY INDEX COLUMN VALUE</div>
+<div class="comment-section-header" data-line="612">Examples:</div>
+<div class="prose" data-line="613">  sgnd_dt_set "quot;$MY_SCHEMA"quot; MY_ROWS 0 name "quot;Updated"quot;</div>
+<h3 class="item-header" data-line="633">sgnd_dt_find_first <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="634">Purpose:</div>
+<div class="prose" data-line="635">  Find the first row index where COLUMN_NAME equals VALUE.</div>
+<div class="comment-section-header" data-line="637">Arguments:</div>
+<div class="prose" data-line="638">  $1  SCHEMA</div>
+<div class="prose" data-line="639">  $2  TABLE_ARRAY_NAME</div>
+<div class="prose" data-line="640">  $3  COLUMN_NAME</div>
+<div class="prose" data-line="641">  $4  VALUE</div>
+<div class="comment-section-header" data-line="643">Outputs:</div>
+<div class="prose" data-line="644">  Prints the first matching row index to stdout.</div>
+<div class="comment-section-header" data-line="646">Returns:</div>
+<div class="prose" data-line="647">  0 if a match is found.</div>
+<div class="prose" data-line="648">  1 if no match is found.</div>
+<div class="comment-section-header" data-line="650">Usage:</div>
+<div class="prose" data-line="651">  sgnd_dt_find_first "quot;$SCHEMA"quot; ARRAY COLUMN VALUE</div>
+<div class="comment-section-header" data-line="653">Examples:</div>
+<div class="prose" data-line="654">  idx="quot;$(sgnd_dt_find_first "quot;$MY_SCHEMA"quot; MY_ROWS key "quot;Q"quot;)"quot;</div>
+<h3 class="item-header" data-line="676">sgnd_dt_append <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="677">Purpose:</div>
+<div class="prose" data-line="678">  Build and append a row from positional values.</div>
+<div class="comment-section-header" data-line="680">Arguments:</div>
+<div class="prose" data-line="681">  $1   SCHEMA</div>
+<div class="prose" data-line="682">  $2   TABLE_ARRAY_NAME</div>
+<div class="prose" data-line="683">  $3+  VALUES</div>
+<div class="comment-section-header" data-line="685">Returns:</div>
+<div class="prose" data-line="686">  0 on success.</div>
+<div class="prose" data-line="687">  1 on invalid values or width mismatch.</div>
+<div class="comment-section-header" data-line="689">Usage:</div>
+<div class="prose" data-line="690">  sgnd_dt_append "quot;$SCHEMA"quot; ARRAY VALUE1 VALUE2 ...</div>
+<div class="comment-section-header" data-line="692">Examples:</div>
+<div class="prose" data-line="693">  sgnd_dt_append "quot;$MY_SCHEMA"quot; MY_ROWS "quot;2"quot; "quot;Config"quot; "quot;Settings module"quot;</div>
+<h3 class="item-header" data-line="706">sgnd_dt_print_table <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="707">Purpose:</div>
+<div class="prose" data-line="708">  Print a table in aligned column form.</div>
+<div class="comment-section-header" data-line="710">Arguments:</div>
+<div class="prose" data-line="711">  $1  SCHEMA</div>
+<div class="prose" data-line="712">  $2  TABLE_ARRAY_NAME</div>
+<div class="comment-section-header" data-line="714">Returns:</div>
+<div class="prose" data-line="715">  0 on success.</div>
+<div class="prose" data-line="716">  1 on invalid schema.</div>
+<div class="comment-section-header" data-line="718">Usage:</div>
+<div class="prose" data-line="719">  sgnd_dt_print_table "quot;$SCHEMA"quot; ARRAY_NAME</div>
+<div class="comment-section-header" data-line="721">Examples:</div>
+<div class="prose" data-line="722">  sgnd_dt_print_table "quot;$MY_SCHEMA"quot; MY_ROWS</div>
+</div>
+</body>
+</html>

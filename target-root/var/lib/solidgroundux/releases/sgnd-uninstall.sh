@@ -9,6 +9,7 @@
 #   Source      : sgnd-uninstall.sh
 #   Type        : script
 #   Purpose     : Uninstall a previously installed SolidgroundUX release from a target root
+#   Group       : Setup
 #
 # Description:
 #   Standalone uninstaller for SolidgroundUX installed release records.

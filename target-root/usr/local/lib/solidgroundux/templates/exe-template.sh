@@ -5,7 +5,7 @@
 # Metadata:
 #   Version     : 1.1
 #   Build       : 2609100
-#   Checksum    : 155bea5342369c5e31a81149d4b8a9e3b58ecd70b991b3e0466eb4b5d235d90a
+#   Checksum    : none
 #   Source      : exe-template.sh
 #   Type        : script
 #   Group       : Templates

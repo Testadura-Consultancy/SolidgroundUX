@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>UI Messaging</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+<nav class="nav"><a href="index.html">Index</a></nav>
+<header class="module-header">
+  <h1>UI Messaging</h1>
+  <p>Provide standardized console messaging helpers</p>
+  <div class="meta-grid">
+    <div>Group</div><div>UI</div>
+    <div>Type</div><div>library</div>
+    <div>Version</div><div>1.1</div>
+    <div>Build</div><div>2608700</div>
+    <div>Developers</div><div>Mark Fieten</div>
+    <div>Company</div><div>Testadura Consultancy</div>
+    <div>License</div><div>Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.</div>
+  </div>
+</header>
+<h3 class="item-header" data-line="109">say_should_print_console <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="110">Purpose:</div>
+<div class="prose" data-line="111">  Determine whether a message type should be printed to the console</div>
+<div class="prose" data-line="112">  according to the current output policy.</div>
+<div class="comment-section-header" data-line="114">Behavior:</div>
+<div class="prose" data-line="115">  - Uses SGND_LOG_LEVEL as the single console visibility control.</div>
+<div class="prose" data-line="116">  - off    suppresses all console output.</div>
+<div class="prose" data-line="117">  - quiet  shows only WARN and FAIL.</div>
+<div class="prose" data-line="118">  - normal shows all non-DEBUG message types.</div>
+<div class="prose" data-line="119">  - debug  shows all message types.</div>
+<div class="comment-section-header" data-line="121">Arguments:</div>
+<div class="prose" data-line="122">  $1  TYPE</div>
+<div class="prose" data-line="123">      Message type token (case-insensitive).</div>
+<div class="prose" data-line="125">Inputs (globals):</div>
+<div class="prose" data-line="126">  SGND_LOG_LEVEL</div>
+<div class="comment-section-header" data-line="128">Returns:</div>
+<div class="prose" data-line="129">  0 if the message should be printed.</div>
+<div class="prose" data-line="130">  1 otherwise.</div>
+<div class="comment-section-header" data-line="132">Usage:</div>
+<div class="prose" data-line="133">  if _say_should_print_console "quot;INFO"quot;; then</div>
+<div class="prose" data-line="134">      printf "quot;...\n"quot;</div>
+<div class="prose" data-line="135">  fi</div>
+<div class="comment-section-header" data-line="137">Examples:</div>
+<div class="prose" data-line="138">  _say_should_print_console "quot;DEBUG"quot; || return</div>
+<h3 class="item-header" data-line="166">say_caller <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="167">Purpose:</div>
+<div class="prose" data-line="168">  Resolve the originating caller location for logging purposes.</div>
+<div class="comment-section-header" data-line="170">Behavior:</div>
+<div class="prose" data-line="171">  - Traverses the call stack.</div>
+<div class="prose" data-line="172">  - Skips internal say* wrappers.</div>
+<div class="prose" data-line="173">  - Returns the first non-wrapper frame.</div>
+<div class="comment-section-header" data-line="175">Outputs:</div>
+<div class="comment-section-header" data-line="176">  Prints:</div>
+<div class="prose" data-line="177">    <lt;function>gt;\t<lt;file>gt;\t<lt;line>gt;</div>
+<div class="comment-section-header" data-line="179">Returns:</div>
+<div class="prose" data-line="180">  0 always.</div>
+<div class="comment-section-header" data-line="182">Usage:</div>
+<div class="prose" data-line="183">  IFS=$'#39;\t'#39; read -r func file line <lt;<lt;<lt; "quot;$(_say_caller)"quot;</div>
+<div class="comment-section-header" data-line="185">Examples:</div>
+<div class="prose" data-line="186">  caller="quot;$(_say_caller)"quot;</div>
+<h3 class="item-header" data-line="206">say_write_log <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="207">Purpose:</div>
+<div class="prose" data-line="208">  Append a formatted log record to the logfile with optional rotation.</div>
+<div class="comment-section-header" data-line="210">Behavior:</div>
+<div class="prose" data-line="211">  - No-op when logging is disabled or no valid logfile is available.</div>
+<div class="prose" data-line="212">  - Sanitizes message (removes ANSI, normalizes whitespace).</div>
+<div class="prose" data-line="213">  - Adds timestamp, user, type, and caller metadata.</div>
+<div class="prose" data-line="214">  - Rotates logfile when size exceeds SGND_LOG_MAX_BYTES.</div>
+<div class="prose" data-line="215">  - Never fails the caller (best-effort).</div>
+<div class="comment-section-header" data-line="217">Arguments:</div>
+<div class="prose" data-line="218">  $1  TYPE</div>
+<div class="prose" data-line="219">  $2  MSG</div>
+<div class="prose" data-line="220">  $3  DATE_STR (optional)</div>
+<div class="prose" data-line="222">Inputs (globals):</div>
+<div class="prose" data-line="223">  SGND_LOGFILE_ENABLED, SGND_LOG_MAX_BYTES, SGND_LOG_KEEP, SGND_LOG_COMPRESS</div>
+<div class="prose" data-line="224">  SAY_DATE_FORMAT</div>
+<div class="comment-section-header" data-line="226">Returns:</div>
+<div class="prose" data-line="227">  0 always.</div>
+<div class="comment-section-header" data-line="229">Usage:</div>
+<div class="prose" data-line="230">  _say_write_log "quot;INFO"quot; "quot;Starting process"quot; "quot;"quot;</div>
+<div class="comment-section-header" data-line="232">Examples:</div>
+<div class="prose" data-line="233">  _say_write_log "quot;FAIL"quot; "quot;Connection error"quot; "quot;$(date)"quot;</div>
+<h3 class="item-header" data-line="281">_sgnd_rotate_logs <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="282">Purpose:</div>
+<div class="prose" data-line="283">  Perform size-based rotation of a logfile.</div>
+<div class="comment-section-header" data-line="285">Behavior:</div>
+<div class="prose" data-line="286">  - Renames logfile to logfile.1, shifts older files upward.</div>
+<div class="prose" data-line="287">  - Keeps up to SGND_LOG_KEEP rotated files.</div>
+<div class="prose" data-line="288">  - Optionally compresses rotated files.</div>
+<div class="prose" data-line="289">  - Recreates the active logfile.</div>
+<div class="comment-section-header" data-line="291">Arguments:</div>
+<div class="prose" data-line="292">  $1  LOGFILE</div>
+<div class="prose" data-line="294">Inputs (globals):</div>
+<div class="prose" data-line="295">  SGND_LOG_MAX_BYTES, SGND_LOG_KEEP, SGND_LOG_COMPRESS</div>
+<div class="comment-section-header" data-line="297">Returns:</div>
+<div class="prose" data-line="298">  0 always.</div>
+<div class="comment-section-header" data-line="300">Usage:</div>
+<div class="prose" data-line="301">  _sgnd_rotate_logs "quot;/var/log/app.log"quot;</div>
+<div class="comment-section-header" data-line="303">Examples:</div>
+<div class="prose" data-line="304">  _sgnd_rotate_logs "quot;$logfile"quot;</div>
+<h3 class="item-header" data-line="340">_sgnd_logfile <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="341">Purpose:</div>
+<div class="prose" data-line="342">  Resolve the effective logfile path based on configured priorities.</div>
+<div class="comment-section-header" data-line="344">Behavior:</div>
+<div class="prose" data-line="345">  - Checks SGND_LOG_PATH first, then SGND_ALT_LOGPATH.</div>
+<div class="prose" data-line="346">  - Uses sgnd_can_append to validate write capability.</div>
+<div class="prose" data-line="347">  - Returns the first usable path.</div>
+<div class="comment-section-header" data-line="349">Outputs:</div>
+<div class="prose" data-line="350">  Prints the resolved logfile path (no newline).</div>
+<div class="comment-section-header" data-line="352">Returns:</div>
+<div class="prose" data-line="353">  0 if a usable path is found</div>
+<div class="prose" data-line="354">  1 otherwise</div>
+<div class="comment-section-header" data-line="356">Usage:</div>
+<div class="prose" data-line="357">  logfile="quot;$(_sgnd_logfile)"quot; || return</div>
+<div class="comment-section-header" data-line="359">Examples:</div>
+<div class="prose" data-line="360">  if logfile="quot;$(_sgnd_logfile)"quot;; then</div>
+<div class="prose" data-line="361">      echo "quot;Logging to $logfile"quot;</div>
+<div class="prose" data-line="362">  fi</div>
+<h3 class="item-header" data-line="381">say <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="382">Purpose:</div>
+<div class="prose" data-line="383">  Emit a typed message with formatting, colorization, and optional logging.</div>
+<div class="comment-section-header" data-line="385">Behavior:</div>
+<div class="prose" data-line="386">  - Supports message types: INFO, STRT, WARN, FAIL, CNCL, OK, END, DEBUG, EMPTY</div>
+<div class="prose" data-line="387">  - Builds prefix using label/icon/symbol based on configuration</div>
+<div class="prose" data-line="388">  - Applies colorization rules</div>
+<div class="prose" data-line="389">  - Honors console output policy</div>
+<div class="prose" data-line="390">  - Logs message if enabled</div>
+<div class="comment-section-header" data-line="392">Usage:</div>
+<div class="prose" data-line="393">  say INFO "quot;Starting process"quot;</div>
+<div class="prose" data-line="394">  say --type WARN "quot;Low disk space"quot;</div>
+<div class="prose" data-line="395">  say --date --show all --colorize both INFO "quot;Message"quot;</div>
+<div class="comment-section-header" data-line="397">Examples:</div>
+<div class="prose" data-line="398">  say STRT "quot;Initializing..."quot;</div>
+<div class="prose" data-line="400">  say --date --type FAIL "quot;Connection failed"quot;</div>
+<div class="prose" data-line="402">  say DEBUG "quot;Value = $value"quot;</div>
+<div class="comment-section-header" data-line="404">Returns:</div>
+<div class="prose" data-line="405">  0 always.</div>
+<h2 class="section-header" data-line="407">Declarations</h2>
+<h2 class="section-header" data-line="418">Parse options</h2>
+<div class="prose" data-line="444">Positional TYPE: say STRT "quot;message"quot;</div>
+<h2 class="section-header" data-line="479">Resolve style tokens for this TYPE via maps (LBL_*, ICO_*, SYM_*, MSG_CLR_*)</h2>
+<h2 class="section-header" data-line="488">Decode --show (supports "quot;label,icon"quot;, "quot;label+symbol"quot;, "quot;all"quot;)</h2>
+<div class="prose" data-line="512">sec|Decode colorize: none|label|msg|date|both|all|sectionheader||0|Decode colorize: none|label|msg|date|both|all</div>
+<h2 class="section-header" data-line="523">Build final output line and print</h2>
+<h3 class="item-header" data-line="603">sayprogress <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="604">Purpose:</div>
+<div class="prose" data-line="605">  Render single-line progress output on stderr and update it in place.</div>
+<div class="comment-section-header" data-line="607">Behavior:</div>
+<div class="prose" data-line="608">  - Reuses the same console line using carriage return.</div>
+<div class="prose" data-line="609">  - Builds the rendered output from selected progress parts.</div>
+<div class="prose" data-line="610">  - Supports absolute counters, percentage, and progress bar output.</div>
+<div class="prose" data-line="611">  - Applies optional colors independently to bar, indicators, and label.</div>
+<div class="prose" data-line="612">  - Supports optional left padding.</div>
+<div class="prose" data-line="613">  - Pads the rendered line so older longer text is cleared.</div>
+<div class="prose" data-line="614">  - Does not print a trailing newline.</div>
+<div class="comment-section-header" data-line="616">Options:</div>
+<div class="prose" data-line="617">  --current N</div>
+<div class="prose" data-line="618">      Current position.</div>
+<div class="prose" data-line="619">  --total N</div>
+<div class="prose" data-line="620">      Total number of items.</div>
+<div class="prose" data-line="621">  --label TEXT</div>
+<div class="prose" data-line="622">      Optional label text to append.</div>
+<div class="prose" data-line="623">  --type N</div>
+<div class="comment-section-header" data-line="624">      Bitmask selecting which progress parts to show:</div>
+<div class="prose" data-line="625">        1 = absolute counter</div>
+<div class="prose" data-line="626">        2 = percentage</div>
+<div class="prose" data-line="627">        4 = progress bar</div>
+<div class="prose" data-line="628">  --barcolor SGR</div>
+<div class="prose" data-line="629">      ANSI SGR sequence for the progress bar.</div>
+<div class="prose" data-line="630">  --labelcolor SGR</div>
+<div class="prose" data-line="631">      ANSI SGR sequence for the label.</div>
+<div class="prose" data-line="632">  --indicatorcolor SGR</div>
+<div class="prose" data-line="633">      ANSI SGR sequence for percentage and absolute indicators.</div>
+<div class="prose" data-line="634">  --padleft N</div>
+<div class="prose" data-line="635">      Number of spaces to prefix before rendered output.</div>
+<div class="prose" data-line="636">  --width N</div>
+<div class="prose" data-line="637">      Width of the progress bar in characters.</div>
+<div class="comment-section-header" data-line="639">Returns:</div>
+<div class="prose" data-line="640">  0 on success.</div>
+<div class="prose" data-line="641">  1 on invalid option.</div>
+<h3 class="item-header" data-line="757">sayprogress_done <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="758">Purpose:</div>
+<div class="prose" data-line="759">  Finalize progress output by printing a newline.</div>
+<div class="comment-section-header" data-line="761">Behavior:</div>
+<div class="prose" data-line="762">  - Prints a newline to stderr to move past the progress line.</div>
+<div class="comment-section-header" data-line="764">Usage:</div>
+<div class="prose" data-line="765">  sayprogress_done</div>
+<div class="comment-section-header" data-line="767">Examples:</div>
+<div class="prose" data-line="768">  sayprogress_done</div>
+<div class="comment-section-header" data-line="770">Returns:</div>
+<div class="prose" data-line="771">  0 always.</div>
+<h2 class="section-header" data-line="777">Convenience wrappers for say() with a fixed TYPE.</h2>
+<h3 class="item-header" data-line="778">sayinfo <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="779">Purpose:</div>
+<div class="prose" data-line="780">  Emit an INFO message.</div>
+<div class="comment-section-header" data-line="782">Behavior:</div>
+<div class="prose" data-line="783">  - Delegates to say INFO.</div>
+<div class="prose" data-line="784">  -             #   - Always returns 0, even when suppressed.</div>
+<div class="prose" data-line="786">Inputs (globals):</div>
+<div class="prose" data-line="787">  SGND_LOG_LEVEL</div>
+<div class="comment-section-header" data-line="789">Returns:</div>
+<div class="prose" data-line="790">  0 always.</div>
+<div class="comment-section-header" data-line="792">Usage:</div>
+<div class="prose" data-line="793">  sayinfo "quot;Loading optional libraries..."quot;</div>
+<div class="comment-section-header" data-line="795">Examples:</div>
+<div class="prose" data-line="796">  sayinfo "quot;Using default configuration"quot;</div>
+<h3 class="item-header" data-line="801">saystart <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="802">Purpose:</div>
+<div class="prose" data-line="803">  Emit a STRT message.</div>
+<div class="comment-section-header" data-line="805">Behavior:</div>
+<div class="prose" data-line="806">  - Delegates to say STRT.</div>
+<div class="comment-section-header" data-line="808">Returns:</div>
+<div class="prose" data-line="809">  0 always.</div>
+<div class="comment-section-header" data-line="811">Usage:</div>
+<div class="prose" data-line="812">  saystart "quot;Initializing framework"quot;</div>
+<div class="comment-section-header" data-line="814">Examples:</div>
+<div class="prose" data-line="815">  saystart "quot;Starting installation"quot;</div>
+<h3 class="item-header" data-line="820">saywarning <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="821">Purpose:</div>
+<div class="prose" data-line="822">  Emit a WARN message.</div>
+<div class="comment-section-header" data-line="824">Behavior:</div>
+<div class="prose" data-line="825">  - Delegates to say WARN.</div>
+<div class="comment-section-header" data-line="827">Usage:</div>
+<div class="prose" data-line="828">  saywarning "quot;Disk space low"quot;</div>
+<div class="comment-section-header" data-line="830">Examples:</div>
+<div class="prose" data-line="831">  saywarning "quot;Configuration missing"quot;</div>
+<h3 class="item-header" data-line="836">sayfail <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="837">Purpose:</div>
+<div class="prose" data-line="838">  Emit a FAIL message.</div>
+<div class="comment-section-header" data-line="840">Behavior:</div>
+<div class="prose" data-line="841">  - Delegates to say FAIL.</div>
+<div class="comment-section-header" data-line="843">Returns:</div>
+<div class="prose" data-line="844">  0 always.</div>
+<div class="comment-section-header" data-line="846">Usage:</div>
+<div class="prose" data-line="847">  sayfail "quot;Cannot create directory: $dir"quot;</div>
+<div class="comment-section-header" data-line="849">Examples:</div>
+<div class="prose" data-line="850">  sayfail "quot;Bootstrap failed"quot;</div>
+<h3 class="item-header" data-line="855">saycancel <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="856">Purpose:</div>
+<div class="prose" data-line="857">  Emit a CNCL message.</div>
+<div class="comment-section-header" data-line="859">Behavior:</div>
+<div class="prose" data-line="860">  - Delegates to say CNCL.</div>
+<div class="comment-section-header" data-line="862">Returns:</div>
+<div class="prose" data-line="863">  0 always.</div>
+<div class="comment-section-header" data-line="865">Usage:</div>
+<div class="prose" data-line="866">  saycancel "quot;Cancelled by user"quot;</div>
+<div class="comment-section-header" data-line="868">Examples:</div>
+<div class="prose" data-line="869">  saycancel "quot;Operation aborted"quot;</div>
+<h3 class="item-header" data-line="874">sayok <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="875">Purpose:</div>
+<div class="prose" data-line="876">  Emit an OK message.</div>
+<div class="comment-section-header" data-line="878">Behavior:</div>
+<div class="prose" data-line="879">  - Delegates to say OK.</div>
+<div class="comment-section-header" data-line="881">Returns:</div>
+<div class="prose" data-line="882">  0 always.</div>
+<div class="comment-section-header" data-line="884">Usage:</div>
+<div class="prose" data-line="885">  sayok "quot;Configuration written successfully"quot;</div>
+<div class="comment-section-header" data-line="887">Examples:</div>
+<div class="prose" data-line="888">  sayok "quot;Validation passed"quot;</div>
+<h3 class="item-header" data-line="893">sayend <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="894">Purpose:</div>
+<div class="prose" data-line="895">  Emit an END message.</div>
+<div class="comment-section-header" data-line="897">Behavior:</div>
+<div class="prose" data-line="898">  - Delegates to say END.</div>
+<div class="comment-section-header" data-line="900">Returns:</div>
+<div class="prose" data-line="901">  0 always.</div>
+<div class="comment-section-header" data-line="903">Usage:</div>
+<div class="prose" data-line="904">  sayend "quot;Process completed"quot;</div>
+<div class="comment-section-header" data-line="906">Examples:</div>
+<div class="prose" data-line="907">  sayend "quot;Finished successfully"quot;</div>
+<h3 class="item-header" data-line="928">saydebug <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="929">Purpose:</div>
+<div class="prose" data-line="930">  Emit a DEBUG message with caller context.</div>
+<div class="comment-section-header" data-line="932">Behavior:</div>
+<div class="prose" data-line="933">  - Only active when SGND_LOG_LEVEL=debug.</div>
+<div class="prose" data-line="934">  - Appends caller file, function, and line.</div>
+<div class="prose" data-line="935">  - Delegates to say DEBUG.</div>
+<div class="comment-section-header" data-line="937">Usage:</div>
+<div class="prose" data-line="938">  saydebug "quot;Value = $x"quot;</div>
+<div class="comment-section-header" data-line="940">Examples:</div>
+<div class="prose" data-line="941">  saydebug "quot;Entering function"quot;</div>
+</div>
+</body>
+</html>

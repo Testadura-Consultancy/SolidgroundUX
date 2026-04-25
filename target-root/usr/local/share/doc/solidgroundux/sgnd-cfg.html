@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Configuration Management</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+<nav class="nav"><a href="index.html">Index</a></nav>
+<header class="module-header">
+  <h1>Configuration Management</h1>
+  <p>Load, manage, and persist configuration settings</p>
+  <div class="meta-grid">
+    <div>Group</div><div>Common Core</div>
+    <div>Type</div><div>library</div>
+    <div>Version</div><div>1.1</div>
+    <div>Build</div><div>2609100</div>
+    <div>Developers</div><div>Mark Fieten</div>
+    <div>Company</div><div>Testadura Consultancy</div>
+    <div>License</div><div>Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.</div>
+  </div>
+</header>
+<h3 class="item-header" data-line="49">_sgnd_lib_guard <span>(tmp, private)</span></h3>
+<div class="comment-section-header" data-line="50">Purpose:</div>
+<div class="prose" data-line="51">  Ensure the file is sourced as a library and only initialized once.</div>
+<div class="comment-section-header" data-line="53">Behavior:</div>
+<div class="prose" data-line="54">  - Derives a unique guard variable name from the current filename.</div>
+<div class="prose" data-line="55">  - Aborts execution if the file is executed instead of sourced.</div>
+<div class="prose" data-line="56">  - Sets the guard variable on first load.</div>
+<div class="prose" data-line="57">  - Skips initialization if the library was already loaded.</div>
+<div class="comment-section-header" data-line="59">Inputs:</div>
+<div class="prose" data-line="60">  BASH_SOURCE[0]</div>
+<div class="prose" data-line="61">  $0</div>
+<div class="prose" data-line="63">Outputs (globals):</div>
+<div class="prose" data-line="64">  SGND_<lt;MODULE>gt;_LOADED</div>
+<div class="comment-section-header" data-line="66">Returns:</div>
+<div class="prose" data-line="67">  0 if already loaded or successfully initialized.</div>
+<div class="prose" data-line="68">  Exits with code 2 if executed instead of sourced.</div>
+<h3 class="item-header" data-line="92">_sgnd_is_ident <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="93">Purpose:</div>
+<div class="prose" data-line="94">  Test whether a string is a valid shell identifier.</div>
+<div class="comment-section-header" data-line="96">Behavior:</div>
+<div class="prose" data-line="97">  - Validates the input against shell variable naming rules.</div>
+<div class="prose" data-line="98">  - Accepts names starting with a letter or underscore.</div>
+<div class="prose" data-line="99">  - Allows alphanumeric characters and underscores thereafter.</div>
+<div class="comment-section-header" data-line="101">Arguments:</div>
+<div class="prose" data-line="102">  $1  NAME</div>
+<div class="prose" data-line="103">      Candidate identifier.</div>
+<div class="comment-section-header" data-line="105">Returns:</div>
+<div class="prose" data-line="106">  0 if NAME is a valid identifier.</div>
+<div class="prose" data-line="107">  1 otherwise.</div>
+<div class="comment-section-header" data-line="109">Usage:</div>
+<div class="prose" data-line="110">  _sgnd_is_ident NAME</div>
+<div class="comment-section-header" data-line="112">Examples:</div>
+<div class="prose" data-line="113">  if _sgnd_is_ident "quot;APP_TITLE"quot;; then</div>
+<div class="prose" data-line="114">      printf '#39;valid\n'#39;</div>
+<div class="prose" data-line="115">  fi</div>
+<h3 class="item-header" data-line="120">_sgnd_kv_load_file <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="121">Purpose:</div>
+<div class="prose" data-line="122">  Load KEY=VALUE pairs from a file into shell variables.</div>
+<div class="comment-section-header" data-line="124">Behavior:</div>
+<div class="prose" data-line="125">  - Reads plain KEY=VALUE lines from the target file.</div>
+<div class="prose" data-line="126">  - Ignores blank lines and comment lines.</div>
+<div class="prose" data-line="127">  - Validates keys as shell identifiers.</div>
+<div class="prose" data-line="128">  - Assigns values literally without unquoting or escape processing.</div>
+<div class="comment-section-header" data-line="130">Arguments:</div>
+<div class="prose" data-line="131">  $1  FILE</div>
+<div class="prose" data-line="132">      Path to the KEY=VALUE file.</div>
+<div class="prose" data-line="134">Outputs (globals):</div>
+<div class="prose" data-line="135">  Sets variables defined in the file.</div>
+<div class="comment-section-header" data-line="137">Side effects:</div>
+<div class="prose" data-line="138">  - May emit warnings for invalid keys.</div>
+<div class="comment-section-header" data-line="140">Returns:</div>
+<div class="prose" data-line="141">  0 always.</div>
+<div class="comment-section-header" data-line="143">Usage:</div>
+<div class="prose" data-line="144">  _sgnd_kv_load_file FILE</div>
+<div class="comment-section-header" data-line="146">Examples:</div>
+<div class="prose" data-line="147">  _sgnd_kv_load_file "quot;$SGND_CFG_FILE"quot;</div>
+<div class="prose" data-line="149">  [[ -r "quot;$file"quot; ]] &amp;&amp; _sgnd_kv_load_file "quot;$file"quot;</div>
+<h3 class="item-header" data-line="184">_sgnd_kv_set <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="185">Purpose:</div>
+<div class="prose" data-line="186">  Write or update a KEY=VALUE entry in a file.</div>
+<div class="comment-section-header" data-line="188">Behavior:</div>
+<div class="prose" data-line="189">  - Validates the key as a shell identifier.</div>
+<div class="prose" data-line="190">  - Replaces an existing KEY=VALUE entry when present.</div>
+<div class="prose" data-line="191">  - Appends a new entry when the key does not exist.</div>
+<div class="prose" data-line="192">  - Preserves the rest of the file content.</div>
+<div class="comment-section-header" data-line="194">Arguments:</div>
+<div class="prose" data-line="195">  $1  FILE</div>
+<div class="prose" data-line="196">      Path to the KEY=VALUE file.</div>
+<div class="prose" data-line="197">  $2  KEY</div>
+<div class="prose" data-line="198">      Key to write.</div>
+<div class="prose" data-line="199">  $3  VALUE</div>
+<div class="prose" data-line="200">      Value to assign.</div>
+<div class="comment-section-header" data-line="202">Side effects:</div>
+<div class="prose" data-line="203">  - Modifies the target file.</div>
+<div class="prose" data-line="204">  - May emit warnings for invalid keys.</div>
+<div class="comment-section-header" data-line="206">Returns:</div>
+<div class="prose" data-line="207">  0 on success.</div>
+<div class="prose" data-line="208">  1 on invalid key or write failure.</div>
+<div class="comment-section-header" data-line="210">Usage:</div>
+<div class="prose" data-line="211">  _sgnd_kv_set FILE KEY VALUE</div>
+<div class="comment-section-header" data-line="213">Examples:</div>
+<div class="prose" data-line="214">  _sgnd_kv_set "quot;$SGND_CFG_FILE"quot; "quot;APP_TITLE"quot; "quot;SolidGround"quot;</div>
+<div class="prose" data-line="216">  _sgnd_kv_set "quot;$SGND_STATE_FILE"quot; "quot;CURRENT_PAGE"quot; "quot;2"quot;</div>
+<h3 class="item-header" data-line="262">_sgnd_kv_unset <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="263">Purpose:</div>
+<div class="prose" data-line="264">  Remove a KEY=VALUE entry from a file.</div>
+<div class="comment-section-header" data-line="266">Behavior:</div>
+<div class="prose" data-line="267">  - Validates the key as a shell identifier.</div>
+<div class="prose" data-line="268">  - Removes matching KEY=VALUE lines from the file.</div>
+<div class="prose" data-line="269">  - Leaves the rest of the file unchanged.</div>
+<div class="comment-section-header" data-line="271">Arguments:</div>
+<div class="prose" data-line="272">  $1  FILE</div>
+<div class="prose" data-line="273">      Path to the KEY=VALUE file.</div>
+<div class="prose" data-line="274">  $2  KEY</div>
+<div class="prose" data-line="275">      Key to remove.</div>
+<div class="comment-section-header" data-line="277">Side effects:</div>
+<div class="prose" data-line="278">  - Modifies the target file.</div>
+<div class="prose" data-line="279">  - May emit warnings for invalid keys.</div>
+<div class="comment-section-header" data-line="281">Returns:</div>
+<div class="prose" data-line="282">  0 on success.</div>
+<div class="prose" data-line="283">  1 on invalid key or write failure.</div>
+<div class="comment-section-header" data-line="285">Usage:</div>
+<div class="prose" data-line="286">  _sgnd_kv_unset FILE KEY</div>
+<div class="comment-section-header" data-line="288">Examples:</div>
+<div class="prose" data-line="289">  _sgnd_kv_unset "quot;$SGND_CFG_FILE"quot; "quot;APP_TITLE"quot;</div>
+<div class="prose" data-line="291">  _sgnd_kv_unset "quot;$SGND_STATE_FILE"quot; "quot;CURRENT_PAGE"quot;</div>
+<h3 class="item-header" data-line="312">_sgnd_kv_reset_file <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="313">Purpose:</div>
+<div class="prose" data-line="314">  Hard-delete a KEY=VALUE file.</div>
+<div class="comment-section-header" data-line="316">Arguments:</div>
+<div class="prose" data-line="317">  $1  File path.</div>
+<div class="comment-section-header" data-line="319">Side effects:</div>
+<div class="prose" data-line="320">  Removes the file if present.</div>
+<div class="comment-section-header" data-line="322">Returns:</div>
+<div class="prose" data-line="323">  0 always (rm -f semantics).</div>
+<h3 class="item-header" data-line="329">_sgnd_kv_get <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="330">Purpose:</div>
+<div class="prose" data-line="331">  Read a value for a key from a KEY=VALUE file.</div>
+<div class="comment-section-header" data-line="333">Behavior:</div>
+<div class="prose" data-line="334">  - Searches the file for a matching KEY=VALUE entry.</div>
+<div class="prose" data-line="335">  - Returns the last matching occurrence when duplicates exist.</div>
+<div class="prose" data-line="336">  - Does not read from the current shell variable.</div>
+<div class="comment-section-header" data-line="338">Arguments:</div>
+<div class="prose" data-line="339">  $1  FILE</div>
+<div class="prose" data-line="340">      Path to the KEY=VALUE file.</div>
+<div class="prose" data-line="341">  $2  KEY</div>
+<div class="prose" data-line="342">      Key to retrieve.</div>
+<div class="comment-section-header" data-line="344">Output:</div>
+<div class="prose" data-line="345">  Prints the value to stdout without a trailing newline.</div>
+<div class="comment-section-header" data-line="347">Returns:</div>
+<div class="prose" data-line="348">  0 if the key is found.</div>
+<div class="prose" data-line="349">  1 if the key is not present.</div>
+<div class="comment-section-header" data-line="351">Usage:</div>
+<div class="prose" data-line="352">  _sgnd_kv_get FILE KEY</div>
+<div class="comment-section-header" data-line="354">Examples:</div>
+<div class="prose" data-line="355">  value="quot;$(_sgnd_kv_get "quot;$SGND_CFG_FILE"quot; "quot;APP_TITLE"quot;)"quot; || value="quot;"quot;</div>
+<div class="prose" data-line="357">  _sgnd_kv_get "quot;$SGND_STATE_FILE"quot; "quot;CURRENT_PAGE"quot;</div>
+<h3 class="item-header" data-line="373">_sgnd_kv_has <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="374">Purpose:</div>
+<div class="prose" data-line="375">  Test whether a KEY exists in a KEY=VALUE file (even if empty).</div>
+<div class="comment-section-header" data-line="377">Arguments:</div>
+<div class="prose" data-line="378">  $1  File path.</div>
+<div class="prose" data-line="379">  $2  Key (must be a valid identifier).</div>
+<div class="comment-section-header" data-line="381">Returns:</div>
+<div class="prose" data-line="382">  0 if present,</div>
+<div class="prose" data-line="383">  1 if not present,</div>
+<div class="prose" data-line="384">  2 on argument/read error.</div>
+<h3 class="item-header" data-line="395">_sgnd_kv_list_keys <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="396">Purpose:</div>
+<div class="prose" data-line="397">  Emit file contents as '#39;key|value'#39; lines (order preserved).</div>
+<div class="comment-section-header" data-line="399">Arguments:</div>
+<div class="prose" data-line="400">  $1  File path.</div>
+<div class="comment-section-header" data-line="402">Output:</div>
+<div class="prose" data-line="403">  Prints one line per KEY=VALUE entry as: key|value</div>
+<div class="comment-section-header" data-line="405">Returns:</div>
+<div class="prose" data-line="406">  0 on success; non-zero if file is unreadable.</div>
+<div class="comment-section-header" data-line="408">Notes:</div>
+<div class="prose" data-line="409">  - Intended for display/debug; not a stable interchange format.</div>
+<h3 class="item-header" data-line="436">sgnd_cfg_load <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="437">Purpose:</div>
+<div class="prose" data-line="438">  Load a config file into shell variables.</div>
+<div class="comment-section-header" data-line="440">Behavior:</div>
+<div class="prose" data-line="441">  - Loads KEY=VALUE pairs from the selected config file.</div>
+<div class="prose" data-line="442">  - Ignores missing files.</div>
+<div class="prose" data-line="443">  - Accepts only valid shell identifiers as keys.</div>
+<div class="comment-section-header" data-line="445">Arguments:</div>
+<div class="prose" data-line="446">  $1  FILE</div>
+<div class="prose" data-line="447">      Optional config file path.</div>
+<div class="prose" data-line="448">      Defaults to SGND_CFG_FILE when omitted.</div>
+<div class="prose" data-line="450">Inputs (globals):</div>
+<div class="prose" data-line="451">  SGND_CFG_FILE</div>
+<div class="prose" data-line="453">Outputs (globals):</div>
+<div class="prose" data-line="454">  Sets variables defined in the loaded file.</div>
+<div class="comment-section-header" data-line="456">Returns:</div>
+<div class="prose" data-line="457">  0 always.</div>
+<div class="comment-section-header" data-line="459">Usage:</div>
+<div class="prose" data-line="460">  sgnd_cfg_load</div>
+<div class="comment-section-header" data-line="462">Examples:</div>
+<div class="prose" data-line="463">  sgnd_cfg_load</div>
+<div class="prose" data-line="465">  sgnd_cfg_load "quot;/etc/solidgroundux/myapp.cfg"quot;</div>
+<div class="comment-section-header" data-line="467">Notes:</div>
+<div class="prose" data-line="468">  - Missing files are not treated as an error.</div>
+<h3 class="item-header" data-line="474">sgnd_cfg_set <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="475">Purpose:</div>
+<div class="prose" data-line="476">  Persist a config KEY=VALUE pair and update the current shell variable.</div>
+<div class="comment-section-header" data-line="478">Behavior:</div>
+<div class="prose" data-line="479">  - Validates the key as a shell identifier.</div>
+<div class="prose" data-line="480">  - Writes or replaces the KEY=VALUE entry in SGND_CFG_FILE.</div>
+<div class="prose" data-line="481">  - Updates the in-memory shell variable to the same value.</div>
+<div class="comment-section-header" data-line="483">Arguments:</div>
+<div class="prose" data-line="484">  $1  KEY</div>
+<div class="prose" data-line="485">      Config variable name.</div>
+<div class="prose" data-line="486">  $2  VALUE</div>
+<div class="prose" data-line="487">      Value to persist.</div>
+<div class="prose" data-line="489">Inputs (globals):</div>
+<div class="prose" data-line="490">  SGND_CFG_FILE</div>
+<div class="prose" data-line="492">Outputs (globals):</div>
+<div class="prose" data-line="493">  Sets $KEY in the current shell.</div>
+<div class="comment-section-header" data-line="495">Side effects:</div>
+<div class="prose" data-line="496">  - Updates SGND_CFG_FILE on disk.</div>
+<div class="prose" data-line="497">  - May emit a warning for invalid keys.</div>
+<div class="comment-section-header" data-line="499">Returns:</div>
+<div class="prose" data-line="500">  0 on success.</div>
+<div class="prose" data-line="501">  1 on invalid key or write failure.</div>
+<div class="comment-section-header" data-line="503">Usage:</div>
+<div class="prose" data-line="504">  sgnd_cfg_set KEY VALUE</div>
+<div class="comment-section-header" data-line="506">Examples:</div>
+<div class="prose" data-line="507">  sgnd_cfg_set "quot;APP_TITLE"quot; "quot;SolidGround Console"quot;</div>
+<div class="prose" data-line="509">  sgnd_cfg_set "quot;SGND_PAGE_MAX_ROWS"quot; "quot;15"quot;</div>
+<h3 class="item-header" data-line="519">sgnd_cfg_unset <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="520">Purpose:</div>
+<div class="prose" data-line="521">  Remove a config key from the file and unset it in the current shell.</div>
+<div class="comment-section-header" data-line="523">Behavior:</div>
+<div class="prose" data-line="524">  - Validates the key as a shell identifier.</div>
+<div class="prose" data-line="525">  - Removes the KEY=VALUE entry from SGND_CFG_FILE.</div>
+<div class="prose" data-line="526">  - Unsets the variable in the current shell (best effort).</div>
+<div class="comment-section-header" data-line="528">Arguments:</div>
+<div class="prose" data-line="529">  $1  KEY</div>
+<div class="prose" data-line="530">      Config variable name.</div>
+<div class="prose" data-line="532">Inputs (globals):</div>
+<div class="prose" data-line="533">  SGND_CFG_FILE</div>
+<div class="prose" data-line="535">Outputs (globals):</div>
+<div class="prose" data-line="536">  Unsets $KEY in the current shell.</div>
+<div class="comment-section-header" data-line="538">Side effects:</div>
+<div class="prose" data-line="539">  - Updates SGND_CFG_FILE on disk.</div>
+<div class="prose" data-line="540">  - May emit a warning for invalid keys.</div>
+<div class="comment-section-header" data-line="542">Returns:</div>
+<div class="prose" data-line="543">  0 on success.</div>
+<div class="prose" data-line="544">  1 on invalid key or write failure.</div>
+<div class="comment-section-header" data-line="546">Usage:</div>
+<div class="prose" data-line="547">  sgnd_cfg_unset KEY</div>
+<div class="comment-section-header" data-line="549">Examples:</div>
+<div class="prose" data-line="550">  sgnd_cfg_unset "quot;APP_TITLE"quot;</div>
+<div class="prose" data-line="552">  sgnd_cfg_unset "quot;SGND_PAGE_MAX_ROWS"quot;</div>
+<h3 class="item-header" data-line="562">sgnd_cfg_reset <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="563">Purpose:</div>
+<div class="prose" data-line="564">  Hard-reset the config file by deleting it.</div>
+<div class="comment-section-header" data-line="566">Behavior:</div>
+<div class="prose" data-line="567">  - Resolves the target file from SGND_CFG_FILE.</div>
+<div class="prose" data-line="568">  - Removes the file if present.</div>
+<div class="prose" data-line="569">  - Does not recreate a skeleton or defaults.</div>
+<div class="prose" data-line="571">Inputs (globals):</div>
+<div class="prose" data-line="572">  SGND_CFG_FILE</div>
+<div class="comment-section-header" data-line="574">Side effects:</div>
+<div class="prose" data-line="575">  - Deletes SGND_CFG_FILE.</div>
+<div class="comment-section-header" data-line="577">Returns:</div>
+<div class="prose" data-line="578">  0 always.</div>
+<div class="comment-section-header" data-line="580">Usage:</div>
+<div class="prose" data-line="581">  sgnd_cfg_reset</div>
+<div class="comment-section-header" data-line="583">Examples:</div>
+<div class="prose" data-line="584">  sgnd_cfg_reset</div>
+<div class="comment-section-header" data-line="586">Notes:</div>
+<div class="prose" data-line="587">  - Skeleton recreation is the responsibility of bootstrap/domain logic.</div>
+<h3 class="item-header" data-line="594">sgnd_cfg_get <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="595">Purpose:</div>
+<div class="prose" data-line="596">  Read a config value from the config file.</div>
+<div class="comment-section-header" data-line="598">Behavior:</div>
+<div class="prose" data-line="599">  - Validates the requested key.</div>
+<div class="prose" data-line="600">  - Reads the value directly from SGND_CFG_FILE.</div>
+<div class="prose" data-line="601">  - Does not read from the current shell variable.</div>
+<div class="comment-section-header" data-line="603">Arguments:</div>
+<div class="prose" data-line="604">  $1  KEY</div>
+<div class="prose" data-line="605">      Config variable name.</div>
+<div class="prose" data-line="607">Inputs (globals):</div>
+<div class="prose" data-line="608">  SGND_CFG_FILE</div>
+<div class="comment-section-header" data-line="610">Output:</div>
+<div class="prose" data-line="611">  Prints the value to stdout without a trailing newline.</div>
+<div class="comment-section-header" data-line="613">Side effects:</div>
+<div class="prose" data-line="614">  - May emit a warning for invalid keys.</div>
+<div class="comment-section-header" data-line="616">Returns:</div>
+<div class="prose" data-line="617">  0 if found.</div>
+<div class="prose" data-line="618">  1 if missing or invalid.</div>
+<div class="comment-section-header" data-line="620">Usage:</div>
+<div class="prose" data-line="621">  sgnd_cfg_get KEY</div>
+<div class="comment-section-header" data-line="623">Examples:</div>
+<div class="prose" data-line="624">  value="quot;$(sgnd_cfg_get "quot;APP_TITLE"quot;)"quot; || value="quot;"quot;</div>
+<div class="prose" data-line="626">  sgnd_cfg_get "quot;SGND_PAGE_MAX_ROWS"quot;</div>
+<h3 class="item-header" data-line="636">sgnd_cfg_has <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="637">Purpose:</div>
+<div class="prose" data-line="638">  Test whether a config key exists in the config file.</div>
+<div class="comment-section-header" data-line="640">Behavior:</div>
+<div class="prose" data-line="641">  - Validates the requested key.</div>
+<div class="prose" data-line="642">  - Checks SGND_CFG_FILE for a matching KEY=VALUE entry.</div>
+<div class="prose" data-line="643">  - Treats empty values as present when the key exists.</div>
+<div class="comment-section-header" data-line="645">Arguments:</div>
+<div class="prose" data-line="646">  $1  KEY</div>
+<div class="prose" data-line="647">      Config variable name.</div>
+<div class="prose" data-line="649">Inputs (globals):</div>
+<div class="prose" data-line="650">  SGND_CFG_FILE</div>
+<div class="comment-section-header" data-line="652">Side effects:</div>
+<div class="prose" data-line="653">  - May emit a warning for invalid keys.</div>
+<div class="comment-section-header" data-line="655">Returns:</div>
+<div class="prose" data-line="656">  0 if present.</div>
+<div class="prose" data-line="657">  1 if missing or invalid.</div>
+<div class="comment-section-header" data-line="659">Usage:</div>
+<div class="prose" data-line="660">  sgnd_cfg_has KEY</div>
+<div class="comment-section-header" data-line="662">Examples:</div>
+<div class="prose" data-line="663">  if sgnd_cfg_has "quot;APP_TITLE"quot;; then</div>
+<div class="prose" data-line="664">      printf '#39;configured\n'#39;</div>
+<div class="prose" data-line="665">  fi</div>
+<div class="prose" data-line="667">  sgnd_cfg_has "quot;SGND_PAGE_MAX_ROWS"quot;</div>
+<h3 class="item-header" data-line="677">sgnd_cfg_show_keys <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="678">Purpose:</div>
+<div class="prose" data-line="679">  Display selected config keys and their stored values.</div>
+<div class="comment-section-header" data-line="681">Behavior:</div>
+<div class="prose" data-line="682">  - Reads values from SGND_CFG_FILE, not from in-memory shell variables.</div>
+<div class="prose" data-line="683">  - Renders a formatted section using sgnd_print_* helpers.</div>
+<div class="prose" data-line="684">  - Shows empty values as "quot;"quot; and missing values as <lt;unset>gt;.</div>
+<div class="comment-section-header" data-line="686">Arguments:</div>
+<div class="prose" data-line="687">  $@  KEYS</div>
+<div class="prose" data-line="688">      Config keys to display.</div>
+<div class="prose" data-line="690">Inputs (globals):</div>
+<div class="prose" data-line="691">  SGND_CFG_FILE</div>
+<div class="comment-section-header" data-line="693">Side effects:</div>
+<div class="prose" data-line="694">  - Writes formatted output to stdout.</div>
+<div class="comment-section-header" data-line="696">Returns:</div>
+<div class="prose" data-line="697">  0 always.</div>
+<div class="comment-section-header" data-line="699">Usage:</div>
+<div class="prose" data-line="700">  sgnd_cfg_show_keys KEY [KEY ...]</div>
+<div class="comment-section-header" data-line="702">Examples:</div>
+<div class="prose" data-line="703">  sgnd_cfg_show_keys APP_TITLE SGND_PAGE_MAX_ROWS</div>
+<div class="prose" data-line="705">  sgnd_cfg_show_keys SGND_FRAMEWORK_ROOT SGND_USRCFG_FILE</div>
+<h3 class="item-header" data-line="731">sgnd_cfg_has_audience <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="732">Purpose:</div>
+<div class="prose" data-line="733">  Test whether a cfg spec array contains entries for a requested audience.</div>
+<div class="comment-section-header" data-line="735">Behavior:</div>
+<div class="prose" data-line="736">  - Scans the supplied spec array.</div>
+<div class="prose" data-line="737">  - Matches entries marked for the requested audience.</div>
+<div class="prose" data-line="738">  - Treats "quot;both"quot; entries as matching either "quot;system"quot; or "quot;user"quot;.</div>
+<div class="comment-section-header" data-line="740">Arguments:</div>
+<div class="prose" data-line="741">  $1  SPEC_ARRAY_NAME</div>
+<div class="prose" data-line="742">      Name of the specs array variable.</div>
+<div class="prose" data-line="743">  $2  AUDIENCE</div>
+<div class="prose" data-line="744">      Requested audience: "quot;system"quot; or "quot;user"quot;.</div>
+<div class="comment-section-header" data-line="746">Returns:</div>
+<div class="prose" data-line="747">  0 if at least one matching spec exists.</div>
+<div class="prose" data-line="748">  1 otherwise.</div>
+<div class="comment-section-header" data-line="750">Usage:</div>
+<div class="prose" data-line="751">  sgnd_cfg_has_audience SPEC_ARRAY_NAME system</div>
+<div class="comment-section-header" data-line="753">Examples:</div>
+<div class="prose" data-line="754">  if sgnd_cfg_has_audience SGND_CFG_SPECS "quot;user"quot;; then</div>
+<div class="prose" data-line="755">      printf '#39;user cfg supported\n'#39;</div>
+<div class="prose" data-line="756">  fi</div>
+<div class="prose" data-line="758">  sgnd_cfg_has_audience SGND_CFG_SPECS "quot;system"quot;</div>
+<h3 class="item-header" data-line="777">_sgnd_cfg_write_template_header <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="778">Purpose:</div>
+<div class="prose" data-line="779">  Write a standard auto-generated header for a cfg template file.</div>
+<div class="comment-section-header" data-line="781">Arguments:</div>
+<div class="prose" data-line="782">  $1  DOMAIN</div>
+<div class="prose" data-line="783">      Logical config domain name.</div>
+<div class="prose" data-line="784">  $2  AUDIENCE</div>
+<div class="prose" data-line="785">      Config audience: system or user.</div>
+<div class="comment-section-header" data-line="787">Output:</div>
+<div class="prose" data-line="788">  Prints header text to stdout.</div>
+<div class="comment-section-header" data-line="790">Returns:</div>
+<div class="prose" data-line="791">  0 always.</div>
+<h3 class="item-header" data-line="838">sgnd_cfg_create_missing_domain_files <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="839">Purpose:</div>
+<div class="prose" data-line="840">  Create missing cfg files for a domain from the active defaults/specs.</div>
+<div class="comment-section-header" data-line="842">Behavior:</div>
+<div class="prose" data-line="843">  - Creates a system cfg when system-audience specs exist and the caller is root.</div>
+<div class="prose" data-line="844">  - Creates a user cfg when user-audience specs exist.</div>
+<div class="prose" data-line="845">  - In framework mode under sudo/root, creates both files when missing.</div>
+<div class="prose" data-line="846">  - Uses current in-memory variable values as the template defaults.</div>
+<div class="prose" data-line="847">  - Emits informative messages instead of missing-file warnings.</div>
+<div class="comment-section-header" data-line="849">Arguments:</div>
+<div class="prose" data-line="850">  $1  DOMAIN</div>
+<div class="prose" data-line="851">  $2  SYSCFG</div>
+<div class="prose" data-line="852">  $3  USRCFG</div>
+<div class="prose" data-line="853">  $4  SPEC_ARRAY_NAME</div>
+<div class="prose" data-line="854">  $5  MODE</div>
+<div class="prose" data-line="855">      Optional mode: framework or script.</div>
+<div class="prose" data-line="856">      Default: script</div>
+<div class="comment-section-header" data-line="858">Side effects:</div>
+<div class="prose" data-line="859">  - Creates parent directories as needed.</div>
+<div class="prose" data-line="860">  - Creates cfg files when required.</div>
+<div class="prose" data-line="861">  - Writes informational output.</div>
+<div class="comment-section-header" data-line="863">Returns:</div>
+<div class="prose" data-line="864">  0 on success.</div>
+<div class="prose" data-line="865">  1 on invalid arguments or file creation failure.</div>
+<h3 class="item-header" data-line="901">sgnd_cfg_write_skeleton_filtered <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="902">Purpose:</div>
+<div class="prose" data-line="903">  Write an auto-generated cfg skeleton filtered by audience.</div>
+<div class="comment-section-header" data-line="905">Behavior:</div>
+<div class="prose" data-line="906">  - Writes a commented KEY=VALUE config template.</div>
+<div class="prose" data-line="907">  - Includes only specs matching the requested audience.</div>
+<div class="prose" data-line="908">  - Includes specs marked "quot;both"quot; for either audience.</div>
+<div class="prose" data-line="909">  - Uses current shell values as initial defaults where available.</div>
+<div class="prose" data-line="910">  - Adds a standard auto-generated file header.</div>
+<div class="comment-section-header" data-line="912">Arguments:</div>
+<div class="prose" data-line="913">  $1  FILE</div>
+<div class="prose" data-line="914">      Target cfg file path.</div>
+<div class="prose" data-line="915">  $2  AUDIENCE</div>
+<div class="prose" data-line="916">      Audience filter: "quot;system"quot; or "quot;user"quot;.</div>
+<div class="prose" data-line="917">  $3  SPEC_ARRAY_NAME</div>
+<div class="prose" data-line="918">      Name of the cfg specs array.</div>
+<div class="prose" data-line="919">  $4  DOMAIN</div>
+<div class="prose" data-line="920">      Optional logical domain name for header text.</div>
+<div class="prose" data-line="921">      Default: configuration</div>
+<div class="comment-section-header" data-line="923">Side effects:</div>
+<div class="prose" data-line="924">  - Creates or overwrites the target file.</div>
+<div class="comment-section-header" data-line="926">Returns:</div>
+<div class="prose" data-line="927">  0 on success.</div>
+<div class="prose" data-line="928">  1 on invalid arguments.</div>
+<div class="comment-section-header" data-line="930">Usage:</div>
+<div class="prose" data-line="931">  sgnd_cfg_write_skeleton_filtered FILE AUDIENCE SPEC_ARRAY_NAME [DOMAIN]</div>
+<div class="comment-section-header" data-line="933">Examples:</div>
+<div class="prose" data-line="934">  sgnd_cfg_write_skeleton_filtered "quot;$SGND_USRCFG_FILE"quot; "quot;user"quot; SGND_FRAMEWORK_GLOBALS "quot;Framework"quot;</div>
+<div class="prose" data-line="936">  sgnd_cfg_write_skeleton_filtered "quot;$SGND_SYSCFG_FILE"quot; "quot;system"quot; SGND_SCRIPT_GLOBALS "quot;Script"quot;</div>
+<h3 class="item-header" data-line="971">sgnd_cfg_load_file <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="972">Purpose:</div>
+<div class="prose" data-line="973">  Load a specific cfg file into shell variables for domain-level processing.</div>
+<div class="comment-section-header" data-line="975">Behavior:</div>
+<div class="prose" data-line="976">  - Reads plain KEY=VALUE lines from the target file.</div>
+<div class="prose" data-line="977">  - Ignores blank lines and comments.</div>
+<div class="prose" data-line="978">  - Accepts only valid shell identifiers as keys.</div>
+<div class="prose" data-line="979">  - Stores values literally without unquoting or escape processing.</div>
+<div class="comment-section-header" data-line="981">Arguments:</div>
+<div class="prose" data-line="982">  $1  FILE</div>
+<div class="prose" data-line="983">      Config file path to load.</div>
+<div class="prose" data-line="985">Outputs (globals):</div>
+<div class="prose" data-line="986">  Sets variables defined in the file.</div>
+<div class="comment-section-header" data-line="988">Returns:</div>
+<div class="prose" data-line="989">  0 always.</div>
+<div class="comment-section-header" data-line="991">Usage:</div>
+<div class="prose" data-line="992">  sgnd_cfg_load_file FILE</div>
+<div class="comment-section-header" data-line="994">Examples:</div>
+<div class="prose" data-line="995">  sgnd_cfg_load_file "quot;$SGND_SYSCFG_FILE"quot;</div>
+<div class="prose" data-line="997">  [[ -r "quot;$SGND_USRCFG_FILE"quot; ]] &amp;&amp; sgnd_cfg_load_file "quot;$SGND_USRCFG_FILE"quot;</div>
+<div class="comment-section-header" data-line="999">Notes:</div>
+<div class="prose" data-line="1000">  - Intended for domain/bootstrap flow readability.</div>
+<h3 class="item-header" data-line="1034">sgnd_cfg_domain_apply <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="1035">Purpose:</div>
+<div class="prose" data-line="1036">  Apply configuration for a domain from system and user cfg files.</div>
+<div class="comment-section-header" data-line="1038">Behavior:</div>
+<div class="prose" data-line="1039">  - Ensures required cfg files exist for the domain.</div>
+<div class="prose" data-line="1040">  - Loads system cfg first when applicable.</div>
+<div class="prose" data-line="1041">  - Loads user cfg after system cfg so user values override system values.</div>
+<div class="prose" data-line="1042">  - Creates missing cfg files from defaults when possible.</div>
+<div class="comment-section-header" data-line="1044">Arguments:</div>
+<div class="prose" data-line="1045">  $1  DOMAIN</div>
+<div class="prose" data-line="1046">      Logical config domain name.</div>
+<div class="prose" data-line="1047">  $2  SYSCFG</div>
+<div class="prose" data-line="1048">      System cfg file path.</div>
+<div class="prose" data-line="1049">  $3  USRCFG</div>
+<div class="prose" data-line="1050">      User cfg file path.</div>
+<div class="prose" data-line="1051">  $4  SPEC_ARRAY_NAME</div>
+<div class="prose" data-line="1052">      Name of the cfg specs array.</div>
+<div class="prose" data-line="1053">  $5  MODE</div>
+<div class="prose" data-line="1054">      Optional mode: "quot;framework"quot; or "quot;script"quot;.</div>
+<div class="prose" data-line="1055">      Default: script</div>
+<div class="comment-section-header" data-line="1057">Side effects:</div>
+<div class="prose" data-line="1058">  - May create cfg files.</div>
+<div class="prose" data-line="1059">  - Loads cfg values into shell variables.</div>
+<div class="prose" data-line="1060">  - May create cfg templates from current defaults.</div>
+<div class="comment-section-header" data-line="1062">Returns:</div>
+<div class="prose" data-line="1063">  0 on success.</div>
+<div class="prose" data-line="1064">  1 on invalid arguments or setup failure.</div>
+<div class="comment-section-header" data-line="1066">Usage:</div>
+<div class="prose" data-line="1067">  sgnd_cfg_domain_apply DOMAIN SYSCFG USRCFG SPEC_ARRAY_NAME [MODE]</div>
+<div class="comment-section-header" data-line="1069">Examples:</div>
+<div class="prose" data-line="1070">  sgnd_cfg_domain_apply "quot;framework"quot; "quot;$SGND_FRAMEWORK_SYSCFG"quot; "quot;$SGND_FRAMEWORK_USRCFG"quot; SGND_FRAMEWORK_CFG_SPECS "quot;framework"quot;</div>
+<div class="prose" data-line="1072">  sgnd_cfg_domain_apply "quot;script"quot; "quot;$SGND_SYSCFG_FILE"quot; "quot;$SGND_USRCFG_FILE"quot; SGND_SCRIPT_CFG_SPECS</div>
+<h3 class="item-header" data-line="1096">sgnd_state_load <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="1097">Purpose:</div>
+<div class="prose" data-line="1098">  Load the state file into shell variables.</div>
+<div class="comment-section-header" data-line="1100">Behavior:</div>
+<div class="prose" data-line="1101">  - Reads KEY=VALUE pairs from SGND_STATE_FILE.</div>
+<div class="prose" data-line="1102">  - Ignores missing files.</div>
+<div class="prose" data-line="1103">  - Emits a debug message before loading.</div>
+<div class="prose" data-line="1105">Inputs (globals):</div>
+<div class="prose" data-line="1106">  SGND_STATE_FILE</div>
+<div class="prose" data-line="1108">Outputs (globals):</div>
+<div class="prose" data-line="1109">  Sets variables found in the file.</div>
+<div class="comment-section-header" data-line="1111">Side effects:</div>
+<div class="prose" data-line="1112">  - May write a debug message.</div>
+<div class="comment-section-header" data-line="1114">Returns:</div>
+<div class="prose" data-line="1115">  0 always.</div>
+<div class="comment-section-header" data-line="1117">Usage:</div>
+<div class="prose" data-line="1118">  sgnd_state_load</div>
+<div class="comment-section-header" data-line="1120">Examples:</div>
+<div class="prose" data-line="1121">  sgnd_state_load</div>
+<h3 class="item-header" data-line="1127">sgnd_state_set <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="1128">Purpose:</div>
+<div class="prose" data-line="1129">  Persist a state KEY=VALUE pair and update the current shell variable.</div>
+<div class="comment-section-header" data-line="1131">Behavior:</div>
+<div class="prose" data-line="1132">  - Validates the key as a shell identifier.</div>
+<div class="prose" data-line="1133">  - Writes or replaces the KEY=VALUE entry in SGND_STATE_FILE.</div>
+<div class="prose" data-line="1134">  - Updates the in-memory shell variable to the same value.</div>
+<div class="prose" data-line="1135">  - Emits a debug message describing the change.</div>
+<div class="comment-section-header" data-line="1137">Arguments:</div>
+<div class="prose" data-line="1138">  $1  KEY</div>
+<div class="prose" data-line="1139">      State variable name.</div>
+<div class="prose" data-line="1140">  $2  VALUE</div>
+<div class="prose" data-line="1141">      Value to persist.</div>
+<div class="prose" data-line="1143">Inputs (globals):</div>
+<div class="prose" data-line="1144">  SGND_STATE_FILE</div>
+<div class="prose" data-line="1146">Outputs (globals):</div>
+<div class="prose" data-line="1147">  Sets $KEY in the current shell.</div>
+<div class="comment-section-header" data-line="1149">Side effects:</div>
+<div class="prose" data-line="1150">  - Updates SGND_STATE_FILE on disk.</div>
+<div class="prose" data-line="1151">  - May emit debug or warning output.</div>
+<div class="comment-section-header" data-line="1153">Returns:</div>
+<div class="prose" data-line="1154">  0 on success.</div>
+<div class="prose" data-line="1155">  1 on invalid key or write failure.</div>
+<div class="comment-section-header" data-line="1157">Usage:</div>
+<div class="prose" data-line="1158">  sgnd_state_set KEY VALUE</div>
+<div class="comment-section-header" data-line="1160">Examples:</div>
+<div class="prose" data-line="1161">  sgnd_state_set "quot;CURRENT_PAGE"quot; "quot;2"quot;</div>
+<div class="prose" data-line="1163">  sgnd_state_set "quot;LAST_MODULE"quot; "quot;devtools"quot;</div>
+<h3 class="item-header" data-line="1177">sgnd_state_unset <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="1178">Purpose:</div>
+<div class="prose" data-line="1179">  Remove a state key from the file and unset it in the current shell.</div>
+<div class="comment-section-header" data-line="1181">Behavior:</div>
+<div class="prose" data-line="1182">  - Validates the key as a shell identifier.</div>
+<div class="prose" data-line="1183">  - Removes the KEY=VALUE entry from SGND_STATE_FILE.</div>
+<div class="prose" data-line="1184">  - Unsets the variable in the current shell.</div>
+<div class="prose" data-line="1185">  - Emits a debug message describing the change.</div>
+<div class="comment-section-header" data-line="1187">Arguments:</div>
+<div class="prose" data-line="1188">  $1  KEY</div>
+<div class="prose" data-line="1189">      State variable name.</div>
+<div class="prose" data-line="1191">Inputs (globals):</div>
+<div class="prose" data-line="1192">  SGND_STATE_FILE</div>
+<div class="prose" data-line="1194">Outputs (globals):</div>
+<div class="prose" data-line="1195">  Unsets $KEY in the current shell.</div>
+<div class="comment-section-header" data-line="1197">Side effects:</div>
+<div class="prose" data-line="1198">  - Updates SGND_STATE_FILE on disk.</div>
+<div class="prose" data-line="1199">  - May emit debug or warning output.</div>
+<div class="comment-section-header" data-line="1201">Returns:</div>
+<div class="prose" data-line="1202">  0 on success.</div>
+<div class="prose" data-line="1203">  1 on invalid key or write failure.</div>
+<div class="comment-section-header" data-line="1205">Usage:</div>
+<div class="prose" data-line="1206">  sgnd_state_unset KEY</div>
+<div class="comment-section-header" data-line="1208">Examples:</div>
+<div class="prose" data-line="1209">  sgnd_state_unset "quot;CURRENT_PAGE"quot;</div>
+<div class="prose" data-line="1211">  sgnd_state_unset "quot;LAST_MODULE"quot;</div>
+<h3 class="item-header" data-line="1225">sgnd_state_reset <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="1226">Purpose:</div>
+<div class="prose" data-line="1227">  Hard-reset the state file by deleting it.</div>
+<div class="comment-section-header" data-line="1229">Behavior:</div>
+<div class="prose" data-line="1230">  - Returns quietly when SGND_STATE_FILE is empty.</div>
+<div class="prose" data-line="1231">  - Emits a debug message before deletion.</div>
+<div class="prose" data-line="1232">  - Removes the state file if present.</div>
+<div class="prose" data-line="1234">Inputs (globals):</div>
+<div class="prose" data-line="1235">  SGND_STATE_FILE</div>
+<div class="comment-section-header" data-line="1237">Side effects:</div>
+<div class="prose" data-line="1238">  - Deletes SGND_STATE_FILE.</div>
+<div class="prose" data-line="1239">  - May emit a debug message.</div>
+<div class="comment-section-header" data-line="1241">Returns:</div>
+<div class="prose" data-line="1242">  0 always.</div>
+<div class="comment-section-header" data-line="1244">Usage:</div>
+<div class="prose" data-line="1245">  sgnd_state_reset</div>
+<div class="comment-section-header" data-line="1247">Examples:</div>
+<div class="prose" data-line="1248">  sgnd_state_reset</div>
+<h3 class="item-header" data-line="1255">sgnd_state_get <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="1256">Purpose:</div>
+<div class="prose" data-line="1257">  Read a state value from the state file.</div>
+<div class="comment-section-header" data-line="1259">Behavior:</div>
+<div class="prose" data-line="1260">  - Validates the requested key.</div>
+<div class="prose" data-line="1261">  - Reads the value directly from SGND_STATE_FILE.</div>
+<div class="prose" data-line="1262">  - Does not read from the current shell variable.</div>
+<div class="comment-section-header" data-line="1264">Arguments:</div>
+<div class="prose" data-line="1265">  $1  KEY</div>
+<div class="prose" data-line="1266">      State variable name.</div>
+<div class="prose" data-line="1268">Inputs (globals):</div>
+<div class="prose" data-line="1269">  SGND_STATE_FILE</div>
+<div class="comment-section-header" data-line="1271">Output:</div>
+<div class="prose" data-line="1272">  Prints the value to stdout without a trailing newline.</div>
+<div class="comment-section-header" data-line="1274">Side effects:</div>
+<div class="prose" data-line="1275">  - May emit a warning for invalid keys.</div>
+<div class="comment-section-header" data-line="1277">Returns:</div>
+<div class="prose" data-line="1278">  0 if found.</div>
+<div class="prose" data-line="1279">  1 if missing or invalid.</div>
+<div class="comment-section-header" data-line="1281">Usage:</div>
+<div class="prose" data-line="1282">  sgnd_state_get KEY</div>
+<div class="comment-section-header" data-line="1284">Examples:</div>
+<div class="prose" data-line="1285">  page="quot;$(sgnd_state_get "quot;CURRENT_PAGE"quot;)"quot; || page="quot;1"quot;</div>
+<div class="prose" data-line="1287">  sgnd_state_get "quot;LAST_MODULE"quot;</div>
+<h3 class="item-header" data-line="1297">sgnd_state_has <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="1298">Purpose:</div>
+<div class="prose" data-line="1299">  Test whether a state key exists in the state file.</div>
+<div class="comment-section-header" data-line="1301">Behavior:</div>
+<div class="prose" data-line="1302">  - Validates the requested key.</div>
+<div class="prose" data-line="1303">  - Checks SGND_STATE_FILE for a matching KEY=VALUE entry.</div>
+<div class="prose" data-line="1304">  - Treats empty values as present when the key exists.</div>
+<div class="comment-section-header" data-line="1306">Arguments:</div>
+<div class="prose" data-line="1307">  $1  KEY</div>
+<div class="prose" data-line="1308">      State variable name.</div>
+<div class="prose" data-line="1310">Inputs (globals):</div>
+<div class="prose" data-line="1311">  SGND_STATE_FILE</div>
+<div class="comment-section-header" data-line="1313">Side effects:</div>
+<div class="prose" data-line="1314">  - May emit a warning for invalid keys.</div>
+<div class="comment-section-header" data-line="1316">Returns:</div>
+<div class="prose" data-line="1317">  0 if present.</div>
+<div class="prose" data-line="1318">  1 if missing or invalid.</div>
+<div class="comment-section-header" data-line="1320">Usage:</div>
+<div class="prose" data-line="1321">  sgnd_state_has KEY</div>
+<div class="comment-section-header" data-line="1323">Examples:</div>
+<div class="prose" data-line="1324">  if sgnd_state_has "quot;CURRENT_PAGE"quot;; then</div>
+<div class="prose" data-line="1325">      printf '#39;page stored\n'#39;</div>
+<div class="prose" data-line="1326">  fi</div>
+<div class="prose" data-line="1328">  sgnd_state_has "quot;LAST_MODULE"quot;</div>
+<h3 class="item-header" data-line="1339">sgnd_state_save_keys <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="1340">Purpose:</div>
+<div class="prose" data-line="1341">  Persist a list of shell variables to the state store.</div>
+<div class="comment-section-header" data-line="1343">Behavior:</div>
+<div class="prose" data-line="1344">  - Iterates over the supplied variable names.</div>
+<div class="prose" data-line="1345">  - Reads each current value using safe indirect expansion.</div>
+<div class="prose" data-line="1346">  - Persists each value via sgnd_state_set.</div>
+<div class="prose" data-line="1347">  - Skips invalid identifiers with a warning.</div>
+<div class="comment-section-header" data-line="1349">Arguments:</div>
+<div class="prose" data-line="1350">  $@  KEYS</div>
+<div class="prose" data-line="1351">      Variable names to save.</div>
+<div class="prose" data-line="1353">Inputs (globals):</div>
+<div class="prose" data-line="1354">  SGND_STATE_FILE</div>
+<div class="comment-section-header" data-line="1356">Side effects:</div>
+<div class="prose" data-line="1357">  - Updates SGND_STATE_FILE on disk.</div>
+<div class="prose" data-line="1358">  - May emit debug or warning output through sgnd_state_set.</div>
+<div class="comment-section-header" data-line="1360">Returns:</div>
+<div class="prose" data-line="1361">  0 always.</div>
+<div class="comment-section-header" data-line="1363">Usage:</div>
+<div class="prose" data-line="1364">  sgnd_state_save_keys KEY [KEY ...]</div>
+<div class="comment-section-header" data-line="1366">Examples:</div>
+<div class="prose" data-line="1367">  sgnd_state_save_keys CURRENT_PAGE LAST_MODULE</div>
+<div class="prose" data-line="1369">  sgnd_state_save_keys FLAG_DEBUG FLAG_VERBOSE FLAG_DRYRUN</div>
+<h3 class="item-header" data-line="1385">sgnd_state_load_keys <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="1386">Purpose:</div>
+<div class="prose" data-line="1387">  Load selected state keys from the state store into shell variables.</div>
+<div class="comment-section-header" data-line="1389">Behavior:</div>
+<div class="prose" data-line="1390">  - Iterates over the supplied variable names.</div>
+<div class="prose" data-line="1391">  - Reads each value from SGND_STATE_FILE.</div>
+<div class="prose" data-line="1392">  - Assigns only keys that exist in the state store.</div>
+<div class="prose" data-line="1393">  - Skips invalid identifiers with a warning.</div>
+<div class="comment-section-header" data-line="1395">Arguments:</div>
+<div class="prose" data-line="1396">  $@  KEYS</div>
+<div class="prose" data-line="1397">      Variable names to load.</div>
+<div class="prose" data-line="1399">Inputs (globals):</div>
+<div class="prose" data-line="1400">  SGND_STATE_FILE</div>
+<div class="prose" data-line="1402">Outputs (globals):</div>
+<div class="prose" data-line="1403">  Sets variables for keys found in the state store.</div>
+<div class="comment-section-header" data-line="1405">Side effects:</div>
+<div class="prose" data-line="1406">  - May emit warnings for invalid keys.</div>
+<div class="comment-section-header" data-line="1408">Returns:</div>
+<div class="prose" data-line="1409">  0 always.</div>
+<div class="comment-section-header" data-line="1411">Usage:</div>
+<div class="prose" data-line="1412">  sgnd_state_load_keys KEY [KEY ...]</div>
+<div class="comment-section-header" data-line="1414">Examples:</div>
+<div class="prose" data-line="1415">  sgnd_state_load_keys CURRENT_PAGE LAST_MODULE</div>
+<div class="prose" data-line="1417">  sgnd_state_load_keys FLAG_DEBUG FLAG_VERBOSE FLAG_DRYRUN</div>
+<h3 class="item-header" data-line="1432">sgnd_state_list_keys <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="1433">Purpose:</div>
+<div class="prose" data-line="1434">  List keys currently present in the state file.</div>
+<div class="comment-section-header" data-line="1436">Behavior:</div>
+<div class="prose" data-line="1437">  - Reads SGND_STATE_FILE when it is readable.</div>
+<div class="prose" data-line="1438">  - Emits one key/value pair per line in preserved file order.</div>
+<div class="prose" data-line="1439">  - Treats a missing or unreadable state file as non-fatal.</div>
+<div class="prose" data-line="1441">Inputs (globals):</div>
+<div class="prose" data-line="1442">  SGND_STATE_FILE</div>
+<div class="comment-section-header" data-line="1444">Output:</div>
+<div class="prose" data-line="1445">  Prints lines in the format: key|value</div>
+<div class="comment-section-header" data-line="1447">Returns:</div>
+<div class="prose" data-line="1448">  0 always.</div>
+<div class="comment-section-header" data-line="1450">Usage:</div>
+<div class="prose" data-line="1451">  sgnd_state_list_keys</div>
+<div class="comment-section-header" data-line="1453">Examples:</div>
+<div class="prose" data-line="1454">  sgnd_state_list_keys</div>
+</div>
+</body>
+</html>

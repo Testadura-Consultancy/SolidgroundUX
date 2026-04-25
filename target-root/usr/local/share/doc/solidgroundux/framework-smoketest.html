@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Framework smoke tester</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+<nav class="nav"><a href="index.html">Index</a></nav>
+<header class="module-header">
+  <h1>Framework smoke tester</h1>
+  <p>Exercise and validate core SolidgroundUX framework functionality</p>
+  <div class="meta-grid">
+    <div>Group</div><div></div>
+    <div>Type</div><div>script</div>
+    <div>Version</div><div>1.1</div>
+    <div>Build</div><div>2609100</div>
+    <div>Developers</div><div>Mark Fieten</div>
+    <div>Company</div><div>Testadura Consultancy</div>
+    <div>License</div><div>Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.</div>
+  </div>
+</header>
+<h2 class="section-header" data-line="466">Sample/demo renderers</h2>
+<h2 class="section-header" data-line="478">Main</h2>
+<div class="prose" data-line="479">main MUST BE LAST function in script</div>
+<div class="prose" data-line="480">Main entry point for the executable script.</div>
+<div class="comment-section-header" data-line="482">Execution flow:</div>
+<div class="prose" data-line="483">  1) Invoke sgnd_bootstrap to initialize the framework environment, parse</div>
+<div class="prose" data-line="484">     framework-level arguments, and optionally load UI, state, and config.</div>
+<div class="prose" data-line="485">  2) Abort immediately if bootstrap reports an error condition.</div>
+<div class="prose" data-line="486">  3) Enact framework builtin arguments (help, showargs, state reset, etc.).</div>
+<div class="prose" data-line="487">     Info-only builtins terminate execution; mutating builtins may continue.</div>
+<div class="prose" data-line="488">  4) Continue with script-specific logic.</div>
+<div class="comment-section-header" data-line="490">Bootstrap options:</div>
+<div class="prose" data-line="491">  The script author explicitly selects which framework features to enable.</div>
+<div class="prose" data-line="492">  None are required; include only what this script needs.</div>
+<div class="prose" data-line="494">  --state        Enable persistent state loading/saving.</div>
+<div class="prose" data-line="495">  --needroot     Require execution as root.</div>
+<div class="prose" data-line="496">  --cannotroot   Require execution as non-root.</div>
+<div class="prose" data-line="497">  --log          Enable logging to file.</div>
+<div class="prose" data-line="498">  --console      Enable logging to console output.</div>
+<div class="prose" data-line="499">  --             End of bootstrap options; remaining args are script arguments.</div>
+<div class="comment-section-header" data-line="500">Notes:</div>
+<div class="prose" data-line="501">  - Builtin argument handling is centralized in sgnd_builtinarg_handler.</div>
+<div class="prose" data-line="502">  - Scripts may override builtin handling, but doing so transfers</div>
+<div class="prose" data-line="503">    responsibility for correct behavior to the script author.</div>
+<h2 class="section-header" data-line="505">Bootstrap</h2>
+<h2 class="section-header" data-line="525">Handle builtin arguments</h2>
+<h2 class="section-header" data-line="530">UI</h2>
+<h2 class="section-header" data-line="534">Main script logic</h2>
+</div>
+</body>
+</html>

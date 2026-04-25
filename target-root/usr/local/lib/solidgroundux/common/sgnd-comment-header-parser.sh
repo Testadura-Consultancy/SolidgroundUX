@@ -7,7 +7,7 @@
 #   Checksum    :
 #   Source      : sgnd-header-parser.sh
 #   Type        : library
-#   Group       : Developer tools
+#   Group       : Developer Tools
 #   Purpose     : Read, parse, and update canonical script header comments in SolidgroundUX files
 #
 # Description:

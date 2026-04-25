@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bootstrap Environment</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+<nav class="nav"><a href="index.html">Index</a></nav>
+<header class="module-header">
+  <h1>Bootstrap Environment</h1>
+  <p>Initialize framework environment variables and directory structure</p>
+  <div class="meta-grid">
+    <div>Group</div><div>Bootstrap</div>
+    <div>Type</div><div>library</div>
+    <div>Version</div><div>1.1</div>
+    <div>Build</div><div>2609100</div>
+    <div>Developers</div><div>Mark Fieten</div>
+    <div>Company</div><div>Testadura Consultancy</div>
+    <div>License</div><div>Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.</div>
+  </div>
+</header>
+<h3 class="item-header" data-line="48">_sgnd_lib_guard <span>(tmp, private)</span></h3>
+<div class="comment-section-header" data-line="49">Purpose:</div>
+<div class="prose" data-line="50">  Ensure the file is sourced as a library and only initialized once.</div>
+<div class="comment-section-header" data-line="52">Behavior:</div>
+<div class="prose" data-line="53">  - Derives a unique guard variable name from the current filename.</div>
+<div class="prose" data-line="54">  - Aborts execution if the file is executed instead of sourced.</div>
+<div class="prose" data-line="55">  - Sets the guard variable on first load.</div>
+<div class="prose" data-line="56">  - Skips initialization if the library was already loaded.</div>
+<div class="comment-section-header" data-line="58">Inputs:</div>
+<div class="prose" data-line="59">  BASH_SOURCE[0]</div>
+<div class="prose" data-line="60">  $0</div>
+<div class="prose" data-line="62">Outputs (globals):</div>
+<div class="prose" data-line="63">  SGND_<lt;MODULE>gt;_LOADED</div>
+<div class="comment-section-header" data-line="65">Returns:</div>
+<div class="prose" data-line="66">  0 if already loaded or successfully initialized.</div>
+<div class="prose" data-line="67">  Exits with code 2 if executed instead of sourced.</div>
+<h3 class="item-header" data-line="104">SGND_FRAMEWORK_GLOBALS spec format: <span>(var, public)</span></h3>
+<div class="prose" data-line="105">  audience|VARNAME|Description|extra</div>
+<div class="comment-section-header" data-line="107">Fields:</div>
+<div class="prose" data-line="108">  audience    system | user | both</div>
+<div class="prose" data-line="109">  VARNAME     Framework global variable name</div>
+<div class="prose" data-line="110">  Description Human-readable meaning for cfg/help rendering</div>
+<div class="prose" data-line="111">  extra       Reserved for future metadata</div>
+<h3 class="item-header" data-line="135">SGND_CORE_LIBS <span>(var, public)</span></h3>
+<div class="comment-section-header" data-line="136">Purpose:</div>
+<div class="prose" data-line="137">  Define the core libraries that sgnd-bootstrap loads in fixed order.</div>
+<div class="comment-section-header" data-line="139">Notes:</div>
+<div class="prose" data-line="140">  - Ordering is part of the bootstrap contract.</div>
+<div class="prose" data-line="141">  - Earlier libraries may be required by later ones.</div>
+<h3 class="item-header" data-line="154">Rebuilt path specification list consumed by sgnd_ensure_dirs. <span>(var, public)</span></h3>
+<div class="comment-section-header" data-line="155">Entries use the format:</div>
+<div class="prose" data-line="156">  s|/path   system-owned directory</div>
+<div class="prose" data-line="157">  u|/path   user-owned directory</div>
+<h3 class="item-header" data-line="162">_build_framework_dirs <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="163">Purpose:</div>
+<div class="prose" data-line="164">  Rebuild the canonical list of framework directories from current path globals.</div>
+<div class="comment-section-header" data-line="166">Behavior:</div>
+<div class="prose" data-line="167">  - Populates SGND_FRAMEWORK_DIRS with system and user directory specifications.</div>
+<div class="prose" data-line="168">  - Marks each entry with its ownership class:</div>
+<div class="prose" data-line="169">      s = system</div>
+<div class="prose" data-line="170">      u = user</div>
+<div class="prose" data-line="171">  - Derives log parent directories from the configured log paths.</div>
+<div class="prose" data-line="173">Inputs (globals):</div>
+<div class="prose" data-line="174">  SGND_COMMON_LIB</div>
+<div class="prose" data-line="175">  SGND_SYSCFG_DIR</div>
+<div class="prose" data-line="176">  SGND_USRCFG_DIR</div>
+<div class="prose" data-line="177">  SGND_STATE_DIR</div>
+<div class="prose" data-line="178">  SGND_STYLE_DIR</div>
+<div class="prose" data-line="179">  SGND_DOCS_DIR</div>
+<div class="prose" data-line="180">  SGND_LOG_PATH</div>
+<div class="prose" data-line="181">  SGND_ALTLOG_PATH</div>
+<div class="prose" data-line="183">Outputs (globals):</div>
+<div class="prose" data-line="184">  SGND_FRAMEWORK_DIRS</div>
+<div class="comment-section-header" data-line="186">Returns:</div>
+<div class="prose" data-line="187">  0 always.</div>
+<div class="comment-section-header" data-line="189">Usage:</div>
+<div class="prose" data-line="190">  _build_framework_dirs    </div>
+<h3 class="item-header" data-line="204">sgnd_apply_defaults <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="205">Purpose:</div>
+<div class="prose" data-line="206">  Apply default values for bootstrap globals if currently unset.</div>
+<div class="comment-section-header" data-line="208">Behavior:</div>
+<div class="prose" data-line="209">  - Initializes root variables (SGND_FRAMEWORK_ROOT, SGND_APPLICATION_ROOT).</div>
+<div class="prose" data-line="210">  - Sets logging and UI defaults.</div>
+<div class="prose" data-line="211">  - Resolves SGND_USER_HOME (prefers SUDO_USER when present).</div>
+<div class="prose" data-line="212">  - Establishes framework cfg basename.</div>
+<div class="prose" data-line="214">Outputs (globals):</div>
+<div class="prose" data-line="215">  SGND_FRAMEWORK_ROOT, SGND_APPLICATION_ROOT</div>
+<div class="prose" data-line="216">  SGND_USER_HOME</div>
+<div class="prose" data-line="217">  SGND_LOG_*, SGND_LOGFILE_ENABLED, SGND_LOG_LEVEL</div>
+<div class="prose" data-line="218">  SGND_UI_STYLE, SGND_UI_PALETTE</div>
+<div class="prose" data-line="219">  SAY_* defaults</div>
+<div class="prose" data-line="220">  SGND_FRAMEWORK_CFG_BASENAME</div>
+<div class="comment-section-header" data-line="222">Returns:</div>
+<div class="prose" data-line="223">  0 always.</div>
+<div class="comment-section-header" data-line="225">Usage:</div>
+<div class="prose" data-line="226">  sgnd_apply_defaults</div>
+<div class="comment-section-header" data-line="228">Examples:</div>
+<div class="prose" data-line="229">  sgnd_apply_defaults</div>
+<div class="prose" data-line="231">  # Override before applying defaults</div>
+<div class="prose" data-line="232">  SGND_LOGFILE_ENABLED=1</div>
+<div class="prose" data-line="233">  sgnd_apply_defaults</div>
+<h3 class="item-header" data-line="263">sgnd_defaults_reset <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="264">Purpose:</div>
+<div class="prose" data-line="265">  Reset framework-global configuration variables to their default state.</div>
+<div class="comment-section-header" data-line="267">Behavior:</div>
+<div class="prose" data-line="268">  - Iterates over SGND_FRAMEWORK_GLOBALS.</div>
+<div class="prose" data-line="269">  - Extracts each declared framework variable name.</div>
+<div class="prose" data-line="270">  - Unsets those variables when present.</div>
+<div class="prose" data-line="271">  - Re-applies default values through sgnd_apply_defaults.</div>
+<div class="prose" data-line="273">Inputs (globals):</div>
+<div class="prose" data-line="274">  SGND_FRAMEWORK_GLOBALS</div>
+<div class="comment-section-header" data-line="276">Side effects:</div>
+<div class="prose" data-line="277">  - Unsets framework globals declared in SGND_FRAMEWORK_GLOBALS.</div>
+<div class="prose" data-line="278">  - Reinitializes them to their default values.</div>
+<div class="comment-section-header" data-line="280">Returns:</div>
+<div class="prose" data-line="281">  0 always.</div>
+<div class="comment-section-header" data-line="283">Usage:</div>
+<div class="prose" data-line="284">  sgnd_defaults_reset</div>
+<div class="comment-section-header" data-line="286">Examples:</div>
+<div class="prose" data-line="287">  sgnd_defaults_reset</div>
+<div class="comment-section-header" data-line="289">Notes:</div>
+<div class="prose" data-line="290">  - Intended for controlled reinitialization during development or testing.</div>
+<div class="prose" data-line="291">  - SGND_FRAMEWORK_GLOBALS is the authoritative list of resettable framework globals.</div>
+<h3 class="item-header" data-line="304">sgnd_rebase_directories <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="305">Purpose:</div>
+<div class="prose" data-line="306">  Recompute framework, user, and script-scoped paths from current root settings.</div>
+<div class="comment-section-header" data-line="308">Behavior:</div>
+<div class="prose" data-line="309">  - Computes framework-scoped directories from:</div>
+<div class="prose" data-line="310">      SGND_FRAMEWORK_ROOT, SGND_APPLICATION_ROOT, SGND_USER_HOME</div>
+<div class="prose" data-line="311">  - Derives logging paths.</div>
+<div class="prose" data-line="312">  - Optionally derives script-scoped cfg/state paths when SGND_SCRIPT_NAME is set.</div>
+<div class="prose" data-line="313">  - Rebuilds SGND_FRAMEWORK_DIRS via _build_framework_dirs.</div>
+<div class="prose" data-line="315">Inputs (globals):</div>
+<div class="prose" data-line="316">  SGND_FRAMEWORK_ROOT</div>
+<div class="prose" data-line="317">  SGND_APPLICATION_ROOT</div>
+<div class="prose" data-line="318">  SGND_USER_HOME</div>
+<div class="prose" data-line="319">  SGND_SCRIPT_NAME (optional)</div>
+<div class="prose" data-line="321">Outputs (globals):</div>
+<div class="prose" data-line="322">  SGND_COMMON_LIB, SGND_SYSCFG_DIR, SGND_USRCFG_DIR, SGND_STATE_DIR</div>
+<div class="prose" data-line="323">  SGND_STYLE_DIR, SGND_DOCS_DIR</div>
+<div class="prose" data-line="324">  SGND_LOG_PATH, SGND_ALTLOG_PATH</div>
+<div class="prose" data-line="325">  SGND_SYSCFG_FILE, SGND_USRCFG_FILE, SGND_STATE_FILE (optional)</div>
+<div class="prose" data-line="326">  SGND_FRAMEWORK_DIRS</div>
+<div class="comment-section-header" data-line="328">Returns:</div>
+<div class="prose" data-line="329">  0 always.</div>
+<div class="comment-section-header" data-line="331">Usage:</div>
+<div class="prose" data-line="332">  sgnd_rebase_directories</div>
+<div class="comment-section-header" data-line="334">Examples:</div>
+<div class="prose" data-line="335">  sgnd_apply_defaults</div>
+<div class="prose" data-line="336">  sgnd_rebase_directories</div>
+<div class="prose" data-line="338">  SGND_SCRIPT_NAME="quot;install"quot;</div>
+<div class="prose" data-line="339">  sgnd_rebase_directories</div>
+<h3 class="item-header" data-line="368">sgnd_rebase_framework_cfg_paths <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="369">Purpose:</div>
+<div class="prose" data-line="370">  Derive framework-global cfg file paths from current cfg directories.</div>
+<div class="comment-section-header" data-line="372">Behavior:</div>
+<div class="prose" data-line="373">  - Uses SGND_FRAMEWORK_CFG_BASENAME as the filename.</div>
+<div class="prose" data-line="374">  - Produces system and user cfg paths.</div>
+<div class="prose" data-line="376">Inputs (globals):</div>
+<div class="prose" data-line="377">  SGND_SYSCFG_DIR</div>
+<div class="prose" data-line="378">  SGND_USRCFG_DIR</div>
+<div class="prose" data-line="379">  SGND_FRAMEWORK_CFG_BASENAME</div>
+<div class="prose" data-line="381">Outputs (globals):</div>
+<div class="prose" data-line="382">  SGND_FRAMEWORK_SYSCFG_FILE</div>
+<div class="prose" data-line="383">  SGND_FRAMEWORK_USRCFG_FILE</div>
+<div class="comment-section-header" data-line="385">Returns:</div>
+<div class="prose" data-line="386">  0 always.</div>
+<div class="comment-section-header" data-line="388">Usage:</div>
+<div class="prose" data-line="389">  sgnd_rebase_framework_cfg_paths</div>
+<div class="comment-section-header" data-line="391">Examples:</div>
+<div class="prose" data-line="392">  sgnd_rebase_directories</div>
+<div class="prose" data-line="393">  sgnd_rebase_framework_cfg_paths</div>
+<h3 class="item-header" data-line="399">sgnd_ensure_dirs <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="400">Purpose:</div>
+<div class="prose" data-line="401">  Ensure that framework directories exist and have appropriate ownership.</div>
+<div class="comment-section-header" data-line="403">Arguments:</div>
+<div class="comment-section-header" data-line="404">  One or more directory specifications:</div>
+<div class="prose" data-line="405">      "quot;s|/path"quot;  system directory</div>
+<div class="prose" data-line="406">      "quot;u|/path"quot;  user directory</div>
+<div class="comment-section-header" data-line="408">Behavior:</div>
+<div class="prose" data-line="409">  - Creates directories using mkdir -p.</div>
+<div class="prose" data-line="410">  - For user directories:</div>
+<div class="prose" data-line="411">      - Assigns ownership to SUDO_USER when running under sudo.</div>
+<div class="prose" data-line="412">      - Ensures user has read/write/execute permissions.</div>
+<div class="prose" data-line="413">  - Ignores malformed entries.</div>
+<div class="prose" data-line="415">Inputs (globals):</div>
+<div class="prose" data-line="416">  SUDO_USER</div>
+<div class="prose" data-line="417">  EUID</div>
+<div class="comment-section-header" data-line="419">Returns:</div>
+<div class="prose" data-line="420">  0   success</div>
+<div class="prose" data-line="421">  1   failure creating one or more directories</div>
+<div class="comment-section-header" data-line="423">Usage:</div>
+<div class="prose" data-line="424">  sgnd_ensure_dirs "quot;s|/path"quot; "quot;u|/path"quot;</div>
+<div class="comment-section-header" data-line="426">Examples:</div>
+<div class="prose" data-line="427">  sgnd_ensure_dirs \</div>
+<div class="prose" data-line="428">      "quot;s|$SGND_COMMON_LIB"quot; \</div>
+<div class="prose" data-line="429">      "quot;s|$SGND_SYSCFG_DIR"quot; \</div>
+<div class="prose" data-line="430">      "quot;u|$SGND_USRCFG_DIR"quot; \</div>
+<div class="prose" data-line="431">      "quot;u|$SGND_STATE_DIR"quot;</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Documentation Generator Script</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+<nav class="nav"><a href="index.html">Index</a></nav>
+<header class="module-header">
+  <h1>Documentation Generator Script</h1>
+  <p>Collect and prepare documentation data from source files using the</p>
+  <div class="meta-grid">
+    <div>Group</div><div>Developer Tools</div>
+    <div>Type</div><div>script</div>
+    <div>Version</div><div>1.1</div>
+    <div>Build</div><div>2609100</div>
+    <div>Developers</div><div>Mark Fieten</div>
+    <div>Company</div><div>Testadura Consultancy</div>
+    <div>License</div><div>Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.</div>
+  </div>
+</header>
+<h2 class="section-header" data-line="48">Bootstrap</h2>
+<h3 class="item-header" data-line="49">_framework_locator <span>(tmp, private)</span></h3>
+<div class="comment-section-header" data-line="50">Purpose:</div>
+<div class="prose" data-line="51">  Locate, create, and load the SolidGroundUX bootstrap configuration.</div>
+<div class="comment-section-header" data-line="53">Behavior:</div>
+<div class="prose" data-line="54">  - Searches user and system bootstrap configuration locations.</div>
+<div class="prose" data-line="55">  - Prefers the invoking user'#39;s config over the system config.</div>
+<div class="prose" data-line="56">  - Creates a new bootstrap config when none exists.</div>
+<div class="prose" data-line="57">  - Prompts for framework/application roots in interactive mode.</div>
+<div class="prose" data-line="58">  - Applies default values when running non-interactively.</div>
+<div class="prose" data-line="59">  - Sources the selected configuration file.</div>
+<div class="prose" data-line="61">Outputs (globals):</div>
+<div class="prose" data-line="62">  SGND_FRAMEWORK_ROOT</div>
+<div class="prose" data-line="63">  SGND_APPLICATION_ROOT</div>
+<div class="comment-section-header" data-line="65">Returns:</div>
+<div class="prose" data-line="66">  0   success</div>
+<div class="prose" data-line="67">  126 configuration unreadable or invalid</div>
+<div class="prose" data-line="68">  127 configuration directory or file could not be created</div>
+<div class="comment-section-header" data-line="70">Usage:</div>
+<div class="prose" data-line="71">  _framework_locator || return $?</div>
+<div class="comment-section-header" data-line="73">Examples:</div>
+<div class="prose" data-line="74">  _framework_locator</div>
+<div class="comment-section-header" data-line="76">Notes:</div>
+<div class="prose" data-line="77">  - Under sudo, configuration is resolved relative to SUDO_USER instead of /root.</div>
+<h3 class="item-header" data-line="165">_load_bootstrapper <span>(tmp, private)</span></h3>
+<div class="comment-section-header" data-line="166">Purpose:</div>
+<div class="prose" data-line="167">  Resolve and source the framework bootstrap library.</div>
+<div class="comment-section-header" data-line="169">Behavior:</div>
+<div class="prose" data-line="170">  - Calls _framework_locator to establish framework roots.</div>
+<div class="prose" data-line="171">  - Derives the sgnd-bootstrap.sh path from SGND_FRAMEWORK_ROOT.</div>
+<div class="prose" data-line="172">  - Verifies that the bootstrap library is readable.</div>
+<div class="prose" data-line="173">  - Sources sgnd-bootstrap.sh into the current shell.</div>
+<div class="prose" data-line="175">Inputs (globals):</div>
+<div class="prose" data-line="176">  SGND_FRAMEWORK_ROOT</div>
+<div class="comment-section-header" data-line="178">Returns:</div>
+<div class="prose" data-line="179">  0   success</div>
+<div class="prose" data-line="180">  126 bootstrap library unreadable</div>
+<div class="comment-section-header" data-line="182">Usage:</div>
+<div class="prose" data-line="183">  _load_bootstrapper || return $?</div>
+<div class="comment-section-header" data-line="185">Examples:</div>
+<div class="prose" data-line="186">  _load_bootstrapper</div>
+<div class="comment-section-header" data-line="188">Notes:</div>
+<div class="prose" data-line="189">  - This is executable-level startup logic, not reusable framework behavior.</div>
+<h2 class="section-header" data-line="244">Script metadata (identity)</h2>
+<h2 class="section-header" data-line="250">Script metadata (framework integration)</h2>
+<div class="prose" data-line="251">SGND_USING</div>
+<div class="prose" data-line="252">Libraries to source from SGND_COMMON_LIB.</div>
+<div class="prose" data-line="253">These are loaded automatically by sgnd_bootstrap AFTER core libraries.</div>
+<div class="comment-section-header" data-line="255">Example:</div>
+<div class="prose" data-line="256">  SGND_USING=( net.sh fs.sh )</div>
+<div class="prose" data-line="258">Leave empty if no extra libs are needed.</div>
+<h2 class="section-header" data-line="415">Local script functions</h2>
+<h3 class="item-header" data-line="416">_init_parameters <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="417">Purpose:</div>
+<div class="prose" data-line="418">  Initialize parameter variables from defaults when still unset.</div>
+<div class="comment-section-header" data-line="420">Behavior:</div>
+<div class="prose" data-line="421">  - Preserves values already supplied through parsed arguments or restored state.</div>
+<div class="prose" data-line="422">  - Applies default values only where variables are unset or empty.</div>
+<div class="prose" data-line="423">  - Does not validate or interpret parameter values.</div>
+<div class="prose" data-line="424">  - Does not override explicit user input.</div>
+<div class="prose" data-line="425">  - Does not perform interactive prompting.</div>
+<div class="comment-section-header" data-line="427">Usage:</div>
+<div class="prose" data-line="428">  _init_parameters</div>
+<div class="comment-section-header" data-line="430">Examples:</div>
+<div class="prose" data-line="431">  _init_parameters</div>
+<h3 class="item-header" data-line="445">_get_userinput <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="446">Purpose:</div>
+<div class="prose" data-line="447">  Interactively collect and confirm documentation generator parameters.</div>
+<div class="comment-section-header" data-line="449">Behavior:</div>
+<div class="prose" data-line="450">  - Displays grouped prompts for source, destination, and behavioral flags.</div>
+<div class="prose" data-line="451">  - Applies validation to supported fields.</div>
+<div class="prose" data-line="452">  - Normalizes Y/N replies into numeric flag values.</div>
+<div class="prose" data-line="453">  - Repeats until the user confirms, cancels, or requests redo.</div>
+<div class="prose" data-line="455">Outputs (globals):</div>
+<div class="prose" data-line="456">  VAL_SRCDIR</div>
+<div class="prose" data-line="457">  VAL_FILESPEC</div>
+<div class="prose" data-line="458">  VAL_OUTDIR</div>
+<div class="prose" data-line="459">  FLAG_CLEAN_OUTPUT</div>
+<div class="prose" data-line="460">  FLAG_RECURSIVE_SCAN</div>
+<div class="prose" data-line="461">  FLAG_VIEW_RESULTS</div>
+<div class="prose" data-line="462">  SGND_STATE_SAVE</div>
+<div class="comment-section-header" data-line="464">Returns:</div>
+<div class="prose" data-line="465">  0 on confirmed input.</div>
+<div class="prose" data-line="466">  1 if the user cancels or an unexpected dialog result occurs.</div>
+<div class="comment-section-header" data-line="468">Usage:</div>
+<div class="prose" data-line="469">  _get_userinput || return $?</div>
+<div class="comment-section-header" data-line="471">Examples:</div>
+<div class="prose" data-line="472">  _get_userinput</div>
+<h3 class="item-header" data-line="577">_set_docstyles <span>(fn, private)</span></h3>
+<h2 class="section-header" data-line="627">Validate input</h2>
+<h2 class="section-header" data-line="634">Non-recursive</h2>
+<h2 class="section-header" data-line="669">Recursive</h2>
+<div class="prose" data-line="670">Count files first for progress tracking</div>
+<h2 class="section-header" data-line="694">Main</h2>
+<h3 class="item-header" data-line="695">main <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="696">Purpose:</div>
+<div class="prose" data-line="697">  Provide the canonical executable entry point for the documentation generator.</div>
+<div class="comment-section-header" data-line="699">Behavior:</div>
+<div class="prose" data-line="700">  - Loads the framework bootstrapper.</div>
+<div class="prose" data-line="701">  - Initializes the runtime through sgnd_bootstrap.</div>
+<div class="prose" data-line="702">  - Processes built-in framework arguments.</div>
+<div class="prose" data-line="703">  - Prepares UI state and title bar output.</div>
+<div class="prose" data-line="704">  - Initializes script parameters from defaults, state, and arguments.</div>
+<div class="prose" data-line="705">  - Prompts for interactive input when auto-run is not enabled.</div>
+<div class="prose" data-line="706">  - Hands off control to the script'#39;s main logic.</div>
+<div class="comment-section-header" data-line="708">Arguments:</div>
+<div class="prose" data-line="709">  $@  Command-line arguments (framework and script-specific).</div>
+<div class="comment-section-header" data-line="711">Returns:</div>
+<div class="prose" data-line="712">  0  on success.</div>
+<div class="prose" data-line="713">  Non-zero on bootstrap, input, or script failure.</div>
+<div class="comment-section-header" data-line="715">Usage:</div>
+<div class="prose" data-line="716">  main "quot;$@"quot;</div>
+<div class="comment-section-header" data-line="718">Examples:</div>
+<div class="prose" data-line="719">  main "quot;$@"quot;</div>
+<div class="comment-section-header" data-line="721">Notes:</div>
+<div class="prose" data-line="722">  - sgnd_bootstrap separates framework arguments from script arguments.</div>
+<div class="prose" data-line="723">  - This function is script-owned orchestration logic, not template-only scaffolding.</div>
+<h2 class="section-header" data-line="725">Bootstrap</h2>
+<h2 class="section-header" data-line="747">Handle builtin arguments</h2>
+<h2 class="section-header" data-line="752">UI</h2>
+<h2 class="section-header" data-line="756">Main script logic</h2>
+</div>
+</body>
+</html>

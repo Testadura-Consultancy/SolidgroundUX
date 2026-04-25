@@ -5,33 +5,18 @@
 #   Version     : 1.1
 #   Build       : 2609100
 #   Checksum    : none
-#   Source      : lib-template.sh
+#   Source      : doc-processor.sh
 #   Type        : library
 #   Group       : Templates
-#   Purpose     : Canonical template for source-only framework libraries
+#   Purpose     : Parse source files for comments and assemble documentation
 #
 # Description:
-#   Provides the standard structure for framework libraries, including:
-#     - canonical script header sections
-#     - library-only execution guard (must be sourced, never executed)
-#     - idempotent load guard
-#     - naming conventions for internal and public functions
-#     - reference function header layout
 #
 # Design principles:
-#   - Libraries define functions and constants only
-#   - No auto-execution (must always be sourced)
-#   - Keep behavior deterministic and side-effect aware
-#   - Separate mechanism (library) from policy (caller)
 #
 # Role in framework:
-#   - Base template for all SolidGroundUX library modules
-#   - Defines structure, conventions, and documentation standards
 #
 # Non-goals:
-#   - Executable scripts (use exe-template.sh)
-#   - Application logic
-#   - Framework bootstrap or path resolution
 #
 # Attribution:
 #   Developers  : Mark Fieten
@@ -42,7 +27,7 @@
 # ==================================================================================
 set -uo pipefail
 # - Library guard ------------------------------------------------------------------
-    # tmp: _sgnd_lib_guard
+    # $tfn: _sgnd_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
         #
@@ -84,51 +69,52 @@ set -uo pipefail
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
-# - Internal helpers -------------------------------------------------------------
+# - Internal Definitions ---------------------------------------------------------
     # Naming:
     #   - Prefix internal-only helpers with "_" (never "sgnd_")
     # Example:
     #   __<libname>_helper() { :; }
-# - Public API -------------------------------------------------------------------
-    # Naming:
-    #   - Prefix public functions with "sgnd_" (never "_")
-    # Example:
-    #   sgnd_<libname>_do_something() { :; }
+# - Internal API ----------------------------------------------------------------
+    # $fn _parse_module_file
+    _parse_module_file(){
+        local file="${1:-}"
+        [[ -z "$file" ]] && {
+            sayerror "No filename was passed"
+            return 1
+        }
+        sayinfo "Parsing file $file"
 
-    # Default function header
-        # <function_name>
-        # Purpose:
-        #   <one-line description>
-        #
-        # Behavior:
-        #   <optional: key behavior summary when non-trivial>
-        #
-        # Arguments:
-        #   $1  ...
-        #   $2  ...
-        #
-        # Inputs (globals):
-        #   FOO, BAR   (only if used)
-        #
-        # Outputs (globals):
-        #   BAZ        (only if set)
-        #
-        # Output:
-        #   Writes ... to stdout/stderr (only if applicable)
-        #
-        # Side effects:
-        #   Creates/updates/deletes files, sets permissions, etc.
-        #
-        # Returns:
-        #   0 on success, non-zero on failure
-        #
-        # Usage:
-        #   <function_name> arg1 arg2
-        #
-        # Examples:
-        #   <function_name> "value"
-        #
-        # Notes:
-        #   - Edge cases / gotchas
+        local total_lines
+        local linenr=0
+        local line
+
+        total_lines=$(wc -l < "$file")
+
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            ((linenr++))
+
+            sayprogress \
+                --slot 1 \
+                --current "$linenr" \
+                --total "$total_lines" \
+                --label "Parsing $(basename "$file")" \
+                --type 5
+
+            # parsing logic...
+
+        done < "$file"
+
+        return 0
+    }   
+
+    _render_site(){
+        local output_folder="${1:-}"
+        [[ -z "$output_folder" ]] && {
+            sayerror "No outputfolder was passed"
+            return 1
+        }
+        sayinfo "Rendering site to $output_folder"
+        return 0
+    } 
 
 

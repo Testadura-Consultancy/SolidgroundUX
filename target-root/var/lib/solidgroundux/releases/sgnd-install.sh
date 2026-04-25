@@ -9,6 +9,7 @@
 #   Source      : sgnd-install.sh
 #   Type        : script
 #   Purpose     : Install a packaged SolidgroundUX release into a target root
+#   Group       : Setup
 #
 # Description:
 #   Standalone installer for SolidgroundUX release archives.

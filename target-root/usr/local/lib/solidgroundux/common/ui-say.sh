@@ -377,6 +377,83 @@ set -uo pipefail
 
         return 1
     }
+
+    # fn: _sayprogress_write_slot
+        # Purpose:
+        #   Write progress text to a reserved progress slot.
+        #
+        # Behavior:
+        #   - Saves the current cursor position.
+        #   - Moves to the requested progress slot.
+        #   - Clears and rewrites that line.
+        #   - Restores the original cursor position.
+        #   - Lazily reserves one slot when sayprogress_begin was not called.
+        #
+        # Arguments:
+        #   $1  SLOT
+        #       Zero-based progress slot number.
+        #   $2  TEXT
+        #       Rendered progress text.
+        #
+        # Inputs (globals):
+        #   SGND_PROGRESS_RESERVED
+        #
+        # Outputs (globals):
+        #   SGND_PROGRESS_RESERVED
+        #   SGND_LINEBREAK_PENDING
+        #
+        # Usage:
+        #   _sayprogress_write_slot 0 "$text"
+        #
+        # Examples:
+        #   _sayprogress_write_slot 1 "Parsing file.sh"
+        #
+        # Returns:
+        #   0 always.
+    _sayprogress_write_slot() {
+        local slot="${1:-0}"
+        local text="${2:-}"
+
+        (( slot >= 0 )) || slot=0
+
+        if (( ${SGND_PROGRESS_RESERVED:-0} == 0 )); then
+            sayprogress_begin --slots "$(( slot + 1 ))"
+        elif (( slot >= SGND_PROGRESS_RESERVED )); then
+            slot=$(( SGND_PROGRESS_RESERVED - 1 ))
+        fi
+
+        printf '\033[s' >&2
+
+        if (( slot > 0 )); then
+            printf '\033[%dB' "$slot" >&2
+        fi
+
+        printf '\r\033[K%-140s' "$text" >&2
+
+        printf '\033[u' >&2
+
+        SGND_LINEBREAK_PENDING=1
+    }
+    # fn: _sgnd_ensure_linebreak
+        # Purpose:
+        #   Ensure progress output is terminated before normal output continues.
+        #
+        # Behavior:
+        #   - Prints a newline if a progress line is still active.
+        #   - Resets the pending linebreak flag.
+        #
+        # Inputs (globals):
+        #   SGND_LINEBREAK_PENDING
+        #
+        # Outputs (globals):
+        #   SGND_LINEBREAK_PENDING
+    _sgnd_ensure_linebreak() {
+        if (( ${SGND_LINEBREAK_PENDING:-0} )); then
+            printf '\n' >&2
+            SGND_LINEBREAK_PENDING=0
+        fi
+    }
+
 # --- Public API ---------------------------------------------------------------------
     # fn: say
         # Purpose:
@@ -526,6 +603,8 @@ set -uo pipefail
         local rst="${RESET:-}"
         local prefix_parts=()
 
+        _sgnd_ensure_linebreak
+
         if (( add_date )); then
             date_str="$(date "+${SAY_DATE_FORMAT}")"
             if (( c_date )); then
@@ -600,6 +679,59 @@ set -uo pipefail
         _say_write_log "$type" "$msg" "$date_str"
     }
 
+    # fn: sayprogress_begin
+        # Purpose:
+        #   Reserve one or more console lines for progress rendering.
+        #
+        # Behavior:
+        #   - Creates a fixed progress area on stderr.
+        #   - Stores the number of reserved progress slots globally.
+        #   - Positions the cursor back at the first reserved slot.
+        #   - Allows sayprogress to update individual slots without disturbing others.
+        #
+        # Options:
+        #   --slots N
+        #       Number of progress lines to reserve.
+        #
+        # Outputs (globals):
+        #   SGND_PROGRESS_RESERVED
+        #   SGND_LINEBREAK_PENDING
+        #
+        # Usage:
+        #   sayprogress_begin --slots 2
+        #
+        # Examples:
+        #   sayprogress_begin --slots 2
+        #   sayprogress --slot 0 --current 1 --total 10 --label "Files"
+        #   sayprogress --slot 1 --current 5 --total 100 --label "Lines"
+        #
+        # Returns:
+        #   0 on success.
+        #   1 on invalid option.
+    sayprogress_begin() {
+        local slots=1
+
+        while (($#)); do
+            case "$1" in
+                --slots) slots="${2:?missing value for --slots}"; shift 2 ;;
+                --) shift; break ;;
+                *) return 1 ;;
+            esac
+        done
+
+        (( slots > 0 )) || slots=1
+
+        local i
+        for (( i=0; i<slots; i++ )); do
+            printf '\n' >&2
+        done
+
+        printf '\033[%dA' "$slots" >&2
+
+        SGND_PROGRESS_RESERVED="$slots"
+        SGND_LINEBREAK_PENDING=1
+    }
+
     # fn: sayprogress
         # Purpose:
         #   Render single-line progress output on stderr and update it in place.
@@ -641,6 +773,7 @@ set -uo pipefail
         #   1 on invalid option.
     sayprogress() {
         local current=0
+        local slot=0
         local total=1
         local label=""
         local progress_type=7
@@ -670,6 +803,7 @@ set -uo pipefail
                 --labelcolor)     label_color="${2-}"; shift 2 ;;
                 --indicatorcolor) indicator_color="${2-}"; shift 2 ;;
                 --padleft)        padleft="${2:?missing value for --padleft}"; shift 2 ;;
+                --slot)           slot="${2:?missing value for --slot}"; shift 2 ;;
                 --width)          width="${2:?missing value for --width}"; shift 2 ;;
                 --) shift; break ;;
                 *) return 1 ;;
@@ -751,28 +885,59 @@ set -uo pipefail
 
         text="${prefix}${text}"
 
-        SGND_LINEBREAK_PENDING=1
-        printf '\r%-140s' "$text" >&2
+        _sayprogress_write_slot "$slot" "$text"
     }
 
     # fn: sayprogress_done
         # Purpose:
-        #   Finalize progress output by printing a newline.
+        #   Finalize reserved progress output.
         #
         # Behavior:
-        #   - Prints a newline to stderr to move past the progress line.
+        #   - Clears all reserved progress slots.
+        #   - Moves the cursor below the progress area.
+        #   - Resets progress reservation state.
+        #   - Ends pending progress output cleanly with a newline.
+        #
+        # Inputs (globals):
+        #   SGND_PROGRESS_RESERVED
+        #
+        # Outputs (globals):
+        #   SGND_PROGRESS_RESERVED
+        #   SGND_LINEBREAK_PENDING
         #
         # Usage:
         #   sayprogress_done
         #
         # Examples:
+        #   sayprogress_begin --slots 2
+        #   sayprogress --slot 0 --current 10 --total 10 --label "Files"
+        #   sayprogress --slot 1 --current 100 --total 100 --label "Lines"
         #   sayprogress_done
         #
         # Returns:
         #   0 always.
     sayprogress_done() {
-        SGND_LINEBREAK_PENDING=0    
+        local slots="${SGND_PROGRESS_RESERVED:-1}"
+        local i
+
+        (( slots > 0 )) || slots=1
+
+        printf '\033[s' >&2
+
+        for (( i=0; i<slots; i++ )); do
+            if (( i > 0 )); then
+                printf '\033[1B' >&2
+            fi
+
+            printf '\r\033[K' >&2
+        done
+
+        printf '\033[u' >&2
+        printf '\033[%dB' "$slots" >&2
         printf '\n' >&2
+
+        SGND_PROGRESS_RESERVED=0
+        SGND_LINEBREAK_PENDING=0
     }
 
     # -- Convenience wrappers for say() with a fixed TYPE.
@@ -796,7 +961,7 @@ set -uo pipefail
             # Examples:
             #   sayinfo "Using default configuration"
         sayinfo() {
-                say INFO "$@"
+            say INFO "$@"
         }
 
         # fn: saystart

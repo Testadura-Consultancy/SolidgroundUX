@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>UI Ask</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+<nav class="nav"><a href="index.html">Index</a></nav>
+<header class="module-header">
+  <h1>UI Ask</h1>
+  <p>Provide interactive prompting and lightweight dialog utilities</p>
+  <div class="meta-grid">
+    <div>Group</div><div>UI</div>
+    <div>Type</div><div>library</div>
+    <div>Version</div><div>1.2</div>
+    <div>Build</div><div>2608700</div>
+    <div>Developers</div><div>Mark Fieten</div>
+    <div>Company</div><div>Testadura Consultancy</div>
+    <div>License</div><div>Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.</div>
+  </div>
+</header>
+<h3 class="item-header" data-line="42">_sgnd_lib_guard <span>(tmp, private)</span></h3>
+<div class="comment-section-header" data-line="43">Purpose:</div>
+<div class="prose" data-line="44">  Ensure the file is sourced as a library and only initialized once.</div>
+<div class="comment-section-header" data-line="46">Behavior:</div>
+<div class="prose" data-line="47">  - Derives a unique guard variable name from the current filename.</div>
+<div class="prose" data-line="48">  - Aborts execution if the file is executed instead of sourced.</div>
+<div class="prose" data-line="49">  - Sets the guard variable on first load.</div>
+<div class="prose" data-line="50">  - Skips initialization if the library was already loaded.</div>
+<div class="comment-section-header" data-line="52">Inputs:</div>
+<div class="prose" data-line="53">  BASH_SOURCE[0]</div>
+<div class="prose" data-line="54">  $0</div>
+<div class="prose" data-line="56">Outputs (globals):</div>
+<div class="prose" data-line="57">  SGND_<lt;MODULE>gt;_LOADED</div>
+<div class="comment-section-header" data-line="59">Returns:</div>
+<div class="prose" data-line="60">  0 if already loaded or successfully initialized.</div>
+<div class="prose" data-line="61">  Exits with code 2 if executed instead of sourced.</div>
+<h3 class="item-header" data-line="85">_ask_expand_choices <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="86">Purpose:</div>
+<div class="prose" data-line="87">  Expand a comma-separated choice specification into individual allowed values.</div>
+<div class="comment-section-header" data-line="89">Arguments:</div>
+<div class="prose" data-line="90">  $1  Choice spec string. Supports:</div>
+<div class="prose" data-line="91">      - Literal tokens: "quot;dev,acc,prod"quot;</div>
+<div class="prose" data-line="92">      - Simple ranges:  "quot;A-Z"quot;, "quot;0-9"quot; (single ASCII [[:alnum:]] endpoints)</div>
+<div class="prose" data-line="93">      - Optional whitespace around tokens: "quot;A-Z, 1-3, foo"quot;</div>
+<div class="comment-section-header" data-line="95">Output:</div>
+<div class="prose" data-line="96">  Prints one expanded value per line.</div>
+<div class="comment-section-header" data-line="98">Returns:</div>
+<div class="prose" data-line="99">  0 always.</div>
+<h3 class="item-header" data-line="142">_ask_choice_is_valid <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="143">Purpose:</div>
+<div class="prose" data-line="144">  Validate a single choice against a ask_choose-style choices list.</div>
+<div class="comment-section-header" data-line="146">Arguments:</div>
+<div class="prose" data-line="147">  $1  VALUE</div>
+<div class="prose" data-line="148">  $2  CHOICES</div>
+<div class="comment-section-header" data-line="150">Returns:</div>
+<div class="prose" data-line="151">  0 if valid</div>
+<div class="prose" data-line="152">  1 if invalid</div>
+<h3 class="item-header" data-line="171">_ask_build_prompt <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="172">Purpose:</div>
+<div class="prose" data-line="173">  Build a readline-safe prompt with visible-width padding and optional colors.</div>
+<div class="comment-section-header" data-line="175">Arguments:</div>
+<div class="prose" data-line="176">  $1  LABEL</div>
+<div class="prose" data-line="177">  $2  LABELWIDTH</div>
+<div class="prose" data-line="178">  $3  PAD</div>
+<div class="prose" data-line="179">  $4  LABELCLR</div>
+<div class="prose" data-line="180">  $5  INPUTCLR</div>
+<div class="prose" data-line="181">  $6  COLORIZE</div>
+<div class="comment-section-header" data-line="183">Output:</div>
+<div class="prose" data-line="184">  Writes the composed prompt string to stdout.</div>
+<div class="comment-section-header" data-line="186">Returns:</div>
+<div class="prose" data-line="187">  0 always.</div>
+<h3 class="item-header" data-line="237">_ask_validate <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="238">Purpose:</div>
+<div class="prose" data-line="239">  Run a validation callback when provided.</div>
+<div class="comment-section-header" data-line="241">Arguments:</div>
+<div class="prose" data-line="242">  $1  VALIDATE_FUNCTION</div>
+<div class="prose" data-line="243">  $2  VALUE</div>
+<div class="comment-section-header" data-line="245">Returns:</div>
+<div class="prose" data-line="246">  0 if valid or no validator is supplied.</div>
+<div class="prose" data-line="247">  Non-zero when the validator rejects the value.</div>
+<h3 class="item-header" data-line="256">_ask_decision_expand_choices <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="257">Purpose:</div>
+<div class="prose" data-line="258">  Expand a symbolic decision specification into canonical choices and aliases.</div>
+<div class="comment-section-header" data-line="260">Arguments:</div>
+<div class="prose" data-line="261">  $1  CHOICES</div>
+<div class="prose" data-line="262">      Choice specification, e.g. "quot;YES|Y,NO|N"quot;.</div>
+<div class="comment-section-header" data-line="264">Output:</div>
+<div class="prose" data-line="265">  Writes rows to stdout as CANONICAL|ALIAS.</div>
+<div class="comment-section-header" data-line="267">Returns:</div>
+<div class="prose" data-line="268">  0 always.</div>
+<h3 class="item-header" data-line="294">_ask_decision_normalize <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="295">Purpose:</div>
+<div class="prose" data-line="296">  Normalize a typed decision value to its canonical token.</div>
+<div class="comment-section-header" data-line="298">Arguments:</div>
+<div class="prose" data-line="299">  $1  VALUE</div>
+<div class="prose" data-line="300">  $2  CHOICES</div>
+<div class="prose" data-line="301">  $3  DEFAULT</div>
+<div class="comment-section-header" data-line="303">Output:</div>
+<div class="prose" data-line="304">  Writes canonical token to stdout on success.</div>
+<div class="comment-section-header" data-line="306">Returns:</div>
+<div class="prose" data-line="307">  0 if valid</div>
+<div class="prose" data-line="308">  1 if invalid</div>
+<h3 class="item-header" data-line="331">_ask_decision_display <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="332">Purpose:</div>
+<div class="prose" data-line="333">  Build a compact display string from a decision specification.</div>
+<div class="comment-section-header" data-line="335">Arguments:</div>
+<div class="prose" data-line="336">  $1  CHOICES</div>
+<div class="comment-section-header" data-line="338">Output:</div>
+<div class="prose" data-line="339">  Writes display string, e.g. YES/NO.</div>
+<div class="comment-section-header" data-line="341">Returns:</div>
+<div class="prose" data-line="342">  0 always.</div>
+<h3 class="item-header" data-line="362">_ask_decision_map_dlg_rc <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="363">Purpose:</div>
+<div class="prose" data-line="364">  Map ask_dlg_autocontinue return codes to a canonical decision when possible.</div>
+<div class="comment-section-header" data-line="366">Arguments:</div>
+<div class="prose" data-line="367">  $1  RC</div>
+<div class="prose" data-line="368">  $2  CHOICES</div>
+<div class="prose" data-line="369">  $3  DEFAULT</div>
+<div class="comment-section-header" data-line="371">Output:</div>
+<div class="prose" data-line="372">  Writes canonical decision token to stdout when mapped.</div>
+<div class="comment-section-header" data-line="374">Returns:</div>
+<div class="prose" data-line="375">  0 if mapped</div>
+<div class="prose" data-line="376">  1 if no mapping applies and typed fallback should be used</div>
+<h3 class="item-header" data-line="410">_ask_parse_fieldspec <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="411">Purpose:</div>
+<div class="prose" data-line="412">  Parse a simple field-spec line into reusable globals for ask_prompt_form().</div>
+<div class="comment-section-header" data-line="414">Behavior:</div>
+<div class="prose" data-line="415">  - Splits a pipe-delimited spec line into:</div>
+<div class="prose" data-line="416">      key|label|default|validate</div>
+<div class="prose" data-line="417">  - Writes parsed values to _ask_field_* globals.</div>
+<div class="prose" data-line="418">  - Missing fields are allowed and become empty strings.</div>
+<div class="comment-section-header" data-line="420">Arguments:</div>
+<div class="prose" data-line="421">  $1  FIELD_SPEC</div>
+<div class="prose" data-line="422">      Pipe-delimited field spec.</div>
+<div class="prose" data-line="424">Outputs (globals):</div>
+<div class="prose" data-line="425">  _ask_field_key</div>
+<div class="prose" data-line="426">  _ask_field_label</div>
+<div class="prose" data-line="427">  _ask_field_default</div>
+<div class="prose" data-line="428">  _ask_field_validate</div>
+<div class="comment-section-header" data-line="430">Returns:</div>
+<div class="prose" data-line="431">  0 always.</div>
+<div class="comment-section-header" data-line="433">Usage:</div>
+<div class="prose" data-line="434">  _ask_parse_fieldspec "quot;HOST|Host name|localhost|validate_text"quot;</div>
+<h3 class="item-header" data-line="446">_ask_is_ident <span>(fn, private)</span></h3>
+<div class="comment-section-header" data-line="447">Purpose:</div>
+<div class="prose" data-line="448">  Test whether a value is a valid shell variable identifier.</div>
+<div class="comment-section-header" data-line="450">Arguments:</div>
+<div class="prose" data-line="451">  $1  VALUE</div>
+<div class="comment-section-header" data-line="453">Returns:</div>
+<div class="prose" data-line="454">  0 if valid</div>
+<div class="prose" data-line="455">  1 if invalid</div>
+<h3 class="item-header" data-line="461">ask <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="462">Purpose:</div>
+<div class="prose" data-line="463">  Prompt for interactive input from the controlling terminal (/dev/tty),</div>
+<div class="prose" data-line="464">  with optional defaulting, validation, and direct assignment to a variable.</div>
+<div class="comment-section-header" data-line="466">Behavior:</div>
+<div class="prose" data-line="467">  - Reads from /dev/tty rather than stdin, so it remains safe in scripts</div>
+<div class="prose" data-line="468">    that consume piped or redirected stdin.</div>
+<div class="prose" data-line="469">  - Supports readline-style editing and optional prefilled defaults.</div>
+<div class="prose" data-line="470">  - Supports aligned labels via --labelwidth and --pad.</div>
+<div class="prose" data-line="471">  - Uses readline-safe prompt markers so ANSI color codes do not break</div>
+<div class="prose" data-line="472">    cursor positioning or default-value editing.</div>
+<div class="prose" data-line="473">  - Optionally validates the entered value through a callback function.</div>
+<div class="prose" data-line="474">  - Re-prompts recursively when validation fails.</div>
+<div class="prose" data-line="475">  - Can either assign the accepted value to a variable or echo it.</div>
+<div class="comment-section-header" data-line="477">Arguments:</div>
+<div class="prose" data-line="478">  LABEL</div>
+<div class="prose" data-line="479">      Positional fallback label when --label is omitted.</div>
+<div class="comment-section-header" data-line="481">Options:</div>
+<div class="prose" data-line="482">  --label TEXT</div>
+<div class="prose" data-line="483">      Prompt label text.</div>
+<div class="prose" data-line="484">  --default VALUE</div>
+<div class="prose" data-line="485">      Editable default value; empty entry resolves to this value.</div>
+<div class="prose" data-line="486">  --validate FUNC</div>
+<div class="comment-section-header" data-line="487">      Validation callback invoked as:</div>
+<div class="prose" data-line="488">          FUNC "quot;$value"quot;</div>
+<div class="prose" data-line="489">      Return 0 to accept; non-zero to reject and re-prompt.</div>
+<div class="prose" data-line="490">  --colorize MODE</div>
+<div class="comment-section-header" data-line="491">      Prompt coloring mode:</div>
+<div class="prose" data-line="492">          none | label | input | both</div>
+<div class="prose" data-line="493">      Default: both</div>
+<div class="prose" data-line="494">  --labelwidth N</div>
+<div class="prose" data-line="495">      Visible width of the label column.</div>
+<div class="prose" data-line="496">      Default: 25</div>
+<div class="prose" data-line="497">  --pad N</div>
+<div class="prose" data-line="498">      Left indentation in spaces.</div>
+<div class="prose" data-line="499">      Default: 0</div>
+<div class="prose" data-line="500">  --labelclr ANSI</div>
+<div class="prose" data-line="501">      ANSI color/style prefix for the label.</div>
+<div class="prose" data-line="502">      Default: TUI_LABEL</div>
+<div class="prose" data-line="503">  --inputclr ANSI</div>
+<div class="prose" data-line="504">      ANSI color/style prefix for the input area.</div>
+<div class="prose" data-line="505">      Default: TUI_INPUT</div>
+<div class="prose" data-line="506">  --var NAME</div>
+<div class="prose" data-line="507">      Destination variable name for the accepted value.</div>
+<div class="prose" data-line="508">  --echo</div>
+<div class="prose" data-line="509">      Echo accepted input with ✓ / ✗ feedback to /dev/tty.</div>
+<div class="prose" data-line="510">      Also prints the accepted value to stdout when --var is not used.</div>
+<div class="prose" data-line="512">Inputs (globals):</div>
+<div class="prose" data-line="513">  TUI_LABEL</div>
+<div class="prose" data-line="514">  TUI_INPUT</div>
+<div class="prose" data-line="515">  TUI_VALID</div>
+<div class="prose" data-line="516">  TUI_INVALID</div>
+<div class="prose" data-line="517">  RESET</div>
+<div class="prose" data-line="518">  sgnd_padded_visible</div>
+<div class="prose" data-line="519">  sgnd_string_repeat</div>
+<div class="prose" data-line="521">Outputs (globals):</div>
+<div class="prose" data-line="522">  Assigns the accepted value to --var NAME when provided.</div>
+<div class="comment-section-header" data-line="524">Output:</div>
+<div class="prose" data-line="525">  - Prints validation feedback to /dev/tty when --echo is enabled.</div>
+<div class="prose" data-line="526">  - Prints the accepted value to stdout only when --var is not used and</div>
+<div class="prose" data-line="527">    --echo is enabled.</div>
+<div class="comment-section-header" data-line="529">Returns:</div>
+<div class="prose" data-line="530">  0  on accepted input</div>
+<div class="prose" data-line="531">  2  if /dev/tty cannot be opened</div>
+<div class="comment-section-header" data-line="533">Usage:</div>
+<div class="prose" data-line="534">  ask --label "quot;Project name"quot; --var project</div>
+<div class="prose" data-line="535">  ask --label "quot;Environment"quot; --default "quot;dev"quot; --var env</div>
+<div class="prose" data-line="536">  ask --label "quot;Release date"quot; --validate validate_date --var release_date</div>
+<div class="comment-section-header" data-line="538">Examples:</div>
+<div class="prose" data-line="539">  # Plain text input</div>
+<div class="prose" data-line="540">  ask --label "quot;Product"quot; --var PRODUCT</div>
+<div class="prose" data-line="542">  # With default</div>
+<div class="prose" data-line="543">  ask --label "quot;Version"quot; --default "quot;1.0"quot; --var VERSION</div>
+<div class="prose" data-line="545">  # With validation</div>
+<div class="prose" data-line="546">  ask --label "quot;Staging directory"quot; \</div>
+<div class="prose" data-line="547">      --default "quot;$STAGING_ROOT"quot; \</div>
+<div class="prose" data-line="548">      --validate validate_dir_exists \</div>
+<div class="prose" data-line="549">      --var STAGING_ROOT</div>
+<div class="prose" data-line="551">  # With alignment / styling</div>
+<div class="prose" data-line="552">  ask --label "quot;Release"quot; \</div>
+<div class="prose" data-line="553">      --default "quot;$RELEASE"quot; \</div>
+<div class="prose" data-line="554">      --var RELEASE \</div>
+<div class="prose" data-line="555">      --labelwidth 30 \</div>
+<div class="prose" data-line="556">      --pad 4 \</div>
+<div class="prose" data-line="557">      --labelclr "quot;${CYAN}"quot; \</div>
+<div class="prose" data-line="558">      --colorize both</div>
+<div class="comment-section-header" data-line="560">Notes:</div>
+<div class="prose" data-line="561">  - Re-prompt currently uses recursion; convert to a loop later if you want</div>
+<div class="prose" data-line="562">    to avoid recursive retries entirely.</div>
+<div class="prose" data-line="563">  - This is the base prompt primitive; higher-level helpers such as</div>
+<div class="prose" data-line="564">    ask_decision and ask_choose build on top of it.</div>
+<h3 class="item-header" data-line="652">ask_decision <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="653">Purpose:</div>
+<div class="prose" data-line="654">  Prompt for a constrained symbolic decision and store the canonical result.</div>
+<div class="comment-section-header" data-line="656">Behavior:</div>
+<div class="prose" data-line="657">  - Builds on top of ask().</div>
+<div class="prose" data-line="658">  - Accepts a developer-defined decision specification with aliases.</div>
+<div class="prose" data-line="659">  - Optionally runs ask_dlg_autocontinue() first when --seconds >gt; 0.</div>
+<div class="prose" data-line="660">  - Validates typed input against the allowed decision values.</div>
+<div class="prose" data-line="661">  - Stores the canonical decision token in the variable named by --var.</div>
+<div class="comment-section-header" data-line="663">Options:</div>
+<div class="prose" data-line="664">  --label TEXT</div>
+<div class="prose" data-line="665">  --choices SPEC</div>
+<div class="prose" data-line="666">  --default VALUE</div>
+<div class="prose" data-line="667">  --var NAME</div>
+<div class="prose" data-line="668">  --seconds N</div>
+<div class="prose" data-line="669">  --displaychoices 0|1</div>
+<div class="prose" data-line="670">  --colorize MODE</div>
+<div class="prose" data-line="671">  --labelclr ANSI</div>
+<div class="prose" data-line="672">  --inputclr ANSI</div>
+<div class="prose" data-line="673">  --labelwidth N</div>
+<div class="prose" data-line="674">  --pad N</div>
+<div class="comment-section-header" data-line="676">Usage:</div>
+<div class="prose" data-line="677">  ask_decision \</div>
+<div class="prose" data-line="678">      --label "quot;Use existing staging files?"quot; \</div>
+<div class="prose" data-line="679">      --choices "quot;YES|Y,NO|N"quot; \</div>
+<div class="prose" data-line="680">      --default "quot;NO"quot; \</div>
+<div class="prose" data-line="681">      --var answer</div>
+<div class="comment-section-header" data-line="683">Examples:</div>
+<div class="prose" data-line="684">  local action="quot;"quot;</div>
+<div class="prose" data-line="685">  ask_decision \</div>
+<div class="prose" data-line="686">      --label "quot;Create release using these settings?"quot; \</div>
+<div class="prose" data-line="687">      --choices "quot;OK|O,REDO|R,CANCEL|C"quot; \</div>
+<div class="prose" data-line="688">      --default "quot;OK"quot; \</div>
+<div class="prose" data-line="689">      --seconds 5 \</div>
+<div class="prose" data-line="690">      --var action</div>
+<div class="prose" data-line="692">  local answer="quot;"quot;</div>
+<div class="prose" data-line="693">  ask_decision \</div>
+<div class="prose" data-line="694">      --label "quot;Use existing staging files?"quot; \</div>
+<div class="prose" data-line="695">      --choices "quot;YES|Y,NO|N"quot; \</div>
+<div class="prose" data-line="696">      --default "quot;NO"quot; \</div>
+<div class="prose" data-line="697">      --var answer</div>
+<div class="prose" data-line="699">  case "quot;$answer"quot; in</div>
+<div class="prose" data-line="700">      YES) FLAG_USEEXISTING=1 ;;</div>
+<div class="prose" data-line="701">      NO)  FLAG_USEEXISTING=0 ;;</div>
+<div class="prose" data-line="702">  esac</div>
+<h3 class="item-header" data-line="784">ask_dlg_autocontinue <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="785">Purpose:</div>
+<div class="prose" data-line="786">  Show a lightweight timed auto-continue prompt on /dev/tty.</div>
+<div class="comment-section-header" data-line="788">Behavior:</div>
+<div class="prose" data-line="789">  - Displays an optional message.</div>
+<div class="prose" data-line="790">  - Displays a countdown line that updates once per second.</div>
+<div class="prose" data-line="791">  - Auto-continues when the countdown expires.</div>
+<div class="prose" data-line="792">  - Supports optional redo, cancel, and pause/resume controls.</div>
+<div class="prose" data-line="793">  - Supports either Enter-to-continue or any-key-to-continue behavior.</div>
+<div class="comment-section-header" data-line="795">Options:</div>
+<div class="prose" data-line="796">  --seconds N</div>
+<div class="prose" data-line="797">  --message TEXT</div>
+<div class="prose" data-line="798">  --redo</div>
+<div class="prose" data-line="799">  --cancel</div>
+<div class="prose" data-line="800">  --pause</div>
+<div class="prose" data-line="801">  --anykey</div>
+<div class="prose" data-line="802">  --hidelegend</div>
+<div class="comment-section-header" data-line="804">Returns:</div>
+<div class="prose" data-line="805">  0  explicit continue</div>
+<div class="prose" data-line="806">  1  timeout / auto-continue</div>
+<div class="prose" data-line="807">  2  cancel</div>
+<div class="prose" data-line="808">  3  redo</div>
+<div class="comment-section-header" data-line="810">Usage:</div>
+<div class="prose" data-line="811">  ask_dlg_autocontinue --seconds 5 --message "quot;Continuing shortly..."quot;</div>
+<div class="comment-section-header" data-line="813">Examples:</div>
+<div class="prose" data-line="814">  ask_dlg_autocontinue \</div>
+<div class="prose" data-line="815">      --seconds 5 \</div>
+<div class="prose" data-line="816">      --message "quot;Create release using these settings?"quot; \</div>
+<div class="prose" data-line="817">      --redo \</div>
+<div class="prose" data-line="818">      --cancel \</div>
+<div class="prose" data-line="819">      --pause</div>
+<div class="prose" data-line="821">  ask_dlg_autocontinue \</div>
+<div class="prose" data-line="822">      --seconds 5 \</div>
+<div class="prose" data-line="823">      --message "quot;Create release using these settings?"quot; \</div>
+<div class="prose" data-line="824">      --redo \</div>
+<div class="prose" data-line="825">      --cancel \</div>
+<div class="prose" data-line="826">      --pause</div>
+<div class="prose" data-line="828">  case $? in</div>
+<div class="prose" data-line="829">      0|1) proceed ;;</div>
+<div class="prose" data-line="830">      2)   exit 1 ;;</div>
+<div class="prose" data-line="831">      3)   continue ;;</div>
+<div class="prose" data-line="832">  esac</div>
+<h3 class="item-header" data-line="962">ask_choose <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="963">Purpose:</div>
+<div class="prose" data-line="964">  Prompt for a constrained user choice using standard line input.</div>
+<div class="comment-section-header" data-line="966">Behavior:</div>
+<div class="prose" data-line="967">  - Reads input from /dev/tty.</div>
+<div class="prose" data-line="968">  - Requires Enter to confirm input.</div>
+<div class="prose" data-line="969">  - Validates input against the allowed choice list when provided.</div>
+<div class="prose" data-line="970">  - Re-prompts on invalid input when keepasking=1.</div>
+<div class="prose" data-line="971">  - Supports default values.</div>
+<div class="prose" data-line="972">  - Uses shared prompt rendering via _ask_build_prompt().</div>
+<div class="comment-section-header" data-line="974">Options:</div>
+<div class="prose" data-line="975">  --label TEXT</div>
+<div class="prose" data-line="976">      Prompt label.</div>
+<div class="prose" data-line="978">  --var NAME</div>
+<div class="prose" data-line="979">      Destination variable name.</div>
+<div class="prose" data-line="980">      Default: choice</div>
+<div class="prose" data-line="982">  --choices LIST</div>
+<div class="prose" data-line="983">      Allowed values as comma-separated tokens and/or ranges.</div>
+<div class="prose" data-line="985">  --default VALUE</div>
+<div class="prose" data-line="986">      Default value (editable).</div>
+<div class="prose" data-line="988">  --displaychoices 0|1</div>
+<div class="prose" data-line="989">      Append [choices] to the label.</div>
+<div class="prose" data-line="990">      Default: 1</div>
+<div class="prose" data-line="992">  --keepasking 0|1</div>
+<div class="prose" data-line="993">      Re-prompt on invalid input.</div>
+<div class="prose" data-line="994">      Default: 1</div>
+<div class="prose" data-line="996">  --labelwidth N</div>
+<div class="prose" data-line="997">      Align label to fixed width.</div>
+<div class="prose" data-line="999">  --pad N</div>
+<div class="prose" data-line="1000">      Spacing between label and '#39;:'#39;.</div>
+<div class="prose" data-line="1002">  --labelclr ANSI</div>
+<div class="prose" data-line="1003">      Color/style applied to label.</div>
+<div class="prose" data-line="1005">  --inputclr ANSI</div>
+<div class="prose" data-line="1006">      Color/style applied to input.</div>
+<div class="prose" data-line="1008">  --colorize MODE</div>
+<div class="comment-section-header" data-line="1009">      Colorization mode:</div>
+<div class="prose" data-line="1010">        label | input | both | none</div>
+<div class="prose" data-line="1012">Outputs (globals):</div>
+<div class="prose" data-line="1013">  Assigns accepted value to variable defined by --var.</div>
+<div class="comment-section-header" data-line="1015">Returns:</div>
+<div class="prose" data-line="1016">  0 always.</div>
+<div class="comment-section-header" data-line="1018">Usage:</div>
+<div class="prose" data-line="1019">  ask_choose --label "quot;Select option"quot; --choices "quot;1,2,3"quot; --var choice</div>
+<div class="comment-section-header" data-line="1021">Examples:</div>
+<div class="prose" data-line="1022">  # Basic choice</div>
+<div class="prose" data-line="1023">  ask_choose \</div>
+<div class="prose" data-line="1024">      --label "quot;Action"quot; \</div>
+<div class="prose" data-line="1025">      --choices "quot;1,2,3,Q"quot; \</div>
+<div class="prose" data-line="1026">      --var ACTION</div>
+<div class="prose" data-line="1028">  # With default</div>
+<div class="prose" data-line="1029">  ask_choose \</div>
+<div class="prose" data-line="1030">      --label "quot;Mode"quot; \</div>
+<div class="prose" data-line="1031">      --choices "quot;auto,manual"quot; \</div>
+<div class="prose" data-line="1032">      --default "quot;auto"quot; \</div>
+<div class="prose" data-line="1033">      --var MODE</div>
+<div class="comment-section-header" data-line="1035">Notes:</div>
+<div class="prose" data-line="1036">  - Intended for standard constrained input.</div>
+<div class="prose" data-line="1037">  - For instant key-driven menus, use ask_choose_immediate().</div>
+<h3 class="item-header" data-line="1106">ask_choose_immediate <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="1107">Purpose:</div>
+<div class="prose" data-line="1108">  Prompt for a constrained user choice using immediate-capable TTY input.</div>
+<div class="comment-section-header" data-line="1110">Behavior:</div>
+<div class="prose" data-line="1111">  - Reads directly from /dev/tty.</div>
+<div class="prose" data-line="1112">  - Accepts configured instant choices immediately (no Enter required).</div>
+<div class="prose" data-line="1113">  - Buffers all other input until Enter is pressed.</div>
+<div class="prose" data-line="1114">  - Supports backspace editing for buffered input.</div>
+<div class="prose" data-line="1115">  - Validates input against the allowed choice list when provided.</div>
+<div class="prose" data-line="1116">  - Re-prompts on invalid input when keepasking=1.</div>
+<div class="prose" data-line="1117">  - Uses shared prompt rendering via _ask_build_prompt().</div>
+<div class="comment-section-header" data-line="1119">Options:</div>
+<div class="prose" data-line="1120">  --label TEXT</div>
+<div class="prose" data-line="1121">      Prompt label.</div>
+<div class="prose" data-line="1123">  --var NAME</div>
+<div class="prose" data-line="1124">      Destination variable name.</div>
+<div class="prose" data-line="1125">      Default: choice</div>
+<div class="prose" data-line="1127">  --choices LIST</div>
+<div class="prose" data-line="1128">      Allowed values as comma-separated tokens and/or ranges.</div>
+<div class="comment-section-header" data-line="1129">      Examples:</div>
+<div class="prose" data-line="1130">        "quot;1,2,3,Q"quot;</div>
+<div class="prose" data-line="1131">        "quot;A-D,1-5"quot;</div>
+<div class="prose" data-line="1133">  --instantchoices LIST</div>
+<div class="prose" data-line="1134">      Choices accepted immediately without Enter.</div>
+<div class="prose" data-line="1136">  --displaychoices 0|1</div>
+<div class="prose" data-line="1137">      Append [choices] to the label.</div>
+<div class="prose" data-line="1138">      Default: 1</div>
+<div class="prose" data-line="1140">  --keepasking 0|1</div>
+<div class="prose" data-line="1141">      Re-prompt on invalid input.</div>
+<div class="prose" data-line="1142">      Default: 1</div>
+<div class="prose" data-line="1144">  --labelwidth N</div>
+<div class="prose" data-line="1145">      Align label to fixed width.</div>
+<div class="prose" data-line="1147">  --pad N</div>
+<div class="prose" data-line="1148">      Spacing between label and '#39;:'#39;.</div>
+<div class="prose" data-line="1150">  --labelclr ANSI</div>
+<div class="prose" data-line="1151">      Color/style applied to label.</div>
+<div class="prose" data-line="1153">  --inputclr ANSI</div>
+<div class="prose" data-line="1154">      Color/style applied to typed input.</div>
+<div class="prose" data-line="1156">  --colorize MODE</div>
+<div class="comment-section-header" data-line="1157">      Colorization mode:</div>
+<div class="prose" data-line="1158">        label | input | both | none</div>
+<div class="prose" data-line="1159">      Default: both</div>
+<div class="prose" data-line="1161">Outputs (globals):</div>
+<div class="prose" data-line="1162">  Assigns accepted value to variable defined by --var.</div>
+<div class="comment-section-header" data-line="1164">Returns:</div>
+<div class="prose" data-line="1165">  0 always.</div>
+<div class="comment-section-header" data-line="1167">Usage:</div>
+<div class="prose" data-line="1168">  ask_choose_immediate --label "quot;Action"quot; --choices "quot;1,2,3,Q"quot; --var action</div>
+<div class="comment-section-header" data-line="1170">Examples:</div>
+<div class="prose" data-line="1171">  # Immediate hotkey (Q exits instantly)</div>
+<div class="prose" data-line="1172">  ask_choose_immediate \</div>
+<div class="prose" data-line="1173">      --label "quot;Action"quot; \</div>
+<div class="prose" data-line="1174">      --choices "quot;1,2,3,Q"quot; \</div>
+<div class="prose" data-line="1175">      --instantchoices "quot;Q"quot; \</div>
+<div class="prose" data-line="1176">      --var ACTION</div>
+<div class="prose" data-line="1178">  # Menu-style hotkeys</div>
+<div class="prose" data-line="1179">  ask_choose_immediate \</div>
+<div class="prose" data-line="1180">      --label "quot;Select option"quot; \</div>
+<div class="prose" data-line="1181">      --choices "quot;1-9,B,D,L,V,C,Q"quot; \</div>
+<div class="prose" data-line="1182">      --instantchoices "quot;B,D,L,V,C,Q"quot; \</div>
+<div class="prose" data-line="1183">      --var ACTION</div>
+<div class="prose" data-line="1185">  # Buffered input (Enter required)</div>
+<div class="prose" data-line="1186">  ask_choose_immediate \</div>
+<div class="prose" data-line="1187">      --label "quot;Enter code"quot; \</div>
+<div class="prose" data-line="1188">      --choices "quot;A-D,1-3"quot; \</div>
+<div class="prose" data-line="1189">      --var CODE</div>
+<div class="comment-section-header" data-line="1191">Notes:</div>
+<div class="prose" data-line="1192">  - Intended for menu-driven UIs with immediate key reactions.</div>
+<div class="prose" data-line="1193">  - For standard constrained input, prefer ask_choose().</div>
+<h3 class="item-header" data-line="1306">ask_prompt_form <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="1307">Purpose:</div>
+<div class="prose" data-line="1308">  Prompt for a list of variables described by field-spec lines.</div>
+<div class="comment-section-header" data-line="1310">Behavior:</div>
+<div class="prose" data-line="1311">  - Parses each spec line via _ask_parse_fieldspec.</div>
+<div class="prose" data-line="1312">  - Resolves variable name, label, default value, and validator.</div>
+<div class="prose" data-line="1313">  - Uses the current shell value when present; otherwise uses the spec default.</div>
+<div class="prose" data-line="1314">  - Prompts via ask() and stores results directly in the target variables.</div>
+<div class="prose" data-line="1315">  - Optionally auto-aligns labels based on the longest label in the input list.</div>
+<div class="comment-section-header" data-line="1317">Options:</div>
+<div class="prose" data-line="1318">  --labelwidth N</div>
+<div class="prose" data-line="1319">      Fixed label width.</div>
+<div class="prose" data-line="1320">      Default: 0</div>
+<div class="prose" data-line="1321">  --autoalign</div>
+<div class="prose" data-line="1322">      Compute label width from the longest label in the provided specs.</div>
+<div class="prose" data-line="1323">  --colorize MODE</div>
+<div class="prose" data-line="1324">      Passed through to ask --colorize.</div>
+<div class="prose" data-line="1325">      Default: both</div>
+<div class="prose" data-line="1326">  --pad N</div>
+<div class="prose" data-line="1327">      Passed through to ask --pad.</div>
+<div class="prose" data-line="1328">      Default: 0</div>
+<div class="prose" data-line="1329">  --labelclr ANSI</div>
+<div class="prose" data-line="1330">      Passed through to ask --labelclr.</div>
+<div class="prose" data-line="1331">  --inputclr ANSI</div>
+<div class="prose" data-line="1332">      Passed through to ask --inputclr.</div>
+<div class="prose" data-line="1334">      End of options; remaining arguments are field-spec lines.</div>
+<div class="comment-section-header" data-line="1336">Field-spec format:</div>
+<div class="prose" data-line="1337">  Each field spec is parsed by _ask_parse_fieldspec and is expected to provide:</div>
+<div class="prose" data-line="1338">    _ask_field_key</div>
+<div class="prose" data-line="1339">    _ask_field_label</div>
+<div class="prose" data-line="1340">    _ask_field_default</div>
+<div class="prose" data-line="1341">    _ask_field_validate</div>
+<div class="comment-section-header" data-line="1343">Required helper contract:</div>
+<div class="prose" data-line="1344">  _ask_parse_fieldspec "quot;$line"quot; must populate:</div>
+<div class="prose" data-line="1345">    _ask_field_key</div>
+<div class="prose" data-line="1346">    _ask_field_label</div>
+<div class="prose" data-line="1347">    _ask_field_default</div>
+<div class="prose" data-line="1348">    _ask_field_validate</div>
+<div class="prose" data-line="1350">Inputs (dependencies):</div>
+<div class="prose" data-line="1351">  _ask_parse_fieldspec</div>
+<div class="prose" data-line="1352">  _ask_is_ident</div>
+<div class="prose" data-line="1353">  ask</div>
+<div class="prose" data-line="1354">  saywarning</div>
+<div class="prose" data-line="1356">Outputs (globals):</div>
+<div class="prose" data-line="1357">  Assigns prompted values directly to the variables named in each field spec.</div>
+<div class="comment-section-header" data-line="1359">Returns:</div>
+<div class="prose" data-line="1360">  0 always.</div>
+<div class="comment-section-header" data-line="1362">Usage:</div>
+<div class="prose" data-line="1363">  ask_prompt_form --autoalign -- "quot;${FORM_FIELDS[@]}"quot;</div>
+<div class="comment-section-header" data-line="1365">Examples:</div>
+<div class="prose" data-line="1366">  askprompt_form --autoalign --colorize both --pad 4 -- \</div>
+<div class="prose" data-line="1367">      "quot;HOST|Host name|localhost|validate_text"quot; \</div>
+<div class="prose" data-line="1368">      "quot;PORT|Port|8080|validate_int"quot;</div>
+<div class="comment-section-header" data-line="1370">Notes:</div>
+<div class="prose" data-line="1371">  - Invalid variable names are skipped with a warning.</div>
+<div class="prose" data-line="1372">  - This function is intentionally lightweight; it is a prompt loop, not a form engine.</div>
+</div>
+</body>
+</html>

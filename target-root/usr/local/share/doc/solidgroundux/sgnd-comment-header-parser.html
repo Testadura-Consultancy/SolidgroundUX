@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Header Parser</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+<nav class="nav"><a href="index.html">Index</a></nav>
+<header class="module-header">
+  <h1>Header Parser</h1>
+  <p>Read, parse, and update canonical script header comments in SolidgroundUX files</p>
+  <div class="meta-grid">
+    <div>Group</div><div>Developer Tools</div>
+    <div>Type</div><div>library</div>
+    <div>Version</div><div>1.1</div>
+    <div>Build</div><div>2609100</div>
+    <div>Developers</div><div>Mark Fieten</div>
+    <div>Company</div><div>Testadura Consultancy</div>
+    <div>License</div><div>Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.</div>
+  </div>
+</header>
+<h2 class="section-header" data-line="51">Library guard</h2>
+<h3 class="item-header" data-line="52">_sgnd_lib_guard <span>(tmp, private)</span></h3>
+<div class="comment-section-header" data-line="53">Purpose:</div>
+<div class="prose" data-line="54">  Ensure the file is sourced as a library and only initialized once.</div>
+<div class="comment-section-header" data-line="56">Behavior:</div>
+<div class="prose" data-line="57">  - Derives a unique guard variable name from the current filename.</div>
+<div class="prose" data-line="58">  - Aborts execution if the file is executed instead of sourced.</div>
+<div class="prose" data-line="59">  - Sets the guard variable on first load.</div>
+<div class="prose" data-line="60">  - Skips initialization if the library was already loaded.</div>
+<div class="comment-section-header" data-line="62">Inputs:</div>
+<div class="prose" data-line="63">  BASH_SOURCE[0]</div>
+<div class="prose" data-line="64">  $0</div>
+<div class="prose" data-line="66">Outputs (globals):</div>
+<div class="prose" data-line="67">  SGND_<lt;MODULE>gt;_LOADED</div>
+<div class="comment-section-header" data-line="69">Returns:</div>
+<div class="prose" data-line="70">  0 if already loaded or successfully initialized.</div>
+<div class="prose" data-line="71">  Exits with code 2 if executed instead of sourced.</div>
+<h2 class="section-header" data-line="92">Public API</h2>
+<h2 class="section-header" data-line="93">Load and info</h2>
+<h3 class="item-header" data-line="94">sgnd_header_read <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="95">Purpose:</div>
+<div class="prose" data-line="96">  Read the canonical header comment block from the top of a script file.</div>
+<div class="comment-section-header" data-line="98">Behavior:</div>
+<div class="prose" data-line="99">  - Starts at the top of the file.</div>
+<div class="prose" data-line="100">  - Collects consecutive comment lines that belong to the header block.</div>
+<div class="prose" data-line="101">  - Skips the first line if it is a shebang.</div>
+<div class="prose" data-line="102">  - Stops at the first non-comment, non-blank line after the header begins.</div>
+<div class="prose" data-line="103">  - Preserves original comment markers and line formatting.</div>
+<div class="comment-section-header" data-line="105">Arguments:</div>
+<div class="prose" data-line="106">  $1  FILE</div>
+<div class="comment-section-header" data-line="108">Output:</div>
+<div class="prose" data-line="109">  Writes the full header block to stdout.</div>
+<div class="comment-section-header" data-line="111">Returns:</div>
+<div class="prose" data-line="112">  0  success</div>
+<div class="prose" data-line="113">  1  file missing or unreadable</div>
+<div class="comment-section-header" data-line="115">Usage:</div>
+<div class="prose" data-line="116">  sgnd_header_read "quot;$file"quot;</div>
+<div class="comment-section-header" data-line="118">Examples:</div>
+<div class="prose" data-line="119">  header_text="quot;$(sgnd_header_read "quot;$SGND_SCRIPT_FILE"quot;)"quot;</div>
+<h3 class="item-header" data-line="150">sgnd_header_load_section_to_dt <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="151">Purpose:</div>
+<div class="prose" data-line="152">  Load all key/value pairs from a header section into an sgnd-datatable.</div>
+<div class="comment-section-header" data-line="154">Behavior:</div>
+<div class="prose" data-line="155">  - Scans the requested section from the file header.</div>
+<div class="prose" data-line="156">  - Stops at the next top-level section header.</div>
+<div class="prose" data-line="157">  - Trims surrounding whitespace from keys and values.</div>
+<div class="prose" data-line="158">  - Appends one row per field to the target datatable.</div>
+<div class="comment-section-header" data-line="160">Arguments:</div>
+<div class="prose" data-line="161">  $1  FILE</div>
+<div class="prose" data-line="162">      Script file to read.</div>
+<div class="prose" data-line="163">  $2  SECTION</div>
+<div class="prose" data-line="164">      Header section name to scan.</div>
+<div class="prose" data-line="165">  $3  SCHEMA</div>
+<div class="prose" data-line="166">      Datatable schema name.</div>
+<div class="prose" data-line="167">  $4  TABLE_NAME</div>
+<div class="prose" data-line="168">      Datatable variable name.</div>
+<div class="comment-section-header" data-line="170">Side effects:</div>
+<div class="prose" data-line="171">  - Appends rows through sgnd_dt_append.</div>
+<div class="comment-section-header" data-line="173">Returns:</div>
+<div class="prose" data-line="174">  0 on success.</div>
+<div class="prose" data-line="175">  1 if row append fails.</div>
+<div class="comment-section-header" data-line="177">Usage:</div>
+<div class="prose" data-line="178">  sgnd_header_load_section_to_dt "quot;$file"quot; "quot;Metadata"quot; "quot;$schema"quot; "quot;$table_name"quot;</div>
+<h3 class="item-header" data-line="220">sgnd_header_is_section_header <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="221">Purpose:</div>
+<div class="prose" data-line="222">  Determine whether a line is a top-level structured header section marker.</div>
+<div class="comment-section-header" data-line="224">Behavior:</div>
+<div class="prose" data-line="225">  - Matches canonical section lines such as "quot;# Metadata:"quot;.</div>
+<div class="prose" data-line="226">  - Rejects indented field lines within sections.</div>
+<div class="comment-section-header" data-line="228">Arguments:</div>
+<div class="prose" data-line="229">  $1  LINE</div>
+<div class="prose" data-line="230">      Raw header line to test.</div>
+<div class="comment-section-header" data-line="232">Returns:</div>
+<div class="prose" data-line="233">  0 if LINE is a section header.</div>
+<div class="prose" data-line="234">  1 otherwise.</div>
+<div class="comment-section-header" data-line="236">Usage:</div>
+<div class="prose" data-line="237">  sgnd_header_is_section_header "quot;$line"quot;</div>
+<h3 class="item-header" data-line="246">sgnd_header_buffer_load <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="247">Purpose:</div>
+<div class="prose" data-line="248">  Load a script header into the shared in-memory header buffer.</div>
+<div class="comment-section-header" data-line="250">Behavior:</div>
+<div class="prose" data-line="251">  - Verifies that the target file is readable.</div>
+<div class="prose" data-line="252">  - Stores the file path in SGND_HEADER_BUFFER_FILE.</div>
+<div class="prose" data-line="253">  - Stores the canonical header text in SGND_HEADER_BUFFER_TEXT.</div>
+<div class="comment-section-header" data-line="255">Arguments:</div>
+<div class="prose" data-line="256">  $1  FILE</div>
+<div class="prose" data-line="257">      Script file to buffer.</div>
+<div class="prose" data-line="259">Outputs (globals):</div>
+<div class="prose" data-line="260">  SGND_HEADER_BUFFER_FILE</div>
+<div class="prose" data-line="261">  SGND_HEADER_BUFFER_TEXT</div>
+<div class="comment-section-header" data-line="263">Returns:</div>
+<div class="prose" data-line="264">  0 on success.</div>
+<div class="prose" data-line="265">  1 if the file is unreadable or the header cannot be read.</div>
+<div class="comment-section-header" data-line="267">Usage:</div>
+<div class="prose" data-line="268">  sgnd_header_buffer_load "quot;$file"quot;</div>
+<h3 class="item-header" data-line="278">sgnd_header_buffer_get_section <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="279">Purpose:</div>
+<div class="prose" data-line="280">  Extract a named section from the current shared header buffer.</div>
+<div class="comment-section-header" data-line="282">Behavior:</div>
+<div class="prose" data-line="283">  - Reads from SGND_HEADER_BUFFER_TEXT.</div>
+<div class="prose" data-line="284">  - Delegates parsing to sgnd_header_get_section_from_text.</div>
+<div class="prose" data-line="285">  - Writes the extracted section body to the requested output variable.</div>
+<div class="comment-section-header" data-line="287">Arguments:</div>
+<div class="prose" data-line="288">  $1  SECTION</div>
+<div class="prose" data-line="289">      Header section name.</div>
+<div class="prose" data-line="290">  $2  OUTVAR</div>
+<div class="prose" data-line="291">      Variable name that receives the section body.</div>
+<div class="prose" data-line="293">Inputs (globals):</div>
+<div class="prose" data-line="294">  SGND_HEADER_BUFFER_TEXT</div>
+<div class="comment-section-header" data-line="296">Returns:</div>
+<div class="prose" data-line="297">  0 if the section is found.</div>
+<div class="prose" data-line="298">  1 if the buffer is empty or the section is not found.</div>
+<div class="comment-section-header" data-line="300">Usage:</div>
+<div class="prose" data-line="301">  sgnd_header_buffer_get_section "quot;Metadata"quot; metadata</div>
+<h2 class="section-header" data-line="309">Version control</h2>
+<h3 class="item-header" data-line="310">sgnd_header_calc_checksum <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="311">Purpose:</div>
+<div class="prose" data-line="312">  Calculate a stable checksum for a script while ignoring self-updating metadata fields.</div>
+<div class="comment-section-header" data-line="314">Behavior:</div>
+<div class="prose" data-line="315">  - Reads the full file content.</div>
+<div class="prose" data-line="316">  - Excludes Metadata lines for Version, Build, and Checksum.</div>
+<div class="prose" data-line="317">  - Hashes the normalized content with SHA-256.</div>
+<div class="prose" data-line="318">  - Prints the resulting checksum to stdout.</div>
+<div class="comment-section-header" data-line="320">Arguments:</div>
+<div class="prose" data-line="321">  $1  FILE</div>
+<div class="prose" data-line="322">      Script file to hash.</div>
+<div class="comment-section-header" data-line="324">Output:</div>
+<div class="prose" data-line="325">  Writes the checksum to stdout.</div>
+<div class="comment-section-header" data-line="327">Returns:</div>
+<div class="prose" data-line="328">  0 on success.</div>
+<div class="prose" data-line="329">  1 if the file is unreadable or hashing fails.</div>
+<div class="comment-section-header" data-line="331">Usage:</div>
+<div class="prose" data-line="332">  sgnd_header_calc_checksum "quot;$file"quot;</div>
+<h3 class="item-header" data-line="349">sgnd_header_bump_version <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="350">Purpose:</div>
+<div class="prose" data-line="351">  Refresh header checksum/build metadata and optionally bump semantic version fields.</div>
+<div class="comment-section-header" data-line="353">Behavior:</div>
+<div class="prose" data-line="354">  - Calculates the normalized checksum for the file.</div>
+<div class="prose" data-line="355">  - Ensures a Checksum field exists in the Metadata section.</div>
+<div class="prose" data-line="356">  - Compares stored and current checksum values.</div>
+<div class="prose" data-line="357">  - If file content changed, refreshes Build and Checksum.</div>
+<div class="prose" data-line="358">  - If a major or minor version bump is requested, updates Version and then</div>
+<div class="prose" data-line="359">    refreshes Build and Checksum.</div>
+<div class="prose" data-line="360">  - Sets SGND_HEADER_BUMP_CHANGED=1 only when header metadata was actually changed.</div>
+<div class="comment-section-header" data-line="362">Arguments:</div>
+<div class="prose" data-line="363">  $1  FILE   readable script file</div>
+<div class="prose" data-line="364">  $2  MODE   none | major | minor</div>
+<div class="comment-section-header" data-line="366">Outputs:</div>
+<div class="prose" data-line="367">  Sets global variable SGND_HEADER_BUMP_CHANGED:</div>
+<div class="prose" data-line="368">    0 = no header changes were needed</div>
+<div class="prose" data-line="369">    1 = header metadata was updated</div>
+<div class="comment-section-header" data-line="371">Returns:</div>
+<div class="prose" data-line="372">  0  success</div>
+<div class="prose" data-line="373">  1  failure</div>
+<div class="comment-section-header" data-line="375">Usage:</div>
+<div class="prose" data-line="376">  sgnd_header_bump_version "quot;$file"quot;</div>
+<div class="prose" data-line="377">  sgnd_header_bump_version "quot;$file"quot; "quot;minor"quot;</div>
+<div class="prose" data-line="378">  sgnd_header_bump_version "quot;$file"quot; "quot;major"quot;</div>
+<div class="comment-section-header" data-line="380">Examples:</div>
+<div class="prose" data-line="381">  sgnd_header_bump_version "quot;./my-script.sh"quot; "quot;none"quot;</div>
+<div class="prose" data-line="382">  sgnd_header_bump_version "quot;./my-script.sh"quot; "quot;minor"quot;</div>
+<h2 class="section-header" data-line="462">Header CRUD</h2>
+<h3 class="item-header" data-line="463">sgnd_header_get_section <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="464">Purpose:</div>
+<div class="prose" data-line="465">  Retrieve the full contents of a header section from a file.</div>
+<div class="comment-section-header" data-line="467">Behavior:</div>
+<div class="prose" data-line="468">  - Scans the file from the top until non-comment content.</div>
+<div class="prose" data-line="469">  - Locates the requested section header ("quot;# Section:"quot;).</div>
+<div class="prose" data-line="470">  - Collects all lines until the next section header.</div>
+<div class="prose" data-line="471">  - Strips leading '#39;#'#39; and one space from each line.</div>
+<div class="comment-section-header" data-line="473">Arguments:</div>
+<div class="prose" data-line="474">  $1  FILE</div>
+<div class="prose" data-line="475">  $2  SECTION</div>
+<div class="prose" data-line="476">  $3  RESULT_VAR (name of variable to receive output)</div>
+<div class="comment-section-header" data-line="478">Output:</div>
+<div class="prose" data-line="479">  RESULT_VAR contains the section content as a multi-line string.</div>
+<div class="comment-section-header" data-line="481">Returns:</div>
+<div class="prose" data-line="482">  0  section processed (may be empty)</div>
+<div class="prose" data-line="483">  1  error reading file</div>
+<h3 class="item-header" data-line="517">sgnd_header_get_section_from_text <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="518">Purpose:</div>
+<div class="prose" data-line="519">  Extract the body of a named header section from buffered header text.</div>
+<div class="comment-section-header" data-line="521">Behavior:</div>
+<div class="prose" data-line="522">  - Scans the supplied header text line by line.</div>
+<div class="prose" data-line="523">  - Starts capturing after the requested section header.</div>
+<div class="prose" data-line="524">  - Stops when the next top-level section header is encountered.</div>
+<div class="prose" data-line="525">  - Writes only the section body lines to the requested output variable.</div>
+<div class="comment-section-header" data-line="527">Arguments:</div>
+<div class="prose" data-line="528">  $1  HEADER_TEXT</div>
+<div class="prose" data-line="529">      Buffered header text.</div>
+<div class="prose" data-line="530">  $2  SECTION</div>
+<div class="prose" data-line="531">      Header section name.</div>
+<div class="prose" data-line="532">  $3  OUTVAR</div>
+<div class="prose" data-line="533">      Variable name that receives the section body.</div>
+<div class="comment-section-header" data-line="535">Returns:</div>
+<div class="prose" data-line="536">  0 if the section is found.</div>
+<div class="prose" data-line="537">  1 if the section is not found.</div>
+<div class="comment-section-header" data-line="539">Usage:</div>
+<div class="prose" data-line="540">  sgnd_header_get_section_from_text "quot;$text"quot; "quot;Metadata"quot; metadata</div>
+<h3 class="item-header" data-line="573">sgnd_header_get_banner_parts_from_text <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="574">Purpose:</div>
+<div class="prose" data-line="575">  Extract product and title from the banner line in buffered header text.</div>
+<div class="comment-section-header" data-line="577">Behavior:</div>
+<div class="prose" data-line="578">  - Scans the supplied header text line by line.</div>
+<div class="prose" data-line="579">  - Skips separator lines (==== / ----).</div>
+<div class="prose" data-line="580">  - Looks for the first line matching the pattern:</div>
+<div class="prose" data-line="581">      "quot;# <lt;Product>gt; - <lt;Title>gt;"quot;</div>
+<div class="prose" data-line="582">  - Splits the line into:</div>
+<div class="prose" data-line="583">      Product (left of "quot; - "quot;)</div>
+<div class="prose" data-line="584">      Title   (right of "quot; - "quot;)</div>
+<div class="comment-section-header" data-line="586">Arguments:</div>
+<div class="prose" data-line="587">  $1  HEADER_TEXT</div>
+<div class="prose" data-line="588">  $2  PRODUCT_VAR</div>
+<div class="prose" data-line="589">  $3  TITLE_VAR</div>
+<div class="comment-section-header" data-line="591">Output:</div>
+<div class="prose" data-line="592">  PRODUCT_VAR contains the extracted product name.</div>
+<div class="prose" data-line="593">  TITLE_VAR   contains the extracted title.</div>
+<div class="comment-section-header" data-line="595">Returns:</div>
+<div class="prose" data-line="596">  0  banner found and parsed</div>
+<div class="prose" data-line="597">  1  no valid banner line found</div>
+<h3 class="item-header" data-line="639">sgnd_header_parse_banner_line <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="640">Purpose:</div>
+<div class="prose" data-line="641">  Extract product and title from a single header banner line.</div>
+<div class="comment-section-header" data-line="643">Arguments:</div>
+<div class="prose" data-line="644">  $1  LINE</div>
+<div class="prose" data-line="645">  $2  PRODUCT_VAR</div>
+<div class="prose" data-line="646">  $3  TITLE_VAR</div>
+<div class="comment-section-header" data-line="648">Returns:</div>
+<div class="prose" data-line="649">  0 if parsed</div>
+<div class="prose" data-line="650">  1 otherwise</div>
+<h3 class="item-header" data-line="678">sgnd_header_get_field_value <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="679">Returns:</div>
+<div class="prose" data-line="680">  Prints the requested field value to stdout, or an empty string if not found.</div>
+<div class="comment-section-header" data-line="682">Usage:</div>
+<div class="prose" data-line="683">  sgnd_header_get_field_value "quot;$file"quot; "quot;Metadata"quot; "quot;Version"quot;</div>
+<h3 class="item-header" data-line="729">sgnd_header_get_field_value <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="730">Purpose:</div>
+<div class="prose" data-line="731">  Convenience wrapper to retrieve a field value and print it to stdout.</div>
+<div class="comment-section-header" data-line="733">Behavior:</div>
+<div class="prose" data-line="734">  - Calls sgnd_header_get_field internally.</div>
+<div class="prose" data-line="735">  - Prints the resulting value to stdout.</div>
+<div class="comment-section-header" data-line="737">Arguments:</div>
+<div class="prose" data-line="738">  $1  FILE</div>
+<div class="prose" data-line="739">  $2  SECTION</div>
+<div class="prose" data-line="740">  $3  FIELD</div>
+<div class="comment-section-header" data-line="742">Output:</div>
+<div class="prose" data-line="743">  Writes the field value to stdout.</div>
+<div class="comment-section-header" data-line="745">Returns:</div>
+<div class="prose" data-line="746">  0  always (empty output if field not found)</div>
+<h3 class="item-header" data-line="757">sgnd_header_get_banner_parts <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="758">Purpose:</div>
+<div class="prose" data-line="759">  Extract product and title from the banner line.</div>
+<div class="comment-section-header" data-line="761">Behavior:</div>
+<div class="prose" data-line="762">  - Finds the first header separator line.</div>
+<div class="prose" data-line="763">  - Reads the first comment line directly below it as the banner line.</div>
+<div class="prose" data-line="764">  - Expects canonical format:</div>
+<div class="prose" data-line="765">      # <lt;Product>gt; - <lt;Title>gt;</div>
+<div class="comment-section-header" data-line="767">Arguments:</div>
+<div class="prose" data-line="768">  $1  FILE</div>
+<div class="prose" data-line="769">  $2  PRODUCT_VAR</div>
+<div class="prose" data-line="770">  $3  TITLE_VAR</div>
+<div class="comment-section-header" data-line="772">Returns:</div>
+<div class="prose" data-line="773">  0 if banner found and parsed</div>
+<div class="prose" data-line="774">  1 otherwise</div>
+<h3 class="item-header" data-line="815">sgnd_section_get_field_value <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="816">Purpose:</div>
+<div class="prose" data-line="817">  Extract a field value from a section string.</div>
+<div class="comment-section-header" data-line="819">Behavior:</div>
+<div class="prose" data-line="820">  - Scans the supplied section text line by line.</div>
+<div class="prose" data-line="821">  - Splits each line at the first colon.</div>
+<div class="prose" data-line="822">  - Trims surrounding whitespace from key and value.</div>
+<div class="prose" data-line="823">  - Returns the first matching field value.</div>
+<div class="comment-section-header" data-line="825">Arguments:</div>
+<div class="prose" data-line="826">  $1  SECTION_TEXT</div>
+<div class="prose" data-line="827">  $2  FIELD</div>
+<div class="comment-section-header" data-line="829">Output:</div>
+<div class="prose" data-line="830">  Writes field value to stdout.</div>
+<div class="comment-section-header" data-line="832">Returns:</div>
+<div class="prose" data-line="833">  0  always (empty if not found)</div>
+<h3 class="item-header" data-line="862">sgnd_header_add_field <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="863">Purpose:</div>
+<div class="prose" data-line="864">  Insert a new field into an existing named header section.</div>
+<div class="comment-section-header" data-line="866">Behavior:</div>
+<div class="prose" data-line="867">  - Scans the file until the requested section is found.</div>
+<div class="prose" data-line="868">  - Inserts the new field before the next section header,</div>
+<div class="prose" data-line="869">    or at the end of the section when it is the final section.</div>
+<div class="prose" data-line="870">  - Honors FLAG_DRYRUN by reporting the intended change without writing.</div>
+<div class="comment-section-header" data-line="872">Arguments:</div>
+<div class="prose" data-line="873">  $1  FILE</div>
+<div class="prose" data-line="874">      Target script file.</div>
+<div class="prose" data-line="875">  $2  SECTION</div>
+<div class="prose" data-line="876">      Header section name.</div>
+<div class="prose" data-line="877">  $3  FIELD</div>
+<div class="prose" data-line="878">      Field name to insert.</div>
+<div class="prose" data-line="879">  $4  VALUE</div>
+<div class="prose" data-line="880">      Field value to write.</div>
+<div class="comment-section-header" data-line="882">Side effects:</div>
+<div class="prose" data-line="883">  - May rewrite the target file.</div>
+<div class="prose" data-line="884">  - May emit informational output in dry-run mode.</div>
+<div class="comment-section-header" data-line="886">Returns:</div>
+<div class="prose" data-line="887">  0 if the field was inserted.</div>
+<div class="prose" data-line="888">  1 on write or temp-file failure.</div>
+<div class="prose" data-line="889">  2 if the section does not exist.</div>
+<div class="comment-section-header" data-line="891">Usage:</div>
+<div class="prose" data-line="892">  sgnd_header_add_field "quot;$file"quot; "quot;Metadata"quot; "quot;Checksum"quot; "quot;$checksum"quot;</div>
+<h3 class="item-header" data-line="954">sgnd_header_upsert_field <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="955">Purpose:</div>
+<div class="prose" data-line="956">  Update a field when present or insert it when missing from an existing section.</div>
+<div class="comment-section-header" data-line="958">Behavior:</div>
+<div class="prose" data-line="959">  - Attempts to update the field in place first.</div>
+<div class="prose" data-line="960">  - Falls back to inserting the field when it does not yet exist.</div>
+<div class="prose" data-line="961">  - Propagates other write failures unchanged.</div>
+<div class="comment-section-header" data-line="963">Arguments:</div>
+<div class="prose" data-line="964">  $1  FILE</div>
+<div class="prose" data-line="965">      Target script file.</div>
+<div class="prose" data-line="966">  $2  SECTION</div>
+<div class="prose" data-line="967">      Header section name.</div>
+<div class="prose" data-line="968">  $3  FIELD</div>
+<div class="prose" data-line="969">      Field name to update or insert.</div>
+<div class="prose" data-line="970">  $4  VALUE</div>
+<div class="prose" data-line="971">      Value to write.</div>
+<div class="comment-section-header" data-line="973">Returns:</div>
+<div class="prose" data-line="974">  0 if the field was updated or inserted.</div>
+<div class="prose" data-line="975">  1 on write or temp-file failure.</div>
+<div class="prose" data-line="976">  2 if the section does not exist.</div>
+<div class="comment-section-header" data-line="978">Usage:</div>
+<div class="prose" data-line="979">  sgnd_header_upsert_field "quot;$file"quot; "quot;Metadata"quot; "quot;Build"quot; "quot;$build"quot;</div>
+<h3 class="item-header" data-line="997">sgnd_header_set_field <span>(fn, public)</span></h3>
+<div class="comment-section-header" data-line="998">Purpose:</div>
+<div class="prose" data-line="999">  Replace the value of an existing field inside a named header section</div>
+<div class="prose" data-line="1000">  while preserving the original line formatting.</div>
+<div class="comment-section-header" data-line="1002">Behavior:</div>
+<div class="prose" data-line="1003">  - Scans only the requested header section.</div>
+<div class="prose" data-line="1004">  - Matches the requested field by trimmed key name.</div>
+<div class="prose" data-line="1005">  - Preserves original indentation, label spacing, and separator spacing.</div>
+<div class="prose" data-line="1006">  - Replaces only the value portion of the matched field line.</div>
+<div class="prose" data-line="1007">  - Honors FLAG_DRYRUN by reporting the intended change without writing.</div>
+<div class="comment-section-header" data-line="1009">Arguments:</div>
+<div class="prose" data-line="1010">  $1  FILE</div>
+<div class="prose" data-line="1011">      Target script file.</div>
+<div class="prose" data-line="1012">  $2  SECTION</div>
+<div class="prose" data-line="1013">      Header section name.</div>
+<div class="prose" data-line="1014">  $3  FIELD</div>
+<div class="prose" data-line="1015">      Field name to update.</div>
+<div class="prose" data-line="1016">  $4  VALUE</div>
+<div class="prose" data-line="1017">      Replacement value.</div>
+<div class="comment-section-header" data-line="1019">Returns:</div>
+<div class="prose" data-line="1020">  0 if the field was updated.</div>
+<div class="prose" data-line="1021">  1 on write or temp-file failure.</div>
+<div class="prose" data-line="1022">  2 if the field is not found.</div>
+<div class="comment-section-header" data-line="1024">Usage:</div>
+<div class="prose" data-line="1025">  sgnd_header_set_field "quot;$file"quot; "quot;Metadata"quot; "quot;Version"quot; "quot;1.2"quot;</div>
+</div>
+</body>
+</html>

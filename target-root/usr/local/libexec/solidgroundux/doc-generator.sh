@@ -8,7 +8,7 @@
 #   Checksum    : none
 #   Source      : doc-generator.sh
 #   Type        : script
-#   Group       : Developer tools
+#   Group       : Developer Tools
 #   Purpose     : Collect and prepare documentation data from source files using the
 #                 SolidGroundUX framework.
 #
@@ -257,9 +257,7 @@ set -uo pipefail
         #
         # Leave empty if no extra libs are needed.
     SGND_USING=(
-            sgnd-comment-parser.sh
-            sgnd-comment-header-parser.sh
-            doc-renderer.sh
+            doc-processor.sh
             sgnd-datatable.sh
     )
 
@@ -287,7 +285,7 @@ set -uo pipefail
         "outdir|o|value|VAL_OUTDIR|Output directory for generated docs||"
         "recursive|r|flag|FLAG_RECURSIVE_SCAN|Recursively scan source directory|1|"
         "srcdir|s|value|VAL_SRCDIR|Source directory to scan||"
-        "viewresults|v|flag|FLAG_VIEW_RESULTS|Automatically open generated docs in browser after generation (desktop mode only)|0|"
+        "review|v|flag|FLAG_REVIEW|Review assembled data|0|"
     )
 
     # SGND_SCRIPT_EXAMPLES
@@ -334,6 +332,23 @@ set -uo pipefail
         # Leave empty if:
         #   - The script does not use configuration-driven globals
     SGND_SCRIPT_GLOBALS=(
+        "both|SGND_DOC_FONT_FAMILY|Default font family for documentation|"
+        "both|SGND_DOC_FONT_SIZE_DEFAULT|Default font size|"
+        "both|SGND_DOC_FONT_SIZE_FIELD|Font size for metadata fields|"
+        "both|SGND_DOC_FONT_SIZE_SECTION|Font size for section headers|"
+        "both|SGND_DOC_FONT_SIZE_ITEM|Font size for item headers|"
+        "both|SGND_DOC_FONT_SIZE_BLOCK|Font size for content blocks|"
+
+        "both|SGND_DOC_STYLE_FIELD|Font style for metadata fields|"
+        "both|SGND_DOC_STYLE_SECTION|Font style for section headers|"
+        "both|SGND_DOC_STYLE_ITEM|Font style for item headers|"
+        "both|SGND_DOC_STYLE_BLOCK|Font style for content blocks|"
+
+        "both|SGND_DOC_SPACING_BEFORE_SECTION|Spacing before section headers|"
+        "both|SGND_DOC_SPACING_AFTER_SECTION|Spacing after section headers|"
+        "both|SGND_DOC_SPACING_BEFORE_ITEM|Spacing before item headers|"
+        "both|SGND_DOC_SPACING_AFTER_ITEM|Spacing after item headers|"
+        "both|SGND_DOC_SPACING_AFTER_BLOCK|Spacing after content blocks|"
     )
 
     # SGND_STATE_VARIABLES
@@ -556,7 +571,28 @@ set -uo pipefail
             sgnd_showenvironment
         done
     }
-    
+
+    # fn: _set_docstyles
+    _set_docstyles(){
+        SGND_DOC_FONT_FAMILY="Arial"
+        SGND_DOC_FONT_SIZE_DEFAULT=10
+        SGND_DOC_FONT_SIZE_FIELD=10
+        SGND_DOC_FONT_SIZE_SECTION=16
+        SGND_DOC_FONT_SIZE_ITEM=12
+        SGND_DOC_FONT_SIZE_BLOCK=10
+
+        SGND_DOC_STYLE_FIELD="regular"
+        SGND_DOC_STYLE_SECTION="bold"
+        SGND_DOC_STYLE_ITEM="bold"
+        SGND_DOC_STYLE_BLOCK="regular"
+
+        SGND_DOC_SPACING_BEFORE_SECTION=8
+        SGND_DOC_SPACING_AFTER_SECTION=4
+        SGND_DOC_SPACING_BEFORE_ITEM=5
+        SGND_DOC_SPACING_AFTER_ITEM=2
+        SGND_DOC_SPACING_AFTER_BLOCK=4
+    }
+
     # _iterate_files
         # Purpose:
         #   Iterate over files in a directory using a file mask,
@@ -689,6 +725,8 @@ set -uo pipefail
 
             _load_bootstrapper || exit $?            
 
+            _set_docstyles
+
             # Recognized switches:
             #     --state      -> enable saving state variables 
             #     --autostate  -> enable state support and auto-save SGND_STATE_VARIABLES on exit
@@ -723,19 +761,37 @@ set -uo pipefail
             _get_userinput || return $?
         fi
 
-        local start_time=$(date +%s)
-        saystart "Documentation generation started at $start_time"
-        _iterate_files "$VAL_SRCDIR" "$VAL_FILESPEC" "$FLAG_RECURSIVE_SCAN" sgnd_parse_module_file
+        local start_time
+        local display_time
+        start_time="$(date +%s)"
 
-        #sgnd_dt_print_table $MODULE_TABLE_SCHEMA MODULE_TABLE
-        #sgnd_dt_print_table $DOC_SECTIONS_SCHEMA DOC_SECTIONS
-        #sgnd_dt_print_table $DOC_ITEMS_SCHEMA DOC_ITEMS
-        #sgnd_dt_print_table $DOC_CONTENT_SCHEMA DOC_CONTENT
-        
-        sgnd_doc_render_site "$VAL_OUTDIR"
+        display_time="$(date +%H:%M:%S)"
+        saystart "Documentation generation started at $display_time"
 
-        local end_time=$(date +%s)
-        sayok "Documentation generation completed successfully at $end_time (duration: $(( end_time - start_time )) seconds)"
+        _iterate_files "$VAL_SRCDIR" "$VAL_FILESPEC" "$FLAG_RECURSIVE_SCAN" _parse_module_file
+
+        local end_time
+        end_time="$(date +%s)"
+
+        display_time="$(date +%H:%M:%S)"
+        sayend "Documentation generation completed successfully at $display_time (duration: $(( end_time - start_time )) seconds)"
+
+        if (( FLAG_REVIEW )); then
+            ask_dlg_autocontinue \
+               --seconds 15 \
+               --message "Proceed to render site?" \
+               --cancel \
+               --pause \
+               --anykey
+        fi
+
+        if (( FLAG_DRYRUN )); then
+            sayinfo "Would have rendered site to $VAL_OUTDIR"
+        else
+            _render_site "$VAL_OUTDIR"
+        fi
+
+        sayend "Documentation generation completed successfully at $display_time (duration: $(( end_time - start_time )) seconds)"
     }
 
     # Entrypoint: sgnd_bootstrap will split framework args from script args.
