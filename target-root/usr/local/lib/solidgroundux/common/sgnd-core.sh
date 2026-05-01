@@ -392,6 +392,7 @@ set -uo pipefail
         esac
     }
 
+
 # --- Process & state helpers --------------------------------------------------------
     # fn: sgnd_proc_exists
         # Returns:
@@ -541,6 +542,42 @@ set -uo pipefail
                 printf "WARN: Internal function '%s' called from outside API\n" "$func" >&2
                 ;;
         esac
+    }
+
+    # sgnd_show_vars_by_prefix
+        # Purpose:
+        #   Emit all variables whose name starts with the given prefix.
+        #
+        # Arguments:
+        #   $1  Prefix to match (e.g. "meta_", "doc_")
+        #
+        # Behavior:
+        #   - Lists all shell variables matching the prefix
+        #   - Outputs name=value pairs via saydebug
+        #
+        # Returns:
+        #   0 on success
+        #   1 if prefix is missing
+    sgnd_show_vars_by_prefix() {
+        local prefix="${1:-}"
+        local assume_debug="${2:-0}"
+
+        [[ -n "$prefix" ]] || {
+            sayerror "No prefix provided"
+            return 1
+        }
+
+        local var
+
+        while read -r var; do
+            saydebug "$var = ${!var}"
+
+            if [[ "${SGND_LOG_LEVEL:-normal}" != "debug" ]] && (( assume_debug )); then
+                sayinfo "$var = ${!var}"
+            fi
+        done < <(compgen -v | grep -E "^${prefix}")
+
+        return 0
     }
 # --- Version helpers ----------------------------------------------------------------
     # fn: sgnd_version_ge

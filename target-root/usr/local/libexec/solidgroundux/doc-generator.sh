@@ -5,12 +5,11 @@
 # Metadata:
 #   Version     : 1.1
 #   Build       : 2609100
-#   Checksum    : none
+#   Checksum    : -
 #   Source      : doc-generator.sh
 #   Type        : script
 #   Group       : Developer Tools
-#   Purpose     : Collect and prepare documentation data from source files using the
-#                 SolidGroundUX framework.
+#   Purpose     : Collect and prepare documentation data from source files using the SolidGroundUX framework.
 #
 # Description:
 #   Provides the executable entry point for documentation data collection.
@@ -40,7 +39,7 @@
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
-#   Client      :
+#   Client      : -
 #   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
@@ -248,7 +247,7 @@ set -uo pipefail
     SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
 
 # - Script metadata (framework integration) -----------------------------------------
-    # SGND_USING
+    # var$ SGND_USING
         # Libraries to source from SGND_COMMON_LIB.
         # These are loaded automatically by sgnd_bootstrap AFTER core libraries.
         #
@@ -572,7 +571,7 @@ set -uo pipefail
         done
     }
 
-    # fn: _set_docstyles
+    # fn: _set_docstyles - Defining document styles
     _set_docstyles(){
         SGND_DOC_FONT_FAMILY="Arial"
         SGND_DOC_FONT_SIZE_DEFAULT=10
@@ -685,6 +684,8 @@ set -uo pipefail
             "$callback" "$file" || saywarning "Callback $callback failed for file: $file"
         done < <(find "$source_dir" -type f -name "$file_spec" -print0)
 
+        local msg="Product: ${meta_product:-}, ${meta_title:-}"
+        sayinfo "$msg"
         sayprogress_done
         return 0
     }
@@ -777,12 +778,22 @@ set -uo pipefail
         sayend "Documentation generation completed successfully at $display_time (duration: $(( end_time - start_time )) seconds)"
 
         if (( FLAG_REVIEW )); then
+            #sgnd_show_vars_by_prefix "doc_" 1
+            #sgnd_show_vars_by_prefix "mod_" 1
+
+            sgnd_dt_print_table "$MOD_TABLE_SCHEMA" MOD_TABLE 1
+            sgnd_dt_print_table "$MOD_ATTRIBUTION_SCHEMA" MOD_ATTRIBUTION  1  
+
             ask_dlg_autocontinue \
                --seconds 15 \
-               --message "Proceed to render site?" \
+               --message "Proceed to DOC_RENDERED?" \
                --cancel \
                --pause \
                --anykey
+
+         
+            sgnd_dt_print_table "$DOC_RENDERED_SCHEMA" DOC_RENDERED 1
+        #
         fi
 
         if (( FLAG_DRYRUN )); then
