@@ -18,7 +18,7 @@
 #     - Iterates source files line-by-line
 #     - Interprets structured comment conventions (headers, metadata, sections, items)
 #     - Maintains parsing state (header, section hierarchy, current item, etc.)
-#     - Normalizes detected elements into a flat render stream (DOC_RENDERED)
+#     - Normalizes detected elements into a flat render stream (DOC_CONTENT_LINES)
 #
 #   Parsing is convention-based and deterministic. Each recognized line contributes
 #   either state transitions or a normalized documentation record.
@@ -35,7 +35,7 @@
 #
 # Role in framework:
 #   - Core documentation data collector
-#   - Produces the canonical DOC_RENDERED dataset consumed by renderers
+#   - Produces the canonical DOC_CONTENT_LINES dataset consumed by renderers
 #   - Bridges raw source code and higher-level documentation output (HTML, etc.)
 #   - Shared parsing engine for all documentation-related tooling
 #
@@ -102,11 +102,38 @@ set -uo pipefail
 
         MOD_ATTRIBUTION_SCHEMA="modulename|developers|company|client|copyright|license"
         MOD_ATTRIBUTION=()
-        
-        DOC_RENDERED_SCHEMA="file|source_linenr|doc_linenr|section|parentsection|grandparentsection|commentsection|item|title|contenttype|content"
-        DOC_RENDERED=()
 
-    # fn: _init_localvars - Initialize and defune locakl variables
+        MOD_SECTIONS_SCHEMA="modulename|section|parent|level|linecount"
+        MOD_SECTIONS=()
+
+        MOD_ITEMS_SCHEMA="modulename|section|parentsection|typecode|type|itemaccess|name|title"
+        MOD_ITEMS=()
+        
+        DOC_CONTENT_LINES_SCHEMA="file|source_linenr|doc_linenr|section|parentsection|grandparentsection|commentsection|item|title|contenttype|content"
+        DOC_CONTENT_LINES=()
+    # fn: _init_localvars - Initialize parser state variables
+        # Purpose:
+        #   Reset source, module, item, section, and emission state before parsing a file.
+        #
+        # Behavior:
+        #   - Clears source-line tracking values.
+        #   - Clears module metadata values populated from the file header.
+        #   - Resets current section, parent section, item, and comment-section context.
+        #   - Resets documentation line counters and emission flags.
+        #
+        # Outputs (globals):
+        #   src_line, src_linenr, src_linetype, src_haltlineprocessing
+        #   mod_product, mod_title, mod_name
+        #   doc_section, doc_sectionlevel, doc_parentsection, doc_grandparentsection
+        #   doc_item, doc_itemtitle, doc_itemtype, doc_itemmarker, doc_itemaccess
+        #   doc_istemplateitem, doc_commentsection, doc_linenr, doc_contenttype
+        #   doc_content, doc_inheader, doc_started, doc_titleextracted, doc_emitline
+        #
+        # Returns:
+        #   0 on successful initialization.
+        #
+        # Usage:
+        #   _init_localvars
     _init_localvars(){
         src_line=""
         src_linenr=0
@@ -124,6 +151,10 @@ set -uo pipefail
 
         doc_item=""
         doc_itemtitle=""
+        doc_itemtype=""
+        doc_itemmarker=""
+        doc_itemaccess=""
+        doc_istemplateitem=0
 
         doc_commentsection=""
         doc_linenr=0
@@ -133,7 +164,10 @@ set -uo pipefail
 
         doc_inheader=0
         doc_started=0
+        doc_titleextracted=0
         doc_emitline=0
+
+
     }
 
     # -- Parser expressions ------------------------------------------------------------
@@ -185,6 +219,27 @@ set -uo pipefail
     _rgx_commentseparator='^[[:space:]]*#[[:space:]]+-{3,}[[:space:]]*$'
 
     # -- Detection functions
+    # fn: _detect_noncommentline - Detect non-comment source lines
+        # Purpose:
+        #   Stop documentation parsing for source lines that are not structured comments.
+        #
+        # Behavior:
+        #   - Ignores the line when another detector already handled it.
+        #   - Returns without action for comment lines.
+        #   - Clears the current source/content type for executable or ordinary source lines.
+        #   - Prevents later detectors from processing the same line.
+        #
+        # Inputs (globals):
+        #   src_line, src_haltlineprocessing
+        #
+        # Outputs (globals):
+        #   src_linetype, doc_contenttype, doc_commentsection, doc_emitline, src_haltlineprocessing
+        #
+        # Returns:
+        #   0 always.
+        #
+        # Usage:
+        #   _detect_noncommentline
     _detect_noncommentline() {
         (( src_haltlineprocessing )) && return 0
 
@@ -195,11 +250,34 @@ set -uo pipefail
             # line 2
         src_linetype=""
         doc_contenttype=""
+        doc_commentsection=""
+        doc_emitline=0
         src_haltlineprocessing=1
 
         saydebug "Non-comment line detected; source/content type reset"
     }
 
+    # fn: _detect_headermarker - Detect module header boundary lines
+        # Purpose:
+        #   Detect the opening and closing marker of the file-level documentation header.
+        #
+        # Behavior:
+        #   - Matches header separator lines using _rgx_header.
+        #   - Marks the parser as started on the first header marker.
+        #   - Ends header mode and emits module metadata on the closing header marker.
+        #   - Prevents later detectors from processing the same line.
+        #
+        # Inputs (globals):
+        #   src_line, src_haltlineprocessing, doc_started
+        #
+        # Outputs (globals):
+        #   src_linetype, doc_inheader, doc_started, doc_emitline, doc_commentsection, src_haltlineprocessing
+        #
+        # Returns:
+        #   0 always.
+        #
+        # Usage:
+        #   _detect_headermarker
     _detect_headermarker() {
         (( src_haltlineprocessing )) && return 0
 
@@ -209,7 +287,6 @@ set -uo pipefail
         if (( ! doc_started )); then
             src_linetype="moduleheader"
             doc_inheader=1
-            doc_linenr=1
             doc_started=1
             doc_emitline=0
         else
@@ -224,8 +301,29 @@ set -uo pipefail
         saydebug "Header marker detected"
     }
 
+    # fn: _detect_moduletitle - Detect the module title line
+        # Purpose:
+        #   Extract product and title information from the first title line in the file header.
+        #
+        # Behavior:
+        #   - Runs only while inside the module header and before a title was extracted.
+        #   - Matches the title line using _rgx_moduletitle.
+        #   - Stores product and module title metadata.
+        #   - Emits a module-header content line.
+        #
+        # Inputs (globals):
+        #   src_line, doc_inheader, doc_titleextracted
+        #
+        # Outputs (globals):
+        #   mod_product, mod_title, doc_contenttype, doc_content, doc_emitline, doc_titleextracted, src_haltlineprocessing
+        #
+        # Returns:
+        #   0 always.
+        #
+        # Usage:
+        #   _detect_moduletitle
     _detect_moduletitle() {
-        (( doc_inheader == 1 && doc_linenr == 1 )) || return 0
+        (( doc_inheader == 1 && doc_titleextracted == 0 )) || return 0
 
         saydebug "Detecting module title"
 
@@ -233,11 +331,38 @@ set -uo pipefail
 
         mod_product="${BASH_REMATCH[1]}"
         mod_title="${BASH_REMATCH[2]}"
-        src_hallineprocessing=1
+
+        doc_contenttype="moduleheader"
+        doc_content="$mod_product - $mod_title"
+        doc_emitline=1
+
+        doc_titleextracted=1
+        src_haltlineprocessing=1
 
         saydebug "Module title detected: Product $mod_product, Title $mod_title"
     }
 
+    # fn: _detect_headerfields - Detect metadata and attribution fields
+        # Purpose:
+        #   Extract named header fields and map them to mod_* variables.
+        #
+        # Behavior:
+        #   - Runs only while inside the file header.
+        #   - Accepts fields only under Metadata or Attribution comment sections.
+        #   - Normalizes field names to lowercase shell variable names.
+        #   - Assigns values dynamically to mod_<field> variables.
+        #
+        # Inputs (globals):
+        #   src_line, doc_inheader, doc_commentsection, src_haltlineprocessing
+        #
+        # Outputs (globals):
+        #   mod_* variables derived from header field names, src_haltlineprocessing
+        #
+        # Returns:
+        #   0 always.
+        #
+        # Usage:
+        #   _detect_headerfields
     _detect_headerfields() {       
         (( src_haltlineprocessing )) && return 0
 
@@ -270,6 +395,28 @@ set -uo pipefail
         saydebug "Header field detected: $var_name=$field_value"
     }
 
+    # fn: _detect_section - Detect documentation section headers
+        # Purpose:
+        #   Detect structured level 1, 2, and 3 documentation section headers.
+        #
+        # Behavior:
+        #   - Matches section marker lines using _rgx_section.
+        #   - Determines section level from marker depth.
+        #   - Maintains current section, parent section, and grandparent section context.
+        #   - Emits a section record and prepares a section-header content line.
+        #
+        # Inputs (globals):
+        #   src_line, src_haltlineprocessing, doc_sectionlevel, doc_section, doc_parentsection, doc_grandparentsection
+        #
+        # Outputs (globals):
+        #   src_linetype, doc_commentsection, doc_section, doc_parentsection, doc_grandparentsection
+        #   doc_sectionlevel, doc_content, doc_contenttype, doc_emitline, src_haltlineprocessing
+        #
+        # Returns:
+        #   0 always.
+        #
+        # Usage:
+        #   _detect_section
     _detect_section() {       
         (( src_haltlineprocessing )) && return 0
 
@@ -279,26 +426,83 @@ set -uo pipefail
 
         local marker
         local section_name
-        local section_level
 
         marker="${BASH_REMATCH[1]}"
         section_name="${BASH_REMATCH[2]}"
         section_name="$(sed -E 's/[[:space:]-]+$//' <<< "$section_name")"
 
-        section_level="${#marker}"
+        src_linetype="sectionheader"
+        doc_commentsection=""
+        local foundlevel="${#marker}"
 
-        doc_grandparentsection="$doc_parentsection"
-        doc_parentsection="$doc_section"
-        doc_section="$section_name"
-        doc_sectionlevel="$section_level"
+        case "$foundlevel" in
+            1)  
+                doc_section="$section_name"              
+                doc_parentsection=""
+                doc_grandparentsection=""
 
-        src_linetype="sectionblock"
+                doc_content="$section_name"
+                doc_contenttype="L1Sectionheader"
+                doc_emitline=1
+                ;;
+
+            2)
+                if [[ "$doc_sectionlevel" == 3 ]]; then
+                    doc_parentsection="$doc_grandparentsection"
+                    doc_grandparentsection=""
+                else
+                    doc_parentsection="$doc_section"
+                fi
+                doc_section="$section_name"
+                doc_content="$section_name"
+                doc_contenttype="L2Sectionheader"
+                doc_emitline=1   
+                ;;
+
+            3)
+                if [[ "$doc_sectionlevel" == 2 ]]; then
+                    doc_grandparentsection="$doc_parentsection"
+                    doc_parentsection="$doc_section"
+                    doc_section="$section_name"
+                fi
+                doc_contenttype="L3Sectionheader"
+                doc_content="$section_name"
+                doc_section="$section_name"
+                doc_emitline=1
+                ;;
+        esac
+                
+        doc_sectionlevel="$foundlevel"
+        _emit_sectionrecord
 
         src_haltlineprocessing=1        
 
         saydebug "Section detected: level $doc_sectionlevel, section $doc_section, parentsection $doc_parentsection, grandparent $doc_grandparentsection"
     }
 
+    # fn: _detect_items - Detect documented items
+        # Purpose:
+        #   Detect structured item markers such as functions, variables, and general documentation blocks.
+        #
+        # Behavior:
+        #   - Matches item declaration lines using _rgx_docitem.
+        #   - Extracts item type, marker, name, and optional title.
+        #   - Marks template items when the item marker is '$'.
+        #   - Derives access level from a leading underscore in the item name.
+        #   - Emits an item record and prepares an item-header content line.
+        #
+        # Inputs (globals):
+        #   src_line, src_haltlineprocessing
+        #
+        # Outputs (globals):
+        #   doc_istemplateitem, doc_item, src_linetype, doc_contenttype, doc_itemtype
+        #   doc_content, doc_itemaccess, doc_itemmarker, doc_itemtitle, doc_emitline, src_haltlineprocessing
+        #
+        # Returns:
+        #   0 always.
+        #
+        # Usage:
+        #   _detect_items
     _detect_items(){
         (( src_haltlineprocessing )) && return 0
 
@@ -310,9 +514,9 @@ set -uo pipefail
             local item_title="${BASH_REMATCH[5]}"
 
             if [[ "$item_marker" == '$' ]]; then
-                item_is_template=1
+                doc_istemplateitem=1
             else
-                item_is_template=0
+                doc_istemplateitem=0
             fi
             
             saydebug "Item detected $item_type. $item_marker, $item_name, $item_title"
@@ -322,23 +526,62 @@ set -uo pipefail
 
             case "$item_type" in
                 fn)
-                    doc_contenttype="functioncomment"
+                    doc_contenttype="functionheader"
+                    doc_itemtype="function"
                     ;;
                 var)
-                    doc_contenttype="variablecomment"
+                    doc_contenttype="variableheader"
+                    doc_itemtype="variable"
                     ;;
                 doc)
-                    doc_contenttype="gencomment"
+                    doc_contenttype="gendocheader"
+                    doc_itemtype="general documentation"
                     ;;
                 *)
-                    doc_contenttype="itemcomment"
+                    doc_contenttype="itemheader"
+                    doc_itemtype="unknown"
                     ;;
             esac
+            doc_content="$item_name"
+            [[ -n "$item_title" ]] && doc_content+=" - $item_title"
 
+            if [[ "$item_name" == _* ]]; then
+                doc_itemaccess="internal"
+            else
+                doc_itemaccess="public"
+            fi
+            doc_item="$item_name"
+            doc_itemmarker="$item_type$item_marker"
+            doc_itemtitle="$item_title"
+            
+            _emit_itemrecord
+
+            doc_emitline=1
             src_haltlineprocessing=1
         fi
     }
 
+    # fn: _detect_commentsectionheader - Detect named comment sections
+        # Purpose:
+        #   Detect structured comment-section headers inside documentation blocks.
+        #
+        # Behavior:
+        #   - Matches comment-section lines using _rgx_commentsectionheader.
+        #   - Stores the current comment-section name.
+        #   - Suppresses emission for Metadata and Attribution sections.
+        #   - Emits other comment-section headers as content lines.
+        #
+        # Inputs (globals):
+        #   src_line, src_haltlineprocessing
+        #
+        # Outputs (globals):
+        #   doc_commentsection, doc_contenttype, doc_content, doc_emitline, src_linetype, src_haltlineprocessing
+        #
+        # Returns:
+        #   0 always.
+        #
+        # Usage:
+        #   _detect_commentsectionheader
     _detect_commentsectionheader() {        
         (( src_haltlineprocessing )) && return 0
         
@@ -356,11 +599,29 @@ set -uo pipefail
         saydebug "Comment section detected: $doc_commentsection"
     }
 
+    # fn: _detect_default - Emit default content for active documentation context
+        # Purpose:
+        #   Convert ordinary comment lines into documentation content when a content type is active.
+        #
+        # Behavior:
+        #   - Skips lines already handled by earlier detectors.
+        #   - Requires an active doc_contenttype.
+        #   - Removes leading indentation, comment marker, and trailing whitespace.
+        #   - Marks the normalized line for emission.
+        #
+        # Inputs (globals):
+        #   src_line, src_haltlineprocessing, doc_contenttype
+        #
+        # Outputs (globals):
+        #   doc_content, doc_emitline
+        #
+        # Returns:
+        #   0 always.
+        #
+        # Usage:
+        #   _detect_default
     _detect_default(){
         (( src_haltlineprocessing )) && return 0
-
-        (( doc_inheader && $doc_linenr <= 3 )) && doc_contenttype="moduleheader"
-        (( doc_inheader && $doc_linenr > 3 )) && doc_contenttype="modulecomment"
         
         [[ -z "$doc_contenttype" ]] && return 0 
 
@@ -378,21 +639,63 @@ set -uo pipefail
 
     }
 
+    # fn: _get_section_comments - Convert section comments into section body lines
+        # Purpose:
+        #   Emit body text belonging directly to a documentation section.
+        #
+        # Behavior:
+        #   - Runs only when src_linetype is sectioncomment.
+        #   - Strips indentation and the comment prefix.
+        #   - Marks the normalized section body line for emission.
+        #
+        # Inputs (globals):
+        #   src_line, src_linetype, src_haltlineprocessing
+        #
+        # Outputs (globals):
+        #   doc_contenttype, doc_content, doc_emitline
+        #
+        # Returns:
+        #   0 always.
+        #
+        # Usage:
+        #   _get_section_comments
     _get_section_comments() {
         (( src_haltlineprocessing )) && return 0
 
         [[ "$src_linetype" == "sectioncomment" ]] || return 0
 
-        doc_contenttype="sectioncomment"
+        doc_contenttype="sectionbody"
         doc_content="$src_line"
 
         # Strip leading indentation, "#", and exactly one following space.
         doc_content="${doc_content#"${doc_content%%[![:space:]]*}"}"
         doc_content="${doc_content#\# }"
 
+        doc_emitline=1
+
         saydebug "Section comment detected: $doc_contenttype, $doc_linenr, $doc_content, $doc_section, $doc_sectionlevel, $doc_commentsection"
     }
 
+    # fn: _detect_commentseparator - Ignore visual comment separators
+        # Purpose:
+        #   Detect separator-only comment lines and prevent them from becoming content.
+        #
+        # Behavior:
+        #   - Matches separator lines using _rgx_commentseparator.
+        #   - Clears pending content state.
+        #   - Prevents later detectors from processing the same line.
+        #
+        # Inputs (globals):
+        #   src_line, src_haltlineprocessing
+        #
+        # Outputs (globals):
+        #   src_haltlineprocessing, doc_contenttype, doc_content
+        #
+        # Returns:
+        #   0 always.
+        #
+        # Usage:
+        #   _detect_commentseparator
     _detect_commentseparator() {
         (( src_haltlineprocessing )) && return 0
 
@@ -406,6 +709,27 @@ set -uo pipefail
     }
 
     # -- Action -------------------------------------------------------------------
+    # fn: _action_headerend - Emit module-level header data
+        # Purpose:
+        #   Store collected file header metadata in module-level data tables.
+        #
+        # Behavior:
+        #   - Appends module identity and metadata to MOD_TABLE.
+        #   - Appends attribution information to MOD_ATTRIBUTION.
+        #   - Clears pending content emission for the header marker line.
+        #
+        # Inputs (globals):
+        #   src_file, mod_name, mod_title, mod_type, mod_purpose, mod_version, mod_build, mod_group, mod_product
+        #   mod_developers, mod_company, mod_client, mod_copyright, mod_license
+        #
+        # Outputs (globals):
+        #   MOD_TABLE, MOD_ATTRIBUTION, doc_emitline
+        #
+        # Returns:
+        #   0 if table append calls succeed.
+        #
+        # Usage:
+        #   _action_headerend
     _action_headerend() {
 
         saydebug "Adding module: ${src_file:-}, ${mod_name:-}, ${mod_title:-}, ${mod_type:-}, ${mod_purpose:-}, ${mod_version:-}, ${mod_build:-}, ${mod_group:-}, ${mod_product:-}"
@@ -439,16 +763,39 @@ set -uo pipefail
 
     }
 
+    # fn: _emit_contentline - Append a normalized documentation content line
+        # Purpose:
+        #   Emit the current normalized content state into DOC_CONTENT_LINES.
+        #
+        # Behavior:
+        #   - Skips emission when content type, content, or emit flag is missing.
+        #   - Increments the documentation line counter.
+        #   - Appends the normalized content line with current section and item context.
+        #   - Clears the emit flag after successful emission.
+        #
+        # Inputs (globals):
+        #   doc_contenttype, doc_content, doc_emitline, mod_name, src_linenr, doc_linenr
+        #   doc_section, doc_parentsection, doc_grandparentsection, doc_commentsection, doc_item, doc_itemtitle
+        #
+        # Outputs (globals):
+        #   DOC_CONTENT_LINES, doc_linenr, doc_emitline
+        #
+        # Returns:
+        #   0 when skipped or appended successfully.
+        #
+        # Usage:
+        #   _emit_contentline
     _emit_contentline() {
         [[ -z "$doc_contenttype" ]] && return 0
+        [[ -z "$doc_content" ]] && return 0
         (( ! doc_emitline )) && return 0
 
         ((doc_linenr++))
         saydebug "Emitting line: $mod_name, $src_linenr, $doc_linenr, $doc_section, $doc_parentsection, $doc_grandparentsection, $doc_commentsection, $doc_item, $doc_itemtitle, $doc_contenttype, $doc_content"
         
         sgnd_dt_append \
-            "$DOC_RENDERED_SCHEMA" \
-            DOC_RENDERED \
+            "$DOC_CONTENT_LINES_SCHEMA" \
+            DOC_CONTENT_LINES \
             "$mod_name" \
             "$src_linenr" \
             "$doc_linenr" \
@@ -465,8 +812,134 @@ set -uo pipefail
         doc_emitline=0
     }
 
+    # fn: _emit_itemrecord - Append a documented item record
+        # Purpose:
+        #   Store the current documented item in the module item index.
+        #
+        # Behavior:
+        #   - Derives item access from the current item name.
+        #   - Appends module, section, type, access level, item name, and title to MOD_ITEMS.
+        #
+        # Inputs (globals):
+        #   mod_name, doc_section, doc_parentsection, src_linetype, doc_itemtype, doc_item, doc_itemtitle
+        #
+        # Outputs (globals):
+        #   doc_itemaccess, MOD_ITEMS
+        #
+        # Returns:
+        #   0 if the table append succeeds.
+        #
+        # Usage:
+        #   _emit_itemrecord
+    _emit_itemrecord(){
+        if [[ "$item_name" == _* ]]; then
+            doc_itemaccess="internal"
+        else
+            doc_itemaccess="public"
+        fi
+        
+        saydebug "Adding item: Module ${mod_name:-}, Section ${doc_section:-}, Parent ${doc_parentsection:-}, SrcLinetype ${src_linetype:-}, DocLinetype ${doc_linetype:-}, AccessLevel: ${doc_itemaccess:-}, ItemType ${doc_itemtype:-}, ItemTitle ${doc_item:-}, ${doc_itemtitle:-}"
+
+        
+        sgnd_dt_append \
+            "$MOD_ITEMS_SCHEMA" \
+            MOD_ITEMS \
+            "$mod_name" \
+            "$doc_section" \
+            "$doc_parentsection" \
+            "$src_linetype" \
+            "$doc_itemtype" \
+            "$doc_itemaccess" \
+            "$doc_item" \
+            "$doc_itemtitle"
+    }
+
+    # fn: _emit_sectionrecord - Append a documentation section record
+        # Purpose:
+        #   Store the current section context in the module section index.
+        #
+        # Behavior:
+        #   - Appends module name, section name, parent section, level, and placeholder line count.
+        #   - Leaves section line-count calculation to a later post-processing step.
+        #
+        # Inputs (globals):
+        #   mod_name, doc_section, doc_parentsection, doc_sectionlevel
+        #
+        # Outputs (globals):
+        #   MOD_SECTIONS
+        #
+        # Returns:
+        #   0 if the table append succeeds.
+        #
+        # Usage:
+        #   _emit_sectionrecord
+    _emit_sectionrecord(){
+        sgnd_dt_append \
+            "$MOD_SECTIONS_SCHEMA" \
+            MOD_SECTIONS \
+            "$mod_name" \
+            "$doc_section" \
+            "$doc_parentsection" \
+            "$doc_sectionlevel" \
+            -1
+    }
+
+    # fn: _guess_nextcontenttype - Advance content type after emitted headers
+        # Purpose:
+        #   Prepare the parser for body content following a recognized header line.
+        #
+        # Behavior:
+        #   - Maps module, section, item, and comment-section headers to their body content types.
+        #   - Leaves unknown or body content types unchanged.
+        #
+        # Inputs (globals):
+        #   doc_contenttype
+        #
+        # Outputs (globals):
+        #   doc_contenttype
+        #
+        # Returns:
+        #   0 always.
+        #
+        # Usage:
+        #   _guess_nextcontenttype
+    _guess_nextcontenttype(){
+        case "$doc_contenttype" in
+            "moduleheader" ) doc_contenttype="modulebody";;
+            "commentsectionheader" ) doc_contenttype="commentsectionbody";;
+            "L1Sectionheader" ) doc_contenttype="L1Sectionbody";;
+            "L2Sectionheader" ) doc_contenttype="L2Sectionbody";;
+            "L3Sectionheader" ) doc_contenttype="L3Sectionbody";;
+            "functionheader" ) doc_contenttype="functionbody";;
+            "variableheader" ) doc_contenttype="variablebody";;
+            "gendocheader" ) doc_contenttype="gendocbody";;
+        esac
+    }
+
 # - Internal API ----------------------------------------------------------------
-    # fn:_parse_module_file
+    # fn: _parse_module_file - Parse one module source file
+        # Purpose:
+        #   Parse a source file and collect normalized documentation tables.
+        #
+        # Behavior:
+        #   - Validates the source filename argument.
+        #   - Resets parser state for the file.
+        #   - Reads the file line-by-line in source order.
+        #   - Runs detectors in deterministic order.
+        #   - Emits normalized content, section, item, metadata, and attribution records.
+        #
+        # Arguments:
+        #   $1  Source file to parse.
+        #
+        # Outputs (globals):
+        #   MOD_TABLE, MOD_ATTRIBUTION, MOD_SECTIONS, MOD_ITEMS, DOC_CONTENT_LINES
+        #
+        # Returns:
+        #   0 on successful parsing.
+        #   1 when no source filename is supplied.
+        #
+        # Usage:
+        #   _parse_module_file "$src_file"
     _parse_module_file(){
         src_file="${1:-}"
         [[ -z "$src_file" ]] && {
@@ -501,7 +974,7 @@ set -uo pipefail
             _detect_headermarker
             saydebug "after header marker: $src_linetype, $src_linenr, $doc_linenr, $src_line"
 
-              # Stop conditions
+            # Stop conditions
             _detect_noncommentline
             (( !doc_started )) && continue
 
@@ -522,11 +995,31 @@ set -uo pipefail
             
             _emit_contentline
 
+            _guess_nextcontenttype
+
         done < "$src_file"
         
         return 0
     }   
 
+    # fn: _render_site - Render collected documentation data
+        # Purpose:
+        #   Provide the renderer hand-off point for collected documentation tables.
+        #
+        # Behavior:
+        #   - Validates the output folder argument.
+        #   - Logs the target output folder.
+        #   - Placeholder for future HTML/PDF rendering implementation.
+        #
+        # Arguments:
+        #   $1  Output folder for generated documentation.
+        #
+        # Returns:
+        #   0 on successful hand-off.
+        #   1 when no output folder is supplied.
+        #
+        # Usage:
+        #   _render_site "$VAL_OUTDIR"
     _render_site(){
         local output_folder="${1:-}"
         [[ -z "$output_folder" ]] && {

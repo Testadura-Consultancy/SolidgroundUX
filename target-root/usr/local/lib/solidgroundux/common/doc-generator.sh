@@ -225,21 +225,69 @@ set -uo pipefail
     RESET=$'\e[0m'
 
     # Minimal UI
+    # fn: saystart - Print a start message
+        # Returns:
+        #   0 when the message is written.
+        #
+        # Usage:
+        #   saystart "Starting work"
     saystart()   { printf '%sSTART%s\t%s\n' "${MSG_CLR_STRT-}" "${RESET-}" "$*" >&2; }
+    # fn: sayinfo - Print a verbose informational message
+        # Returns:
+        #   0 when verbose mode is disabled or the message is written.
+        #
+        # Usage:
+        #   sayinfo "Informational message"
     sayinfo()    { 
         if (( ${FLAG_VERBOSE:-0} )); then
             printf '%sINFO%s \t%s\n' "${MSG_CLR_INFO-}" "${RESET-}" "$*" >&2; 
         fi
     }
+    # fn: sayok - Print a success message
+        # Returns:
+        #   0 when the message is written.
+        #
+        # Usage:
+        #   sayok "Completed"
     sayok()      { printf '%sOK%s   \t%s\n' "${MSG_CLR_OK-}"   "${RESET-}" "$*" >&2; }
+    # fn: saywarning - Print a warning message
+        # Returns:
+        #   0 when the message is written.
+        #
+        # Usage:
+        #   saywarning "Something needs attention"
     saywarning() { printf '%sWARN%s \t%s\n' "${MSG_CLR_WARN-}" "${RESET-}" "$*" >&2; }
+    # fn: sayfail - Print a failure message
+        # Returns:
+        #   0 when the message is written.
+        #
+        # Usage:
+        #   sayfail "Operation failed"
     sayfail()    { printf '%sFAIL%s \t%s\n' "${MSG_CLR_FAIL-}" "${RESET-}" "$*" >&2; }
+    # fn: saydebug - Print a debug message when debug mode is enabled
+        # Returns:
+        #   0 when debug mode is disabled or the message is written.
+        #
+        # Usage:
+        #   saydebug "Internal state"
     saydebug() {
         if (( ${FLAG_DEBUG:-0} )); then
             printf '%sDEBUG%s \t%s\n' "${MSG_CLR_DEBUG-}" "${RESET-}" "$*" >&2;
         fi
     }
+    # fn: saycancel - Print a cancellation message
+        # Returns:
+        #   0 when the message is written.
+        #
+        # Usage:
+        #   saycancel "Aborted"
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
+    # fn: sayend - Print an end message
+        # Returns:
+        #   0 when the message is written.
+        #
+        # Usage:
+        #   sayend "Finished"
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
     
 # - Script metadata (identity) ------------------------------------------------------
@@ -572,8 +620,28 @@ set -uo pipefail
             sgnd_showenvironment
         done
     }
-
-    # fn: _set_docstyles - Defining document styles
+    # fn: _set_docstyles - Define documentation rendering style defaults
+        # Purpose:
+        #   Initialize default documentation style variables used by later renderers.
+        #
+        # Behavior:
+        #   - Sets default font family and font sizes.
+        #   - Sets default style labels for fields, sections, items, and content blocks.
+        #   - Sets default spacing values used by document output logic.
+        #
+        # Outputs (globals):
+        #   SGND_DOC_FONT_FAMILY
+        #   SGND_DOC_FONT_SIZE_DEFAULT, SGND_DOC_FONT_SIZE_FIELD, SGND_DOC_FONT_SIZE_SECTION
+        #   SGND_DOC_FONT_SIZE_ITEM, SGND_DOC_FONT_SIZE_BLOCK
+        #   SGND_DOC_STYLE_FIELD, SGND_DOC_STYLE_SECTION, SGND_DOC_STYLE_ITEM, SGND_DOC_STYLE_BLOCK
+        #   SGND_DOC_SPACING_BEFORE_SECTION, SGND_DOC_SPACING_AFTER_SECTION
+        #   SGND_DOC_SPACING_BEFORE_ITEM, SGND_DOC_SPACING_AFTER_ITEM, SGND_DOC_SPACING_AFTER_BLOCK
+        #
+        # Returns:
+        #   0 on successful initialization.
+        #
+        # Usage:
+        #   _set_docstyles
     _set_docstyles(){
         SGND_DOC_FONT_FAMILY="Arial"
         SGND_DOC_FONT_SIZE_DEFAULT=10
@@ -593,30 +661,29 @@ set -uo pipefail
         SGND_DOC_SPACING_AFTER_ITEM=2
         SGND_DOC_SPACING_AFTER_BLOCK=4
     }
-
-    # _iterate_files
+    # fn: _iterate_files - Iterate source files and invoke a callback
         # Purpose:
-        #   Iterate over files in a directory using a file mask,
-        #   optionally recursing into subdirectories.
+        #   Walk a source directory, find files matching a mask, and pass each file to a callback.
         #
         # Behavior:
-        #   - Expands file_spec within source_dir
-        #   - Supports recursive and non-recursive modes
-        #   - Calls a callback function for each matched file
-        #   - Skips non-regular files
+        #   - Validates source directory, file mask, and callback function.
+        #   - Supports recursive and non-recursive scans.
+        #   - Counts matching files before processing for progress reporting.
+        #   - Invokes the callback once for each regular matched file.
+        #   - Logs callback failures without aborting the entire scan in recursive mode.
         #
         # Arguments:
-        #   $1  SOURCE_DIR
-        #   $2  FILE_SPEC
-        #   $3  FLAG_RECURSIVE   (0 = no recursion, 1 = recursive)
-        #   $4  CALLBACK_FUNC
+        #   $1  Source directory.
+        #   $2  File mask, for example "*.sh".
+        #   $3  Recursive flag: 0 = non-recursive, 1 = recursive.
+        #   $4  Callback function name.
         #
         # Returns:
-        #   0 on success
-        #   1 on invalid input
+        #   0 on successful iteration.
+        #   1 when arguments are invalid, source directory is missing, or callback is undefined.
         #
         # Usage:
-        #   _iterate_files "./src" "*.sh" 1 sgnd_doc_process_file
+        #   _iterate_files "$VAL_SRCDIR" "$VAL_FILESPEC" "$FLAG_RECURSIVE_SCAN" _parse_module_file
     _iterate_files() {
         local source_dir="$1"
         local file_spec="$2"
