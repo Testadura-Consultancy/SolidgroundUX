@@ -176,6 +176,53 @@ set -uo pipefail
         unset 'SGND_DT_SPLIT[${#SGND_DT_SPLIT[@]}-1]'
     }
 
+    # fn: _dt_build_sortkey
+        # Purpose:
+        #   Build a stable sort key for one datatable row.
+        #
+        # Behavior:
+        #   - Resolves each requested sort field against the supplied schema.
+        #   - Reads the field value from the supplied row.
+        #   - Normalizes values to lowercase for case-insensitive sorting.
+        #   - Joins sort key parts using a pipe separator.
+        #
+        # Arguments:
+        #   $1  SCHEMA
+        #   $2  ROW
+        #   $3  SORT_FIELDS   Comma-separated column names.
+        #
+        # Outputs:
+        #   Prints the generated sort key to stdout.
+        #
+        # Returns:
+        #   0 on success.
+        #   1 when a requested column does not exist.
+        #
+        # Usage:
+        #   _dt_build_sortkey "$SCHEMA" "$row" "product,group,type"
+    _dt_build_sortkey() {
+        local schema="${1:?missing schema}"
+        local row="${2-}"
+        local sort_fields="${3:?missing sort fields}"
+        local field=""
+        local value=""
+        local sortkey=""
+        local -a fields=()
+
+        IFS=',' read -r -a fields <<< "$sort_fields"
+
+        for field in "${fields[@]}"; do
+            field="${field//[[:space:]]/}"
+            [[ -n "$field" ]] || continue
+
+            value="$(sgnd_dt_row_get "$schema" "$row" "$field")" || return 1
+
+            [[ -z "$sortkey" ]] || sortkey+="|"
+            sortkey+="${value,,}"
+        done
+
+        printf '%s\n' "$sortkey"
+    }
 # --- Public API ---------------------------------------------------------------------
     # fn: sgnd_dt_validate_value
         # Purpose:
@@ -840,4 +887,56 @@ set -uo pipefail
             printf '\n'
         done
         printf '%s' "$color_reset"
+    }
+
+    # fn: sgnd_dt_get_sorted_rows
+        # Purpose:
+        #   Return all rows from a datatable sorted by one or more schema fields.
+        #
+        # Behavior:
+        #   - Reads rows from the supplied table array.
+        #   - Builds a case-insensitive sort key for each row.
+        #   - Sorts rows by the generated key.
+        #   - Prints only the original row values, not the generated sort keys.
+        #   - Does not modify the source table.
+        #
+        # Arguments:
+        #   $1  SCHEMA             Pipe-separated column definition string.
+        #   $2  TABLE_ARRAY_NAME   Name of the indexed array containing row strings.
+        #   $3  SORT_FIELDS        Comma-separated column names.
+        #
+        # Outputs:
+        #   Prints sorted row strings to stdout, one row per line.
+        #
+        # Returns:
+        #   0 on success.
+        #   1 when arguments are invalid or a sort field does not exist.
+        #
+        # Usage:
+        #   sgnd_dt_get_sorted_rows "$MOD_TABLE_SCHEMA" MOD_TABLE "product,group,type,name"
+        #
+        # Examples:
+        #   while IFS= read -r row; do
+        #       sgnd_dt_row_get "$MOD_TABLE_SCHEMA" "$row" name
+        #   done < <(sgnd_dt_get_sorted_rows "$MOD_TABLE_SCHEMA" MOD_TABLE "product,group,type")
+    sgnd_dt_get_sorted_rows() {
+        local schema="${1:?missing schema}"
+        local table_name="${2:?missing table name}"
+        local sort_fields="${3:?missing sort fields}"
+        local row=""
+        local sortkey=""
+        local row_count=0
+        local i=0
+        local -n table_ref="$table_name"
+
+        sgnd_dt_validate_schema "$schema" || return 1
+
+        row_count="$(sgnd_dt_row_count "$table_name")"
+
+        for (( i=0; i<row_count; i++ )); do
+            row="${table_ref[i]}"
+            sortkey="$(_dt_build_sortkey "$schema" "$row" "$sort_fields")" || return 1
+
+            printf '%s\t%s\n' "$sortkey" "$row"
+        done | sort -t $'\t' -k1,1 | cut -f2-
     }

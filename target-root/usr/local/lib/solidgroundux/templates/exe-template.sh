@@ -36,13 +36,13 @@
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
-#   Client      : 
+#   Client      : -
 #   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
 set -uo pipefail
 # - Bootstrap -----------------------------------------------------------------------
-    # tmp: _framework_locator
+    # fn$ _framework_locator
         # Purpose:
         #   Locate, create, and load the SolidGroundUX bootstrap configuration.
         #
@@ -158,7 +158,7 @@ set -uo pipefail
 
     }
 
-    # tmp: _load_bootstrapper
+    # fn$ _load_bootstrapper
         # Purpose:
         #   Resolve and source the framework bootstrap library.
         #
@@ -244,7 +244,7 @@ set -uo pipefail
     SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
 
 # - Script metadata (framework integration) -----------------------------------------
-    # var: SGND_USING
+    # var$ SGND_USING
         # Libraries to source from SGND_COMMON_LIB.
         # These are loaded automatically by sgnd_bootstrap AFTER core libraries.
         #
@@ -255,7 +255,7 @@ set -uo pipefail
     SGND_USING=(
     )
 
-    # SGND_ARGS_SPEC 
+    # var$ SGND_ARGS_SPEC 
         # Optional: script-specific arguments
         # --- Example: Arguments
         # Each entry:
@@ -275,7 +275,7 @@ set -uo pipefail
     SGND_ARGS_SPEC=(
     )
 
-    # SGND_SCRIPT_EXAMPLES
+    # var$ SGND_SCRIPT_EXAMPLES
         # Optional: examples for --help output.
         # Each entry is a string that will be printed verbatim.
         #
@@ -295,7 +295,7 @@ set -uo pipefail
         "  $SGND_SCRIPT_NAME --verbose"
     ) 
 
-    # SGND_SCRIPT_GLOBALS
+    # var$ SGND_SCRIPT_GLOBALS
         # Explicit declaration of global variables intentionally used by this script.
         #
         # Purpose:
@@ -321,7 +321,7 @@ set -uo pipefail
     SGND_SCRIPT_GLOBALS=(
     )
 
-    # SGND_STATE_VARIABLES
+    # var$ SGND_STATE_VARIABLES
         # List of variables participating in persistent state.
         #
         # Purpose:
@@ -341,7 +341,7 @@ set -uo pipefail
     SGND_STATE_VARIABLES=(
     )
 
-    # SGND_ON_EXIT_HANDLERS
+    # var$ SGND_ON_EXIT_HANDLERS
         # List of functions to be invoked on script termination.
         #
         # Purpose:

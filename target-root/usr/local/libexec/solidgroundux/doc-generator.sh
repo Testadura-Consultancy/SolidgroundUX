@@ -259,6 +259,7 @@ set -uo pipefail
         # Leave empty if no extra libs are needed.
     SGND_USING=(
             doc-processor.sh
+            doc-renderer.sh
             sgnd-datatable.sh
     )
 
@@ -794,14 +795,16 @@ set -uo pipefail
                --anykey
 
          
-            sgnd_dt_print_table "$DOC_CONTENT_LINES_SCHEMA" DOC_CONTENT_LINES 1
-        #
+           # sgnd_dt_print_table "$DOC_CONTENT_LINES_SCHEMA" DOC_CONTENT_LINES 1
+           _loop_modules
+           
         fi
 
         if (( FLAG_DRYRUN )); then
             sayinfo "Would have rendered site to $VAL_OUTDIR"
         else
-            _render_site "$VAL_OUTDIR"
+            #_render_site "$VAL_OUTDIR"
+            sayinfo "Calling render function"
         fi
 
         sayend "Documentation generation completed successfully at $display_time (duration: $(( end_time - start_time )) seconds)"
