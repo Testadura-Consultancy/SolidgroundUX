@@ -87,7 +87,7 @@ set -uo pipefail
     DOC_ATTRIBUTION_INDEX_SCHEMA="company|developer|license|modulename|moduletitle|product|group"
     DOC_ATTRIBUTION_INDEX=()
 
-    DOC_FUNCTION_INDEX_SCHEMA="product|group|modulename|itemaccess|functionname|purpose|anchor"
+    DOC_FUNCTION_INDEX_SCHEMA="product|group|modulename|itemvisibility|functionname|purpose|anchor"
     DOC_FUNCTION_INDEX=()
 
     DOC_NAV_SCHEMA="nodeid|parentnodeid|nodetype|node_name|node_title|hierarchy_level|docindex|contentref|hasitems|isinternal|istemplate"
@@ -117,8 +117,8 @@ set -uo pipefail
         FLAG_INCLUDE_EMPTY_SECTIONS=1
         
         VAL_INDEX_GROUPBY="product,group,type"
-        VAL_SECTION_SORTBY="modulename,parentsection,section,hierarchy_level"
-        VAL_ITEM_SORTBY="modulename,section,itemaccess,type,name"
+        VAL_SECTION_SORTBY="modulename,parent,section,level"
+        VAL_ITEM_SORTBY="modulename,section,itemvisibility,type,name"
 
     # -- Process helpers -----------------------------------------------------------
         # fn: _emit_doc_nav
@@ -144,17 +144,14 @@ set -uo pipefail
         _count_section_items() {
             local module_name="$1"
             local section_name="$2"
+            local parent_section="$3"
             local item_count=0
             local itm_row=""
-            local item_module=""
-            local item_section=""
 
             for itm_row in "${MOD_ITEMS[@]}"; do
-                item_module="$(sgnd_dt_row_get "$MOD_ITEMS_SCHEMA" "$itm_row" "modulename")"
-                [[ "$item_module" == "$module_name" ]] || continue
-
-                item_section="$(sgnd_dt_row_get "$MOD_ITEMS_SCHEMA" "$itm_row" "section")"
-                [[ "$item_section" == "$section_name" ]] || continue
+                [[ "$(sgnd_dt_row_get "$MOD_ITEMS_SCHEMA" "$itm_row" "modulename")" == "$module_name" ]] || continue
+                [[ "$(sgnd_dt_row_get "$MOD_ITEMS_SCHEMA" "$itm_row" "section")" == "$section_name" ]] || continue
+                [[ "$(sgnd_dt_row_get "$MOD_ITEMS_SCHEMA" "$itm_row" "parentsection")" == "$parent_section" ]] || continue
 
                 ((item_count++))
             done
@@ -223,9 +220,7 @@ set -uo pipefail
             local l2_node_id=""
             local l3_node_id=""
             local l4_node_id=""
-            local l5_node_id=""
 
-            local node_depth=0
             local cur_item=""
             local cur_line=0
 
@@ -233,11 +228,7 @@ set -uo pipefail
 
             # Count workflow: Count total lines for progress tracking
             local total_modules="${#MOD_TABLE[@]}"
-            local total_sections=0
-            local total_items=0
             local total_work=0
-            local count_module=""
-            local count_row=""
 
             total_work=$((${#MOD_TABLE[@]} + ${#MOD_SECTIONS[@]} + ${#MOD_ITEMS[@]}))
 
@@ -300,7 +291,7 @@ set -uo pipefail
                     _NAV_HIERARCHY_LEVEL="$(sgnd_dt_row_get "$MOD_SECTIONS_SCHEMA" "$section_row" "level")"
                     _NAV_HAS_ITEMS=0
 
-                    if (( ${FLAG_INCLUDE_EMPTY_SECTIONS:-1} == 0 && _NAV_ITEM_COUNT == 0 )); then
+                    if (( ${FLAG_INCLUDE_EMPTY_SECTIONS:-1} == 0 && _NAV_HAS_ITEMS   == 0 )); then
                         saydebug "Skipping empty section: $cur_module / $_NAV_NODE_NAME"
                         continue
                     fi
