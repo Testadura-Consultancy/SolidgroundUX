@@ -109,7 +109,7 @@ set -uo pipefail
         MOD_ITEMS_SCHEMA="modulename|section|parentsection|typecode|type|itemvisibility|itemrole|name|title"
         MOD_ITEMS=()
         
-        DOC_CONTENT_LINES_SCHEMA="file|source_linenr|doc_linenr|section|parentsection|grandparentsection|commentsection|item|title|contenttype|content"
+        DOC_CONTENT_LINES_SCHEMA="file|source_linenr|doc_linenr|section|parentsection|grandparentsection|commentsection|item|title|contenttype|content|contentref"
         DOC_CONTENT_LINES=()
     # fn: _init_localvars - Initialize parser state variables
         # Purpose:
@@ -844,7 +844,7 @@ set -uo pipefail
 
         ((doc_linenr++))
         saydebug "Emitting line: $mod_name, $src_linenr, $doc_linenr, $doc_section, $doc_parentsection, $doc_grandparentsection, $doc_commentsection, $doc_item, $doc_itemtitle, $doc_contenttype, $doc_content"
-        
+        local contentref="${mod_name}:${doc_grandparentsection}:${doc_parentsection}:${doc_section}:${doc_item}"
         sgnd_dt_append \
             "$DOC_CONTENT_LINES_SCHEMA" \
             DOC_CONTENT_LINES \
@@ -858,7 +858,8 @@ set -uo pipefail
             "$doc_item" \
             "$doc_itemtitle" \
             "$doc_contenttype" \
-            "$doc_content"
+            "$doc_content" \
+            "$contentref"
 
         saydebug "Rendered content emitted: $doc_contenttype, $doc_item, $doc_content"
         doc_emitline=0

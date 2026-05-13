@@ -78,7 +78,7 @@ set -uo pipefail
     DOC_FUNCTION_INDEX_SCHEMA="product|group|modulename|itemaccess|functionname|purpose|anchor"
     DOC_FUNCTION_INDEX=()
 
-    DOC_NAV_SCHEMA="nodeid|parentnodeid|nodetype|node_name|node_title|hierarchy_level|docindex|itemcount|isinternal|istemplate"
+    DOC_NAV_SCHEMA="nodeid|parentnodeid|nodetype|node_name|node_title|hierarchy_level|docindex|contentref|hasitems|isinternal|istemplate"
     DOC_NAV=()
 
     # var: NAV row parameters
@@ -89,9 +89,10 @@ set -uo pipefail
         _NAV_NODE_TITLE=""
         _NAV_HIERARCHY_LEVEL=""
         _NAV_DOC_INDEX=""
-        _NAV_ITEM_COUNT=0
+        _NAV_HAS_ITEMS=0
         _NAV_IS_INTERNAL=0
         _NAV_IS_TEMPLATE=0
+        _NAV_CONTENT_REF=""
         
         _L1_INDEX=0
         _L2_INDEX=0
@@ -121,7 +122,8 @@ set -uo pipefail
                 "${_NAV_NODE_TITLE}" \
                 "${_NAV_HIERARCHY_LEVEL}" \
                 "${_NAV_DOC_INDEX}"  \
-                "${_NAV_ITEM_COUNT:-0}" \
+                "${_NAV_CONTENT_REF}" \
+                "${_NAV_HAS_ITEMS:-0}" \
                 "${_NAV_IS_INTERNAL:-0}" \
                 "${_NAV_IS_TEMPLATE:-0}"
         }
@@ -182,6 +184,8 @@ set -uo pipefail
             
             local cur_module=""
             local cur_section=""
+            local cur_parent_section=""
+            local cur_grandparent_section=""
 
             local l1_node_id=""
             local l2_node_id=""
@@ -196,31 +200,14 @@ set -uo pipefail
             DOC_NAV=()
 
             # Count workflow: Count total lines for progress tracking
-            local total_modules=0
+            local total_modules="${#MOD_TABLE[@]}"
             local total_sections=0
             local total_items=0
             local total_work=0
             local count_module=""
             local count_row=""
 
-            while IFS= read -r count_row; do
-                count_module="$(sgnd_dt_row_get "$MOD_TABLE_SCHEMA" "$count_row" "name")"
-
-                ((total_modules++))
-
-                for section_row in "${MOD_SECTIONS[@]}"; do
-                    [[ "$(sgnd_dt_row_get "$MOD_SECTIONS_SCHEMA" "$section_row" "modulename")" == "$count_module" ]] || continue
-                    ((total_sections++))
-                done
-
-                for itm_row in "${MOD_ITEMS[@]}"; do
-                    [[ "$(sgnd_dt_row_get "$MOD_ITEMS_SCHEMA" "$itm_row" "modulename")" == "$count_module" ]] || continue
-                    ((total_items++))
-                done
-
-            done < <(sgnd_dt_get_sorted_rows "$MOD_TABLE_SCHEMA" MOD_TABLE "$VAL_INDEX_GROUPBY")
-
-            total_work=$((total_modules + total_sections + total_items))
+            total_work=$((${#MOD_TABLE[@]} + ${#MOD_SECTIONS[@]} + ${#MOD_ITEMS[@]}))
 
             # Main loop to build documentation navigation hierarchy, by module
             while IFS= read -r row; do
@@ -255,13 +242,16 @@ set -uo pipefail
                      --label "Building documentation hierarchy for module $_NAV_NODE_NAME ($_L1_INDEX/$total_modules)" \
                      --type 5
 
-                saydebug "Module: $_NAV_NODE_NAME, Title: $_NAV_NODE_TITLE, Type: $_NAV_NODE_TYPE, $_NAV_DOC_INDEX \
-                , Chapter: $_L1_INDEX, $_L2_INDEX, $_L3_INDEX, $_L4_INDEX, Node ID: $_NAV_NODE_ID, Parent ID: $_NAV_PARENT_NODE_ID"
+                sayinfo "Module: $_NAV_NODE_NAME, Title: $_NAV_NODE_TITLE, Type: $_NAV_NODE_TYPE, $_NAV_DOC_INDEX \n
+                , Chapter: $_L1_INDEX, $_L2_INDEX, $_L3_INDEX, $_L4_INDEX, Node ID: $_NAV_NODE_ID, Parent ID: $_NAV_PARENT_NODE_ID \n
+                , currentSection: $cur_section, $l1_node_id, $l2_node_id, $l3_node_id, $l4_node_id, $l5_node_id" 
 
                 # Insert module rootnode
-                _NAV_ITEM_COUNT=0
+                _NAV_HAS_ITEMS=0
 
                 _set_doc_index
+                
+                 _NAV_CONTENT_REF="${cur_module}:${cur_grandparent_section}:${cur_parent_section}:${cur_section}${cur_item}"
                 _emit_doc_nav
 
                 # Section loop, by module
@@ -276,7 +266,7 @@ set -uo pipefail
                     _NAV_NODE_NAME="$(sgnd_dt_row_get "$MOD_SECTIONS_SCHEMA" "$section_row" "section")"
                     _NAV_NODE_TITLE="$(sgnd_dt_row_get "$MOD_SECTIONS_SCHEMA" "$section_row" "title")"
                     _NAV_HIERARCHY_LEVEL="$(sgnd_dt_row_get "$MOD_SECTIONS_SCHEMA" "$section_row" "level")"
-                    _NAV_ITEM_COUNT="$(_count_section_items "$cur_module" "$_NAV_NODE_NAME")"
+                    _NAV_HAS_ITEMS=0
 
                     if (( ${FLAG_INCLUDE_EMPTY_SECTIONS:-1} == 0 && _NAV_ITEM_COUNT == 0 )); then
                         saydebug "Skipping empty section: $cur_module / $_NAV_NODE_NAME"
@@ -293,6 +283,8 @@ set -uo pipefail
                     case "$_NAV_HIERARCHY_LEVEL" in
                         1)  
                             _NAV_PARENT_NODE_ID="${l1_node_id}"
+                            cur_parent_section=""
+                            cur_grandparent_section=""
 
                             ((_L2_INDEX++))
                             _L3_INDEX=0
@@ -307,6 +299,8 @@ set -uo pipefail
 
                         2)
                             _NAV_PARENT_NODE_ID="${l2_node_id}"
+                            cur_grandparent_section="$cur_parent_section"
+                            cur_parent_section="$cur_section"
 
                             ((_L3_INDEX++))
                             _L4_INDEX=0
@@ -318,6 +312,8 @@ set -uo pipefail
                             ;;
                         3)
                             _NAV_PARENT_NODE_ID="${l3_node_id}"
+                            cur_grandparent_section="$cur_parent_section"
+                            cur_parent_section="$cur_section"
 
                             ((_L4_INDEX++))
                             _L5_INDEX=0
@@ -327,13 +323,20 @@ set -uo pipefail
                             ;;
                     esac                    
                     cur_section="$_NAV_NODE_NAME"
+                    cur_item=""
                     cur_section_node_id="$_NAV_NODE_ID"
 
                     _set_doc_index
                     saydebug "Section $_NAV_NODE_ID, Title: $_NAV_NODE_TITLE, Name: $_NAV_NODE_NAME, Chapter: $_NAV_DOC_INDEX \
                             , Parent: $_NAV_PARENT_NODE_ID"
 
+                    _NAV_CONTENT_REF="${cur_module}:${cur_grandparent_section}:${cur_parent_section}:${cur_section}${cur_item}"
+
                     _emit_doc_nav
+
+                    sayinfo "Node $_NAV_NODE_NAME, Title: $_NAV_NODE_TITLE, Type: $_NAV_NODE_TYPE, $_NAV_DOC_INDEX \n
+                        , Chapter: $_L1_INDEX, $_L2_INDEX, $_L3_INDEX, $_L4_INDEX, Node ID: $_NAV_NODE_ID, Parent ID: $_NAV_PARENT_NODE_ID \n
+                        , currentSection: $cur_section, $l1_node_id, $l2_node_id, $l3_node_id, $l4_node_id, $l5_node_id" 
 
                     # Item loop, by section
                     for itm_row in "${MOD_ITEMS[@]}"; do
@@ -349,6 +352,8 @@ set -uo pipefail
                         _NAV_NODE_NAME="$(sgnd_dt_row_get "$MOD_ITEMS_SCHEMA" "$itm_row" "name")"
                         _NAV_NODE_TITLE="$(sgnd_dt_row_get "$MOD_ITEMS_SCHEMA" "$itm_row" "title")"
                         _NAV_NODE_TYPE="$(sgnd_dt_row_get "$MOD_ITEMS_SCHEMA" "$itm_row" "type")"
+
+                        cur_item="$_NAV_NODE_NAME"
                         item_access="$(sgnd_dt_row_get "$MOD_ITEMS_SCHEMA" "$itm_row" "itemvisibility")"
                         item_role="$(sgnd_dt_row_get "$MOD_ITEMS_SCHEMA" "$itm_row" "itemrole")"
                         item_typecode="$(sgnd_dt_row_get "$MOD_ITEMS_SCHEMA" "$itm_row" "typecode")"
@@ -367,6 +372,12 @@ set -uo pipefail
                         saydebug "Item $_NAV_NODE_ID, Title: $_NAV_NODE_TITLE, Name: $_NAV_NODE_NAME, Chapter: $_NAV_DOC_INDEX \
                                 , Parent: $_NAV_PARENT_NODE_ID, Access: $item_access, Typecode: $item_typecode"
                         _emit_doc_nav 
+
+                        sayinfo "Node $_NAV_NODE_NAME, Title: $_NAV_NODE_TITLE, Type: $_NAV_NODE_TYPE, $_NAV_DOC_INDEX \n
+                        , Chapter: $_L1_INDEX, $_L2_INDEX, $_L3_INDEX, $_L4_INDEX, Node ID: $_NAV_NODE_ID, Parent ID: $_NAV_PARENT_NODE_ID \n
+                        , currentSection: $cur_section, $l1_node_id, $l2_node_id, $l3_node_id, $l4_node_id, $l5_node_id" 
+
+                        _NAV_CONTENT_REF="${cur_module}:${cur_grandparent_section}:${cur_parent_section}:${cur_section}:${cur_item}"
 
                     done  < <(sgnd_dt_get_sorted_rows "$MOD_ITEMS_SCHEMA" MOD_ITEMS "$VAL_ITEM_SORTBY")  
 

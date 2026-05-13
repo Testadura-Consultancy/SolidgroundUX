@@ -766,6 +766,7 @@ set -uo pipefail
         local start_time
         local display_time
         start_time="$(date +%s)"
+        local main_start="$start_time"
 
         display_time="$(date +%H:%M:%S)"
         saystart "Documentation generation started at $display_time"
@@ -776,12 +777,9 @@ set -uo pipefail
         end_time="$(date +%s)"
 
         display_time="$(date +%H:%M:%S)"
-        sayend "Documentation generation completed successfully at $display_time (duration: $(( end_time - start_time )) seconds)"
+        sayok "Done parsing source files (duration: $(( end_time - start_time )) seconds)"
 
         if (( FLAG_REVIEW )); then
-            #sgnd_show_vars_by_prefix "doc_" 1
-            #sgnd_show_vars_by_prefix "mod_" 1
-
             sgnd_dt_print_table "$MOD_TABLE_SCHEMA" MOD_TABLE 1
             sgnd_dt_print_table "$MOD_ATTRIBUTION_SCHEMA" MOD_ATTRIBUTION  1  
             sgnd_dt_print_table "$MOD_SECTIONS_SCHEMA" MOD_SECTIONS  1  
@@ -789,17 +787,20 @@ set -uo pipefail
 
             ask_dlg_autocontinue \
                --seconds 15 \
-               --message "Proceed ?" \
+               --message "Parsing complete continue with documentation generation ?" \
                --cancel \
                --pause \
                --anykey
+        fi
+        
+        start_time="$(date +%s)"
+        _build_doc_hierarchy
+        end_time="$(date +%s)"
+        sayok "Done building documentation hierarchy (duration: $(( end_time - start_time )) seconds)"
 
-         
-           # sgnd_dt_print_table "$DOC_CONTENT_LINES_SCHEMA" DOC_CONTENT_LINES 1
-           _build_doc_hierarchy
-           sgnd_dt_print_table "$DOC_NAV_SCHEMA" DOC_NAV  1  
-           
-           
+        if (( FLAG_REVIEW )); then
+           sgnd_dt_print_table "$DOC_NAV_SCHEMA" DOC_NAV  1 
+           sgnd_dt_print_table "$DOC_CONTENT_LINES_SCHEMA" DOC_CONTENT_LINES  1
         fi
 
         if (( FLAG_DRYRUN )); then
@@ -809,7 +810,10 @@ set -uo pipefail
             sayinfo "Calling render function"
         fi
 
-        sayend "Documentation generation completed successfully at $display_time (duration: $(( end_time - start_time )) seconds)"
+        end_time="$(date +%s)"
+        display_time="$(date +%H:%M:%S)"
+
+        sayend "Documentation generation completed successfully at $display_time (duration: $(( end_time - main_start )) seconds)"
     }
 
     # Entrypoint: sgnd_bootstrap will split framework args from script args.
