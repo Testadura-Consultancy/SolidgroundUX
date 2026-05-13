@@ -653,9 +653,7 @@ set -uo pipefail
                 --padleft 0
 
                 [[ -f "$file" ]] || continue
-                "$callback" "$file"
-
-                ((files_proc++))
+                "$callback" "$file" || saywarning "Callback $callback failed for file: $file"
             done
 
             shopt -u nullglob

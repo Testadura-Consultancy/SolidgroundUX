@@ -111,6 +111,7 @@ set -uo pipefail
         
         DOC_CONTENT_LINES_SCHEMA="file|source_linenr|doc_linenr|section|parentsection|grandparentsection|commentsection|item|title|contenttype|content|contentref"
         DOC_CONTENT_LINES=()
+
     # fn: _init_localvars - Initialize parser state variables
         # Purpose:
         #   Reset source, module, item, section, and emission state before parsing a file.
@@ -844,7 +845,7 @@ set -uo pipefail
 
         ((doc_linenr++))
         saydebug "Emitting line: $mod_name, $src_linenr, $doc_linenr, $doc_section, $doc_parentsection, $doc_grandparentsection, $doc_commentsection, $doc_item, $doc_itemtitle, $doc_contenttype, $doc_content"
-        local contentref="${mod_name}:${doc_grandparentsection}:${doc_parentsection}:${doc_section}:${doc_item}"
+        contentref="$(_build_content_ref "$mod_name" "$doc_grandparentsection" "$doc_parentsection" "$doc_section" "$doc_item")"
         sgnd_dt_append \
             "$DOC_CONTENT_LINES_SCHEMA" \
             DOC_CONTENT_LINES \
@@ -936,8 +937,6 @@ set -uo pipefail
     }
 
 
-
-
 # - Internal API ----------------------------------------------------------------
     # fn: _parse_module_file - Parse one module source file
         # Purpose:
@@ -1022,34 +1021,43 @@ set -uo pipefail
         done < "$src_file"
         
         return 0
-    }   
+    } 
 
-    # fn: _render_site - Render collected documentation data
+    # fn: _build_content_ref
         # Purpose:
-        #   Provide the renderer hand-off point for collected documentation tables.
-        #
-        # Behavior:
-        #   - Validates the output folder argument.
-        #   - Logs the target output folder.
-        #   - Placeholder for future HTML/PDF rendering implementation.
+        #   Build the canonical content reference used to join navigation nodes to
+        #   normalized documentation content lines.
         #
         # Arguments:
-        #   $1  Output folder for generated documentation.
+        #   $1  Module name.
+        #   $2  Grandparent section name.
+        #   $3  Parent section name.
+        #   $4  Current section name.
+        #   $5  Item name.
+        #
+        # Output:
+        #   Prints the content reference to stdout.
         #
         # Returns:
-        #   0 on successful hand-off.
-        #   1 when no output folder is supplied.
+        #   0 always.
         #
         # Usage:
-        #   _render_site "$VAL_OUTDIR"
-    _render_site(){
-        local output_folder="${1:-}"
-        [[ -z "$output_folder" ]] && {
-            sayerror "No outputfolder was passed"
-            return 1
-        }
-        sayinfo "Rendering site to $output_folder"
-        return 0
-    } 
+        #   ref="$(_build_content_ref "$module" "$grandparent" "$parent" "$section" "$item")"
+    _build_content_ref() {
+        local module_name="${1-}"
+        local grandparent_section="${2-}"
+        local parent_section="${3-}"
+        local section_name="${4-}"
+        local item_name="${5-}"
+
+        printf '%s:%s:%s:%s:%s\n' \
+            "$module_name" \
+            "$grandparent_section" \
+            "$parent_section" \
+            "$section_name" \
+            "$item_name"
+    }  
+
+
 
 

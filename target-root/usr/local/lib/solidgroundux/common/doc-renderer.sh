@@ -11,12 +11,24 @@
 #   Purpose     : Build documentation indexes and render output from normalized parser data
 #
 # Description:
+#   Converts parsed documentation tables into a strict navigation hierarchy and
+#   prepares renderer-friendly indexes.
 #
 # Design principles:
+#   - Keep parsing, hierarchy construction, and rendering separate.
+#   - Use explicit table-shaped arrays as intermediate models.
+#   - Preserve deterministic ordering and stable content references.
+#   - Avoid hidden relational behavior or synthetic database-like machinery.
 #
 # Role in framework:
+#   - Post-processing layer between doc-processor and concrete renderers.
+#   - Builds DOC_NAV as the canonical scaffold for documentation output.
+#   - Provides shared hierarchy metadata for HTML, Markdown, PDF, or other targets.
 #
 # Non-goals:
+#   - Parsing source files.
+#   - Owning source comment grammar.
+#   - Performing final format-specific rendering directly in hierarchy builders.
 #
 # Attribution:
 #   Developers  : Mark Fieten
@@ -150,6 +162,26 @@ set -uo pipefail
             printf '%s\n' "$item_count"
         }
 
+        # fn: _set_doc_index
+            # Purpose:
+            #   Build the current dotted document index from active hierarchy counters.
+            #
+            # Behavior:
+            #   - Uses _L1_INDEX through _L5_INDEX.
+            #   - Skips zero-valued levels.
+            #   - Stores the resulting dotted index in _NAV_DOC_INDEX.
+            #
+            # Inputs (globals):
+            #   _L1_INDEX, _L2_INDEX, _L3_INDEX, _L4_INDEX, _L5_INDEX
+            #
+            # Outputs (globals):
+            #   _NAV_DOC_INDEX
+            #
+            # Returns:
+            #   0 always.
+            #
+            # Usage:
+            #   _set_doc_index
         _set_doc_index() {
             local worker=""
 
@@ -242,7 +274,7 @@ set -uo pipefail
                      --label "Building documentation hierarchy for module $_NAV_NODE_NAME ($_L1_INDEX/$total_modules)" \
                      --type 5
 
-                sayinfo "Module: $_NAV_NODE_NAME, Title: $_NAV_NODE_TITLE, Type: $_NAV_NODE_TYPE, $_NAV_DOC_INDEX \n
+                saydebug "Module: $_NAV_NODE_NAME, Title: $_NAV_NODE_TITLE, Type: $_NAV_NODE_TYPE, $_NAV_DOC_INDEX \n
                 , Chapter: $_L1_INDEX, $_L2_INDEX, $_L3_INDEX, $_L4_INDEX, Node ID: $_NAV_NODE_ID, Parent ID: $_NAV_PARENT_NODE_ID \n
                 , currentSection: $cur_section, $l1_node_id, $l2_node_id, $l3_node_id, $l4_node_id, $l5_node_id" 
 
@@ -250,8 +282,8 @@ set -uo pipefail
                 _NAV_HAS_ITEMS=0
 
                 _set_doc_index
-                
-                 _NAV_CONTENT_REF="${cur_module}:${cur_grandparent_section}:${cur_parent_section}:${cur_section}${cur_item}"
+
+                 _NAV_CONTENT_REF="$(_build_content_ref "$cur_module" "$cur_grandparent_section" "$cur_parent_section" "$cur_section" "$cur_item")"
                 _emit_doc_nav
 
                 # Section loop, by module
@@ -330,11 +362,11 @@ set -uo pipefail
                     saydebug "Section $_NAV_NODE_ID, Title: $_NAV_NODE_TITLE, Name: $_NAV_NODE_NAME, Chapter: $_NAV_DOC_INDEX \
                             , Parent: $_NAV_PARENT_NODE_ID"
 
-                    _NAV_CONTENT_REF="${cur_module}:${cur_grandparent_section}:${cur_parent_section}:${cur_section}${cur_item}"
+                    _NAV_CONTENT_REF="$(_build_content_ref "$cur_module" "$cur_grandparent_section" "$cur_parent_section" "$cur_section" "$cur_item")"
 
                     _emit_doc_nav
 
-                    sayinfo "Node $_NAV_NODE_NAME, Title: $_NAV_NODE_TITLE, Type: $_NAV_NODE_TYPE, $_NAV_DOC_INDEX \n
+                    saydebug "Node $_NAV_NODE_NAME, Title: $_NAV_NODE_TITLE, Type: $_NAV_NODE_TYPE, $_NAV_DOC_INDEX \n
                         , Chapter: $_L1_INDEX, $_L2_INDEX, $_L3_INDEX, $_L4_INDEX, Node ID: $_NAV_NODE_ID, Parent ID: $_NAV_PARENT_NODE_ID \n
                         , currentSection: $cur_section, $l1_node_id, $l2_node_id, $l3_node_id, $l4_node_id, $l5_node_id" 
 
@@ -369,15 +401,13 @@ set -uo pipefail
                         _NAV_PARENT_NODE_ID="${cur_section_node_id}"
 
                         _set_doc_index
-                        saydebug "Item $_NAV_NODE_ID, Title: $_NAV_NODE_TITLE, Name: $_NAV_NODE_NAME, Chapter: $_NAV_DOC_INDEX \
-                                , Parent: $_NAV_PARENT_NODE_ID, Access: $item_access, Typecode: $item_typecode"
                         _emit_doc_nav 
 
-                        sayinfo "Node $_NAV_NODE_NAME, Title: $_NAV_NODE_TITLE, Type: $_NAV_NODE_TYPE, $_NAV_DOC_INDEX \n
+                        saydebug "Node $_NAV_NODE_NAME, Title: $_NAV_NODE_TITLE, Type: $_NAV_NODE_TYPE, $_NAV_DOC_INDEX \n
                         , Chapter: $_L1_INDEX, $_L2_INDEX, $_L3_INDEX, $_L4_INDEX, Node ID: $_NAV_NODE_ID, Parent ID: $_NAV_PARENT_NODE_ID \n
                         , currentSection: $cur_section, $l1_node_id, $l2_node_id, $l3_node_id, $l4_node_id, $l5_node_id" 
 
-                        _NAV_CONTENT_REF="${cur_module}:${cur_grandparent_section}:${cur_parent_section}:${cur_section}:${cur_item}"
+                        _NAV_CONTENT_REF="$(_build_content_ref "$cur_module" "$cur_grandparent_section" "$cur_parent_section" "$cur_section" "$cur_item")"
 
                     done  < <(sgnd_dt_get_sorted_rows "$MOD_ITEMS_SCHEMA" MOD_ITEMS "$VAL_ITEM_SORTBY")  
 
@@ -389,6 +419,33 @@ set -uo pipefail
         }
         
 # - Render documentation -----------------------------------------------------------
+    # fn: _render_site - Render collected documentation data
+        # Purpose:
+        #   Provide the renderer hand-off point for collected documentation tables.
+        #
+        # Behavior:
+        #   - Validates the output folder argument.
+        #   - Logs the target output folder.
+        #   - Placeholder for future HTML/PDF rendering implementation.
+        #
+        # Arguments:
+        #   $1  Output folder for generated documentation.
+        #
+        # Returns:
+        #   0 on successful hand-off.
+        #   1 when no output folder is supplied.
+        #
+        # Usage:
+        #   _render_site "$VAL_OUTDIR"
+    _render_site(){
+        local output_folder="${1:-}"
+        [[ -z "$output_folder" ]] && {
+            sayerror "No outputfolder was passed"
+            return 1
+        }
+        sayinfo "Rendering site to $output_folder"
+        return 0
+    } 
     
 
 
