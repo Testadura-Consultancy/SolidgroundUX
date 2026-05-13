@@ -358,10 +358,10 @@ set -uo pipefail
                     cur_item=""
                     cur_section_node_id="$_NAV_NODE_ID"
 
-                    _set_doc_index
                     saydebug "Section $_NAV_NODE_ID, Title: $_NAV_NODE_TITLE, Name: $_NAV_NODE_NAME, Chapter: $_NAV_DOC_INDEX \
                             , Parent: $_NAV_PARENT_NODE_ID"
 
+                    _set_doc_index
                     _NAV_CONTENT_REF="$(_build_content_ref "$cur_module" "$cur_grandparent_section" "$cur_parent_section" "$cur_section" "$cur_item")"
 
                     _emit_doc_nav
@@ -401,18 +401,14 @@ set -uo pipefail
                         _NAV_PARENT_NODE_ID="${cur_section_node_id}"
 
                         _set_doc_index
+                        _NAV_CONTENT_REF="$(_build_content_ref "$cur_module" "$cur_grandparent_section" "$cur_parent_section" "$cur_section" "$cur_item")"
+                        
                         _emit_doc_nav 
 
                         saydebug "Node $_NAV_NODE_NAME, Title: $_NAV_NODE_TITLE, Type: $_NAV_NODE_TYPE, $_NAV_DOC_INDEX \n
                         , Chapter: $_L1_INDEX, $_L2_INDEX, $_L3_INDEX, $_L4_INDEX, Node ID: $_NAV_NODE_ID, Parent ID: $_NAV_PARENT_NODE_ID \n
                         , currentSection: $cur_section, $l1_node_id, $l2_node_id, $l3_node_id, $l4_node_id, $l5_node_id" 
-
-                        _NAV_CONTENT_REF="$(_build_content_ref "$cur_module" "$cur_grandparent_section" "$cur_parent_section" "$cur_section" "$cur_item")"
-
                     done  < <(sgnd_dt_get_sorted_rows "$MOD_ITEMS_SCHEMA" MOD_ITEMS "$VAL_ITEM_SORTBY")  
-
-
-                    #previous_section_level="$section_level"
                 done < <(sgnd_dt_get_sorted_rows "$MOD_SECTIONS_SCHEMA" MOD_SECTIONS "$VAL_SECTION_SORTBY")
             done < <(sgnd_dt_get_sorted_rows "$MOD_TABLE_SCHEMA" MOD_TABLE "$VAL_INDEX_GROUPBY")
             sgnd_print
