@@ -789,14 +789,16 @@ set -uo pipefail
 
             ask_dlg_autocontinue \
                --seconds 15 \
-               --message "Proceed to DOC_CONTENT_LINES?" \
+               --message "Proceed ?" \
                --cancel \
                --pause \
                --anykey
 
          
            # sgnd_dt_print_table "$DOC_CONTENT_LINES_SCHEMA" DOC_CONTENT_LINES 1
-           _loop_modules
+           _build_doc_hierarchy
+           sgnd_dt_print_table "$DOC_NAV_SCHEMA" DOC_NAV  1  
+           
            
         fi
 

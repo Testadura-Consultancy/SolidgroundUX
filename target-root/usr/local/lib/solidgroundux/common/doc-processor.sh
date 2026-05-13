@@ -103,10 +103,10 @@ set -uo pipefail
         MOD_ATTRIBUTION_SCHEMA="modulename|developers|company|client|copyright|license"
         MOD_ATTRIBUTION=()
 
-        MOD_SECTIONS_SCHEMA="modulename|section|parent|level|linecount"
+        MOD_SECTIONS_SCHEMA="modulename|section|parent|grandparent|title|level"
         MOD_SECTIONS=()
 
-        MOD_ITEMS_SCHEMA="modulename|section|parentsection|typecode|type|itemaccess|name|title"
+        MOD_ITEMS_SCHEMA="modulename|section|parentsection|typecode|type|itemvisibility|itemrole|name|title"
         MOD_ITEMS=()
         
         DOC_CONTENT_LINES_SCHEMA="file|source_linenr|doc_linenr|section|parentsection|grandparentsection|commentsection|item|title|contenttype|content"
@@ -147,6 +147,7 @@ set -uo pipefail
         doc_section=""
         doc_sectionlevel=0
         doc_parentsection=""
+        doc_sectiontitle=""
         doc_grandparentsection=""
 
         doc_item=""
@@ -218,7 +219,7 @@ set -uo pipefail
     _rgx_docitem='^[[:space:]]*#[[:space:]]+([a-z]{2,3})([:$])[[:space:]]+([^[:space:]]+)([[:space:]]+-[[:space:]]+(.+))?[[:space:]]*$'
     _rgx_commentseparator='^[[:space:]]*#[[:space:]]+-{3,}[[:space:]]*$'
 
-    # -- Detection functions
+    # -- Detectors -------------------------------------------------------------------
     # fn: _detect_noncommentline - Detect non-comment source lines
         # Purpose:
         #   Stop documentation parsing for source lines that are not structured comments.
@@ -431,8 +432,22 @@ set -uo pipefail
         section_name="${BASH_REMATCH[2]}"
         section_name="$(sed -E 's/[[:space:]-]+$//' <<< "$section_name")"
 
+        local section_title=""
+
+        if [[ "$section_name" == *":"* ]]; then
+            section_title="${section_name#*:}"
+            section_name="${section_name%%:*}"
+
+            section_name="${section_name%"${section_name##*[![:space:]]}"}"
+            section_title="${section_title#"${section_title%%[![:space:]]*}"}"
+        else
+            section_title="$section_name"
+        fi
+
         src_linetype="sectionheader"
         doc_commentsection=""
+        doc_sectiontitle="$section_title"
+        
         local foundlevel="${#marker}"
 
         case "$foundlevel" in
@@ -450,7 +465,7 @@ set -uo pipefail
                 if [[ "$doc_sectionlevel" == 3 ]]; then
                     doc_parentsection="$doc_grandparentsection"
                     doc_grandparentsection=""
-                else
+                elif [[ "$doc_sectionlevel" == 1 ]]; then
                     doc_parentsection="$doc_section"
                 fi
                 doc_section="$section_name"
@@ -473,6 +488,7 @@ set -uo pipefail
         esac
                 
         doc_sectionlevel="$foundlevel"
+
         _emit_sectionrecord
 
         src_haltlineprocessing=1        
@@ -514,9 +530,16 @@ set -uo pipefail
             local item_title="${BASH_REMATCH[5]}"
 
             if [[ "$item_marker" == '$' ]]; then
-                doc_istemplateitem=1
+                doc_itemrole="template"
             else
-                doc_istemplateitem=0
+                doc_itemrole="normal"
+            fi
+
+            
+            if [[ "$item_name" == _* ]]; then
+                doc_itemvisibility="internal"
+            else
+                doc_itemvisibility="public"
             fi
             
             saydebug "Item detected $item_type. $item_marker, $item_name, $item_title"
@@ -545,15 +568,10 @@ set -uo pipefail
             doc_content="$item_name"
             [[ -n "$item_title" ]] && doc_content+=" - $item_title"
 
-            if [[ "$item_name" == _* ]]; then
-                doc_itemaccess="internal"
-            else
-                doc_itemaccess="public"
-            fi
             doc_item="$item_name"
             doc_itemmarker="$item_type$item_marker"
             doc_itemtitle="$item_title"
-            
+
             _emit_itemrecord
 
             doc_emitline=1
@@ -763,6 +781,40 @@ set -uo pipefail
 
     }
 
+    # --- Guessers ----------------------------------------------------------------
+        # fn: _guess_nextcontenttype - Advance content type after emitted headers
+            # Purpose:
+            #   Prepare the parser for body content following a recognized header line.
+            #
+            # Behavior:
+            #   - Maps module, section, item, and comment-section headers to their body content types.
+            #   - Leaves unknown or body content types unchanged.
+            #
+            # Inputs (globals):
+            #   doc_contenttype
+            #
+            # Outputs (globals):
+            #   doc_contenttype
+            #
+            # Returns:
+            #   0 always.
+            #
+            # Usage:
+            #   _guess_nextcontenttype
+        _guess_nextcontenttype(){
+            case "$doc_contenttype" in
+                "moduleheader" ) doc_contenttype="modulebody";;
+                "commentsectionheader" ) doc_contenttype="commentsectionbody";;
+                "L1Sectionheader" ) doc_contenttype="L1Sectionbody";;
+                "L2Sectionheader" ) doc_contenttype="L2Sectionbody";;
+                "L3Sectionheader" ) doc_contenttype="L3Sectionbody";;
+                "functionheader" ) doc_contenttype="functionbody";;
+                "variableheader" ) doc_contenttype="variablebody";;
+                "gendocheader" ) doc_contenttype="gendocbody";;
+            esac
+        }
+
+    # -- Emitters -------------------------------------------------------------------
     # fn: _emit_contentline - Append a normalized documentation content line
         # Purpose:
         #   Emit the current normalized content state into DOC_CONTENT_LINES.
@@ -832,13 +884,9 @@ set -uo pipefail
         # Usage:
         #   _emit_itemrecord
     _emit_itemrecord(){
-        if [[ "$item_name" == _* ]]; then
-            doc_itemaccess="internal"
-        else
-            doc_itemaccess="public"
-        fi
-        
-        saydebug "Adding item: Module ${mod_name:-}, Section ${doc_section:-}, Parent ${doc_parentsection:-}, SrcLinetype ${src_linetype:-}, DocLinetype ${doc_linetype:-}, AccessLevel: ${doc_itemaccess:-}, ItemType ${doc_itemtype:-}, ItemTitle ${doc_item:-}, ${doc_itemtitle:-}"
+   
+        saydebug "Adding item: Module ${mod_name:-}, Section ${doc_section:-}, Parent ${doc_parentsection:-}, SrcLinetype ${src_linetype:-}, DocLinetype ${doc_linetype:-} /
+                , Visibility: ${doc_itemvisibility:-}, Role: ${doc_itemrole:-}, ItemType ${doc_itemtype:-}, ItemTitle ${doc_item:-}, ${doc_itemtitle:-}"
 
         
         sgnd_dt_append \
@@ -849,7 +897,8 @@ set -uo pipefail
             "$doc_parentsection" \
             "$src_linetype" \
             "$doc_itemtype" \
-            "$doc_itemaccess" \
+            "$doc_itemvisibility" \
+            "$doc_itemrole" \
             "$doc_item" \
             "$doc_itemtitle"
     }
@@ -880,41 +929,13 @@ set -uo pipefail
             "$mod_name" \
             "$doc_section" \
             "$doc_parentsection" \
-            "$doc_sectionlevel" \
-            -1
+            "$doc_grandparentsection" \
+            "$doc_sectiontitle" \
+            "$doc_sectionlevel" 
     }
 
-    # fn: _guess_nextcontenttype - Advance content type after emitted headers
-        # Purpose:
-        #   Prepare the parser for body content following a recognized header line.
-        #
-        # Behavior:
-        #   - Maps module, section, item, and comment-section headers to their body content types.
-        #   - Leaves unknown or body content types unchanged.
-        #
-        # Inputs (globals):
-        #   doc_contenttype
-        #
-        # Outputs (globals):
-        #   doc_contenttype
-        #
-        # Returns:
-        #   0 always.
-        #
-        # Usage:
-        #   _guess_nextcontenttype
-    _guess_nextcontenttype(){
-        case "$doc_contenttype" in
-            "moduleheader" ) doc_contenttype="modulebody";;
-            "commentsectionheader" ) doc_contenttype="commentsectionbody";;
-            "L1Sectionheader" ) doc_contenttype="L1Sectionbody";;
-            "L2Sectionheader" ) doc_contenttype="L2Sectionbody";;
-            "L3Sectionheader" ) doc_contenttype="L3Sectionbody";;
-            "functionheader" ) doc_contenttype="functionbody";;
-            "variableheader" ) doc_contenttype="variablebody";;
-            "gendocheader" ) doc_contenttype="gendocbody";;
-        esac
-    }
+
+
 
 # - Internal API ----------------------------------------------------------------
     # fn: _parse_module_file - Parse one module source file
