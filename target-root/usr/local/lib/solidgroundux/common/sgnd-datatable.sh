@@ -940,3 +940,63 @@ set -uo pipefail
             printf '%s\t%s\n' "$sortkey" "$row"
         done | sort -t $'\t' -k1,1 | cut -f2-
     }
+
+    # fn: sgnd_dt_row2var
+        # Purpose:
+        #   Split a datatable row into field variables named after the table and schema fields.
+        #
+        # Behavior:
+        #   - Splits the supplied schema into field names.
+        #   - Splits the supplied row into field values.
+        #   - Creates one shell variable per schema field.
+        #   - Variable names are built as:
+        #       <table_name>_<field_name>
+        #   - Field names are normalized to lowercase.
+        #   - Hyphens in field names are converted to underscores.
+        #
+        # Arguments:
+        #   $1  SCHEMA       Pipe-separated column definition string.
+        #   $2  TABLE_NAME   Logical table name used as variable prefix.
+        #   $3  ROW          Pipe-separated datatable row.
+        #
+        # Outputs:
+        #   <TABLE_NAME>_<field_name> variables
+        #
+        # Returns:
+        #   0 on success.
+        #   1 when the schema is invalid.
+        #
+        # Usage:
+        #   sgnd_dt_row2var "$MOD_TABLE_SCHEMA" MOD_TABLE "$row"
+        #
+        # Examples:
+        #   sgnd_dt_row2var "$MOD_TABLE_SCHEMA" MOD_TABLE "$row"
+        #   printf '%s\n' "$MOD_TABLE_name"
+    sgnd_dt_row2var() {
+        local schema="${1:?missing schema}"
+        local table_name="${2:?missing table name}"
+        local row="${3-}"
+
+        local i
+        local field_name
+        local var_name
+        local -a columns=()
+
+        sgnd_dt_validate_schema "$schema" || return 1
+
+        sgnd_dt_split_schema "$schema"
+        columns=("${SGND_DT_SPLIT[@]}")
+
+        sgnd_dt_split_row "$row"
+
+        for (( i=0; i<${#columns[@]}; i++ )); do
+            field_name="${columns[i]}"
+
+            field_name="${field_name,,}"
+            field_name="${field_name//-/_}"
+
+            var_name="${table_name}_${field_name}"
+
+            printf -v "$var_name" '%s' "${SGND_DT_SPLIT[i]-}"
+        done
+    }

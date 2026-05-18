@@ -122,6 +122,22 @@ set -uo pipefail
 
     # -- Process helpers -----------------------------------------------------------
         # fn: _emit_doc_nav
+            # Purpose:
+            #   Append the currently prepared navigation node to DOC_NAV.
+            #
+            # Behavior:
+            #   - Uses the active _NAV_* working variables.
+            #   - Creates one normalized navigation row.
+            #   - Stores hierarchy, index, content reference, and visibility flags.
+            #
+            # Outputs:
+            #   DOC_NAV
+            #
+            # Returns:
+            #   0 if the row is appended successfully.
+            #
+            # Usage:
+            #   _emit_doc_nav
         _emit_doc_nav() {
             saydebug "Emitting doc nav node: ID='$_NAV_NODE_ID', ParentID='$_NAV_PARENT_NODE_ID', Type='$_NAV_NODE_TYPE', Name='$_NAV_NODE_NAME', Title='$_NAV_NODE_TITLE', HierarchyLevel='$_NAV_HIERARCHY_LEVEL', DocIndex='$_NAV_DOC_INDEX'"
             sgnd_dt_append \
@@ -141,6 +157,27 @@ set -uo pipefail
         }
 
         # fn: _count_section_items
+            # Purpose:
+            #   Count documented items belonging to a specific module section.
+            #
+            # Behavior:
+            #   - Scans MOD_ITEMS.
+            #   - Matches rows by module, section, and parent section.
+            #   - Prints the number of matching item rows.
+            #
+            # Arguments:
+            #   $1  Module name.
+            #   $2  Section name.
+            #   $3  Parent section name.
+            #
+            # Outputs:
+            #   Prints item count to stdout.
+            #
+            # Returns:
+            #   0 always.
+            #
+            # Usage:
+            #   count="$(_count_section_items "$module_name" "$section_name" "$parent_section")"
         _count_section_items() {
             local module_name="$1"
             local section_name="$2"
@@ -208,6 +245,30 @@ set -uo pipefail
         }
 
         # fn: _build_doc_hierarchy
+            # Purpose:
+            #   Build the canonical documentation navigation hierarchy.
+            #
+            # Behavior:
+            #   - Clears DOC_NAV before rebuilding.
+            #   - Iterates modules, sections, and documented items.
+            #   - Assigns hierarchy levels and dotted document indexes.
+            #   - Builds stable node IDs and parent node IDs.
+            #   - Builds content references linking navigation nodes to DOC_CONTENT_LINES.
+            #   - Marks internal and template items for optional rendering decisions.
+            #
+            # Inputs:
+            #   MOD_TABLE
+            #   MOD_SECTIONS
+            #   MOD_ITEMS
+            #
+            # Outputs:
+            #   DOC_NAV
+            #
+            # Returns:
+            #   0 on successful hierarchy construction.
+            #
+            # Usage:
+            #   _build_doc_hierarchy
         _build_doc_hierarchy() {
             local row=""
             
@@ -241,9 +302,11 @@ set -uo pipefail
                 _L4_INDEX=0
                 _L5_INDEX=0
 
-                _NAV_NODE_NAME="$(sgnd_dt_row_get "$MOD_TABLE_SCHEMA" "$row" "name")"
-                _NAV_NODE_TITLE="$(sgnd_dt_row_get "$MOD_TABLE_SCHEMA" "$row" "title")"
-                _NAV_NODE_TYPE="$(sgnd_dt_row_get "$MOD_TABLE_SCHEMA" "$row" "type")"
+                sgnd_dt_row2var "$MOD_TABLE_SCHEMA" MOD_TABLE "$row"
+
+                _NAV_NODE_NAME="$MOD_TABLE_name"
+                _NAV_NODE_TITLE="$MOD_TABLE_title"
+                _NAV_NODE_TYPE="$MOD_TABLE_type"
                 _NAV_NODE_ID="mod:${_NAV_NODE_NAME}"
 
                 _NAV_PARENT_NODE_ID="root"
@@ -260,9 +323,9 @@ set -uo pipefail
 
                 sayprogress \
                      --slot 1 \
-                     --current "$cur_line" \
-                     --total "$total_work" \
-                     --label "Building documentation hierarchy for module $_NAV_NODE_NAME ($_L1_INDEX/$total_modules)" \
+                     --current "$_L1_INDEX" \
+                     --total "$$total_modules" \
+                     --label "Building documentation hierarchy for module $_NAV_NODE_NAME" \
                      --type 5
 
                 saydebug "Module: $_NAV_NODE_NAME, Title: $_NAV_NODE_TITLE, Type: $_NAV_NODE_TYPE, $_NAV_DOC_INDEX \n
@@ -285,10 +348,12 @@ set -uo pipefail
                     [[ "$section_module" == "$cur_module" ]] || continue                    
                     ((cur_line++))
 
+                    sgnd_dt_row2var "$MOD_SECTIONS_SCHEMA" MOD_SECTIONS "$section_row"
+
                     _NAV_NODE_TYPE="section"
-                    _NAV_NODE_NAME="$(sgnd_dt_row_get "$MOD_SECTIONS_SCHEMA" "$section_row" "section")"
-                    _NAV_NODE_TITLE="$(sgnd_dt_row_get "$MOD_SECTIONS_SCHEMA" "$section_row" "title")"
-                    _NAV_HIERARCHY_LEVEL="$(sgnd_dt_row_get "$MOD_SECTIONS_SCHEMA" "$section_row" "level")"
+                    _NAV_NODE_NAME="$MOD_SECTIONS_section"
+                    _NAV_NODE_TITLE="$MOD_SECTIONS_title"
+                    _NAV_HIERARCHY_LEVEL="$MOD_SECTIONS_level"
                     _NAV_HAS_ITEMS=0
 
                     if (( ${FLAG_INCLUDE_EMPTY_SECTIONS:-1} == 0 && _NAV_HAS_ITEMS   == 0 )); then
@@ -363,43 +428,46 @@ set -uo pipefail
 
                     # Item loop, by section
                     for itm_row in "${MOD_ITEMS[@]}"; do
-                        item_module="$(sgnd_dt_row_get "$MOD_ITEMS_SCHEMA" "$itm_row" "modulename")"
+                        sgnd_dt_row2var "$MOD_ITEMS_SCHEMA" MOD_ITEMS "$itm_row"
+
+                        item_module="$MOD_ITEMS_modulename"
 
                         # Only scan item rows for the current module and section, as items are specific to both a module and a section, and not shared across modules or sections
-                        [[ "$item_module" == "$cur_module" ]] || continue  
-                        [[ "$(sgnd_dt_row_get "$MOD_ITEMS_SCHEMA" "$itm_row" "section")" == "$cur_section" ]] || continue
+                        [[ "$item_module" == "$cur_module" ]] || continue
+                        [[ "$MOD_ITEMS_section" == "$cur_section" ]] || continue
 
-                        ((_L5_INDEX++))                     
+                        ((_L5_INDEX++))
                         ((cur_line++))
 
-                        _NAV_NODE_NAME="$(sgnd_dt_row_get "$MOD_ITEMS_SCHEMA" "$itm_row" "name")"
-                        _NAV_NODE_TITLE="$(sgnd_dt_row_get "$MOD_ITEMS_SCHEMA" "$itm_row" "title")"
-                        _NAV_NODE_TYPE="$(sgnd_dt_row_get "$MOD_ITEMS_SCHEMA" "$itm_row" "type")"
+                        _NAV_NODE_NAME="$MOD_ITEMS_name"
+                        _NAV_NODE_TITLE="$MOD_ITEMS_title"
+                        _NAV_NODE_TYPE="$MOD_ITEMS_type"
 
                         cur_item="$_NAV_NODE_NAME"
-                        item_access="$(sgnd_dt_row_get "$MOD_ITEMS_SCHEMA" "$itm_row" "itemvisibility")"
-                        item_role="$(sgnd_dt_row_get "$MOD_ITEMS_SCHEMA" "$itm_row" "itemrole")"
-                        item_typecode="$(sgnd_dt_row_get "$MOD_ITEMS_SCHEMA" "$itm_row" "typecode")"
+
+                        item_access="$MOD_ITEMS_itemvisibility"
+                        item_role="$MOD_ITEMS_itemrole"
+                        item_typecode="$MOD_ITEMS_typecode"
 
                         _NAV_IS_INTERNAL=0
                         _NAV_IS_TEMPLATE=0
 
                         [[ "$item_access" == "internal" ]] && _NAV_IS_INTERNAL=1
                         [[ "$item_role" == "template" ]] && _NAV_IS_TEMPLATE=1
-                        
+
                         _NAV_NODE_ID="${item_typecode}:${_NAV_NODE_NAME}"
                         l5_node_id="$_NAV_NODE_ID"
                         _NAV_PARENT_NODE_ID="${cur_section_node_id}"
 
                         _set_doc_index
                         _NAV_CONTENT_REF="$(_build_content_ref "$cur_module" "$cur_grandparent_section" "$cur_parent_section" "$cur_section" "$cur_item")"
-                        
-                        _emit_doc_nav 
+
+                        _emit_doc_nav
 
                         saydebug "Node $_NAV_NODE_NAME, Title: $_NAV_NODE_TITLE, Type: $_NAV_NODE_TYPE, $_NAV_DOC_INDEX \n
                         , Chapter: $_L1_INDEX, $_L2_INDEX, $_L3_INDEX, $_L4_INDEX, Node ID: $_NAV_NODE_ID, Parent ID: $_NAV_PARENT_NODE_ID \n
-                        , currentSection: $cur_section, $l1_node_id, $l2_node_id, $l3_node_id, $l4_node_id, $l5_node_id" 
-                    done  < <(sgnd_dt_get_sorted_rows "$MOD_ITEMS_SCHEMA" MOD_ITEMS "$VAL_ITEM_SORTBY")  
+                        , currentSection: $cur_section, $l1_node_id, $l2_node_id, $l3_node_id, $l4_node_id, $l5_node_id"
+                    done < <(sgnd_dt_get_sorted_rows "$MOD_ITEMS_SCHEMA" MOD_ITEMS "$VAL_ITEM_SORTBY")
                 done < <(sgnd_dt_get_sorted_rows "$MOD_SECTIONS_SCHEMA" MOD_SECTIONS "$VAL_SECTION_SORTBY")
             done < <(sgnd_dt_get_sorted_rows "$MOD_TABLE_SCHEMA" MOD_TABLE "$VAL_INDEX_GROUPBY")
             sgnd_print

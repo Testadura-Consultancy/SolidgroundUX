@@ -96,7 +96,41 @@ set -uo pipefail
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 # - Local definitions
-    # var: Datamodel
+    # var: Datamodel - Content tables for parsed documentation data
+        # Purpose:
+        #   Define the parser-owned documentation tables.
+        #
+        # Behavior:
+        #   - Stores collected module metadata, attribution, sections, documented items,
+        #     and normalized content lines.
+        #   - Keeps parsing output independent from rendering output.
+        #   - Uses schema strings as explicit table contracts for sgnd-datatable helpers.
+        #
+        # Tables:
+        #   MOD_TABLE
+        #     One row per parsed source module.
+        #     Holds module identity, title, type, purpose, version, build, group, and product.
+        #
+        #   MOD_ATTRIBUTION
+        #     One row per parsed source module.
+        #     Holds developer, company, client, copyright, and license information.
+        #
+        #   MOD_SECTIONS
+        #     One row per detected documentation section.
+        #     Holds module, section, parent, grandparent, display title, and hierarchy level.
+        #
+        #   MOD_ITEMS
+        #     One row per detected documented item.
+        #     Holds module, section context, item type, visibility, role, name, and title.
+        #
+        #   DOC_CONTENT_LINES
+        #     One row per normalized emitted documentation line.
+        #     Holds source position, section context, comment-section context, item context,
+        #     content type, content text, and canonical content reference.
+        #
+        # Notes:
+        #   - These tables are collection/output contracts, not class definitions.
+        #   - Rendering code should consume these tables instead of reparsing source files.
         MOD_TABLE_SCHEMA="file|name|title|type|purpose|version|build|group|product"
         MOD_TABLE=()
 
@@ -221,27 +255,27 @@ set -uo pipefail
     _rgx_commentseparator='^[[:space:]]*#[[:space:]]+-{3,}[[:space:]]*$'
 
     # -- Detectors -------------------------------------------------------------------
-    # fn: _detect_noncommentline - Detect non-comment source lines
-        # Purpose:
-        #   Stop documentation parsing for source lines that are not structured comments.
-        #
-        # Behavior:
-        #   - Ignores the line when another detector already handled it.
-        #   - Returns without action for comment lines.
-        #   - Clears the current source/content type for executable or ordinary source lines.
-        #   - Prevents later detectors from processing the same line.
-        #
-        # Inputs (globals):
-        #   src_line, src_haltlineprocessing
-        #
-        # Outputs (globals):
-        #   src_linetype, doc_contenttype, doc_commentsection, doc_emitline, src_haltlineprocessing
-        #
-        # Returns:
-        #   0 always.
-        #
-        # Usage:
-        #   _detect_noncommentline
+        # fn: _detect_noncommentline - Detect non-comment source lines
+            # Purpose:
+            #   Stop documentation parsing for source lines that are not structured comments.
+            #
+            # Behavior:
+            #   - Ignores the line when another detector already handled it.
+            #   - Returns without action for comment lines.
+            #   - Clears the current source/content type for executable or ordinary source lines.
+            #   - Prevents later detectors from processing the same line.
+            #
+            # Inputs (globals):
+            #   src_line, src_haltlineprocessing
+            #
+            # Outputs (globals):
+            #   src_linetype, doc_contenttype, doc_commentsection, doc_emitline, src_haltlineprocessing
+            #
+            # Returns:
+            #   0 always.
+            #
+            # Usage:
+            #   _detect_noncommentline
         _detect_noncommentline() {
             (( src_haltlineprocessing )) && return 0
 
@@ -728,61 +762,60 @@ set -uo pipefail
         }
 
     # -- Action -------------------------------------------------------------------
-    # fn: _action_headerend - Emit module-level header data
-        # Purpose:
-        #   Store collected file header metadata in module-level data tables.
-        #
-        # Behavior:
-        #   - Appends module identity and metadata to MOD_TABLE.
-        #   - Appends attribution information to MOD_ATTRIBUTION.
-        #   - Clears pending content emission for the header marker line.
-        #
-        # Inputs (globals):
-        #   src_file, mod_name, mod_title, mod_type, mod_purpose, mod_version, mod_build, mod_group, mod_product
-        #   mod_developers, mod_company, mod_client, mod_copyright, mod_license
-        #
-        # Outputs (globals):
-        #   MOD_TABLE, MOD_ATTRIBUTION, doc_emitline
-        #
-        # Returns:
-        #   0 if table append calls succeed.
-        #
-        # Usage:
-        #   _action_headerend
-    _action_headerend() {
+        # fn: _action_headerend - Emit module-level header data
+            # Purpose:
+            #   Store collected file header metadata in module-level data tables.
+            #
+            # Behavior:
+            #   - Appends module identity and metadata to MOD_TABLE.
+            #   - Appends attribution information to MOD_ATTRIBUTION.
+            #   - Clears pending content emission for the header marker line.
+            #
+            # Inputs (globals):
+            #   src_file, mod_name, mod_title, mod_type, mod_purpose, mod_version, mod_build, mod_group, mod_product
+            #   mod_developers, mod_company, mod_client, mod_copyright, mod_license
+            #
+            # Outputs (globals):
+            #   MOD_TABLE, MOD_ATTRIBUTION, doc_emitline
+            #
+            # Returns:
+            #   0 if table append calls succeed.
+            #
+            # Usage:
+            #   _action_headerend
+        _action_headerend() {
 
-        saydebug "Adding module: ${src_file:-}, ${mod_name:-}, ${mod_title:-}, ${mod_type:-}, ${mod_purpose:-}, ${mod_version:-}, ${mod_build:-}, ${mod_group:-}, ${mod_product:-}"
+            saydebug "Adding module: ${src_file:-}, ${mod_name:-}, ${mod_title:-}, ${mod_type:-}, ${mod_purpose:-}, ${mod_version:-}, ${mod_build:-}, ${mod_group:-}, ${mod_product:-}"
 
-        sgnd_dt_append \
-            "$MOD_TABLE_SCHEMA" \
-            MOD_TABLE \
-            "${src_file:-}" \
-            "${mod_name:-}" \
-            "${mod_title:-}" \
-            "${mod_type:-}" \
-            "${mod_purpose:-}" \
-            "${mod_version:-}" \
-            "${mod_build:-}" \
-            "${mod_group:-}" \
-            "${mod_product:-}"
+            sgnd_dt_append \
+                "$MOD_TABLE_SCHEMA" \
+                MOD_TABLE \
+                "${src_file:-}" \
+                "${mod_name:-}" \
+                "${mod_title:-}" \
+                "${mod_type:-}" \
+                "${mod_purpose:-}" \
+                "${mod_version:-}" \
+                "${mod_build:-}" \
+                "${mod_group:-}" \
+                "${mod_product:-}"
 
-        saydebug "Adding module attribution: ${MOD_ATTRIBUTION_SCHEMA:-}, ${mod_name:-}, ${mod_developers:-}, ${mod_company:-}, ${mod_client:-}, ${mod_copyright:-}, ${mod_license:-}"
+            saydebug "Adding module attribution: ${MOD_ATTRIBUTION_SCHEMA:-}, ${mod_name:-}, ${mod_developers:-}, ${mod_company:-}, ${mod_client:-}, ${mod_copyright:-}, ${mod_license:-}"
 
-        sgnd_dt_append \
-            "$MOD_ATTRIBUTION_SCHEMA" \
-            MOD_ATTRIBUTION \
-            "${mod_name:-}" \
-            "${mod_developers:-}" \
-            "${mod_company:-}" \
-            "${mod_client:-}" \
-            "${mod_copyright:-}" \
-            "${mod_license:-}"
+            sgnd_dt_append \
+                "$MOD_ATTRIBUTION_SCHEMA" \
+                MOD_ATTRIBUTION \
+                "${mod_name:-}" \
+                "${mod_developers:-}" \
+                "${mod_company:-}" \
+                "${mod_client:-}" \
+                "${mod_copyright:-}" \
+                "${mod_license:-}"
 
-        doc_emitline=0
+            doc_emitline=0
 
-    }
+        }
 
-    # --- Guessers ----------------------------------------------------------------
         # fn: _guess_nextcontenttype - Advance content type after emitted headers
             # Purpose:
             #   Prepare the parser for body content following a recognized header line.
@@ -816,125 +849,125 @@ set -uo pipefail
         }
 
     # -- Emitters -------------------------------------------------------------------
-    # fn: _emit_contentline - Append a normalized documentation content line
-        # Purpose:
-        #   Emit the current normalized content state into DOC_CONTENT_LINES.
-        #
-        # Behavior:
-        #   - Skips emission when content type, content, or emit flag is missing.
-        #   - Increments the documentation line counter.
-        #   - Appends the normalized content line with current section and item context.
-        #   - Clears the emit flag after successful emission.
-        #
-        # Inputs (globals):
-        #   doc_contenttype, doc_content, doc_emitline, mod_name, src_linenr, doc_linenr
-        #   doc_section, doc_parentsection, doc_grandparentsection, doc_commentsection, doc_item, doc_itemtitle
-        #
-        # Outputs (globals):
-        #   DOC_CONTENT_LINES, doc_linenr, doc_emitline
-        #
-        # Returns:
-        #   0 when skipped or appended successfully.
-        #
-        # Usage:
-        #   _emit_contentline
-    _emit_contentline() {
-        [[ -z "$doc_contenttype" ]] && return 0
-        [[ -z "$doc_content" ]] && return 0
-        (( ! doc_emitline )) && return 0
+        # fn: _emit_contentline - Append a normalized documentation content line
+            # Purpose:
+            #   Emit the current normalized content state into DOC_CONTENT_LINES.
+            #
+            # Behavior:
+            #   - Skips emission when content type, content, or emit flag is missing.
+            #   - Increments the documentation line counter.
+            #   - Appends the normalized content line with current section and item context.
+            #   - Clears the emit flag after successful emission.
+            #
+            # Inputs (globals):
+            #   doc_contenttype, doc_content, doc_emitline, mod_name, src_linenr, doc_linenr
+            #   doc_section, doc_parentsection, doc_grandparentsection, doc_commentsection, doc_item, doc_itemtitle
+            #
+            # Outputs (globals):
+            #   DOC_CONTENT_LINES, doc_linenr, doc_emitline
+            #
+            # Returns:
+            #   0 when skipped or appended successfully.
+            #
+            # Usage:
+            #   _emit_contentline
+        _emit_contentline() {
+            [[ -z "$doc_contenttype" ]] && return 0
+            [[ -z "$doc_content" ]] && return 0
+            (( ! doc_emitline )) && return 0
 
-        ((doc_linenr++))
-        saydebug "Emitting line: $mod_name, $src_linenr, $doc_linenr, $doc_section, $doc_parentsection, $doc_grandparentsection, $doc_commentsection, $doc_item, $doc_itemtitle, $doc_contenttype, $doc_content"
-        contentref="$(_build_content_ref "$mod_name" "$doc_grandparentsection" "$doc_parentsection" "$doc_section" "$doc_item")"
-        sgnd_dt_append \
-            "$DOC_CONTENT_LINES_SCHEMA" \
-            DOC_CONTENT_LINES \
-            "$mod_name" \
-            "$src_linenr" \
-            "$doc_linenr" \
-            "$doc_section" \
-            "$doc_parentsection" \
-            "$doc_grandparentsection" \
-            "$doc_commentsection" \
-            "$doc_item" \
-            "$doc_itemtitle" \
-            "$doc_contenttype" \
-            "$doc_content" \
-            "$contentref"
+            ((doc_linenr++))
+            saydebug "Emitting line: $mod_name, $src_linenr, $doc_linenr, $doc_section, $doc_parentsection, $doc_grandparentsection, $doc_commentsection, $doc_item, $doc_itemtitle, $doc_contenttype, $doc_content"
+            contentref="$(_build_content_ref "$mod_name" "$doc_grandparentsection" "$doc_parentsection" "$doc_section" "$doc_item")"
+            sgnd_dt_append \
+                "$DOC_CONTENT_LINES_SCHEMA" \
+                DOC_CONTENT_LINES \
+                "$mod_name" \
+                "$src_linenr" \
+                "$doc_linenr" \
+                "$doc_section" \
+                "$doc_parentsection" \
+                "$doc_grandparentsection" \
+                "$doc_commentsection" \
+                "$doc_item" \
+                "$doc_itemtitle" \
+                "$doc_contenttype" \
+                "$doc_content" \
+                "$contentref"
 
-        saydebug "Rendered content emitted: $doc_contenttype, $doc_item, $doc_content"
-        doc_emitline=0
-    }
+            saydebug "Rendered content emitted: $doc_contenttype, $doc_item, $doc_content"
+            doc_emitline=0
+        }
 
-    # fn: _emit_itemrecord - Append a documented item record
-        # Purpose:
-        #   Store the current documented item in the module item index.
-        #
-        # Behavior:
-        #   - Derives item access from the current item name.
-        #   - Appends module, section, type, access level, item name, and title to MOD_ITEMS.
-        #
-        # Inputs (globals):
-        #   mod_name, doc_section, doc_parentsection, src_linetype, doc_itemtype, doc_item, doc_itemtitle
-        #
-        # Outputs (globals):
-        #   doc_itemaccess, MOD_ITEMS
-        #
-        # Returns:
-        #   0 if the table append succeeds.
-        #
-        # Usage:
-        #   _emit_itemrecord
-    _emit_itemrecord(){
-   
-        saydebug "Adding item: Module ${mod_name:-}, Section ${doc_section:-}, Parent ${doc_parentsection:-}, SrcLinetype ${src_linetype:-}, DocLinetype ${doc_linetype:-} /
-                , Visibility: ${doc_itemvisibility:-}, Role: ${doc_itemrole:-}, ItemType ${doc_itemtype:-}, ItemTitle ${doc_item:-}, ${doc_itemtitle:-}"
+        # fn: _emit_itemrecord - Append a documented item record
+            # Purpose:
+            #   Store the current documented item in the module item index.
+            #
+            # Behavior:
+            #   - Derives item access from the current item name.
+            #   - Appends module, section, type, access level, item name, and title to MOD_ITEMS.
+            #
+            # Inputs (globals):
+            #   mod_name, doc_section, doc_parentsection, src_linetype, doc_itemtype, doc_item, doc_itemtitle
+            #
+            # Outputs (globals):
+            #   doc_itemaccess, MOD_ITEMS
+            #
+            # Returns:
+            #   0 if the table append succeeds.
+            #
+            # Usage:
+            #   _emit_itemrecord
+        _emit_itemrecord(){
+    
+            saydebug "Adding item: Module ${mod_name:-}, Section ${doc_section:-}, Parent ${doc_parentsection:-}, SrcLinetype ${src_linetype:-}, DocLinetype ${doc_linetype:-} /
+                    , Visibility: ${doc_itemvisibility:-}, Role: ${doc_itemrole:-}, ItemType ${doc_itemtype:-}, ItemTitle ${doc_item:-}, ${doc_itemtitle:-}"
 
-        
-        sgnd_dt_append \
-            "$MOD_ITEMS_SCHEMA" \
-            MOD_ITEMS \
-            "$mod_name" \
-            "$doc_section" \
-            "$doc_parentsection" \
-            "$src_linetype" \
-            "$doc_itemtype" \
-            "$doc_itemvisibility" \
-            "$doc_itemrole" \
-            "$doc_item" \
-            "$doc_itemtitle"
-    }
+            
+            sgnd_dt_append \
+                "$MOD_ITEMS_SCHEMA" \
+                MOD_ITEMS \
+                "$mod_name" \
+                "$doc_section" \
+                "$doc_parentsection" \
+                "$src_linetype" \
+                "$doc_itemtype" \
+                "$doc_itemvisibility" \
+                "$doc_itemrole" \
+                "$doc_item" \
+                "$doc_itemtitle"
+        }
 
-    # fn: _emit_sectionrecord - Append a documentation section record
-        # Purpose:
-        #   Store the current section context in the module section index.
-        #
-        # Behavior:
-        #   - Appends module name, section name, parent section, level, and placeholder line count.
-        #   - Leaves section line-count calculation to a later post-processing step.
-        #
-        # Inputs (globals):
-        #   mod_name, doc_section, doc_parentsection, doc_sectionlevel
-        #
-        # Outputs (globals):
-        #   MOD_SECTIONS
-        #
-        # Returns:
-        #   0 if the table append succeeds.
-        #
-        # Usage:
-        #   _emit_sectionrecord
-    _emit_sectionrecord(){
-        sgnd_dt_append \
-            "$MOD_SECTIONS_SCHEMA" \
-            MOD_SECTIONS \
-            "$mod_name" \
-            "$doc_section" \
-            "$doc_parentsection" \
-            "$doc_grandparentsection" \
-            "$doc_sectiontitle" \
-            "$doc_sectionlevel" 
-    }
+        # fn: _emit_sectionrecord - Append a documentation section record
+            # Purpose:
+            #   Store the current section context in the module section index.
+            #
+            # Behavior:
+            #   - Appends module name, section name, parent section, level, and placeholder line count.
+            #   - Leaves section line-count calculation to a later post-processing step.
+            #
+            # Inputs (globals):
+            #   mod_name, doc_section, doc_parentsection, doc_sectionlevel
+            #
+            # Outputs (globals):
+            #   MOD_SECTIONS
+            #
+            # Returns:
+            #   0 if the table append succeeds.
+            #
+            # Usage:
+            #   _emit_sectionrecord
+        _emit_sectionrecord(){
+            sgnd_dt_append \
+                "$MOD_SECTIONS_SCHEMA" \
+                MOD_SECTIONS \
+                "$mod_name" \
+                "$doc_section" \
+                "$doc_parentsection" \
+                "$doc_grandparentsection" \
+                "$doc_sectiontitle" \
+                "$doc_sectionlevel" 
+        }
 
 
 # - Internal API ----------------------------------------------------------------

@@ -424,6 +424,9 @@ set -uo pipefail
         #   - Does not override explicit user input.
         #   - Does not perform interactive prompting.
         #
+        # Returns:
+        #   0 always.
+        #
         # Usage:
         #   _init_parameters
         #
@@ -574,7 +577,37 @@ set -uo pipefail
         done
     }
 
-    # fn: _set_docstyles - Defining document styles
+    # fn: _set_docstyles
+        # Purpose:
+        #   Define default documentation rendering style values.
+        #
+        # Behavior:
+        #   - Sets default font family and font sizes.
+        #   - Sets default style names for fields, sections, items, and content blocks.
+        #   - Sets default spacing values used by later renderers.
+        #
+        # Outputs:
+        #   SGND_DOC_FONT_FAMILY
+        #   SGND_DOC_FONT_SIZE_DEFAULT
+        #   SGND_DOC_FONT_SIZE_FIELD
+        #   SGND_DOC_FONT_SIZE_SECTION
+        #   SGND_DOC_FONT_SIZE_ITEM
+        #   SGND_DOC_FONT_SIZE_BLOCK
+        #   SGND_DOC_STYLE_FIELD
+        #   SGND_DOC_STYLE_SECTION
+        #   SGND_DOC_STYLE_ITEM
+        #   SGND_DOC_STYLE_BLOCK
+        #   SGND_DOC_SPACING_BEFORE_SECTION
+        #   SGND_DOC_SPACING_AFTER_SECTION
+        #   SGND_DOC_SPACING_BEFORE_ITEM
+        #   SGND_DOC_SPACING_AFTER_ITEM
+        #   SGND_DOC_SPACING_AFTER_BLOCK
+        #
+        # Returns:
+        #   0 always.
+        #
+        # Usage:
+        #   _set_docstyles
     _set_docstyles(){
         SGND_DOC_FONT_FAMILY="Arial"
         SGND_DOC_FONT_SIZE_DEFAULT=10
@@ -689,6 +722,32 @@ set -uo pipefail
         return 0
     }
 
+    #_summary
+        # Purpose:
+        #   Generate a summary of the documentation data collected.
+        #
+        # Behavior:
+        #   - Aggregates key metadata from processed modules and items.
+        #   - Prints a concise summary to the console for review.
+        #
+        # Usage:
+        #   _summary
+    _summary() {
+        local module_count
+        local item_count
+
+        sgnd_print_sectionheader "Documentation Summary" --padend 1
+        sgnd_print  "  Modules processed: ${#MOD_TABLE[@]}"
+        sgnd_print  "  Sections processed: ${#MOD_SECTIONS[@]}"
+        sgnd_print  "  Items documented: ${#MOD_ITEMS[@]}"
+        sgnd_print  "  Comments extracted: ${#DOC_CONTENT_LINES[@]}"
+        sgnd_print  "  Navigation entries: ${#DOC_NAV[@]}"
+
+        sgnd_print "  Source directory: $VAL_SRCDIR"
+        sgnd_print "  Output directory: $VAL_OUTDIR"
+
+
+    }
 # - Main ----------------------------------------------------------------------------
     # fn: main
         # Purpose:
@@ -798,7 +857,7 @@ set -uo pipefail
 
         if (( FLAG_REVIEW )); then
            sgnd_dt_print_table "$DOC_NAV_SCHEMA" DOC_NAV  1 
-           sgnd_dt_print_table "$DOC_CONTENT_LINES_SCHEMA" DOC_CONTENT_LINES  1
+           #sgnd_dt_print_table "$DOC_CONTENT_LINES_SCHEMA" DOC_CONTENT_LINES  1
         fi
 
         if (( FLAG_DRYRUN )); then
@@ -811,6 +870,8 @@ set -uo pipefail
         end_time="$(date +%s)"
         display_time="$(date +%H:%M:%S)"
 
+        _summary
+        
         sayend "Documentation generation completed successfully at $display_time (duration: $(( end_time - main_start )) seconds)"
     }
 
