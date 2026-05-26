@@ -454,7 +454,7 @@ set -uo pipefail
         VAL_DOCUMENT_SUBTITLE="${VAL_DOCUMENT_SUBTITLE:-}"
         VAL_DOCUMENT_VERSION="${VAL_DOCUMENT_VERSION:-${SGND_VERSION:-}}"
         VAL_DOCUMENT_PRODUCT="${VAL_DOCUMENT_PRODUCT:-${SGND_PRODUCT:-}}"
-        
+
    
     }
 
@@ -779,8 +779,6 @@ set -uo pipefail
             
         done < <(find "$source_dir" -type f -name "$file_spec" -print0)
 
-        local msg="Product: ${meta_product:-}, ${meta_title:-}"
-        sayinfo "$msg"
         sayprogress_done
         return 0
     }
