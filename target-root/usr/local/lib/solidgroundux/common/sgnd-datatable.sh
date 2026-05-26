@@ -760,11 +760,14 @@ set -uo pipefail
         #   $3  PRETTYPRINT    Optional. 0/1. Defaults to 0.
         #   $4  HEADER_COLOR   Optional. ANSI/color sequence for header/title output.
         #   $5  DATA_COLOR     Optional. ANSI/color sequence for data cells.
+        #   $6  TOP_N          Optional. Maximum number of rows to print.
+        #                      Empty or 0 prints all rows.
         #
         # Behavior:
         #   - Prints a table title line containing the table name and row count.
         #   - Prints schema fields as aligned column headers.
-        #   - Prints all rows in aligned column form.
+        #   - Prints table rows in aligned column form.
+        #   - If TOP_N is supplied, only the first N rows are printed.
         #   - If PRETTYPRINT is 0, colors default to RESET.
         #   - If PRETTYPRINT is 1 and no colors are supplied:
         #       * HEADER_COLOR defaults to TUI_LABEL.
@@ -779,20 +782,26 @@ set -uo pipefail
         #   sgnd_dt_print_table "$SCHEMA" ARRAY_NAME
         #   sgnd_dt_print_table "$SCHEMA" ARRAY_NAME 1
         #   sgnd_dt_print_table "$SCHEMA" ARRAY_NAME 1 "$TUI_LABEL" "$TUI_VALUE"
+        #   sgnd_dt_print_table "$SCHEMA" ARRAY_NAME 1 "" "" 25
         #
         # Examples:
         #   sgnd_dt_print_table "$MY_SCHEMA" MY_ROWS
         #   sgnd_dt_print_table "$DOC_RENDERED_SCHEMA" DOC_RENDERED 1
+        #   sgnd_dt_print_table "$DOC_RENDERED_SCHEMA" DOC_RENDERED 1 "" "" 10
     sgnd_dt_print_table() {
         local schema="${1:?missing schema}"
         local table_name="${2:?missing table name}"
         local prettyprint="${3:-0}"
         local headercolor="${4:-}"
         local datacolor="${5:-}"
+        local top_n="${6:-}"
+
         local row_count=0
+        local print_count=0
         local col_count=0
         local i=0
         local j=0
+        local k=0
         local cell=""
         local row=""
         local color_reset="${RESET:-}"
@@ -810,7 +819,7 @@ set -uo pipefail
 
         if (( prettyprint )); then
             color_header="$(sgnd_sgr "${headercolor:-${CYAN:-}}" "" "$FX_BOLD")"
-            color_data="${datacolor:-${SILVER:-}}" 
+            color_data="${datacolor:-${SILVER:-}}"
         else
             color_header="${WHITE:-}"
             color_data="${SILVER:-}"
@@ -819,13 +828,21 @@ set -uo pipefail
         sgnd_dt_split_schema "$schema"
         columns=("${SGND_DT_SPLIT[@]}")
         col_count="${#columns[@]}"
-        row_count="$(sgnd_dt_row_count "$table_name")"
+        row_count="${#table_ref[@]}"
+
+        print_count="$row_count"
+
+        if [[ -n "$top_n" && "$top_n" =~ ^[0-9]+$ ]]; then
+            if (( top_n > 0 && top_n < row_count )); then
+                print_count="$top_n"
+            fi
+        fi
 
         for (( j=0; j<col_count; j++ )); do
             widths[j]="${#columns[j]}"
         done
 
-        for (( i=0; i<row_count; i++ )); do
+        for (( i=0; i<print_count; i++ )); do
             row="${table_ref[i]}"
             sgnd_dt_split_row "$row"
 
@@ -835,47 +852,62 @@ set -uo pipefail
             done
         done
 
-        printf '\n%sTable: %s%s (%s rows)%s\n' \
-            "$color_header" \
-            "$color_data" \
-            "$table_name" \
-            "$row_count" \
-            "$color_reset"
+        if (( print_count < row_count )); then
+            printf '\n%sTable: %s%s (%s of %s rows)%s\n' \
+                "$color_header" \
+                "$color_data" \
+                "$table_name" \
+                "$print_count" \
+                "$row_count" \
+                "$color_reset"
+        else
+            printf '\n%sTable: %s%s (%s rows)%s\n' \
+                "$color_header" \
+                "$color_data" \
+                "$table_name" \
+                "$row_count" \
+                "$color_reset"
+        fi
 
         # print top border
         printf '%s' "$color_header"
-        for (( j=0; j<col_count; j++ )); do
 
+        for (( j=0; j<col_count; j++ )); do
             for (( k=0; k<widths[j]; k++ )); do
                 printf "${LN_H:-─}"
             done
 
             (( j < col_count - 1 )) && printf '  '
         done
+
         printf '%s\n' "$color_reset"
 
         # print column names
         printf '%s' "$color_header"
+
         for (( j=0; j<col_count; j++ )); do
             printf '%-*s' "${widths[j]}" "${columns[j]}"
             (( j < col_count - 1 )) && printf '  '
         done
+
         printf '%s\n' "$color_reset"
 
         # print bottom border
         printf '%s' "$color_header"
-        for (( j=0; j<col_count; j++ )); do
 
+        for (( j=0; j<col_count; j++ )); do
             for (( k=0; k<widths[j]; k++ )); do
                 printf "${LN_H:-─}"
             done
 
             (( j < col_count - 1 )) && printf '  '
         done
+
         printf '%s\n' "$color_reset"
 
         printf '%s' "$color_data"
-        for (( i=0; i<row_count; i++ )); do
+
+        for (( i=0; i<print_count; i++ )); do
             row="${table_ref[i]}"
             sgnd_dt_split_row "$row"
 
@@ -884,8 +916,10 @@ set -uo pipefail
                 printf '%-*s' "${widths[j]}" "$cell"
                 (( j < col_count - 1 )) && printf '  '
             done
+
             printf '\n'
         done
+
         printf '%s' "$color_reset"
     }
 

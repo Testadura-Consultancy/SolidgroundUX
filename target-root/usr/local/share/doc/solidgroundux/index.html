@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SolidgroundUX, Full Development Documentation</title>
+  <link rel="stylesheet" href="assets/doc.css">
+</head>
+<body>
+<div class="doc-shell">
+<nav class="doc-nav">
+  <div class="doc-nav-title">Index by module</div>
+<details class="doc-nav-node level-0">
+<summary>Document processor</summary>
+<div class="doc-nav-section level-1">Internal API</div>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-processor-sh-internal-api-build-content-ref.html" target="docframe">_build_content_ref</a>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-processor-sh-internal-api-parse-module-file.html" target="docframe">Parse one module source file</a>
+<div class="doc-nav-section level-1">Library guard</div>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-processor-sh-library-guard-sgnd-lib-guard.html" target="docframe">_sgnd_lib_guard</a>
+<div class="doc-nav-section level-1">Local definitions</div>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-processor-sh-local-definitions-init-localvars.html" target="docframe">Initialize parser state variables</a>
+<a class="doc-nav-item level-4 type-variable" href="pages/doc-processor-sh-local-definitions-datamodel.html" target="docframe">Content tables for parsed documentation data</a>
+<div class="doc-nav-section level-2">Action</div>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-processor-sh-local-definitions-action-action-headerend.html" target="docframe">Emit module-level header data</a>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-processor-sh-local-definitions-action-guess-nextcontenttype.html" target="docframe">Advance content type after emitted headers</a>
+<div class="doc-nav-section level-2">Detectors</div>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-processor-sh-local-definitions-detectors-detect-commentsectionheader.html" target="docframe">Detect named comment sections</a>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-processor-sh-local-definitions-detectors-detect-commentseparator.html" target="docframe">Ignore visual comment separators</a>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-processor-sh-local-definitions-detectors-detect-default.html" target="docframe">Emit default content for active documentation context</a>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-processor-sh-local-definitions-detectors-detect-headerfields.html" target="docframe">Detect metadata and attribution fields</a>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-processor-sh-local-definitions-detectors-detect-headermarker.html" target="docframe">Detect module header boundary lines</a>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-processor-sh-local-definitions-detectors-detect-items.html" target="docframe">Detect documented items</a>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-processor-sh-local-definitions-detectors-detect-moduletitle.html" target="docframe">Detect the module title line</a>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-processor-sh-local-definitions-detectors-detect-noncommentline.html" target="docframe">Detect non-comment source lines</a>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-processor-sh-local-definitions-detectors-detect-section.html" target="docframe">Detect documentation section headers</a>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-processor-sh-local-definitions-detectors-get-section-comments.html" target="docframe">Convert section comments into section body lines</a>
+<div class="doc-nav-section level-2">Emitters</div>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-processor-sh-local-definitions-emitters-emit-contentline.html" target="docframe">Append a normalized documentation content line</a>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-processor-sh-local-definitions-emitters-emit-itemrecord.html" target="docframe">Append a documented item record</a>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-processor-sh-local-definitions-emitters-emit-sectionrecord.html" target="docframe">Append a documentation section record</a>
+<div class="doc-nav-section level-2">Parser expressions</div>
+</details>
+<details class="doc-nav-node level-0">
+<summary>Documentation Renderer</summary>
+<div class="doc-nav-section level-1">Library guard</div>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-renderer-sh-library-guard-sgnd-lib-guard.html" target="docframe">_sgnd_lib_guard</a>
+<div class="doc-nav-section level-1">Local definitions</div>
+<div class="doc-nav-section level-2">Arguments</div>
+<div class="doc-nav-section level-2">Process helpers</div>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-renderer-sh-local-definitions-process-helpers-build-doc-hierarchy.html" target="docframe">_build_doc_hierarchy</a>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-renderer-sh-local-definitions-process-helpers-count-section-items.html" target="docframe">_count_section_items</a>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-renderer-sh-local-definitions-process-helpers-emit-doc-nav.html" target="docframe">_emit_doc_nav</a>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-renderer-sh-local-definitions-process-helpers-set-doc-index.html" target="docframe">_set_doc_index</a>
+<div class="doc-nav-section level-2">Renderers</div>
+<div class="doc-nav-section level-2">Render helpers</div>
+<div class="doc-nav-section level-1">Main sequence</div>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-renderer-sh-main-sequence-render-site.html" target="docframe">Render collected documentation data</a>
+</details>
+<details class="doc-nav-node level-0">
+<summary>Documentation Generator Script</summary>
+<div class="doc-nav-section level-1">Bootstrap</div>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-generator-sh-bootstrap-framework-locator.html" target="docframe">_framework_locator</a>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-generator-sh-bootstrap-load-bootstrapper.html" target="docframe">_load_bootstrapper</a>
+<div class="doc-nav-section level-1">Local script functions</div>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-generator-sh-local-script-functions-get-userinput.html" target="docframe">_get_userinput</a>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-generator-sh-local-script-functions-init-parameters.html" target="docframe">_init_parameters</a>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-generator-sh-local-script-functions-init-styles.html" target="docframe">_init_styles</a>
+<div class="doc-nav-section level-1">Main</div>
+<a class="doc-nav-item level-4 type-function" href="pages/doc-generator-sh-main-main.html" target="docframe">main</a>
+<div class="doc-nav-section level-2">Bootstrap</div>
+<div class="doc-nav-section level-2">Handle builtin arguments</div>
+<div class="doc-nav-section level-2">Main script logic</div>
+<div class="doc-nav-section level-2">UI</div>
+<div class="doc-nav-section level-1">Script metadata (framework integration)</div>
+<a class="doc-nav-item level-4 type-variable" href="pages/doc-generator-sh-script-metadata-framework-integration-sgnd-using.html" target="docframe">SGND_USING</a>
+<div class="doc-nav-section level-1">Script metadata (identity)</div>
+</details>
+</nav>
+<iframe class="doc-content-frame" name="docframe" src="pages/doc-processor-sh-internal-api-build-content-ref.html"></iframe>
+</div>
+</body>
+</html>

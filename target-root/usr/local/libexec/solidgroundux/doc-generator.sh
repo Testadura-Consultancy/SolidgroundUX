@@ -334,23 +334,24 @@ set -uo pipefail
         # Leave empty if:
         #   - The script does not use configuration-driven globals
     SGND_SCRIPT_GLOBALS=(
-        "both|SGND_DOC_FONT_FAMILY|Default font family for documentation|"
-        "both|SGND_DOC_FONT_SIZE_DEFAULT|Default font size|"
-        "both|SGND_DOC_FONT_SIZE_FIELD|Font size for metadata fields|"
-        "both|SGND_DOC_FONT_SIZE_SECTION|Font size for section headers|"
-        "both|SGND_DOC_FONT_SIZE_ITEM|Font size for item headers|"
-        "both|SGND_DOC_FONT_SIZE_BLOCK|Font size for content blocks|"
-
-        "both|SGND_DOC_STYLE_FIELD|Font style for metadata fields|"
-        "both|SGND_DOC_STYLE_SECTION|Font style for section headers|"
-        "both|SGND_DOC_STYLE_ITEM|Font style for item headers|"
-        "both|SGND_DOC_STYLE_BLOCK|Font style for content blocks|"
-
-        "both|SGND_DOC_SPACING_BEFORE_SECTION|Spacing before section headers|"
-        "both|SGND_DOC_SPACING_AFTER_SECTION|Spacing after section headers|"
-        "both|SGND_DOC_SPACING_BEFORE_ITEM|Spacing before item headers|"
-        "both|SGND_DOC_SPACING_AFTER_ITEM|Spacing after item headers|"
-        "both|SGND_DOC_SPACING_AFTER_BLOCK|Spacing after content blocks|"
+        "both|_docstyle_commentsectionbody|Documentation style for comment-section body text|"
+        "both|_docstyle_commentsectionheader|Documentation style for comment-section headers|"
+        "both|_docstyle_functionbody|Documentation style for function body text|"
+        "both|_docstyle_functionheader|Documentation style for function headers|"
+        "both|_docstyle_gendocbody|Documentation style for general documentation body text|"
+        "both|_docstyle_gendocheader|Documentation style for general documentation headers|"
+        "both|_docstyle_L1Sectionbody|Documentation style for level 1 section body text|"
+        "both|_docstyle_L1Sectionheader|Documentation style for level 1 section headers|"
+        "both|_docstyle_L2Sectionbody|Documentation style for level 2 section body text|"
+        "both|_docstyle_L2Sectionheader|Documentation style for level 2 section headers|"
+        "both|_docstyle_L3Sectionbody|Documentation style for level 3 section body text|"
+        "both|_docstyle_L3Sectionheader|Documentation style for level 3 section headers|"
+        "both|_docstyle_modulebody|Documentation style for module body text|"
+        "both|_docstyle_moduleheader|Documentation style for module headers|"
+        "both|_docstyle_variablebody|Documentation style for variable body text|"
+        "both|_docstyle_variableheader|Documentation style for variable headers|"
+        "both|_docstyle_documentheader|Documentation style for default document headers|"
+        "both|_docstyle_documentbody|Documentation style for default document body text|"
     )
 
     # SGND_STATE_VARIABLES
@@ -377,6 +378,10 @@ set -uo pipefail
         "FLAG_RECURSIVE_SCAN|Recursive Scan||"
         "FLAG_CLEAN_OUTPUT|Clean Output Directory||"
         "FLAG_VIEW_RESULTS|Automatically open generated docs in browser after generation (desktop mode only)||"
+        "VAL_DOCUMENT_TITLE|Document title||"
+        "VAL_DOCUMENT_SUBTITLE|Document subtitle||"
+        "VAL_DOCUMENT_VERSION|Document version||"
+        "VAL_DOCUMENT_PRODUCT|Document product name||"
     )
 
     # SGND_ON_EXIT_HANDLERS
@@ -438,12 +443,86 @@ set -uo pipefail
 
         FLAG_AUTO_RUN="${FLAG_AUTO_RUN:-0}"
         FLAG_CLEAN_OUTPUT="${FLAG_CLEAN_OUTPUT:-1}"
+        FLAG_RECURSIVE_SCAN="${FLAG_RECURSIVE_SCAN:-1}"
+        FLAG_VIEW_RESULTS="${FLAG_VIEW_RESULTS:-1}"
+
         VAL_FILESPEC="${VAL_FILESPEC:-*.sh}"
         VAL_OUTDIR="${VAL_OUTDIR:-$SGND_DOCS_DIR}"
-        FLAG_RECURSIVE_SCAN="${FLAG_RECURSIVE_SCAN:-1}"
         VAL_SRCDIR="${VAL_SRCDIR:-$SGND_APPLICATION_ROOT}"
-        FLAG_VIEW_RESULTS="${FLAG_VIEW_RESULTS:-1}"
+
+        VAL_DOCUMENT_TITLE="${VAL_DOCUMENT_TITLE:-${SGND_PRODUCT:-}, Full Development Documentation}"
+        VAL_DOCUMENT_SUBTITLE="${VAL_DOCUMENT_SUBTITLE:-}"
+        VAL_DOCUMENT_VERSION="${VAL_DOCUMENT_VERSION:-${SGND_VERSION:-}}"
+        VAL_DOCUMENT_PRODUCT="${VAL_DOCUMENT_PRODUCT:-${SGND_PRODUCT:-}}"
+        
+   
     }
+
+    # fn: _init_styles
+        # Purpose:
+        #   Initialize default documentation content styles.
+        #
+        # Behavior:
+        #   - Sets default inline HTML style values for all recognized documentation
+        #     content types.
+        #   - Preserves values already supplied by configuration.
+        #   - Uses documentbody as the default body style.
+        #   - Uses documentbody plus italic styling for comment-section body text.
+        #
+        # Outputs:
+        #   _docstyle_commentsectionbody
+        #   _docstyle_commentsectionheader
+        #   _docstyle_functionbody
+        #   _docstyle_functionheader
+        #   _docstyle_gendocbody
+        #   _docstyle_gendocheader
+        #   _docstyle_L1Sectionbody
+        #   _docstyle_L1Sectionheader
+        #   _docstyle_L2Sectionbody
+        #   _docstyle_L2Sectionheader
+        #   _docstyle_L3Sectionbody
+        #   _docstyle_L3Sectionheader
+        #   _docstyle_modulebody
+        #   _docstyle_moduleheader
+        #   _docstyle_variablebody
+        #   _docstyle_variableheader
+        #   _docstyle_documentheader
+        #   _docstyle_documentbody
+        #
+        # Returns:
+        #   0 always.
+        #
+        # Usage:
+        #   _init_styles
+    _init_styles() {
+        _docstyle_documentbody="${_docstyle_documentbody:-font-family:Arial, sans-serif;font-size:10pt;font-weight:normal;font-style:normal;line-height:1.45;margin:0 0 6px 0;}"
+        _docstyle_documentheader="${_docstyle_documentheader:-font-family:Arial, sans-serif;font-size:18pt;font-weight:bold;font-style:normal;line-height:1.25;margin:0 0 14px 0;}"
+
+        _docstyle_moduleheader="${_docstyle_moduleheader:-font-family:Arial, sans-serif;font-size:22pt;font-weight:bold;font-style:normal;line-height:1.2;margin:0 0 16px 0;}"
+        _docstyle_modulebody="${_docstyle_modulebody:-$_docstyle_documentbody}"
+
+        _docstyle_L1Sectionheader="${_docstyle_L1Sectionheader:-font-family:Arial, sans-serif;font-size:18pt;font-weight:bold;font-style:normal;line-height:1.25;margin:24px 0 10px 0;}"
+        _docstyle_L1Sectionbody="${_docstyle_L1Sectionbody:-$_docstyle_documentbody}"
+
+        _docstyle_L2Sectionheader="${_docstyle_L2Sectionheader:-font-family:Arial, sans-serif;font-size:15pt;font-weight:bold;font-style:normal;line-height:1.25;margin:18px 0 8px 0;}"
+        _docstyle_L2Sectionbody="${_docstyle_L2Sectionbody:-$_docstyle_documentbody}"
+
+        _docstyle_L3Sectionheader="${_docstyle_L3Sectionheader:-font-family:Arial, sans-serif;font-size:13pt;font-weight:bold;font-style:normal;line-height:1.25;margin:14px 0 6px 0;}"
+        _docstyle_L3Sectionbody="${_docstyle_L3Sectionbody:-$_docstyle_documentbody}"
+
+        _docstyle_functionheader="${_docstyle_functionheader:-font-family:Arial, sans-serif;font-size:11pt;font-weight:bold;font-style:normal;line-height:1.35;margin:12px 0 4px 0;}"
+        _docstyle_functionbody="${_docstyle_functionbody:-$_docstyle_documentbody}"
+
+        _docstyle_variableheader="${_docstyle_variableheader:-font-family:Arial, sans-serif;font-size:11pt;font-weight:bold;font-style:normal;line-height:1.35;margin:10px 0 4px 0;}"
+        _docstyle_variablebody="${_docstyle_variablebody:-$_docstyle_documentbody}"
+
+        _docstyle_gendocheader="${_docstyle_gendocheader:-font-family:Arial, sans-serif;font-size:12pt;font-weight:bold;font-style:normal;line-height:1.35;margin:12px 0 5px 0;}"
+        _docstyle_gendocbody="${_docstyle_gendocbody:-$_docstyle_documentbody}"
+
+        _docstyle_commentsectionheader="${_docstyle_commentsectionheader:-font-family:Arial, sans-serif;font-size:10pt;font-weight:bold;font-style:normal;line-height:1.35;margin:8px 0 3px 0;}"
+        _docstyle_commentsectionbody="${_docstyle_commentsectionbody:-${_docstyle_documentbody}font-style:italic;}"
+    }
+
 
     # fn: _get_userinput
         # Purpose:
@@ -538,7 +617,7 @@ set -uo pipefail
             [[ "${reply,,}" =~ ^(y|yes)$ ]] && FLAG_RECURSIVE_SCAN=1 || FLAG_RECURSIVE_SCAN=0
         
             (( ${FLAG_VIEW_RESULTS:-0} )) && default="Y" || default="N"
-            ask --label "View results after generation" \
+            ask --label "View parsed data" \
                 --var reply \
                 --type flag \
                 --default "$default" \
@@ -549,8 +628,42 @@ set -uo pipefail
                 --labelwidth "$lw"
             [[ "${reply,,}" =~ ^(y|yes)$ ]] && FLAG_VIEW_RESULTS=1 || FLAG_VIEW_RESULTS=0
 
+            sgnd_print
+            sgnd_print_sectionheader "Documentation metadata" --padend 0
+            ask --label "Document title" \
+                --var VAL_DOCUMENT_TITLE \
+                --default "$VAL_DOCUMENT_TITLE" \
+                --colorize both \
+                --labelclr "${CYAN}" \
+                --pad "$lp" \
+                --labelwidth "$lw"
+
+            ask --label "Document subtitle" \
+                --var VAL_DOCUMENT_SUBTITLE \
+                --default "$VAL_DOCUMENT_SUBTITLE" \
+                --colorize both \
+                --labelclr "${CYAN}" \
+                --pad "$lp" \
+                --labelwidth "$lw"
+
+            ask --label "Document version" \
+                --var VAL_DOCUMENT_VERSION \
+                --default "$VAL_DOCUMENT_VERSION" \
+                --colorize both \
+                --labelclr "${CYAN}" \
+                --pad "$lp" \
+                --labelwidth "$lw"
+
+            ask --label "Document product name" \
+                --var VAL_DOCUMENT_PRODUCT \
+                --default "$VAL_DOCUMENT_PRODUCT" \
+                --colorize both \
+                --labelclr "${CYAN}" \
+                --pad "$lp" \
+                --labelwidth "$lw"
+
             (( ${SGND_STATE_SAVE:-0} )) && default="Y" || default="N"
-            ask --label "Save state variables" \
+            ask --label "Save these answers" \
                 --var reply \
                 --type flag \
                 --default "$default" \
@@ -562,7 +675,7 @@ set -uo pipefail
             [[ "${reply,,}" =~ ^(y|yes)$ ]] && SGND_STATE_SAVE=1 || SGND_STATE_SAVE=0
 
             # Confirmation
-            sgnd_print_sectionheader --maxwidth "$(( lw + 5 ))"
+            sgnd_print_sectionheader #--maxwidth "$(( lw + 5 ))"
             sgnd_print
             ask_dlg_autocontinue --seconds 15 --message "Continue with these settings?" --redo --cancel --pause
 
@@ -575,57 +688,6 @@ set -uo pipefail
 
             sgnd_showenvironment
         done
-    }
-
-    # fn: _set_docstyles
-        # Purpose:
-        #   Define default documentation rendering style values.
-        #
-        # Behavior:
-        #   - Sets default font family and font sizes.
-        #   - Sets default style names for fields, sections, items, and content blocks.
-        #   - Sets default spacing values used by later renderers.
-        #
-        # Outputs:
-        #   SGND_DOC_FONT_FAMILY
-        #   SGND_DOC_FONT_SIZE_DEFAULT
-        #   SGND_DOC_FONT_SIZE_FIELD
-        #   SGND_DOC_FONT_SIZE_SECTION
-        #   SGND_DOC_FONT_SIZE_ITEM
-        #   SGND_DOC_FONT_SIZE_BLOCK
-        #   SGND_DOC_STYLE_FIELD
-        #   SGND_DOC_STYLE_SECTION
-        #   SGND_DOC_STYLE_ITEM
-        #   SGND_DOC_STYLE_BLOCK
-        #   SGND_DOC_SPACING_BEFORE_SECTION
-        #   SGND_DOC_SPACING_AFTER_SECTION
-        #   SGND_DOC_SPACING_BEFORE_ITEM
-        #   SGND_DOC_SPACING_AFTER_ITEM
-        #   SGND_DOC_SPACING_AFTER_BLOCK
-        #
-        # Returns:
-        #   0 always.
-        #
-        # Usage:
-        #   _set_docstyles
-    _set_docstyles(){
-        SGND_DOC_FONT_FAMILY="Arial"
-        SGND_DOC_FONT_SIZE_DEFAULT=10
-        SGND_DOC_FONT_SIZE_FIELD=10
-        SGND_DOC_FONT_SIZE_SECTION=16
-        SGND_DOC_FONT_SIZE_ITEM=12
-        SGND_DOC_FONT_SIZE_BLOCK=10
-
-        SGND_DOC_STYLE_FIELD="regular"
-        SGND_DOC_STYLE_SECTION="bold"
-        SGND_DOC_STYLE_ITEM="bold"
-        SGND_DOC_STYLE_BLOCK="regular"
-
-        SGND_DOC_SPACING_BEFORE_SECTION=8
-        SGND_DOC_SPACING_AFTER_SECTION=4
-        SGND_DOC_SPACING_BEFORE_ITEM=5
-        SGND_DOC_SPACING_AFTER_ITEM=2
-        SGND_DOC_SPACING_AFTER_BLOCK=4
     }
 
     # _iterate_files
@@ -714,6 +776,7 @@ set -uo pipefail
                 --padleft 0
 
             "$callback" "$file" || saywarning "Callback $callback failed for file: $file"
+            
         done < <(find "$source_dir" -type f -name "$file_spec" -print0)
 
         local msg="Product: ${meta_product:-}, ${meta_title:-}"
@@ -735,7 +798,7 @@ set -uo pipefail
     _summary() {
         local module_count
         local item_count
-
+        sgnd_print
         sgnd_print_sectionheader "Documentation Summary" --padend 1
         sgnd_print  "  Modules processed: ${#MOD_TABLE[@]}"
         sgnd_print  "  Sections processed: ${#MOD_SECTIONS[@]}"
@@ -746,6 +809,8 @@ set -uo pipefail
         sgnd_print "  Source directory: $VAL_SRCDIR"
         sgnd_print "  Output directory: $VAL_OUTDIR"
 
+        sgnd_print_sectionheader "" --padend 1
+        sgnd_print
 
     }
 # - Main ----------------------------------------------------------------------------
@@ -784,7 +849,7 @@ set -uo pipefail
 
             _load_bootstrapper || exit $?            
 
-            _set_docstyles
+            _init_styles
 
             # Recognized switches:
             #     --state      -> enable saving state variables 
@@ -814,6 +879,7 @@ set -uo pipefail
         
         # Initialize parameters with defaults where not set by arguments or state
         _init_parameters
+
 
         # Prompt for user input if not auto-running  
         if (( !FLAG_AUTO_RUN )); then      
@@ -850,21 +916,22 @@ set -uo pipefail
                --anykey
         fi
         
-        start_time="$(date +%s)"
-        _build_doc_hierarchy
-        end_time="$(date +%s)"
-        sayok "Done building documentation hierarchy (duration: $(( end_time - start_time )) seconds)"
-
         if (( FLAG_REVIEW )); then
            sgnd_dt_print_table "$DOC_NAV_SCHEMA" DOC_NAV  1 
-           #sgnd_dt_print_table "$DOC_CONTENT_LINES_SCHEMA" DOC_CONTENT_LINES  1
+           sgnd_dt_print_table "$DOC_CONTENT_LINES_SCHEMA" DOC_CONTENT_LINES 1 "" "" 20
         fi
 
         if (( FLAG_DRYRUN )); then
             sayinfo "Would have rendered site to $VAL_OUTDIR"
         else
             #_render_site "$VAL_OUTDIR"
-            sayinfo "Calling render function"
+            saystart "Rendering html documentation"
+            start_time="$(date +%s)"
+
+            _render_site "$VAL_OUTDIR"
+
+            end_time="$(date +%s)"
+            sayok "Done rendering documentation hierarchy (duration: $(( end_time - start_time )) seconds)"
         fi
 
         end_time="$(date +%s)"

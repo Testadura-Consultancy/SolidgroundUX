@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>_build_content_ref</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">SolidgroundUX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">SolidgroundUX / doc-processor.sh / Internal API / _build_content_ref</div>
+</header>
+<div class="ct-functionheader">_build_content_ref</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Build the canonical content reference used to join navigation nodes to</div>
+<div class="ct-functionbody">  normalized documentation content lines.</div>
+<div class="ct-functionbody">Arguments:</div>
+<div class="ct-functionbody">  $1  Module name.</div>
+<div class="ct-functionbody">  $2  Grandparent section name.</div>
+<div class="ct-functionbody">  $3  Parent section name.</div>
+<div class="ct-functionbody">  $4  Current section name.</div>
+<div class="ct-functionbody">  $5  Item name.</div>
+<div class="ct-functionbody">Output:</div>
+<div class="ct-functionbody">  Prints the content reference to stdout.</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 always.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  ref="quot;$(_build_content_ref "quot;$module"quot; "quot;$grandparent"quot; "quot;$parent"quot; "quot;$section"quot; "quot;$item"quot;)"quot;</div>
+</main>
+</body>
+</html>
