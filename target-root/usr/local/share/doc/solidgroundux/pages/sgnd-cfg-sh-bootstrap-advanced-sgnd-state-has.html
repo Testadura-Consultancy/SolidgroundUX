@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>sgnd_state_has</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">SolidgroundUX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">SolidgroundUX / sgnd-cfg.sh / Bootstrap/advanced / sgnd_state_has</div>
+</header>
+<div class="ct-functionheader">sgnd_state_has</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Test whether a state key exists in the state file.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Validates the requested key.</div>
+<div class="ct-functionbody">  - Checks SGND_STATE_FILE for a matching KEY=VALUE entry.</div>
+<div class="ct-functionbody">  - Treats empty values as present when the key exists.</div>
+<div class="ct-functionbody">Arguments:</div>
+<div class="ct-functionbody">  $1  KEY</div>
+<div class="ct-functionbody">      State variable name.</div>
+<div class="ct-functionbody">Inputs (globals):</div>
+<div class="ct-functionbody">  SGND_STATE_FILE</div>
+<div class="ct-functionbody">Side effects:</div>
+<div class="ct-functionbody">  - May emit a warning for invalid keys.</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 if present.</div>
+<div class="ct-functionbody">  1 if missing or invalid.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  sgnd_state_has KEY</div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  if sgnd_state_has &quot;CURRENT_PAGE&quot;; then</div>
+<div class="ct-functionbody">      printf &#x27;page stored\n&#x27;</div>
+<div class="ct-functionbody">  fi</div>
+<div class="ct-functionbody">  sgnd_state_has &quot;LAST_MODULE&quot;</div>
+</main>
+</body>
+</html>

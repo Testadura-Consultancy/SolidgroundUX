@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>_init_bootstrap</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">SolidgroundUX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">SolidgroundUX / sgnd-bootstrap.sh / Main sequence helpers + EXIT dispatch / _init_bootstrap</div>
+</header>
+<div class="ct-functionheader">_init_bootstrap</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Initialize the early bootstrap environment before core library loading.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Resolves SGND_BOOTSTRAP_DIR from the current file location.</div>
+<div class="ct-functionbody">  - Sources sgnd-comment-header-parser.sh and sgnd-bootstrap-env.sh.</div>
+<div class="ct-functionbody">  - Initializes bootstrap-related module metadata once header parsing is available.</div>
+<div class="ct-functionbody">  - Initializes executable metadata for the calling script.</div>
+<div class="ct-functionbody">  - Applies default framework values.</div>
+<div class="ct-functionbody">  - Rebuilds derived directories and framework cfg paths.</div>
+<div class="ct-functionbody">  - Ensures required framework directories exist.</div>
+<div class="ct-functionbody">Outputs (globals):</div>
+<div class="ct-functionbody">  SGND_BOOTSTRAP_DIR</div>
+<div class="ct-functionbody">Side effects:</div>
+<div class="ct-functionbody">  - Sources bootstrap support libraries.</div>
+<div class="ct-functionbody">  - Populates bootstrap and script metadata variables.</div>
+<div class="ct-functionbody">  - Recomputes framework path globals.</div>
+<div class="ct-functionbody">  - Creates required directories when missing.</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 on success.</div>
+<div class="ct-functionbody">  Non-zero if a sourced dependency or bootstrap step fails.</div>
+<div class="ct-functionbody">Notes:</div>
+<div class="ct-functionbody">  - Runs before core libraries are sourced.</div>
+<div class="ct-functionbody">  - May execute more than once across process boundaries when root re-exec occurs.</div>
+</main>
+</body>
+</html>

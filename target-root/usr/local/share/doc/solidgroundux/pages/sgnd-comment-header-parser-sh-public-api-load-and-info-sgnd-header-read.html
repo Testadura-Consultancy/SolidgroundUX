@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>sgnd_header_read</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">SolidgroundUX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">SolidgroundUX / sgnd-comment-header-parser.sh / Public API / Load and info / sgnd_header_read</div>
+</header>
+<div class="ct-functionheader">sgnd_header_read</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Read the canonical header comment block from the top of a script file.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Starts at the top of the file.</div>
+<div class="ct-functionbody">  - Collects consecutive comment lines that belong to the header block.</div>
+<div class="ct-functionbody">  - Skips the first line if it is a shebang.</div>
+<div class="ct-functionbody">  - Stops at the first non-comment, non-blank line after the header begins.</div>
+<div class="ct-functionbody">  - Preserves original comment markers and line formatting.</div>
+<div class="ct-functionbody">Arguments:</div>
+<div class="ct-functionbody">  $1  FILE</div>
+<div class="ct-functionbody">Output:</div>
+<div class="ct-functionbody">  Writes the full header block to stdout.</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0  success</div>
+<div class="ct-functionbody">  1  file missing or unreadable</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  sgnd_header_read &quot;$file&quot;</div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  header_text=&quot;$(sgnd_header_read &quot;$SGND_SCRIPT_FILE&quot;)&quot;</div>
+</main>
+</body>
+</html>

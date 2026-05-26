@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>sgnd_visible_len</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">SolidgroundUX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">SolidgroundUX / ui.sh / Public helpers / sgnd_visible_len</div>
+</header>
+<div class="ct-functionheader">sgnd_visible_len</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Return the visible character length of a string after stripping ANSI.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Strips ANSI sequences using sgnd_strip_ansi().</div>
+<div class="ct-functionbody">  - Returns the remaining string length.</div>
+<div class="ct-functionbody">Arguments:</div>
+<div class="ct-functionbody">  $1  TEXT</div>
+<div class="ct-functionbody">      Text whose visible length should be measured.</div>
+<div class="ct-functionbody">Output:</div>
+<div class="ct-functionbody">  Prints the visible length to stdout.</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 always.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  sgnd_visible_len &quot;$text&quot;</div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  width=&quot;$(sgnd_visible_len &quot;$RUN_MODE&quot;)&quot;</div>
+<div class="ct-functionbody">Notes:</div>
+<div class="ct-functionbody">  - Length is byte-based and assumes monospaced terminal rendering.</div>
+</main>
+</body>
+</html>

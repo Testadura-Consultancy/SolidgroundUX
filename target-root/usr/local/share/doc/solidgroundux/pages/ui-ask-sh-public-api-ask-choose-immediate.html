@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>ask_choose_immediate</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">SolidgroundUX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">SolidgroundUX / ui-ask.sh / Public API / ask_choose_immediate</div>
+</header>
+<div class="ct-functionheader">ask_choose_immediate</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Prompt for a constrained user choice using immediate-capable TTY input.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Reads directly from /dev/tty.</div>
+<div class="ct-functionbody">  - Accepts configured instant choices immediately (no Enter required).</div>
+<div class="ct-functionbody">  - Buffers all other input until Enter is pressed.</div>
+<div class="ct-functionbody">  - Supports backspace editing for buffered input.</div>
+<div class="ct-functionbody">  - Validates input against the allowed choice list when provided.</div>
+<div class="ct-functionbody">  - Re-prompts on invalid input when keepasking=1.</div>
+<div class="ct-functionbody">  - Uses shared prompt rendering via _ask_build_prompt().</div>
+<div class="ct-functionbody">Options:</div>
+<div class="ct-functionbody">  --label TEXT</div>
+<div class="ct-functionbody">      Prompt label.</div>
+<div class="ct-functionbody">  --var NAME</div>
+<div class="ct-functionbody">      Destination variable name.</div>
+<div class="ct-functionbody">      Default: choice</div>
+<div class="ct-functionbody">  --choices LIST</div>
+<div class="ct-functionbody">      Allowed values as comma-separated tokens and/or ranges.</div>
+<div class="ct-functionbody">      Examples:</div>
+<div class="ct-functionbody">        &quot;1,2,3,Q&quot;</div>
+<div class="ct-functionbody">        &quot;A-D,1-5&quot;</div>
+<div class="ct-functionbody">  --instantchoices LIST</div>
+<div class="ct-functionbody">      Choices accepted immediately without Enter.</div>
+<div class="ct-functionbody">      Append [choices] to the label.</div>
+<div class="ct-functionbody">      Default: 1</div>
+<div class="ct-functionbody">      Re-prompt on invalid input.</div>
+<div class="ct-functionbody">      Default: 1</div>
+<div class="ct-functionbody">  --labelwidth N</div>
+<div class="ct-functionbody">      Align label to fixed width.</div>
+<div class="ct-functionbody">  --pad N</div>
+<div class="ct-functionbody">      Spacing between label and &#x27;:&#x27;.</div>
+<div class="ct-functionbody">  --labelclr ANSI</div>
+<div class="ct-functionbody">      Color/style applied to label.</div>
+<div class="ct-functionbody">  --inputclr ANSI</div>
+<div class="ct-functionbody">      Color/style applied to typed input.</div>
+<div class="ct-functionbody">  --colorize MODE</div>
+<div class="ct-functionbody">      Colorization mode:</div>
+<div class="ct-functionbody">      Default: both</div>
+<div class="ct-functionbody">Outputs (globals):</div>
+<div class="ct-functionbody">  Assigns accepted value to variable defined by --var.</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 always.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  ask_choose_immediate --label &quot;Action&quot; --choices &quot;1,2,3,Q&quot; --var action</div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  # Immediate hotkey (Q exits instantly)</div>
+<div class="ct-functionbody">  ask_choose_immediate \</div>
+<div class="ct-functionbody">      --label &quot;Action&quot; \</div>
+<div class="ct-functionbody">      --choices &quot;1,2,3,Q&quot; \</div>
+<div class="ct-functionbody">      --instantchoices &quot;Q&quot; \</div>
+<div class="ct-functionbody">      --var ACTION</div>
+<div class="ct-functionbody">  # Menu-style hotkeys</div>
+<div class="ct-functionbody">  ask_choose_immediate \</div>
+<div class="ct-functionbody">      --label &quot;Select option&quot; \</div>
+<div class="ct-functionbody">      --choices &quot;1-9,B,D,L,V,C,Q&quot; \</div>
+<div class="ct-functionbody">      --instantchoices &quot;B,D,L,V,C,Q&quot; \</div>
+<div class="ct-functionbody">      --var ACTION</div>
+<div class="ct-functionbody">  # Buffered input (Enter required)</div>
+<div class="ct-functionbody">  ask_choose_immediate \</div>
+<div class="ct-functionbody">      --label &quot;Enter code&quot; \</div>
+<div class="ct-functionbody">      --choices &quot;A-D,1-3&quot; \</div>
+<div class="ct-functionbody">      --var CODE</div>
+<div class="ct-functionbody">Notes:</div>
+<div class="ct-functionbody">  - Intended for menu-driven UIs with immediate key reactions.</div>
+<div class="ct-functionbody">  - For standard constrained input, prefer ask_choose().</div>
+</main>
+</body>
+</html>

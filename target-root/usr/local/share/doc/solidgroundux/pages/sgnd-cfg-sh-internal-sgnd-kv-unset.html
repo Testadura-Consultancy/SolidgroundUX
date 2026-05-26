@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>_sgnd_kv_unset</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">SolidgroundUX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">SolidgroundUX / sgnd-cfg.sh / Internal / _sgnd_kv_unset</div>
+</header>
+<div class="ct-functionheader">_sgnd_kv_unset</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Remove a KEY=VALUE entry from a file.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Validates the key as a shell identifier.</div>
+<div class="ct-functionbody">  - Removes matching KEY=VALUE lines from the file.</div>
+<div class="ct-functionbody">  - Leaves the rest of the file unchanged.</div>
+<div class="ct-functionbody">Arguments:</div>
+<div class="ct-functionbody">  $1  FILE</div>
+<div class="ct-functionbody">      Path to the KEY=VALUE file.</div>
+<div class="ct-functionbody">  $2  KEY</div>
+<div class="ct-functionbody">      Key to remove.</div>
+<div class="ct-functionbody">Side effects:</div>
+<div class="ct-functionbody">  - Modifies the target file.</div>
+<div class="ct-functionbody">  - May emit warnings for invalid keys.</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 on success.</div>
+<div class="ct-functionbody">  1 on invalid key or write failure.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  _sgnd_kv_unset FILE KEY</div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  _sgnd_kv_unset &quot;$SGND_CFG_FILE&quot; &quot;APP_TITLE&quot;</div>
+<div class="ct-functionbody">  _sgnd_kv_unset &quot;$SGND_STATE_FILE&quot; &quot;CURRENT_PAGE&quot;</div>
+</main>
+</body>
+</html>

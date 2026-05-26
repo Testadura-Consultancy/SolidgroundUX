@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>say_write_log</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">SolidgroundUX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">SolidgroundUX / ui-say.sh / Helpers / say_write_log</div>
+</header>
+<div class="ct-functionbody">  - Never fails the caller (best-effort).</div>
+<div class="ct-functionbody">Arguments:</div>
+<div class="ct-functionbody">  $1  TYPE</div>
+<div class="ct-functionbody">  $2  MSG</div>
+<div class="ct-functionbody">  $3  DATE_STR (optional)</div>
+<div class="ct-functionbody">Inputs (globals):</div>
+<div class="ct-functionbody">  SGND_LOGFILE_ENABLED, SGND_LOG_MAX_BYTES, SGND_LOG_KEEP, SGND_LOG_COMPRESS</div>
+<div class="ct-functionbody">  SAY_DATE_FORMAT</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 always.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  _say_write_log &quot;INFO&quot; &quot;Starting process&quot; &quot;&quot;</div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  _say_write_log &quot;FAIL&quot; &quot;Connection error&quot; &quot;$(date)&quot;</div>
+<div class="ct-functionheader">say_write_log</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Append a formatted log record to the logfile with optional rotation.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - No-op when logging is disabled or no valid logfile is available.</div>
+<div class="ct-functionbody">  - Sanitizes message (removes ANSI, normalizes whitespace).</div>
+<div class="ct-functionbody">  - Adds timestamp, user, type, and caller metadata.</div>
+<div class="ct-functionbody">  - Rotates logfile when size exceeds SGND_LOG_MAX_BYTES.</div>
+</main>
+</body>
+</html>

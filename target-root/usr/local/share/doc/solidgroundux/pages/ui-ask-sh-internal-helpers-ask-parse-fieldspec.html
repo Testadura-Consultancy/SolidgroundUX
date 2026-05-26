@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>_ask_parse_fieldspec</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">SolidgroundUX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">SolidgroundUX / ui-ask.sh / Internal helpers / _ask_parse_fieldspec</div>
+</header>
+<div class="ct-functionheader">_ask_parse_fieldspec</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Parse a simple field-spec line into reusable globals for ask_prompt_form().</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Splits a pipe-delimited spec line into:</div>
+<div class="ct-functionbody">  - Writes parsed values to _ask_field_* globals.</div>
+<div class="ct-functionbody">  - Missing fields are allowed and become empty strings.</div>
+<div class="ct-functionbody">Arguments:</div>
+<div class="ct-functionbody">  $1  FIELD_SPEC</div>
+<div class="ct-functionbody">      Pipe-delimited field spec.</div>
+<div class="ct-functionbody">Outputs (globals):</div>
+<div class="ct-functionbody">  _ask_field_key</div>
+<div class="ct-functionbody">  _ask_field_label</div>
+<div class="ct-functionbody">  _ask_field_default</div>
+<div class="ct-functionbody">  _ask_field_validate</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 always.</div>
+<div class="ct-functionbody">Usage:</div>
+</main>
+</body>
+</html>

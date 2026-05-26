@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>sgnd_state_get</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">SolidgroundUX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">SolidgroundUX / sgnd-cfg.sh / Bootstrap/advanced / sgnd_state_get</div>
+</header>
+<div class="ct-functionheader">sgnd_state_get</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Read a state value from the state file.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Validates the requested key.</div>
+<div class="ct-functionbody">  - Reads the value directly from SGND_STATE_FILE.</div>
+<div class="ct-functionbody">  - Does not read from the current shell variable.</div>
+<div class="ct-functionbody">Arguments:</div>
+<div class="ct-functionbody">  $1  KEY</div>
+<div class="ct-functionbody">      State variable name.</div>
+<div class="ct-functionbody">Inputs (globals):</div>
+<div class="ct-functionbody">  SGND_STATE_FILE</div>
+<div class="ct-functionbody">Output:</div>
+<div class="ct-functionbody">  Prints the value to stdout without a trailing newline.</div>
+<div class="ct-functionbody">Side effects:</div>
+<div class="ct-functionbody">  - May emit a warning for invalid keys.</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 if found.</div>
+<div class="ct-functionbody">  1 if missing or invalid.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  sgnd_state_get KEY</div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  sgnd_state_get &quot;LAST_MODULE&quot;</div>
+</main>
+</body>
+</html>

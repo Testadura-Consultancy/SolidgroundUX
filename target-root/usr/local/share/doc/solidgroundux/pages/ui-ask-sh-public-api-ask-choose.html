@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>ask_choose</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">SolidgroundUX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">SolidgroundUX / ui-ask.sh / Public API / ask_choose</div>
+</header>
+<div class="ct-functionheader">ask_choose</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Prompt for a constrained user choice using standard line input.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Reads input from /dev/tty.</div>
+<div class="ct-functionbody">  - Requires Enter to confirm input.</div>
+<div class="ct-functionbody">  - Validates input against the allowed choice list when provided.</div>
+<div class="ct-functionbody">  - Re-prompts on invalid input when keepasking=1.</div>
+<div class="ct-functionbody">  - Supports default values.</div>
+<div class="ct-functionbody">  - Uses shared prompt rendering via _ask_build_prompt().</div>
+<div class="ct-functionbody">Options:</div>
+<div class="ct-functionbody">  --label TEXT</div>
+<div class="ct-functionbody">      Prompt label.</div>
+<div class="ct-functionbody">  --var NAME</div>
+<div class="ct-functionbody">      Destination variable name.</div>
+<div class="ct-functionbody">      Default: choice</div>
+<div class="ct-functionbody">  --choices LIST</div>
+<div class="ct-functionbody">      Allowed values as comma-separated tokens and/or ranges.</div>
+<div class="ct-functionbody">  --default VALUE</div>
+<div class="ct-functionbody">      Default value (editable).</div>
+<div class="ct-functionbody">      Append [choices] to the label.</div>
+<div class="ct-functionbody">      Default: 1</div>
+<div class="ct-functionbody">      Re-prompt on invalid input.</div>
+<div class="ct-functionbody">      Default: 1</div>
+<div class="ct-functionbody">  --labelwidth N</div>
+<div class="ct-functionbody">      Align label to fixed width.</div>
+<div class="ct-functionbody">  --pad N</div>
+<div class="ct-functionbody">      Spacing between label and &#x27;:&#x27;.</div>
+<div class="ct-functionbody">  --labelclr ANSI</div>
+<div class="ct-functionbody">      Color/style applied to label.</div>
+<div class="ct-functionbody">  --inputclr ANSI</div>
+<div class="ct-functionbody">      Color/style applied to input.</div>
+<div class="ct-functionbody">  --colorize MODE</div>
+<div class="ct-functionbody">      Colorization mode:</div>
+<div class="ct-functionbody">Outputs (globals):</div>
+<div class="ct-functionbody">  Assigns accepted value to variable defined by --var.</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 always.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  ask_choose --label &quot;Select option&quot; --choices &quot;1,2,3&quot; --var choice</div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  # Basic choice</div>
+<div class="ct-functionbody">  ask_choose \</div>
+<div class="ct-functionbody">      --label &quot;Action&quot; \</div>
+<div class="ct-functionbody">      --choices &quot;1,2,3,Q&quot; \</div>
+<div class="ct-functionbody">      --var ACTION</div>
+<div class="ct-functionbody">  # With default</div>
+<div class="ct-functionbody">  ask_choose \</div>
+<div class="ct-functionbody">      --label &quot;Mode&quot; \</div>
+<div class="ct-functionbody">      --choices &quot;auto,manual&quot; \</div>
+<div class="ct-functionbody">      --default &quot;auto&quot; \</div>
+<div class="ct-functionbody">      --var MODE</div>
+<div class="ct-functionbody">Notes:</div>
+<div class="ct-functionbody">  - Intended for standard constrained input.</div>
+<div class="ct-functionbody">  - For instant key-driven menus, use ask_choose_immediate().</div>
+</main>
+</body>
+</html>

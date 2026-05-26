@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>_ask_expand_choices</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">SolidgroundUX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">SolidgroundUX / ui-ask.sh / Internal helpers / _ask_expand_choices</div>
+</header>
+<div class="ct-functionheader">_ask_expand_choices</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Expand a comma-separated choice specification into individual allowed values.</div>
+<div class="ct-functionbody">Arguments:</div>
+<div class="ct-functionbody">  $1  Choice spec string. Supports:</div>
+<div class="ct-functionbody">      - Literal tokens: &quot;dev,acc,prod&quot;</div>
+<div class="ct-functionbody">      - Simple ranges:  &quot;A-Z&quot;, &quot;0-9&quot; (single ASCII [[:alnum:]] endpoints)</div>
+<div class="ct-functionbody">      - Optional whitespace around tokens: &quot;A-Z, 1-3, foo&quot;</div>
+<div class="ct-functionbody">Output:</div>
+<div class="ct-functionbody">  Prints one expanded value per line.</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 always.</div>
+</main>
+</body>
+</html>

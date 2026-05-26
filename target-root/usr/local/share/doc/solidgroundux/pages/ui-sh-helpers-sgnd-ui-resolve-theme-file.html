@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>_sgnd_ui_resolve_theme_file</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">SolidgroundUX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">SolidgroundUX / ui.sh / Helpers / _sgnd_ui_resolve_theme_file</div>
+</header>
+<div class="ct-functionheader">_sgnd_ui_resolve_theme_file</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Resolve a palette or style specification into a readable .sh file path.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Treats values containing &quot;/&quot; or ending in &quot;.sh&quot; as explicit paths.</div>
+<div class="ct-functionbody">  - Otherwise resolves logical names under:</div>
+<div class="ct-functionbody">      $SGND_UI_THEME_DIR/&lt;kind&gt;/&lt;name&gt;.sh</div>
+<div class="ct-functionbody">  - Verifies readability before returning success.</div>
+<div class="ct-functionbody">Arguments:</div>
+<div class="ct-functionbody">  $1  KIND</div>
+<div class="ct-functionbody">  $2  SPEC</div>
+<div class="ct-functionbody">      Explicit path or logical theme name.</div>
+<div class="ct-functionbody">Inputs (globals):</div>
+<div class="ct-functionbody">  SGND_UI_THEME_DIR</div>
+<div class="ct-functionbody">Output:</div>
+<div class="ct-functionbody">  Prints the resolved readable file path to stdout.</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0  resolved and readable</div>
+<div class="ct-functionbody">  2  missing spec</div>
+<div class="ct-functionbody">  3  explicit path unreadable</div>
+<div class="ct-functionbody">  4  SGND_UI_THEME_DIR missing for named lookup</div>
+<div class="ct-functionbody">  5  named theme not found</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  _sgnd_ui_resolve_theme_file palettes default-ui-palette</div>
+<div class="ct-functionbody">Examples:</div>
+</main>
+</body>
+</html>

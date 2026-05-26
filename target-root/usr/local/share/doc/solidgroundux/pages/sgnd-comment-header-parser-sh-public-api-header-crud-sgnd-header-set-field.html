@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>sgnd_header_set_field</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">SolidgroundUX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">SolidgroundUX / sgnd-comment-header-parser.sh / Public API / Header CRUD / sgnd_header_set_field</div>
+</header>
+<div class="ct-functionheader">sgnd_header_set_field</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Replace the value of an existing field inside a named header section</div>
+<div class="ct-functionbody">  while preserving the original line formatting.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Scans only the requested header section.</div>
+<div class="ct-functionbody">  - Matches the requested field by trimmed key name.</div>
+<div class="ct-functionbody">  - Preserves original indentation, label spacing, and separator spacing.</div>
+<div class="ct-functionbody">  - Replaces only the value portion of the matched field line.</div>
+<div class="ct-functionbody">  - Honors FLAG_DRYRUN by reporting the intended change without writing.</div>
+<div class="ct-functionbody">Arguments:</div>
+<div class="ct-functionbody">  $1  FILE</div>
+<div class="ct-functionbody">      Target script file.</div>
+<div class="ct-functionbody">  $2  SECTION</div>
+<div class="ct-functionbody">      Header section name.</div>
+<div class="ct-functionbody">  $3  FIELD</div>
+<div class="ct-functionbody">      Field name to update.</div>
+<div class="ct-functionbody">  $4  VALUE</div>
+<div class="ct-functionbody">      Replacement value.</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 if the field was updated.</div>
+<div class="ct-functionbody">  1 on write or temp-file failure.</div>
+<div class="ct-functionbody">  2 if the field is not found.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  sgnd_header_set_field &quot;$file&quot; &quot;Metadata&quot; &quot;Version&quot; &quot;1.2&quot;</div>
+</main>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>sgnd_print</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">SolidgroundUX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">SolidgroundUX / ui.sh / Assemble line (PLAIN parts first; add color last) / sgnd_print</div>
+</header>
+<div class="ct-functionheader">sgnd_print</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Print formatted text with padding, justification, and optional wrapping.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Empty call prints a blank line.</div>
+<div class="ct-functionbody">  - Auto-wraps when text exceeds the available width unless wrap mode is forced.</div>
+<div class="ct-functionbody">  - Delegates single-line rendering to sgnd_print_single().</div>
+<div class="ct-functionbody">  - Delegates wrapping to sgnd_wrap_words().</div>
+<div class="ct-functionbody">Arguments:</div>
+<div class="ct-functionbody">  --text TEXT</div>
+<div class="ct-functionbody">      Text to print.</div>
+<div class="ct-functionbody">  --textclr ANSI</div>
+<div class="ct-functionbody">      Text color prefix.</div>
+<div class="ct-functionbody">      Justification. Default: L</div>
+<div class="ct-functionbody">      Explicit wrap mode.</div>
+<div class="ct-functionbody">  --pad N</div>
+<div class="ct-functionbody">      Left and right padding. Default: 0</div>
+<div class="ct-functionbody">  --rightmargin N</div>
+<div class="ct-functionbody">      Reserved right margin in wrap mode. Default: 0</div>
+<div class="ct-functionbody">  --maxwidth N</div>
+<div class="ct-functionbody">      Total width. Default: 80</div>
+<div class="ct-functionbody">Output:</div>
+<div class="ct-functionbody">  Writes one or more formatted lines to stdout.</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 always.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  sgnd_print</div>
+<div class="ct-functionbody">  sgnd_print &quot;Text&quot;</div>
+<div class="ct-functionbody">  sgnd_print --text &quot;Text&quot; [opts]</div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  sgnd_print --text &quot;$SGND_SCRIPT_DESC&quot; --justify C --pad 4</div>
+<div class="ct-functionbody">  sgnd_print --text &quot;$long_text&quot; --wrap 1 --maxwidth 100</div>
+</main>
+</body>
+</html>

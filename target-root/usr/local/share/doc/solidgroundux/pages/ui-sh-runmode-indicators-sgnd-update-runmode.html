@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>sgnd_update_runmode</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">SolidgroundUX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">SolidgroundUX / ui.sh / Runmode indicators / sgnd_update_runmode</div>
+</header>
+<div class="ct-functionheader">sgnd_update_runmode</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Update the styled global RUN_MODE indicator from the current dry-run state.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Sets RUN_MODE to DRYRUN or COMMIT.</div>
+<div class="ct-functionbody">  - Uses sgnd_runmode_color() for the prefix.</div>
+<div class="ct-functionbody">  - Appends RESET so the string is safe for inline rendering.</div>
+<div class="ct-functionbody">Inputs (globals):</div>
+<div class="ct-functionbody">  FLAG_DRYRUN</div>
+<div class="ct-functionbody">  RESET</div>
+<div class="ct-functionbody">Outputs (globals):</div>
+<div class="ct-functionbody">  RUN_MODE</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 always.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  sgnd_update_runmode</div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  FLAG_DRYRUN=1</div>
+<div class="ct-functionbody">  sgnd_update_runmode</div>
+</main>
+</body>
+</html>
