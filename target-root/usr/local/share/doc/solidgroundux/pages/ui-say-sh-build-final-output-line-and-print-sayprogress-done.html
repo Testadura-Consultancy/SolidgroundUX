@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>sayprogress_done</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Solidground UX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">Solidground UX / ui-say.sh / Build final output line and print / sayprogress_done</div>
+</header>
+<div class="ct-functionheader">sayprogress_done</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Finalize reserved progress output.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Clears all reserved progress slots.</div>
+<div class="ct-functionbody">  - Moves the cursor below the progress area.</div>
+<div class="ct-functionbody">  - Resets progress reservation state.</div>
+<div class="ct-functionbody">  - Ends pending progress output cleanly with a newline.</div>
+<div class="ct-functionbody">Inputs (globals):</div>
+<div class="ct-functionbody">  SGND_PROGRESS_RESERVED</div>
+<div class="ct-functionbody">Outputs (globals):</div>
+<div class="ct-functionbody">  SGND_PROGRESS_RESERVED</div>
+<div class="ct-functionbody">  SGND_LINEBREAK_PENDING</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  sayprogress_done</div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  sayprogress_begin --slots 2</div>
+<div class="ct-functionbody">  sayprogress --slot 0 --current 10 --total 10 --label "quot;Files"quot;</div>
+<div class="ct-functionbody">  sayprogress --slot 1 --current 100 --total 100 --label "quot;Lines"quot;</div>
+<div class="ct-functionbody">  sayprogress_done</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 always.</div>
+</main>
+</body>
+</html>

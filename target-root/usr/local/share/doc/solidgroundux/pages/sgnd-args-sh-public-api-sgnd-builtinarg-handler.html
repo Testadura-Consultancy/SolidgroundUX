@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>sgnd_builtinarg_handler</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Solidground UX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">Solidground UX / sgnd-args.sh / Public API / sgnd_builtinarg_handler</div>
+</header>
+<div class="ct-functionheader">sgnd_builtinarg_handler</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Apply framework-defined built-in argument behavior after argument parsing.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Evaluates built-in framework arguments after sgnd_parse_args has populated them.</div>
+<div class="ct-functionbody">  - Applies common runtime settings such as dryrun and loglevel mapping.</div>
+<div class="ct-functionbody">  - Handles immediate built-in actions such as help or internal info display when present.</div>
+<div class="ct-functionbody">  - Exits early when a built-in action fully satisfies program flow.</div>
+<div class="ct-functionbody">Inputs (globals):</div>
+<div class="ct-functionbody">  Built-in argument variables initialized through SGND_BUILTIN_ARGS</div>
+<div class="ct-functionbody">  SGND_SCRIPT_NAME</div>
+<div class="ct-functionbody">  SGND_SCRIPT_VERSION</div>
+<div class="ct-functionbody">  SGND_LOGFILE_ENABLED</div>
+<div class="ct-functionbody">  SGND_LOG_LEVEL</div>
+<div class="ct-functionbody">Side effects:</div>
+<div class="ct-functionbody">  - Updates framework runtime globals based on parsed built-in options.</div>
+<div class="ct-functionbody">  - May write informational output to stdout.</div>
+<div class="ct-functionbody">  - May terminate script execution early for handled built-in actions.</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 if built-in handling succeeds.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  sgnd_builtinarg_handler</div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  sgnd_builtinarg_handler</div>
+<div class="ct-functionbody">  sgnd_builtinarg_handler</div>
+<div class="ct-functionbody">  main</div>
+<div class="ct-functionbody">Notes:</div>
+<div class="ct-functionbody">  - Intended to be called immediately after sgnd_parse_args.</div>
+<div class="ct-functionbody">  - Centralizes framework-level option behavior so scripts do not need to duplicate it.</div>
+</main>
+</body>
+</html>

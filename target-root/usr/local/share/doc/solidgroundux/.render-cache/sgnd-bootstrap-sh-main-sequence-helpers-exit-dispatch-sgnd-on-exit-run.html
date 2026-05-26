@@ -1,0 +1,14 @@
+<div class="ct-functionheader">_sgnd_on_exit_run</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Execute registered EXIT handlers (LIFO) while preserving the original exit code.</div>
+<div class="ct-functionbody">Inputs (globals):</div>
+<div class="ct-functionbody">  SGND_ON_EXIT_HANDLERS</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Captures the current exit code ($?) immediately.</div>
+<div class="ct-functionbody">  - Executes handlers in reverse registration order.</div>
+<div class="ct-functionbody">  - Evaluates each handler via eval.</div>
+<div class="ct-functionbody">  - Ignores handler failures to ensure all handlers run.</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  The original exit code.</div>
+<div class="ct-functionbody">Notes:</div>
+<div class="ct-functionbody">  Installed once via sgnd_on_exit_install().</div>

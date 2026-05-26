@@ -1,0 +1,22 @@
+<div class="ct-functionheader">sgnd_cfg_load_file</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Load a specific cfg file into shell variables for domain-level processing.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Reads plain KEY=VALUE lines from the target file.</div>
+<div class="ct-functionbody">  - Ignores blank lines and comments.</div>
+<div class="ct-functionbody">  - Accepts only valid shell identifiers as keys.</div>
+<div class="ct-functionbody">  - Stores values literally without unquoting or escape processing.</div>
+<div class="ct-functionbody">Arguments:</div>
+<div class="ct-functionbody">  $1  FILE</div>
+<div class="ct-functionbody">      Config file path to load.</div>
+<div class="ct-functionbody">Outputs (globals):</div>
+<div class="ct-functionbody">  Sets variables defined in the file.</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 always.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  sgnd_cfg_load_file FILE</div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  sgnd_cfg_load_file "quot;$SGND_SYSCFG_FILE"quot;</div>
+<div class="ct-functionbody">  [[ -r "quot;$SGND_USRCFG_FILE"quot; ]] &amp;&amp; sgnd_cfg_load_file "quot;$SGND_USRCFG_FILE"quot;</div>
+<div class="ct-functionbody">Notes:</div>
+<div class="ct-functionbody">  - Intended for domain/bootstrap flow readability.</div>

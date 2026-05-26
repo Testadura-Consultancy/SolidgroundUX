@@ -82,6 +82,8 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # - Local definitions -------------------------------------------------------------
+    DOC_RENDER_CACHE_DIR=""
+
     # var: Postprocess datamodel
         DOC_ATTRIBUTION_INDEX_SCHEMA="company|developer|license|modulename|moduletitle|product|group"
         DOC_ATTRIBUTION_INDEX=()
@@ -467,6 +469,7 @@ set -uo pipefail
 
             sgnd_print
         }
+
         _init_metadata() {
             DOC_TITLE="${VAL_DOCUMENT_TITLE:-}"
             DOC_SUBTITLE="${VAL_DOCUMENT_SUBTITLE:-}"
@@ -556,6 +559,72 @@ set -uo pipefail
             printf '%s\n' "$breadcrumb"
         }
 
+        _prepare_render_cache() {
+            local output_folder="${1:?missing output folder}"
+            local row=""
+            local contentref=""
+            local content_type=""
+            local content=""
+            local slug=""
+            local cache_file=""
+            local css_class=""
+            local extra_class=""
+            local in_comment_section=0
+            local last_contentref=""
+
+            DOC_RENDER_CACHE_DIR="$output_folder/.render-cache"
+
+            rm -rf "$DOC_RENDER_CACHE_DIR"
+            mkdir -p "$DOC_RENDER_CACHE_DIR" || return 1
+
+            while IFS= read -r row; do
+                contentref="$(sgnd_dt_row_get "$DOC_CONTENT_LINES_SCHEMA" "$row" "contentref")"
+
+                if [[ "$contentref" != "$last_contentref" ]]; then
+                    in_comment_section=0
+                    last_contentref="$contentref"
+                fi
+
+                content_type="$(sgnd_dt_row_get "$DOC_CONTENT_LINES_SCHEMA" "$row" "contenttype")"
+                content="$(sgnd_dt_row_get "$DOC_CONTENT_LINES_SCHEMA" "$row" "content")"
+
+                slug="$(_slugify "$contentref")"
+                cache_file="$DOC_RENDER_CACHE_DIR/$slug.html"
+
+                css_class="ct-${content_type:-documentbody}"
+                extra_class=""
+
+                case "$content_type" in
+                    commentsectionheader)
+                        in_comment_section=1
+
+                        printf '<div class="%s">%s</div>\n' \
+                            "$(_html_escape "$css_class")" \
+                            "$(_html_escape "$content")" \
+                            >> "$cache_file"
+
+                        continue
+                        ;;
+
+                    commentsectionbody)
+                        if (( in_comment_section )); then
+                            extra_class=" doc-comment-indent"
+                        fi
+                        ;;
+
+                    *)
+                        in_comment_section=0
+                        ;;
+                esac
+
+                printf '<div class="%s%s">%s</div>\n' \
+                    "$(_html_escape "$css_class")" \
+                    "$extra_class" \
+                    "$(_html_escape "$content")" \
+                    >> "$cache_file"
+
+            done < <(sgnd_dt_get_sorted_rows "$DOC_CONTENT_LINES_SCHEMA" DOC_CONTENT_LINES "contentref,doc_linenr")
+        }
        
         _get_first_item_page() {
             local row=""
@@ -630,37 +699,42 @@ set -uo pipefail
                 printf '%s\n' '}'
                 printf '\n'
 
-                printf '%s\n' '.doc-nav-static {'
-                printf '%s\n' '    margin-left: 22px;'
-                printf '%s\n' '    font-size: 9.5pt;'
-                printf '%s\n' '    font-weight: 600;'
-                printf '%s\n' '}'
-                printf '\n'
-
                 printf '%s\n' '.doc-nav-node summary {'
                 printf '%s\n' '    cursor: pointer;'
                 printf '%s\n' '    font-weight: bold;'
                 printf '%s\n' '    line-height: 1.25;'
                 printf '%s\n' '}'
                 printf '\n'
-                
+
                 printf '%s\n' '.doc-nav-node.level-0 > summary {'
                 printf '%s\n' '    font-size: 11pt;'
                 printf '%s\n' '    font-weight: bold;'
                 printf '%s\n' '}'
                 printf '\n'
 
-                printf '%s\n' '.doc-nav-node.level-1 > summary {'
+                printf '%s\n' '.doc-nav-section {'
+                printf '%s\n' '    margin-top: 6px;'
+                printf '%s\n' '    margin-bottom: 2px;'
                 printf '%s\n' '    font-size: 10pt;'
+                printf '%s\n' '    color: #111;'
+                printf '%s\n' '}'
+                printf '\n'
+
+                printf '%s\n' '.doc-nav-section.level-1 {'
+                printf '%s\n' '    margin-left: 14px;'
                 printf '%s\n' '    font-weight: 600;'
                 printf '%s\n' '}'
                 printf '\n'
 
-                printf '%s\n' '.doc-nav-node.level-2 > summary,'
-                printf '%s\n' '.doc-nav-node.level-3 > summary,'
-                printf '%s\n' '.doc-nav-node.level-4 > summary {'
-                printf '%s\n' '    font-size: 9.5pt;'
+                printf '%s\n' '.doc-nav-section.level-2 {'
+                printf '%s\n' '    margin-left: 24px;'
                 printf '%s\n' '    font-weight: 600;'
+                printf '%s\n' '}'
+                printf '\n'
+
+                printf '%s\n' '.doc-nav-section.level-3 {'
+                printf '%s\n' '    margin-left: 34px;'
+                printf '%s\n' '    font-weight: 500;'
                 printf '%s\n' '}'
                 printf '\n'
 
@@ -668,10 +742,10 @@ set -uo pipefail
                 printf '%s\n' '    display: block;'
                 printf '%s\n' '    color: #204a87;'
                 printf '%s\n' '    text-decoration: none;'
-                printf '%s\n' '    font-size: 10pt;'
+                printf '%s\n' '    font-size: 9.5pt;'
                 printf '%s\n' '    line-height: 1.2;'
-                printf '%s\n' '    margin-top: 3px;'
-                printf '%s\n' '    margin-bottom: 3px;'
+                printf '%s\n' '    margin-top: 2px;'
+                printf '%s\n' '    margin-bottom: 2px;'
                 printf '%s\n' '}'
                 printf '\n'
 
@@ -680,16 +754,8 @@ set -uo pipefail
                 printf '%s\n' '}'
                 printf '\n'
 
-                printf '%s\n' '.doc-nav-item.level-0 { margin-left: 12px; }'
-                printf '%s\n' '.doc-nav-item.level-1 { margin-left: 20px; }'
-                printf '%s\n' '.doc-nav-item.level-2 { margin-left: 28px; }'
-                printf '%s\n' '.doc-nav-item.level-3 { margin-left: 36px; }'
-                printf '%s\n' '.doc-nav-item.level-4 { margin-left: 44px; }'
-                printf '%s\n' '.doc-nav-item.level-5 { margin-left: 52px; }'
-                printf '\n'
-
-                printf '%s\n' '.doc-comment-indent {'
-                printf '%s\n' '    margin-left: 22px;'
+                printf '%s\n' '.doc-nav-item.level-4 {'
+                printf '%s\n' '    margin-left: 42px;'
                 printf '%s\n' '}'
                 printf '\n'
 
@@ -757,9 +823,15 @@ set -uo pipefail
                 printf '\n'
 
                 printf '.ct-documentbody { %s }\n' "$_docstyle_documentbody"
+                printf '\n'
+
+                printf '%s\n' '.doc-comment-indent {'
+                printf '%s\n' '    padding-left: 22px;'
+                printf '%s\n' '}'
+                printf '\n'
             } > "$css_file"
 
-            sayok "Rendered assets: $css_file"
+            sayinfo "Rendered assets: $css_file"
         }
 
         _render_navigation() {
@@ -844,7 +916,7 @@ set -uo pipefail
                 printf '%s\n' '</html>'
             } > "$index_file"
 
-            sayok "Rendered index: $index_file"
+            saydebug "Rendered index: $index_file"
         }
 
         _render_item_pages() {
@@ -854,11 +926,21 @@ set -uo pipefail
             local node_type=""
 
             mkdir -p "$page_dir" || return 1
-
+            
+            local total_docs="${#DOC_NAV[@]}"
+            local current_doc=0
             for row in "${DOC_NAV[@]}"; do
                 node_type="$(sgnd_dt_row_get "$DOC_NAV_SCHEMA" "$row" "nodetype")"
                 _is_item_node "$node_type" || continue
-
+                
+                ((++current_doc))   
+                sayprogress \
+                    --slot 1 \
+                    --current "$current_doc" \
+                    --total "$total_docs" \
+                    --label "Creating item page for $_NAV_NODE_NAME" \
+                    --type 5
+                
                 _render_item_page "$output_folder" "$row"
             done
         }
@@ -911,48 +993,51 @@ set -uo pipefail
 
         _render_content_for_ref() {
             local contentref="${1:?missing content reference}"
-            local row=""
-            local row_ref=""
-            local content_type=""
-            local content=""
-            local css_class=""
-            local extra_class=""
-            local in_comment_section=0
+            local slug=""
+            local cache_file=""
 
-            for row in "${DOC_CONTENT_LINES[@]}"; do
-                row_ref="$(sgnd_dt_row_get "$DOC_CONTENT_LINES_SCHEMA" "$row" "contentref")"
-                [[ "$row_ref" == "$contentref" ]] || continue
+            slug="$(_slugify "$contentref")"
+            cache_file="$DOC_RENDER_CACHE_DIR/$slug.html"
 
-                content_type="$(sgnd_dt_row_get "$DOC_CONTENT_LINES_SCHEMA" "$row" "contenttype")"
-                content="$(sgnd_dt_row_get "$DOC_CONTENT_LINES_SCHEMA" "$row" "content")"
+            [[ -f "$cache_file" ]] || return 0
 
-                css_class="ct-${content_type:-documentbody}"
-                extra_class=""
-
-                if [[ "$content_type" == "commentsectionheader" ]]; then
-                    in_comment_section=1
-
-                    printf '<div class="%s">%s</div>\n' \
-                        "$(_html_escape "$css_class")" \
-                        "$(_html_escape "$content")"
-
-                    continue
-                fi
-
-                if [[ -z "$content" ]]; then
-                    in_comment_section=0
-                fi
-
-                if (( in_comment_section )); then
-                    extra_class=" doc-comment-indent"
-                fi
-
-                printf '<div class="%s%s">%s</div>\n' \
-                    "$(_html_escape "$css_class")" \
-                    "$extra_class" \
-                    "$(_html_escape "$content")"
-            done
+            cat "$cache_file"
         }
+
+        _export_render_tables() {
+            local export_dir="${1:?missing export dir}"
+
+            mkdir -p "$export_dir" || return 1
+
+            sgnd_dt_export_psv \
+                "$MOD_TABLE_SCHEMA" \
+                MOD_TABLE \
+                "$export_dir/mod_table.psv" \
+                || return 1
+
+            sgnd_dt_export_psv \
+                "$MOD_SECTIONS_SCHEMA" \
+                MOD_SECTIONS \
+                "$export_dir/mod_sections.psv" \
+                || return 1
+
+            sgnd_dt_export_psv \
+                "$MOD_ITEMS_SCHEMA" \
+                MOD_ITEMS \
+                "$export_dir/mod_items.psv" \
+                || return 1
+
+            sgnd_dt_export_psv \
+                "$DOC_CONTENT_LINES_SCHEMA" \
+                DOC_CONTENT_LINES \
+                "$export_dir/doc_content_lines.psv" \
+                || return 1
+
+            _export_render_config \
+                "$export_dir/render_config.psv" \
+                || return 1
+        }
+
 # - Main sequence ----------------------------------------------------------
     # fn: _render_site - Render collected documentation data
         # Purpose:
@@ -978,20 +1063,51 @@ set -uo pipefail
             sayerror "No outputfolder was passed"
             return 1
         }
-        saystart "Rendering site to $output_folder"
+        saydebug "Rendering site to $output_folder"
 
-        _prepare_output_directory
-        _build_doc_hierarchy
-        _init_metadata
+        _prepare_output_directory || {
+            sayerror "Failed to prepare output directory"
+            return 1
+        }
+
+        _build_doc_hierarchy || {
+            sayerror "Failed to build documentation hierarchy"
+            return 1
+        }
+
+        _init_metadata || {
+            sayerror "Failed to initialize documentation metadata"
+            return 1
+        }
 
         saydebug "Documentation navigation hierarchy built with ${#DOC_NAV[@]} nodes. Ready for rendering."
-        sayinfo " Rendering: Title='$DOC_TITLE', Subtitle='$DOC_SUBTITLE', Version='$DOC_VERSION', Product='$DOC_PRODUCT', RenderDate='$DOC_RENDER_DATE'"
+        saydebug " Rendering: Title='$DOC_TITLE', Subtitle='$DOC_SUBTITLE', Version='$DOC_VERSION', Product='$DOC_PRODUCT', RenderDate='$DOC_RENDER_DATE'"
 
-        _render_assets "$output_folder" || return 1
-        _render_item_pages "$output_folder" || return 1
-        _render_index_page "$output_folder" || return 1
+        #_render_assets "$output_folder" || {
+        #    sayerror "Failed to render documentation assets"
+        #    return 1
+        #}
 
-        sayend "Documentation rendering complete. Output available at: $output_folder"
+        #_prepare_render_cache "$output_folder" || {
+        #    sayerror "Failed to prepare render cache"
+        #    return 1
+        #}
+
+        #_render_item_pages "$output_folder" || {
+        #    sayerror "Failed to render item pages"
+        #    return 1
+        #}
+
+        #_render_index_page "$output_folder" || {
+        #    sayerror "Failed to render index page"
+        #    return 1
+        #}
+        
+        python3 "$SGND_ROOT/py/sgnd_doc_renderer.py" \
+            "$export_dir" \
+            "$VAL_OUTPUT_FOLDER"
+
+        sayinfo "Documentation rendering complete. Output available at: $output_folder"
 
         return 0
     } 

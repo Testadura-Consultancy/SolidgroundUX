@@ -37,12 +37,6 @@ body {
     margin-bottom: 4px;
 }
 
-.doc-nav-static {
-    margin-left: 22px;
-    font-size: 9.5pt;
-    font-weight: 600;
-}
-
 .doc-nav-node summary {
     cursor: pointer;
     font-weight: bold;
@@ -54,41 +48,44 @@ body {
     font-weight: bold;
 }
 
-.doc-nav-node.level-1 > summary {
+.doc-nav-section {
+    margin-top: 6px;
+    margin-bottom: 2px;
     font-size: 10pt;
+    color: #111;
+}
+
+.doc-nav-section.level-1 {
+    margin-left: 14px;
     font-weight: 600;
 }
 
-.doc-nav-node.level-2 > summary,
-.doc-nav-node.level-3 > summary,
-.doc-nav-node.level-4 > summary {
-    font-size: 9.5pt;
+.doc-nav-section.level-2 {
+    margin-left: 24px;
     font-weight: 600;
+}
+
+.doc-nav-section.level-3 {
+    margin-left: 34px;
+    font-weight: 500;
 }
 
 .doc-nav-item {
     display: block;
     color: #204a87;
     text-decoration: none;
-    font-size: 10pt;
+    font-size: 9.5pt;
     line-height: 1.2;
-    margin-top: 3px;
-    margin-bottom: 3px;
+    margin-top: 2px;
+    margin-bottom: 2px;
 }
 
 .doc-nav-item:hover {
     text-decoration: underline;
 }
 
-.doc-nav-item.level-0 { margin-left: 12px; }
-.doc-nav-item.level-1 { margin-left: 20px; }
-.doc-nav-item.level-2 { margin-left: 28px; }
-.doc-nav-item.level-3 { margin-left: 36px; }
-.doc-nav-item.level-4 { margin-left: 44px; }
-.doc-nav-item.level-5 { margin-left: 52px; }
-
-.doc-comment-indent {
-    margin-left: 22px;
+.doc-nav-item.level-4 {
+    margin-left: 42px;
 }
 
 .doc-content-frame {
@@ -142,3 +139,8 @@ body {
 .ct-commentsectionbody { font-family:Arial, sans-serif;font-size:10pt;font-weight:normal;font-style:normal;line-height:1.45;margin:0 0 6px 0;font-style:italic; }
 
 .ct-documentbody { font-family:Arial, sans-serif;font-size:10pt;font-weight:normal;font-style:normal;line-height:1.45;margin:0 0 6px 0; }
+
+.doc-comment-indent {
+    padding-left: 22px;
+}
+

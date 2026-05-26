@@ -1,0 +1,10 @@
+<div class="ct-L3Sectionheader">Background colors</div>
+<div class="ct-L3Sectionbody">Naming conventions:</div>
+<div class="ct-L3Sectionbody">  BG_DARK_*    : darker / muted background shades</div>
+<div class="ct-L3Sectionbody">  BG_*         : normal ANSI background colors</div>
+<div class="ct-L3Sectionbody">  BG_BRIGHT_*  : high-intensity backgrounds using the 256-color palette</div>
+<div class="ct-L3Sectionbody">Notes:</div>
+<div class="ct-L3Sectionbody">  - Background colors use ANSI SGR codes 40–47 or 48;5;<lt;n>gt;</div>
+<div class="ct-L3Sectionbody">  - Background colors are independent of foreground colors</div>
+<div class="ct-L3Sectionbody">  - Combine with foreground colors by concatenation:</div>
+<div class="ct-L3Sectionbody">      printf "quot;%s%sText%s\n"quot; "quot;$BG_DARK_BLUE"quot; "quot;$BRIGHT_WHITE"quot; "quot;$RESET"quot;</div>

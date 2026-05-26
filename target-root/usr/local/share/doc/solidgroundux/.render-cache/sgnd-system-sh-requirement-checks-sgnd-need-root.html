@@ -1,0 +1,15 @@
+<div class="ct-functionheader">sgnd_need_root</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Require the script to run as root, re-executing through sudo when needed.</div>
+<div class="ct-functionbody">Arguments:</div>
+<div class="ct-functionbody">  $@  Original script arguments forwarded to the re-exec call.</div>
+<div class="ct-functionbody">Inputs (globals):</div>
+<div class="ct-functionbody">  SGND_ALREADY_ROOT</div>
+<div class="ct-functionbody">  SGND_FRAMEWORK_ROOT</div>
+<div class="ct-functionbody">  SGND_APPLICATION_ROOT</div>
+<div class="ct-functionbody">  PATH</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 when already running as root and execution may continue.</div>
+<div class="ct-functionbody">  Does not return when re-exec succeeds.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  sgnd_need_root "quot;$@"quot;</div>

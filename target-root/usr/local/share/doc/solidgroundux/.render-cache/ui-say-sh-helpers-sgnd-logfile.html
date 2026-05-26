@@ -1,0 +1,17 @@
+<div class="ct-functionheader">_sgnd_logfile</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Resolve the effective logfile path based on configured priorities.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Checks SGND_LOG_PATH first, then SGND_ALT_LOGPATH.</div>
+<div class="ct-functionbody">  - Uses sgnd_can_append to validate write capability.</div>
+<div class="ct-functionbody">  - Returns the first usable path.</div>
+<div class="ct-functionbody">Outputs:</div>
+<div class="ct-functionbody">  Prints the resolved logfile path (no newline).</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 if a usable path is found</div>
+<div class="ct-functionbody">  1 otherwise</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  if logfile="quot;$(_sgnd_logfile)"quot;; then</div>
+<div class="ct-functionbody">      echo "quot;Logging to $logfile"quot;</div>
+<div class="ct-functionbody">  fi</div>

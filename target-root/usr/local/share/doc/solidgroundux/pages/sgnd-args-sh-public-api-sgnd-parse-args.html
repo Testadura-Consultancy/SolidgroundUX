@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>sgnd_parse_args</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Solidground UX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">Solidground UX / sgnd-args.sh / Public API / sgnd_parse_args</div>
+</header>
+<div class="ct-functionheader">sgnd_parse_args</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Parse command-line arguments according to the effective argument specification.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Initializes option variables from the selected spec source.</div>
+<div class="ct-functionbody">  - Processes long and short options, including grouped short flags where supported.</div>
+<div class="ct-functionbody">  - Assigns values to the configured target variables.</div>
+<div class="ct-functionbody">  - Validates enum arguments against their declared choice list.</div>
+<div class="ct-functionbody">  - Collects positional arguments into SGND_POSITIONAL_ARGS.</div>
+<div class="ct-functionbody">  - Applies unknown-argument handling according to SGND_ARGMODE.</div>
+<div class="ct-functionbody">Arguments:</div>
+<div class="ct-functionbody">  $@  ARGS</div>
+<div class="ct-functionbody">      Command-line arguments to parse.</div>
+<div class="ct-functionbody">Inputs (globals):</div>
+<div class="ct-functionbody">  SGND_ARGS_SPEC</div>
+<div class="ct-functionbody">  SGND_BUILTIN_ARGS</div>
+<div class="ct-functionbody">  SGND_ARGS_SOURCE</div>
+<div class="ct-functionbody">  SGND_ARGMODE</div>
+<div class="ct-functionbody">Outputs (globals):</div>
+<div class="ct-functionbody">  SGND_EFFECTIVE_ARGS_SPEC</div>
+<div class="ct-functionbody">  SGND_POSITIONAL_ARGS</div>
+<div class="ct-functionbody">  Variables declared in the selected argument specs</div>
+<div class="ct-functionbody">Side effects:</div>
+<div class="ct-functionbody">  - Resets declared argument variables to their default state before parsing.</div>
+<div class="ct-functionbody">  - Rebuilds SGND_EFFECTIVE_ARGS_SPEC.</div>
+<div class="ct-functionbody">  - Updates SGND_POSITIONAL_ARGS.</div>
+<div class="ct-functionbody">  - May print diagnostics for invalid or unknown arguments.</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 if parsing succeeds.</div>
+<div class="ct-functionbody">  1 if parsing fails due to invalid input or strict-mode argument rejection.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  sgnd_parse_args "quot;$@"quot;</div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  sgnd_parse_args "quot;$@"quot;</div>
+<div class="ct-functionbody">  SGND_ARGMODE="quot;strict"quot;</div>
+<div class="ct-functionbody">  SGND_ARGMODE="quot;stop-at-unknown"quot;</div>
+<div class="ct-functionbody">  sgnd_parse_args "quot;$@"quot;</div>
+<div class="ct-functionbody">Notes:</div>
+<div class="ct-functionbody">  - The effective spec set is determined by SGND_ARGS_SOURCE.</div>
+<div class="ct-functionbody">  - Intended as the primary public entry point for argument parsing.</div>
+</main>
+</body>
+</html>

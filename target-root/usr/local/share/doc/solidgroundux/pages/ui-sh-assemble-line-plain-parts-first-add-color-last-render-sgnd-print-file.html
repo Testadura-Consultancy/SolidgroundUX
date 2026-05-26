@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>sgnd_print_file</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Solidground UX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">Solidground UX / ui.sh / Assemble line (PLAIN parts first; add color last) / Render / sgnd_print_file</div>
+</header>
+<div class="ct-functionheader">sgnd_print_file</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Print a text file to stdout, paging when interactive.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Uses less for paging when stdout is a TTY and less is available.</div>
+<div class="ct-functionbody">  - For Markdown files, tries richer renderers before falling back to plain output.</div>
+<div class="ct-functionbody">  - Prints without paging for non-interactive output.</div>
+<div class="ct-functionbody">Arguments:</div>
+<div class="ct-functionbody">  $1  FILE</div>
+<div class="ct-functionbody">      Readable text file path.</div>
+<div class="ct-functionbody">Side effects:</div>
+<div class="ct-functionbody">  - May invoke external viewers such as less, glow, mdcat, bat, or pandoc.</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 on success</div>
+<div class="ct-functionbody">  2 on missing or unreadable file</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  sgnd_print_file <lt;path>gt;</div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  sgnd_print_file "quot;$SGND_DOCS_DIR/README.md"quot;</div>
+</main>
+</body>
+</html>

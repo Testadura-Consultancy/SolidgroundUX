@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>sgnd_dt_set</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Solidground UX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">Solidground UX / sgnd-datatable.sh / Public API / sgnd_dt_set</div>
+</header>
+<div class="ct-functionheader">sgnd_dt_set</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Set one cell value in a table by row index and column name.</div>
+<div class="ct-functionbody">Arguments:</div>
+<div class="ct-functionbody">  $1  SCHEMA</div>
+<div class="ct-functionbody">  $2  TABLE_ARRAY_NAME</div>
+<div class="ct-functionbody">  $3  ROW_INDEX</div>
+<div class="ct-functionbody">  $4  COLUMN_NAME</div>
+<div class="ct-functionbody">  $5  VALUE</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 on success.</div>
+<div class="ct-functionbody">  1 on invalid row index, invalid column, or invalid value.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  sgnd_dt_set "quot;$SCHEMA"quot; ARRAY INDEX COLUMN VALUE</div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  sgnd_dt_set "quot;$MY_SCHEMA"quot; MY_ROWS 0 name "quot;Updated"quot;</div>
+</main>
+</body>
+</html>

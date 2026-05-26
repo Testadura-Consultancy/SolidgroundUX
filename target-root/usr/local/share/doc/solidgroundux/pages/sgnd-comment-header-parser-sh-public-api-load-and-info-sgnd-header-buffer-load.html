@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>sgnd_header_buffer_load</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Solidground UX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">Solidground UX / sgnd-comment-header-parser.sh / Public API / Load and info / sgnd_header_buffer_load</div>
+</header>
+<div class="ct-functionheader">sgnd_header_buffer_load</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Load a script header into the shared in-memory header buffer.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Verifies that the target file is readable.</div>
+<div class="ct-functionbody">  - Stores the file path in SGND_HEADER_BUFFER_FILE.</div>
+<div class="ct-functionbody">  - Stores the canonical header text in SGND_HEADER_BUFFER_TEXT.</div>
+<div class="ct-functionbody">Arguments:</div>
+<div class="ct-functionbody">  $1  FILE</div>
+<div class="ct-functionbody">      Script file to buffer.</div>
+<div class="ct-functionbody">Outputs (globals):</div>
+<div class="ct-functionbody">  SGND_HEADER_BUFFER_FILE</div>
+<div class="ct-functionbody">  SGND_HEADER_BUFFER_TEXT</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 on success.</div>
+<div class="ct-functionbody">  1 if the file is unreadable or the header cannot be read.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  sgnd_header_buffer_load "quot;$file"quot;</div>
+</main>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SGND_SCRIPT_GLOBALS</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Solidground UX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">Solidground UX / deploy-workspace.sh / Example / SGND_SCRIPT_GLOBALS</div>
+</header>
+<div class="ct-variableheader">SGND_SCRIPT_GLOBALS</div>
+<div class="ct-variablebody">Explicit declaration of global variables intentionally used by this script.</div>
+<div class="ct-variablebody">IMPORTANT:</div>
+<div class="ct-variablebody">  - If this array is non-empty, sgnd_bootstrap will enable config loading.</div>
+<div class="ct-variablebody">  - Variables listed here may be populated from configuration files.</div>
+<div class="ct-variablebody">  - This makes SGND_SCRIPT_GLOBALS part of the script’s configuration contract.</div>
+<div class="ct-variablebody">Use this to:</div>
+<div class="ct-variablebody">  - Document intentional globals</div>
+<div class="ct-variablebody">  - Prevent accidental namespace leakage</div>
+<div class="ct-variablebody">  - Enable cfg integration in a predictable way</div>
+<div class="ct-variablebody">Only list:</div>
+<div class="ct-variablebody">  - Variables that are meant to be globally accessible</div>
+<div class="ct-variablebody">  - Variables that may be set via config files</div>
+<div class="ct-variablebody">Leave empty if:</div>
+<div class="ct-variablebody">  - The script does not use config-driven globals</div>
+</main>
+</body>
+</html>

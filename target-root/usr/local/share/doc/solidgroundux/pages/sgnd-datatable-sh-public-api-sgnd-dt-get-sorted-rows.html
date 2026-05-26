@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>sgnd_dt_get_sorted_rows</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Solidground UX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">Solidground UX / sgnd-datatable.sh / Public API / sgnd_dt_get_sorted_rows</div>
+</header>
+<div class="ct-functionheader">sgnd_dt_get_sorted_rows</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Return all rows from a datatable sorted by one or more schema fields.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Reads rows from the supplied table array.</div>
+<div class="ct-functionbody">  - Builds a case-insensitive sort key for each row.</div>
+<div class="ct-functionbody">  - Sorts rows by the generated key.</div>
+<div class="ct-functionbody">  - Prints only the original row values, not the generated sort keys.</div>
+<div class="ct-functionbody">  - Does not modify the source table.</div>
+<div class="ct-functionbody">Arguments:</div>
+<div class="ct-functionbody">  $1  SCHEMA             Pipe-separated column definition string.</div>
+<div class="ct-functionbody">  $2  TABLE_ARRAY_NAME   Name of the indexed array containing row strings.</div>
+<div class="ct-functionbody">  $3  SORT_FIELDS        Comma-separated column names.</div>
+<div class="ct-functionbody">Outputs:</div>
+<div class="ct-functionbody">  Prints sorted row strings to stdout, one row per line.</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 on success.</div>
+<div class="ct-functionbody">  1 when arguments are invalid or a sort field does not exist.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  sgnd_dt_get_sorted_rows "quot;$MOD_TABLE_SCHEMA"quot; MOD_TABLE "quot;product,group,type,name"quot;</div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  while IFS= read -r row; do</div>
+<div class="ct-functionbody">      sgnd_dt_row_get "quot;$MOD_TABLE_SCHEMA"quot; "quot;$row"quot; name</div>
+<div class="ct-functionbody">  done <lt; <lt;(sgnd_dt_get_sorted_rows "quot;$MOD_TABLE_SCHEMA"quot; MOD_TABLE "quot;product,group,type"quot;)</div>
+</main>
+</body>
+</html>

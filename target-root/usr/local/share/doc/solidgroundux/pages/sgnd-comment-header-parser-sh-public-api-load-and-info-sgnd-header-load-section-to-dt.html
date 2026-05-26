@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>sgnd_header_load_section_to_dt</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Solidground UX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">Solidground UX / sgnd-comment-header-parser.sh / Public API / Load and info / sgnd_header_load_section_to_dt</div>
+</header>
+<div class="ct-functionheader">sgnd_header_load_section_to_dt</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Load all key/value pairs from a header section into an sgnd-datatable.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Scans the requested section from the file header.</div>
+<div class="ct-functionbody">  - Stops at the next top-level section header.</div>
+<div class="ct-functionbody">  - Trims surrounding whitespace from keys and values.</div>
+<div class="ct-functionbody">  - Appends one row per field to the target datatable.</div>
+<div class="ct-functionbody">Arguments:</div>
+<div class="ct-functionbody">  $1  FILE</div>
+<div class="ct-functionbody">      Script file to read.</div>
+<div class="ct-functionbody">  $2  SECTION</div>
+<div class="ct-functionbody">      Header section name to scan.</div>
+<div class="ct-functionbody">  $3  SCHEMA</div>
+<div class="ct-functionbody">      Datatable schema name.</div>
+<div class="ct-functionbody">  $4  TABLE_NAME</div>
+<div class="ct-functionbody">      Datatable variable name.</div>
+<div class="ct-functionbody">Side effects:</div>
+<div class="ct-functionbody">  - Appends rows through sgnd_dt_append.</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 on success.</div>
+<div class="ct-functionbody">  1 if row append fails.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  sgnd_header_load_section_to_dt "quot;$file"quot; "quot;Metadata"quot; "quot;$schema"quot; "quot;$table_name"quot;</div>
+</main>
+</body>
+</html>

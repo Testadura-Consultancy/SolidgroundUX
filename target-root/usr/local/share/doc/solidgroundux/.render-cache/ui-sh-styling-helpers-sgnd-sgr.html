@@ -1,0 +1,25 @@
+<div class="ct-functionheader">sgnd_sgr</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Build one canonical ANSI SGR escape sequence from mixed inputs.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Accepts numeric SGR params, numeric param lists, and full ESC[...m sequences.</div>
+<div class="ct-functionbody">  - Extracts and normalizes parameters into one combined SGR escape.</div>
+<div class="ct-functionbody">  - Ignores empty or unsupported inputs.</div>
+<div class="ct-functionbody">  - Returns RESET when no valid parts are supplied.</div>
+<div class="ct-functionbody">Arguments:</div>
+<div class="ct-functionbody">  $@  PARTS</div>
+<div class="ct-functionbody">      Mixed SGR parts such as:</div>
+<div class="ct-functionbody">      - numeric params: 1</div>
+<div class="ct-functionbody">      - param lists: "quot;1,4"quot; or "quot;1;4"quot;</div>
+<div class="ct-functionbody">      - full escapes: $'#39;\e[38;5;46m'#39;</div>
+<div class="ct-functionbody">Inputs (globals):</div>
+<div class="ct-functionbody">  RESET</div>
+<div class="ct-functionbody">Output:</div>
+<div class="ct-functionbody">  Prints one SGR prefix to stdout.</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 always.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  sgnd_sgr "quot;$WHITE"quot; "quot;"quot; "quot;$FX_BOLD"quot;</div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  clr="quot;$(sgnd_sgr "quot;$GREEN"quot; "quot;"quot; "quot;$FX_BOLD"quot;)"quot;</div>
+<div class="ct-functionbody">  printf '#39;%sHello%s\n'#39; "quot;$(sgnd_sgr 1 4)"quot; "quot;$RESET"quot;</div>

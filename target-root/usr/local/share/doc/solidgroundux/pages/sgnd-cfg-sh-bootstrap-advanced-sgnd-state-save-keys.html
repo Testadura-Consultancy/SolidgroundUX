@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>sgnd_state_save_keys</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Solidground UX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">Solidground UX / sgnd-cfg.sh / Bootstrap/advanced / sgnd_state_save_keys</div>
+</header>
+<div class="ct-functionheader">sgnd_state_save_keys</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Persist a list of shell variables to the state store.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Iterates over the supplied variable names.</div>
+<div class="ct-functionbody">  - Reads each current value using safe indirect expansion.</div>
+<div class="ct-functionbody">  - Persists each value via sgnd_state_set.</div>
+<div class="ct-functionbody">  - Skips invalid identifiers with a warning.</div>
+<div class="ct-functionbody">Arguments:</div>
+<div class="ct-functionbody">  $@  KEYS</div>
+<div class="ct-functionbody">      Variable names to save.</div>
+<div class="ct-functionbody">Inputs (globals):</div>
+<div class="ct-functionbody">  SGND_STATE_FILE</div>
+<div class="ct-functionbody">Side effects:</div>
+<div class="ct-functionbody">  - Updates SGND_STATE_FILE on disk.</div>
+<div class="ct-functionbody">  - May emit debug or warning output through sgnd_state_set.</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 always.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  sgnd_state_save_keys KEY [KEY ...]</div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  sgnd_state_save_keys CURRENT_PAGE LAST_MODULE</div>
+<div class="ct-functionbody">  sgnd_state_save_keys FLAG_DEBUG FLAG_VERBOSE FLAG_DRYRUN</div>
+</main>
+</body>
+</html>

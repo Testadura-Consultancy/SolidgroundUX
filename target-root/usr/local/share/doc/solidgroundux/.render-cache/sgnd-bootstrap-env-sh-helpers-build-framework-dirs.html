@@ -1,0 +1,24 @@
+<div class="ct-functionheader">_build_framework_dirs</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Rebuild the canonical list of framework directories from current path globals.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Populates SGND_FRAMEWORK_DIRS with system and user directory specifications.</div>
+<div class="ct-functionbody">  - Marks each entry with its ownership class:</div>
+<div class="ct-functionbody">      s = system</div>
+<div class="ct-functionbody">      u = user</div>
+<div class="ct-functionbody">  - Derives log parent directories from the configured log paths.</div>
+<div class="ct-functionbody">Inputs (globals):</div>
+<div class="ct-functionbody">  SGND_COMMON_LIB</div>
+<div class="ct-functionbody">  SGND_SYSCFG_DIR</div>
+<div class="ct-functionbody">  SGND_USRCFG_DIR</div>
+<div class="ct-functionbody">  SGND_STATE_DIR</div>
+<div class="ct-functionbody">  SGND_STYLE_DIR</div>
+<div class="ct-functionbody">  SGND_DOCS_DIR</div>
+<div class="ct-functionbody">  SGND_LOG_PATH</div>
+<div class="ct-functionbody">  SGND_ALTLOG_PATH</div>
+<div class="ct-functionbody">Outputs (globals):</div>
+<div class="ct-functionbody">  SGND_FRAMEWORK_DIRS</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 always.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  _build_framework_dirs</div>

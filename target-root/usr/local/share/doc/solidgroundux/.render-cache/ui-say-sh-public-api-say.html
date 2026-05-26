@@ -1,0 +1,19 @@
+<div class="ct-functionheader">say</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Emit a typed message with formatting, colorization, and optional logging.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Supports message types: INFO, STRT, WARN, FAIL, CNCL, OK, END, DEBUG, EMPTY</div>
+<div class="ct-functionbody">  - Builds prefix using label/icon/symbol based on configuration</div>
+<div class="ct-functionbody">  - Applies colorization rules</div>
+<div class="ct-functionbody">  - Honors console output policy</div>
+<div class="ct-functionbody">  - Logs message if enabled</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  say INFO "quot;Starting process"quot;</div>
+<div class="ct-functionbody">  say --type WARN "quot;Low disk space"quot;</div>
+<div class="ct-functionbody">  say --date --show all --colorize both INFO "quot;Message"quot;</div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  say STRT "quot;Initializing..."quot;</div>
+<div class="ct-functionbody">  say --date --type FAIL "quot;Connection failed"quot;</div>
+<div class="ct-functionbody">  say DEBUG "quot;Value = $value"quot;</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 always.</div>

@@ -1,0 +1,13 @@
+<div class="ct-variableheader">SGND_STATE_VARIABLES</div>
+<div class="ct-variablebody">List of variables participating in persistent state.</div>
+<div class="ct-variablebody">Purpose:</div>
+<div class="ct-variablebody">  - Declares which variables should be saved/restored when state is enabled.</div>
+<div class="ct-variablebody">Behavior:</div>
+<div class="ct-variablebody">  - Only used when sgnd_bootstrap is invoked with --state.</div>
+<div class="ct-variablebody">  - Variables listed here are serialized on exit (if SGND_STATE_SAVE=1).</div>
+<div class="ct-variablebody">  - On startup, previously saved values are restored before main logic runs.</div>
+<div class="ct-variablebody">Contract:</div>
+<div class="ct-variablebody">  - Variables must be simple scalars (no arrays/associatives unless explicitly supported).</div>
+<div class="ct-variablebody">  - Script remains fully functional when state is disabled.</div>
+<div class="ct-variablebody">Leave empty if:</div>
+<div class="ct-variablebody">  - The script does not use persistent state.</div>

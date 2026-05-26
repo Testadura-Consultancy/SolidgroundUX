@@ -1,0 +1,18 @@
+<div class="ct-L2Sectionheader">Manifests</div>
+<div class="ct-L2Sectionbody">_manifest_source_id</div>
+<div class="ct-L2Sectionbody">Purpose:</div>
+<div class="ct-L2Sectionbody">  Derive a stable manifest namespace identifier from SRC_ROOT.</div>
+<div class="ct-L2Sectionbody">Behavior:</div>
+<div class="ct-L2Sectionbody">  - Hashes SRC_ROOT using sha256</div>
+<div class="ct-L2Sectionbody">  - Prints the resulting identifier to stdout</div>
+<div class="ct-L2Sectionbody">Inputs (globals):</div>
+<div class="ct-L2Sectionbody">  SRC_ROOT</div>
+<div class="ct-L2Sectionbody">Output:</div>
+<div class="ct-L2Sectionbody">  Prints source-root identifier to stdout</div>
+<div class="ct-L2Sectionbody">Returns:</div>
+<div class="ct-L2Sectionbody">  0 on success</div>
+<div class="ct-L2Sectionbody">Usage:</div>
+<div class="ct-L2Sectionbody">  id="quot;$(_manifest_source_id)"quot;</div>
+<div class="ct-L2Sectionbody">Notes:</div>
+<div class="ct-L2Sectionbody">  - Used to group manifests by source root</div>
+<div class="ct-L2Sectionbody">  - Keeps on-disk manifest paths safe and deterministic</div>

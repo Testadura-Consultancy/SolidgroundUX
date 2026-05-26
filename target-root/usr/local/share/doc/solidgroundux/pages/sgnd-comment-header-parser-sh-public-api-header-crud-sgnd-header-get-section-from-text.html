@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>sgnd_header_get_section_from_text</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Solidground UX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">Solidground UX / sgnd-comment-header-parser.sh / Public API / Header CRUD / sgnd_header_get_section_from_text</div>
+</header>
+<div class="ct-functionheader">sgnd_header_get_section_from_text</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Extract the body of a named header section from buffered header text.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody">  - Scans the supplied header text line by line.</div>
+<div class="ct-functionbody">  - Starts capturing after the requested section header.</div>
+<div class="ct-functionbody">  - Stops when the next top-level section header is encountered.</div>
+<div class="ct-functionbody">  - Writes only the section body lines to the requested output variable.</div>
+<div class="ct-functionbody">Arguments:</div>
+<div class="ct-functionbody">  $1  HEADER_TEXT</div>
+<div class="ct-functionbody">      Buffered header text.</div>
+<div class="ct-functionbody">  $2  SECTION</div>
+<div class="ct-functionbody">      Header section name.</div>
+<div class="ct-functionbody">  $3  OUTVAR</div>
+<div class="ct-functionbody">      Variable name that receives the section body.</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 if the section is found.</div>
+<div class="ct-functionbody">  1 if the section is not found.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  sgnd_header_get_section_from_text "quot;$text"quot; "quot;Metadata"quot; metadata</div>
+</main>
+</body>
+</html>

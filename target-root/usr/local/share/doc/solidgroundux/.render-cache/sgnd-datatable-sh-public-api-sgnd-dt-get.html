@@ -1,0 +1,17 @@
+<div class="ct-functionheader">sgnd_dt_get</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Get one cell value from a table by row index and column name.</div>
+<div class="ct-functionbody">Arguments:</div>
+<div class="ct-functionbody">  $1  SCHEMA</div>
+<div class="ct-functionbody">  $2  TABLE_ARRAY_NAME</div>
+<div class="ct-functionbody">  $3  ROW_INDEX</div>
+<div class="ct-functionbody">  $4  COLUMN_NAME</div>
+<div class="ct-functionbody">Outputs:</div>
+<div class="ct-functionbody">  Prints the field value to stdout.</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 on success.</div>
+<div class="ct-functionbody">  1 on invalid row index or invalid column.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  sgnd_dt_get "quot;$SCHEMA"quot; ARRAY INDEX COLUMN</div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  name="quot;$(sgnd_dt_get "quot;$MY_SCHEMA"quot; MY_ROWS 0 name)"quot;</div>
