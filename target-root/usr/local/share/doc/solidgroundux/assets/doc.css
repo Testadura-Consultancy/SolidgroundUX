@@ -116,31 +116,22 @@ body {
 
 .ct-moduleheader { font-family:Arial, sans-serif;font-size:22pt;font-weight:bold;font-style:normal;line-height:1.2;margin:0 0 16px 0; }
 .ct-modulebody { font-family:Arial, sans-serif;font-size:10pt;font-weight:normal;font-style:normal;line-height:1.45;margin:0 0 6px 0; }
-
 .ct-L1Sectionheader { font-family:Arial, sans-serif;font-size:18pt;font-weight:bold;font-style:normal;line-height:1.25;margin:24px 0 10px 0; }
 .ct-L1Sectionbody { font-family:Arial, sans-serif;font-size:10pt;font-weight:normal;font-style:normal;line-height:1.45;margin:0 0 6px 0; }
-
 .ct-L2Sectionheader { font-family:Arial, sans-serif;font-size:15pt;font-weight:bold;font-style:normal;line-height:1.25;margin:18px 0 8px 0; }
 .ct-L2Sectionbody { font-family:Arial, sans-serif;font-size:10pt;font-weight:normal;font-style:normal;line-height:1.45;margin:0 0 6px 0; }
-
 .ct-L3Sectionheader { font-family:Arial, sans-serif;font-size:13pt;font-weight:bold;font-style:normal;line-height:1.25;margin:14px 0 6px 0; }
 .ct-L3Sectionbody { font-family:Arial, sans-serif;font-size:10pt;font-weight:normal;font-style:normal;line-height:1.45;margin:0 0 6px 0; }
-
 .ct-functionheader { font-family:Arial, sans-serif;font-size:11pt;font-weight:bold;font-style:normal;line-height:1.35;margin:12px 0 4px 0; }
 .ct-functionbody { font-family:Arial, sans-serif;font-size:10pt;font-weight:normal;font-style:normal;line-height:1.45;margin:0 0 6px 0; }
-
 .ct-variableheader { font-family:Arial, sans-serif;font-size:11pt;font-weight:bold;font-style:normal;line-height:1.35;margin:10px 0 4px 0; }
 .ct-variablebody { font-family:Arial, sans-serif;font-size:10pt;font-weight:normal;font-style:normal;line-height:1.45;margin:0 0 6px 0; }
-
 .ct-gendocheader { font-family:Arial, sans-serif;font-size:12pt;font-weight:bold;font-style:normal;line-height:1.35;margin:12px 0 5px 0; }
 .ct-gendocbody { font-family:Arial, sans-serif;font-size:10pt;font-weight:normal;font-style:normal;line-height:1.45;margin:0 0 6px 0; }
-
 .ct-commentsectionheader { font-family:Arial, sans-serif;font-size:10pt;font-weight:bold;font-style:normal;line-height:1.35;margin:8px 0 3px 0; }
 .ct-commentsectionbody { font-family:Arial, sans-serif;font-size:10pt;font-weight:normal;font-style:normal;line-height:1.45;margin:0 0 6px 0;font-style:italic; }
-
 .ct-documentbody { font-family:Arial, sans-serif;font-size:10pt;font-weight:normal;font-style:normal;line-height:1.45;margin:0 0 6px 0; }
 
 .doc-comment-indent {
     padding-left: 22px;
 }
-

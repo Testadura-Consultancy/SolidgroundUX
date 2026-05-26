@@ -1004,6 +1004,40 @@ set -uo pipefail
             cat "$cache_file"
         }
 
+        _export_render_config() {
+
+            local config_file="${1:?missing config file}"
+
+            {
+                printf '%s\n' 'key|value'
+                printf 'VAL_DOCUMENT_TITLE|%s\n' "${VAL_DOCUMENT_TITLE:-}"
+                printf 'VAL_DOCUMENT_SUBTITLE|%s\n' "${VAL_DOCUMENT_SUBTITLE:-}"
+                printf 'VAL_DOCUMENT_VERSION|%s\n' "${VAL_DOCUMENT_VERSION:-}"
+                printf 'VAL_DOCUMENT_PRODUCT|%s\n' "${VAL_DOCUMENT_PRODUCT:-}"
+                printf 'FLAG_CLEAN_OUTPUT|0\n'
+                printf 'VAL_NAV_WIDTH|%s\n' "${VAL_NAV_WIDTH:-320px}"
+
+                printf '_docstyle_documentbody|%s\n' "${_docstyle_documentbody:-}"
+                printf '_docstyle_documentheader|%s\n' "${_docstyle_documentheader:-}"
+                printf '_docstyle_moduleheader|%s\n' "${_docstyle_moduleheader:-}"
+                printf '_docstyle_modulebody|%s\n' "${_docstyle_modulebody:-}"
+                printf '_docstyle_L1Sectionheader|%s\n' "${_docstyle_L1Sectionheader:-}"
+                printf '_docstyle_L1Sectionbody|%s\n' "${_docstyle_L1Sectionbody:-}"
+                printf '_docstyle_L2Sectionheader|%s\n' "${_docstyle_L2Sectionheader:-}"
+                printf '_docstyle_L2Sectionbody|%s\n' "${_docstyle_L2Sectionbody:-}"
+                printf '_docstyle_L3Sectionheader|%s\n' "${_docstyle_L3Sectionheader:-}"
+                printf '_docstyle_L3Sectionbody|%s\n' "${_docstyle_L3Sectionbody:-}"
+                printf '_docstyle_functionheader|%s\n' "${_docstyle_functionheader:-}"
+                printf '_docstyle_functionbody|%s\n' "${_docstyle_functionbody:-}"
+                printf '_docstyle_variableheader|%s\n' "${_docstyle_variableheader:-}"
+                printf '_docstyle_variablebody|%s\n' "${_docstyle_variablebody:-}"
+                printf '_docstyle_gendocheader|%s\n' "${_docstyle_gendocheader:-}"
+                printf '_docstyle_gendocbody|%s\n' "${_docstyle_gendocbody:-}"
+                printf '_docstyle_commentsectionheader|%s\n' "${_docstyle_commentsectionheader:-}"
+                printf '_docstyle_commentsectionbody|%s\n' "${_docstyle_commentsectionbody:-}"
+            } > "$config_file"
+        }
+
         _export_render_tables() {
             local export_dir="${1:?missing export dir}"
 
@@ -1102,11 +1136,35 @@ set -uo pipefail
         #    sayerror "Failed to render index page"
         #    return 1
         #}
-        
-        python3 "$SGND_ROOT/py/sgnd_doc_renderer.py" \
-            "$export_dir" \
-            "$VAL_OUTPUT_FOLDER"
 
+        local export_dir=""
+        export_dir="$(mktemp -d "/tmp/sgnd-doc-render.XXXXXX")" || {
+            sayerror "Failed to create temporary export directory"
+            return 1
+        }
+
+        _export_render_tables "$export_dir" || {
+            sayerror "Failed to export render tables for Python renderer"
+            return 1
+        }
+
+        sayinfo "Python renderer input : $export_dir"
+        sayinfo "Python renderer output: $output_folder"
+        sayinfo "Python renderer script: $SGND_PYTHON_DIR/sgnd_doc_renderer.py"
+
+        python3 "$SGND_PYTHON_DIR/sgnd_doc_renderer.py" \
+            "$export_dir" \
+            "$output_folder" || {
+                sayerror "Python documentation renderer failed"
+                return 1
+        }
+
+
+
+        if [[ ! -f "$output_folder/index.html" ]]; then
+            sayerror "Python renderer completed, but index.html was not created in: $output_folder"
+            return 1
+        fi
         sayinfo "Documentation rendering complete. Output available at: $output_folder"
 
         return 0

@@ -1034,3 +1034,40 @@ set -uo pipefail
             printf -v "$var_name" '%s' "${SGND_DT_SPLIT[i]-}"
         done
     }
+
+    # fn: sgnd_dt_export_psv
+        # Purpose:
+        #   Export a datatable array to a pipe-separated value file.
+        #
+        # Arguments:
+        #   $1  SCHEMA
+        #   $2  TABLE_ARRAY_NAME
+        #   $3  OUTPUT_FILE
+        #
+        # Returns:
+        #   0 on success.
+        #   1 on invalid input or write failure.
+    sgnd_dt_export_psv() {
+        local schema="${1:?missing schema}"
+        local table_name="${2:?missing table name}"
+        local output_file="${3:?missing output file}"
+
+        local output_dir=""
+        local row=""
+        local -n table_ref="$table_name"
+
+        sgnd_dt_validate_schema "$schema" || return 1
+
+        output_dir="$(dirname "$output_file")"
+        mkdir -p "$output_dir" || return 1
+
+        {
+            printf '%s\n' "$schema"
+
+            for row in "${table_ref[@]}"; do
+                printf '%s\n' "$row"
+            done
+        } > "$output_file" || return 1
+
+        return 0
+    }

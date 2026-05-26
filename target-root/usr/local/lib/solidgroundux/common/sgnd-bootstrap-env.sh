@@ -350,6 +350,7 @@ set -uo pipefail
         SGND_STATE_DIR="$SGND_USER_HOME/.state/$product"
         SGND_STYLE_DIR="$SGND_FRAMEWORK_ROOT/usr/local/lib/$product/styles"
         SGND_DOCS_DIR="$SGND_FRAMEWORK_ROOT/usr/local/share/doc/$product"   # May be absent in dev/minimal installs
+        SGND_PYTHON_DIR="$SGND_FRAMEWORK_ROOT/usr/local/lib/$product/py"   # May be absent in dev/minimal installs
 
         # logs (paths only)
         SGND_LOG_PATH="$SGND_FRAMEWORK_ROOT/var/log/$product.log"
