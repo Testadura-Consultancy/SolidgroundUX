@@ -54,26 +54,29 @@
 # ==================================================================================
 set -uo pipefail
 # - Library guard ------------------------------------------------------------------
+    # ! Some Section level 1 
+    # Headers are emitted as content lines, so the library guard must run before any of those.
+
     # fn$ _sgnd_lib_guard
-        # Purpose:
-        #  Ensure the file is sourced as a library and only initialized once.
+        # ! Purpose:
+        # >  Ensure the file is sourced as a library and only initialized once.
         #
-        # Behavior:
+        # ! Behavior:
         #   - Derives a unique guard variable name from the current filename.
         #   - Aborts execution if the file is executed instead of sourced.
         #   - Sets the guard variable on first load.
         #   - Skips initialization if the library was already loaded.
         #
-        # Inputs:
+        # > Inputs:
         #   BASH_SOURCE[0]
         #   $0
         #
-        # Outputs (globals):
-        #   SGND_<MODULE>_LOADED
+        # ! Outputs (globals):
+        # > SGND_<MODULE>_LOADED
         #
-        # Returns:
-        #   0 if already loaded or successfully initialized.
-        #   Exits with code 2 if executed instead of sourced.
+        # !Returns:
+        # >  0 if already loaded or successfully initialized.
+        # ?  Exits with code 2 if executed instead of sourced.
     _sgnd_lib_guard() {
         local lib_base
         local guard
@@ -125,7 +128,7 @@ set -uo pipefail
         #
         #   DOC_CONTENT_LINES
         #     One row per normalized emitted documentation line.
-        #     Holds source position, section context, style-hint context, item context,
+        #     Holds source position, section context, documentation-paragraph context, item context,
         #     content type, content text, and canonical content reference.
         #
         # Notes:
@@ -143,16 +146,42 @@ set -uo pipefail
         MOD_ITEMS_SCHEMA="modulename|section|parentsection|typecode|type|itemvisibility|itemrole|name|title"
         MOD_ITEMS=()
         
-        DOC_CONTENT_LINES_SCHEMA="file|source_linenr|doc_linenr|section|parentsection|grandparentsection|stylehint|item|title|contenttype|content|contentref"
+        DOC_CONTENT_LINES_SCHEMA="file|source_linenr|doc_linenr|section|parentsection|grandparentsection|docparagraph|item|title|contenttype|content|contentref"
         DOC_CONTENT_LINES=()
 
-        SGND_DOC_STYLEHINTS=(
-            "normal"
-            "label"
-            "emphasis"
-            "quote"
-            "listitem"
-            "indent"
+        # Enum-like registries for generated and parsed documentation semantics.
+        # Bash has no native enum, so these arrays are the canonical contract.
+        SGND_DOC_SEGMENT_ROLES=(
+            "preface"
+            "module"
+            "epilogue"
+            "appendix"
+        )
+
+        SGND_DOC_RENDERTYPES=(
+            "prefaceheader"
+            "prefacebody"
+            "moduleheader"
+            "modulebody"
+            "epilogueheader"
+            "epiloguebody"
+            "appendixheader"
+            "appendixbody"
+            "L1Sectionheader"
+            "L1Sectionbody"
+            "L2Sectionheader"
+            "L2Sectionbody"
+            "L3Sectionheader"
+            "L3Sectionbody"
+            "functionheader"
+            "functionbody"
+            "variableheader"
+            "variablebody"
+            "gendocheader"
+            "gendocbody"
+            "docparagraphheader"
+            "docparagraphbody"
+            "documentbody"
         )
 
     # fn: _init_localvars - Initialize parser state variables
@@ -162,7 +191,7 @@ set -uo pipefail
         # Behavior:
         #   - Clears source-line tracking values.
         #   - Clears module metadata values populated from the file header.
-        #   - Resets current section, parent section, item, and style-hint context.
+        #   - Resets current section, parent section, item, and documentation-paragraph context.
         #   - Resets documentation line counters and emission flags.
         #
         # Outputs (globals):
@@ -170,7 +199,7 @@ set -uo pipefail
         #   mod_product, mod_title, mod_name
         #   doc_section, doc_sectionlevel, doc_parentsection, doc_grandparentsection
         #   doc_item, doc_itemtitle, doc_itemtype, doc_itemmarker, doc_itemaccess
-        #   doc_istemplateitem, doc_headersection, doc_linenr, doc_contenttype
+        #   doc_istemplateitem, doc_paragraph, doc_linenr, doc_contenttype
         #   doc_content, doc_inheader, doc_started, doc_titleextracted, doc_emitline
         #
         # Returns:
@@ -201,8 +230,7 @@ set -uo pipefail
         doc_itemvisibility=""
         doc_itemrole=""
 
-        doc_headersection=""
-        doc_stylehint="normal"
+        doc_paragraph=""
         doc_linenr=0
         doc_contenttype="" 
         doc_content=""
@@ -232,8 +260,8 @@ set -uo pipefail
         #     Example:
         #       # SolidgroundUX - Library Template
         #
-        #   _rgx_headersectionheader
-        #     Matches comment section headers and captures the section name.
+        #   _rgx_docparagraphheader
+        #     Matches documentation paragraph headers and captures the section name.
         #
         #     Example:
         #       # Metadata:
@@ -258,7 +286,7 @@ set -uo pipefail
         #       # --- Subparagraph ---------------------------------------------------------
     _rgx_header='^# =+[[:space:]]*$'
     _rgx_moduletitle='^#[[:space:]]+([^-]+)[[:space:]]+-[[:space:]]+(.+)[[:space:]]*$'
-    _rgx_headersectionheader='^[[:space:]]*#[[:space:]]+([^:]+):[[:space:]]*$'
+    _rgx_docparagraphheader='^[[:space:]]*#[[:space:]]+([^:]+):[[:space:]]*$'
     _rgx_headerfield='^#[[:space:]]+([[:alnum:]_]+)[[:space:]]*:[[:space:]]+(.+)[[:space:]]*$'  
     _rgx_section='^[[:space:]]*#[[:space:]](-{1,3})[[:space:]]+(.+)[[:space:]]*-*[[:space:]]*$'
     _rgx_docitem='^[[:space:]]*#[[:space:]]+([a-z]{2,3})([:$])[[:space:]]+([^[:space:]]+)([[:space:]]+-[[:space:]]+(.+))?[[:space:]]*$'
@@ -281,11 +309,15 @@ set -uo pipefail
             return 1
         }
 
-        # fn: _sgnd_doc_is_valid_stylehint - Validate documentation style hint
-        _sgnd_doc_is_valid_stylehint() {
-            _sgnd_doc_list_contains SGND_DOC_STYLEHINTS "${1:-}"
+        # fn: _sgnd_doc_is_valid_segment_role - Validate generated document segment role
+        _sgnd_doc_is_valid_segment_role() {
+            _sgnd_doc_list_contains SGND_DOC_SEGMENT_ROLES "${1:-}"
         }
 
+        # fn: _sgnd_doc_is_valid_rendertype - Validate documentation render type
+        _sgnd_doc_is_valid_rendertype() {
+            _sgnd_doc_list_contains SGND_DOC_RENDERTYPES "${1:-}"
+        }
 
     # -- Detectors -------------------------------------------------------------------
         # fn: _detect_noncommentline - Detect non-comment source lines
@@ -302,7 +334,7 @@ set -uo pipefail
             #   src_line, src_haltlineprocessing
             #
             # Outputs (globals):
-            #   src_linetype, doc_contenttype, doc_headersection, doc_emitline, src_haltlineprocessing
+            #   src_linetype, doc_contenttype, doc_paragraph, doc_emitline, src_haltlineprocessing
             #
             # Returns:
             #   0 always.
@@ -319,8 +351,7 @@ set -uo pipefail
                 # line 2
             src_linetype=""
             doc_contenttype=""
-            doc_headersection=""
-        doc_stylehint="normal"
+            doc_paragraph=""
             doc_emitline=0
             src_haltlineprocessing=1
 
@@ -341,7 +372,7 @@ set -uo pipefail
             #   src_line, src_haltlineprocessing, doc_started
             #
             # Outputs (globals):
-            #   src_linetype, doc_inheader, doc_started, doc_emitline, doc_headersection, src_haltlineprocessing
+            #   src_linetype, doc_inheader, doc_started, doc_emitline, doc_paragraph, src_haltlineprocessing
             #
             # Returns:
             #   0 always.
@@ -362,8 +393,7 @@ set -uo pipefail
             else
                 src_linetype=""
                 doc_inheader=0
-                doc_headersection=""
-        doc_stylehint="normal"
+                doc_paragraph=""
                 _action_headerend
             fi
 
@@ -404,7 +434,6 @@ set -uo pipefail
             mod_title="${BASH_REMATCH[2]}"
 
             doc_contenttype="moduleheader"
-            doc_stylehint="normal"
             doc_content="$mod_product - $mod_title"
             doc_emitline=1
 
@@ -420,12 +449,12 @@ set -uo pipefail
             #
             # Behavior:
             #   - Runs only while inside the file header.
-            #   - Accepts fields only under Metadata or Attribution header sections.
+            #   - Accepts fields only under Metadata or Attribution documentation paragraphs.
             #   - Normalizes field names to lowercase shell variable names.
             #   - Assigns values dynamically to mod_<field> variables.
             #
             # Inputs (globals):
-            #   src_line, doc_inheader, doc_headersection, src_haltlineprocessing
+            #   src_line, doc_inheader, doc_paragraph, src_haltlineprocessing
             #
             # Outputs (globals):
             #   mod_* variables derived from header field names, src_haltlineprocessing
@@ -444,7 +473,7 @@ set -uo pipefail
             (( doc_inheader )) || return 0
 
             # Only applies to Metadata and Attribution sections.
-            [[ "$doc_headersection" == "Metadata" || "$doc_headersection" == "Attribution" ]] || return 0
+            [[ "$doc_paragraph" == "Metadata" || "$doc_paragraph" == "Attribution" ]] || return 0
 
             [[ "$src_line" =~ $_rgx_headerfield ]] || return 0
 
@@ -481,7 +510,7 @@ set -uo pipefail
             #   src_line, src_haltlineprocessing, doc_sectionlevel, doc_section, doc_parentsection, doc_grandparentsection
             #
             # Outputs (globals):
-            #   src_linetype, doc_headersection, doc_section, doc_parentsection, doc_grandparentsection
+            #   src_linetype, doc_paragraph, doc_section, doc_parentsection, doc_grandparentsection
             #   doc_sectionlevel, doc_content, doc_contenttype, doc_emitline, src_haltlineprocessing
             #
             # Returns:
@@ -516,17 +545,8 @@ set -uo pipefail
             fi
 
             src_linetype="sectionheader"
-            doc_headersection=""
-            doc_stylehint="normal"
+            doc_paragraph=""
             doc_sectiontitle="$section_title"
-
-            # New section owns its own body; do not inherit previous item context.
-            doc_item=""
-            doc_itemtitle=""
-            doc_itemtype=""
-            doc_itemmarker=""
-            doc_itemvisibility=""
-            doc_itemrole=""
             
             local foundlevel="${#marker}"
 
@@ -538,7 +558,6 @@ set -uo pipefail
 
                     doc_content="$section_name"
                     doc_contenttype="L1Sectionheader"
-                    doc_stylehint="normal"
                     doc_emitline=1
                     ;;
 
@@ -552,7 +571,6 @@ set -uo pipefail
                     doc_section="$section_name"
                     doc_content="$section_name"
                     doc_contenttype="L2Sectionheader"
-                    doc_stylehint="normal"
                     doc_emitline=1   
                     ;;
 
@@ -563,7 +581,6 @@ set -uo pipefail
                         doc_section="$section_name"
                     fi
                     doc_contenttype="L3Sectionheader"
-                    doc_stylehint="normal"
                     doc_content="$section_name"
                     doc_section="$section_name"
                     doc_emitline=1
@@ -578,7 +595,8 @@ set -uo pipefail
 
             saydebug "Section detected: level $doc_sectionlevel, section $doc_section, parentsection $doc_parentsection, grandparent $doc_grandparentsection"
         }
-
+    # --- ItemDetector ----------------------------------------------------------------
+    # With some level three section bodytext, we can have some item bodies, and those items can be functions, variables, or general documentation blocks. The item detector identifies these and captures their context and metadata.
         # fn: _detect_items - Detect documented items
             # Purpose:
             #   Detect structured item markers such as functions, variables, and general documentation blocks.
@@ -648,7 +666,6 @@ set -uo pipefail
                         doc_itemtype="unknown"
                         ;;
                 esac
-                doc_stylehint="normal"
                 doc_content="$item_name"
                 [[ -n "$item_title" ]] && doc_content+=" - $item_title"
 
@@ -663,53 +680,42 @@ set -uo pipefail
             fi
         }
 
-        # fn: _detect_headersectionheader - Detect named header sections
+        # fn: _detect_docparagraphheader - Detect named documentation paragraphs
             # Purpose:
-            #   Detect named sections inside the module header, such as Metadata and
-            #   Attribution, without emitting render content.
+            #   Detect structured documentation-paragraph headers inside documentation blocks.
             #
             # Behavior:
-            #   - Runs only while inside the file header.
-            #   - Matches lines such as '# Metadata:' and '# Attribution:'.
-            #   - Stores the active header section for field extraction.
+            #   - Matches documentation-paragraph lines using _rgx_docparagraphheader.
+            #   - Stores the current documentation-paragraph name.
+            #   - Suppresses emission for Metadata and Attribution sections.
+            #   - Emits other documentation-paragraph headers as content lines.
             #
             # Inputs (globals):
-            #   src_line, src_haltlineprocessing, doc_inheader
+            #   src_line, src_haltlineprocessing
             #
             # Outputs (globals):
-            #   doc_headersection, src_linetype, src_haltlineprocessing
+            #   doc_paragraph, doc_contenttype, doc_content, doc_emitline, src_linetype, src_haltlineprocessing
             #
             # Returns:
             #   0 always.
             #
             # Usage:
-            #   _detect_headersectionheader
-        _detect_headersectionheader() {
+            #   _detect_docparagraphheader
+        _detect_docparagraphheader() {        
             (( src_haltlineprocessing )) && return 0
-            (( doc_inheader )) || return 0
+            
+            saydebug "Detecting docparagraphheader"
+            [[ "$src_line" =~ $_rgx_docparagraphheader ]] || return 0
 
-            saydebug "Detecting header section"
-            [[ "$src_line" =~ $_rgx_headersectionheader ]] || return 0
+            doc_paragraph="${BASH_REMATCH[1]}"
+            doc_contenttype="docparagraphheader"
+            doc_content="$doc_paragraph"
+            [[ "$doc_paragraph" == "Metadata" || "$doc_paragraph" == "Attribution" ]] && doc_emitline=0 || doc_emitline=1
 
-            doc_headersection="${BASH_REMATCH[1]}"
-            src_linetype="headersection"
-
-            # Metadata and Attribution are control sections used for field extraction.
-            # Other header sections are rendered as module body labels, allowing the
-            # module header to contribute visible body content without reintroducing
-            # documentation-paragraph state.
-            if [[ "$doc_headersection" == "Metadata" || "$doc_headersection" == "Attribution" ]]; then
-                doc_emitline=0
-            else
-                doc_contenttype="modulebody"
-                doc_stylehint="label"
-                doc_content="$doc_headersection"
-                doc_emitline=1
-            fi
-
+            src_linetype="docparagraphheader"
             src_haltlineprocessing=1
 
-            saydebug "Header section detected: $doc_headersection"
+            saydebug "Documentation paragraph detected: $doc_paragraph"
         }
 
         # fn: _detect_default - Emit default content for active documentation context
@@ -735,48 +741,18 @@ set -uo pipefail
             #   _detect_default
         _detect_default(){
             (( src_haltlineprocessing )) && return 0
+            
+            [[ -z "$doc_contenttype" ]] && return 0 
 
-            [[ -z "$doc_contenttype" ]] && return 0
-
-            # Remove leading whitespace before the comment marker.
+            # remove leading whitespace
             doc_content="${src_line#"${src_line%%[![:space:]]*}"}"
 
-            # Remove leading '# ' (exactly one # and optional one space).
+            # remove leading '# ' (exactly one # and optional one space)
             doc_content="${doc_content#\#}"
             doc_content="${doc_content# }"
 
-            # Remove trailing whitespace.
+            # remove trailing whitespace
             doc_content="${doc_content%"${doc_content##*[![:space:]]}"}"
-
-            doc_stylehint="normal"
-
-            # Style hints are presentation hints layered on top of the structural
-            # content type. They may be indented after the comment marker.
-            local hinted_content="$doc_content"
-            hinted_content="${hinted_content#"${hinted_content%%[![:space:]]*}"}"
-
-            case "$hinted_content" in
-                ': '*)
-                    doc_stylehint="label"
-                    doc_content="${hinted_content#: }"
-                    ;;
-                '! '*)
-                    doc_stylehint="emphasis"
-                    doc_content="${hinted_content#! }"
-                    ;;
-                '~ '*)
-                    doc_stylehint="quote"
-                    doc_content="${hinted_content#~ }"
-                    ;;
-                '- '*)
-                    doc_stylehint="listitem"
-                    doc_content="${hinted_content#- }"
-                    ;;
-                '> '*)
-                    doc_stylehint="indent"
-                    doc_content="${hinted_content#> }"
-                    ;;
-            esac
 
             doc_emitline=1
 
@@ -808,7 +784,6 @@ set -uo pipefail
             [[ "$src_linetype" == "sectioncomment" ]] || return 0
 
             doc_contenttype="sectionbody"
-            doc_stylehint="normal"
             doc_content="$src_line"
 
             # Strip leading indentation, "#", and exactly one following space.
@@ -817,7 +792,7 @@ set -uo pipefail
 
             doc_emitline=1
 
-            saydebug "Section comment detected: $doc_contenttype, $doc_linenr, $doc_content, $doc_section, $doc_sectionlevel, $doc_headersection"
+            saydebug "Section comment detected: $doc_contenttype, $doc_linenr, $doc_content, $doc_section, $doc_sectionlevel, $doc_paragraph"
         }
 
         # fn: _detect_commentseparator - Ignore visual comment separators
@@ -846,8 +821,8 @@ set -uo pipefail
             [[ "$src_line" =~ $_rgx_commentseparator ]] || return 0
 
             src_haltlineprocessing=1
-            doc_contenttype=""
             doc_content=""
+            doc_emitline=0
 
             saydebug "Comment separator ignored"
         }
@@ -912,7 +887,7 @@ set -uo pipefail
             #   Prepare the parser for body content following a recognized header line.
             #
             # Behavior:
-            #   - Maps module, section, item, and recognized headers to their body content types.
+            #   - Maps module, section, item, and documentation-paragraph headers to their body content types.
             #   - Leaves unknown or body content types unchanged.
             #
             # Inputs (globals):
@@ -929,6 +904,7 @@ set -uo pipefail
         _guess_nextcontenttype(){
             case "$doc_contenttype" in
                 "moduleheader" ) doc_contenttype="modulebody";;
+                "docparagraphheader" ) doc_contenttype="docparagraphbody";;
                 "L1Sectionheader" ) doc_contenttype="L1Sectionbody";;
                 "L2Sectionheader" ) doc_contenttype="L2Sectionbody";;
                 "L3Sectionheader" ) doc_contenttype="L3Sectionbody";;
@@ -951,7 +927,7 @@ set -uo pipefail
             #
             # Inputs (globals):
             #   doc_contenttype, doc_content, doc_emitline, mod_name, src_linenr, doc_linenr
-            #   doc_section, doc_parentsection, doc_grandparentsection, doc_headersection, doc_item, doc_itemtitle
+            #   doc_section, doc_parentsection, doc_grandparentsection, doc_paragraph, doc_item, doc_itemtitle
             #
             # Outputs (globals):
             #   DOC_CONTENT_LINES, doc_linenr, doc_emitline
@@ -966,13 +942,14 @@ set -uo pipefail
             [[ -z "$doc_content" ]] && return 0
             (( ! doc_emitline )) && return 0
 
-            _sgnd_doc_is_valid_stylehint "$doc_stylehint" || {
-                saywarning "Invalid documentation style hint: $doc_stylehint"
-                doc_stylehint="normal"
+            _sgnd_doc_is_valid_rendertype "$doc_contenttype" || {
+                saywarning "Invalid documentation render type: $doc_contenttype"
+                doc_emitline=0
+                return 1
             }
 
             ((doc_linenr++))
-            saydebug "Emitting line: $mod_name, $src_linenr, $doc_linenr, $doc_section, $doc_parentsection, $doc_grandparentsection, $doc_headersection, $doc_item, $doc_itemtitle, $doc_contenttype, $doc_content"
+            saydebug "Emitting line: $mod_name, $src_linenr, $doc_linenr, $doc_section, $doc_parentsection, $doc_grandparentsection, $doc_paragraph, $doc_item, $doc_itemtitle, $doc_contenttype, $doc_content"
             contentref="$(_build_content_ref "$mod_name" "$doc_grandparentsection" "$doc_parentsection" "$doc_section" "$doc_item")"
             sgnd_dt_append \
                 "$DOC_CONTENT_LINES_SCHEMA" \
@@ -983,7 +960,7 @@ set -uo pipefail
                 "$doc_section" \
                 "$doc_parentsection" \
                 "$doc_grandparentsection" \
-                "$doc_stylehint" \
+                "$doc_paragraph" \
                 "$doc_item" \
                 "$doc_itemtitle" \
                 "$doc_contenttype" \
@@ -992,6 +969,49 @@ set -uo pipefail
 
             saydebug "Rendered content emitted: $doc_contenttype, $doc_item, $doc_content"
             doc_emitline=0
+        }
+
+        # fn: _emit_generated_content - Append code-generated documentation content
+            # Purpose:
+            #   Add synthetic documentation rows, such as preface, epilogue, and appendix
+            #   content, through the same DOC_CONTENT_LINES contract used by parsed source.
+            #
+            # Arguments:
+            #   $1  Segment role: preface, module, epilogue, or appendix.
+            #   $2  Render type, for example prefaceheader or appendixbody.
+            #   $3  Content reference to attach the generated row to.
+            #   $4  Content text.
+            #   $5  Optional title.
+            #
+            # Returns:
+            #   0 on successful append.
+            #   1 on invalid role/render type or missing required values.
+            #
+            # Usage:
+            #   _emit_generated_content "preface" "prefacebody" "$ref" "Generated text"
+        _emit_generated_content() {
+            local segment_role="${1:-}"
+            local rendertype="${2:-}"
+            local generated_contentref="${3:-}"
+            local generated_content="${4:-}"
+            local generated_title="${5:-}"
+
+            [[ -z "$segment_role" || -z "$rendertype" || -z "$generated_contentref" ]] && return 1
+            [[ -z "$generated_content" ]] && return 0
+
+            _sgnd_doc_is_valid_segment_role "$segment_role" || {
+                saywarning "Invalid generated documentation segment role: $segment_role"
+                return 1
+            }
+
+            _sgnd_doc_is_valid_rendertype "$rendertype" || {
+                saywarning "Invalid generated documentation render type: $rendertype"
+                return 1
+            }
+
+            ((doc_linenr++))
+
+            sgnd_dt_append                 "$DOC_CONTENT_LINES_SCHEMA"                 DOC_CONTENT_LINES                 "${mod_name:-$segment_role}"                 "0"                 "$doc_linenr"                 "${doc_section:-}"                 "${doc_parentsection:-}"                 "${doc_grandparentsection:-}"                 "${doc_paragraph:-}"                 "${doc_item:-}"                 "$generated_title"                 "$rendertype"                 "$generated_content"                 "$generated_contentref"
         }
 
         # fn: _emit_itemrecord - Append a documented item record
@@ -1130,14 +1150,15 @@ set -uo pipefail
             # Contenttype detection
             _detect_moduletitle
 
-            saydebug "Pre headerfield detection, headersection $doc_headersection, InHeader? $doc_inheader, $doc_linenr, $src_line"
-            _detect_headersectionheader
+            saydebug "Pre headerfield detection, docparagraph $doc_paragraph, InHeader? $doc_inheader, $doc_linenr, $src_line"
             _detect_headerfields
 
             _detect_section
             _get_section_comments
 
             _detect_items
+            
+            _detect_docparagraphheader
 
             _detect_default
             

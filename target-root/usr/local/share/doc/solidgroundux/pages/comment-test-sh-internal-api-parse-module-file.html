@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Parse one module source file</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">SolidgroundUX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">SolidgroundUX / comment-test.sh / Internal API / _parse_module_file</div>
+</header>
+<div class="ct-functionheader">_parse_module_file - Parse one module source file</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Parse a source file and collect normalized documentation tables.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody sh-listitem">Validates the source filename argument.</div>
+<div class="ct-functionbody sh-listitem">Resets parser state for the file.</div>
+<div class="ct-functionbody sh-listitem">Reads the file line-by-line in source order.</div>
+<div class="ct-functionbody sh-listitem">Runs detectors in deterministic order.</div>
+<div class="ct-functionbody sh-listitem">Emits normalized content, section, item, metadata, and attribution records.</div>
+<div class="ct-functionbody">Arguments:</div>
+<div class="ct-functionbody">  $1  Source file to parse.</div>
+<div class="ct-functionbody">Outputs (globals):</div>
+<div class="ct-functionbody">  MOD_TABLE, MOD_ATTRIBUTION, MOD_SECTIONS, MOD_ITEMS, DOC_CONTENT_LINES</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 on successful parsing.</div>
+<div class="ct-functionbody">  1 when no source filename is supplied.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  _parse_module_file &quot;$src_file&quot;</div>
+</main>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>_sgnd_lib_guard</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">SolidgroundUX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">SolidgroundUX / comment-test.sh / Library guard / _sgnd_lib_guard</div>
+</header>
+<div class="ct-functionheader">_sgnd_lib_guard</div>
+<div class="ct-functionbody sh-emphasis">Purpose:</div>
+<div class="ct-functionbody sh-indent"> Ensure the file is sourced as a library and only initialized once.</div>
+<div class="ct-functionbody sh-emphasis">Behavior:</div>
+<div class="ct-functionbody sh-listitem">Derives a unique guard variable name from the current filename.</div>
+<div class="ct-functionbody sh-listitem">Aborts execution if the file is executed instead of sourced.</div>
+<div class="ct-functionbody sh-listitem">Sets the guard variable on first load.</div>
+<div class="ct-functionbody sh-listitem">Skips initialization if the library was already loaded.</div>
+<div class="ct-functionbody sh-indent">Inputs:</div>
+<div class="ct-functionbody">  BASH_SOURCE[0]</div>
+<div class="ct-functionbody">  $0</div>
+<div class="ct-functionbody sh-emphasis">Outputs (globals):</div>
+<div class="ct-functionbody sh-indent">SGND_&lt;MODULE&gt;_LOADED</div>
+<div class="ct-functionbody">!Returns:</div>
+<div class="ct-functionbody sh-indent"> 0 if already loaded or successfully initialized.</div>
+<div class="ct-functionbody">?  Exits with code 2 if executed instead of sourced.</div>
+</main>
+</body>
+</html>

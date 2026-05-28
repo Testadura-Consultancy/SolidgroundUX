@@ -178,8 +178,11 @@ set -uo pipefail
                 printf '_docstyle_variablebody|%s\n' "${_docstyle_variablebody:-}"
                 printf '_docstyle_gendocheader|%s\n' "${_docstyle_gendocheader:-}"
                 printf '_docstyle_gendocbody|%s\n' "${_docstyle_gendocbody:-}"
-                printf '_docstyle_commentsectionheader|%s\n' "${_docstyle_commentsectionheader:-}"
-                printf '_docstyle_commentsectionbody|%s\n' "${_docstyle_commentsectionbody:-}"
+                printf '_docstyle_hint_label|%s\n' "${_docstyle_hint_label:-}"
+                printf '_docstyle_hint_emphasis|%s\n' "${_docstyle_hint_emphasis:-}"
+                printf '_docstyle_hint_quote|%s\n' "${_docstyle_hint_quote:-}"
+                printf '_docstyle_hint_listitem|%s\n' "${_docstyle_hint_listitem:-}"
+                printf '_docstyle_hint_indent|%s\n' "${_docstyle_hint_indent:-}"
             } > "$config_file"
         }
 

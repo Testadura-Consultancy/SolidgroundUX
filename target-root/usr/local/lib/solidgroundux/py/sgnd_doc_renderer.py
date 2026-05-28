@@ -182,10 +182,10 @@ class DocRenderer:
         self.load_input()
         self.prepare_output()
         self.init_metadata()
-        self.build_doc_hierarchy()
         self.build_content_index()
+        self.build_doc_hierarchy()
         self.render_assets()
-        self.render_item_pages()
+        self.render_content_pages()
         self.render_index_page()
 
     def load_input(self) -> None:
@@ -392,19 +392,25 @@ class DocRenderer:
             "modulebody": self.config.get("_docstyle_modulebody", documentbody),
             "L1Sectionheader": self.config.get("_docstyle_L1Sectionheader", "font-family:Arial, sans-serif;font-size:18pt;font-weight:bold;"),
             "L1Sectionbody": self.config.get("_docstyle_L1Sectionbody", documentbody),
-            "L2Sectionheader": self.config.get("_docstyle_L2Sectionheader", "font-family:Arial, sans-serif;font-size:15pt;font-weight:bold;"),
+            "L2Sectionheader": self.config.get("_docstyle_L2Sectionheader", "font-family:Arial, sans-serif;font-size:14pt;font-weight:bold;"),
             "L2Sectionbody": self.config.get("_docstyle_L2Sectionbody", documentbody),
-            "L3Sectionheader": self.config.get("_docstyle_L3Sectionheader", "font-family:Arial, sans-serif;font-size:13pt;font-weight:bold;"),
+            "L3Sectionheader": self.config.get("_docstyle_L3Sectionheader", "font-family:Arial, sans-serif;font-size:12pt;font-weight:bold;"),
             "L3Sectionbody": self.config.get("_docstyle_L3Sectionbody", documentbody),
-            "functionheader": self.config.get("_docstyle_functionheader", "font-family:Arial, sans-serif;font-size:11pt;font-weight:bold;"),
+            "functionheader": self.config.get("_docstyle_functionheader", "font-family:Arial, sans-serif;font-size:12pt;font-weight:bold;"),
             "functionbody": self.config.get("_docstyle_functionbody", documentbody),
-            "variableheader": self.config.get("_docstyle_variableheader", "font-family:Arial, sans-serif;font-size:11pt;font-weight:bold;"),
+            "variableheader": self.config.get("_docstyle_variableheader", "font-family:Arial, sans-serif;font-size:10pt;font-weight:bold;"),
             "variablebody": self.config.get("_docstyle_variablebody", documentbody),
             "gendocheader": self.config.get("_docstyle_gendocheader", "font-family:Arial, sans-serif;font-size:12pt;font-weight:bold;"),
             "gendocbody": self.config.get("_docstyle_gendocbody", documentbody),
-            "commentsectionheader": self.config.get("_docstyle_commentsectionheader", "font-family:Arial, sans-serif;font-size:10pt;font-weight:bold;"),
-            "commentsectionbody": self.config.get("_docstyle_commentsectionbody", documentbody + "font-style:italic;"),
             "documentbody": documentbody,
+        }
+
+        hint_styles = {
+            "label": self.config.get("_docstyle_hint_label", "font-weight:bold;margin:8px 0 3px 0;"),
+            "emphasis": self.config.get("_docstyle_hint_emphasis", "font-weight:bold;"),
+            "quote": self.config.get("_docstyle_hint_quote", "font-style:italic;margin-left:18px;"),
+            "listitem": self.config.get("_docstyle_hint_listitem", "margin-left:22px;"),
+            "indent": self.config.get("_docstyle_hint_indent", "margin-left:22px;"),
         }
 
         css_lines = [
@@ -453,16 +459,31 @@ class DocRenderer:
             "    line-height: 1.25;",
             "}",
             "",
+            ".doc-nav-module {",
+            "    color: #111;",
+            "    text-decoration: none;",
+            "}",
+            "",
+            ".doc-nav-module:hover {",
+            "    text-decoration: underline;",
+            "}",
+            "",
             ".doc-nav-node.level-0 > summary {",
             "    font-size: 11pt;",
             "    font-weight: bold;",
             "}",
             "",
             ".doc-nav-section {",
+            "    display: block;",
             "    margin-top: 6px;",
             "    margin-bottom: 2px;",
             "    font-size: 10pt;",
             "    color: #111;",
+            "    text-decoration: none;",
+            "}",
+            "",
+            "a.doc-nav-section:hover {",
+            "    text-decoration: underline;",
             "}",
             "",
             ".doc-nav-section.level-1 {",
@@ -529,11 +550,14 @@ class DocRenderer:
         for content_type, style in styles.items():
             css_lines.append(f".ct-{content_type} {{ {style} }}")
 
+        for style_hint, style in hint_styles.items():
+            css_lines.append(f".sh-{style_hint} {{ {style} }}")
+
         css_lines.extend(
             [
                 "",
-                ".doc-comment-indent {",
-                "    padding-left: 22px;",
+                ".sh-listitem::before {",
+                "    content: '\\2022 ';",
                 "}",
                 "",
             ]
@@ -579,16 +603,29 @@ class DocRenderer:
                 if module_open:
                     lines.append("</details>")
 
+                href = page_href_from_contentref(node.contentref)
                 lines.append('<details class="doc-nav-node level-0">')
-                lines.append(f"<summary>{esc(label)}</summary>")
+                if node.contentref in self.content_by_ref:
+                    lines.append(
+                        f'<summary><a class="doc-nav-module" href="{esc(href)}" '
+                        f'target="docframe">{esc(label)}</a></summary>'
+                    )
+                else:
+                    lines.append(f"<summary>{esc(label)}</summary>")
                 module_open = True
                 continue
 
+            href = page_href_from_contentref(node.contentref)
+
             if is_item_node(node.nodetype):
-                href = page_href_from_contentref(node.contentref)
                 type_class = slugify(node.nodetype)
                 lines.append(
                     f'<a class="doc-nav-item level-{current_level} type-{type_class}" '
+                    f'href="{esc(href)}" target="docframe">{esc(label)}</a>'
+                )
+            elif node.contentref in self.content_by_ref:
+                lines.append(
+                    f'<a class="doc-nav-section level-{current_level}" '
                     f'href="{esc(href)}" target="docframe">{esc(label)}</a>'
                 )
             else:
@@ -603,17 +640,29 @@ class DocRenderer:
 
     def get_first_item_page(self) -> str:
         for node in self.nav:
-            if is_item_node(node.nodetype):
+            if node.contentref in self.content_by_ref:
                 return page_href_from_contentref(node.contentref)
+
+        for ref in self.content_by_ref:
+            return page_href_from_contentref(ref)
 
         return "about:blank"
 
-    def render_item_pages(self) -> None:
+    def render_content_pages(self) -> None:
+        rendered_refs: set[str] = set()
+
         for node in self.nav:
-            if not is_item_node(node.nodetype):
+            if node.contentref not in self.content_by_ref:
                 continue
 
             self.render_item_page(node)
+            rendered_refs.add(node.contentref)
+
+        for ref, rows in self.content_by_ref.items():
+            if ref in rendered_refs:
+                continue
+
+            self.render_content_page_for_ref(ref, rows)
 
     def render_item_page(self, node: NavNode) -> None:
         href = page_href_from_contentref(node.contentref)
@@ -646,6 +695,42 @@ class DocRenderer:
 
         output_file.write_text("\n".join(html_lines), encoding="utf-8")
 
+    def render_content_page_for_ref(self, ref: str, rows: List[Row]) -> None:
+        href = page_href_from_contentref(ref)
+        output_file = self.output_dir / href
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+
+        title = ref.split(":")[-1] or ref.split(":")[0] or "Documentation"
+        for row in rows:
+            content_type = row.get("contenttype", "")
+            if content_type.endswith("header"):
+                title = row.get("content", title) or title
+                break
+
+        body = self.render_content_for_ref(ref)
+
+        html_lines = [
+            "<!doctype html>",
+            "<html>",
+            "<head>",
+            '  <meta charset="utf-8">',
+            f"  <title>{esc(title)}</title>",
+            '  <link rel="stylesheet" href="../assets/doc.css">',
+            "</head>",
+            "<body>",
+            '<main class="doc-page">',
+            '<header class="doc-page-header">',
+            f'  <div class="doc-title">{esc(self.doc_title)}</div>',
+            f'  <div class="doc-breadcrumb">{esc(ref)}</div>',
+            "</header>",
+            body,
+            "</main>",
+            "</body>",
+            "</html>",
+        ]
+
+        output_file.write_text("\n".join(html_lines), encoding="utf-8")
+
     def breadcrumb_from_contentref(self, ref: str) -> str:
         parts = ref.split(":")
         while len(parts) < 5:
@@ -666,27 +751,18 @@ class DocRenderer:
 
     def render_content_for_ref(self, ref: str) -> str:
         lines: List[str] = []
-        in_comment_section = False
 
         for row in self.content_by_ref.get(ref, []):
             content_type = row.get("contenttype", "documentbody") or "documentbody"
+            style_hint = row.get("stylehint", "normal") or "normal"
             content = row.get("content", "")
-            css_class = f"ct-{content_type}"
-            extra_class = ""
 
-            if content_type == "commentsectionheader":
-                in_comment_section = True
-                lines.append(f'<div class="{esc(css_class)}">{esc(content)}</div>')
-                continue
+            classes = [f"ct-{content_type}"]
+            if style_hint != "normal":
+                classes.append(f"sh-{style_hint}")
 
-            if content_type == "commentsectionbody" and in_comment_section:
-                extra_class = " doc-comment-indent"
-            elif content_type != "commentsectionbody":
-                in_comment_section = False
-
-            lines.append(
-                f'<div class="{esc(css_class + extra_class)}">{esc(content)}</div>'
-            )
+            css_class = " ".join(classes)
+            lines.append(f'<div class="{esc(css_class)}">{esc(content)}</div>')
 
         return "\n".join(lines)
 

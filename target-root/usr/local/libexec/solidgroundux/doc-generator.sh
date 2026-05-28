@@ -334,8 +334,11 @@ set -uo pipefail
         # Leave empty if:
         #   - The script does not use configuration-driven globals
     SGND_SCRIPT_GLOBALS=(
-        "both|_docstyle_commentsectionbody|Documentation style for comment-section body text|"
-        "both|_docstyle_commentsectionheader|Documentation style for comment-section headers|"
+        "both|_docstyle_hint_label|Documentation style hint for labels|"
+        "both|_docstyle_hint_emphasis|Documentation style hint for emphasized text|"
+        "both|_docstyle_hint_quote|Documentation style hint for quoted text|"
+        "both|_docstyle_hint_listitem|Documentation style hint for list items|"
+        "both|_docstyle_hint_indent|Documentation style hint for indented text|"
         "both|_docstyle_functionbody|Documentation style for function body text|"
         "both|_docstyle_functionheader|Documentation style for function headers|"
         "both|_docstyle_gendocbody|Documentation style for general documentation body text|"
@@ -467,11 +470,14 @@ set -uo pipefail
         #     content types.
         #   - Preserves values already supplied by configuration.
         #   - Uses documentbody as the default body style.
-        #   - Uses documentbody plus italic styling for comment-section body text.
+        #   - Uses documentbody as the base style and applies style hints on top.
         #
         # Outputs:
-        #   _docstyle_commentsectionbody
-        #   _docstyle_commentsectionheader
+        #   _docstyle_hint_label
+        #   _docstyle_hint_emphasis
+        #   _docstyle_hint_quote
+        #   _docstyle_hint_listitem
+        #   _docstyle_hint_indent
         #   _docstyle_functionbody
         #   _docstyle_functionheader
         #   _docstyle_gendocbody
@@ -519,8 +525,11 @@ set -uo pipefail
         _docstyle_gendocheader="${_docstyle_gendocheader:-font-family:Arial, sans-serif;font-size:12pt;font-weight:bold;font-style:normal;line-height:1.35;margin:12px 0 5px 0;}"
         _docstyle_gendocbody="${_docstyle_gendocbody:-$_docstyle_documentbody}"
 
-        _docstyle_commentsectionheader="${_docstyle_commentsectionheader:-font-family:Arial, sans-serif;font-size:10pt;font-weight:bold;font-style:normal;line-height:1.35;margin:8px 0 3px 0;}"
-        _docstyle_commentsectionbody="${_docstyle_commentsectionbody:-${_docstyle_documentbody}font-style:italic;}"
+        _docstyle_hint_label="${_docstyle_hint_label:-font-weight:bold;margin:8px 0 3px 0;}"
+        _docstyle_hint_emphasis="${_docstyle_hint_emphasis:-font-weight:bold;}"
+        _docstyle_hint_quote="${_docstyle_hint_quote:-font-style:italic;margin-left:18px;}"
+        _docstyle_hint_listitem="${_docstyle_hint_listitem:-margin-left:22px;}"
+        _docstyle_hint_indent="${_docstyle_hint_indent:-margin-left:22px;}"
     }
 
 
@@ -916,7 +925,7 @@ set -uo pipefail
         
         if (( FLAG_REVIEW )); then
            sgnd_dt_print_table "$DOC_NAV_SCHEMA" DOC_NAV  1 
-           sgnd_dt_print_table "$DOC_CONTENT_LINES_SCHEMA" DOC_CONTENT_LINES 1 "" "" 20
+           sgnd_dt_print_table "$DOC_CONTENT_LINES_SCHEMA" DOC_CONTENT_LINES 1 
         fi
 
         if (( FLAG_DRYRUN )); then

@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Initialize parser state variables</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">SolidgroundUX, Full Development Documentation</div>
+  <div class="doc-breadcrumb">SolidgroundUX / comment-test.sh / Local definitions / _init_localvars</div>
+</header>
+<div class="ct-functionheader">_init_localvars - Initialize parser state variables</div>
+<div class="ct-functionbody">Purpose:</div>
+<div class="ct-functionbody">  Reset source, module, item, section, and emission state before parsing a file.</div>
+<div class="ct-functionbody">Behavior:</div>
+<div class="ct-functionbody sh-listitem">Clears source-line tracking values.</div>
+<div class="ct-functionbody sh-listitem">Clears module metadata values populated from the file header.</div>
+<div class="ct-functionbody sh-listitem">Resets current section, parent section, item, and documentation-paragraph context.</div>
+<div class="ct-functionbody sh-listitem">Resets documentation line counters and emission flags.</div>
+<div class="ct-functionbody">Outputs (globals):</div>
+<div class="ct-functionbody">  src_line, src_linenr, src_linetype, src_haltlineprocessing</div>
+<div class="ct-functionbody">  mod_product, mod_title, mod_name</div>
+<div class="ct-functionbody">  doc_section, doc_sectionlevel, doc_parentsection, doc_grandparentsection</div>
+<div class="ct-functionbody">  doc_item, doc_itemtitle, doc_itemtype, doc_itemmarker, doc_itemaccess</div>
+<div class="ct-functionbody">  doc_istemplateitem, doc_paragraph, doc_linenr, doc_contenttype</div>
+<div class="ct-functionbody">  doc_content, doc_inheader, doc_started, doc_titleextracted, doc_emitline</div>
+<div class="ct-functionbody">Returns:</div>
+<div class="ct-functionbody">  0 on successful initialization.</div>
+<div class="ct-functionbody">Usage:</div>
+<div class="ct-functionbody">  _init_localvars</div>
+</main>
+</body>
+</html>

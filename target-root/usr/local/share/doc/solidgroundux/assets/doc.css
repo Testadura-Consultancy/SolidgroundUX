@@ -43,16 +43,31 @@ body {
     line-height: 1.25;
 }
 
+.doc-nav-module {
+    color: #111;
+    text-decoration: none;
+}
+
+.doc-nav-module:hover {
+    text-decoration: underline;
+}
+
 .doc-nav-node.level-0 > summary {
     font-size: 11pt;
     font-weight: bold;
 }
 
 .doc-nav-section {
+    display: block;
     margin-top: 6px;
     margin-bottom: 2px;
     font-size: 10pt;
     color: #111;
+    text-decoration: none;
+}
+
+a.doc-nav-section:hover {
+    text-decoration: underline;
 }
 
 .doc-nav-section.level-1 {
@@ -128,10 +143,13 @@ body {
 .ct-variablebody { font-family:Arial, sans-serif;font-size:10pt;font-weight:normal;font-style:normal;line-height:1.45;margin:0 0 6px 0; }
 .ct-gendocheader { font-family:Arial, sans-serif;font-size:12pt;font-weight:bold;font-style:normal;line-height:1.35;margin:12px 0 5px 0; }
 .ct-gendocbody { font-family:Arial, sans-serif;font-size:10pt;font-weight:normal;font-style:normal;line-height:1.45;margin:0 0 6px 0; }
-.ct-commentsectionheader { font-family:Arial, sans-serif;font-size:10pt;font-weight:bold;font-style:normal;line-height:1.35;margin:8px 0 3px 0; }
-.ct-commentsectionbody { font-family:Arial, sans-serif;font-size:10pt;font-weight:normal;font-style:normal;line-height:1.45;margin:0 0 6px 0;font-style:italic; }
 .ct-documentbody { font-family:Arial, sans-serif;font-size:10pt;font-weight:normal;font-style:normal;line-height:1.45;margin:0 0 6px 0; }
+.sh-label { font-weight:bold;margin:8px 0 3px 0; }
+.sh-emphasis { font-weight:bold; }
+.sh-quote { font-style:italic;margin-left:18px; }
+.sh-listitem { margin-left:22px; }
+.sh-indent { margin-left:22px; }
 
-.doc-comment-indent {
-    padding-left: 22px;
+.sh-listitem::before {
+    content: '\2022 ';
 }
