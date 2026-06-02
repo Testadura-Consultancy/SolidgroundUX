@@ -4,8 +4,8 @@
 # ------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.1
-#   Build       : 2609100
-#   Checksum    : -
+#   Build       : 2615311
+#   Checksum    : 7a2eee2a4c2493d87ee37320e1c886c419ad16c6b459962778f8ede20c51f49d
 #   Source      : doc-generator.sh
 #   Type        : script
 #   Group       : Developer Tools
@@ -334,27 +334,6 @@ set -uo pipefail
         # Leave empty if:
         #   - The script does not use configuration-driven globals
     SGND_SCRIPT_GLOBALS=(
-        "both|_docstyle_hint_label|Documentation style hint for labels|"
-        "both|_docstyle_hint_emphasis|Documentation style hint for emphasized text|"
-        "both|_docstyle_hint_quote|Documentation style hint for quoted text|"
-        "both|_docstyle_hint_listitem|Documentation style hint for list items|"
-        "both|_docstyle_hint_indent|Documentation style hint for indented text|"
-        "both|_docstyle_functionbody|Documentation style for function body text|"
-        "both|_docstyle_functionheader|Documentation style for function headers|"
-        "both|_docstyle_gendocbody|Documentation style for general documentation body text|"
-        "both|_docstyle_gendocheader|Documentation style for general documentation headers|"
-        "both|_docstyle_L1Sectionbody|Documentation style for level 1 section body text|"
-        "both|_docstyle_L1Sectionheader|Documentation style for level 1 section headers|"
-        "both|_docstyle_L2Sectionbody|Documentation style for level 2 section body text|"
-        "both|_docstyle_L2Sectionheader|Documentation style for level 2 section headers|"
-        "both|_docstyle_L3Sectionbody|Documentation style for level 3 section body text|"
-        "both|_docstyle_L3Sectionheader|Documentation style for level 3 section headers|"
-        "both|_docstyle_modulebody|Documentation style for module body text|"
-        "both|_docstyle_moduleheader|Documentation style for module headers|"
-        "both|_docstyle_variablebody|Documentation style for variable body text|"
-        "both|_docstyle_variableheader|Documentation style for variable headers|"
-        "both|_docstyle_documentheader|Documentation style for default document headers|"
-        "both|_docstyle_documentbody|Documentation style for default document body text|"
     )
 
     # SGND_STATE_VARIABLES
@@ -380,7 +359,7 @@ set -uo pipefail
         "VAL_OUTDIR|Output Directory||"
         "FLAG_RECURSIVE_SCAN|Recursive Scan||"
         "FLAG_CLEAN_OUTPUT|Clean Output Directory||"
-        "FLAG_VIEW_RESULTS|Automatically open generated docs in browser after generation (desktop mode only)||"
+        "FLAG_REVIEW|Automatically open generated docs in browser after generation (desktop mode only)||"
         "VAL_DOCUMENT_TITLE|Document title||"
         "VAL_DOCUMENT_SUBTITLE|Document subtitle||"
         "VAL_DOCUMENT_VERSION|Document version||"
@@ -460,78 +439,6 @@ set -uo pipefail
 
    
     }
-
-    # fn: _init_styles
-        # Purpose:
-        #   Initialize default documentation content styles.
-        #
-        # Behavior:
-        #   - Sets default inline HTML style values for all recognized documentation
-        #     content types.
-        #   - Preserves values already supplied by configuration.
-        #   - Uses documentbody as the default body style.
-        #   - Uses documentbody as the base style and applies style hints on top.
-        #
-        # Outputs:
-        #   _docstyle_hint_label
-        #   _docstyle_hint_emphasis
-        #   _docstyle_hint_quote
-        #   _docstyle_hint_listitem
-        #   _docstyle_hint_indent
-        #   _docstyle_functionbody
-        #   _docstyle_functionheader
-        #   _docstyle_gendocbody
-        #   _docstyle_gendocheader
-        #   _docstyle_L1Sectionbody
-        #   _docstyle_L1Sectionheader
-        #   _docstyle_L2Sectionbody
-        #   _docstyle_L2Sectionheader
-        #   _docstyle_L3Sectionbody
-        #   _docstyle_L3Sectionheader
-        #   _docstyle_modulebody
-        #   _docstyle_moduleheader
-        #   _docstyle_variablebody
-        #   _docstyle_variableheader
-        #   _docstyle_documentheader
-        #   _docstyle_documentbody
-        #
-        # Returns:
-        #   0 always.
-        #
-        # Usage:
-        #   _init_styles
-    _init_styles() {
-        _docstyle_documentbody="${_docstyle_documentbody:-font-family:Arial, sans-serif;font-size:10pt;font-weight:normal;font-style:normal;line-height:1.45;margin:0 0 6px 0;}"
-        _docstyle_documentheader="${_docstyle_documentheader:-font-family:Arial, sans-serif;font-size:18pt;font-weight:bold;font-style:normal;line-height:1.25;margin:0 0 14px 0;}"
-
-        _docstyle_moduleheader="${_docstyle_moduleheader:-font-family:Arial, sans-serif;font-size:22pt;font-weight:bold;font-style:normal;line-height:1.2;margin:0 0 16px 0;}"
-        _docstyle_modulebody="${_docstyle_modulebody:-$_docstyle_documentbody}"
-
-        _docstyle_L1Sectionheader="${_docstyle_L1Sectionheader:-font-family:Arial, sans-serif;font-size:18pt;font-weight:bold;font-style:normal;line-height:1.25;margin:24px 0 10px 0;}"
-        _docstyle_L1Sectionbody="${_docstyle_L1Sectionbody:-$_docstyle_documentbody}"
-
-        _docstyle_L2Sectionheader="${_docstyle_L2Sectionheader:-font-family:Arial, sans-serif;font-size:15pt;font-weight:bold;font-style:normal;line-height:1.25;margin:18px 0 8px 0;}"
-        _docstyle_L2Sectionbody="${_docstyle_L2Sectionbody:-$_docstyle_documentbody}"
-
-        _docstyle_L3Sectionheader="${_docstyle_L3Sectionheader:-font-family:Arial, sans-serif;font-size:13pt;font-weight:bold;font-style:normal;line-height:1.25;margin:14px 0 6px 0;}"
-        _docstyle_L3Sectionbody="${_docstyle_L3Sectionbody:-$_docstyle_documentbody}"
-
-        _docstyle_functionheader="${_docstyle_functionheader:-font-family:Arial, sans-serif;font-size:11pt;font-weight:bold;font-style:normal;line-height:1.35;margin:12px 0 4px 0;}"
-        _docstyle_functionbody="${_docstyle_functionbody:-$_docstyle_documentbody}"
-
-        _docstyle_variableheader="${_docstyle_variableheader:-font-family:Arial, sans-serif;font-size:11pt;font-weight:bold;font-style:normal;line-height:1.35;margin:10px 0 4px 0;}"
-        _docstyle_variablebody="${_docstyle_variablebody:-$_docstyle_documentbody}"
-
-        _docstyle_gendocheader="${_docstyle_gendocheader:-font-family:Arial, sans-serif;font-size:12pt;font-weight:bold;font-style:normal;line-height:1.35;margin:12px 0 5px 0;}"
-        _docstyle_gendocbody="${_docstyle_gendocbody:-$_docstyle_documentbody}"
-
-        _docstyle_hint_label="${_docstyle_hint_label:-font-weight:bold;margin:8px 0 3px 0;}"
-        _docstyle_hint_emphasis="${_docstyle_hint_emphasis:-font-weight:bold;}"
-        _docstyle_hint_quote="${_docstyle_hint_quote:-font-style:italic;margin-left:18px;}"
-        _docstyle_hint_listitem="${_docstyle_hint_listitem:-margin-left:22px;}"
-        _docstyle_hint_indent="${_docstyle_hint_indent:-margin-left:22px;}"
-    }
-
 
     # fn: _get_userinput
         # Purpose:
@@ -625,7 +532,7 @@ set -uo pipefail
                 --labelwidth "$lw"
             [[ "${reply,,}" =~ ^(y|yes)$ ]] && FLAG_RECURSIVE_SCAN=1 || FLAG_RECURSIVE_SCAN=0
         
-            (( ${FLAG_VIEW_RESULTS:-0} )) && default="Y" || default="N"
+            (( ${FLAG_REVIEW:-0} )) && default="Y" || default="N"
             ask --label "View parsed data" \
                 --var reply \
                 --type flag \
@@ -635,7 +542,7 @@ set -uo pipefail
                 --labelclr "${CYAN}" \
                 --pad "$lp" \
                 --labelwidth "$lw"
-            [[ "${reply,,}" =~ ^(y|yes)$ ]] && FLAG_VIEW_RESULTS=1 || FLAG_VIEW_RESULTS=0
+            [[ "${reply,,}" =~ ^(y|yes)$ ]] && FLAG_REVIEW=1 || FLAG_REVIEW=0
 
             sgnd_print
             sgnd_print_sectionheader "Documentation metadata" --padend 0
@@ -811,7 +718,6 @@ set -uo pipefail
         sgnd_print  "  Sections processed: ${#MOD_SECTIONS[@]}"
         sgnd_print  "  Items documented: ${#MOD_ITEMS[@]}"
         sgnd_print  "  Comments extracted: ${#DOC_CONTENT_LINES[@]}"
-        sgnd_print  "  Navigation entries: ${#DOC_NAV[@]}"
 
         sgnd_print "  Source directory: $VAL_SRCDIR"
         sgnd_print "  Output directory: $VAL_OUTDIR"
@@ -856,7 +762,6 @@ set -uo pipefail
 
             _load_bootstrapper || exit $?            
 
-            _init_styles
 
             # Recognized switches:
             #     --state      -> enable saving state variables 
@@ -924,8 +829,7 @@ set -uo pipefail
         fi
         
         if (( FLAG_REVIEW )); then
-           sgnd_dt_print_table "$DOC_NAV_SCHEMA" DOC_NAV  1 
-           sgnd_dt_print_table "$DOC_CONTENT_LINES_SCHEMA" DOC_CONTENT_LINES 1 
+           sgnd_dt_print_table "$DOC_CONTENT_LINES_SCHEMA" DOC_CONTENT_LINES 1
         fi
 
         if (( FLAG_DRYRUN )); then

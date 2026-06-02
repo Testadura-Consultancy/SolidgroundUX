@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.1
-#   Build       : 2609100
-#   Checksum    : 3eb95e91721b977ee06150666997fa2466e96b405be4294ecd6e12a048acc583
+#   Build       : 2615311
+#   Checksum    : 456f2905a0c378599e8aa6d607869d4adb8cf155687c6fada8c2f35f0f0bd3b9
 #   Source      : prepare-release.sh
 #   Type        : script
 #   Group       : Developer Tools
@@ -259,7 +259,7 @@ set -uo pipefail
         #
         # Leave empty if no extra libs are needed.
     SGND_USING=(
-        sgnd-comment-parser.sh
+        sgnd-comment-header-parser.sh
     )
 
     # SGND_ARGS_SPEC

@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.1
-#   Build       : 2608700
-#   Checksum    : none
+#   Build       : 2615311
+#   Checksum    : 2e8f03a55be8d6a3fa1655b0ece5845dd7d81ca1301d7331f487690841f01650
 #   Source      : style-monoamber.sh
 #   Type        : library
 #   Group       : Styles

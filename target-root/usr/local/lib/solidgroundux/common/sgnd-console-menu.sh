@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.1
-#   Build       : 2609100
-#   Checksum    : 6ce6e6f1331489241354cb68bf443f9001894bc4f2e03393f127a69094eaccf3
+#   Build       : 2615311
+#   Checksum    : 2c7f6c806e538dc4a09141240158062d42563ebf30c933c1c6ac6872fc12e6d7
 #   Source      : sgnd-console-menu.sh
 #   Group       : Solidground Console
 #   Type        : library

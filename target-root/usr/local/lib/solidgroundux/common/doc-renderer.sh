@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.1
-#   Build       : 2609100
-#   Checksum    : none
+#   Build       : 2615311
+#   Checksum    : 2210387a234ae326343c511a5525a642ebe66b6ed9a3e2d4a698eb1465ddd8ce
 #   Source      : doc-renderer.sh
 #   Type        : library
 #   Group       : Developer Tools
@@ -91,28 +91,6 @@ set -uo pipefail
         DOC_FUNCTION_INDEX_SCHEMA="product|group|modulename|itemvisibility|functionname|purpose|anchor"
         DOC_FUNCTION_INDEX=()
 
-        DOC_NAV_SCHEMA="nodeid|parentnodeid|nodetype|node_name|node_title|hierarchy_level|docindex|contentref|hasitems|isinternal|istemplate"
-        DOC_NAV=()          
-    
-    # var: NAV row parameters
-        _NAV_NODE_ID=""
-        _NAV_PARENT_NODE_ID=""
-        _NAV_NODE_TYPE=""
-        _NAV_NODE_NAME=""
-        _NAV_NODE_TITLE=""
-        _NAV_HIERARCHY_LEVEL=""
-        _NAV_DOC_INDEX=""
-        _NAV_HAS_ITEMS=0
-        _NAV_IS_INTERNAL=0
-        _NAV_IS_TEMPLATE=0
-        _NAV_CONTENT_REF=""
-        
-        _L1_INDEX=0
-        _L2_INDEX=0
-        _L3_INDEX=0
-        _L4_INDEX=0
-        _L5_INDEX=0
-
     # -- Arguments ------------------------------------------------------------------
         FLAG_INCLUDE_INTERNAL=0
         FLAG_INCLUDE_EMPTY_SECTIONS=1
@@ -142,10 +120,24 @@ set -uo pipefail
 
            if (( FLAG_CLEAN_OUTPUT == 1 )); then
                 sayinfo "Cleaning output directory: $VAL_OUTDIR"
+
+                local preserved_theme=""
+                if [[ -f "$VAL_OUTDIR/assets/theme.css" ]]; then
+                    preserved_theme="$(mktemp /tmp/sgnd-doc-theme.XXXXXX.css)" || return 1
+                    cp "$VAL_OUTDIR/assets/theme.css" "$preserved_theme" || return 1
+                fi
+
                 rm -rf "${VAL_OUTDIR:?}/"* && sayinfo "Cleaned output directory: $VAL_OUTDIR" || {
                     sayerror "Failed to clean output directory: $VAL_OUTDIR"
                     return 1
                 }
+
+                if [[ -n "$preserved_theme" && -f "$preserved_theme" ]]; then
+                    mkdir -p "$VAL_OUTDIR/assets" || return 1
+                    cp "$preserved_theme" "$VAL_OUTDIR/assets/theme.css" || return 1
+                    rm -f "$preserved_theme"
+                    sayinfo "Preserved existing theme.css"
+                fi
             fi
         }
 
@@ -162,27 +154,6 @@ set -uo pipefail
                 printf 'FLAG_CLEAN_OUTPUT|0\n'
                 printf 'VAL_NAV_WIDTH|%s\n' "${VAL_NAV_WIDTH:-320px}"
 
-                printf '_docstyle_documentbody|%s\n' "${_docstyle_documentbody:-}"
-                printf '_docstyle_documentheader|%s\n' "${_docstyle_documentheader:-}"
-                printf '_docstyle_moduleheader|%s\n' "${_docstyle_moduleheader:-}"
-                printf '_docstyle_modulebody|%s\n' "${_docstyle_modulebody:-}"
-                printf '_docstyle_L1Sectionheader|%s\n' "${_docstyle_L1Sectionheader:-}"
-                printf '_docstyle_L1Sectionbody|%s\n' "${_docstyle_L1Sectionbody:-}"
-                printf '_docstyle_L2Sectionheader|%s\n' "${_docstyle_L2Sectionheader:-}"
-                printf '_docstyle_L2Sectionbody|%s\n' "${_docstyle_L2Sectionbody:-}"
-                printf '_docstyle_L3Sectionheader|%s\n' "${_docstyle_L3Sectionheader:-}"
-                printf '_docstyle_L3Sectionbody|%s\n' "${_docstyle_L3Sectionbody:-}"
-                printf '_docstyle_functionheader|%s\n' "${_docstyle_functionheader:-}"
-                printf '_docstyle_functionbody|%s\n' "${_docstyle_functionbody:-}"
-                printf '_docstyle_variableheader|%s\n' "${_docstyle_variableheader:-}"
-                printf '_docstyle_variablebody|%s\n' "${_docstyle_variablebody:-}"
-                printf '_docstyle_gendocheader|%s\n' "${_docstyle_gendocheader:-}"
-                printf '_docstyle_gendocbody|%s\n' "${_docstyle_gendocbody:-}"
-                printf '_docstyle_hint_label|%s\n' "${_docstyle_hint_label:-}"
-                printf '_docstyle_hint_emphasis|%s\n' "${_docstyle_hint_emphasis:-}"
-                printf '_docstyle_hint_quote|%s\n' "${_docstyle_hint_quote:-}"
-                printf '_docstyle_hint_listitem|%s\n' "${_docstyle_hint_listitem:-}"
-                printf '_docstyle_hint_indent|%s\n' "${_docstyle_hint_indent:-}"
             } > "$config_file"
         }
 
@@ -257,29 +228,6 @@ set -uo pipefail
             return 1
         }
 
-        saydebug "Documentation navigation hierarchy built with ${#DOC_NAV[@]} nodes. Ready for rendering."
-        saydebug " Rendering: Title='$DOC_TITLE', Subtitle='$DOC_SUBTITLE', Version='$DOC_VERSION', Product='$DOC_PRODUCT', RenderDate='$DOC_RENDER_DATE'"
-
-        #_render_assets "$output_folder" || {
-        #    sayerror "Failed to render documentation assets"
-        #    return 1
-        #}
-
-        #_prepare_render_cache "$output_folder" || {
-        #    sayerror "Failed to prepare render cache"
-        #    return 1
-        #}
-
-        #_render_item_pages "$output_folder" || {
-        #    sayerror "Failed to render item pages"
-        #    return 1
-        #}
-
-        #_render_index_page "$output_folder" || {
-        #    sayerror "Failed to render index page"
-        #    return 1
-        #}
-
         local export_dir=""
         export_dir="$(mktemp -d "/tmp/sgnd-doc-render.XXXXXX")" || {
             sayerror "Failed to create temporary export directory"
@@ -298,7 +246,7 @@ set -uo pipefail
         python3 "$SGND_PYTHON_DIR/sgnd_doc_renderer.py" \
             "$export_dir" \
             "$output_folder" || {
-                sayerror "Python documentation renderer failed"
+                sayfail "Python documentation renderer failed"
                 return 1
         }
 

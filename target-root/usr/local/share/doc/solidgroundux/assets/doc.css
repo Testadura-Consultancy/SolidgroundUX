@@ -2,9 +2,6 @@ html, body {
     margin: 0;
     padding: 0;
     height: 100%;
-    font-family: Arial, sans-serif;
-    color: #222;
-    background: #ffffff;
 }
 
 body {
@@ -19,14 +16,11 @@ body {
 
 .doc-nav {
     border-right: 1px solid #d0d0d0;
-    background: #f6f6f6;
     overflow: auto;
     padding: 36px 20px 14px 20px;
 }
 
 .doc-nav-title {
-    font-size: 12pt;
-    font-weight: bold;
     margin: 0 0 14px 0;
     padding-bottom: 6px;
     border-bottom: 1px solid #c0c0c0;
@@ -39,12 +33,10 @@ body {
 
 .doc-nav-node summary {
     cursor: pointer;
-    font-weight: bold;
     line-height: 1.25;
 }
 
 .doc-nav-module {
-    color: #111;
     text-decoration: none;
 }
 
@@ -52,17 +44,10 @@ body {
     text-decoration: underline;
 }
 
-.doc-nav-node.level-0 > summary {
-    font-size: 11pt;
-    font-weight: bold;
-}
-
 .doc-nav-section {
     display: block;
     margin-top: 6px;
     margin-bottom: 2px;
-    font-size: 10pt;
-    color: #111;
     text-decoration: none;
 }
 
@@ -72,24 +57,19 @@ a.doc-nav-section:hover {
 
 .doc-nav-section.level-1 {
     margin-left: 14px;
-    font-weight: 600;
 }
 
 .doc-nav-section.level-2 {
     margin-left: 24px;
-    font-weight: 600;
 }
 
 .doc-nav-section.level-3 {
     margin-left: 34px;
-    font-weight: 500;
 }
 
 .doc-nav-item {
     display: block;
-    color: #204a87;
     text-decoration: none;
-    font-size: 9.5pt;
     line-height: 1.2;
     margin-top: 2px;
     margin-bottom: 2px;
@@ -97,10 +77,6 @@ a.doc-nav-section:hover {
 
 .doc-nav-item:hover {
     text-decoration: underline;
-}
-
-.doc-nav-item.level-4 {
-    margin-left: 42px;
 }
 
 .doc-content-frame {
@@ -117,39 +93,4 @@ a.doc-nav-section:hover {
     border-bottom: 1px solid #d0d0d0;
     margin-bottom: 22px;
     padding-bottom: 12px;
-}
-
-.doc-title {
-    font-family:Arial, sans-serif;font-size:18pt;font-weight:bold;font-style:normal;line-height:1.25;margin:0 0 14px 0;
-}
-
-.doc-breadcrumb {
-    font-style: italic;
-    color: #666;
-    font-size: 10pt;
-}
-
-.ct-moduleheader { font-family:Arial, sans-serif;font-size:22pt;font-weight:bold;font-style:normal;line-height:1.2;margin:0 0 16px 0; }
-.ct-modulebody { font-family:Arial, sans-serif;font-size:10pt;font-weight:normal;font-style:normal;line-height:1.45;margin:0 0 6px 0; }
-.ct-L1Sectionheader { font-family:Arial, sans-serif;font-size:18pt;font-weight:bold;font-style:normal;line-height:1.25;margin:24px 0 10px 0; }
-.ct-L1Sectionbody { font-family:Arial, sans-serif;font-size:10pt;font-weight:normal;font-style:normal;line-height:1.45;margin:0 0 6px 0; }
-.ct-L2Sectionheader { font-family:Arial, sans-serif;font-size:15pt;font-weight:bold;font-style:normal;line-height:1.25;margin:18px 0 8px 0; }
-.ct-L2Sectionbody { font-family:Arial, sans-serif;font-size:10pt;font-weight:normal;font-style:normal;line-height:1.45;margin:0 0 6px 0; }
-.ct-L3Sectionheader { font-family:Arial, sans-serif;font-size:13pt;font-weight:bold;font-style:normal;line-height:1.25;margin:14px 0 6px 0; }
-.ct-L3Sectionbody { font-family:Arial, sans-serif;font-size:10pt;font-weight:normal;font-style:normal;line-height:1.45;margin:0 0 6px 0; }
-.ct-functionheader { font-family:Arial, sans-serif;font-size:11pt;font-weight:bold;font-style:normal;line-height:1.35;margin:12px 0 4px 0; }
-.ct-functionbody { font-family:Arial, sans-serif;font-size:10pt;font-weight:normal;font-style:normal;line-height:1.45;margin:0 0 6px 0; }
-.ct-variableheader { font-family:Arial, sans-serif;font-size:11pt;font-weight:bold;font-style:normal;line-height:1.35;margin:10px 0 4px 0; }
-.ct-variablebody { font-family:Arial, sans-serif;font-size:10pt;font-weight:normal;font-style:normal;line-height:1.45;margin:0 0 6px 0; }
-.ct-gendocheader { font-family:Arial, sans-serif;font-size:12pt;font-weight:bold;font-style:normal;line-height:1.35;margin:12px 0 5px 0; }
-.ct-gendocbody { font-family:Arial, sans-serif;font-size:10pt;font-weight:normal;font-style:normal;line-height:1.45;margin:0 0 6px 0; }
-.ct-documentbody { font-family:Arial, sans-serif;font-size:10pt;font-weight:normal;font-style:normal;line-height:1.45;margin:0 0 6px 0; }
-.sh-label { font-weight:bold;margin:8px 0 3px 0; }
-.sh-emphasis { font-weight:bold; }
-.sh-quote { font-style:italic;margin-left:18px; }
-.sh-listitem { margin-left:22px; }
-.sh-indent { margin-left:22px; }
-
-.sh-listitem::before {
-    content: '\2022 ';
 }

@@ -4,8 +4,8 @@
 # ------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.1
-#   Build       : 2609100
-#   Checksum    : none
+#   Build       : 2615311
+#   Checksum    : 145cfc3c5f2971758fbb5c38104af898e0665e5e108a9ae2a86f160b962c00d9
 #   Source      : exe-template.sh
 #   Type        : script
 #   Group       : Templates

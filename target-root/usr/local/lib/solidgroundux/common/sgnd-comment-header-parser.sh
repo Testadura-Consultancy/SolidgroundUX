@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.1
-#   Build       : 2609100
-#   Checksum    :
+#   Build       : 2615311
+#   Checksum    :8ee8d481dae9e4f9561925b014fe8618322ae507763617d42f3d32ab017c623d
 #   Source      : sgnd-header-parser.sh
 #   Type        : library
 #   Group       : Developer Tools

@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.1
-#   Build       : 2608700
-#   Checksum    : none
+#   Build       : 2615311
+#   Checksum    : 9d650fce4a98ccb913fea0bc39620a5a5812c2d42ca07ce5dd9645c9d8752f53
 #   Source      : style-carnaval.sh
 #   Type        : library
 #   Group       : Styles

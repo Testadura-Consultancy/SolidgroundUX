@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.2
-#   Build       : 2609100
-#   Checksum    : 6034f64b9ad377a4336278a4ad14be211c19c367f36ba7d4b935226c1ad2fbd6
+#   Build       : 2615311
+#   Checksum    : 180d15afaec49d89596bfe3f0266325a51e1fcb154fd099f2fb67c73521fa244
 #   Source      : sgnd-core.sh
 #   Type        : library
 #   Group       : Common Core

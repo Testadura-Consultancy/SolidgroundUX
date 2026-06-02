@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.1
-#   Build       : 2608700
-#   Checksum    : f7e4267783fd0613aceb52b88074ab5baa838b5643fd7b834e6015adca4703b5
+#   Build       : 2615311
+#   Checksum    : 20e36cf3ae9bc6655861e9fd19407c6f77eebdf90cb93583ff6fcc497e3e58cd
 #   Source      : ui-say.sh
 #   Type        : library
 #   Group       : UI
@@ -44,7 +44,7 @@
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
-#   Client      :
+#   Client      : Internal
 #   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================

@@ -11,6 +11,9 @@
 # Ignore everything in target-root/var
 target-root/var/*
 
+# Ignore everything in target-root/usr/local/share/doc/solidgroundux
+target-root/usr/local/share/doc/solidgroundux/*
+
 # Keep structure down to releases
 !target-root/var/lib/
 !target-root/var/lib/solidgroundux/

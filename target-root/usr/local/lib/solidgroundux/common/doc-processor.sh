@@ -56,7 +56,7 @@ set -uo pipefail
 # - Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard
         # Purpose:
-        #  Ensure the file is sourced as a library and only initialized once.
+        #   Ensure the file is sourced as a library and only initialized once.
         #
         # Behavior:
         #   - Derives a unique guard variable name from the current filename.
@@ -140,7 +140,7 @@ set -uo pipefail
         MOD_SECTIONS_SCHEMA="modulename|section|parent|grandparent|title|level"
         MOD_SECTIONS=()
 
-        MOD_ITEMS_SCHEMA="modulename|section|parentsection|typecode|type|itemvisibility|itemrole|name|title"
+        MOD_ITEMS_SCHEMA="modulename|section|parentsection|grandparentsection|typecode|type|itemvisibility|itemrole|name|title"
         MOD_ITEMS=()
         
         DOC_CONTENT_LINES_SCHEMA="file|source_linenr|doc_linenr|section|parentsection|grandparentsection|stylehint|item|title|contenttype|content|contentref"
@@ -519,7 +519,7 @@ set -uo pipefail
             doc_headersection=""
             doc_stylehint="normal"
             doc_sectiontitle="$section_title"
-
+   
             # New section owns its own body; do not inherit previous item context.
             doc_item=""
             doc_itemtitle=""
@@ -846,8 +846,8 @@ set -uo pipefail
             [[ "$src_line" =~ $_rgx_commentseparator ]] || return 0
 
             src_haltlineprocessing=1
-            doc_contenttype=""
             doc_content=""
+            doc_emitline=0
 
             saydebug "Comment separator ignored"
         }
@@ -1025,6 +1025,7 @@ set -uo pipefail
                 "$mod_name" \
                 "$doc_section" \
                 "$doc_parentsection" \
+                "$doc_grandparentsection" \
                 "$src_linetype" \
                 "$doc_itemtype" \
                 "$doc_itemvisibility" \

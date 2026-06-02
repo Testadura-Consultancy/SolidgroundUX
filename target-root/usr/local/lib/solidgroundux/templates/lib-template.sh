@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.1
-#   Build       : 2609100
-#   Checksum    : none
+#   Build       : 2615311
+#   Checksum    : 481544d1c021ab49873ccf1728ed8cce16c76bfb37494b69052bced57ee3c71e
 #   Source      : lib-template.sh
 #   Type        : library
 #   Group       : Templates

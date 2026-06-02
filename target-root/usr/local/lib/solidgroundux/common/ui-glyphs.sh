@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.1
-#   Build       : 2608700
-#   Checksum    : 8ebc3d54151c1111ff4418082d1b0626cc590689a7134a33b3b543a0636eb836
+#   Build       : 2615311
+#   Checksum    : cde9eb20be81947cc091e9e64f85df8dc961d427358800b337f5081bacf0b77a
 #   Source      : ui-glyphs.sh
 #   Type        : library
 #   Group       : UI

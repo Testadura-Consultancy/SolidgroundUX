@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.1
-#   Build       : 2609100
-#   Checksum    : 65884ad57f319d8135ddafe3b0da3dbf86eb85d4cc17634dac5d97449757e7b6
+#   Build       : 2615311
+#   Checksum    : 1d2298eed8e5ff52d522634d0e6f24a8a3ce83d8fb26be5144d5eb2a8d4900f1
 #   Source      : metadata-editor.sh
 #   Type        : script
 #   Group       : Developer Tools
