@@ -34,10 +34,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Sequence
 
-RENDERER_BUILD = "20260602-1615-template-filter-bold-v5"
+RENDERER_BUILD = "20260602-1630-glossary-v6"
 
 Row = Dict[str, str]
 ATTRIBUTION_PREFIX = "appendix:attribution:"
+GLOSSARY_PREFIX = "appendix:glossary:"
 
 
 def read_psv(path: Path, *, required: bool = True) -> List[Row]:
@@ -114,6 +115,10 @@ def content_ref(
 
 def attribution_ref(product_name: str) -> str:
     return f"{ATTRIBUTION_PREFIX}{product_name}"
+
+
+def glossary_ref(product_name: str) -> str:
+    return f"{GLOSSARY_PREFIX}{product_name}"
 
 
 def page_href_from_contentref(ref: str) -> str:
@@ -356,6 +361,19 @@ class DocRenderer:
                     hierarchy_level=2,
                     docindex=f"{appendices_docindex}.1",
                     contentref=attribution_ref(product_name),
+                )
+            )
+
+            self.nav.append(
+                NavNode(
+                    nodeid=f"appendix:{product_name}:glossary",
+                    parentnodeid=appendices_node_id,
+                    nodetype="appendix",
+                    node_name="Appendix B: Glossary",
+                    node_title="Appendix B: Glossary",
+                    hierarchy_level=2,
+                    docindex=f"{appendices_docindex}.2",
+                    contentref=glossary_ref(product_name),
                 )
             )
 
@@ -1085,7 +1103,7 @@ body {
         index_file.write_text("\n".join(html_lines), encoding="utf-8")
 
     def has_renderable_page(self, ref: str) -> bool:
-        return ref.startswith(ATTRIBUTION_PREFIX) or ref in self.content_by_ref
+        return ref.startswith(ATTRIBUTION_PREFIX) or ref.startswith(GLOSSARY_PREFIX) or ref in self.content_by_ref
 
     def render_navigation(self) -> str:
         lines: List[str] = []
@@ -1147,7 +1165,7 @@ body {
                 return page_href_from_contentref(node.contentref)
 
         for node in self.nav:
-            if node.contentref and node.contentref.startswith(ATTRIBUTION_PREFIX):
+            if node.contentref and (node.contentref.startswith(ATTRIBUTION_PREFIX) or node.contentref.startswith(GLOSSARY_PREFIX)):
                 return page_href_from_contentref(node.contentref)
 
         return "about:blank"
@@ -1159,11 +1177,12 @@ body {
 
         for product_name in sorted(self.modules_by_product().keys(), key=str.casefold):
             self.render_attribution_page(product_name)
+            self.render_glossary_page(product_name)
 
         for node in self.nav:
             if not node.contentref:
                 continue
-            if node.contentref.startswith(ATTRIBUTION_PREFIX):
+            if node.contentref.startswith(ATTRIBUTION_PREFIX) or node.contentref.startswith(GLOSSARY_PREFIX):
                 continue
             if node.contentref not in self.content_by_ref:
                 continue
@@ -1237,7 +1256,6 @@ body {
             grouped_rows[key].append(merged)
 
         lines: List[str] = [
-            '<h1 class="ct-L1Sectionheader">Appendix A: Attribution</h1>',
             '<div class="ct-documentbody">This appendix lists module attribution metadata collected from module headers.</div>',
         ]
 
@@ -1281,6 +1299,171 @@ body {
 
             lines.extend(['</tbody>', '</table>', '</section>'])
 
+        return "\n".join(lines)
+
+    def render_glossary_page(self, product_name: str) -> None:
+        ref = glossary_ref(product_name)
+        href = page_href_from_contentref(ref)
+        output_file = self.output_dir / href
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+
+        body = self.render_glossary_body(product_name)
+
+        html_lines = [
+            "<!doctype html>",
+            "<html>",
+            "<head>",
+            '  <meta charset="utf-8">',
+            "  <title>Appendix B: Glossary</title>",
+            '  <link rel="stylesheet" href="../assets/doc.css">',
+            '  <link rel="stylesheet" href="../assets/theme.css">',
+            "</head>",
+            "<body>",
+            '<main class="doc-page">',
+            '<header class="doc-page-header">',
+            '  <div class="doc-title">Appendix B: Glossary</div>',
+            f'  <div class="doc-breadcrumb">{esc(product_name)} / Appendices / Appendix B: Glossary</div>',
+            "</header>",
+            body,
+            "</main>",
+            "</body>",
+            "</html>",
+        ]
+
+        output_file.write_text("\n".join(html_lines), encoding="utf-8")
+
+    def render_glossary_body(self, product_name: str) -> str:
+        function_rows = self.collect_glossary_rows(product_name, "function")
+        variable_rows = self.collect_glossary_rows(product_name, "variable")
+
+        lines: List[str] = [
+            '<div class="ct-documentbody">This appendix lists documented functions and variables, sorted alphabetically by name.</div>',
+            self.render_glossary_table("Functions", "Function", function_rows),
+            self.render_glossary_table("Variables", "Variable", variable_rows),
+        ]
+
+        return "\n".join(lines)
+
+    def collect_glossary_rows(self, product_name: str, item_type: str) -> List[Row]:
+        modules_by_name: Dict[str, Row] = {
+            module.get("name", ""): module
+            for module in self.mod_table
+            if module.get("name", "")
+        }
+
+        rows: List[Row] = []
+
+        for item in self.mod_items:
+            if item.get("type", "") != item_type:
+                continue
+
+            module_name = item.get("modulename", "")
+            module = modules_by_name.get(module_name, {})
+            row_product = module.get("product", "") or self.doc_product or "Documentation"
+
+            if row_product != product_name:
+                continue
+            if self.is_template_group(module):
+                continue
+            if item.get("itemrole", "") == "template":
+                continue
+
+            item_name = item.get("name", "")
+            item_ref = content_ref(
+                module_name,
+                item.get("grandparentsection", ""),
+                item.get("parentsection", ""),
+                item.get("section", ""),
+                item_name,
+            )
+
+            rows.append({
+                "name": item_name,
+                "title": item.get("title", ""),
+                "purpose": self.extract_item_purpose(item_ref),
+                "module": module_name,
+            })
+
+        rows.sort(key=lambda row: (row.get("name", "").casefold(), row.get("module", "").casefold()))
+        return rows
+
+    def extract_item_purpose(self, ref: str) -> str:
+        rows = self.content_by_ref.get(ref, [])
+
+        if not rows:
+            parts = ref.split(":")
+            item_name = parts[4] if len(parts) > 4 else ""
+            if item_name:
+                for candidate_ref, candidate_rows in self.content_by_ref.items():
+                    candidate_parts = candidate_ref.split(":")
+                    if len(candidate_parts) > 4 and candidate_parts[0] == parts[0] and candidate_parts[4] == item_name:
+                        rows = candidate_rows
+                        break
+
+        purpose_lines: List[str] = []
+        in_purpose = False
+
+        for row in rows:
+            if row.get("suppress", "0") == "1":
+                continue
+
+            content_type = row.get("contenttype", "")
+            content = (row.get("content", "") or "").strip()
+
+            if not content:
+                if in_purpose and purpose_lines:
+                    break
+                continue
+
+            normalized = content.rstrip(":").casefold()
+
+            if normalized == "purpose":
+                in_purpose = True
+                continue
+
+            if in_purpose:
+                if content_type.endswith("header"):
+                    break
+                if content.endswith(":") and len(content.split()) <= 4:
+                    break
+                purpose_lines.append(content)
+
+        return " ".join(purpose_lines)
+
+    def render_glossary_table(self, title: str, name_header: str, rows: List[Row]) -> str:
+        lines: List[str] = [
+            '<section class="doc-glossary-block">',
+            f'<h2 class="ct-L2Sectionheader">{esc(title)}</h2>',
+        ]
+
+        if not rows:
+            lines.extend([
+                '<div class="ct-documentbody">No entries found.</div>',
+                '</section>',
+            ])
+            return "\n".join(lines)
+
+        lines.extend([
+            '<table class="doc-data-table">',
+            f'<thead><tr><th>{esc(name_header)}</th><th>Title</th><th>Purpose</th><th>Module</th></tr></thead>',
+            '<tbody>',
+        ])
+
+        for row in rows:
+            lines.append(
+                "<tr>"
+                f'<td>{esc(row.get("name", ""))}</td>'
+                f'<td>{esc(row.get("title", ""))}</td>'
+                f'<td>{esc(row.get("purpose", ""))}</td>'
+                f'<td>{esc(row.get("module", ""))}</td>'
+                "</tr>"
+            )
+
+        lines.extend([
+            '</tbody>',
+            '</table>',
+            '</section>',
+        ])
         return "\n".join(lines)
 
     def render_content_page(self, node: NavNode) -> None:
