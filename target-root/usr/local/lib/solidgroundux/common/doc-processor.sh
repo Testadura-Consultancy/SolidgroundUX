@@ -140,7 +140,7 @@ set -uo pipefail
         MOD_SECTIONS_SCHEMA="modulename|section|parent|grandparent|title|level"
         MOD_SECTIONS=()
 
-        MOD_ITEMS_SCHEMA="modulename|section|parentsection|grandparentsection|typecode|type|itemvisibility|itemrole|name|title"
+        MOD_ITEMS_SCHEMA="modulename|section|parentsection|typecode|type|itemvisibility|itemrole|name|title"
         MOD_ITEMS=()
         
         DOC_CONTENT_LINES_SCHEMA="file|source_linenr|doc_linenr|section|parentsection|grandparentsection|stylehint|item|title|contenttype|content|contentref"
@@ -259,7 +259,7 @@ set -uo pipefail
     _rgx_header='^# =+[[:space:]]*$'
     _rgx_moduletitle='^#[[:space:]]+([^-]+)[[:space:]]+-[[:space:]]+(.+)[[:space:]]*$'
     _rgx_headersectionheader='^[[:space:]]*#[[:space:]]+([^:]+):[[:space:]]*$'
-    _rgx_headerfield='^#[[:space:]]+([[:alnum:]_]+)[[:space:]]*:[[:space:]]+(.+)[[:space:]]*$'  
+    _rgx_headerfield='^#[[:space:]]+([[:alnum:]_]+)[[:space:]]*:[[:space:]]*(.*)[[:space:]]*$'
     _rgx_section='^[[:space:]]*#[[:space:]](-{1,3})[[:space:]]+(.+)[[:space:]]*-*[[:space:]]*$'
     _rgx_docitem='^[[:space:]]*#[[:space:]]+([a-z]{2,3})([:$])[[:space:]]+([^[:space:]]+)([[:space:]]+-[[:space:]]+(.+))?[[:space:]]*$'
     _rgx_commentseparator='^[[:space:]]*#[[:space:]]+-{3,}[[:space:]]*$'
@@ -699,6 +699,10 @@ set -uo pipefail
             # module header to contribute visible body content without reintroducing
             # documentation-paragraph state.
             if [[ "$doc_headersection" == "Metadata" || "$doc_headersection" == "Attribution" ]]; then
+                # Metadata and attribution are captured in MOD_TABLE/MOD_ATTRIBUTION.
+                # They are intentionally not emitted as module body content.
+                doc_contenttype=""
+                doc_content=""
                 doc_emitline=0
             else
                 doc_contenttype="modulebody"
@@ -735,6 +739,11 @@ set -uo pipefail
             #   _detect_default
         _detect_default(){
             (( src_haltlineprocessing )) && return 0
+
+            if (( doc_inheader )) && [[ "$doc_headersection" == "Metadata" || "$doc_headersection" == "Attribution" ]]; then
+                doc_emitline=0
+                return 0
+            fi
 
             [[ -z "$doc_contenttype" ]] && return 0
 
@@ -1025,7 +1034,6 @@ set -uo pipefail
                 "$mod_name" \
                 "$doc_section" \
                 "$doc_parentsection" \
-                "$doc_grandparentsection" \
                 "$src_linetype" \
                 "$doc_itemtype" \
                 "$doc_itemvisibility" \

@@ -14,14 +14,9 @@ Expected input files in <input-dir>:
     mod_table.psv
     mod_sections.psv
     mod_items.psv
+    mod_attribution.psv
     doc_content_lines.psv
     render_config.psv
-
-File format:
-    - Pipe-separated values
-    - First line contains the schema/header
-    - Remaining lines contain data rows
-    - Values must not contain literal pipe characters
 
 Notes:
     This script intentionally uses only the Python standard library.
@@ -37,23 +32,20 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from textwrap import indent
-from typing import Dict, Iterable, List, Sequence
+from typing import Dict, List, Sequence
 
-RENDERER_BUILD = "20260602-1235-nav-v4"
-
-
-# ------------------------------------------------------------------------------
-# Data loading
-# ------------------------------------------------------------------------------
+RENDERER_BUILD = "20260602-1415-appendices-and-comment-order-v1"
 
 Row = Dict[str, str]
+ATTRIBUTION_PREFIX = "appendix:attribution:"
 
 
-def read_psv(path: Path) -> List[Row]:
+def read_psv(path: Path, *, required: bool = True) -> List[Row]:
     """Read a pipe-separated table with a schema/header row."""
     if not path.exists():
-        raise FileNotFoundError(f"Missing input table: {path}")
+        if required:
+            raise FileNotFoundError(f"Missing input table: {path}")
+        return []
 
     lines = path.read_text(encoding="utf-8").splitlines()
     if not lines:
@@ -80,11 +72,7 @@ def read_psv(path: Path) -> List[Row]:
 
 
 def read_config(path: Path) -> Dict[str, str]:
-    """Read render_config.psv as key|value."""
-    if not path.exists():
-        return {}
-
-    rows = read_psv(path)
+    rows = read_psv(path, required=False)
     config: Dict[str, str] = {}
 
     for row in rows:
@@ -96,21 +84,22 @@ def read_config(path: Path) -> Dict[str, str]:
     return config
 
 
-# ------------------------------------------------------------------------------
-# Utility helpers
-# ------------------------------------------------------------------------------
-
 def esc(value: str | None) -> str:
-    """HTML-escape a string."""
     return html.escape(value or "", quote=True)
 
 
 def slugify(value: str | None) -> str:
-    """Convert a content reference or label into a safe filename slug."""
     text = (value or "").lower()
     text = re.sub(r"[^a-z0-9]+", "-", text)
     text = text.strip("-")
     return text or "page"
+
+
+def normalize_key(value: str | None) -> str:
+    text = (value or "").lower()
+    text = re.sub(r"[^a-z0-9]+", "_", text)
+    text = text.strip("_")
+    return text
 
 
 def content_ref(
@@ -120,8 +109,11 @@ def content_ref(
     section_name: str = "",
     item_name: str = "",
 ) -> str:
-    """Build the same canonical content reference as the Bash parser."""
     return f"{module_name}:{grandparent_section}:{parent_section}:{section_name}:{item_name}"
+
+
+def attribution_ref(product_name: str) -> str:
+    return f"{ATTRIBUTION_PREFIX}{product_name}"
 
 
 def page_href_from_contentref(ref: str) -> str:
@@ -132,12 +124,7 @@ def is_item_node(node_type: str) -> bool:
     return node_type in {"function", "variable", "general documentation"}
 
 
-def row_sort_key(row: Row, fields: Sequence[str]) -> tuple[str, ...]:
-    return tuple((row.get(field, "") or "").lower() for field in fields)
-
-
 def display_name_with_title(name: str, title: str) -> str:
-    """Prefer the technical name, optionally followed by the friendly title."""
     clean_name = name or ""
     clean_title = title or ""
 
@@ -146,10 +133,6 @@ def display_name_with_title(name: str, title: str) -> str:
 
     return clean_name
 
-
-# ------------------------------------------------------------------------------
-# Renderer model
-# ------------------------------------------------------------------------------
 
 @dataclass
 class NavNode:
@@ -176,6 +159,7 @@ class DocRenderer:
         self.mod_table: List[Row] = []
         self.mod_sections: List[Row] = []
         self.mod_items: List[Row] = []
+        self.mod_attribution: List[Row] = []
         self.doc_content_lines: List[Row] = []
         self.config: Dict[str, str] = {}
 
@@ -187,10 +171,6 @@ class DocRenderer:
         self.doc_version = ""
         self.doc_product = ""
         self.doc_render_date = ""
-
-    # --------------------------------------------------------------------------
-    # Main sequence
-    # --------------------------------------------------------------------------
 
     def run(self) -> None:
         self.load_input()
@@ -206,6 +186,7 @@ class DocRenderer:
         self.mod_table = read_psv(self.input_dir / "mod_table.psv")
         self.mod_sections = read_psv(self.input_dir / "mod_sections.psv")
         self.mod_items = read_psv(self.input_dir / "mod_items.psv")
+        self.mod_attribution = read_psv(self.input_dir / "mod_attribution.psv", required=False)
         self.doc_content_lines = read_psv(self.input_dir / "doc_content_lines.psv")
         self.config = read_config(self.input_dir / "render_config.psv")
 
@@ -226,225 +207,419 @@ class DocRenderer:
         self.doc_product = self.config.get("VAL_DOCUMENT_PRODUCT", "")
         self.doc_render_date = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------
     # Hierarchy construction
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------
 
     def build_doc_hierarchy(self) -> None:
         self.nav = []
 
-        # Render groups alphabetically, and render all modules for each group
-        # together. A linear <details> renderer cannot correctly "return" to an
-        # earlier group once another group has been emitted.
-        module_rows = list(self.mod_table)
         section_rows = list(self.mod_sections)
         item_rows = list(self.mod_items)
+        modules_by_product = self.modules_by_product()
 
-        modules_by_group: Dict[str, List[Row]] = {}
-
-        for module in module_rows:
-            group_name = module.get("group", "") or "Ungrouped"
-            modules_by_group.setdefault(group_name, []).append(module)
-
-        group_order = sorted(modules_by_group.keys(), key=str.casefold)
-
-        product_name = self.doc_product or "Documentation"
-        product_node_id = f"product:{product_name}"
-
-        self.nav.append(
-            NavNode(
-                nodeid=product_node_id,
-                parentnodeid="root",
-                nodetype="product",
-                node_name=product_name,
-                node_title=product_name,
-                hierarchy_level=0,
-                docindex="1",
-                contentref="",
-            )
-        )
-
-        for group_index, group_name in enumerate(group_order, start=1):
-            group_docindex = f"1.{group_index}"
-            group_node_id = f"group:{product_name}:{group_name}"
+        for product_index, product_name in enumerate(sorted(modules_by_product.keys(), key=str.casefold), start=1):
+            product_node_id = f"product:{product_name}"
+            product_docindex = str(product_index)
+            product_modules = modules_by_product[product_name]
 
             self.nav.append(
                 NavNode(
-                    nodeid=group_node_id,
-                    parentnodeid=product_node_id,
-                    nodetype="group",
-                    node_name=group_name,
-                    node_title=group_name,
-                    hierarchy_level=1,
-                    docindex=group_docindex,
+                    nodeid=product_node_id,
+                    parentnodeid="root",
+                    nodetype="product",
+                    node_name=product_name,
+                    node_title=product_name,
+                    hierarchy_level=0,
+                    docindex=product_docindex,
                     contentref="",
                 )
             )
 
-            group_modules = sorted(
-                modules_by_group[group_name],
-                key=lambda module: (
-                    (module.get("name", "") or module.get("title", "")).casefold(),
-                    module.get("title", "").casefold(),
-                ),
+            product_specials, group_specials, normal_modules = self.split_special_comment_modules(
+                product_name,
+                product_modules,
             )
 
-            for module_index, module in enumerate(group_modules, start=1):
-                module_name = module.get("name", "")
-                module_title = module.get("title", "") or module_name
-                module_docindex = f"{group_docindex}.{module_index}"
+            sequence_index = 0
 
-                module_node_id = f"mod:{module_name}"
-                module_ref = content_ref(module_name)
+            for role in ("preface",):
+                for module in product_specials.get(role, []):
+                    sequence_index += 1
+                    self.add_standalone_doc_node(
+                        module=module,
+                        parent_node_id=product_node_id,
+                        hierarchy_level=1,
+                        docindex=f"{product_docindex}.{sequence_index}",
+                        fallback_name="Product preface",
+                    )
+
+            groups = sorted({module.get("group", "") or "Ungrouped" for module in normal_modules}, key=str.casefold)
+
+            for group_name in groups:
+                sequence_index += 1
+                group_docindex = f"{product_docindex}.{sequence_index}"
+                group_node_id = f"group:{product_name}:{group_name}"
 
                 self.nav.append(
                     NavNode(
-                        nodeid=module_node_id,
-                        parentnodeid=group_node_id,
-                        nodetype="module",
-                        node_name=module_name,
-                        node_title=module_title,
-                        hierarchy_level=2,
-                        docindex=module_docindex,
-                        contentref=module_ref,
+                        nodeid=group_node_id,
+                        parentnodeid=product_node_id,
+                        nodetype="group",
+                        node_name=group_name,
+                        node_title=group_name,
+                        hierarchy_level=1,
+                        docindex=group_docindex,
+                        contentref="",
                     )
                 )
 
-                module_sections = [
-                    section for section in section_rows
-                    if section.get("modulename", "") == module_name
-                ]
-                module_items = [
-                    item for item in item_rows
-                    if item.get("modulename", "") == module_name
-                ]
+                group_sequence_index = 0
 
-                l1_index = 0
+                for module in group_specials.get(group_name, {}).get("preface", []):
+                    group_sequence_index += 1
+                    self.add_standalone_doc_node(
+                        module=module,
+                        parent_node_id=group_node_id,
+                        hierarchy_level=2,
+                        docindex=f"{group_docindex}.{group_sequence_index}",
+                        fallback_name="Group preface",
+                    )
+
+                group_modules = sorted(
+                    [module for module in normal_modules if (module.get("group", "") or "Ungrouped") == group_name],
+                    key=lambda module: (
+                        (module.get("name", "") or module.get("title", "")).casefold(),
+                        module.get("title", "").casefold(),
+                    ),
+                )
+
+                for module in group_modules:
+                    group_sequence_index += 1
+                    self.add_module_node(
+                        module=module,
+                        group_node_id=group_node_id,
+                        module_docindex=f"{group_docindex}.{group_sequence_index}",
+                        section_rows=section_rows,
+                        item_rows=item_rows,
+                    )
+
+                for module in group_specials.get(group_name, {}).get("postscript", []):
+                    group_sequence_index += 1
+                    self.add_standalone_doc_node(
+                        module=module,
+                        parent_node_id=group_node_id,
+                        hierarchy_level=2,
+                        docindex=f"{group_docindex}.{group_sequence_index}",
+                        fallback_name="Group postscript",
+                    )
+
+            for role in ("postscript",):
+                for module in product_specials.get(role, []):
+                    sequence_index += 1
+                    self.add_standalone_doc_node(
+                        module=module,
+                        parent_node_id=product_node_id,
+                        hierarchy_level=1,
+                        docindex=f"{product_docindex}.{sequence_index}",
+                        fallback_name="Product postscript",
+                    )
+
+            sequence_index += 1
+            appendices_docindex = f"{product_docindex}.{sequence_index}"
+            appendices_node_id = f"appendices:{product_name}"
+
+            self.nav.append(
+                NavNode(
+                    nodeid=appendices_node_id,
+                    parentnodeid=product_node_id,
+                    nodetype="appendices",
+                    node_name="Appendices",
+                    node_title="Appendices",
+                    hierarchy_level=1,
+                    docindex=appendices_docindex,
+                    contentref="",
+                )
+            )
+
+            self.nav.append(
+                NavNode(
+                    nodeid=f"appendix:{product_name}:attribution",
+                    parentnodeid=appendices_node_id,
+                    nodetype="appendix",
+                    node_name="Appendix A: Attribution",
+                    node_title="Appendix A: Attribution",
+                    hierarchy_level=2,
+                    docindex=f"{appendices_docindex}.1",
+                    contentref=attribution_ref(product_name),
+                )
+            )
+
+    def modules_by_product(self) -> Dict[str, List[Row]]:
+        result: Dict[str, List[Row]] = defaultdict(list)
+
+        for module in self.mod_table:
+            product_name = module.get("product", "") or self.doc_product or "Documentation"
+            result[product_name].append(module)
+
+        if not result:
+            result[self.doc_product or "Documentation"] = []
+
+        return result
+
+    def split_special_comment_modules(
+        self,
+        product_name: str,
+        modules: List[Row],
+    ) -> tuple[Dict[str, List[Row]], Dict[str, Dict[str, List[Row]]], List[Row]]:
+        product_specials: Dict[str, List[Row]] = {"preface": [], "postscript": []}
+        group_specials: Dict[str, Dict[str, List[Row]]] = defaultdict(lambda: {"preface": [], "postscript": []})
+        normal_modules: List[Row] = []
+
+        product_key = normalize_key(product_name)
+
+        for module in modules:
+            module_name = module.get("name", "")
+            module_key = normalize_key(Path(module_name).stem)
+            group_name = module.get("group", "") or "Ungrouped"
+            group_key = normalize_key(group_name)
+
+            role = self.product_comment_role(module_key, product_key)
+            if role:
+                product_specials[role].append(module)
+                continue
+
+            role = self.group_comment_role(module_key, group_key)
+            if role:
+                group_specials[group_name][role].append(module)
+                continue
+
+            normal_modules.append(module)
+
+        for rows in product_specials.values():
+            rows.sort(key=lambda row: row.get("name", "").casefold())
+
+        for group_rows in group_specials.values():
+            for rows in group_rows.values():
+                rows.sort(key=lambda row: row.get("name", "").casefold())
+
+        return product_specials, group_specials, normal_modules
+
+    def product_comment_role(self, module_key: str, product_key: str) -> str:
+        pre_names = {
+            f"{product_key}_pref_comment",
+            f"{product_key}_pre_comment",
+            f"{product_key}_preface",
+            "product_pref_comment",
+            "product_pre_comment",
+            "product_preface",
+            "doc_product_preface",
+        }
+        post_names = {
+            f"{product_key}_post_comment",
+            f"{product_key}_postscript",
+            "product_post_comment",
+            "product_postscript",
+            "doc_product_postscript",
+        }
+
+        if module_key in pre_names:
+            return "preface"
+        if module_key in post_names:
+            return "postscript"
+        return ""
+
+    def group_comment_role(self, module_key: str, group_key: str) -> str:
+        pre_names = {
+            f"{group_key}_comment",
+            f"{group_key}_pref_comment",
+            f"{group_key}_pre_comment",
+            f"{group_key}_preface",
+            f"group_{group_key}_comment",
+            f"group_{group_key}_pref_comment",
+            f"group_{group_key}_preface",
+        }
+        post_names = {
+            f"{group_key}_post_comment",
+            f"{group_key}_postscript",
+            f"group_{group_key}_post_comment",
+            f"group_{group_key}_postscript",
+        }
+
+        if module_key in pre_names:
+            return "preface"
+        if module_key in post_names:
+            return "postscript"
+        return ""
+
+    def add_standalone_doc_node(
+        self,
+        module: Row,
+        parent_node_id: str,
+        hierarchy_level: int,
+        docindex: str,
+        fallback_name: str,
+    ) -> None:
+        module_name = module.get("name", "")
+        module_title = module.get("title", "") or fallback_name or module_name
+        module_ref = content_ref(module_name)
+
+        self.nav.append(
+            NavNode(
+                nodeid=f"doc:{module_name}:{docindex}",
+                parentnodeid=parent_node_id,
+                nodetype="documentation",
+                node_name=module_title,
+                node_title=module_title,
+                hierarchy_level=hierarchy_level,
+                docindex=docindex,
+                contentref=module_ref,
+            )
+        )
+
+    def add_module_node(
+        self,
+        module: Row,
+        group_node_id: str,
+        module_docindex: str,
+        section_rows: List[Row],
+        item_rows: List[Row],
+    ) -> None:
+        module_name = module.get("name", "")
+        module_title = module.get("title", "") or module_name
+        module_node_id = f"mod:{module_name}"
+        module_ref = content_ref(module_name)
+
+        self.nav.append(
+            NavNode(
+                nodeid=module_node_id,
+                parentnodeid=group_node_id,
+                nodetype="module",
+                node_name=module_name,
+                node_title=module_title,
+                hierarchy_level=2,
+                docindex=module_docindex,
+                contentref=module_ref,
+            )
+        )
+
+        module_sections = [section for section in section_rows if section.get("modulename", "") == module_name]
+        module_items = [item for item in item_rows if item.get("modulename", "") == module_name]
+
+        l1_index = 0
+        l2_index = 0
+        l3_index = 0
+        section_node_ids: Dict[tuple[str, str, str], str] = {}
+        section_docindex_by_id: Dict[str, str] = {}
+
+        for section in module_sections:
+            section_name = section.get("section", "")
+            section_title = section.get("title", "") or section_name
+            parent_section = section.get("parent", "")
+            grandparent_section = section.get("grandparent", "")
+            level_text = section.get("level", "1")
+
+            try:
+                section_level = int(level_text)
+            except ValueError:
+                section_level = 1
+
+            if section_level < 1 or section_level > 3:
+                continue
+
+            if section_level == 1:
+                l1_index += 1
                 l2_index = 0
                 l3_index = 0
-                section_node_ids: Dict[tuple[str, str, str], str] = {}
-                section_docindex_by_id: Dict[str, str] = {}
+                parent_node_id = module_node_id
+                docindex = f"{module_docindex}.{l1_index}"
+                node_id = f"sec:{module_name}:{section_name}"
 
-                for section in module_sections:
-                    section_name = section.get("section", "")
-                    section_title = section.get("title", "") or section_name
-                    parent_section = section.get("parent", "")
-                    grandparent_section = section.get("grandparent", "")
-                    level_text = section.get("level", "1")
+            elif section_level == 2:
+                l2_index += 1
+                l3_index = 0
+                parent_node_id = section_node_ids.get((parent_section, "", ""), module_node_id)
+                parent_docindex = section_docindex_by_id.get(parent_node_id, module_docindex)
+                docindex = f"{parent_docindex}.{l2_index}"
+                node_id = f"sec:{module_name}:{parent_section}:{section_name}"
 
-                    try:
-                        section_level = int(level_text)
-                    except ValueError:
-                        section_level = 1
+            else:
+                l3_index += 1
+                parent_node_id = section_node_ids.get((parent_section, grandparent_section, ""), module_node_id)
+                parent_docindex = section_docindex_by_id.get(parent_node_id, module_docindex)
+                docindex = f"{parent_docindex}.{l3_index}"
+                node_id = f"sec:{module_name}:{grandparent_section}:{parent_section}:{section_name}"
 
-                    if section_level < 1 or section_level > 3:
-                        continue
+            section_node_ids[(section_name, parent_section, grandparent_section)] = node_id
+            section_docindex_by_id[node_id] = docindex
 
-                    if section_level == 1:
-                        l1_index += 1
-                        l2_index = 0
-                        l3_index = 0
-                        parent_node_id = module_node_id
-                        docindex = f"{module_docindex}.{l1_index}"
-                        node_id = f"sec:{module_name}:{section_name}"
+            section_ref = content_ref(module_name, grandparent_section, parent_section, section_name, "")
+            nav_level = 2 + section_level
 
-                    elif section_level == 2:
-                        l2_index += 1
-                        l3_index = 0
-                        parent_node_id = section_node_ids.get((parent_section, "", ""), module_node_id)
-                        parent_docindex = section_docindex_by_id.get(parent_node_id, module_docindex)
-                        docindex = f"{parent_docindex}.{l2_index}"
-                        node_id = f"sec:{module_name}:{parent_section}:{section_name}"
+            self.nav.append(
+                NavNode(
+                    nodeid=node_id,
+                    parentnodeid=parent_node_id,
+                    nodetype="section",
+                    node_name=section_name,
+                    node_title=section_title,
+                    hierarchy_level=nav_level,
+                    docindex=docindex,
+                    contentref=section_ref,
+                )
+            )
 
-                    else:
-                        l3_index += 1
-                        parent_node_id = section_node_ids.get((parent_section, grandparent_section, ""), module_node_id)
-                        parent_docindex = section_docindex_by_id.get(parent_node_id, module_docindex)
-                        docindex = f"{parent_docindex}.{l3_index}"
-                        node_id = f"sec:{module_name}:{grandparent_section}:{parent_section}:{section_name}"
+            section_items = [
+                item for item in module_items
+                if item.get("section", "") == section_name
+                and item.get("parentsection", "") == parent_section
+                and item.get("grandparentsection", "") == grandparent_section
+            ]
 
-                    section_node_ids[(section_name, parent_section, grandparent_section)] = node_id
-                    section_docindex_by_id[node_id] = docindex
+            for item_index, item in enumerate(section_items, start=1):
+                item_name = item.get("name", "")
+                item_title = item.get("title", "") or item_name
+                item_type = item.get("type", "")
+                item_typecode = item.get("typecode", "item")
+                item_visibility = item.get("itemvisibility", "")
+                item_role = item.get("itemrole", "")
 
-                    section_ref = content_ref(
-                        module_name,
-                        grandparent_section,
-                        parent_section,
-                        section_name,
-                        "",
+                item_ref = content_ref(module_name, grandparent_section, parent_section, section_name, item_name)
+                item_node_id = f"{item_typecode}:{module_name}:{grandparent_section}:{parent_section}:{section_name}:{item_name}"
+                item_docindex = f"{docindex}.{item_index}"
+
+                self.nav.append(
+                    NavNode(
+                        nodeid=item_node_id,
+                        parentnodeid=node_id,
+                        nodetype=item_type,
+                        node_name=item_name,
+                        node_title=item_title,
+                        hierarchy_level=nav_level + 1,
+                        docindex=item_docindex,
+                        contentref=item_ref,
+                        isinternal=item_visibility == "internal",
+                        istemplate=item_role == "template",
                     )
-
-                    nav_level = 2 + section_level
-                    self.nav.append(
-                        NavNode(
-                            nodeid=node_id,
-                            parentnodeid=parent_node_id,
-                            nodetype="section",
-                            node_name=section_name,
-                            node_title=section_title,
-                            hierarchy_level=nav_level,
-                            docindex=docindex,
-                            contentref=section_ref,
-                        )
-                    )
-
-                    section_items = [
-                        item for item in module_items
-                        if item.get("section", "") == section_name
-                        and item.get("parentsection", "") == parent_section
-                        and item.get("grandparentsection", "") == grandparent_section
-                    ]
-
-                    for item_index, item in enumerate(section_items, start=1):
-                        item_name = item.get("name", "")
-                        item_title = item.get("title", "") or item_name
-                        item_type = item.get("type", "")
-                        item_typecode = item.get("typecode", "item")
-                        item_visibility = item.get("itemvisibility", "")
-                        item_role = item.get("itemrole", "")
-
-                        item_ref = content_ref(
-                            module_name,
-                            grandparent_section,
-                            parent_section,
-                            section_name,
-                            item_name,
-                        )
-
-                        item_node_id = (
-                            f"{item_typecode}:{module_name}:{grandparent_section}:"
-                            f"{parent_section}:{section_name}:{item_name}"
-                        )
-                        item_docindex = f"{docindex}.{item_index}"
-
-                        self.nav.append(
-                            NavNode(
-                                nodeid=item_node_id,
-                                parentnodeid=node_id,
-                                nodetype=item_type,
-                                node_name=item_name,
-                                node_title=item_title,
-                                hierarchy_level=nav_level + 1,
-                                docindex=item_docindex,
-                                contentref=item_ref,
-                                isinternal=item_visibility == "internal",
-                                istemplate=item_role == "template",
-                            )
-                        )
+                )
 
     def build_content_index(self) -> None:
         rows = sorted(
             self.doc_content_lines,
-            key=lambda r: int(r.get("doc_linenr", "0") or "0"),
+            key=lambda row: (
+                row.get("file", "").casefold(),
+                int(row.get("source_linenr", "0") or "0"),
+                int(row.get("doc_linenr", "0") or "0"),
+            ),
         )
 
         for row in rows:
             ref = row.get("contentref", "")
             self.content_by_ref[ref].append(row)
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------
     # Rendering
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------
 
     def render_assets(self) -> None:
         self.render_layout_css()
@@ -511,18 +686,6 @@ class DocRenderer:
             "    text-decoration: underline;",
             "}",
             "",
-            ".doc-nav-section.level-1 {",
-            "    margin-left: 14px;",
-            "}",
-            "",
-            ".doc-nav-section.level-2 {",
-            "    margin-left: 24px;",
-            "}",
-            "",
-            ".doc-nav-section.level-3 {",
-            "    margin-left: 34px;",
-            "}",
-            "",
             ".doc-nav-item {",
             "    display: block;",
             "    text-decoration: none;",
@@ -551,6 +714,34 @@ class DocRenderer:
             "    padding-bottom: 12px;",
             "}",
             "",
+            ".doc-attribution-meta {",
+            "    display: grid;",
+            "    grid-template-columns: max-content 1fr;",
+            "    column-gap: 12px;",
+            "    row-gap: 4px;",
+            "}",
+            "",
+            ".doc-attribution-meta dt {",
+            "    font-weight: bold;",
+            "}",
+            "",
+            ".doc-attribution-meta dd {",
+            "    margin: 0;",
+            "}",
+            "",
+            ".doc-data-table {",
+            "    border-collapse: collapse;",
+            "    margin-top: 10px;",
+            "    width: 100%;",
+            "}",
+            "",
+            ".doc-data-table th,",
+            ".doc-data-table td {",
+            "    border: 1px solid #d0d0d0;",
+            "    padding: 5px 7px;",
+            "    text-align: left;",
+            "    vertical-align: top;",
+            "}",
         ]
 
         css_file.write_text("\n".join(css_lines), encoding="utf-8")
@@ -770,16 +961,19 @@ body {
 
         index_file.write_text("\n".join(html_lines), encoding="utf-8")
 
+    def has_renderable_page(self, ref: str) -> bool:
+        return ref.startswith(ATTRIBUTION_PREFIX) or ref in self.content_by_ref
+
     def render_navigation(self) -> str:
         lines: List[str] = []
         open_detail_levels: List[int] = []
-        container_types = {"group", "module"}
+        container_types = {"group", "module", "appendices"}
 
         for node in self.nav:
             label = node.node_name
             current_level = node.hierarchy_level
             indent = current_level * 12
-            style = f'padding-left:{indent}px'
+            style = f"padding-left:{indent}px"
             href = page_href_from_contentref(node.contentref) if node.contentref else ""
 
             while open_detail_levels and open_detail_levels[-1] >= current_level:
@@ -790,7 +984,7 @@ body {
                 type_class = slugify(node.nodetype)
                 lines.append(f'<details class="doc-nav-node level-{current_level} type-{type_class}">')
 
-                if node.contentref and node.contentref in self.content_by_ref:
+                if node.contentref and self.has_renderable_page(node.contentref):
                     lines.append(
                         f'<summary style="{style}"><a class="doc-nav-module" href="{esc(href)}" '
                         f'target="docframe">{esc(label)}</a></summary>'
@@ -808,16 +1002,14 @@ body {
                     f'href="{esc(href)}" target="docframe">{esc(label)}</a>'
                 )
 
-            elif node.contentref in self.content_by_ref:
+            elif self.has_renderable_page(node.contentref):
                 lines.append(
                     f'<a class="doc-nav-section" style="{style}" '
                     f'href="{esc(href)}" target="docframe">{esc(label)}</a>'
                 )
 
             else:
-                lines.append(
-                    f'<div class="doc-nav-section" style="{style}">{esc(label)}</div>'
-                )
+                lines.append(f'<div class="doc-nav-section" style="{style}">{esc(label)}</div>')
 
         while open_detail_levels:
             lines.append("</details>")
@@ -827,18 +1019,26 @@ body {
 
     def get_first_item_page(self) -> str:
         for node in self.nav:
-            if node.contentref in self.content_by_ref:
+            if node.contentref and node.contentref in self.content_by_ref:
                 return page_href_from_contentref(node.contentref)
 
-        for ref in self.content_by_ref:
-            return page_href_from_contentref(ref)
+        for node in self.nav:
+            if node.contentref and node.contentref.startswith(ATTRIBUTION_PREFIX):
+                return page_href_from_contentref(node.contentref)
 
         return "about:blank"
 
     def render_content_pages(self) -> None:
         rendered_refs: set[str] = set()
 
+        for product_name in sorted(self.modules_by_product().keys(), key=str.casefold):
+            self.render_attribution_page(product_name)
+
         for node in self.nav:
+            if not node.contentref:
+                continue
+            if node.contentref.startswith(ATTRIBUTION_PREFIX):
+                continue
             if node.contentref not in self.content_by_ref:
                 continue
 
@@ -848,8 +1048,114 @@ body {
         for ref, rows in self.content_by_ref.items():
             if ref in rendered_refs:
                 continue
-
             self.render_content_page_for_ref(ref, rows)
+
+    def render_attribution_page(self, product_name: str) -> None:
+        ref = attribution_ref(product_name)
+        href = page_href_from_contentref(ref)
+        output_file = self.output_dir / href
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+
+        body = self.render_attribution_body(product_name)
+
+        html_lines = [
+            "<!doctype html>",
+            "<html>",
+            "<head>",
+            '  <meta charset="utf-8">',
+            "  <title>Appendix A: Attribution</title>",
+            '  <link rel="stylesheet" href="../assets/doc.css">',
+            '  <link rel="stylesheet" href="../assets/theme.css">',
+            "</head>",
+            "<body>",
+            '<main class="doc-page">',
+            '<header class="doc-page-header">',
+            f'  <div class="doc-title">{esc(self.doc_title)}</div>',
+            f'  <div class="doc-breadcrumb">{esc(product_name)} / Appendices / Appendix A: Attribution</div>',
+            "</header>",
+            body,
+            "</main>",
+            "</body>",
+            "</html>",
+        ]
+
+        output_file.write_text("\n".join(html_lines), encoding="utf-8")
+
+    def render_attribution_body(self, product_name: str) -> str:
+        modules_by_name: Dict[str, Row] = {
+            module.get("name", ""): module
+            for module in self.mod_table
+            if module.get("name", "")
+        }
+
+        grouped_rows: Dict[tuple[str, str, str, str], List[Row]] = defaultdict(list)
+
+        for attribution in self.mod_attribution:
+            module_name = attribution.get("modulename", "")
+            module = modules_by_name.get(module_name, {})
+            row_product = module.get("product", "") or self.doc_product or "Documentation"
+            if row_product != product_name:
+                continue
+
+            merged: Row = dict(attribution)
+            merged["group"] = module.get("group", "")
+            merged["moduletitle"] = module.get("title", "")
+            merged["moduleversion"] = module.get("version", "")
+
+            key = (
+                attribution.get("copyright", ""),
+                attribution.get("company", ""),
+                attribution.get("developers", ""),
+                attribution.get("license", ""),
+            )
+            grouped_rows[key].append(merged)
+
+        lines: List[str] = [
+            '<h1 class="ct-L1Sectionheader">Appendix A: Attribution</h1>',
+            '<div class="ct-documentbody">This appendix lists module attribution metadata collected from module headers.</div>',
+        ]
+
+        if not grouped_rows:
+            lines.append('<div class="ct-documentbody">No attribution data was exported.</div>')
+            return "\n".join(lines)
+
+        for group_key in sorted(grouped_rows.keys(), key=lambda value: tuple(part.casefold() for part in value)):
+            copyright_text, company, developers, license_text = group_key
+            rows = sorted(
+                grouped_rows[group_key],
+                key=lambda row: (
+                    row.get("group", "").casefold(),
+                    row.get("modulename", "").casefold(),
+                ),
+            )
+
+            lines.extend([
+                '<section class="doc-attribution-block">',
+                f'<h2 class="ct-L2Sectionheader">{esc(company or "Unspecified company")}</h2>',
+                '<dl class="doc-attribution-meta">',
+                f'<dt>Copyright</dt><dd>{esc(copyright_text or "-")}</dd>',
+                f'<dt>Company</dt><dd>{esc(company or "-")}</dd>',
+                f'<dt>Developers</dt><dd>{esc(developers or "-")}</dd>',
+                f'<dt>License</dt><dd>{esc(license_text or "-")}</dd>',
+                '</dl>',
+                '<table class="doc-data-table">',
+                '<thead><tr><th>Group</th><th>Module</th><th>Title</th><th>Version</th></tr></thead>',
+                '<tbody>',
+            ])
+
+            for row in rows:
+                lines.append(
+                    "<tr>"
+                    f'<td>{esc(row.get("group", ""))}</td>'
+                    f'<td>{esc(row.get("modulename", ""))}</td>'
+                    f'<td>{esc(row.get("moduletitle", ""))}</td>'
+                    f'<td>{esc(row.get("moduleversion", ""))}</td>'
+                    "</tr>"
+                )
+
+            lines.extend(['</tbody>', '</table>', '</section>'])
+
+        return "\n".join(lines)
 
     def render_content_page(self, node: NavNode) -> None:
         href = page_href_from_contentref(node.contentref)
@@ -942,6 +1248,9 @@ body {
         lines: List[str] = []
 
         for row in self.content_by_ref.get(ref, []):
+            if row.get("suppress", "0") == "1":
+                continue
+
             content_type = row.get("contenttype", "documentbody") or "documentbody"
             style_hint = row.get("stylehint", "normal") or "normal"
             content = row.get("content", "")
@@ -955,9 +1264,6 @@ body {
 
         return "\n".join(lines)
 
-# ------------------------------------------------------------------------------
-# CLI
-# ------------------------------------------------------------------------------
 
 def main(argv: Sequence[str]) -> int:
     if len(argv) != 3:

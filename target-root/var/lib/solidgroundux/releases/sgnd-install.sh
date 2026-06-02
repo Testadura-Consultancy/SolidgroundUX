@@ -5,11 +5,11 @@
 # Metadata:
 #   Version     : 1.0
 #   Build       : 2608802
-#   Checksum    :
+#   Checksum    : -
 #   Source      : sgnd-install.sh
 #   Type        : script
 #   Purpose     : Install a packaged SolidgroundUX release into a target root
-#   Group       : Setup
+#   Group       : Deployment
 #
 # Description:
 #   Standalone installer for SolidgroundUX release archives.

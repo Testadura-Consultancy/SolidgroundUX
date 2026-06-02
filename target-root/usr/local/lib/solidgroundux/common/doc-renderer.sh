@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.1
-#   Build       : 2615311
-#   Checksum    : 2210387a234ae326343c511a5525a642ebe66b6ed9a3e2d4a698eb1465ddd8ce
+#   Build       : 2609100
+#   Checksum    : none
 #   Source      : doc-renderer.sh
 #   Type        : library
 #   Group       : Developer Tools
@@ -178,6 +178,12 @@ set -uo pipefail
                 "$MOD_ITEMS_SCHEMA" \
                 MOD_ITEMS \
                 "$export_dir/mod_items.psv" \
+                || return 1
+
+            sgnd_dt_export_psv \
+                "$MOD_ATTRIBUTION_SCHEMA" \
+                MOD_ATTRIBUTION \
+                "$export_dir/mod_attribution.psv" \
                 || return 1
 
             sgnd_dt_export_psv \

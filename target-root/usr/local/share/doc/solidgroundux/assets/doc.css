@@ -55,18 +55,6 @@ a.doc-nav-section:hover {
     text-decoration: underline;
 }
 
-.doc-nav-section.level-1 {
-    margin-left: 14px;
-}
-
-.doc-nav-section.level-2 {
-    margin-left: 24px;
-}
-
-.doc-nav-section.level-3 {
-    margin-left: 34px;
-}
-
 .doc-nav-item {
     display: block;
     text-decoration: none;
@@ -93,4 +81,33 @@ a.doc-nav-section:hover {
     border-bottom: 1px solid #d0d0d0;
     margin-bottom: 22px;
     padding-bottom: 12px;
+}
+
+.doc-attribution-meta {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    column-gap: 12px;
+    row-gap: 4px;
+}
+
+.doc-attribution-meta dt {
+    font-weight: bold;
+}
+
+.doc-attribution-meta dd {
+    margin: 0;
+}
+
+.doc-data-table {
+    border-collapse: collapse;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.doc-data-table th,
+.doc-data-table td {
+    border: 1px solid #d0d0d0;
+    padding: 5px 7px;
+    text-align: left;
+    vertical-align: top;
 }

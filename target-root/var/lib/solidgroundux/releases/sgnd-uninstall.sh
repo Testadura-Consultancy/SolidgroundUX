@@ -5,11 +5,11 @@
 # Metadata:
 #   Version     : 1.0
 #   Build       : 2608802
-#   Checksum    :
+#   Checksum    : -
 #   Source      : sgnd-uninstall.sh
 #   Type        : script
 #   Purpose     : Uninstall a previously installed SolidgroundUX release from a target root
-#   Group       : Setup
+#   Group       : Deployment
 #
 # Description:
 #   Standalone uninstaller for SolidgroundUX installed release records.
