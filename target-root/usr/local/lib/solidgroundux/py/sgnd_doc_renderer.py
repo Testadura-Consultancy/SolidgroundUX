@@ -34,7 +34,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Sequence
 
-RENDERER_BUILD = "20260602-1415-appendices-and-comment-order-v1"
+RENDERER_BUILD = "20260602-1615-template-filter-bold-v5"
 
 Row = Dict[str, str]
 ATTRIBUTION_PREFIX = "appendix:attribution:"
@@ -251,7 +251,8 @@ class DocRenderer:
                         parent_node_id=product_node_id,
                         hierarchy_level=1,
                         docindex=f"{product_docindex}.{sequence_index}",
-                        fallback_name="Product preface",
+                        fallback_name="Product Preface",
+                        nodetype="preface",
                     )
 
             groups = sorted({module.get("group", "") or "Ungrouped" for module in normal_modules}, key=str.casefold)
@@ -283,7 +284,8 @@ class DocRenderer:
                         parent_node_id=group_node_id,
                         hierarchy_level=2,
                         docindex=f"{group_docindex}.{group_sequence_index}",
-                        fallback_name="Group preface",
+                        fallback_name="Group Preface",
+                        nodetype="preface",
                     )
 
                 group_modules = sorted(
@@ -304,17 +306,18 @@ class DocRenderer:
                         item_rows=item_rows,
                     )
 
-                for module in group_specials.get(group_name, {}).get("postscript", []):
+                for module in group_specials.get(group_name, {}).get("epilogue", []):
                     group_sequence_index += 1
                     self.add_standalone_doc_node(
                         module=module,
                         parent_node_id=group_node_id,
                         hierarchy_level=2,
                         docindex=f"{group_docindex}.{group_sequence_index}",
-                        fallback_name="Group postscript",
+                        fallback_name="Group Epilogue",
+                        nodetype="epilogue",
                     )
 
-            for role in ("postscript",):
+            for role in ("epilogue",):
                 for module in product_specials.get(role, []):
                     sequence_index += 1
                     self.add_standalone_doc_node(
@@ -322,7 +325,8 @@ class DocRenderer:
                         parent_node_id=product_node_id,
                         hierarchy_level=1,
                         docindex=f"{product_docindex}.{sequence_index}",
-                        fallback_name="Product postscript",
+                        fallback_name="Product Epilogue",
+                        nodetype="epilogue",
                     )
 
             sequence_index += 1
@@ -372,8 +376,8 @@ class DocRenderer:
         product_name: str,
         modules: List[Row],
     ) -> tuple[Dict[str, List[Row]], Dict[str, Dict[str, List[Row]]], List[Row]]:
-        product_specials: Dict[str, List[Row]] = {"preface": [], "postscript": []}
-        group_specials: Dict[str, Dict[str, List[Row]]] = defaultdict(lambda: {"preface": [], "postscript": []})
+        product_specials: Dict[str, List[Row]] = {"preface": [], "epilogue": []}
+        group_specials: Dict[str, Dict[str, List[Row]]] = defaultdict(lambda: {"preface": [], "epilogue": []})
         normal_modules: List[Row] = []
 
         product_key = normalize_key(product_name)
@@ -415,18 +419,16 @@ class DocRenderer:
             "product_preface",
             "doc_product_preface",
         }
-        post_names = {
-            f"{product_key}_post_comment",
-            f"{product_key}_postscript",
-            "product_post_comment",
-            "product_postscript",
-            "doc_product_postscript",
+        epilogue_names = {
+            f"{product_key}_epilogue",
+            "product_epilogue",
+            "doc_product_epilogue",
         }
 
         if module_key in pre_names:
             return "preface"
-        if module_key in post_names:
-            return "postscript"
+        if module_key in epilogue_names:
+            return "epilogue"
         return ""
 
     def group_comment_role(self, module_key: str, group_key: str) -> str:
@@ -439,17 +441,15 @@ class DocRenderer:
             f"group_{group_key}_pref_comment",
             f"group_{group_key}_preface",
         }
-        post_names = {
-            f"{group_key}_post_comment",
-            f"{group_key}_postscript",
-            f"group_{group_key}_post_comment",
-            f"group_{group_key}_postscript",
+        epilogue_names = {
+            f"{group_key}_epilogue",
+            f"group_{group_key}_epilogue",
         }
 
         if module_key in pre_names:
             return "preface"
-        if module_key in post_names:
-            return "postscript"
+        if module_key in epilogue_names:
+            return "epilogue"
         return ""
 
     def add_standalone_doc_node(
@@ -459,6 +459,7 @@ class DocRenderer:
         hierarchy_level: int,
         docindex: str,
         fallback_name: str,
+        nodetype: str = "documentation",
     ) -> None:
         module_name = module.get("name", "")
         module_title = module.get("title", "") or fallback_name or module_name
@@ -468,7 +469,7 @@ class DocRenderer:
             NavNode(
                 nodeid=f"doc:{module_name}:{docindex}",
                 parentnodeid=parent_node_id,
-                nodetype="documentation",
+                nodetype=nodetype,
                 node_name=module_title,
                 node_title=module_title,
                 hierarchy_level=hierarchy_level,
@@ -476,6 +477,14 @@ class DocRenderer:
                 contentref=module_ref,
             )
         )
+
+    def is_template_group(self, module: Row) -> bool:
+        return (module.get("group", "") or "").casefold() == "templates"
+
+    def should_render_item(self, module: Row, item: Row) -> bool:
+        if item.get("itemrole", "") == "template" and not self.is_template_group(module):
+            return False
+        return True
 
     def add_module_node(
         self,
@@ -576,7 +585,12 @@ class DocRenderer:
                 and item.get("grandparentsection", "") == grandparent_section
             ]
 
-            for item_index, item in enumerate(section_items, start=1):
+            rendered_item_index = 0
+            for item in section_items:
+                if not self.should_render_item(module, item):
+                    continue
+
+                rendered_item_index += 1
                 item_name = item.get("name", "")
                 item_title = item.get("title", "") or item_name
                 item_type = item.get("type", "")
@@ -586,7 +600,7 @@ class DocRenderer:
 
                 item_ref = content_ref(module_name, grandparent_section, parent_section, section_name, item_name)
                 item_node_id = f"{item_typecode}:{module_name}:{grandparent_section}:{parent_section}:{section_name}:{item_name}"
-                item_docindex = f"{docindex}.{item_index}"
+                item_docindex = f"{docindex}.{rendered_item_index}"
 
                 self.nav.append(
                     NavNode(
@@ -696,6 +710,26 @@ class DocRenderer:
             "",
             ".doc-nav-item:hover {",
             "    text-decoration: underline;",
+            "}",
+            "",
+            ".doc-nav-special,",
+            ".doc-nav-special a,",
+            ".doc-nav-special > summary,",
+            ".type-product,",
+            ".type-product a,",
+            ".type-group,",
+            ".type-group a,",
+            ".type-group > summary,",
+            ".type-appendices,",
+            ".type-appendices a,",
+            ".type-appendices > summary,",
+            ".type-appendix,",
+            ".type-appendix a,",
+            ".type-preface,"
+            ".type-preface a,",
+            ".type-epilogue,",
+            ".type-epilogue a {",
+            "    font-weight: bold;",
             "}",
             "",
             ".doc-content-frame {",
@@ -933,10 +967,99 @@ body {
 .sh-indent {
     margin-left: 22px;
 }
+
+.doc-nav-special,
+.doc-nav-special a,
+.doc-nav-special > summary,
+.type-product,
+.type-product a,
+.type-group,
+.type-group a,
+.type-group > summary,
+.type-appendices,
+.type-appendices a,
+.type-appendices > summary,
+.type-appendix,
+.type-appendix a,
+.type-preface,
+.type-preface a,
+.type-epilogue,
+.type-epilogue a {
+    font-weight: bold;
+}
+
+.doc-title-page {
+    max-width: 900px;
+}
+
+.doc-title-page-title {
+    font-family: Arial, sans-serif;
+    font-size: 28pt;
+    font-weight: bold;
+    line-height: 1.2;
+    margin: 0 0 16px 0;
+}
+
+.doc-title-page-subtitle {
+    font-size: 15pt;
+    font-style: italic;
+    margin: 0 0 18px 0;
+}
+
+.doc-title-page-meta {
+    margin-top: 28px;
+}
+
 """
 
+
+    def title_from_rows(self, ref: str, fallback: str) -> str:
+        for row in self.content_by_ref.get(ref, []):
+            if row.get("suppress", "0") == "1":
+                continue
+            content_type = row.get("contenttype", "")
+            if content_type.endswith("header"):
+                return row.get("content", "") or fallback
+        return fallback
+
+    def render_title_page(self) -> None:
+        output_file = self.page_dir / "title.html"
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+
+        product = self.doc_product or "Documentation"
+        subtitle = self.doc_subtitle or "Full Development Documentation"
+
+        meta_lines = []
+        if self.doc_version:
+            meta_lines.append(f'<div class="ct-documentbody"><strong>Version:</strong> {esc(self.doc_version)}</div>')
+        meta_lines.append(f'<div class="ct-documentbody"><strong>Generated:</strong> {esc(self.doc_render_date)}</div>')
+
+        html_lines = [
+            "<!doctype html>",
+            "<html>",
+            "<head>",
+            '  <meta charset="utf-8">',
+            f"  <title>{esc(self.doc_title)}</title>",
+            '  <link rel="stylesheet" href="../assets/doc.css">',
+            '  <link rel="stylesheet" href="../assets/theme.css">',
+            "</head>",
+            "<body>",
+            '<main class="doc-page doc-title-page">',
+            f'<h1 class="doc-title-page-title">{esc(self.doc_title)}</h1>',
+            f'<div class="doc-title-page-subtitle">{esc(subtitle)}</div>',
+            f'<div class="ct-documentbody">{esc(product)}</div>',
+            '<div class="doc-title-page-meta">',
+            *meta_lines,
+            '</div>',
+            "</main>",
+            "</body>",
+            "</html>",
+        ]
+
+        output_file.write_text("\n".join(html_lines), encoding="utf-8")
+
     def render_index_page(self) -> None:
-        first_page = self.get_first_item_page()
+        first_page = "pages/title.html"
         index_file = self.output_dir / "index.html"
 
         html_lines = [
@@ -973,16 +1096,18 @@ body {
             label = node.node_name
             current_level = node.hierarchy_level
             indent = current_level * 12
+            special_nav_types = {"product", "group", "appendices", "appendix", "preface", "epilogue"}
             style = f"padding-left:{indent}px"
             href = page_href_from_contentref(node.contentref) if node.contentref else ""
+            special_class = " doc-nav-special" if node.nodetype in special_nav_types else ""
+            type_class = slugify(node.nodetype)
 
             while open_detail_levels and open_detail_levels[-1] >= current_level:
                 lines.append("</details>")
                 open_detail_levels.pop()
 
             if node.nodetype in container_types:
-                type_class = slugify(node.nodetype)
-                lines.append(f'<details class="doc-nav-node level-{current_level} type-{type_class}">')
+                lines.append(f'<details class="doc-nav-node level-{current_level} type-{type_class}{special_class}">')
 
                 if node.contentref and self.has_renderable_page(node.contentref):
                     lines.append(
@@ -996,7 +1121,6 @@ body {
                 continue
 
             if is_item_node(node.nodetype):
-                type_class = slugify(node.nodetype)
                 lines.append(
                     f'<a class="doc-nav-item type-{type_class}" style="{style}" '
                     f'href="{esc(href)}" target="docframe">{esc(label)}</a>'
@@ -1004,12 +1128,12 @@ body {
 
             elif self.has_renderable_page(node.contentref):
                 lines.append(
-                    f'<a class="doc-nav-section" style="{style}" '
+                    f'<a class="doc-nav-section type-{type_class}{special_class}" style="{style}" '
                     f'href="{esc(href)}" target="docframe">{esc(label)}</a>'
                 )
 
             else:
-                lines.append(f'<div class="doc-nav-section" style="{style}">{esc(label)}</div>')
+                lines.append(f'<div class="doc-nav-section type-{type_class}{special_class}" style="{style}">{esc(label)}</div>')
 
         while open_detail_levels:
             lines.append("</details>")
@@ -1030,6 +1154,8 @@ body {
 
     def render_content_pages(self) -> None:
         rendered_refs: set[str] = set()
+
+        self.render_title_page()
 
         for product_name in sorted(self.modules_by_product().keys(), key=str.casefold):
             self.render_attribution_page(product_name)
@@ -1070,7 +1196,7 @@ body {
             "<body>",
             '<main class="doc-page">',
             '<header class="doc-page-header">',
-            f'  <div class="doc-title">{esc(self.doc_title)}</div>',
+            '  <div class="doc-title">Appendix A: Attribution</div>',
             f'  <div class="doc-breadcrumb">{esc(product_name)} / Appendices / Appendix A: Attribution</div>',
             "</header>",
             body,
@@ -1162,9 +1288,9 @@ body {
         output_file = self.output_dir / href
         output_file.parent.mkdir(parents=True, exist_ok=True)
 
-        title = node.node_title or node.node_name
+        title = self.title_from_rows(node.contentref, node.node_title or node.node_name)
         breadcrumb = self.breadcrumb_from_contentref(node.contentref)
-        body = self.render_content_for_ref(node.contentref)
+        body = self.render_content_for_ref(node.contentref, skip_first_header=True)
 
         html_lines = [
             "<!doctype html>",
@@ -1178,7 +1304,7 @@ body {
             "<body>",
             '<main class="doc-page">',
             '<header class="doc-page-header">',
-            f'  <div class="doc-title">{esc(self.doc_title)}</div>',
+            f'  <div class="doc-title">{esc(title)}</div>',
             f'  <div class="doc-breadcrumb">{esc(breadcrumb)}</div>',
             "</header>",
             body,
@@ -1201,7 +1327,7 @@ body {
                 title = row.get("content", title) or title
                 break
 
-        body = self.render_content_for_ref(ref)
+        body = self.render_content_for_ref(ref, skip_first_header=True)
 
         html_lines = [
             "<!doctype html>",
@@ -1215,7 +1341,7 @@ body {
             "<body>",
             '<main class="doc-page">',
             '<header class="doc-page-header">',
-            f'  <div class="doc-title">{esc(self.doc_title)}</div>',
+            f'  <div class="doc-title">{esc(title)}</div>',
             f'  <div class="doc-breadcrumb">{esc(ref)}</div>',
             "</header>",
             body,
@@ -1244,14 +1370,18 @@ body {
 
         return " / ".join(part for part in breadcrumb_parts if part)
 
-    def render_content_for_ref(self, ref: str) -> str:
+    def render_content_for_ref(self, ref: str, skip_first_header: bool = False) -> str:
         lines: List[str] = []
+        skipped_first_header = False
 
         for row in self.content_by_ref.get(ref, []):
             if row.get("suppress", "0") == "1":
                 continue
 
             content_type = row.get("contenttype", "documentbody") or "documentbody"
+            if skip_first_header and not skipped_first_header and content_type.endswith("header"):
+                skipped_first_header = True
+                continue
             style_hint = row.get("stylehint", "normal") or "normal"
             content = row.get("content", "")
 
