@@ -131,7 +131,7 @@ set -uo pipefail
         # Notes:
         #   - These tables are collection/output contracts, not class definitions.
         #   - Rendering code should consume these tables instead of reparsing source files.
-        MOD_TABLE_SCHEMA="file|name|title|type|purpose|version|build|group|product"
+        MOD_TABLE_SCHEMA="file|name|title|type|purpose|version|build|checksum|group|product"
         MOD_TABLE=()
 
         MOD_ATTRIBUTION_SCHEMA="modulename|developers|company|client|copyright|license"
@@ -897,6 +897,7 @@ set -uo pipefail
                 "${mod_purpose:-}" \
                 "${mod_version:-}" \
                 "${mod_build:-}" \
+                "${mod_checksum:-}" \
                 "${mod_group:-}" \
                 "${mod_product:-}"
 

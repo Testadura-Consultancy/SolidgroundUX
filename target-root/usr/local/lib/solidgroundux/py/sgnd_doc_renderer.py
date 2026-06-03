@@ -34,11 +34,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Sequence
 
-RENDERER_BUILD = "20260602-1630-glossary-v6"
+RENDERER_BUILD = "2026154"
 
 Row = Dict[str, str]
 ATTRIBUTION_PREFIX = "appendix:attribution:"
 GLOSSARY_PREFIX = "appendix:glossary:"
+INTEGRITY_PREFIX = "appendix:integrity:"
 
 
 def read_psv(path: Path, *, required: bool = True) -> List[Row]:
@@ -121,6 +122,10 @@ def glossary_ref(product_name: str) -> str:
     return f"{GLOSSARY_PREFIX}{product_name}"
 
 
+def integrity_ref(product_name: str) -> str:
+    return f"{INTEGRITY_PREFIX}{product_name}"
+
+
 def page_href_from_contentref(ref: str) -> str:
     return f"pages/{slugify(ref)}.html"
 
@@ -181,8 +186,8 @@ class DocRenderer:
         self.load_input()
         self.prepare_output()
         self.init_metadata()
-        self.build_doc_hierarchy()
         self.build_content_index()
+        self.build_doc_hierarchy()
         self.render_assets()
         self.render_content_pages()
         self.render_index_page()
@@ -377,6 +382,19 @@ class DocRenderer:
                 )
             )
 
+            self.nav.append(
+                NavNode(
+                    nodeid=f"appendix:{product_name}:integrity",
+                    parentnodeid=appendices_node_id,
+                    nodetype="appendix",
+                    node_name="Appendix C: Integrity Information",
+                    node_title="Appendix C: Integrity Information",
+                    hierarchy_level=2,
+                    docindex=f"{appendices_docindex}.3",
+                    contentref=integrity_ref(product_name),
+                )
+            )
+
     def modules_by_product(self) -> Dict[str, List[Row]]:
         result: Dict[str, List[Row]] = defaultdict(list)
 
@@ -504,6 +522,108 @@ class DocRenderer:
             return False
         return True
 
+    def section_key(self, section: Row) -> tuple[str, str, str]:
+        return (
+            section.get("section", ""),
+            section.get("parent", ""),
+            section.get("grandparent", ""),
+        )
+
+    def section_level(self, section: Row) -> int:
+        try:
+            return int(section.get("level", "1") or "1")
+        except ValueError:
+            return 1
+
+    def is_direct_child_section(self, parent_section: Row, child_section: Row) -> bool:
+        parent_name = parent_section.get("section", "")
+        parent_parent = parent_section.get("parent", "")
+        parent_level = self.section_level(parent_section)
+        child_parent = child_section.get("parent", "")
+        child_grandparent = child_section.get("grandparent", "")
+
+        if parent_level == 1:
+            return child_parent == parent_name and child_grandparent == ""
+
+        if parent_level == 2:
+            return child_parent == parent_name and child_grandparent == parent_parent
+
+        return False
+
+    def section_has_body_content(self, module_name: str, section: Row) -> bool:
+        section_name = section.get("section", "")
+        parent_section = section.get("parent", "")
+        grandparent_section = section.get("grandparent", "")
+        ref = content_ref(module_name, grandparent_section, parent_section, section_name, "")
+
+        for row in self.content_by_ref.get(ref, []):
+            if row.get("suppress", "0") == "1":
+                continue
+
+            content_type = row.get("contenttype", "")
+            content = (row.get("content", "") or "").strip()
+
+            if not content:
+                continue
+
+            if content_type.endswith("header"):
+                continue
+
+            return True
+
+        return False
+
+    def section_has_visible_direct_items(self, module: Row, section: Row, module_items: List[Row]) -> bool:
+        section_name = section.get("section", "")
+        parent_section = section.get("parent", "")
+        grandparent_section = section.get("grandparent", "")
+
+        for item in module_items:
+            if item.get("section", "") != section_name:
+                continue
+            if item.get("parentsection", "") != parent_section:
+                continue
+            if item.get("grandparentsection", "") != grandparent_section:
+                continue
+            if self.should_render_item(module, item):
+                return True
+
+        return False
+
+    def should_render_section(
+        self,
+        module: Row,
+        section: Row,
+        module_sections: List[Row],
+        module_items: List[Row],
+        cache: Dict[tuple[str, str, str], bool],
+    ) -> bool:
+        key = self.section_key(section)
+        if key in cache:
+            return cache[key]
+
+        module_name = module.get("name", "")
+
+        if self.section_has_body_content(module_name, section):
+            cache[key] = True
+            return True
+
+        if self.section_has_visible_direct_items(module, section, module_items):
+            cache[key] = True
+            return True
+
+        for child_section in module_sections:
+            if child_section is section:
+                continue
+            if not self.is_direct_child_section(section, child_section):
+                continue
+            if self.should_render_section(module, child_section, module_sections, module_items, cache):
+                cache[key] = True
+                return True
+
+        cache[key] = False
+        return False
+
     def add_module_node(
         self,
         module: Row,
@@ -532,6 +652,7 @@ class DocRenderer:
 
         module_sections = [section for section in section_rows if section.get("modulename", "") == module_name]
         module_items = [item for item in item_rows if item.get("modulename", "") == module_name]
+        visible_section_cache: Dict[tuple[str, str, str], bool] = {}
 
         l1_index = 0
         l2_index = 0
@@ -540,6 +661,9 @@ class DocRenderer:
         section_docindex_by_id: Dict[str, str] = {}
 
         for section in module_sections:
+            if not self.should_render_section(module, section, module_sections, module_items, visible_section_cache):
+                continue
+
             section_name = section.get("section", "")
             section_title = section.get("title", "") or section_name
             parent_section = section.get("parent", "")
@@ -668,7 +792,7 @@ class DocRenderer:
             "}",
             "",
             "body {",
-            "    border-top: 3px solid #222;",
+            "    border-top: 0;",
             "}",
             "",
             ".doc-shell {",
@@ -757,7 +881,7 @@ class DocRenderer:
             "}",
             "",
             ".doc-page {",
-            "    padding: 24px 36px;",
+            "    padding: 36px 36px;",
             "}",
             "",
             ".doc-page-header {",
@@ -1103,7 +1227,7 @@ body {
         index_file.write_text("\n".join(html_lines), encoding="utf-8")
 
     def has_renderable_page(self, ref: str) -> bool:
-        return ref.startswith(ATTRIBUTION_PREFIX) or ref.startswith(GLOSSARY_PREFIX) or ref in self.content_by_ref
+        return ref.startswith(ATTRIBUTION_PREFIX) or ref.startswith(GLOSSARY_PREFIX) or ref.startswith(INTEGRITY_PREFIX) or ref in self.content_by_ref
 
     def render_navigation(self) -> str:
         lines: List[str] = []
@@ -1117,6 +1241,8 @@ body {
             special_nav_types = {"product", "group", "appendices", "appendix", "preface", "epilogue"}
             style = f"padding-left:{indent}px"
             href = page_href_from_contentref(node.contentref) if node.contentref else ""
+            if node.nodetype == "product":
+                href = "pages/title.html"
             special_class = " doc-nav-special" if node.nodetype in special_nav_types else ""
             type_class = slugify(node.nodetype)
 
@@ -1150,6 +1276,12 @@ body {
                     f'href="{esc(href)}" target="docframe">{esc(label)}</a>'
                 )
 
+            elif node.nodetype == "product":
+                lines.append(
+                    f'<a class="doc-nav-section type-{type_class}{special_class}" style="{style}" '
+                    f'href="{esc(href)}" target="docframe">{esc(label)}</a>'
+                )
+
             else:
                 lines.append(f'<div class="doc-nav-section type-{type_class}{special_class}" style="{style}">{esc(label)}</div>')
 
@@ -1165,7 +1297,7 @@ body {
                 return page_href_from_contentref(node.contentref)
 
         for node in self.nav:
-            if node.contentref and (node.contentref.startswith(ATTRIBUTION_PREFIX) or node.contentref.startswith(GLOSSARY_PREFIX)):
+            if node.contentref and (node.contentref.startswith(ATTRIBUTION_PREFIX) or node.contentref.startswith(GLOSSARY_PREFIX) or node.contentref.startswith(INTEGRITY_PREFIX)):
                 return page_href_from_contentref(node.contentref)
 
         return "about:blank"
@@ -1178,11 +1310,12 @@ body {
         for product_name in sorted(self.modules_by_product().keys(), key=str.casefold):
             self.render_attribution_page(product_name)
             self.render_glossary_page(product_name)
+            self.render_integrity_page(product_name)
 
         for node in self.nav:
             if not node.contentref:
                 continue
-            if node.contentref.startswith(ATTRIBUTION_PREFIX) or node.contentref.startswith(GLOSSARY_PREFIX):
+            if node.contentref.startswith(ATTRIBUTION_PREFIX) or node.contentref.startswith(GLOSSARY_PREFIX) or node.contentref.startswith(INTEGRITY_PREFIX):
                 continue
             if node.contentref not in self.content_by_ref:
                 continue
@@ -1466,6 +1599,90 @@ body {
         ])
         return "\n".join(lines)
 
+    def render_integrity_page(self, product_name: str) -> None:
+        ref = integrity_ref(product_name)
+        href = page_href_from_contentref(ref)
+        output_file = self.output_dir / href
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+
+        body = self.render_integrity_body(product_name)
+
+        html_lines = [
+            "<!doctype html>",
+            "<html>",
+            "<head>",
+            '  <meta charset="utf-8">',
+            "  <title>Appendix C: Integrity Information</title>",
+            '  <link rel="stylesheet" href="../assets/doc.css">',
+            '  <link rel="stylesheet" href="../assets/theme.css">',
+            "</head>",
+            "<body>",
+            '<main class="doc-page">',
+            '<header class="doc-page-header">',
+            '  <div class="doc-title">Appendix C: Integrity Information</div>',
+            f'  <div class="doc-breadcrumb">{esc(product_name)} / Appendices / Appendix C: Integrity Information</div>',
+            "</header>",
+            body,
+            "</main>",
+            "</body>",
+            "</html>",
+        ]
+
+        output_file.write_text("\n".join(html_lines), encoding="utf-8")
+
+    def render_integrity_body(self, product_name: str) -> str:
+        rows: List[Row] = []
+
+        for module in self.mod_table:
+            row_product = module.get("product", "") or self.doc_product or "Documentation"
+            if row_product != product_name:
+                continue
+
+            rows.append({
+                "group": module.get("group", ""),
+                "module": module.get("name", ""),
+                "version": module.get("version", ""),
+                "build": module.get("build", ""),
+                "checksum": module.get("checksum", ""),
+            })
+
+        rows.sort(key=lambda row: (
+            row.get("group", "").casefold(),
+            row.get("module", "").casefold(),
+        ))
+
+        lines: List[str] = [
+            '<div class="ct-documentbody">This appendix lists module integrity metadata collected from module headers.</div>',
+        ]
+
+        if not rows:
+            lines.append('<div class="ct-documentbody">No integrity data was exported.</div>')
+            return "\n".join(lines)
+
+        lines.extend([
+            '<table class="doc-data-table">',
+            '<thead><tr><th>Group</th><th>Module</th><th>Version</th><th>Build</th><th>Checksum</th></tr></thead>',
+            '<tbody>',
+        ])
+
+        for row in rows:
+            lines.append(
+                "<tr>"
+                f'<td>{esc(row.get("group", ""))}</td>'
+                f'<td>{esc(row.get("module", ""))}</td>'
+                f'<td>{esc(row.get("version", ""))}</td>'
+                f'<td>{esc(row.get("build", ""))}</td>'
+                f'<td>{esc(row.get("checksum", ""))}</td>'
+                "</tr>"
+            )
+
+        lines.extend([
+            '</tbody>',
+            '</table>',
+        ])
+
+        return "\n".join(lines)
+
     def render_content_page(self, node: NavNode) -> None:
         href = page_href_from_contentref(node.contentref)
         output_file = self.output_dir / href
@@ -1587,7 +1804,6 @@ def main(argv: Sequence[str]) -> int:
     output_dir = Path(argv[2]).resolve()
 
     try:
-        print(f"SGND doc renderer build: {RENDERER_BUILD}", file=sys.stderr)
         renderer = DocRenderer(input_dir, output_dir)
         renderer.run()
     except Exception as exc:

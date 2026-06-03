@@ -5,7 +5,7 @@ html, body {
 }
 
 body {
-    border-top: 3px solid #222;
+    border-top: 0;
 }
 
 .doc-shell {
@@ -93,7 +93,7 @@ a.doc-nav-section:hover {
 }
 
 .doc-page {
-    padding: 24px 36px;
+    padding: 36px 36px;
 }
 
 .doc-page-header {
