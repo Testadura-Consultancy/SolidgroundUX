@@ -50,26 +50,22 @@
 # ==================================================================================
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------
-    # fn$ _sgnd_lib_guard - Guard source-only module loading
+    # fn$ _sgnd_lib_guard - Library guard
         # Purpose:
-        #   Ensure the file is sourced as a library and only initialized once.
+        #   Prevent direct execution of a source-only module and avoid repeated initialization.
         #
         # Behavior:
-        #   - Derives a unique guard variable name from the current filename.
-        #   - Aborts execution if the file is executed instead of sourced.
-        #   - Sets the guard variable on first load.
-        #   - Skips initialization if the library was already loaded.
-        #
-        # Inputs:
-        #   BASH_SOURCE[0]
-        #   $0
-        #
-        # Outputs (globals):
-        #   SGND_<MODULE>_LOADED
+        #   - Derives a module-specific guard variable from the current filename.
+        #   - Exits with status 2 when the file is executed directly.
+        #   - Returns immediately when the module has already been loaded.
+        #   - Marks the module as loaded before normal initialization continues.
         #
         # Returns:
-        #   0 if already loaded or successfully initialized.
-        #   Exits with code 2 if executed instead of sourced.
+        #   0 when the module may continue loading or was already loaded.
+        #   Exits with status 2 when executed directly.
+        #
+        # Usage:
+        #   _sgnd_lib_guard
     _sgnd_lib_guard() {
         local lib_base
         local guard

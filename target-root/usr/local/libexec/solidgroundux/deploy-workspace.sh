@@ -1046,19 +1046,6 @@ set -uo pipefail
         #
         # Examples:
         #   dir_mode="$(_perm_resolve "/usr/local/bin" "dir")"
-    # fn: _perm_resolve - Resolve permission policy for a path
-        # Purpose:
-        #   Resolve permission policy for a path.
-        #
-        # Behavior:
-        #   - Internal helper.
-        #   - Preserves existing script runtime behavior.
-        #
-        # Returns:
-        #   Returns the underlying command or workflow status.
-        #
-        # Usage:
-        #   _perm_resolve
     _perm_resolve() {
         local abs_rel="$1"   # e.g. "/usr/local/sbin/td-foo"
         local kind="$2"      # "file" or "dir"
@@ -1151,19 +1138,6 @@ set -uo pipefail
         #
         # Notes:
         #   - Uses ask and ask_ok_redo_quit
-    # fn: _getparameters - Collect deployment parameters
-        # Purpose:
-        #   Collect deployment parameters.
-        #
-        # Behavior:
-        #   - Internal helper.
-        #   - Preserves existing script runtime behavior.
-        #
-        # Returns:
-        #   Returns the underlying command or workflow status.
-        #
-        # Usage:
-        #   _getparameters
     _getparameters() {
         local default_src default_dst
         default_src="${last_deploy_source:-$HOME/dev}"
@@ -1271,19 +1245,6 @@ set -uo pipefail
         # Notes:
         #   - Uses install for atomic writes and permission control
         #   - Manifest records created artifacts only; it is not full rollback state
-    # fn: _deploy - Deploy workspace files to the target root
-        # Purpose:
-        #   Deploy workspace files to the target root.
-        #
-        # Behavior:
-        #   - Internal helper.
-        #   - Preserves existing script runtime behavior.
-        #
-        # Returns:
-        #   Returns the underlying command or workflow status.
-        #
-        # Usage:
-        #   _deploy
     _deploy() {
         SRC_ROOT="${SRC_ROOT%/}"
         DEST_ROOT="${DEST_ROOT%/}"
@@ -1412,19 +1373,6 @@ set -uo pipefail
         # Notes:
         #   - This is a manifest-based inverse of created artifacts only
         #   - Updated pre-existing files are not restored or removed
-    # fn: _undeploy - Remove deployed files recorded in a manifest
-        # Purpose:
-        #   Remove deployed files recorded in a manifest.
-        #
-        # Behavior:
-        #   - Internal helper.
-        #   - Preserves existing script runtime behavior.
-        #
-        # Returns:
-        #   Returns the underlying command or workflow status.
-        #
-        # Usage:
-        #   _undeploy
     _undeploy() {
         local kind path dst
 

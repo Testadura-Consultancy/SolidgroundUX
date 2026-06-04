@@ -2,8 +2,8 @@
 # SolidgroundUX - General documentation
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0
-#   Build       : 2608802
+#   Version     : 1.5
+#   Build       : 2615600
 #   Checksum    : -
 #   Source      : solidgroundux_preface.sh
 #   Type        : documentation

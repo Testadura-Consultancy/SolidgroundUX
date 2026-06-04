@@ -38,21 +38,23 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
 set -uo pipefail
-# fn$: _sgnd_lib_guard - Library guard
 # --- Library guard ------------------------------------------------------------------
-    # fn$ _sgnd_lib_guard - Sgnd Lib Guard
+    # fn$ _sgnd_lib_guard - Library guard
         # Purpose:
-        #   Internal helper function for the  sgnd lib guard operation.
+        #   Prevent direct execution of a source-only module and avoid repeated initialization.
         #
         # Behavior:
-        #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Derives a module-specific guard variable from the current filename.
+        #   - Exits with status 2 when the file is executed directly.
+        #   - Returns immediately when the module has already been loaded.
+        #   - Marks the module as loaded before normal initialization continues.
         #
         # Returns:
-        #   0 on success, non-zero when validation or execution fails.
+        #   0 when the module may continue loading or was already loaded.
+        #   Exits with status 2 when executed directly.
         #
         # Usage:
-        #   _sgnd_lib_guard [arguments...]
+        #   _sgnd_lib_guard
     _sgnd_lib_guard() {
         local lib_base
         local guard

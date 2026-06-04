@@ -3,8 +3,8 @@
 # SolidgroundUX - Documentation Sample
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0
-#   Build       : 2615500
+#   Version     : 1.5
+#   Build       : 2615600
 #   Checksum    : -
 #   Source      : doc-sample.sh
 #   Type        : documentation

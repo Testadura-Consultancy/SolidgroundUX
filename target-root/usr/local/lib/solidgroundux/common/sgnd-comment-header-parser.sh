@@ -49,19 +49,22 @@
 
 set -uo pipefail
 # - Library guard ------------------------------------------------------------------
-    # fn$ _sgnd_lib_guard - Lib guard
+    # fn$ _sgnd_lib_guard - Library guard
         # Purpose:
-        #   Prevent direct execution of a source-only library and avoid repeated initialization when the file is sourced more than once.
+        #   Prevent direct execution of a source-only module and avoid repeated initialization.
         #
         # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
+        #   - Derives a module-specific guard variable from the current filename.
+        #   - Exits with status 2 when the file is executed directly.
+        #   - Returns immediately when the module has already been loaded.
+        #   - Marks the module as loaded before normal initialization continues.
         #
         # Returns:
-        #   0 when the library may continue loading; exits with 2 when executed directly.
+        #   0 when the module may continue loading or was already loaded.
+        #   Exits with status 2 when executed directly.
         #
         # Usage:
-        #   _sgnd_lib_guard ...
+        #   _sgnd_lib_guard
     _sgnd_lib_guard() {
         local lib_base
         local guard
@@ -551,12 +554,22 @@ set -uo pipefail
         return 1
     }
 
-    # fn: sgnd_header_get_field_value
+    # fn: sgnd_header_get_field - Read a named field from a header section
+        # Purpose:
+        #   Read a named metadata or attribution field from a named module header section.
+        #
+        # Arguments:
+        #   $1  Source file to inspect.
+        #   $2  Header section name.
+        #   $3  Field name to read.
+        #   $4  Output variable that receives the field value.
+        #
         # Returns:
-        #   Prints the requested field value to stdout, or an empty string if not found.
+        #   0 when the field is found.
+        #   1 when the field is not found.
         #
         # Usage:
-        #   sgnd_header_get_field_value "$file" "Metadata" "Version"
+        #   sgnd_header_get_field "$file" "Metadata" "Version" value
     sgnd_header_get_field() {
         local file="${1:?missing file}"
         local section="${2:?missing section}"

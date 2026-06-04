@@ -76,19 +76,6 @@ set -uo pipefail
         #
         # Notes:
         #   - Under sudo, configuration is resolved relative to SUDO_USER instead of /root.
-    # fn$ _framework_locator - Locate the SolidgroundUX framework root
-        # Purpose:
-        #   Locate the SolidgroundUX framework root.
-        #
-        # Behavior:
-        #   - Template/bootstrap helper.
-        #   - Preserves existing script runtime behavior.
-        #
-        # Returns:
-        #   Returns the underlying command or workflow status.
-        #
-        # Usage:
-        #   _framework_locator
     _framework_locator (){
         local cfg_home="$HOME"
 
@@ -585,19 +572,6 @@ set -uo pipefail
         #
         # Examples:
         #   _get_userinput
-    # fn: _get_userinput - Collect documentation generator input
-        # Purpose:
-        #   Collect documentation generator input.
-        #
-        # Behavior:
-        #   - Internal helper.
-        #   - Preserves existing script runtime behavior.
-        #
-        # Returns:
-        #   Returns the underlying command or workflow status.
-        #
-        # Usage:
-        #   _get_userinput
     _get_userinput() {
         local lw=25
         local lp=4
@@ -886,19 +860,6 @@ set -uo pipefail
         # Notes:
         #   - sgnd_bootstrap separates framework arguments from script arguments.
         #   - This function is script-owned orchestration logic, not template-only scaffolding.
-    # fn: main - Run the executable main sequence
-        # Purpose:
-        #   Run the executable main sequence.
-        #
-        # Behavior:
-        #   - Public entry point.
-        #   - Preserves existing script runtime behavior.
-        #
-        # Returns:
-        #   Returns the underlying command or workflow status.
-        #
-        # Usage:
-        #   main
     main() {
         # -- Bootstrap
             local rc=0

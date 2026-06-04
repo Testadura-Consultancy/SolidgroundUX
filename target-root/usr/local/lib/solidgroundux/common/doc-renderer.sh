@@ -3,7 +3,7 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2615500
+#   Build       : 2615600
 #   Checksum    : -
 #   Source      : doc-renderer.sh
 #   Type        : library
@@ -39,19 +39,19 @@
 # ==================================================================================
 set -uo pipefail
 # - Library guard ------------------------------------------------------------------
-    # fn$: _sgnd_lib_guard - Prevent direct execution and repeated library initialization
+    # fn$ _sgnd_lib_guard - Library guard
         # Purpose:
-        #   Apply the standard SGND library guard for source-only modules.
+        #   Prevent direct execution of a source-only module and avoid repeated initialization.
         #
         # Behavior:
-        #   - Rejects direct execution of this file.
         #   - Derives a module-specific guard variable from the current filename.
-        #   - Returns immediately when the library was already initialized.
-        #   - Marks the library as loaded before module initialization continues.
+        #   - Exits with status 2 when the file is executed directly.
+        #   - Returns immediately when the module has already been loaded.
+        #   - Marks the module as loaded before normal initialization continues.
         #
         # Returns:
-        #   0 when the library may continue loading or was already loaded.
-        #   Exits with status 2 when the file is executed directly.
+        #   0 when the module may continue loading or was already loaded.
+        #   Exits with status 2 when executed directly.
         #
         # Usage:
         #   _sgnd_lib_guard
@@ -78,7 +78,7 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # - Local definitions -------------------------------------------------------------
-    # var: Render cache directory - Optional location for renderer cache data
+    # var: DOC_RENDER_CACHE_DIR - Optional renderer cache directory
         # Purpose:
         #   Reserve a shared variable for renderer cache location configuration.
         #
@@ -116,7 +116,7 @@ set -uo pipefail
         DOC_FUNCTION_INDEX=()
 
     # -- Arguments ------------------------------------------------------------------
-        # var: Render options - Documentation output selection and ordering defaults
+        # doc: render_options - Documentation output selection and ordering defaults
             # Purpose:
             #   Define default renderer options used by documentation generation.
             #

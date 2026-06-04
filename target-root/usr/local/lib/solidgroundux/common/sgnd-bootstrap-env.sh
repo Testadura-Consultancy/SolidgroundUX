@@ -45,22 +45,19 @@
 # =====================================================================================
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------
-    # fn$: _sgnd_lib_guard - Guard source-only library loading
+    # fn$ _sgnd_lib_guard - Library guard
         # Purpose:
-        #   Prevent direct execution and repeated initialization of this library.
+        #   Prevent direct execution of a source-only module and avoid repeated initialization.
         #
         # Behavior:
-        #   - Derives a guard variable name from the current library filename.
-        #   - Exits with status 2 when the file is executed instead of sourced.
-        #   - Returns without action when the guard variable is already set.
-        #   - Sets the guard variable on first successful source.
-        #
-        # Outputs (globals):
-        #   SGND_<LIBRARY_NAME>_LOADED
+        #   - Derives a module-specific guard variable from the current filename.
+        #   - Exits with status 2 when the file is executed directly.
+        #   - Returns immediately when the module has already been loaded.
+        #   - Marks the module as loaded before normal initialization continues.
         #
         # Returns:
-        #   0 when the library may continue loading or was already loaded.
-        #   Exits with 2 when the file is executed directly.
+        #   0 when the module may continue loading or was already loaded.
+        #   Exits with status 2 when executed directly.
         #
         # Usage:
         #   _sgnd_lib_guard
@@ -190,13 +187,6 @@ set -uo pipefail
         # Usage:
         #   _build_framework_dirs
     _build_framework_dirs(){
-    # var: SGND_FRAMEWORK_DIRS - Framework directory specifications
-        # Purpose:
-        #   Hold the rebuilt path specification list consumed by sgnd_ensure_dirs.
-        #
-        # Format:
-        #   s|/path   system-owned directory.
-        #   u|/path   user-owned directory.
         SGND_FRAMEWORK_DIRS=(
             "s|$SGND_COMMON_LIB"
             "s|$SGND_SYSCFG_DIR"
