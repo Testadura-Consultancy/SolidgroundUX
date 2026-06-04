@@ -3,9 +3,9 @@
 # SolidgroundUX - Prepare Release
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.1
-#   Build       : 2615311
-#   Checksum    : 456f2905a0c378599e8aa6d607869d4adb8cf155687c6fada8c2f35f0f0bd3b9
+#   Version     : 1.5
+#   Build       : 2615600
+#   Checksum    : -
 #   Source      : prepare-release.sh
 #   Type        : script
 #   Group       : Developer Tools
@@ -71,7 +71,7 @@ set -uo pipefail
         #   _framework_locator || return $?
         #
         # Examples:
-        #   _framework_locator
+        # fn$ _framework_locator - Locate the SolidgroundUX framework root
         #
         # Notes:
         #   - Under sudo, configuration is resolved relative to SUDO_USER instead of /root.
@@ -189,7 +189,7 @@ set -uo pipefail
         #   _load_bootstrapper || return $?
         #
         # Examples:
-        #   _load_bootstrapper
+        # fn$ _load_bootstrapper - Load the SolidgroundUX bootstrapper
         #
         # Notes:
         #   - This is executable-level startup logic, not reusable framework behavior.
@@ -226,21 +226,125 @@ set -uo pipefail
     RESET=$'\e[0m'
 
     # Minimal UI
+    # fn$ saystart - Emit a minimal START message before bootstrap
+        # Purpose:
+        #   Emit a minimal START message before bootstrap.
+        #
+        # Behavior:
+        #   - Template/bootstrap helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   saystart
     saystart()   { printf '%sSTART%s\t%s\n' "${MSG_CLR_STRT-}" "${RESET-}" "$*" >&2; }
+    # fn$ sayinfo - Emit a minimal INFO message before bootstrap
+        # Purpose:
+        #   Emit a minimal INFO message before bootstrap.
+        #
+        # Behavior:
+        #   - Template/bootstrap helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   sayinfo
     sayinfo()    {
         if (( ${FLAG_VERBOSE:-0} )); then
             printf '%sINFO%s \t%s\n' "${MSG_CLR_INFO-}" "${RESET-}" "$*" >&2;
         fi
     }
+    # fn$ sayok - Emit a minimal OK message before bootstrap
+        # Purpose:
+        #   Emit a minimal OK message before bootstrap.
+        #
+        # Behavior:
+        #   - Template/bootstrap helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   sayok
     sayok()      { printf '%sOK%s   \t%s\n' "${MSG_CLR_OK-}"   "${RESET-}" "$*" >&2; }
+    # fn$ saywarning - Emit a minimal WARN message before bootstrap
+        # Purpose:
+        #   Emit a minimal WARN message before bootstrap.
+        #
+        # Behavior:
+        #   - Template/bootstrap helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   saywarning
     saywarning() { printf '%sWARN%s \t%s\n' "${MSG_CLR_WARN-}" "${RESET-}" "$*" >&2; }
+    # fn$ sayfail - Emit a minimal FAIL message before bootstrap
+        # Purpose:
+        #   Emit a minimal FAIL message before bootstrap.
+        #
+        # Behavior:
+        #   - Template/bootstrap helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   sayfail
     sayfail()    { printf '%sFAIL%s \t%s\n' "${MSG_CLR_FAIL-}" "${RESET-}" "$*" >&2; }
+    # fn$ saydebug - Emit a minimal DEBUG message before bootstrap
+        # Purpose:
+        #   Emit a minimal DEBUG message before bootstrap.
+        #
+        # Behavior:
+        #   - Template/bootstrap helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   saydebug
     saydebug() {
         if (( ${FLAG_DEBUG:-0} )); then
             printf '%sDEBUG%s \t%s\n' "${MSG_CLR_DEBUG-}" "${RESET-}" "$*" >&2;
         fi
     }
+    # fn$ saycancel - Emit a minimal CANCEL message before bootstrap
+        # Purpose:
+        #   Emit a minimal CANCEL message before bootstrap.
+        #
+        # Behavior:
+        #   - Template/bootstrap helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   saycancel
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
+    # fn$ sayend - Emit a minimal END message before bootstrap
+        # Purpose:
+        #   Emit a minimal END message before bootstrap.
+        #
+        # Behavior:
+        #   - Template/bootstrap helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   sayend
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
 
 # --- Script metadata (identity) ------------------------------------------------------
@@ -269,7 +373,7 @@ set -uo pipefail
         #   name    = long option name WITHOUT leading --
         #   short   - short option name WITHOUT leading -
         #   type    = flag | value | enum
-        #   var     = shell variable that will be set
+        # var: = shell variable that will be set
         #   help    = help string for auto-generated --help output
         #   choices = for enum: comma-separated values (e.g. fast,slow,auto)
         #             for flag/value: leave empty
@@ -422,6 +526,19 @@ set -uo pipefail
         #
         # Notes:
         #   - Requires sgnd_bootstrap --state so the state backend is available.
+    # fn: _save_parameters - Persist prepare-release parameters
+        # Purpose:
+        #   Persist prepare-release parameters.
+        #
+        # Behavior:
+        #   - Internal helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   _save_parameters
     _save_parameters(){
         if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
             sayinfo "Would have saved state variables (manual)"
@@ -485,6 +602,19 @@ set -uo pipefail
         # Notes:
         #   - Uses ask() and ask_ok_redo_quit() for interactive input.
         #   - Auto mode assumes state was loaded during bootstrap (--state).
+    # fn: _get_parameters - Collect prepare-release parameters
+        # Purpose:
+        #   Collect prepare-release parameters.
+        #
+        # Behavior:
+        #   - Internal helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   _get_parameters
     _get_parameters(){
         PRODUCT="${PRODUCT:-"$SGND_PRODUCT"}"
         VERSION="${VERSION:-"$SGND_VERSION"}"
@@ -642,6 +772,19 @@ set -uo pipefail
         # Notes:
         #   - Idempotent for a given filename.
         #   - Requires sha256sum, sed, awk, and write permission to staging_root.
+    # fn: sgnd_release_write_checksum - Write release checksum metadata for a file
+        # Purpose:
+        #   Write release checksum metadata for a file.
+        #
+        # Behavior:
+        #   - Public entry point.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   sgnd_release_write_checksum
     sgnd_release_write_checksum() {
         local tar_path="${1:-}"
         local tar_file="${2:-}"
@@ -712,6 +855,19 @@ set -uo pipefail
         # Notes:
         #   - In dry-run mode, only reports the intended actions.
         #   - Manifest is generated before embedding, so it does not list itself.
+    # fn: _create_tar - Create the release tar archive
+        # Purpose:
+        #   Create the release tar archive.
+        #
+        # Behavior:
+        #   - Internal helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   _create_tar
     _create_tar() {
         saystart "Creating release: $RELEASE"
 
@@ -809,7 +965,7 @@ set -uo pipefail
         return 0
     }
 
-    # _apply_version_bump
+    # fn: _apply_version_bump - Apply release version bump metadata
         # Purpose:
         #   Apply header checksum/build refresh and optional version bumping to source files.
         #
@@ -883,7 +1039,7 @@ set -uo pipefail
     }
 
 # --- Main Sequence -------------------------------------------------------------------
-    # main
+    # fn$ main - Run the executable main sequence
         # Purpose:
         #   Execute the release preparation workflow.
         #

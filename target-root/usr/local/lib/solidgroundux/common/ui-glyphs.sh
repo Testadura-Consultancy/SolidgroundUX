@@ -2,9 +2,9 @@
 # SolidgroundUX - UI Glyphs
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.1
-#   Build       : 2615311
-#   Checksum    : cde9eb20be81947cc091e9e64f85df8dc961d427358800b337f5081bacf0b77a
+#   Version     : 1.5
+#   Build       : 2615600
+#   Checksum    : -
 #   Source      : ui-glyphs.sh
 #   Type        : library
 #   Group       : UI
@@ -44,8 +44,9 @@
 # =====================================================================================
 set -uo pipefail
 
+# fn$: _sgnd_lib_guard - Library guard
 # --- Library guard ------------------------------------------------------------------
-    # tmp: _sgnd_lib_guard
+    # fn$ _sgnd_lib_guard - Library guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
         #
@@ -65,6 +66,19 @@ set -uo pipefail
         # Returns:
         #   0 if already loaded or successfully initialized.
         #   Exits with code 2 if executed instead of sourced.
+    # fn$ _sgnd_lib_guard - Sgnd Lib Guard
+        # Purpose:
+        #   Internal helper function for the  sgnd lib guard operation.
+        #
+        # Behavior:
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #
+        # Returns:
+        #   0 on success, non-zero when validation or execution fails.
+        #
+        # Usage:
+        #   _sgnd_lib_guard [arguments...]
     _sgnd_lib_guard() {
         local lib_base
         local guard
@@ -86,6 +100,69 @@ set -uo pipefail
     unset -f _sgnd_lib_guard
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
+    
+# --- Glyph variable reference ------------------------------------------------------
+    # var: Glyph variables - Console glyph constants
+        # Purpose:
+        #   Document the glyph constants exposed by this module.
+        #
+        # ! Line drawing characters:
+        #   LN_H = ─
+        #   LN_V = │
+        #   LN_TL = ┌
+        #   LN_TR = ┐
+        #   LN_BL = └
+        #   LN_BR = ┘
+        #   LN_T = ┬
+        #   LN_B = ┴
+        #   LN_L = ├
+        #   LN_R = ┤
+        #   LN_X = ┼
+        #   DL_H = ═
+        #   DL_V = ║
+        #   DL_TL = ╔
+        #   DL_TR = ╗
+        #   DL_BL = ╚
+        #   DL_BR = ╝
+        #   DL_T = ╦
+        #   DL_B = ╩
+        #   DL_L = ╠
+        #   DL_R = ╣
+        #   DL_X = ╬
+        #
+        # ! Symbols:        
+        #   CH_DEG = °
+        #   CH_COPY = ©
+        #   CH_TM = ™
+        #   CH_REG = ®
+        #   CH_BULLET = •
+        #   CH_ARROW = →
+        #   CH_ELLIPSIS = …
+        #   CH_SQRT = √
+        #   CH_GE = ≥
+        #   CH_LE = ≤
+        #   CH_NE = ≠
+        #   CH_APPROX = ≈
+        #   CH_INF = ∞
+        #
+        # ! Navigation:
+        #   KY_ENTER = ↵
+        #   KY_UP = ↑
+        #   KY_DOWN = ↓
+        #   KY_LEFT = ←
+        #   KY_RIGHT = →
+        #
+        # ! Greek letters:
+        #   GR_ALPHA = α
+        #   GR_BETA = β
+        #   GR_GAMMA = γ
+        #   GR_DELTA = Δ
+        #   GR_PI = π
+        #   GR_OMEGA = Ω
+        #
+        # Notes:
+        #   These variables are display constants only; rendering and color handling live in UI modules.
+
     
 # --- Light line drawing ------------------------------------------------------------
     LN_H="─"

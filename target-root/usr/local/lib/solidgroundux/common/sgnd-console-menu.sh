@@ -2,9 +2,9 @@
 # SolidgroundUX - Console Menu System
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.1
-#   Build       : 2615311
-#   Checksum    : 2c7f6c806e538dc4a09141240158062d42563ebf30c933c1c6ac6872fc12e6d7
+#   Version     : 1.5
+#   Build       : 2615600
+#   Checksum    : -
 #   Source      : sgnd-console-menu.sh
 #   Group       : Solidground Console
 #   Type        : library
@@ -65,6 +65,19 @@ set -uo pipefail
         # Returns:
         #   0 if already loaded or successfully initialized.
         #   Exits with code 2 if executed instead of sourced.
+    # fn$ _sgnd_lib_guard - Lib guard
+        # Purpose:
+        #   Prevent direct execution of a source-only library and avoid repeated initialization when the file is sourced more than once.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 when the library may continue loading; exits with 2 when executed directly.
+        #
+        # Usage:
+        #   _sgnd_lib_guard ...
     _sgnd_lib_guard() {
         local lib_base
         local guard
@@ -113,6 +126,19 @@ set -uo pipefail
         # Usage:
         #   _sgnd_console_toggleword "DEBUG" "B" 1
         #   _sgnd_console_toggleword "DRYRUN" "D" 0
+    # fn: _sgnd_console_toggleword - Console toggleword
+        # Purpose:
+        #   Return a display word for a boolean toggle state.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_toggleword ...
     _sgnd_console_toggleword() {
         local word="${1:?missing word}"
         local hotkey="${2:?missing hotkey}"
@@ -167,6 +193,19 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
+    # fn: _sgnd_console_onoff - Console onoff
+        # Purpose:
+        #   Return ON or OFF for a boolean toggle state.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_onoff ...
     _sgnd_console_onoff() {
         local value="${1:-0}"
         local onclr="${2:-$BRIGHT_GREEN}"
@@ -188,6 +227,19 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
+    # fn: _sgnd_console_label_clearonrender - Console label clearonrender
+        # Purpose:
+        #   Build the Clear-on-render toggle label.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_label_clearonrender ...
     _sgnd_console_label_clearonrender() {
         : "${SGND_CLEAR_ONRENDER:=1}"
         printf 'Clear screen: %s' "$(_sgnd_console_onoff "$SGND_CLEAR_ONRENDER")"
@@ -202,6 +254,19 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
+    # fn: _sgnd_console_label_dryrun - Console label dryrun
+        # Purpose:
+        #   Build the Dry-run toggle label.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_label_dryrun ...
     _sgnd_console_label_dryrun() {
         : "${FLAG_DRYRUN:=0}"
         printf 'Dry-run: %s' "$(_sgnd_console_onoff "$FLAG_DRYRUN" "$TUI_DRYRUN" "$TUI_COMMIT")"
@@ -216,6 +281,19 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
+    # fn: _sgnd_console_label_debug - Console label debug
+        # Purpose:
+        #   Build the Debug toggle label.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_label_debug ...
     _sgnd_console_label_debug() {
         : "${FLAG_DEBUG:=0}"
         printf 'Debug: %s' "$(_sgnd_console_onoff "$FLAG_DEBUG")"
@@ -230,6 +308,19 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
+    # fn: _sgnd_console_label_verbose - Console label verbose
+        # Purpose:
+        #   Build the Verbose toggle label.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_label_verbose ...
     _sgnd_console_label_verbose() {
         : "${FLAG_VERBOSE:=0}"
         printf 'Verbose: %s' "$(_sgnd_console_onoff "$FLAG_VERBOSE")"
@@ -244,6 +335,19 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
+    # fn: _sgnd_console_label_logfile - Console label logfile
+        # Purpose:
+        #   Build the Logfile toggle label.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_label_logfile ...
     _sgnd_console_label_logfile() {
         : "${SGND_LOGFILE_ENABLED:=0}"
         printf 'Logfile: %s' "$(_sgnd_console_onoff "$SGND_LOGFILE_ENABLED")"
@@ -260,6 +364,19 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
+    # fn: _sgnd_console_toggle_clearonrender - Console toggle clearonrender
+        # Purpose:
+        #   Toggle the console clear-on-render option.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_toggle_clearonrender ...
     _sgnd_console_toggle_clearonrender() {
         : "${SGND_CLEAR_ONRENDER:=1}"
 
@@ -282,6 +399,19 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
+    # fn: _sgnd_console_toggle_dryrun - Console toggle dryrun
+        # Purpose:
+        #   Toggle dry-run mode for the active console session.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_toggle_dryrun ...
     _sgnd_console_toggle_dryrun() {
         : "${FLAG_DRYRUN:=0}"
 
@@ -306,6 +436,19 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
+    # fn: _sgnd_console_toggle_debug - Console toggle debug
+        # Purpose:
+        #   Toggle debug output for the active console session.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_toggle_debug ...
     _sgnd_console_toggle_debug() {
         : "${FLAG_DEBUG:=0}"
 
@@ -329,6 +472,19 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
+    # fn: _sgnd_console_toggle_verbose - Console toggle verbose
+        # Purpose:
+        #   Toggle verbose output for the active console session.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_toggle_verbose ...
     _sgnd_console_toggle_verbose() {
         : "${FLAG_VERBOSE:=0}"
 
@@ -351,6 +507,19 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
+    # fn: _sgnd_console_toggle_logfile - Console toggle logfile
+        # Purpose:
+        #   Toggle logfile output for the active console session.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_toggle_logfile ...
     _sgnd_console_toggle_logfile() {
         : "${SGND_LOGFILE_ENABLED:=0}"
 
@@ -369,6 +538,19 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
+    # fn: _sgnd_console_redraw - Console redraw
+        # Purpose:
+        #   Request a console menu redraw.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_redraw ...
     _sgnd_console_redraw() {
         return 0
     }
@@ -379,6 +561,19 @@ set -uo pipefail
         #
         # Returns:
         #   200 as a sentinel value consumed by _sgnd_console_run
+    # fn: _sgnd_console_quit - Console quit
+        # Purpose:
+        #   Request console menu termination.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_quit ...
     _sgnd_console_quit() {
         return 200
     }
@@ -396,6 +591,19 @@ set -uo pipefail
         #
         # Usage:
         #   _sgnd_console_nextpage
+    # fn: _sgnd_console_nextpage - Console nextpage
+        # Purpose:
+        #   Move the console menu to the next page.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_nextpage ...
     _sgnd_console_nextpage() {
         _sgnd_console_build_pages
 
@@ -418,6 +626,19 @@ set -uo pipefail
         #
         # Usage:
         #   _sgnd_console_prevpage
+    # fn: _sgnd_console_prevpage - Console prevpage
+        # Purpose:
+        #   Move the console menu to the previous page.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_prevpage ...
     _sgnd_console_prevpage() {
         if (( SGND_PAGE_INDEX > 0 )); then
             SGND_PAGE_INDEX=$(( SGND_PAGE_INDEX - 1 ))
@@ -445,6 +666,19 @@ set -uo pipefail
         #
         # Usage:
         #   _sgnd_console_build_pages
+    # fn: _sgnd_console_build_pages - Console build pages
+        # Purpose:
+        #   Build page metadata for the currently visible console menu items.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_build_pages ...
     _sgnd_console_build_pages() {
         local body_height=0
         local used_lines=0
@@ -503,6 +737,19 @@ set -uo pipefail
         #
         # Usage:
         #   _sgnd_console_body_height
+    # fn: _sgnd_console_body_height - Console body height
+        # Purpose:
+        #   Calculate the available body height for menu rendering.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_body_height ...
     _sgnd_console_body_height() {
         local body_height="${SGND_PAGE_MAX_ROWS:-20}"
 
@@ -531,6 +778,19 @@ set -uo pipefail
         #
         # Usage:
         #   _sgnd_console_measure_item_lines "$row_index"
+    # fn: _sgnd_console_measure_item_lines - Console measure item lines
+        # Purpose:
+        #   Measure how many display lines one menu item requires.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_measure_item_lines ...
     _sgnd_console_measure_item_lines() {
         local row_index="${1:?missing row index}"
         local desc=""
@@ -567,6 +827,19 @@ set -uo pipefail
         #
         # Usage:
         #   _sgnd_console_measure_group_header_lines
+    # fn: _sgnd_console_measure_group_header_lines - Console measure group header lines
+        # Purpose:
+        #   Measure how many display lines a group header requires.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_measure_group_header_lines ...
     _sgnd_console_measure_group_header_lines() {
         # group label + underline
         printf '2\n'
@@ -578,6 +851,19 @@ set -uo pipefail
         #
         # Usage:
         #   _sgnd_console_visible_item_count
+    # fn: _sgnd_console_visible_item_count - Console visible item count
+        # Purpose:
+        #   Count menu items that are currently visible.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_visible_item_count ...
     _sgnd_console_visible_item_count() {
         printf '%s\n' "${#SGND_VISIBLE_ITEM_INDEXES[@]}"
     }
@@ -596,6 +882,19 @@ set -uo pipefail
         #
         # Usage:
         #   _sgnd_console_get_visible_row_index "$visible_index"
+    # fn: _sgnd_console_get_visible_row_index - Console get visible row index
+        # Purpose:
+        #   Resolve a visible row number to the corresponding menu item index.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_get_visible_row_index ...
     _sgnd_console_get_visible_row_index() {
         local visible_index="${1:?missing visible index}"
 
@@ -624,6 +923,19 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
+    # fn: _sgnd_console_collect_visible_item_indexes - Console collect visible item indexes
+        # Purpose:
+        #   Collect indexes of menu items that are visible on the current page.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_collect_visible_item_indexes ...
     _sgnd_console_collect_visible_item_indexes() {
         local gi
         local ii
@@ -676,6 +988,19 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
+    # fn: _sgnd_console_calc_label_width - Console calc label width
+        # Purpose:
+        #   Calculate the label column width for visible menu items.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_calc_label_width ...
     _sgnd_console_calc_label_width() {
         local i
         local row_count=0
@@ -721,6 +1046,19 @@ set -uo pipefail
         # Returns:
         #   0 if found
         #   1 otherwise
+    # fn: _sgnd_console_find_visible_pos_for_row - Console find visible pos for row
+        # Purpose:
+        #   Find the visible-position index for a menu row.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_find_visible_pos_for_row ...
     _sgnd_console_find_visible_pos_for_row() {
         local row_index="${1:?missing row index}"
         local i
@@ -747,6 +1085,19 @@ set -uo pipefail
         # Returns:
         #   0 if the group continues on a later page
         #   1 otherwise
+    # fn: _sgnd_console_group_continues_after_visible_pos - Console group continues after visible pos
+        # Purpose:
+        #   Test whether a menu group continues after the current visible position.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_group_continues_after_visible_pos ...
     _sgnd_console_group_continues_after_visible_pos() {
         local group_key="${1:?missing group key}"
         local last_visible_pos="${2:?missing visible position}"
@@ -779,6 +1130,19 @@ set -uo pipefail
         # Returns:
         #   0 if the item is in the visible numeric order
         #   1 otherwise
+    # fn: _sgnd_console_get_visible_display_number - Console get visible display number
+        # Purpose:
+        #   Resolve the display number for a visible menu item.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_get_visible_display_number ...
     _sgnd_console_get_visible_display_number() {
         local row_index="${1:?missing row index}"
         local i
@@ -809,6 +1173,19 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
+    # fn: _sgnd_console_collect_group_render_indexes - Console collect group render indexes
+        # Purpose:
+        #   Collect render indexes for grouped menu output.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_collect_group_render_indexes ...
     _sgnd_console_collect_group_render_indexes() {
         local i
         local row_count=0
@@ -877,6 +1254,19 @@ set -uo pipefail
         #
         # Examples:
         #   _sgnd_console_render_menu
+    # fn: _sgnd_console_render_menu - Console render menu
+        # Purpose:
+        #   Render the complete console menu screen.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_render_menu ...
     _sgnd_console_render_menu() {
         local idx=""
         local group_key=""
@@ -912,6 +1302,19 @@ set -uo pipefail
         #
         # Returns:
         #   0 always
+    # fn: _sgnd_console_render_menu_title - Console render menu title
+        # Purpose:
+        #   Render the console menu title area.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_render_menu_title ...
     _sgnd_console_render_menu_title() {
         (( ! SGND_CLEAR_ONRENDER )) || clear
         
@@ -962,6 +1365,19 @@ set -uo pipefail
         #
         # Examples:
         #   _sgnd_console_render_menu_body_paged
+    # fn: _sgnd_console_render_menu_body_paged - Console render menu body paged
+        # Purpose:
+        #   Render the paged console menu body.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_render_menu_body_paged ...
     _sgnd_console_render_menu_body_paged() {
         local body_height=0
         local used_lines=0
@@ -1077,6 +1493,19 @@ set -uo pipefail
         #
         # Notes:
         #   - Requires bash 4.3+ (nameref).
+    # fn: _sgnd_console_render_page_rows - Console render page rows
+        # Purpose:
+        #   Render all rows for the current menu page.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_render_page_rows ...
     _sgnd_console_render_page_rows() {
         local -n _page_groups="$1"
         local -n _page_rows="$2"
@@ -1241,6 +1670,19 @@ set -uo pipefail
         #
         # Examples:
         #   _sgnd_console_render_group "builtin"
+    # fn: _sgnd_console_render_group - Console render group
+        # Purpose:
+        #   Render one menu group and its visible items.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_render_group ...
     _sgnd_console_render_group() {
         local group_key="${1:?missing group key}"
         local _tpad=3
@@ -1408,6 +1850,19 @@ set -uo pipefail
         #
         # Examples:
         #   _sgnd_console_render_togglebar
+    # fn: _sgnd_console_render_togglebar - Console render togglebar
+        # Purpose:
+        #   Render the console toggle/status bar.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_render_togglebar ...
     _sgnd_console_render_togglebar() {
         local render_width=80
         local pad=3
@@ -1512,6 +1967,19 @@ set -uo pipefail
         #
         # Examples:
         #   choices="$(_sgnd_console_valid_choices_csv)"
+    # fn: _sgnd_console_valid_choices_csv - Console valid choices csv
+        # Purpose:
+        #   Build the valid-choice list for the current menu page.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_valid_choices_csv ...
     _sgnd_console_valid_choices_csv() {
         local i
         local out=""
@@ -1578,6 +2046,19 @@ set -uo pipefail
         #   _sgnd_console_dispatch "1"
         #
         #   _sgnd_console_dispatch "Q"
+    # fn: _sgnd_console_dispatch - Console dispatch
+        # Purpose:
+        #   Dispatch a selected console menu action.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_console_dispatch ...
     _sgnd_console_dispatch() {
         local choice="${1:?missing choice}"
         local handler=""

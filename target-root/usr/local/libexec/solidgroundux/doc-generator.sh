@@ -3,8 +3,8 @@
 # SolidgroundUX - Documentation Generator Script
 # ------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.1
-#   Build       : 2609100
+#   Version     : 1.5
+#   Build       : 2615600
 #   Checksum    : -
 #   Source      : doc-generator.sh
 #   Type        : script
@@ -18,7 +18,7 @@
 #     - Bootstraps the SolidGroundUX runtime
 #     - Resolves source and output parameters from arguments, state, or user input
 #     - Collects normalized documentation data from matching source files
-#     - Prepares the basis for later rendering stages
+#     - Exports parser output and invokes the renderer pipeline
 #
 # Design principles:
 #   - Collection logic is kept separate from rendering logic
@@ -32,7 +32,7 @@
 #   - Bridges bootstrap, state, argument parsing, and collector execution
 #
 # Non-goals:
-#   - Rendering Markdown or HTML directly
+#   - Rendering output without the renderer component
 #   - Parsing arbitrary free-form comments outside framework conventions
 #   - Replacing the lower-level parser libraries
 #
@@ -47,7 +47,7 @@ set -uo pipefail
 # - Bootstrap -----------------------------------------------------------------------
     # Some extra comments to be added in the bootstrapsection
     # could be multiple lines
-    # fn$ _framework_locator
+    # fn$ _framework_locator - Locate the SolidgroundUX framework root
         # Purpose:
         #   Locate, create, and load the SolidGroundUX bootstrap configuration.
         #
@@ -76,6 +76,19 @@ set -uo pipefail
         #
         # Notes:
         #   - Under sudo, configuration is resolved relative to SUDO_USER instead of /root.
+    # fn$ _framework_locator - Locate the SolidgroundUX framework root
+        # Purpose:
+        #   Locate the SolidgroundUX framework root.
+        #
+        # Behavior:
+        #   - Template/bootstrap helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   _framework_locator
     _framework_locator (){
         local cfg_home="$HOME"
 
@@ -163,7 +176,7 @@ set -uo pipefail
 
     }
 
-    # fn$ _load_bootstrapper
+    # fn$ _load_bootstrapper - Load the SolidgroundUX bootstrapper
         # Purpose:
         #   Resolve and source the framework bootstrap library.
         #
@@ -225,21 +238,125 @@ set -uo pipefail
     RESET=$'\e[0m'
 
     # Minimal UI
+    # fn$ saystart - Emit a minimal START message before bootstrap
+        # Purpose:
+        #   Emit a minimal START message before bootstrap.
+        #
+        # Behavior:
+        #   - Template/bootstrap helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   saystart
     saystart()   { printf '%sSTART%s\t%s\n' "${MSG_CLR_STRT-}" "${RESET-}" "$*" >&2; }
+    # fn$ sayinfo - Emit a minimal INFO message before bootstrap
+        # Purpose:
+        #   Emit a minimal INFO message before bootstrap.
+        #
+        # Behavior:
+        #   - Template/bootstrap helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   sayinfo
     sayinfo()    { 
         if (( ${FLAG_VERBOSE:-0} )); then
             printf '%sINFO%s \t%s\n' "${MSG_CLR_INFO-}" "${RESET-}" "$*" >&2; 
         fi
     }
+    # fn$ sayok - Emit a minimal OK message before bootstrap
+        # Purpose:
+        #   Emit a minimal OK message before bootstrap.
+        #
+        # Behavior:
+        #   - Template/bootstrap helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   sayok
     sayok()      { printf '%sOK%s   \t%s\n' "${MSG_CLR_OK-}"   "${RESET-}" "$*" >&2; }
+    # fn$ saywarning - Emit a minimal WARN message before bootstrap
+        # Purpose:
+        #   Emit a minimal WARN message before bootstrap.
+        #
+        # Behavior:
+        #   - Template/bootstrap helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   saywarning
     saywarning() { printf '%sWARN%s \t%s\n' "${MSG_CLR_WARN-}" "${RESET-}" "$*" >&2; }
+    # fn$ sayfail - Emit a minimal FAIL message before bootstrap
+        # Purpose:
+        #   Emit a minimal FAIL message before bootstrap.
+        #
+        # Behavior:
+        #   - Template/bootstrap helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   sayfail
     sayfail()    { printf '%sFAIL%s \t%s\n' "${MSG_CLR_FAIL-}" "${RESET-}" "$*" >&2; }
+    # fn$ saydebug - Emit a minimal DEBUG message before bootstrap
+        # Purpose:
+        #   Emit a minimal DEBUG message before bootstrap.
+        #
+        # Behavior:
+        #   - Template/bootstrap helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   saydebug
     saydebug() {
         if (( ${FLAG_DEBUG:-0} )); then
             printf '%sDEBUG%s \t%s\n' "${MSG_CLR_DEBUG-}" "${RESET-}" "$*" >&2;
         fi
     }
+    # fn$ saycancel - Emit a minimal CANCEL message before bootstrap
+        # Purpose:
+        #   Emit a minimal CANCEL message before bootstrap.
+        #
+        # Behavior:
+        #   - Template/bootstrap helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   saycancel
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
+    # fn$ sayend - Emit a minimal END message before bootstrap
+        # Purpose:
+        #   Emit a minimal END message before bootstrap.
+        #
+        # Behavior:
+        #   - Template/bootstrap helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   sayend
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
     
 # - Script metadata (identity) ------------------------------------------------------
@@ -272,7 +389,7 @@ set -uo pipefail
         #   name    = long option name WITHOUT leading --
         #   short   - short option name WITHOUT leading -
         #   type    = flag | value | enum
-        #   var     = shell variable that will be set
+        # var: = shell variable that will be set
         #   help    = help string for auto-generated --help output
         #   choices = for enum: comma-separated values (e.g. fast,slow,auto)
         #             for flag/value: leave empty
@@ -400,7 +517,7 @@ set -uo pipefail
 
 
 # - Local script functions ----------------------------------------------------------
-    # fn: _init_parameters
+    # fn: _init_parameters - Initialize documentation generator parameters
         # Purpose:
         #   Initialize parameter variables from defaults when still unset.
         #
@@ -440,7 +557,7 @@ set -uo pipefail
    
     }
 
-    # fn: _get_userinput
+    # fn: _get_userinput - Collect documentation generator input
         # Purpose:
         #   Interactively collect and confirm documentation generator parameters.
         #
@@ -467,6 +584,19 @@ set -uo pipefail
         #   _get_userinput || return $?
         #
         # Examples:
+        #   _get_userinput
+    # fn: _get_userinput - Collect documentation generator input
+        # Purpose:
+        #   Collect documentation generator input.
+        #
+        # Behavior:
+        #   - Internal helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
         #   _get_userinput
     _get_userinput() {
         local lw=25
@@ -606,7 +736,7 @@ set -uo pipefail
         done
     }
 
-    # _iterate_files
+    # fn: _iterate_files - Iterate source files and collect documentation data
         # Purpose:
         #   Iterate over files in a directory using a file mask,
         #   optionally recursing into subdirectories.
@@ -699,7 +829,7 @@ set -uo pipefail
         return 0
     }
 
-    #_summary
+    # fn: _summary - Print documentation generation summary
         # Purpose:
         #   Generate a summary of the documentation data collected.
         #
@@ -727,7 +857,7 @@ set -uo pipefail
 
     }
 # - Main ----------------------------------------------------------------------------
-    # fn: main
+    # fn$ main - Run the executable main sequence
         # Purpose:
         #   Provide the canonical executable entry point for the documentation generator.
         #
@@ -756,6 +886,19 @@ set -uo pipefail
         # Notes:
         #   - sgnd_bootstrap separates framework arguments from script arguments.
         #   - This function is script-owned orchestration logic, not template-only scaffolding.
+    # fn: main - Run the executable main sequence
+        # Purpose:
+        #   Run the executable main sequence.
+        #
+        # Behavior:
+        #   - Public entry point.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   main
     main() {
         # -- Bootstrap
             local rc=0

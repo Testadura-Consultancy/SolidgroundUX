@@ -3,9 +3,9 @@
 # SolidgroundUX - Create Workspace
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.1
-#   Build       : 2615311
-#   Checksum    : b98fc47afded96584e0d4eb17832315ab6f01ac8c476bc215a404f7212024914
+#   Version     : 1.5
+#   Build       : 2615600
+#   Checksum    : -
 #   Source      : create-workspace.sh
 #   Type        : script
 #   Group       : Developer Tools
@@ -38,7 +38,7 @@
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
-#   Client      : - 
+#   Client      : -
 #   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
@@ -69,7 +69,7 @@ set -uo pipefail
         #   _framework_locator || return $?
         #
         # Examples:
-        #   _framework_locator
+        # fn$ _framework_locator - Locate the SolidgroundUX framework root
         #
         # Notes:
         #   - Under sudo, configuration is resolved relative to SUDO_USER instead of /root.
@@ -187,7 +187,7 @@ set -uo pipefail
         #   _load_bootstrapper || return $?
         #
         # Examples:
-        #   _load_bootstrapper
+        # fn$ _load_bootstrapper - Load the SolidgroundUX bootstrapper
         #
         # Notes:
         #   - This is executable-level startup logic, not reusable framework behavior.
@@ -225,21 +225,125 @@ set -uo pipefail
     RESET=$'\e[0m'
 
     # Minimal UI
+    # fn$ saystart - Emit a minimal START message before bootstrap
+        # Purpose:
+        #   Emit a minimal START message before bootstrap.
+        #
+        # Behavior:
+        #   - Template/bootstrap helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   saystart
     saystart()   { printf '%sSTART%s\t%s\n' "${MSG_CLR_STRT-}" "${RESET-}" "$*" >&2; }
+    # fn$ sayinfo - Emit a minimal INFO message before bootstrap
+        # Purpose:
+        #   Emit a minimal INFO message before bootstrap.
+        #
+        # Behavior:
+        #   - Template/bootstrap helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   sayinfo
     sayinfo()    { 
         if (( ${FLAG_VERBOSE:-0} )); then
             printf '%sINFO%s \t%s\n' "${MSG_CLR_INFO-}" "${RESET-}" "$*" >&2; 
         fi
     }
+    # fn$ sayok - Emit a minimal OK message before bootstrap
+        # Purpose:
+        #   Emit a minimal OK message before bootstrap.
+        #
+        # Behavior:
+        #   - Template/bootstrap helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   sayok
     sayok()      { printf '%sOK%s   \t%s\n' "${MSG_CLR_OK-}"   "${RESET-}" "$*" >&2; }
+    # fn$ saywarning - Emit a minimal WARN message before bootstrap
+        # Purpose:
+        #   Emit a minimal WARN message before bootstrap.
+        #
+        # Behavior:
+        #   - Template/bootstrap helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   saywarning
     saywarning() { printf '%sWARN%s \t%s\n' "${MSG_CLR_WARN-}" "${RESET-}" "$*" >&2; }
+    # fn$ sayfail - Emit a minimal FAIL message before bootstrap
+        # Purpose:
+        #   Emit a minimal FAIL message before bootstrap.
+        #
+        # Behavior:
+        #   - Template/bootstrap helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   sayfail
     sayfail()    { printf '%sFAIL%s \t%s\n' "${MSG_CLR_FAIL-}" "${RESET-}" "$*" >&2; }
+    # fn$ saydebug - Emit a minimal DEBUG message before bootstrap
+        # Purpose:
+        #   Emit a minimal DEBUG message before bootstrap.
+        #
+        # Behavior:
+        #   - Template/bootstrap helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   saydebug
     saydebug() {
         if (( ${FLAG_DEBUG:-0} )); then
             printf '%sDEBUG%s \t%s\n' "${MSG_CLR_DEBUG-}" "${RESET-}" "$*" >&2;
         fi
     }
+    # fn$ saycancel - Emit a minimal CANCEL message before bootstrap
+        # Purpose:
+        #   Emit a minimal CANCEL message before bootstrap.
+        #
+        # Behavior:
+        #   - Template/bootstrap helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   saycancel
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
+    # fn$ sayend - Emit a minimal END message before bootstrap
+        # Purpose:
+        #   Emit a minimal END message before bootstrap.
+        #
+        # Behavior:
+        #   - Template/bootstrap helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   sayend
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
     
 
@@ -280,7 +384,7 @@ set -uo pipefail
         #   name    Long option name without leading --
         #   short   Short option name without leading -
         #   type    flag | value | enum
-        #   var     Shell variable to receive the parsed value
+        # var: Shell variable to receive the parsed value
         #   help    Help text for auto-generated --help output
         #   choices Comma-separated values for enum; empty otherwise
         #
@@ -397,7 +501,7 @@ set -uo pipefail
 
 # --- local script functions ----------------------------------------------------------
  # -- General helpers
-    # _normalize_project_flags
+    # fn: _normalize_project_flags - Normalize create-workspace option flags
         # Purpose:
         #   Normalize project selection flags into a coherent default state.
         #
@@ -426,7 +530,7 @@ set -uo pipefail
         return 0
     }
 
-    # _copy_template_file
+    # fn: _copy_template_file - Copy one template file into the workspace
         # Purpose:
         #   Copy a single template file to a target location.
         #
@@ -470,7 +574,7 @@ set -uo pipefail
         sayinfo "Copied template $src -> $dst"
     }
 
-    # _get_template_filenames
+    # fn: _get_template_filenames - Resolve template filenames for workspace creation
         # Purpose:
         #   Determine output filenames for selected template types.
         #
@@ -498,7 +602,7 @@ set -uo pipefail
         mod_ref="mod-${project_slug}.sh"
     }
 
-    # _copy_project_templates
+    # fn: _copy_project_templates - Copy project templates into the workspace
         # Purpose:
         #   Copy the appropriate template file(s) for the selected project components.
         #
@@ -560,7 +664,7 @@ set -uo pipefail
         fi
     }
 
-    # _get_project_directories
+    # fn: _get_project_directories - Resolve project directory layout
         # Purpose:
         #   Build the directory list required for the selected project components.
         #
@@ -624,7 +728,7 @@ set -uo pipefail
     }
 
  # -- Manifest helpers
-    # _manifest_init
+    # fn: _manifest_init - Initialize the workspace creation manifest
         # Purpose:
         #   Initialize the workspace creation manifest.
         #
@@ -661,7 +765,7 @@ set -uo pipefail
         } > "$WORKSPACE_MANIFEST" || return 1
     }
 
-    # _manifest_record_file
+    # fn: _manifest_record_file - Record a created file in the manifest
         # Purpose:
         #   Append a file entry to the workspace manifest.
         #
@@ -684,7 +788,7 @@ set -uo pipefail
         printf 'FILE|%s\n' "$path" >> "$WORKSPACE_MANIFEST"
     }
 
-    # _manifest_record_dir
+    # fn: _manifest_record_dir - Record a created directory in the manifest
         # Purpose:
         #   Append a directory entry to the workspace manifest.
         #
@@ -707,7 +811,7 @@ set -uo pipefail
         printf 'DIR|%s\n' "$path" >> "$WORKSPACE_MANIFEST"
     }
 
-    # _uncreate_from_manifest
+    # fn: _uncreate_from_manifest - Remove artifacts recorded in the create manifest
         # Purpose:
         #   Remove files and directories listed in a workspace manifest.
         #
@@ -823,6 +927,19 @@ set -uo pipefail
         # Notes:
         #   - Uses ask() and ask_ok_redo_quit() for interactive input.
         #   - Confirmation includes a short auto-continue timeout.
+    # fn: _resolve_project_settings - Resolve project creation settings
+        # Purpose:
+        #   Resolve project creation settings.
+        #
+        # Behavior:
+        #   - Internal helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   _resolve_project_settings
     _resolve_project_settings(){
         local slug=""
         local default_folder=""
@@ -947,7 +1064,7 @@ set -uo pipefail
         done
     }
     
-    # _create_repository
+    # fn: _create_repository - Create the repository directory structure
         # Purpose:
         #   Create the project repository structure and copy template files.
         #
@@ -1035,6 +1152,19 @@ set -uo pipefail
         #
         # Notes:
         #   - The generated workspace assumes the project root as the workspace folder.
+    # fn: _create_workspace_file - Create the VS Code workspace file
+        # Purpose:
+        #   Create the VS Code workspace file.
+        #
+        # Behavior:
+        #   - Internal helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   _create_workspace_file
     _create_workspace_file(){
         local workspace_file="${PROJECT_FOLDER}/${PROJECT_NAME}.code-workspace"
         local existed=0
@@ -1098,6 +1228,19 @@ set -uo pipefail
         #
         # Notes:
         #   - The ignore rules are intentionally generic and safe for most script-based projects.
+    # fn: _create_gitignore_file - Create the workspace .gitignore file
+        # Purpose:
+        #   Create the workspace .gitignore file.
+        #
+        # Behavior:
+        #   - Internal helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   _create_gitignore_file
     _create_gitignore_file(){
         local gitignore_file="${PROJECT_FOLDER}/.gitignore"
         local existed=0
@@ -1177,7 +1320,7 @@ set -uo pipefail
         fi
     }
 
-    # _create_mod_appcfg
+    # fn: _create_mod_appcfg - Create the module application configuration file
         # Purpose:
         #   Create a console-module application configuration file.
         #
@@ -1276,6 +1419,19 @@ set -uo pipefail
         #
         # Notes:
         #   - sgnd_bootstrap splits framework arguments from script arguments automatically.
+    # fn: main - Run the executable main sequence
+        # Purpose:
+        #   Run the executable main sequence.
+        #
+        # Behavior:
+        #   - Public entry point.
+        #   - Preserves existing script runtime behavior.
+        #
+        # Returns:
+        #   Returns the underlying command or workflow status.
+        #
+        # Usage:
+        #   main
     main() {
         # -- Bootstrap
             local rc=0

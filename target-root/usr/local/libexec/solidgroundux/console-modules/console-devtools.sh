@@ -2,9 +2,9 @@
 # SolidgroundUX - Developer Tools Console Module
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.1
-#   Build       : 2615311
-#   Checksum    : 84faf49f5deed7178f9d17c1d265f5ebdf422807672184239be1aca1900c6fd7
+#   Version     : 1.5
+#   Build       : 2615600
+#   Checksum    : -
 #   Source      : console-devtools.sh
 #   Type        : module
 #   Group       : Solidground Console
@@ -50,7 +50,7 @@
 # ==================================================================================
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------
-    # _sgnd_lib_guard
+    # fn$ _sgnd_lib_guard - Guard source-only module loading
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
         #
@@ -93,7 +93,7 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Internal helpers -------------------------------------------------------------
-    # _exe_createworkspace
+    # fn: _exe_createworkspace - Launch the create-workspace developer tool
         # Purpose:
         #   Launch the create-workspace developer tool through the sgnd-console runtime.
         #
@@ -108,12 +108,12 @@ set -uo pipefail
         #   _exe_createworkspace
         #
         # Examples:
-        #   _exe_createworkspace    
+        #   _exe_createworkspace
     _exe_createworkspace(){
             _sgnd_run_script "create-workspace.sh"
     }
     
-    # _exe_deployworkspace
+    # fn: _exe_deployworkspace - Launch the deploy-workspace developer tool
         # Purpose:
         #   Launch the deploy-workspace developer tool through the sgnd-console runtime.
         #
@@ -132,7 +132,7 @@ set -uo pipefail
             _sgnd_run_script "deploy-workspace.sh" 
     }
 
-    # _exe_preparerelease
+    # fn: _exe_preparerelease - Launch the prepare-release developer tool
         # Purpose:
         #   Launch the prepare-release developer tool through the sgnd-console runtime.
         #
@@ -152,22 +152,22 @@ set -uo pipefail
             _sgnd_run_script "prepare-release.sh" 
     }
 
-    # _exe_metadataeditor
+    # fn: _exe_metadata-editor - Launch the metadata editor developer tool
         # Purpose:
-        #   Launch the prepare-release developer tool through the sgnd-console runtime.
+        #   Launch the metadata-editor developer tool through the sgnd-console runtime.
         #
         # Behavior:
         #   - Delegates execution to _sgnd_run_script.
-        #   - Invokes prepare-release.sh 
+        #   - Invokes metadata-editor.sh.
         #
         # Returns:
         #   Exit code of the executed script.
         #
         # Usage:
-        #   _exe_metadataeditor
+        #   _exe_metadata-editor
         #
         # Examples:
-        #   _exe_metadataeditor
+        #   _exe_metadata-editor
     _exe_metadata-editor(){
         _sgnd_run_script "metadata-editor.sh"
     }

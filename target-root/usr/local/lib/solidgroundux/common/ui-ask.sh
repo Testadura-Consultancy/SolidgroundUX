@@ -2,9 +2,9 @@
 # SolidgroundUX - UI Ask
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.2
-#   Build       : 2615311
-#   Checksum    : dd3f7700ee6563522856d3cadb359c9156ede8b5e4b027ca35300b339016c4f0
+#   Version     : 1.5
+#   Build       : 2615600
+#   Checksum    : -
 #   Source      : ui-ask.sh
 #   Type        : library
 #   Group       : UI
@@ -38,27 +38,21 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
 set -uo pipefail
+# fn$: _sgnd_lib_guard - Library guard
 # --- Library guard ------------------------------------------------------------------
-    # tmp: _sgnd_lib_guard
+    # fn$ _sgnd_lib_guard - Sgnd Lib Guard
         # Purpose:
-        #   Ensure the file is sourced as a library and only initialized once.
+        #   Internal helper function for the  sgnd lib guard operation.
         #
         # Behavior:
-        #   - Derives a unique guard variable name from the current filename.
-        #   - Aborts execution if the file is executed instead of sourced.
-        #   - Sets the guard variable on first load.
-        #   - Skips initialization if the library was already loaded.
-        #
-        # Inputs:
-        #   BASH_SOURCE[0]
-        #   $0
-        #
-        # Outputs (globals):
-        #   SGND_<MODULE>_LOADED
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0 if already loaded or successfully initialized.
-        #   Exits with code 2 if executed instead of sourced.
+        #   0 on success, non-zero when validation or execution fails.
+        #
+        # Usage:
+        #   _sgnd_lib_guard [arguments...]
     _sgnd_lib_guard() {
         local lib_base
         local guard
@@ -82,21 +76,19 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Internal helpers ----------------------------------------------------------------
-    # fn: _ask_expand_choices
+    # fn: _ask_expand_choices - Ask Expand Choices
         # Purpose:
-        #   Expand a comma-separated choice specification into individual allowed values.
+        #   Internal helper function for the  ask expand choices operation.
         #
-        # Arguments:
-        #   $1  Choice spec string. Supports:
-        #       - Literal tokens: "dev,acc,prod"
-        #       - Simple ranges:  "A-Z", "0-9" (single ASCII [[:alnum:]] endpoints)
-        #       - Optional whitespace around tokens: "A-Z, 1-3, foo"
-        #
-        # Output:
-        #   Prints one expanded value per line.
+        # Behavior:
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0 always.
+        #   0 on success, non-zero when validation or execution fails.
+        #
+        # Usage:
+        #   _ask_expand_choices [arguments...]
     _ask_expand_choices() {
         local spec="$1"
         local -a out=()
@@ -168,23 +160,19 @@ set -uo pipefail
         return 1
     }
 
-    # fn: _ask_build_prompt
+    # fn: _ask_build_prompt - Ask Build Prompt
         # Purpose:
-        #   Build a readline-safe prompt with visible-width padding and optional colors.
+        #   Internal helper function for the  ask build prompt operation.
         #
-        # Arguments:
-        #   $1  LABEL
-        #   $2  LABELWIDTH
-        #   $3  PAD
-        #   $4  LABELCLR
-        #   $5  INPUTCLR
-        #   $6  COLORIZE
-        #
-        # Output:
-        #   Writes the composed prompt string to stdout.
+        # Behavior:
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0 always.
+        #   0 on success, non-zero when validation or execution fails.
+        #
+        # Usage:
+        #   _ask_build_prompt [arguments...]
     _ask_build_prompt() {
         local label="$1"
         local labelwidth="$2"
@@ -253,19 +241,19 @@ set -uo pipefail
         "$fn" "$value"
     }
 
-    # fn: _ask_decision_expand_choices
+    # fn: _ask_decision_expand_choices - Ask Decision Expand Choices
         # Purpose:
-        #   Expand a symbolic decision specification into canonical choices and aliases.
+        #   Internal helper function for the  ask decision expand choices operation.
         #
-        # Arguments:
-        #   $1  CHOICES
-        #       Choice specification, e.g. "YES|Y,NO|N".
-        #
-        # Output:
-        #   Writes rows to stdout as CANONICAL|ALIAS.
+        # Behavior:
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0 always.
+        #   0 on success, non-zero when validation or execution fails.
+        #
+        # Usage:
+        #   _ask_decision_expand_choices [arguments...]
     _ask_decision_expand_choices() {
         local spec="${1-}"
         local group=""
@@ -291,21 +279,19 @@ set -uo pipefail
         done
     }
 
-    # fn: _ask_decision_normalize
+    # fn: _ask_decision_normalize - Ask Decision Normalize
         # Purpose:
-        #   Normalize a typed decision value to its canonical token.
+        #   Internal helper function for the  ask decision normalize operation.
         #
-        # Arguments:
-        #   $1  VALUE
-        #   $2  CHOICES
-        #   $3  DEFAULT
-        #
-        # Output:
-        #   Writes canonical token to stdout on success.
+        # Behavior:
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0 if valid
-        #   1 if invalid
+        #   0 on success, non-zero when validation or execution fails.
+        #
+        # Usage:
+        #   _ask_decision_normalize [arguments...]
     _ask_decision_normalize() {
         local value="${1-}"
         local choices="${2-}"
@@ -359,21 +345,19 @@ set -uo pipefail
         printf '%s\n' "$out"
     }
 
-    # fn: _ask_decision_map_dlg_rc
+    # fn: _ask_decision_map_dlg_rc - Ask Decision Map Dlg Rc
         # Purpose:
-        #   Map ask_dlg_autocontinue return codes to a canonical decision when possible.
+        #   Internal helper function for the  ask decision map dlg rc operation.
         #
-        # Arguments:
-        #   $1  RC
-        #   $2  CHOICES
-        #   $3  DEFAULT
-        #
-        # Output:
-        #   Writes canonical decision token to stdout when mapped.
+        # Behavior:
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0 if mapped
-        #   1 if no mapping applies and typed fallback should be used
+        #   0 on success, non-zero when validation or execution fails.
+        #
+        # Usage:
+        #   _ask_decision_map_dlg_rc [arguments...]
     _ask_decision_map_dlg_rc() {
         local rc="${1-}"
         local choices="${2-}"
@@ -407,31 +391,19 @@ set -uo pipefail
         esac
     }
 
-    # fn: _ask_parse_fieldspec
+    # fn: _ask_parse_fieldspec - Ask Parse Fieldspec
         # Purpose:
-        #   Parse a simple field-spec line into reusable globals for ask_prompt_form().
+        #   Internal helper function for the  ask parse fieldspec operation.
         #
         # Behavior:
-        #   - Splits a pipe-delimited spec line into:
-        #       key|label|default|validate
-        #   - Writes parsed values to _ask_field_* globals.
-        #   - Missing fields are allowed and become empty strings.
-        #
-        # Arguments:
-        #   $1  FIELD_SPEC
-        #       Pipe-delimited field spec.
-        #
-        # Outputs (globals):
-        #   _ask_field_key
-        #   _ask_field_label
-        #   _ask_field_default
-        #   _ask_field_validate
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0 always.
+        #   0 on success, non-zero when validation or execution fails.
         #
         # Usage:
-        #   _ask_parse_fieldspec "HOST|Host name|localhost|validate_text"
+        #   _ask_parse_fieldspec [arguments...]
     _ask_parse_fieldspec() {
         local spec="${1-}"
 
@@ -458,110 +430,19 @@ set -uo pipefail
     }
 
 # --- Public API ---------------------------------------------------------------------
-    # fn: ask
+    # fn: ask - Ask
         # Purpose:
-        #   Prompt for interactive input from the controlling terminal (/dev/tty),
-        #   with optional defaulting, validation, and direct assignment to a variable.
+        #   Public API function for the ask operation.
         #
         # Behavior:
-        #   - Reads from /dev/tty rather than stdin, so it remains safe in scripts
-        #     that consume piped or redirected stdin.
-        #   - Supports readline-style editing and optional prefilled defaults.
-        #   - Supports aligned labels via --labelwidth and --pad.
-        #   - Uses readline-safe prompt markers so ANSI color codes do not break
-        #     cursor positioning or default-value editing.
-        #   - Optionally validates the entered value through a callback function.
-        #   - Re-prompts recursively when validation fails.
-        #   - Can either assign the accepted value to a variable or echo it.
-        #
-        # Arguments:
-        #   LABEL
-        #       Positional fallback label when --label is omitted.
-        #
-        # Options:
-        #   --label TEXT
-        #       Prompt label text.
-        #   --default VALUE
-        #       Editable default value; empty entry resolves to this value.
-        #   --validate FUNC
-        #       Validation callback invoked as:
-        #           FUNC "$value"
-        #       Return 0 to accept; non-zero to reject and re-prompt.
-        #   --colorize MODE
-        #       Prompt coloring mode:
-        #           none | label | input | both
-        #       Default: both
-        #   --labelwidth N
-        #       Visible width of the label column.
-        #       Default: 25
-        #   --pad N
-        #       Left indentation in spaces.
-        #       Default: 0
-        #   --labelclr ANSI
-        #       ANSI color/style prefix for the label.
-        #       Default: TUI_LABEL
-        #   --inputclr ANSI
-        #       ANSI color/style prefix for the input area.
-        #       Default: TUI_INPUT
-        #   --var NAME
-        #       Destination variable name for the accepted value.
-        #   --echo
-        #       Echo accepted input with ✓ / ✗ feedback to /dev/tty.
-        #       Also prints the accepted value to stdout when --var is not used.
-        #
-        # Inputs (globals):
-        #   TUI_LABEL
-        #   TUI_INPUT
-        #   TUI_VALID
-        #   TUI_INVALID
-        #   RESET
-        #   sgnd_padded_visible
-        #   sgnd_string_repeat
-        #
-        # Outputs (globals):
-        #   Assigns the accepted value to --var NAME when provided.
-        #
-        # Output:
-        #   - Prints validation feedback to /dev/tty when --echo is enabled.
-        #   - Prints the accepted value to stdout only when --var is not used and
-        #     --echo is enabled.
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0  on accepted input
-        #   2  if /dev/tty cannot be opened
+        #   0 on success, non-zero when validation or execution fails.
         #
         # Usage:
-        #   ask --label "Project name" --var project
-        #   ask --label "Environment" --default "dev" --var env
-        #   ask --label "Release date" --validate validate_date --var release_date
-        #
-        # Examples:
-        #   # Plain text input
-        #   ask --label "Product" --var PRODUCT
-        #
-        #   # With default
-        #   ask --label "Version" --default "1.0" --var VERSION
-        #
-        #   # With validation
-        #   ask --label "Staging directory" \
-        #       --default "$STAGING_ROOT" \
-        #       --validate validate_dir_exists \
-        #       --var STAGING_ROOT
-        #
-        #   # With alignment / styling
-        #   ask --label "Release" \
-        #       --default "$RELEASE" \
-        #       --var RELEASE \
-        #       --labelwidth 30 \
-        #       --pad 4 \
-        #       --labelclr "${CYAN}" \
-        #       --colorize both
-        #
-        # Notes:
-        #   - Re-prompt currently uses recursion; convert to a loop later if you want
-        #     to avoid recursive retries entirely.
-        #   - This is the base prompt primitive; higher-level helpers such as
-        #     ask_decision and ask_choose build on top of it.
+        #   ask [arguments...]
     ask() {
         local label=""
         local var_name=""
@@ -649,57 +530,19 @@ set -uo pipefail
         fi
     }
 
-    # fn: ask_decision
+    # fn: ask_decision - Ask Decision
         # Purpose:
-        #   Prompt for a constrained symbolic decision and store the canonical result.
+        #   Public API function for the ask decision operation.
         #
         # Behavior:
-        #   - Builds on top of ask().
-        #   - Accepts a developer-defined decision specification with aliases.
-        #   - Optionally runs ask_dlg_autocontinue() first when --seconds > 0.
-        #   - Validates typed input against the allowed decision values.
-        #   - Stores the canonical decision token in the variable named by --var.
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
-        # Options:
-        #   --label TEXT
-        #   --choices SPEC
-        #   --default VALUE
-        #   --var NAME
-        #   --seconds N
-        #   --displaychoices 0|1
-        #   --colorize MODE
-        #   --labelclr ANSI
-        #   --inputclr ANSI
-        #   --labelwidth N
-        #   --pad N
+        # Returns:
+        #   0 on success, non-zero when validation or execution fails.
         #
         # Usage:
-        #   ask_decision \
-        #       --label "Use existing staging files?" \
-        #       --choices "YES|Y,NO|N" \
-        #       --default "NO" \
-        #       --var answer
-        #
-        # Examples:
-        #   local action=""
-        #   ask_decision \
-        #       --label "Create release using these settings?" \
-        #       --choices "OK|O,REDO|R,CANCEL|C" \
-        #       --default "OK" \
-        #       --seconds 5 \
-        #       --var action
-        #
-        #   local answer=""
-        #   ask_decision \
-        #       --label "Use existing staging files?" \
-        #       --choices "YES|Y,NO|N" \
-        #       --default "NO" \
-        #       --var answer
-        #
-        #   case "$answer" in
-        #       YES) FLAG_USEEXISTING=1 ;;
-        #       NO)  FLAG_USEEXISTING=0 ;;
-        #   esac
+        #   ask_decision [arguments...]
     ask_decision() {
         local label=""
         local choices=""
@@ -781,55 +624,19 @@ set -uo pipefail
         printf -v "$var_name" '%s' "$canonical"
     }
 
-    # fn: ask_dlg_autocontinue
+    # fn: ask_dlg_autocontinue - Ask Dlg Autocontinue
         # Purpose:
-        #   Show a lightweight timed auto-continue prompt on /dev/tty.
+        #   Public API function for the ask dlg autocontinue operation.
         #
         # Behavior:
-        #   - Displays an optional message.
-        #   - Displays a countdown line that updates once per second.
-        #   - Auto-continues when the countdown expires.
-        #   - Supports optional redo, cancel, and pause/resume controls.
-        #   - Supports either Enter-to-continue or any-key-to-continue behavior.
-        #
-        # Options:
-        #   --seconds N
-        #   --message TEXT
-        #   --redo
-        #   --cancel
-        #   --pause
-        #   --anykey
-        #   --hidelegend
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0  explicit continue
-        #   1  timeout / auto-continue
-        #   2  cancel
-        #   3  redo
+        #   0 on success, non-zero when validation or execution fails.
         #
         # Usage:
-        #   ask_dlg_autocontinue --seconds 5 --message "Continuing shortly..."
-        #
-        # Examples:
-        #   ask_dlg_autocontinue \
-        #       --seconds 5 \
-        #       --message "Create release using these settings?" \
-        #       --redo \
-        #       --cancel \
-        #       --pause
-        #
-        #   ask_dlg_autocontinue \
-        #       --seconds 5 \
-        #       --message "Create release using these settings?" \
-        #       --redo \
-        #       --cancel \
-        #       --pause
-        #
-        #   case $? in
-        #       0|1) proceed ;;
-        #       2)   exit 1 ;;
-        #       3)   continue ;;
-        #   esac
+        #   ask_dlg_autocontinue [arguments...]
     ask_dlg_autocontinue() {
         local seconds=5
         local message=""
@@ -959,82 +766,19 @@ set -uo pipefail
         done
     }
 
-    # fn: ask_choose
+    # fn: ask_choose - Ask Choose
         # Purpose:
-        #   Prompt for a constrained user choice using standard line input.
+        #   Public API function for the ask choose operation.
         #
         # Behavior:
-        #   - Reads input from /dev/tty.
-        #   - Requires Enter to confirm input.
-        #   - Validates input against the allowed choice list when provided.
-        #   - Re-prompts on invalid input when keepasking=1.
-        #   - Supports default values.
-        #   - Uses shared prompt rendering via _ask_build_prompt().
-        #
-        # Options:
-        #   --label TEXT
-        #       Prompt label.
-        #
-        #   --var NAME
-        #       Destination variable name.
-        #       Default: choice
-        #
-        #   --choices LIST
-        #       Allowed values as comma-separated tokens and/or ranges.
-        #
-        #   --default VALUE
-        #       Default value (editable).
-        #
-        #   --displaychoices 0|1
-        #       Append [choices] to the label.
-        #       Default: 1
-        #
-        #   --keepasking 0|1
-        #       Re-prompt on invalid input.
-        #       Default: 1
-        #
-        #   --labelwidth N
-        #       Align label to fixed width.
-        #
-        #   --pad N
-        #       Spacing between label and ':'.
-        #
-        #   --labelclr ANSI
-        #       Color/style applied to label.
-        #
-        #   --inputclr ANSI
-        #       Color/style applied to input.
-        #
-        #   --colorize MODE
-        #       Colorization mode:
-        #         label | input | both | none
-        #
-        # Outputs (globals):
-        #   Assigns accepted value to variable defined by --var.
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0 always.
+        #   0 on success, non-zero when validation or execution fails.
         #
         # Usage:
-        #   ask_choose --label "Select option" --choices "1,2,3" --var choice
-        #
-        # Examples:
-        #   # Basic choice
-        #   ask_choose \
-        #       --label "Action" \
-        #       --choices "1,2,3,Q" \
-        #       --var ACTION
-        #
-        #   # With default
-        #   ask_choose \
-        #       --label "Mode" \
-        #       --choices "auto,manual" \
-        #       --default "auto" \
-        #       --var MODE
-        #
-        # Notes:
-        #   - Intended for standard constrained input.
-        #   - For instant key-driven menus, use ask_choose_immediate().
+        #   ask_choose [arguments...]
     ask_choose() {
         local label=""
         local choices=""
@@ -1103,94 +847,19 @@ set -uo pipefail
         printf -v "$varname" '%s' "$_rsp"
     }
 
-    # fn: ask_choose_immediate
+    # fn: ask_choose_immediate - Ask Choose Immediate
         # Purpose:
-        #   Prompt for a constrained user choice using immediate-capable TTY input.
+        #   Public API function for the ask choose immediate operation.
         #
         # Behavior:
-        #   - Reads directly from /dev/tty.
-        #   - Accepts configured instant choices immediately (no Enter required).
-        #   - Buffers all other input until Enter is pressed.
-        #   - Supports backspace editing for buffered input.
-        #   - Validates input against the allowed choice list when provided.
-        #   - Re-prompts on invalid input when keepasking=1.
-        #   - Uses shared prompt rendering via _ask_build_prompt().
-        #
-        # Options:
-        #   --label TEXT
-        #       Prompt label.
-        #
-        #   --var NAME
-        #       Destination variable name.
-        #       Default: choice
-        #
-        #   --choices LIST
-        #       Allowed values as comma-separated tokens and/or ranges.
-        #       Examples:
-        #         "1,2,3,Q"
-        #         "A-D,1-5"
-        #
-        #   --instantchoices LIST
-        #       Choices accepted immediately without Enter.
-        #
-        #   --displaychoices 0|1
-        #       Append [choices] to the label.
-        #       Default: 1
-        #
-        #   --keepasking 0|1
-        #       Re-prompt on invalid input.
-        #       Default: 1
-        #
-        #   --labelwidth N
-        #       Align label to fixed width.
-        #
-        #   --pad N
-        #       Spacing between label and ':'.
-        #
-        #   --labelclr ANSI
-        #       Color/style applied to label.
-        #
-        #   --inputclr ANSI
-        #       Color/style applied to typed input.
-        #
-        #   --colorize MODE
-        #       Colorization mode:
-        #         label | input | both | none
-        #       Default: both
-        #
-        # Outputs (globals):
-        #   Assigns accepted value to variable defined by --var.
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0 always.
+        #   0 on success, non-zero when validation or execution fails.
         #
         # Usage:
-        #   ask_choose_immediate --label "Action" --choices "1,2,3,Q" --var action
-        #
-        # Examples:
-        #   # Immediate hotkey (Q exits instantly)
-        #   ask_choose_immediate \
-        #       --label "Action" \
-        #       --choices "1,2,3,Q" \
-        #       --instantchoices "Q" \
-        #       --var ACTION
-        #
-        #   # Menu-style hotkeys
-        #   ask_choose_immediate \
-        #       --label "Select option" \
-        #       --choices "1-9,B,D,L,V,C,Q" \
-        #       --instantchoices "B,D,L,V,C,Q" \
-        #       --var ACTION
-        #
-        #   # Buffered input (Enter required)
-        #   ask_choose_immediate \
-        #       --label "Enter code" \
-        #       --choices "A-D,1-3" \
-        #       --var CODE
-        #
-        # Notes:
-        #   - Intended for menu-driven UIs with immediate key reactions.
-        #   - For standard constrained input, prefer ask_choose().
+        #   ask_choose_immediate [arguments...]
     ask_choose_immediate() {
         local label=""
         local choices=""
@@ -1303,73 +972,19 @@ set -uo pipefail
         printf -v "$varname" '%s' "$_rsp"
     }
 
-    # fn: ask_prompt_form
+    # fn: ask_prompt_form - Ask Prompt Form
         # Purpose:
-        #   Prompt for a list of variables described by field-spec lines.
+        #   Public API function for the ask prompt form operation.
         #
         # Behavior:
-        #   - Parses each spec line via _ask_parse_fieldspec.
-        #   - Resolves variable name, label, default value, and validator.
-        #   - Uses the current shell value when present; otherwise uses the spec default.
-        #   - Prompts via ask() and stores results directly in the target variables.
-        #   - Optionally auto-aligns labels based on the longest label in the input list.
-        #
-        # Options:
-        #   --labelwidth N
-        #       Fixed label width.
-        #       Default: 0
-        #   --autoalign
-        #       Compute label width from the longest label in the provided specs.
-        #   --colorize MODE
-        #       Passed through to ask --colorize.
-        #       Default: both
-        #   --pad N
-        #       Passed through to ask --pad.
-        #       Default: 0
-        #   --labelclr ANSI
-        #       Passed through to ask --labelclr.
-        #   --inputclr ANSI
-        #       Passed through to ask --inputclr.
-        #   --
-        #       End of options; remaining arguments are field-spec lines.
-        #
-        # Field-spec format:
-        #   Each field spec is parsed by _ask_parse_fieldspec and is expected to provide:
-        #     _ask_field_key
-        #     _ask_field_label
-        #     _ask_field_default
-        #     _ask_field_validate
-        #
-        # Required helper contract:
-        #   _ask_parse_fieldspec "$line" must populate:
-        #     _ask_field_key
-        #     _ask_field_label
-        #     _ask_field_default
-        #     _ask_field_validate
-        #
-        # Inputs (dependencies):
-        #   _ask_parse_fieldspec
-        #   _ask_is_ident
-        #   ask
-        #   saywarning
-        #
-        # Outputs (globals):
-        #   Assigns prompted values directly to the variables named in each field spec.
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0 always.
+        #   0 on success, non-zero when validation or execution fails.
         #
         # Usage:
-        #   ask_prompt_form --autoalign -- "${FORM_FIELDS[@]}"
-        #
-        # Examples:
-        #   askprompt_form --autoalign --colorize both --pad 4 -- \
-        #       "HOST|Host name|localhost|validate_text" \
-        #       "PORT|Port|8080|validate_int"
-        #
-        # Notes:
-        #   - Invalid variable names are skipped with a warning.
-        #   - This function is intentionally lightweight; it is a prompt loop, not a form engine.
+        #   ask_prompt_form [arguments...]
     ask_prompt_form() {
         local labelwidth=0
         local autoalign=0

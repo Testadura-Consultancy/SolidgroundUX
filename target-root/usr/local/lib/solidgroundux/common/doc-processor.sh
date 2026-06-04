@@ -2,8 +2,8 @@
 # SolidgroundUX - Document processor
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.1
-#   Build       : 2609100
+#   Version     : 1.5
+#   Build       : 22615500
 #   Checksum    : -
 #   Source      : doc-processor.sh
 #   Type        : library
@@ -30,7 +30,7 @@
 #       * Content normalization
 #       * Rendering (handled elsewhere)
 #   - Convention over configuration (strict comment grammar)
-#   - Minimal side effects outside controlled doc_* and meta_* variables
+#   - Minimal side effects outside controlled doc_* and mod_* variables
 #   - Transparent state transitions for debuggability
 #
 # Role in framework:
@@ -54,26 +54,22 @@
 # ==================================================================================
 set -uo pipefail
 # - Library guard ------------------------------------------------------------------
-    # fn$ _sgnd_lib_guard
+    # fn$: _sgnd_lib_guard - Prevent direct execution and repeated library initialization
         # Purpose:
-        #   Ensure the file is sourced as a library and only initialized once.
+        #   Apply the standard SGND library guard for source-only modules.
         #
         # Behavior:
-        #   - Derives a unique guard variable name from the current filename.
-        #   - Aborts execution if the file is executed instead of sourced.
-        #   - Sets the guard variable on first load.
-        #   - Skips initialization if the library was already loaded.
-        #
-        # Inputs:
-        #   BASH_SOURCE[0]
-        #   $0
-        #
-        # Outputs (globals):
-        #   SGND_<MODULE>_LOADED
+        #   - Rejects direct execution of this file.
+        #   - Derives a module-specific guard variable from the current filename.
+        #   - Returns immediately when the library was already initialized.
+        #   - Marks the library as loaded before module initialization continues.
         #
         # Returns:
-        #   0 if already loaded or successfully initialized.
-        #   Exits with code 2 if executed instead of sourced.
+        #   0 when the library may continue loading or was already loaded.
+        #   Exits with status 2 when the file is executed directly.
+        #
+        # Usage:
+        #   _sgnd_lib_guard
     _sgnd_lib_guard() {
         local lib_base
         local guard
@@ -169,8 +165,9 @@ set -uo pipefail
         #   src_line, src_linenr, src_linetype, src_haltlineprocessing
         #   mod_product, mod_title, mod_name
         #   doc_section, doc_sectionlevel, doc_parentsection, doc_grandparentsection
-        #   doc_item, doc_itemtitle, doc_itemtype, doc_itemmarker, doc_itemaccess
-        #   doc_istemplateitem, doc_headersection, doc_linenr, doc_contenttype
+        #   doc_item, doc_itemtitle, doc_itemtype, doc_itemmarker
+        #   doc_itemvisibility, doc_itemrole
+        #   doc_headersection, doc_stylehint, doc_linenr, doc_contenttype
         #   doc_content, doc_inheader, doc_started, doc_titleextracted, doc_emitline
         #
         # Returns:
@@ -266,6 +263,24 @@ set -uo pipefail
 
     # -- Semantic registries ----------------------------------------------------------
         # fn: _sgnd_doc_list_contains - Test whether a value exists in a named array
+            # Purpose:
+            #   Provide a small membership helper for semantic registries.
+            #
+            # Behavior:
+            #   - Uses a nameref to inspect the array named by the first argument.
+            #   - Compares each array element with the requested value.
+            #   - Returns success on the first exact match.
+            #
+            # Arguments:
+            #   $1  Name of the array to inspect.
+            #   $2  Value to find.
+            #
+            # Returns:
+            #   0 when the value exists in the named array.
+            #   1 when the array name/value is missing or no match is found.
+            #
+            # Usage:
+            #   _sgnd_doc_list_contains SGND_DOC_STYLEHINTS "normal"
         _sgnd_doc_list_contains() {
             local array_name="${1:-}"
             local value="${2:-}"
@@ -282,6 +297,22 @@ set -uo pipefail
         }
 
         # fn: _sgnd_doc_is_valid_stylehint - Validate documentation style hint
+            # Purpose:
+            #   Check whether a style hint is part of the supported documentation style registry.
+            #
+            # Behavior:
+            #   - Delegates membership testing to _sgnd_doc_list_contains.
+            #   - Does not mutate parser state.
+            #
+            # Arguments:
+            #   $1  Style hint to validate.
+            #
+            # Returns:
+            #   0 when the style hint is valid.
+            #   1 when the style hint is unknown or missing.
+            #
+            # Usage:
+            #   _sgnd_doc_is_valid_stylehint "$doc_stylehint"
         _sgnd_doc_is_valid_stylehint() {
             _sgnd_doc_list_contains SGND_DOC_STYLEHINTS "${1:-}"
         }
@@ -594,8 +625,9 @@ set -uo pipefail
             #   src_line, src_haltlineprocessing
             #
             # Outputs (globals):
-            #   doc_istemplateitem, doc_item, src_linetype, doc_contenttype, doc_itemtype
-            #   doc_content, doc_itemaccess, doc_itemmarker, doc_itemtitle, doc_emitline, src_haltlineprocessing
+            #   doc_item, src_linetype, doc_contenttype, doc_itemtype, doc_content
+            #   doc_itemvisibility, doc_itemrole, doc_itemmarker, doc_itemtitle
+            #   doc_emitline, src_haltlineprocessing
             #
             # Returns:
             #   0 always.
@@ -1009,14 +1041,15 @@ set -uo pipefail
             #   Store the current documented item in the module item index.
             #
             # Behavior:
-            #   - Derives item access from the current item name.
-            #   - Appends module, section, type, access level, item name, and title to MOD_ITEMS.
+            #   - Appends module, section, item type, visibility, role, name, and title to MOD_ITEMS.
+            #   - Preserves the item role so template-origin items can be distinguished from normal items.
             #
             # Inputs (globals):
-            #   mod_name, doc_section, doc_parentsection, src_linetype, doc_itemtype, doc_item, doc_itemtitle
+            #   mod_name, doc_section, doc_parentsection, src_linetype, doc_itemtype
+            #   doc_itemvisibility, doc_itemrole, doc_item, doc_itemtitle
             #
             # Outputs (globals):
-            #   doc_itemaccess, MOD_ITEMS
+            #   MOD_ITEMS
             #
             # Returns:
             #   0 if the table append succeeds.
@@ -1048,11 +1081,12 @@ set -uo pipefail
             #   Store the current section context in the module section index.
             #
             # Behavior:
-            #   - Appends module name, section name, parent section, level, and placeholder line count.
-            #   - Leaves section line-count calculation to a later post-processing step.
+            #   - Appends module name, section name, parent section, grandparent section, title, and level.
+            #   - Preserves hierarchy context for later renderer-side navigation construction.
             #
             # Inputs (globals):
-            #   mod_name, doc_section, doc_parentsection, doc_sectionlevel
+            #   mod_name, doc_section, doc_parentsection, doc_grandparentsection
+            #   doc_sectiontitle, doc_sectionlevel
             #
             # Outputs (globals):
             #   MOD_SECTIONS
@@ -1160,26 +1194,27 @@ set -uo pipefail
         return 0
     } 
 
-    # fn: _build_content_ref
+    # fn: _build_content_ref - Build a stable documentation content reference
         # Purpose:
-        #   Build the canonical content reference used to join navigation nodes to
-        #   normalized documentation content lines.
+        #   Create the canonical reference key used to link content to a module, section, and item context.
+        #
+        # Behavior:
+        #   - Joins module, grandparent section, parent section, section, and item values.
+        #   - Preserves empty hierarchy parts so the reference shape remains stable.
+        #   - Writes the generated reference to stdout.
         #
         # Arguments:
         #   $1  Module name.
         #   $2  Grandparent section name.
         #   $3  Parent section name.
         #   $4  Current section name.
-        #   $5  Item name.
-        #
-        # Output:
-        #   Prints the content reference to stdout.
+        #   $5  Current item name.
         #
         # Returns:
-        #   0 always.
+        #   0 after writing the content reference.
         #
         # Usage:
-        #   ref="$(_build_content_ref "$module" "$grandparent" "$parent" "$section" "$item")"
+        #   _build_content_ref "$mod_name" "$doc_grandparentsection" "$doc_parentsection" "$doc_section" "$doc_item"
     _build_content_ref() {
         local module_name="${1-}"
         local grandparent_section="${2-}"

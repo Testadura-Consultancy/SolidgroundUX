@@ -2,9 +2,9 @@
 # SolidgroundUX - Bootstrap Environment
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.1
-#   Build       : 2615311
-#   Checksum    : 3f37d97b1d804db4ccfa7e5e3b9e53e42c8794d18e24e94b67f2b80f259d8947
+#   Version     : 1.5
+#   Build       : 2615600
+#   Checksum    : -
 #   Source      : sgnd-bootstrap-env.sh
 #   Type        : library
 #   Group       : Bootstrap
@@ -45,26 +45,25 @@
 # =====================================================================================
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------
-    # fn$ _sgnd_lib_guard
+    # fn$: _sgnd_lib_guard - Guard source-only library loading
         # Purpose:
-        #   Ensure the file is sourced as a library and only initialized once.
+        #   Prevent direct execution and repeated initialization of this library.
         #
         # Behavior:
-        #   - Derives a unique guard variable name from the current filename.
-        #   - Aborts execution if the file is executed instead of sourced.
-        #   - Sets the guard variable on first load.
-        #   - Skips initialization if the library was already loaded.
-        #
-        # Inputs:
-        #   BASH_SOURCE[0]
-        #   $0
+        #   - Derives a guard variable name from the current library filename.
+        #   - Exits with status 2 when the file is executed instead of sourced.
+        #   - Returns without action when the guard variable is already set.
+        #   - Sets the guard variable on first successful source.
         #
         # Outputs (globals):
-        #   SGND_<MODULE>_LOADED
+        #   SGND_<LIBRARY_NAME>_LOADED
         #
         # Returns:
-        #   0 if already loaded or successfully initialized.
-        #   Exits with code 2 if executed instead of sourced.
+        #   0 when the library may continue loading or was already loaded.
+        #   Exits with 2 when the file is executed directly.
+        #
+        # Usage:
+        #   _sgnd_lib_guard
     _sgnd_lib_guard() {
         local lib_base
         local guard
@@ -88,10 +87,12 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Framework identity --------------------------------------------------------------
-    # Framework branding and license metadata used by framework info, about text,
-    # and related informational output.
+    # var: Framework identity
+        # Purpose:
+        #   Define product, version, license, and documentation identity used by
+        #   framework metadata, informational output, and license checks.
     SGND_PRODUCT="SolidgroundUX"
-    SGND_VERSION="1.1"
+    SGND_VERSION="1.5"
     SGND_VERSION_DATE="2026-01-08"
     SGND_COMPANY="Testadura Consultancy"
     SGND_COPYRIGHT="© 2025 Mark Fieten — Testadura Consultancy"
@@ -101,14 +102,19 @@ set -uo pipefail
     SGND_README_FILE="README.md"
 
 # --- Framework metadata --------------------------------------------------------------
-    # var: SGND_FRAMEWORK_GLOBALS spec format:
+    # var: SGND_FRAMEWORK_GLOBALS - Framework configuration variable registry
+        # Purpose:
+        #   Declare framework variables that may be managed through system and/or user
+        #   configuration files.
+        #
+        # Format:
         #   audience|VARNAME|Description|extra
         #
         # Fields:
-        #   audience    system | user | both
-        #   VARNAME     Framework global variable name
-        #   Description Human-readable meaning for cfg/help rendering
-        #   extra       Reserved for future metadata
+        #   audience    system, user, or both.
+        #   VARNAME     Framework global variable name.
+        #   Description Human-readable description for config/help output.
+        #   extra       Reserved for future metadata.
     SGND_FRAMEWORK_GLOBALS=(
         "system|SGND_SYSCFG_DIR|Framework-wide system configuration directory|"
         "system|SGND_DOCS_DIR|Framework-wide documentation directory|"
@@ -132,7 +138,7 @@ set -uo pipefail
         "user|SAY_DATE_FORMAT|Default date/time format for console output|"
     )
 
-    # var: SGND_CORE_LIBS
+    # var: SGND_CORE_LIBS - Ordered core library list
         # Purpose:
         #   Define the core libraries that sgnd-bootstrap loads in fixed order.
         #
@@ -151,34 +157,29 @@ set -uo pipefail
         ui-glyphs.sh
     )
 
-    # var: Rebuilt path specification list consumed by sgnd_ensure_dirs.
-        # Entries use the format:
-        #   s|/path   system-owned directory
-        #   u|/path   user-owned directory
+    # var: SGND_FRAMEWORK_DIRS - Framework directory specifications
+        # Purpose:
+        #   Hold the rebuilt path specification list consumed by sgnd_ensure_dirs.
+        #
+        # Format:
+        #   s|/path   system-owned directory.
+        #   u|/path   user-owned directory.
     SGND_FRAMEWORK_DIRS=(
     )
 
 # --- Helpers -------------------------------------------------------------------------
-    # fn: _build_framework_dirs
+    # fn: _build_framework_dirs - Build framework directory specifications
         # Purpose:
-        #   Rebuild the canonical list of framework directories from current path globals.
+        #   Rebuild the directory specification list used by sgnd_ensure_dirs.
         #
         # Behavior:
-        #   - Populates SGND_FRAMEWORK_DIRS with system and user directory specifications.
-        #   - Marks each entry with its ownership class:
-        #       s = system
-        #       u = user
-        #   - Derives log parent directories from the configured log paths.
+        #   - Uses the currently rebased framework path globals.
+        #   - Marks framework-owned paths as system directories.
+        #   - Marks user configuration, state, and alternate log paths as user directories.
         #
         # Inputs (globals):
-        #   SGND_COMMON_LIB
-        #   SGND_SYSCFG_DIR
-        #   SGND_USRCFG_DIR
-        #   SGND_STATE_DIR
-        #   SGND_STYLE_DIR
-        #   SGND_DOCS_DIR
-        #   SGND_LOG_PATH
-        #   SGND_ALTLOG_PATH
+        #   SGND_COMMON_LIB, SGND_SYSCFG_DIR, SGND_USRCFG_DIR, SGND_STATE_DIR,
+        #   SGND_STYLE_DIR, SGND_DOCS_DIR, SGND_LOG_PATH, SGND_ALTLOG_PATH
         #
         # Outputs (globals):
         #   SGND_FRAMEWORK_DIRS
@@ -187,8 +188,15 @@ set -uo pipefail
         #   0 always.
         #
         # Usage:
-        #   _build_framework_dirs    
+        #   _build_framework_dirs
     _build_framework_dirs(){
+    # var: SGND_FRAMEWORK_DIRS - Framework directory specifications
+        # Purpose:
+        #   Hold the rebuilt path specification list consumed by sgnd_ensure_dirs.
+        #
+        # Format:
+        #   s|/path   system-owned directory.
+        #   u|/path   user-owned directory.
         SGND_FRAMEWORK_DIRS=(
             "s|$SGND_COMMON_LIB"
             "s|$SGND_SYSCFG_DIR"
@@ -201,35 +209,24 @@ set -uo pipefail
         )
     }
 # --- Public API ----------------------------------------------------------------------
-    # fn: sgnd_apply_defaults
+    # fn: sgnd_apply_defaults - Apply framework default values
         # Purpose:
-        #   Apply default values for bootstrap globals if currently unset.
+        #   Initialize default framework environment values without overwriting explicit settings.
         #
         # Behavior:
-        #   - Initializes root variables (SGND_FRAMEWORK_ROOT, SGND_APPLICATION_ROOT).
-        #   - Sets logging and UI defaults.
-        #   - Resolves SGND_USER_HOME (prefers SUDO_USER when present).
-        #   - Establishes framework cfg basename.
+        #   - Sets default framework and application roots.
+        #   - Sets logging, UI style, UI palette, and console-output defaults.
+        #   - Resolves the effective user home, honoring SUDO_USER when present.
+        #   - Sets the framework configuration basename.
         #
         # Outputs (globals):
-        #   SGND_FRAMEWORK_ROOT, SGND_APPLICATION_ROOT
-        #   SGND_USER_HOME
-        #   SGND_LOG_*, SGND_LOGFILE_ENABLED, SGND_LOG_LEVEL
-        #   SGND_UI_STYLE, SGND_UI_PALETTE
-        #   SAY_* defaults
-        #   SGND_FRAMEWORK_CFG_BASENAME
+        #   SGND_FRAMEWORK_ROOT, SGND_APPLICATION_ROOT, SGND_LOG_* values, SGND_USER_HOME,
+        #   SGND_UI_STYLE, SGND_UI_PALETTE, SAY_* defaults, SGND_FRAMEWORK_CFG_BASENAME
         #
         # Returns:
-        #   0 always.
+        #   0 always unless a command substitution fails under caller error policy.
         #
         # Usage:
-        #   sgnd_apply_defaults
-        #
-        # Examples:
-        #   sgnd_apply_defaults
-        #
-        #   # Override before applying defaults
-        #   SGND_LOGFILE_ENABLED=1
         #   sgnd_apply_defaults
     sgnd_apply_defaults() {
         : "${SGND_FRAMEWORK_ROOT:=/}"
@@ -260,35 +257,26 @@ set -uo pipefail
 
     }
 
-    # fn: sgnd_defaults_reset
+    # fn: sgnd_defaults_reset - Reset framework defaults
         # Purpose:
-        #   Reset framework-global configuration variables to their default state.
+        #   Clear configurable framework globals and reapply default values.
         #
         # Behavior:
-        #   - Iterates over SGND_FRAMEWORK_GLOBALS.
-        #   - Extracts each declared framework variable name.
-        #   - Unsets those variables when present.
-        #   - Re-applies default values through sgnd_apply_defaults.
+        #   - Iterates SGND_FRAMEWORK_GLOBALS.
+        #   - Unsets each listed framework global variable.
+        #   - Calls sgnd_apply_defaults to restore default values.
         #
         # Inputs (globals):
         #   SGND_FRAMEWORK_GLOBALS
         #
-        # Side effects:
-        #   - Unsets framework globals declared in SGND_FRAMEWORK_GLOBALS.
-        #   - Reinitializes them to their default values.
+        # Outputs (globals):
+        #   Framework globals reset by sgnd_apply_defaults.
         #
         # Returns:
-        #   0 always.
+        #   0 when defaults are reset successfully.
         #
         # Usage:
         #   sgnd_defaults_reset
-        #
-        # Examples:
-        #   sgnd_defaults_reset
-        #
-        # Notes:
-        #   - Intended for controlled reinitialization during development or testing.
-        #   - SGND_FRAMEWORK_GLOBALS is the authoritative list of resettable framework globals.
     sgnd_defaults_reset() {
         local spec audience var desc extra
         for spec in "${SGND_FRAMEWORK_GLOBALS[@]}"; do
@@ -301,41 +289,30 @@ set -uo pipefail
         sgnd_apply_defaults
     }
 
-    # fn: sgnd_rebase_directories
+    # fn: sgnd_rebase_directories - Recalculate framework paths
         # Purpose:
-        #   Recompute framework, user, and script-scoped paths from current root settings.
+        #   Derive all framework and script path globals from the current roots and product name.
         #
         # Behavior:
-        #   - Computes framework-scoped directories from:
-        #       SGND_FRAMEWORK_ROOT, SGND_APPLICATION_ROOT, SGND_USER_HOME
-        #   - Derives logging paths.
-        #   - Optionally derives script-scoped cfg/state paths when SGND_SCRIPT_NAME is set.
-        #   - Rebuilds SGND_FRAMEWORK_DIRS via _build_framework_dirs.
+        #   - Lowercases SGND_PRODUCT for filesystem path construction.
+        #   - Rebuilds common library, configuration, state, style, documentation, Python, and log paths.
+        #   - Rebuilds script-specific config and state paths when SGND_SCRIPT_NAME is known.
+        #   - Rebuilds SGND_FRAMEWORK_DIRS after path recalculation.
         #
         # Inputs (globals):
-        #   SGND_FRAMEWORK_ROOT
-        #   SGND_APPLICATION_ROOT
-        #   SGND_USER_HOME
-        #   SGND_SCRIPT_NAME (optional)
+        #   SGND_PRODUCT, SGND_FRAMEWORK_ROOT, SGND_APPLICATION_ROOT, SGND_USER_HOME,
+        #   SGND_SCRIPT_NAME
         #
         # Outputs (globals):
-        #   SGND_COMMON_LIB, SGND_SYSCFG_DIR, SGND_USRCFG_DIR, SGND_STATE_DIR
-        #   SGND_STYLE_DIR, SGND_DOCS_DIR
-        #   SGND_LOG_PATH, SGND_ALTLOG_PATH
-        #   SGND_SYSCFG_FILE, SGND_USRCFG_FILE, SGND_STATE_FILE (optional)
+        #   SGND_COMMON_LIB, SGND_SYSCFG_DIR, SGND_USRCFG_DIR, SGND_STATE_DIR,
+        #   SGND_STYLE_DIR, SGND_DOCS_DIR, SGND_PYTHON_DIR, SGND_LOG_PATH,
+        #   SGND_ALTLOG_PATH, SGND_SYSCFG_FILE, SGND_USRCFG_FILE, SGND_STATE_FILE,
         #   SGND_FRAMEWORK_DIRS
         #
         # Returns:
-        #   0 always.
+        #   0 always unless path helper commands fail under caller error policy.
         #
         # Usage:
-        #   sgnd_rebase_directories
-        #
-        # Examples:
-        #   sgnd_apply_defaults
-        #   sgnd_rebase_directories
-        #
-        #   SGND_SCRIPT_NAME="install"
         #   sgnd_rebase_directories
     sgnd_rebase_directories() {
         local product=""
@@ -366,70 +343,48 @@ set -uo pipefail
         _build_framework_dirs
     }
 
-    # fn: sgnd_rebase_framework_cfg_paths
+    # fn: sgnd_rebase_framework_cfg_paths - Recalculate framework config file paths
         # Purpose:
-        #   Derive framework-global cfg file paths from current cfg directories.
+        #   Build system and user framework configuration file paths from current directories.
         #
         # Behavior:
-        #   - Uses SGND_FRAMEWORK_CFG_BASENAME as the filename.
-        #   - Produces system and user cfg paths.
+        #   - Combines SGND_SYSCFG_DIR and SGND_USRCFG_DIR with SGND_FRAMEWORK_CFG_BASENAME.
         #
         # Inputs (globals):
-        #   SGND_SYSCFG_DIR
-        #   SGND_USRCFG_DIR
-        #   SGND_FRAMEWORK_CFG_BASENAME
+        #   SGND_SYSCFG_DIR, SGND_USRCFG_DIR, SGND_FRAMEWORK_CFG_BASENAME
         #
         # Outputs (globals):
-        #   SGND_FRAMEWORK_SYSCFG_FILE
-        #   SGND_FRAMEWORK_USRCFG_FILE
+        #   SGND_FRAMEWORK_SYSCFG_FILE, SGND_FRAMEWORK_USRCFG_FILE
         #
         # Returns:
         #   0 always.
         #
         # Usage:
         #   sgnd_rebase_framework_cfg_paths
-        #
-        # Examples:
-        #   sgnd_rebase_directories
-        #   sgnd_rebase_framework_cfg_paths
     sgnd_rebase_framework_cfg_paths() {
         SGND_FRAMEWORK_SYSCFG_FILE="$SGND_SYSCFG_DIR/$SGND_FRAMEWORK_CFG_BASENAME"
         SGND_FRAMEWORK_USRCFG_FILE="$SGND_USRCFG_DIR/$SGND_FRAMEWORK_CFG_BASENAME"
     }
 
-    # fn: sgnd_ensure_dirs
+    # fn: sgnd_ensure_dirs - Ensure framework directories exist
         # Purpose:
-        #   Ensure that framework directories exist and have appropriate ownership.
-        #
-        # Arguments:
-        #   One or more directory specifications:
-        #       "s|/path"  system directory
-        #       "u|/path"  user directory
+        #   Create framework system and user directories declared in path specifications.
         #
         # Behavior:
-        #   - Creates directories using mkdir -p.
-        #   - For user directories:
-        #       - Assigns ownership to SUDO_USER when running under sudo.
-        #       - Ensures user has read/write/execute permissions.
-        #   - Ignores malformed entries.
+        #   - Accepts entries in kind|directory format.
+        #   - Creates missing directories with mkdir -p.
+        #   - For user directories, applies user ownership when running through sudo.
+        #   - Grants user read/write/execute permissions on user directories.
         #
-        # Inputs (globals):
-        #   SUDO_USER
-        #   EUID
+        # Arguments:
+        #   $@  Directory specifications in s|/path or u|/path format.
         #
         # Returns:
-        #   0   success
-        #   1   failure creating one or more directories
+        #   0 when all required directories exist or were created.
+        #   1 when a directory cannot be created.
         #
         # Usage:
-        #   sgnd_ensure_dirs "s|/path" "u|/path"
-        #
-        # Examples:
-        #   sgnd_ensure_dirs \
-        #       "s|$SGND_COMMON_LIB" \
-        #       "s|$SGND_SYSCFG_DIR" \
-        #       "u|$SGND_USRCFG_DIR" \
-        #       "u|$SGND_STATE_DIR"
+        #   sgnd_ensure_dirs "${SGND_FRAMEWORK_DIRS[@]}"
     sgnd_ensure_dirs() {
         local spec
         local kind

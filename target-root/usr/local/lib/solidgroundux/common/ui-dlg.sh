@@ -2,9 +2,9 @@
 # SolidgroundUX - UI Dialogs
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.1
-#   Build       : 2615311
-#   Checksum    : b187b97e827d588c6368698d6f3d240d7e1ab3ff0f58714121d1c418a4528be3
+#   Version     : 1.5
+#   Build       : 2615600
+#   Checksum    : -
 #   Source      : ui-dlg.sh
 #   Type        : library
 #   Group       : UI
@@ -44,7 +44,7 @@
 # =====================================================================================
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------
-    # tmp: _td_lib_guard
+    # tmp: _sgnd_lib_guard
         # Purpose:
         #   Ensure the file is sourced as a library and only initialized once.
         #
@@ -66,17 +66,30 @@ set -uo pipefail
         #   Exits with code 2 if executed instead of sourced.
         #
         # Usage:
-        #   _td_lib_guard
+        #   _sgnd_lib_guard
         #
         # Examples:
         #   # Typical usage at top of library file
-        #   _td_lib_guard
-        #   unset -f _td_lib_guard
+        #   _sgnd_lib_guard
+        #   unset -f _sgnd_lib_guard
         #
         # Notes:
         #   - Guard variable is derived dynamically (e.g. ui-glyphs.sh → SGND_UI_GLYPHS_LOADED).
         #   - Safe under `set -u` due to indirect expansion with default.
-    _td_lib_guard() {
+    # fn$ _sgnd_lib_guard - Sgnd Lib Guard
+        # Purpose:
+        #   Internal helper function for the  sgnd lib guard operation.
+        #
+        # Behavior:
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #
+        # Returns:
+        #   0 on success, non-zero when validation or execution fails.
+        #
+        # Usage:
+        #   _sgnd_lib_guard [arguments...]
+    _sgnd_lib_guard() {
         local lib_base
         local guard
 
@@ -96,44 +109,25 @@ set -uo pipefail
         printf -v "$guard" '1'
     }
 
-    _td_lib_guard
-    unset -f _td_lib_guard
+    _sgnd_lib_guard
+    unset -f _sgnd_lib_guard
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Internal helpers ------------------------------------------------------------------
-    # fn: _dlg_keymap
+    # fn: _dlg_keymap - Dlg Keymap
         # Purpose:
-        #   Build a human-readable key legend string for the current dialog state.
+        #   Internal helper function for the  dlg keymap operation.
         #
         # Behavior:
-        #   - Includes only the actions enabled by the supplied choice string.
-        #   - Adapts the pause legend to "pause" or "resume" based on PAUSED.
-        #   - Returns a semicolon-separated legend without a trailing delimiter.
-        #
-        # Arguments:
-        #   $1  CHOICES
-        #       Choice specification describing enabled dialog keys.
-        #   $2  PAUSED
-        #       Optional paused state flag:
-        #       1 = paused
-        #       0 = not paused
-        #       Default: 0
-        #
-        # Output:
-        #   Prints the legend string to stdout.
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0 always.
+        #   0 on success, non-zero when validation or execution fails.
         #
         # Usage:
-        #   _dlg_keymap "AERCPQ" 0
-        #
-        # Examples:
-        #   legend="$(_dlg_keymap "ERCPQ" 1)"
-        #
-        # Notes:
-        #   - Intended as an internal rendering helper.
+        #   _dlg_keymap [arguments...]
     _dlg_keymap(){
         local choices="$1"
         local keymap=""
@@ -160,26 +154,19 @@ set -uo pipefail
         printf '%s' "$keymap"
     }
 
-    # fn: sgnd_decision_expand_choices
+    # fn: sgnd_decision_expand_choices - Sgnd Decision Expand Choices
         # Purpose:
-        #   Expand a symbolic decision specification into canonical choices and aliases.
+        #   Public API function for the sgnd decision expand choices operation.
         #
         # Behavior:
-        #   - Parses a comma-separated list of choice groups.
-        #   - Each group may contain aliases separated by |.
-        #   - The first token in each group becomes the canonical value.
-        #   - Tokens are normalized to uppercase.
-        #
-        # Arguments:
-        #   $1  CHOICES
-        #       Choice specification, e.g. "OK|O,Redo|R,Quit|Q|Cancel|C"
-        #
-        # Outputs:
-        #   Writes rows to stdout as:
-        #       CANONICAL|ALIAS
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0 always.
+        #   0 on success, non-zero when validation or execution fails.
+        #
+        # Usage:
+        #   sgnd_decision_expand_choices [arguments...]
     sgnd_decision_expand_choices() {
         local spec="${1-}"
         local group=""
@@ -208,30 +195,19 @@ set -uo pipefail
     }
 
 
-    # fn: sgnd_decision_normalize
+    # fn: sgnd_decision_normalize - Sgnd Decision Normalize
         # Purpose:
-        #   Normalize a typed value to its canonical decision token.
+        #   Public API function for the sgnd decision normalize operation.
         #
         # Behavior:
-        #   - Matches the typed value against a decision specification.
-        #   - Returns the canonical token for the matching alias.
-        #   - Matching is case-insensitive.
-        #   - Empty input is treated as the provided default.
-        #
-        # Arguments:
-        #   $1  VALUE
-        #       User-entered value.
-        #   $2  CHOICES
-        #       Choice specification, e.g. "OK|O,Redo|R,Quit|Q|Cancel|C"
-        #   $3  DEFAULT
-        #       Optional default value used when VALUE is empty.
-        #
-        # Outputs:
-        #   Writes canonical token to stdout when matched.
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0 if the value is valid and normalized.
-        #   1 if the value is invalid.
+        #   0 on success, non-zero when validation or execution fails.
+        #
+        # Usage:
+        #   sgnd_decision_normalize [arguments...]
     sgnd_decision_normalize() {
         local value="${1-}"
         local choices="${2-}"
@@ -257,23 +233,19 @@ set -uo pipefail
         return 1
     }
 
-    # fn: sgnd_decision_display_choices
+    # fn: sgnd_decision_display_choices - Sgnd Decision Display Choices
         # Purpose:
-        #   Build a compact display label for a decision specification.
+        #   Public API function for the sgnd decision display choices operation.
         #
         # Behavior:
-        #   - Uses the first token from each comma-separated choice group.
-        #   - Joins canonical labels with / for prompt display.
-        #
-        # Arguments:
-        #   $1  CHOICES
-        #       Choice specification, e.g. "OK|O,Redo|R,Quit|Q|Cancel|C"
-        #
-        # Outputs:
-        #   Writes compact display text, e.g. "OK/Redo/Quit"
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0 always.
+        #   0 on success, non-zero when validation or execution fails.
+        #
+        # Usage:
+        #   sgnd_decision_display_choices [arguments...]
     sgnd_decision_display_choices() {
         local spec="${1-}"
         local group=""
@@ -298,28 +270,19 @@ set -uo pipefail
     }
 
 
-    # fn: sgnd_decision_from_dialog_rc
+    # fn: sgnd_decision_from_dialog_rc - Sgnd Decision From Dialog Rc
         # Purpose:
-        #   Translate a sgnd_dlg_autocontinue() return code into a canonical decision token.
+        #   Public API function for the sgnd decision from dialog rc operation.
         #
         # Behavior:
-        #   - Maps dialog return codes to canonical decision names when possible.
-        #   - Returns non-zero when the dialog result should fall back to typed input.
-        #
-        # Arguments:
-        #   $1  RC
-        #       Return code from sgnd_dlg_autocontinue().
-        #   $2  CHOICES
-        #       Decision specification used for normalization.
-        #   $3  DEFAULT
-        #       Default decision token.
-        #
-        # Outputs:
-        #   Writes canonical decision token to stdout when mapped.
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0 if RC was mapped to a canonical decision.
-        #   1 if typed fallback should be used.
+        #   0 on success, non-zero when validation or execution fails.
+        #
+        # Usage:
+        #   sgnd_decision_from_dialog_rc [arguments...]
     sgnd_decision_from_dialog_rc() {
         local rc="${1:-}"
         local choices="${2-}"
@@ -360,69 +323,19 @@ set -uo pipefail
     }
 
 # --- Public API ---------------------------------------------------------------------
-    # fn: sgnd_dlg_autocontinue
+    # fn: sgnd_dlg_autocontinue - Sgnd Dlg Autocontinue
         # Purpose:
-        #   Render a timed dialog on /dev/tty with a countdown and simple key-driven actions.
+        #   Public API function for the sgnd dlg autocontinue operation.
         #
         # Behavior:
-        #   - Displays an optional message, optional key legend, and countdown line.
-        #   - Redraws the dialog block in place using minimal cursor movement.
-        #   - Supports pause/resume, continue, cancel, redo, quit, and custom keys.
-        #   - Returns immediately with success when no usable /dev/tty is available.
-        #
-        # Arguments:
-        #   $1  SECONDS
-        #       Countdown duration in seconds.
-        #       Default: 5
-        #   $2  MESSAGE
-        #       Optional text shown above the countdown.
-        #   $3  CHOICES
-        #       Enabled key set.
-        #       Default: AERCPQ
-        #
-        # Supported reserved keys:
-        #   A  Any key continues
-        #   E  Enter continues
-        #   R  Redo
-        #   C  Cancel
-        #   P  Pause / resume
-        #   Q  Quit
-        #   H  Hide key legend
-        #
-        # Custom keys:
-        #   - Any non-reserved single-character key in CHOICES is treated as a custom key.
-        #   - Custom keys return 10 for the first custom key, 11 for the second, and so on.
-        #
-        # Inputs (globals):
-        #   TUI_TEXT
-        #   WHITE
-        #   FX_ITALIC
-        #   RESET
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0   continue
-        #   1   timeout / auto-continue
-        #   2   cancel
-        #   3   redo
-        #   4   quit
-        #   10+ custom key index
+        #   0 on success, non-zero when validation or execution fails.
         #
         # Usage:
-        #   sgnd_dlg_autocontinue 5 "Continuing shortly..." "AERCPQ"
-        #
-        # Examples:
-        #   sgnd_dlg_autocontinue 10 "Proceed with installation?" "ERCPQ"
-        #
-        #   case $? in
-        #       0)  continue_flow ;;
-        #       1)  timeout_flow ;;
-        #       2)  cancel_flow ;;
-        #       3)  redo_flow ;;
-        #       4)  quit_flow ;;
-        #   esac
-        #
-        # Notes:
-        #   - This function defines dialog mechanics only; callers interpret the return code.
+        #   sgnd_dlg_autocontinue [arguments...]
     sgnd_dlg_autocontinue() {
         local seconds="${1:-5}"
         local msg="${2:-}"
@@ -459,6 +372,19 @@ set -uo pipefail
         # Return code for a custom key, or empty if not a custom key.
         # Custom keys are matched exactly as provided, but also accept case-insensitive
         # match if the provided key is alphabetic.
+        # fn: sgnd_dlg_custom_rc_for_key - Sgnd Dlg Custom Rc For Key
+            # Purpose:
+            #   Public API function for the sgnd dlg custom rc for key operation.
+            #
+            # Behavior:
+            #   - Performs the operation implied by its name and arguments.
+            #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+            #
+            # Returns:
+            #   0 on success, non-zero when validation or execution fails.
+            #
+            # Usage:
+            #   sgnd_dlg_custom_rc_for_key [arguments...]
         sgnd_dlg_custom_rc_for_key() {
             local pressed="${1:-}"
             local j=0
@@ -608,57 +534,19 @@ set -uo pipefail
         done
     }
 
-    # fn: sgnd_prompt_fromlist
+    # fn: sgnd_prompt_fromlist - Sgnd Prompt Fromlist
         # Purpose:
-        #   Prompt for a list of state or configuration entries described by state-spec lines.
+        #   Public API function for the sgnd prompt fromlist operation.
         #
         # Behavior:
-        #   - Parses each spec line via sgnd_parse_statespec.
-        #   - Resolves the target variable name, label, default value, and validator.
-        #   - Uses the current shell value when present, otherwise the spec default.
-        #   - Calls ask() for each valid entry and stores results directly in the target variables.
-        #   - Optionally auto-aligns labels based on the longest label in the input list.
-        #
-        # Options:
-        #   --labelwidth N
-        #       Fixed label width. Default: 0
-        #   --autoalign
-        #       Compute label width from the longest label in the provided specs.
-        #   --colorize MODE
-        #       Passed through to ask --colorize.
-        #       Default: both
-        #   --
-        #       End of options; remaining arguments are spec lines.
-        #
-        # Spec format:
-        #   Each spec line is parsed by sgnd_parse_statespec and is expected to provide:
-        #     _statekey
-        #     _statelabel
-        #     _statedefault
-        #     _statevalidate
-        #
-        # Inputs (globals / dependencies):
-        #   sgnd_parse_statespec
-        #   _td_is_ident
-        #   sgnd_trim
-        #   sgnd_fill_right
-        #   ask
-        #   saywarning
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0 always.
+        #   0 on success, non-zero when validation or execution fails.
         #
         # Usage:
-        #   sgnd_prompt_fromlist --autoalign -- "${SGND_STATE_VARIABLES[@]}"
-        #
-        # Examples:
-        #   sgnd_prompt_fromlist --autoalign --colorize both -- \
-        #       "HOST|Host name|localhost|validate_text|" \
-        #       "PORT|Port|8080|validate_int|"
-        #
-        # Notes:
-        #   - Invalid state keys are skipped with a warning.
-        #   - Results are assigned directly to the variables named by each spec.
+        #   sgnd_prompt_fromlist [arguments...]
     sgnd_prompt_fromlist() {
         local labelwidth=0
         local autoalign=0
@@ -748,46 +636,19 @@ set -uo pipefail
         done
     }
 
-    # fn: sgnd_ask_decision
+    # fn: sgnd_ask_decision - Sgnd Ask Decision
         # Purpose:
-        #   Prompt for a constrained symbolic decision and normalize the result.
+        #   Public API function for the sgnd ask decision operation.
         #
         # Behavior:
-        #   - Builds a prompt label from free text plus compact choice display.
-        #   - Optionally runs sgnd_dlg_autocontinue() first when --seconds > 0.
-        #   - Maps dialog outcomes to canonical decision tokens when possible.
-        #   - Falls back to ask() for typed input when needed.
-        #   - Re-prompts until a valid value is entered.
-        #   - Returns the canonical decision token in the requested variable.
-        #
-        # Options:
-        #   --label TEXT
-        #       Prompt label text.
-        #   --choices SPEC
-        #       Choice specification, e.g. "OK|O,Redo|R,Quit|Q|Cancel|C"
-        #   --default VALUE
-        #       Default decision token or alias.
-        #   --var NAME
-        #       Destination variable name. Default: decision
-        #   --seconds N
-        #       Optional auto-continue countdown in seconds.
-        #   --dlgchoices TEXT
-        #       Optional sgnd_dlg_autocontinue key set. Default: ERCPQTH
-        #   --displaychoices 0|1
-        #       Append compact choices to the label. Default: 1
-        #   --colorize MODE
-        #       Passed through to ask(). Default: both
-        #   --labelclr ANSI
-        #       Passed through to ask().
-        #   --inputclr ANSI
-        #       Passed through to ask().
-        #   --labelwidth N
-        #       Passed through to ask().
-        #   --pad N
-        #       Passed through to ask().
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0 on accepted valid input.
+        #   0 on success, non-zero when validation or execution fails.
+        #
+        # Usage:
+        #   sgnd_ask_decision [arguments...]
     sgnd_ask_decision() {
         local label=""
         local choices=""

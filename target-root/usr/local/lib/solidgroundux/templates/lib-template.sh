@@ -2,9 +2,9 @@
 # SolidgroundUX - Library Template
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.1
-#   Build       : 2615311
-#   Checksum    : 481544d1c021ab49873ccf1728ed8cce16c76bfb37494b69052bced57ee3c71e
+#   Version     : 1.5
+#   Build       : 2615412
+#   Checksum    : -
 #   Source      : lib-template.sh
 #   Type        : library
 #   Group       : Templates
@@ -85,17 +85,18 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # - Internal helpers ---------------------------------------------------------------
-    # Naming:
-    #   - Prefix internal-only helpers with "_" (never "sgnd_")
-    # Example:
-    #   __<libname>_helper() { :; }
-# - Public API -------------------------------------------------------------------
-    # Naming:
-    #   - Prefix public functions with "sgnd_" (never "_")
-    # Example:
-    #   sgnd_<libname>_do_something() { :; }
+    # doc$ Internal helper naming
+        # Prefix internal-only helpers with "_" (never "sgnd_").
+        # Example:
+        #   _<libname>_helper() { :; }
 
-    # Default function header
+# - Public API -------------------------------------------------------------------
+    # doc$ Public API naming
+        # Prefix public framework functions with "sgnd_" (never "_").
+        # Example:
+        #   sgnd_<libname>_do_something() { :; }
+
+    # doc$ Default function header
         # <function_name>
         # Purpose:
         #   <one-line description>

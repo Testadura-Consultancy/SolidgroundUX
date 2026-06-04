@@ -2,9 +2,9 @@
 # SolidgroundUX - Datatable
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.1
-#   Build       : 2615311
-#   Checksum    : 6c648db3533a9041b341e5e0048c6e199f08ddb82b79e6b4464755fa531e396f
+#   Version     : 1.5
+#   Build       : 2615600
+#   Checksum    : -
 #   Source      : sgnd-datatable.sh
 #   Type        : library
 #   Group       : Common Extensions
@@ -46,26 +46,19 @@
 set -uo pipefail
 
 # --- Library guard ------------------------------------------------------------------
-    # tmp: _sgnd_lib_guard
+    # fn$ _sgnd_lib_guard - Lib guard
         # Purpose:
-        #   Ensure the file is sourced as a library and only initialized once.
+        #   Prevent direct execution of a source-only library and avoid repeated initialization when the file is sourced more than once.
         #
         # Behavior:
-        #   - Derives a unique guard variable name from the current filename.
-        #   - Aborts execution if the file is executed instead of sourced.
-        #   - Sets the guard variable on first load.
-        #   - Skips initialization if the library was already loaded.
-        #
-        # Inputs:
-        #   BASH_SOURCE[0]
-        #   $0
-        #
-        # Outputs (globals):
-        #   SGND_<MODULE>_LOADED
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if already loaded or successfully initialized.
-        #   Exits with code 2 if executed instead of sourced.
+        #   0 when the library may continue loading; exits with 2 when executed directly.
+        #
+        # Usage:
+        #   _sgnd_lib_guard ...
     _sgnd_lib_guard() {
         local lib_base
         local guard
@@ -89,24 +82,19 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Internal helpers ---------------------------------------------------------------
-    # fn: sgnd_dt_array_length
+    # fn: sgnd_dt_array_length - Dt array length
         # Purpose:
-        #   Return the length of an indexed array by name.
+        #   Return the number of entries in a named datatable array.
         #
-        # Arguments:
-        #   $1  ARRAY_NAME
-        #
-        # Outputs:
-        #   Prints array length to stdout.
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_dt_array_length ARRAY_NAME
-        #
-        # Examples:
-        #   count="$(sgnd_dt_array_length MY_ROWS)"
+        #   sgnd_dt_array_length ...
     sgnd_dt_array_length() {
         local array_name="${1:?missing array name}"
         local -n array_ref="$array_name"
@@ -114,58 +102,38 @@ set -uo pipefail
         printf '%s\n' "${#array_ref[@]}"
     }
 
-    # fn: sgnd_dt_split_schema
+    # fn: sgnd_dt_split_schema - Dt split schema
         # Purpose:
-        #   Split a schema string into positional column names.
+        #   Split a pipe-delimited datatable schema into fields.
         #
-        # Arguments:
-        #   $1  SCHEMA
-        #
-        # Outputs:
-        #   Writes column names into global helper array SGND_DT_SPLIT.
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_dt_split_schema "$SCHEMA"
-        #
-        # Examples:
-        #   sgnd_dt_split_schema "id|name|desc"
-        #   printf '%s\n' "${SGND_DT_SPLIT[1]}"   # name
+        #   sgnd_dt_split_schema ...
     sgnd_dt_split_schema() {
         local schema="${1:?missing schema}"
 
         IFS='|' read -r -a SGND_DT_SPLIT <<< "$schema"
     }
 
-    # fn: sgnd_dt_split_row
+    # fn: sgnd_dt_split_row - Dt split row
         # Purpose:
-        #   Split a row string into positional field values.
+        #   Split a pipe-delimited datatable row into fields.
         #
         # Behavior:
-        #   - Splits on pipe ('|') delimiter.
-        #   - Preserves empty fields, including trailing empty values.
-        #   - Guarantees column count consistency with schema-based rows.
-        #
-        # Arguments:
-        #   $1  ROW
-        #
-        # Outputs:
-        #   Writes field values into global helper array SGND_DT_SPLIT.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_dt_split_row "$ROW"
-        #
-        # Examples:
-        #   sgnd_dt_split_row "1|Tools|Utility"
-        #   printf '%s\n' "${SGND_DT_SPLIT[2]}"   # Utility
-        #
-        #   sgnd_dt_split_row "1|Tools|"
-        #   printf '%s\n' "${SGND_DT_SPLIT[2]}"   # (empty string)
+        #   sgnd_dt_split_row ...
     sgnd_dt_split_row() {
         local row="${1-}"
         local tmp
@@ -176,30 +144,19 @@ set -uo pipefail
         unset 'SGND_DT_SPLIT[${#SGND_DT_SPLIT[@]}-1]'
     }
 
-    # fn: _dt_build_sortkey
+    # fn: _dt_build_sortkey - Dt build sortkey
         # Purpose:
-        #   Build a stable sort key for one datatable row.
+        #   Build a composite sort key for a datatable row.
         #
         # Behavior:
-        #   - Resolves each requested sort field against the supplied schema.
-        #   - Reads the field value from the supplied row.
-        #   - Normalizes values to lowercase for case-insensitive sorting.
-        #   - Joins sort key parts using a pipe separator.
-        #
-        # Arguments:
-        #   $1  SCHEMA
-        #   $2  ROW
-        #   $3  SORT_FIELDS   Comma-separated column names.
-        #
-        # Outputs:
-        #   Prints the generated sort key to stdout.
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   1 when a requested column does not exist.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   _dt_build_sortkey "$SCHEMA" "$row" "product,group,type"
+        #   _dt_build_sortkey ...
     _dt_build_sortkey() {
         local schema="${1:?missing schema}"
         local row="${2-}"
@@ -224,28 +181,19 @@ set -uo pipefail
         printf '%s\n' "$sortkey"
     }
 # --- Public API ---------------------------------------------------------------------
-    # fn: sgnd_dt_validate_value
+    # fn: sgnd_dt_validate_value - Dt validate value
         # Purpose:
-        #   Validate whether a field value is supported by v1 storage rules.
+        #   Validate a single datatable field value.
         #
-        # Rules:
-        #   - value must not contain a literal pipe character
-        #   - value must not contain a newline
-        #
-        # Arguments:
-        #   $1  VALUE
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if value is valid.
-        #   1 if value contains unsupported characters.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_dt_validate_value VALUE
-        #
-        # Examples:
-        #   if sgnd_dt_validate_value "$input"; then
-        #       sayinfo "Value OK"
-        #   fi
+        #   sgnd_dt_validate_value ...
     sgnd_dt_validate_value() {
         local value="${1-}"
 
@@ -254,29 +202,19 @@ set -uo pipefail
         return 0
     }
 
-    # fn: sgnd_dt_validate_schema
+    # fn: sgnd_dt_validate_schema - Dt validate schema
         # Purpose:
-        #   Validate a schema string.
+        #   Validate a datatable schema string.
         #
-        # Rules:
-        #   - schema must not be empty
-        #   - each column name must be non-empty
-        #   - duplicate column names are not allowed
-        #
-        # Arguments:
-        #   $1  SCHEMA
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if schema is valid.
-        #   1 if schema is invalid.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_dt_validate_schema "$SCHEMA"
-        #
-        # Examples:
-        #   if ! sgnd_dt_validate_schema "$MY_SCHEMA"; then
-        #       sayfail "Invalid schema"
-        #   fi
+        #   sgnd_dt_validate_schema ...
     sgnd_dt_validate_schema() {
         local schema="${1-}"
         local i
@@ -298,26 +236,19 @@ set -uo pipefail
         return 0
     }
 
-    # fn: sgnd_dt_column_index
+    # fn: sgnd_dt_column_index - Dt column index
         # Purpose:
-        #   Resolve a column name to its zero-based index within a schema.
+        #   Return the zero-based index for a named schema column.
         #
-        # Arguments:
-        #   $1  SCHEMA
-        #   $2  COLUMN_NAME
-        #
-        # Outputs:
-        #   Prints the zero-based column index to stdout.
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if the column is found.
-        #   1 if the column is not found.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_dt_column_index "$SCHEMA" COLUMN
-        #
-        # Examples:
-        #   idx="$(sgnd_dt_column_index "$MY_SCHEMA" "name")"
+        #   sgnd_dt_column_index ...
     sgnd_dt_column_index() {
         local schema="${1:?missing schema}"
         local column="${2:?missing column name}"
@@ -334,21 +265,19 @@ set -uo pipefail
         return 1
     }
 
-    # fn: sgnd_dt_column_count
+    # fn: sgnd_dt_column_count - Dt column count
         # Purpose:
-        #   Return the number of columns in a schema.
+        #   Return the number of columns in a datatable schema.
         #
-        # Arguments:
-        #   $1  SCHEMA
-        #
-        # Outputs:
-        #   Prints column count to stdout.
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_dt_column_count "$SCHEMA"
+        #   sgnd_dt_column_count ...
     sgnd_dt_column_count() {
         local schema="${1:?missing schema}"
 
@@ -356,26 +285,19 @@ set -uo pipefail
         printf '%s\n' "${#SGND_DT_SPLIT[@]}"
     }
 
-    # fn: sgnd_dt_make_row
+    # fn: sgnd_dt_make_row - Dt make row
         # Purpose:
-        #   Build a row string from positional field values.
+        #   Build one pipe-delimited datatable row from field values.
         #
-        # Arguments:
-        #   $1   SCHEMA
-        #   $2+  VALUES matching schema order
-        #
-        # Outputs:
-        #   Prints the constructed row string to stdout.
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   1 on wrong field count or invalid field value.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_dt_make_row "$SCHEMA" VALUE1 VALUE2 ...
-        #
-        # Examples:
-        #   row="$(sgnd_dt_make_row "$MY_SCHEMA" "1" "Tools" "Utility module")"
+        #   sgnd_dt_make_row ...
     sgnd_dt_make_row() {
         local schema="${1:?missing schema}"
         shift
@@ -400,33 +322,19 @@ set -uo pipefail
         printf '%s\n' "$row"
     }
 
-    # fn: sgnd_dt_has_row
+    # fn: sgnd_dt_has_row - Dt has row
         # Purpose:
-        #   Test whether a table contains at least one row where a given column
-        #   equals the specified value.
+        #   Test whether a datatable contains a row index.
         #
         # Behavior:
-        #   - Performs a linear scan over the table rows.
-        #   - Uses sgnd_dt_find_first internally.
-        #   - Produces no output; success/failure is indicated by the return code.
-        #
-        # Arguments:
-        #   $1  SCHEMA             Pipe-separated column definition string
-        #   $2  TABLE_ARRAY_NAME   Name of the indexed array containing row strings
-        #   $3  COLUMN_NAME        Column to test
-        #   $4  VALUE              Value to match
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if at least one matching row exists.
-        #   1 if no matching row is found or the column does not exist.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_dt_has_row "$SCHEMA" MY_ROWS key "Q"
-        #
-        # Examples:
-        #   if sgnd_dt_has_row "$MY_SCHEMA" MY_ROWS key "Q"; then
-        #       sayinfo "Quit item already registered"
-        #   fi
+        #   sgnd_dt_has_row ...
     sgnd_dt_has_row() {
         local schema="${1:?missing schema}"
         local table_name="${2:?missing table name}"
@@ -436,24 +344,19 @@ set -uo pipefail
         sgnd_dt_find_first "$schema" "$table_name" "$column" "$value" >/dev/null 2>&1
     }
 
-    # fn: sgnd_dt_row_get
+    # fn: sgnd_dt_row_get - Dt row get
         # Purpose:
-        #   Get the value of one column from a row string.
+        #   Return one complete datatable row by row index.
         #
-        # Arguments:
-        #   $1  SCHEMA
-        #   $2  ROW
-        #   $3  COLUMN_NAME
-        #
-        # Outputs:
-        #   Prints the field value to stdout.
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   1 if the column is not found.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_dt_row_get "$SCHEMA" "$ROW" COLUMN_NAME
+        #   sgnd_dt_row_get ...
     sgnd_dt_row_get() {
         local schema="${1:?missing schema}"
         local row="${2-}"
@@ -466,25 +369,19 @@ set -uo pipefail
         printf '%s\n' "${SGND_DT_SPLIT[index]-}"
     }
 
-    # fn: sgnd_dt_row_set
+    # fn: sgnd_dt_row_set - Dt row set
         # Purpose:
-        #   Set the value of one column within a row string.
+        #   Replace one complete datatable row by row index.
         #
-        # Arguments:
-        #   $1  SCHEMA
-        #   $2  ROW
-        #   $3  COLUMN_NAME
-        #   $4  VALUE
-        #
-        # Outputs:
-        #   Prints the updated row string to stdout.
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   1 on invalid column or invalid value.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_dt_row_set "$SCHEMA" "$ROW" COLUMN_NAME VALUE
+        #   sgnd_dt_row_set ...
     sgnd_dt_row_set() {
         local schema="${1:?missing schema}"
         local row="${2-}"
@@ -516,45 +413,38 @@ set -uo pipefail
         printf '%s\n' "$out"
     }
 
-    # fn: sgnd_dt_row_count
+    # fn: sgnd_dt_row_count - Dt row count
         # Purpose:
-        #   Return the number of rows in a table array.
+        #   Return the number of rows in a datatable.
         #
-        # Arguments:
-        #   $1  TABLE_ARRAY_NAME
-        #
-        # Outputs:
-        #   Prints row count to stdout.
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_dt_row_count TABLE_ARRAY_NAME
+        #   sgnd_dt_row_count ...
     sgnd_dt_row_count() {
         local table_name="${1:?missing table name}"
 
         sgnd_dt_array_length "$table_name"
     }
 
-    # fn: sgnd_dt_insert
+    # fn: sgnd_dt_insert - Dt insert
         # Purpose:
-        #   Append a row string to a table array.
+        #   Insert a row into a datatable.
         #
-        # Arguments:
-        #   $1  SCHEMA
-        #   $2  TABLE_ARRAY_NAME
-        #   $3  ROW
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   1 on invalid schema or row width mismatch.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_dt_insert "$SCHEMA" ARRAY_NAME ROW
-        #
-        # Examples:
-        #   sgnd_dt_insert "$MY_SCHEMA" MY_ROWS "1|Tools|Utility module"
+        #   sgnd_dt_insert ...
     sgnd_dt_insert() {
         local schema="${1:?missing schema}"
         local table_name="${2:?missing table name}"
@@ -571,20 +461,19 @@ set -uo pipefail
         table_ref+=("$row")
     }
 
-    # fn: sgnd_dt_delete
+    # fn: sgnd_dt_delete - Dt delete
         # Purpose:
-        #   Delete one row from a table array by index.
+        #   Delete a row from a datatable.
         #
-        # Arguments:
-        #   $1  TABLE_ARRAY_NAME
-        #   $2  ROW_INDEX
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   1 on invalid row index.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_dt_delete TABLE_ARRAY_NAME ROW_INDEX
+        #   sgnd_dt_delete ...
     sgnd_dt_delete() {
         local table_name="${1:?missing table name}"
         local row_index="${2:?missing row index}"
@@ -600,28 +489,19 @@ set -uo pipefail
         table_ref=("${table_ref[@]}")
     }
 
-    # fn: sgnd_dt_get
+    # fn: sgnd_dt_get - Dt get
         # Purpose:
-        #   Get one cell value from a table by row index and column name.
+        #   Read one field value from a datatable row.
         #
-        # Arguments:
-        #   $1  SCHEMA
-        #   $2  TABLE_ARRAY_NAME
-        #   $3  ROW_INDEX
-        #   $4  COLUMN_NAME
-        #
-        # Outputs:
-        #   Prints the field value to stdout.
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   1 on invalid row index or invalid column.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_dt_get "$SCHEMA" ARRAY INDEX COLUMN
-        #
-        # Examples:
-        #   name="$(sgnd_dt_get "$MY_SCHEMA" MY_ROWS 0 name)"
+        #   sgnd_dt_get ...
     sgnd_dt_get() {
         local schema="${1:?missing schema}"
         local table_name="${2:?missing table name}"
@@ -638,26 +518,19 @@ set -uo pipefail
         sgnd_dt_row_get "$schema" "${table_ref[row_index]}" "$column"
     }
 
-    # fn: sgnd_dt_set
+    # fn: sgnd_dt_set - Dt set
         # Purpose:
-        #   Set one cell value in a table by row index and column name.
+        #   Set one field value in a datatable row.
         #
-        # Arguments:
-        #   $1  SCHEMA
-        #   $2  TABLE_ARRAY_NAME
-        #   $3  ROW_INDEX
-        #   $4  COLUMN_NAME
-        #   $5  VALUE
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   1 on invalid row index, invalid column, or invalid value.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_dt_set "$SCHEMA" ARRAY INDEX COLUMN VALUE
-        #
-        # Examples:
-        #   sgnd_dt_set "$MY_SCHEMA" MY_ROWS 0 name "Updated"
+        #   sgnd_dt_set ...
     sgnd_dt_set() {
         local schema="${1:?missing schema}"
         local table_name="${2:?missing table name}"
@@ -677,28 +550,19 @@ set -uo pipefail
         table_ref[row_index]="$updated"
     }
 
-    # fn: sgnd_dt_find_first
+    # fn: sgnd_dt_find_first - Dt find first
         # Purpose:
-        #   Find the first row index where COLUMN_NAME equals VALUE.
+        #   Find the first row where a field matches a value.
         #
-        # Arguments:
-        #   $1  SCHEMA
-        #   $2  TABLE_ARRAY_NAME
-        #   $3  COLUMN_NAME
-        #   $4  VALUE
-        #
-        # Outputs:
-        #   Prints the first matching row index to stdout.
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if a match is found.
-        #   1 if no match is found.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_dt_find_first "$SCHEMA" ARRAY COLUMN VALUE
-        #
-        # Examples:
-        #   idx="$(sgnd_dt_find_first "$MY_SCHEMA" MY_ROWS key "Q")"
+        #   sgnd_dt_find_first ...
     sgnd_dt_find_first() {
         local schema="${1:?missing schema}"
         local table_name="${2:?missing table name}"
@@ -720,24 +584,19 @@ set -uo pipefail
         return 1
     }
 
-    # fn: sgnd_dt_append
+    # fn: sgnd_dt_append - Dt append
         # Purpose:
-        #   Build and append a row from positional values.
+        #   Append a row to a datatable.
         #
-        # Arguments:
-        #   $1   SCHEMA
-        #   $2   TABLE_ARRAY_NAME
-        #   $3+  VALUES
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   1 on invalid values or width mismatch.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_dt_append "$SCHEMA" ARRAY VALUE1 VALUE2 ...
-        #
-        # Examples:
-        #   sgnd_dt_append "$MY_SCHEMA" MY_ROWS "2" "Config" "Settings module"
+        #   sgnd_dt_append ...
     sgnd_dt_append() {
         local schema="${1:?missing schema}"
         local table_name="${2:?missing table name}"
@@ -750,44 +609,19 @@ set -uo pipefail
         sgnd_dt_insert "$schema" "$table_name" "$row"
     }
 
-    # fn: sgnd_dt_print_table
+    # fn: sgnd_dt_print_table - Dt print table
         # Purpose:
-        #   Print a datatable in aligned column form, with optional pretty-print coloring.
-        #
-        # Arguments:
-        #   $1  SCHEMA
-        #   $2  TABLE_ARRAY_NAME
-        #   $3  PRETTYPRINT    Optional. 0/1. Defaults to 0.
-        #   $4  HEADER_COLOR   Optional. ANSI/color sequence for header/title output.
-        #   $5  DATA_COLOR     Optional. ANSI/color sequence for data cells.
-        #   $6  TOP_N          Optional. Maximum number of rows to print.
-        #                      Empty or 0 prints all rows.
+        #   Print a datatable as formatted console output.
         #
         # Behavior:
-        #   - Prints a table title line containing the table name and row count.
-        #   - Prints schema fields as aligned column headers.
-        #   - Prints table rows in aligned column form.
-        #   - If TOP_N is supplied, only the first N rows are printed.
-        #   - If PRETTYPRINT is 0, colors default to RESET.
-        #   - If PRETTYPRINT is 1 and no colors are supplied:
-        #       * HEADER_COLOR defaults to TUI_LABEL.
-        #       * DATA_COLOR defaults to TUI_VALUE.
-        #   - If HEADER_COLOR or DATA_COLOR is supplied, pretty-printing is assumed.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   1 on invalid schema.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_dt_print_table "$SCHEMA" ARRAY_NAME
-        #   sgnd_dt_print_table "$SCHEMA" ARRAY_NAME 1
-        #   sgnd_dt_print_table "$SCHEMA" ARRAY_NAME 1 "$TUI_LABEL" "$TUI_VALUE"
-        #   sgnd_dt_print_table "$SCHEMA" ARRAY_NAME 1 "" "" 25
-        #
-        # Examples:
-        #   sgnd_dt_print_table "$MY_SCHEMA" MY_ROWS
-        #   sgnd_dt_print_table "$DOC_RENDERED_SCHEMA" DOC_RENDERED 1
-        #   sgnd_dt_print_table "$DOC_RENDERED_SCHEMA" DOC_RENDERED 1 "" "" 10
+        #   sgnd_dt_print_table ...
     sgnd_dt_print_table() {
         local schema="${1:?missing schema}"
         local table_name="${2:?missing table name}"
@@ -923,36 +757,19 @@ set -uo pipefail
         printf '%s' "$color_reset"
     }
 
-    # fn: sgnd_dt_get_sorted_rows
+    # fn: sgnd_dt_get_sorted_rows - Dt get sorted rows
         # Purpose:
-        #   Return all rows from a datatable sorted by one or more schema fields.
+        #   Return datatable rows sorted by one or more schema fields.
         #
         # Behavior:
-        #   - Reads rows from the supplied table array.
-        #   - Builds a case-insensitive sort key for each row.
-        #   - Sorts rows by the generated key.
-        #   - Prints only the original row values, not the generated sort keys.
-        #   - Does not modify the source table.
-        #
-        # Arguments:
-        #   $1  SCHEMA             Pipe-separated column definition string.
-        #   $2  TABLE_ARRAY_NAME   Name of the indexed array containing row strings.
-        #   $3  SORT_FIELDS        Comma-separated column names.
-        #
-        # Outputs:
-        #   Prints sorted row strings to stdout, one row per line.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   1 when arguments are invalid or a sort field does not exist.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_dt_get_sorted_rows "$MOD_TABLE_SCHEMA" MOD_TABLE "product,group,type,name"
-        #
-        # Examples:
-        #   while IFS= read -r row; do
-        #       sgnd_dt_row_get "$MOD_TABLE_SCHEMA" "$row" name
-        #   done < <(sgnd_dt_get_sorted_rows "$MOD_TABLE_SCHEMA" MOD_TABLE "product,group,type")
+        #   sgnd_dt_get_sorted_rows ...
     sgnd_dt_get_sorted_rows() {
         local schema="${1:?missing schema}"
         local table_name="${2:?missing table name}"
@@ -975,37 +792,19 @@ set -uo pipefail
         done | sort -t $'\t' -k1,1 | cut -f2-
     }
 
-    # fn: sgnd_dt_row2var
+    # fn: sgnd_dt_row2var - Dt row2var
         # Purpose:
-        #   Split a datatable row into field variables named after the table and schema fields.
+        #   Assign datatable row values to shell variables.
         #
         # Behavior:
-        #   - Splits the supplied schema into field names.
-        #   - Splits the supplied row into field values.
-        #   - Creates one shell variable per schema field.
-        #   - Variable names are built as:
-        #       <table_name>_<field_name>
-        #   - Field names are normalized to lowercase.
-        #   - Hyphens in field names are converted to underscores.
-        #
-        # Arguments:
-        #   $1  SCHEMA       Pipe-separated column definition string.
-        #   $2  TABLE_NAME   Logical table name used as variable prefix.
-        #   $3  ROW          Pipe-separated datatable row.
-        #
-        # Outputs:
-        #   <TABLE_NAME>_<field_name> variables
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   1 when the schema is invalid.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_dt_row2var "$MOD_TABLE_SCHEMA" MOD_TABLE "$row"
-        #
-        # Examples:
-        #   sgnd_dt_row2var "$MOD_TABLE_SCHEMA" MOD_TABLE "$row"
-        #   printf '%s\n' "$MOD_TABLE_name"
+        #   sgnd_dt_row2var ...
     sgnd_dt_row2var() {
         local schema="${1:?missing schema}"
         local table_name="${2:?missing table name}"

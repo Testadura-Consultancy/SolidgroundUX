@@ -2,9 +2,9 @@
 # SolidgroundUX - Argument Parsing
 # -------------------------------------------------------------------------------------
 # Metadata: 
-#   Version     : 1.1
-#   Build       : 2608203
-#   Checksum    : 8514965960d1becba4459cc212b011b1bd6e9b51a2d41a9570cba36ff0e9354d
+#   Version     : 1.5
+#   Build       : 2615600
+#   Checksum    : -
 #   Source      : sgnd-args.sh
 #   Type        : library
 #   Group       : Common Core
@@ -46,26 +46,25 @@
 # =====================================================================================
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------
-    # fn: _sgnd_lib_guard
+    # fn$: _sgnd_lib_guard - Guard source-only library loading
         # Purpose:
-        #   Ensure the file is sourced as a library and only initialized once.
+        #   Prevent direct execution and repeated initialization of this library.
         #
         # Behavior:
-        #   - Derives a unique guard variable name from the current filename.
-        #   - Aborts execution if the file is executed instead of sourced.
-        #   - Sets the guard variable on first load.
-        #   - Skips initialization if the library was already loaded.
-        #
-        # Inputs:
-        #   BASH_SOURCE[0]
-        #   $0
+        #   - Derives a guard variable name from the current library filename.
+        #   - Exits with status 2 when the file is executed instead of sourced.
+        #   - Returns without action when the guard variable is already set.
+        #   - Sets the guard variable on first successful source.
         #
         # Outputs (globals):
-        #   SGND_<MODULE>_LOADED
+        #   SGND_<LIBRARY_NAME>_LOADED
         #
         # Returns:
-        #   0 if already loaded or successfully initialized.
-        #   Exits with code 2 if executed instead of sourced.
+        #   0 when the library may continue loading or was already loaded.
+        #   Exits with 2 when the file is executed directly.
+        #
+        # Usage:
+        #   _sgnd_lib_guard
     _sgnd_lib_guard() {
         local lib_base
         local guard
@@ -89,83 +88,57 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Helper functions ----------------------------------------------------------------
-    # fn: _sgnd_arg_split
+    # fn: _sgnd_arg_split - Split one argument specification
         # Purpose:
-        #   Split a single SGND_ARGS_SPEC definition into internal scratch variables.
+        #   Parse a pipe-separated argument specification into parser fields.
         #
         # Behavior:
-        #   - Reads one pipe-delimited spec string.
-        #   - Assigns each field to the corresponding _sgnd_* scratch variable.
-        #   - Performs parsing only; does not validate semantic correctness.
+        #   - Reads one SGND argument specification string.
+        #   - Splits the string into name, short option, type, target variable,
+        #     help text, default value, and enum choices.
+        #   - Stores parsed fields in parser-scoped scratch variables.
         #
         # Arguments:
-        #   $1  SPEC
-        #       SGND_ARGS_SPEC entry in the format:
-        #       "name|short|type|var|help|choices"
+        #   $1  Argument specification in name|short|type|var|help|default|choices format.
         #
         # Outputs (globals):
-        #   _sgnd_name
-        #   _sgnd_short
-        #   _sgnd_type
-        #   _sgnd_var
-        #   _sgnd_help
-        #   _sgnd_choices
-        #
-        # Side effects:
-        #   - Overwrites the current _sgnd_* scratch field variables.
+        #   _sgnd_name, _sgnd_short, _sgnd_type, _sgnd_var
+        #   _sgnd_help, _sgnd_default, _sgnd_choices
         #
         # Returns:
         #   0 always.
         #
         # Usage:
         #   _sgnd_arg_split "$spec"
-        #
-        # Examples:
-        #   _sgnd_arg_split "config|c|value|CFG_FILE|Config file path|"
-        #   printf '%s\n' "$_sgnd_var"
-        #
-        # Notes:
-        #   - Intended as an internal helper for spec-driven parsing.
     _sgnd_arg_split() {
         local spec="$1"
         IFS='|' read -r _sgnd_name _sgnd_short _sgnd_type _sgnd_var _sgnd_help _sgnd_default _sgnd_choices <<< "$spec"
     }
 
-    # fn: _sgnd_arg_find_spec
+    # fn: _sgnd_arg_find_spec - Find an argument specification
         # Purpose:
-        #   Find the effective argument specification that matches a long or short option token.
+        #   Locate the effective argument specification for a long or short option.
         #
         # Behavior:
-        #   - Iterates over SGND_EFFECTIVE_ARGS_SPEC in order.
-        #   - Splits each spec entry into scratch fields.
-        #   - Matches against either the long name or short name.
-        #   - Prints the full matching spec line when found.
+        #   - Iterates SGND_EFFECTIVE_ARGS_SPEC in declaration order.
+        #   - Matches either the long option name or the short option letter.
+        #   - Prints the matching raw specification to stdout.
         #
         # Arguments:
-        #   $1  TOKEN
-        #       Option token without leading dashes:
-        #       - "config" for --config
-        #       - "c"      for -c
+        #   $1  Long option name or short option letter to find.
         #
         # Inputs (globals):
         #   SGND_EFFECTIVE_ARGS_SPEC
         #
         # Output:
-        #   Prints the matching full spec line to stdout.
-        #
-        # Side effects:
-        #   - Updates _sgnd_* scratch variables while scanning.
+        #   Matching raw argument specification on stdout.
         #
         # Returns:
-        #   0 if a matching spec is found.
-        #   1 if no matching spec exists.
+        #   0 when a matching specification is found.
+        #   1 when no matching specification exists.
         #
         # Usage:
-        #   spec="$(_sgnd_arg_find_spec "config")"
-        #
-        # Examples:
-        #   spec="$(_sgnd_arg_find_spec "c")" || return 1
-        #   _sgnd_arg_split "$spec"
+        #   spec="$(_sgnd_arg_find_spec "$opt")"
     _sgnd_arg_find_spec() {
         local wanted="$1"
         local spec
@@ -181,32 +154,25 @@ set -uo pipefail
         return 1
     }
     
-    # fn: _sgnd_arg_validate_enum
+    # fn: _sgnd_arg_validate_enum - Validate an enum argument value
         # Purpose:
-        #   Validate whether a value is present in a comma-separated enum choice list.
+        #   Test whether a supplied value is present in a comma-separated choice list.
         #
         # Behavior:
-        #   - Splits the supplied CSV string into individual allowed values.
-        #   - Compares the requested value against each entry.
-        #   - Succeeds on the first exact match.
+        #   - Splits the allowed choices on commas.
+        #   - Compares the value with each allowed choice exactly.
+        #   - Produces no output.
         #
         # Arguments:
-        #   $1  VALUE
-        #       Value to validate.
-        #   $2  CHOICES_CSV
-        #       Comma-separated allowed values (for example: "dev,prd").
+        #   $1  Value to validate.
+        #   $2  Comma-separated list of allowed values.
         #
         # Returns:
-        #   0 if VALUE is allowed.
-        #   1 if VALUE is not found in CHOICES_CSV.
+        #   0 when the value is allowed.
+        #   1 when the value is not allowed.
         #
         # Usage:
-        #   _sgnd_arg_validate_enum "$mode" "dev,prd,tst"
-        #
-        # Examples:
-        #   if _sgnd_arg_validate_enum "$2" "${_sgnd_choices:-}"; then
-        #       printf 'valid\n'
-        #   fi
+        #   _sgnd_arg_validate_enum "$value" "$choices_csv"
     _sgnd_arg_validate_enum() {
         local value="$1"
         local choices_csv="$2"
@@ -226,48 +192,31 @@ set -uo pipefail
         [[ "$ok" -eq 1 ]]
     }
 
-    # fn: _sgnd_arg_init_defaults
+    # fn: _sgnd_arg_init_defaults - Initialize argument defaults
         # Purpose:
-        #   Initialize option variables and build the effective argument specification list.
+        #   Initialize argument target variables from builtin and/or script argument specs.
         #
         # Behavior:
-        #   - Selects argument specs from SGND_BUILTIN_ARGS, SGND_ARGS_SPEC, or both.
-        #   - Initializes each declared option variable according to its type:
-        #       flag  -> spec default or 0
-        #       value -> spec default or ""
-        #       enum  -> spec default or ""
-        #   - Rebuilds SGND_EFFECTIVE_ARGS_SPEC in parse order.
+        #   - Selects builtin specs, script specs, or both depending on the source argument.
+        #   - Initializes flag variables to their configured default or 0.
+        #   - Initializes value and enum variables to their configured default or empty.
+        #   - Stores the selected combined specification in SGND_EFFECTIVE_ARGS_SPEC.
         #
         # Arguments:
-        #   $1  SOURCE
-        #       Spec source selector:
-        #       builtins | script | both
+        #   $1  Source selector: builtins, script, or both.
         #       Default: both
         #
         # Inputs (globals):
-        #   SGND_BUILTIN_ARGS
-        #   SGND_ARGS_SPEC
+        #   SGND_BUILTIN_ARGS, SGND_ARGS_SPEC
         #
         # Outputs (globals):
-        #   SGND_EFFECTIVE_ARGS_SPEC
-        #
-        # Side effects:
-        #   - Creates or resets variables declared in the selected spec set.
-        #   - Overwrites SGND_EFFECTIVE_ARGS_SPEC.
+        #   SGND_EFFECTIVE_ARGS_SPEC and configured argument target variables.
         #
         # Returns:
         #   0 always.
         #
         # Usage:
-        #   _sgnd_arg_init_defaults "both"
-        #
-        # Examples:
-        #   _sgnd_arg_init_defaults "script"
-        #   _sgnd_arg_init_defaults "${SGND_ARGS_SOURCE:-both}"
-        #
-        # Notes:
-        #   - Re-running the function resets declared option variables to their defaults.
-        #   - Does not validate spec correctness beyond presence of type and variable name.
+        #   _sgnd_arg_init_defaults both
     _sgnd_arg_init_defaults() {
         local source="${1:-both}"
         local -a args=()
@@ -319,10 +268,28 @@ set -uo pipefail
     }
 
 # --- Public API ----------------------------------------------------------------------
+    # var: Help layout settings
+        # Purpose:
+        #   Configure indentation used by sgnd_show_help when rendering section headers
+        #   and option descriptions.
+        #
+        # Variables:
+        #   _header_indent  Left padding for help section headers.
+        #   _text_indent    Left padding for option description lines.
     _header_indent=2
     _text_indent=3
 
-    # Global Arrays
+    # var: SGND_BUILTIN_ARGS - Builtin framework argument specifications
+        # Purpose:
+        #   Define standard command-line options available to framework-enabled scripts.
+        #
+        # Format:
+        #   name|short|type|target_variable|help|default|choices
+        #
+        # Notes:
+        #   - type is flag, value, or enum.
+        #   - enum choices are comma-separated.
+        #   - Target variables are initialized by _sgnd_arg_init_defaults.
     SGND_BUILTIN_ARGS=(
         "dryrun|D|flag|FLAG_DRYRUN|Emulate only; do not perform actions|"
         "help|H|flag|FLAG_HELP|Show command-line help and exit|"
@@ -332,48 +299,46 @@ set -uo pipefail
         "statereset|R|flag|FLAG_STATERESET|Reset the state file|"
     )
 
+    # var: SGND_BUILTIN_EXAMPLES - Builtin help examples
+        # Purpose:
+        #   Provide reusable help examples for standard framework options.
+        #
+        # Notes:
+        #   - Examples may be merged with SGND_SCRIPT_EXAMPLES by sgnd_show_help.
+        #   - SGND_SCRIPT_NAME is resolved lazily for display.
     SGND_BUILTIN_EXAMPLES=(
          "  ${SGND_SCRIPT_NAME:-<script>} --dryrun --loglevel debug"
          "  ${SGND_SCRIPT_NAME:-<script>} --log --loglevel off"
          "  ${SGND_SCRIPT_NAME:-<script>} --show env"
     ) 
 
-    # fn: sgnd_show_help
+    # fn: sgnd_show_help - Print command-line help
         # Purpose:
-        #   Render and display the generated help text for the current script.
+        #   Render standardized command-line help for the current script.
         #
         # Behavior:
-        #   - Builds help output from the active argument specification set.
-        #   - Includes built-in arguments when configured to do so.
-        #   - Renders usage, option descriptions, and related help sections.
-        #   - Prints the final help text to stdout.
+        #   - Prints script usage and description.
+        #   - Prints script-specific options from SGND_ARGS_SPEC when present.
+        #   - Optionally prints builtin framework options.
+        #   - Prints script and builtin examples when present.
+        #
+        # Arguments:
+        #   $1  Include builtin options and examples flag.
+        #       Default: 1
         #
         # Inputs (globals):
-        #   SGND_SCRIPT_NAME
-        #   SGND_SCRIPT_DESC
-        #   SGND_ARGS_SPEC
-        #   SGND_BUILTIN_ARGS
-        #   SGND_ARGS_SOURCE
-        #   SGND_EFFECTIVE_ARGS_SPEC
+        #   SGND_SCRIPT_NAME, SGND_SCRIPT_FILE, SGND_SCRIPT_DESC
+        #   SGND_ARGS_SPEC, SGND_BUILTIN_ARGS, SGND_SCRIPT_EXAMPLES, SGND_BUILTIN_EXAMPLES
         #
-        # Side effects:
-        #   - Writes help text to stdout.
+        # Output:
+        #   Writes formatted help text to the console.
         #
         # Returns:
-        #   0 always.
+        #   0 always unless an underlying print helper fails.
         #
         # Usage:
         #   sgnd_show_help
-        #
-        # Examples:
-        #   sgnd_show_help
-        #
-        #   SGND_ARGS_SOURCE="both"
-        #   sgnd_show_help
-        #
-        # Notes:
-        #   - Intended for direct CLI help rendering.
-        #   - Built-in options are only shown when included in the effective spec set.
+        #   sgnd_show_help 0
     sgnd_show_help() {
         local include_builtins="${1:-1}"
         local script_name="${SGND_SCRIPT_NAME:-$(basename "${SGND_SCRIPT_FILE:-$0}")}"
@@ -475,58 +440,31 @@ set -uo pipefail
         sgnd_print_sectionheader
     }
 
-    # fn: sgnd_parse_args
+    # fn: sgnd_parse_args - Parse command-line arguments
         # Purpose:
-        #   Parse command-line arguments according to the effective argument specification.
+        #   Parse framework and/or script command-line options into configured variables.
         #
         # Behavior:
-        #   - Initializes option variables from the selected spec source.
-        #   - Processes long and short options, including grouped short flags where supported.
-        #   - Assigns values to the configured target variables.
-        #   - Validates enum arguments against their declared choice list.
-        #   - Collects positional arguments into SGND_POSITIONAL_ARGS.
-        #   - Applies unknown-argument handling according to SGND_ARGMODE.
+        #   - Supports long options, single-letter short options, flags, values, and enums.
+        #   - Initializes argument target variables before parsing.
+        #   - Stops at '--' and stores the remaining values as positional arguments.
+        #   - Optionally stops at the first unknown option for staged bootstrap parsing.
+        #   - Validates enum values against the configured choice list.
         #
         # Arguments:
-        #   $@  ARGS
-        #       Command-line arguments to parse.
-        #
-        # Inputs (globals):
-        #   SGND_ARGS_SPEC
-        #   SGND_BUILTIN_ARGS
-        #   SGND_ARGS_SOURCE
-        #   SGND_ARGMODE
+        #   --stop-at-unknown  Stop parsing at the first unknown option and keep the rest.
+        #   $@                 Argument list to parse.
         #
         # Outputs (globals):
-        #   SGND_EFFECTIVE_ARGS_SPEC
-        #   SGND_POSITIONAL_ARGS
-        #   Variables declared in the selected argument specs
-        #
-        # Side effects:
-        #   - Resets declared argument variables to their default state before parsing.
-        #   - Rebuilds SGND_EFFECTIVE_ARGS_SPEC.
-        #   - Updates SGND_POSITIONAL_ARGS.
-        #   - May print diagnostics for invalid or unknown arguments.
+        #   SGND_POSITIONAL and configured argument target variables.
         #
         # Returns:
-        #   0 if parsing succeeds.
-        #   1 if parsing fails due to invalid input or strict-mode argument rejection.
+        #   0 when parsing succeeds.
+        #   1 for unknown options, missing values, invalid enum values, or invalid specs.
         #
         # Usage:
         #   sgnd_parse_args "$@"
-        #
-        # Examples:
-        #   sgnd_parse_args "$@"
-        #
-        #   SGND_ARGMODE="strict"
-        #   sgnd_parse_args "$@" || return 1
-        #
-        #   SGND_ARGMODE="stop-at-unknown"
-        #   sgnd_parse_args "$@"
-        #
-        # Notes:
-        #   - The effective spec set is determined by SGND_ARGS_SOURCE.
-        #   - Intended as the primary public entry point for argument parsing.
+        #   sgnd_parse_args --stop-at-unknown "$@"
     sgnd_parse_args() {
 
         local stop_at_unknown=0
@@ -685,46 +623,30 @@ set -uo pipefail
         return 0
     }
 
-    # fn: sgnd_builtinarg_handler
+    # fn: sgnd_builtinarg_handler - Execute builtin argument actions
         # Purpose:
-        #   Apply framework-defined built-in argument behavior after argument parsing.
+        #   Apply framework-level argument side effects after parsing builtin options.
         #
         # Behavior:
-        #   - Evaluates built-in framework arguments after sgnd_parse_args has populated them.
-        #   - Applies common runtime settings such as dryrun and loglevel mapping.
-        #   - Handles immediate built-in actions such as help or internal info display when present.
-        #   - Exits early when a built-in action fully satisfies program flow.
+        #   - Enables logfile output when requested.
+        #   - Applies the selected console log level.
+        #   - Handles informational --show targets and exits after printing them.
+        #   - Handles --help and exits after printing usage information.
+        #   - Resets state when requested, respecting dry-run mode.
         #
         # Inputs (globals):
-        #   Built-in argument variables initialized through SGND_BUILTIN_ARGS
-        #   SGND_SCRIPT_NAME
-        #   SGND_SCRIPT_VERSION
-        #   SGND_LOGFILE_ENABLED
-        #   SGND_LOG_LEVEL
+        #   FLAG_LOG, ARG_LOGLEVEL, FLAG_HELP, ARG_SHOW, FLAG_STATERESET, FLAG_DRYRUN
         #
-        # Side effects:
-        #   - Updates framework runtime globals based on parsed built-in options.
-        #   - May write informational output to stdout.
-        #   - May terminate script execution early for handled built-in actions.
+        # Outputs (globals):
+        #   SGND_LOGFILE_ENABLED, SGND_LOG_LEVEL
         #
         # Returns:
-        #   0 if built-in handling succeeds.
+        #   0 when no failing builtin action is requested.
+        #   1 when an unknown show target is requested.
+        #   Exits with 0 after informational builtin actions.
         #
         # Usage:
-        #   sgnd_parse_args "$@" || return 1
         #   sgnd_builtinarg_handler
-        #
-        # Examples:
-        #   sgnd_parse_args "$@" || return 1
-        #   sgnd_builtinarg_handler
-        #
-        #   sgnd_parse_args "$@" || exit 1
-        #   sgnd_builtinarg_handler
-        #   main
-        #
-        # Notes:
-        #   - Intended to be called immediately after sgnd_parse_args.
-        #   - Centralizes framework-level option behavior so scripts do not need to duplicate it.
     sgnd_builtinarg_handler(){
         local show_target="${ARG_SHOW:-}"
         local loglevel="${ARG_LOGLEVEL:-normal}"

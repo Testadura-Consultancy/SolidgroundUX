@@ -2,10 +2,10 @@
 # SolidgroundUX - Header Parser
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.1
-#   Build       : 2615311
-#   Checksum    :8ee8d481dae9e4f9561925b014fe8618322ae507763617d42f3d32ab017c623d
-#   Source      : sgnd-header-parser.sh
+#   Version     : 1.5
+#   Build       : 2615600
+#   Checksum    : -
+#   Source      : sgnd-comment-header-parser.sh
 #   Type        : library
 #   Group       : Developer Tools
 #   Purpose     : Read, parse, and update canonical script header comments in SolidgroundUX files
@@ -49,26 +49,19 @@
 
 set -uo pipefail
 # - Library guard ------------------------------------------------------------------
-    # tmp: _sgnd_lib_guard
+    # fn$ _sgnd_lib_guard - Lib guard
         # Purpose:
-        #   Ensure the file is sourced as a library and only initialized once.
+        #   Prevent direct execution of a source-only library and avoid repeated initialization when the file is sourced more than once.
         #
         # Behavior:
-        #   - Derives a unique guard variable name from the current filename.
-        #   - Aborts execution if the file is executed instead of sourced.
-        #   - Sets the guard variable on first load.
-        #   - Skips initialization if the library was already loaded.
-        #
-        # Inputs:
-        #   BASH_SOURCE[0]
-        #   $0
-        #
-        # Outputs (globals):
-        #   SGND_<MODULE>_LOADED
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if already loaded or successfully initialized.
-        #   Exits with code 2 if executed instead of sourced.
+        #   0 when the library may continue loading; exits with 2 when executed directly.
+        #
+        # Usage:
+        #   _sgnd_lib_guard ...
     _sgnd_lib_guard() {
         local lib_base
         local guard
@@ -91,32 +84,19 @@ set -uo pipefail
 
 # - Public API ---------------------------------------------------------------------
 # -- Load and info
-    # fn: sgnd_header_read
+    # fn: sgnd_header_read - Header read
         # Purpose:
-        #   Read the canonical header comment block from the top of a script file.
+        #   Read the canonical header block from a source file.
         #
         # Behavior:
-        #   - Starts at the top of the file.
-        #   - Collects consecutive comment lines that belong to the header block.
-        #   - Skips the first line if it is a shebang.
-        #   - Stops at the first non-comment, non-blank line after the header begins.
-        #   - Preserves original comment markers and line formatting.
-        #
-        # Arguments:
-        #   $1  FILE
-        #
-        # Output:
-        #   Writes the full header block to stdout.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0  success
-        #   1  file missing or unreadable
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_header_read "$file"
-        #
-        # Examples:
-        #   header_text="$(sgnd_header_read "$SGND_SCRIPT_FILE")"
+        #   sgnd_header_read ...
     sgnd_header_read() {
         local file="${1:?missing file}"
         local line=""
@@ -147,35 +127,19 @@ set -uo pipefail
         printf '%s' "${result%$'\n'}"
     }
 
-    # fn: sgnd_header_load_section_to_dt
+    # fn: sgnd_header_load_section_to_dt - Header load section to dt
         # Purpose:
-        #   Load all key/value pairs from a header section into an sgnd-datatable.
+        #   Load a named header section into a datatable-compatible array.
         #
         # Behavior:
-        #   - Scans the requested section from the file header.
-        #   - Stops at the next top-level section header.
-        #   - Trims surrounding whitespace from keys and values.
-        #   - Appends one row per field to the target datatable.
-        #
-        # Arguments:
-        #   $1  FILE
-        #       Script file to read.
-        #   $2  SECTION
-        #       Header section name to scan.
-        #   $3  SCHEMA
-        #       Datatable schema name.
-        #   $4  TABLE_NAME
-        #       Datatable variable name.
-        #
-        # Side effects:
-        #   - Appends rows through sgnd_dt_append.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   1 if row append fails.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_header_load_section_to_dt "$file" "Metadata" "$schema" "$table_name"
+        #   sgnd_header_load_section_to_dt ...
     sgnd_header_load_section_to_dt() {
         local file="${1:?missing file}"
         local section="${2:?missing section}"
@@ -217,24 +181,19 @@ set -uo pipefail
         done < "$file"
     }
 
-    # fn: sgnd_header_is_section_header
+    # fn: sgnd_header_is_section_header - Header is section header
         # Purpose:
-        #   Determine whether a line is a top-level structured header section marker.
+        #   Test whether a header line declares a named header section.
         #
         # Behavior:
-        #   - Matches canonical section lines such as "# Metadata:".
-        #   - Rejects indented field lines within sections.
-        #
-        # Arguments:
-        #   $1  LINE
-        #       Raw header line to test.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if LINE is a section header.
-        #   1 otherwise.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_header_is_section_header "$line"
+        #   sgnd_header_is_section_header ...
     sgnd_header_is_section_header() {
         local line="${1-}"
 
@@ -243,29 +202,19 @@ set -uo pipefail
         return 0
     }
 
-    # fn: sgnd_header_buffer_load
+    # fn: sgnd_header_buffer_load - Header buffer load
         # Purpose:
-        #   Load a script header into the shared in-memory header buffer.
+        #   Load a source-file header into the shared header buffer.
         #
         # Behavior:
-        #   - Verifies that the target file is readable.
-        #   - Stores the file path in SGND_HEADER_BUFFER_FILE.
-        #   - Stores the canonical header text in SGND_HEADER_BUFFER_TEXT.
-        #
-        # Arguments:
-        #   $1  FILE
-        #       Script file to buffer.
-        #
-        # Outputs (globals):
-        #   SGND_HEADER_BUFFER_FILE
-        #   SGND_HEADER_BUFFER_TEXT
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   1 if the file is unreadable or the header cannot be read.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_header_buffer_load "$file"
+        #   sgnd_header_buffer_load ...
     sgnd_header_buffer_load() {
         local file="${1:?missing file}"
 
@@ -275,30 +224,19 @@ set -uo pipefail
         SGND_HEADER_BUFFER_TEXT="$(sgnd_header_read "$file")" || return 1
     }
 
-    # fn: sgnd_header_buffer_get_section
+    # fn: sgnd_header_buffer_get_section - Header buffer get section
         # Purpose:
-        #   Extract a named section from the current shared header buffer.
+        #   Extract a named section from the shared header buffer.
         #
         # Behavior:
-        #   - Reads from SGND_HEADER_BUFFER_TEXT.
-        #   - Delegates parsing to sgnd_header_get_section_from_text.
-        #   - Writes the extracted section body to the requested output variable.
-        #
-        # Arguments:
-        #   $1  SECTION
-        #       Header section name.
-        #   $2  OUTVAR
-        #       Variable name that receives the section body.
-        #
-        # Inputs (globals):
-        #   SGND_HEADER_BUFFER_TEXT
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if the section is found.
-        #   1 if the buffer is empty or the section is not found.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_header_buffer_get_section "Metadata" metadata
+        #   sgnd_header_buffer_get_section ...
     sgnd_header_buffer_get_section() {
         local section="${1:?missing section}"
         local _outvar="${2:?missing outvar}"
@@ -307,29 +245,19 @@ set -uo pipefail
         sgnd_header_get_section_from_text "$SGND_HEADER_BUFFER_TEXT" "$section" "$_outvar"
     }
 # -- Version control
-    # fn: sgnd_header_calc_checksum
+    # fn: sgnd_header_calc_checksum - Header calc checksum
         # Purpose:
-        #   Calculate a stable checksum for a script while ignoring self-updating metadata fields.
+        #   Calculate a checksum for a source file while ignoring checksum field content.
         #
         # Behavior:
-        #   - Reads the full file content.
-        #   - Excludes Metadata lines for Version, Build, and Checksum.
-        #   - Hashes the normalized content with SHA-256.
-        #   - Prints the resulting checksum to stdout.
-        #
-        # Arguments:
-        #   $1  FILE
-        #       Script file to hash.
-        #
-        # Output:
-        #   Writes the checksum to stdout.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   1 if the file is unreadable or hashing fails.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_header_calc_checksum "$file"
+        #   sgnd_header_calc_checksum ...
     sgnd_header_calc_checksum() {
         local file="${1:?missing file}"
 
@@ -346,40 +274,19 @@ set -uo pipefail
         ' "$file" | sha256sum | awk '{print $1}'
     }
 
-    # fn: sgnd_header_bump_version
+    # fn: sgnd_header_bump_version - Header bump version
         # Purpose:
-        #   Refresh header checksum/build metadata and optionally bump semantic version fields.
+        #   Update version, build, checksum, and related header metadata fields.
         #
         # Behavior:
-        #   - Calculates the normalized checksum for the file.
-        #   - Ensures a Checksum field exists in the Metadata section.
-        #   - Compares stored and current checksum values.
-        #   - If file content changed, refreshes Build and Checksum.
-        #   - If a major or minor version bump is requested, updates Version and then
-        #     refreshes Build and Checksum.
-        #   - Sets SGND_HEADER_BUMP_CHANGED=1 only when header metadata was actually changed.
-        #
-        # Arguments:
-        #   $1  FILE   readable script file
-        #   $2  MODE   none | major | minor
-        #
-        # Outputs:
-        #   Sets global variable SGND_HEADER_BUMP_CHANGED:
-        #     0 = no header changes were needed
-        #     1 = header metadata was updated
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0  success
-        #   1  failure
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_header_bump_version "$file"
-        #   sgnd_header_bump_version "$file" "minor"
-        #   sgnd_header_bump_version "$file" "major"
-        #
-        # Examples:
-        #   sgnd_header_bump_version "./my-script.sh" "none"
-        #   sgnd_header_bump_version "./my-script.sh" "minor"
+        #   sgnd_header_bump_version ...
     sgnd_header_bump_version() {
         local file="${1:?missing file}"
         local mode="${2:-none}"
@@ -460,27 +367,19 @@ set -uo pipefail
         return 0
     }
 # -- Header CRUD
-    # fn: sgnd_header_get_section
+    # fn: sgnd_header_get_section - Header get section
         # Purpose:
-        #   Retrieve the full contents of a header section from a file.
+        #   Extract a named header section from a source file.
         #
         # Behavior:
-        #   - Scans the file from the top until non-comment content.
-        #   - Locates the requested section header ("# Section:").
-        #   - Collects all lines until the next section header.
-        #   - Strips leading '#' and one space from each line.
-        #
-        # Arguments:
-        #   $1  FILE
-        #   $2  SECTION
-        #   $3  RESULT_VAR (name of variable to receive output)
-        #
-        # Output:
-        #   RESULT_VAR contains the section content as a multi-line string.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0  section processed (may be empty)
-        #   1  error reading file
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   sgnd_header_get_section ...
     sgnd_header_get_section() {
         local file="${1:?missing file}"
         local section="${2:?missing section}"
@@ -514,30 +413,19 @@ set -uo pipefail
         printf -v "$_resultvar" '%s' "$result"
     }
 
-    # fn: sgnd_header_get_section_from_text
+    # fn: sgnd_header_get_section_from_text - Header get section from text
         # Purpose:
-        #   Extract the body of a named header section from buffered header text.
+        #   Extract a named header section from an in-memory header text block.
         #
         # Behavior:
-        #   - Scans the supplied header text line by line.
-        #   - Starts capturing after the requested section header.
-        #   - Stops when the next top-level section header is encountered.
-        #   - Writes only the section body lines to the requested output variable.
-        #
-        # Arguments:
-        #   $1  HEADER_TEXT
-        #       Buffered header text.
-        #   $2  SECTION
-        #       Header section name.
-        #   $3  OUTVAR
-        #       Variable name that receives the section body.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if the section is found.
-        #   1 if the section is not found.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_header_get_section_from_text "$text" "Metadata" metadata
+        #   sgnd_header_get_section_from_text ...
     sgnd_header_get_section_from_text() {
         local text="${1-}"
         local section="${2:?missing section}"
@@ -570,31 +458,19 @@ set -uo pipefail
         (( found ))
     }
 
-    # fn: sgnd_header_get_banner_parts_from_text
+    # fn: sgnd_header_get_banner_parts_from_text - Header get banner parts from text
         # Purpose:
-        #   Extract product and title from the banner line in buffered header text.
+        #   Extract product and title from a canonical header banner in text.
         #
         # Behavior:
-        #   - Scans the supplied header text line by line.
-        #   - Skips separator lines (==== / ----).
-        #   - Looks for the first line matching the pattern:
-        #       "# <Product> - <Title>"
-        #   - Splits the line into:
-        #       Product (left of " - ")
-        #       Title   (right of " - ")
-        #
-        # Arguments:
-        #   $1  HEADER_TEXT
-        #   $2  PRODUCT_VAR
-        #   $3  TITLE_VAR
-        #
-        # Output:
-        #   PRODUCT_VAR contains the extracted product name.
-        #   TITLE_VAR   contains the extracted title.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0  banner found and parsed
-        #   1  no valid banner line found
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   sgnd_header_get_banner_parts_from_text ...
     sgnd_header_get_banner_parts_from_text() {
         local text="${1-}"
         local _product_var="${2:?missing product var}"
@@ -636,19 +512,19 @@ set -uo pipefail
         return 1
     }
 
-    # fn: sgnd_header_parse_banner_line
+    # fn: sgnd_header_parse_banner_line - Header parse banner line
         # Purpose:
-        #   Extract product and title from a single header banner line.
+        #   Parse one canonical header banner line into product and title parts.
         #
-        # Arguments:
-        #   $1  LINE
-        #   $2  PRODUCT_VAR
-        #   $3  TITLE_VAR
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if parsed
-        #   1 otherwise
+        #   0 on success unless otherwise noted by the called command.
         #
+        # Usage:
+        #   sgnd_header_parse_banner_line ...
     sgnd_header_parse_banner_line() {
         local line="${1-}"
         local _product_var="${2:?missing product var}"
@@ -726,24 +602,19 @@ set -uo pipefail
         return 1
     }
 
-    # fn: sgnd_header_get_field_value
+    # fn: sgnd_header_get_field_value - Header get field value
         # Purpose:
-        #   Convenience wrapper to retrieve a field value and print it to stdout.
+        #   Read a field value from a named header section.
         #
         # Behavior:
-        #   - Calls sgnd_header_get_field internally.
-        #   - Prints the resulting value to stdout.
-        #
-        # Arguments:
-        #   $1  FILE
-        #   $2  SECTION
-        #   $3  FIELD
-        #
-        # Output:
-        #   Writes the field value to stdout.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0  always (empty output if field not found)
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   sgnd_header_get_field_value ...
     sgnd_header_get_field_value() {
         local file="$1"
         local section="$2"
@@ -754,24 +625,19 @@ set -uo pipefail
         printf '%s' "$value"
     }
 
-    # fn: sgnd_header_get_banner_parts
+    # fn: sgnd_header_get_banner_parts - Header get banner parts
         # Purpose:
-        #   Extract product and title from the banner line.
+        #   Extract product and title from a source-file header.
         #
         # Behavior:
-        #   - Finds the first header separator line.
-        #   - Reads the first comment line directly below it as the banner line.
-        #   - Expects canonical format:
-        #       # <Product> - <Title>
-        #
-        # Arguments:
-        #   $1  FILE
-        #   $2  PRODUCT_VAR
-        #   $3  TITLE_VAR
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if banner found and parsed
-        #   1 otherwise
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   sgnd_header_get_banner_parts ...
     sgnd_header_get_banner_parts() {
         local file="${1:?missing file}"
         local _product_var="${2:?missing product var}"
@@ -812,25 +678,19 @@ set -uo pipefail
         printf -v "$_title_var" '%s' ""
         return 1
     }
-    # fn: sgnd_section_get_field_value
+    # fn: sgnd_section_get_field_value - Section get field value
         # Purpose:
-        #   Extract a field value from a section string.
+        #   Read a field value from an already extracted header section.
         #
         # Behavior:
-        #   - Scans the supplied section text line by line.
-        #   - Splits each line at the first colon.
-        #   - Trims surrounding whitespace from key and value.
-        #   - Returns the first matching field value.
-        #
-        # Arguments:
-        #   $1  SECTION_TEXT
-        #   $2  FIELD
-        #
-        # Output:
-        #   Writes field value to stdout.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0  always (empty if not found)
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   sgnd_section_get_field_value ...
     sgnd_section_get_field_value() {
         local section="${1-}"
         local field="${2:?missing field}"
@@ -859,37 +719,19 @@ set -uo pipefail
         printf ''
     }
 
-    # fn: sgnd_header_add_field
+    # fn: sgnd_header_add_field - Header add field
         # Purpose:
-        #   Insert a new field into an existing named header section.
+        #   Insert a field into an existing header section.
         #
         # Behavior:
-        #   - Scans the file until the requested section is found.
-        #   - Inserts the new field before the next section header,
-        #     or at the end of the section when it is the final section.
-        #   - Honors FLAG_DRYRUN by reporting the intended change without writing.
-        #
-        # Arguments:
-        #   $1  FILE
-        #       Target script file.
-        #   $2  SECTION
-        #       Header section name.
-        #   $3  FIELD
-        #       Field name to insert.
-        #   $4  VALUE
-        #       Field value to write.
-        #
-        # Side effects:
-        #   - May rewrite the target file.
-        #   - May emit informational output in dry-run mode.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if the field was inserted.
-        #   1 on write or temp-file failure.
-        #   2 if the section does not exist.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_header_add_field "$file" "Metadata" "Checksum" "$checksum"
+        #   sgnd_header_add_field ...
     sgnd_header_add_field() {
         local file="${1:?missing file}"
         local section="${2:?missing section}"
@@ -951,32 +793,19 @@ set -uo pipefail
         return 1
     }
 
-    # fn: sgnd_header_upsert_field
+    # fn: sgnd_header_upsert_field - Header upsert field
         # Purpose:
-        #   Update a field when present or insert it when missing from an existing section.
+        #   Update an existing header field or insert it when missing.
         #
         # Behavior:
-        #   - Attempts to update the field in place first.
-        #   - Falls back to inserting the field when it does not yet exist.
-        #   - Propagates other write failures unchanged.
-        #
-        # Arguments:
-        #   $1  FILE
-        #       Target script file.
-        #   $2  SECTION
-        #       Header section name.
-        #   $3  FIELD
-        #       Field name to update or insert.
-        #   $4  VALUE
-        #       Value to write.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if the field was updated or inserted.
-        #   1 on write or temp-file failure.
-        #   2 if the section does not exist.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_header_upsert_field "$file" "Metadata" "Build" "$build"
+        #   sgnd_header_upsert_field ...
     sgnd_header_upsert_field() {
         local file="${1:?missing file}"
         local section="${2:?missing section}"
@@ -994,35 +823,19 @@ set -uo pipefail
         esac
     }
    
-    # fn: sgnd_header_set_field
+    # fn: sgnd_header_set_field - Header set field
         # Purpose:
-        #   Replace the value of an existing field inside a named header section
-        #   while preserving the original line formatting.
+        #   Set one header field value in a source file.
         #
         # Behavior:
-        #   - Scans only the requested header section.
-        #   - Matches the requested field by trimmed key name.
-        #   - Preserves original indentation, label spacing, and separator spacing.
-        #   - Replaces only the value portion of the matched field line.
-        #   - Honors FLAG_DRYRUN by reporting the intended change without writing.
-        #
-        # Arguments:
-        #   $1  FILE
-        #       Target script file.
-        #   $2  SECTION
-        #       Header section name.
-        #   $3  FIELD
-        #       Field name to update.
-        #   $4  VALUE
-        #       Replacement value.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if the field was updated.
-        #   1 on write or temp-file failure.
-        #   2 if the field is not found.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_header_set_field "$file" "Metadata" "Version" "1.2"
+        #   sgnd_header_set_field ...
     sgnd_header_set_field() {
         local file="${1:?missing file}"
         local section="${2:?missing section}"

@@ -2,9 +2,9 @@
 # SolidgroundUX - System Utilities
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0
-#   Build       : 2615311
-#   Checksum    : c22b76c9e48f0eb24de6829d82c6d8d2c9c7e39d778be7ac5f0f6baa088a485c
+#   Version     : 1.5
+#   Build       : 2615600
+#   Checksum    : -
 #   Source      : sgnd-system.sh
 #   Type        : library
 #   Group       : Common Core
@@ -65,6 +65,19 @@ set -uo pipefail
         # Returns:
         #   0 if already loaded or successfully initialized.
         #   Exits with code 2 if executed instead of sourced.
+    # fn$ _sgnd_lib_guard - Lib guard
+        # Purpose:
+        #   Prevent direct execution of a source-only library and avoid repeated initialization when the file is sourced more than once.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 when the library may continue loading; exits with 2 when executed directly.
+        #
+        # Usage:
+        #   _sgnd_lib_guard ...
     _sgnd_lib_guard() {
         local lib_base
         local guard
@@ -88,25 +101,19 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Requirement checks -------------------------------------------------------------
-    # fn: sgnd_need_root
+    # fn: sgnd_need_root - Need root
         # Purpose:
-        #   Require the script to run as root, re-executing through sudo when needed.
+        #   Require execution as root, optionally re-executing through sudo when needed.
         #
-        # Arguments:
-        #   $@  Original script arguments forwarded to the re-exec call.
-        #
-        # Inputs (globals):
-        #   SGND_ALREADY_ROOT
-        #   SGND_FRAMEWORK_ROOT
-        #   SGND_APPLICATION_ROOT
-        #   PATH
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 when already running as root and execution may continue.
-        #   Does not return when re-exec succeeds.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_need_root "$@"
+        #   sgnd_need_root ...
     sgnd_need_root() {
         sayinfo "Script requires root permissions"
 
@@ -161,24 +168,19 @@ set -uo pipefail
     sgnd_is_active() { systemctl is-active --quiet "$1"; }
 
     # --- Filesystem helpers -------------------------------------------------------------
-    # fn: sgnd_ensure_writable_dir
+    # fn: sgnd_ensure_writable_dir - Ensure writable dir
         # Purpose:
-        #   Ensure a directory exists and is suitable for user-scoped writing.
+        #   Ensure that a directory exists and can be written.
         #
-        # Arguments:
-        #   $1  DIR
-        #
-        # Inputs (globals):
-        #   SUDO_USER
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   2 if DIR is missing or empty.
-        #   3 if mkdir -p fails.
-        #   4 if the directory still does not exist afterward.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_ensure_writable_dir DIR
+        #   sgnd_ensure_writable_dir ...
     sgnd_ensure_writable_dir() {
         local dir="${1:-}"
         local created=0
@@ -333,22 +335,19 @@ set -uo pipefail
     sgnd_get_os_version() { grep -E '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '"'; }
 
 # --- Error handlers -----------------------------------------------------------------
-    # fn: sgnd_die
+    # fn: sgnd_die - Die
         # Purpose:
-        #   Terminate the script with a formatted fatal error message.
+        #   Report a fatal error and exit.
         #
-        # Arguments:
-        #   $1  MESSAGE
-        #   $2  RC
-        #
-        # Inputs (globals):
-        #   FLAG_VERBOSE
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   Does not return.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_die [MESSAGE] [RC]
+        #   sgnd_die ...
     sgnd_die() {
         local msg="${1-}"
         local rc="${2-1}"

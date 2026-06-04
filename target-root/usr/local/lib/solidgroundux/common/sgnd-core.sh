@@ -2,9 +2,9 @@
 # SolidgroundUX - Core Utilities
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.2
-#   Build       : 2615311
-#   Checksum    : 180d15afaec49d89596bfe3f0266325a51e1fcb154fd099f2fb67c73521fa244
+#   Version     : 1.5
+#   Build       : 2615600
+#   Checksum    : -
 #   Source      : sgnd-core.sh
 #   Type        : library
 #   Group       : Common Core
@@ -47,26 +47,19 @@
 set -uo pipefail
 
 # --- Library guard ------------------------------------------------------------------
-    # tmp: _sgnd_lib_guard
+    # fn$ _sgnd_lib_guard - Lib guard
         # Purpose:
-        #   Ensure the file is sourced as a library and only initialized once.
+        #   Prevent direct execution of a source-only library and avoid repeated initialization when the file is sourced more than once.
         #
         # Behavior:
-        #   - Derives a unique guard variable name from the current filename.
-        #   - Aborts execution if the file is executed instead of sourced.
-        #   - Sets the guard variable on first load.
-        #   - Skips initialization if the library was already loaded.
-        #
-        # Inputs (globals):
-        #   BASH_SOURCE
-        #   $0
-        #
-        # Outputs (globals):
-        #   SGND_<MODULE>_LOADED
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if already loaded or successfully initialized.
-        #   Exits with code 2 if executed instead of sourced.
+        #   0 when the library may continue loading; exits with 2 when executed directly.
+        #
+        # Usage:
+        #   _sgnd_lib_guard ...
     _sgnd_lib_guard() {
         local lib_base
         local guard
@@ -123,29 +116,19 @@ set -uo pipefail
     sgnd_need_tty() { [[ -t 1 ]] || { printf 'No TTY attached.\n' >&2; return 1; }; }
 
 # --- Filesystem helpers -------------------------------------------------------------
-    # fn: sgnd_can_append
+    # fn: sgnd_can_append - Can append
         # Purpose:
-        #   Test whether a file can be appended to, or created for later appending.
+        #   Test whether a file can be appended to.
         #
         # Behavior:
-        #   - If the target file exists, requires it to be a writable regular file.
-        #   - If the target file does not exist, checks whether the parent directory is writable.
-        #   - If the parent directory does not exist, attempts to create it with mkdir -p.
-        #   - Does not create the target file itself.
-        #
-        # Arguments:
-        #   $1  FILE
-        #       File path to test.
-        #
-        # Side effects:
-        #   - May create the parent directory path using mkdir -p.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if the file is appendable or creatable for append.
-        #   1 otherwise.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_can_append FILE
+        #   sgnd_can_append ...
     sgnd_can_append() {
         local f="$1"
         local d
@@ -168,20 +151,19 @@ set -uo pipefail
         return 0
     }
 
-    # fn: sgnd_ensure_dir
+    # fn: sgnd_ensure_dir - Ensure dir
         # Purpose:
-        #   Ensure a directory exists.
+        #   Ensure that a directory exists.
         #
-        # Arguments:
-        #   $1  Directory path.
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   2 if the argument is missing.
-        #   Otherwise mkdir's exit status.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_ensure_dir DIR
+        #   sgnd_ensure_dir ...
     sgnd_ensure_dir() {
         local dir="${1:-}"
         [[ -n "$dir" ]] || return 2
@@ -223,28 +205,19 @@ set -uo pipefail
         #   sgnd_mktemp_file
     sgnd_mktemp_file() { TMPDIR=${TMPDIR:-/tmp} mktemp "${TMPDIR%/}/XXXXXX"; }
 
-    # fn: sgnd_slugify
+    # fn: sgnd_slugify - Slugify
         # Purpose:
-        #   Convert text into a lowercase filename-safe slug.
+        #   Convert text into a filesystem- and anchor-safe slug.
         #
         # Behavior:
-        #   - Lowercases the input text.
-        #   - Replaces whitespace runs with a single dash.
-        #   - Removes characters outside [a-z0-9-_.].
-        #   - Collapses repeated dashes and trims leading/trailing dashes.
-        #   - Falls back to "hub" when the resulting slug would otherwise be empty.
-        #
-        # Arguments:
-        #   $1  TEXT
-        #
-        # Output:
-        #   Prints the slug to stdout.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_slugify TEXT
+        #   sgnd_slugify ...
     sgnd_slugify() {
         local s="${1:-}"
 
@@ -263,24 +236,19 @@ set -uo pipefail
         printf '%s' "$s"
     }
 
-    # fn: sgnd_hash_sha256_file
+    # fn: sgnd_hash_sha256_file - Hash sha256 file
         # Purpose:
-        #   Compute and print the SHA-256 hash of a readable file.
+        #   Calculate the SHA-256 hash for a file.
         #
-        # Arguments:
-        #   $1  FILE
-        #
-        # Output:
-        #   Prints the SHA-256 hash to stdout.
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   2 if FILE is not readable.
-        #   3 if the hashing tool fails.
-        #   127 if no supported hashing tool is available.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_hash_sha256_file FILE
+        #   sgnd_hash_sha256_file ...
     sgnd_hash_sha256_file() {
         local file="$1"
         local out
@@ -302,19 +270,19 @@ set -uo pipefail
         return 127
     }
 
-    # fn: sgnd_safe_replace_file
+    # fn: sgnd_safe_replace_file - Safe replace file
         # Purpose:
-        #   Replace a destination file with a source file while preserving mode bits.
+        #   Safely replace a target file with a prepared source file.
         #
-        # Arguments:
-        #   $1  SRC
-        #   $2  DST
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success; 1 on failure.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_safe_replace_file SRC DST
+        #   sgnd_safe_replace_file ...
     sgnd_safe_replace_file() {
         local src="${1:?missing source}"
         local dst="${2:?missing destination}"
@@ -335,22 +303,19 @@ set -uo pipefail
         #   sgnd_is_set VAR_NAME
     sgnd_is_set() { [[ -v "$1" ]]; }
 
-    # fn: sgnd_default
+    # fn: sgnd_default - Default
         # Purpose:
-        #   Assign a default value to a variable when it is unset or empty.
+        #   Return a fallback value when the first value is empty.
         #
-        # Arguments:
-        #   $1  VAR_NAME
-        #   $2  DEFAULT
-        #
-        # Side effects:
-        #   - Sets the target variable in the current shell.
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_default VAR_NAME DEFAULT
+        #   sgnd_default ...
     sgnd_default() {
         local name="$1"
         local default="${2-}"
@@ -425,22 +390,19 @@ set -uo pipefail
         #   sgnd_kill_if_running PROCESS_NAME
     sgnd_kill_if_running() { pkill -x "$1" &>/dev/null || true; }
 
-    # fn: sgnd_caller_id
+    # fn: sgnd_caller_id - Caller id
         # Purpose:
-        #   Build a compact caller identifier string for diagnostics.
+        #   Return a formatted caller identifier.
         #
-        # Arguments:
-        #   $1  DEPTH
-        #       Optional stack depth. Default: 1
-        #
-        # Output:
-        #   Prints the caller identifier to stdout.
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_caller_id [DEPTH]
+        #   sgnd_caller_id ...
     sgnd_caller_id() {
         local depth="${1:-1}"
         local file="${BASH_SOURCE[$depth]}"
@@ -518,20 +480,19 @@ set -uo pipefail
         return 1
     }
 
-    # fn: sgnd_internal_call_guard
+    # fn: sgnd_internal_call_guard - Internal call guard
         # Purpose:
-        #   Warn when an internal helper is called from outside the expected API flow.
+        #   Prevent internal helper functions from being called from outside allowed contexts.
         #
         # Behavior:
-        #   - Inspects the Bash call stack.
-        #   - Treats callers named sgnd_* as public framework entry points.
-        #   - Treats callers named _* as internal helper flow.
-        #   - Emits a warning when the guarded internal function appears to be called
-        #     directly from outside that convention.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
-        # Arguments:
-        #   $1  FUNCTION_NAME
-        #       Name of the internal function being guarded.
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   sgnd_internal_call_guard ...
     sgnd_internal_call_guard() {
         local func="${1:?missing function name}"
 
@@ -558,6 +519,19 @@ set -uo pipefail
         # Returns:
         #   0 on success
         #   1 if prefix is missing
+    # fn: sgnd_show_vars_by_prefix - Show vars by prefix
+        # Purpose:
+        #   Print variables whose names match a prefix.
+        #
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   sgnd_show_vars_by_prefix ...
     sgnd_show_vars_by_prefix() {
         local prefix="${1:-}"
         local assume_debug="${2:-0}"
@@ -597,22 +571,19 @@ set -uo pipefail
         #   sgnd_timestamp
     sgnd_timestamp() { date +"%Y-%m-%d %H:%M:%S"; }
 
-    # fn: sgnd_retry
+    # fn: sgnd_retry - Retry
         # Purpose:
-        #   Retry a command up to N times with a delay between attempts.
+        #   Retry a command a fixed number of times.
         #
-        # Arguments:
-        #   $1  ATTEMPTS
-        #   $2  DELAY_SECONDS
-        #   $@  COMMAND
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if the command succeeds within the retry budget.
-        #   1 if all attempts fail.
-        #   2 on invalid arguments.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_retry ATTEMPTS DELAY COMMAND [ARG ...]
+        #   sgnd_retry ...
     sgnd_retry() {
         local n="$1"
         local d="$2"
@@ -642,19 +613,19 @@ set -uo pipefail
         printf '%s' "$*"
     }
 
-    # fn: sgnd_array_union
+    # fn: sgnd_array_union - Array union
         # Purpose:
-        #   Build a stable union of one or more source arrays into a destination array.
+        #   Build a union of two arrays.
         #
-        # Arguments:
-        #   $1  DEST_ARRAY name.
-        #   $@  One or more SRC_ARRAY names.
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success; 1 on invalid arguments.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_array_union DEST_ARRAY SRC_ARRAY [SRC_ARRAY ...]
+        #   sgnd_array_union ...
     sgnd_array_union() {
         local dest_name="$1"
         local src_name
@@ -780,21 +751,19 @@ set -uo pipefail
         printf '%s%s%s' "$pad_left" "$source" "$pad_right"
     }
 
-    # fn: sgnd_visible_length
+    # fn: sgnd_visible_length - Visible length
         # Purpose:
-        #   Measure the character length of text after stripping ANSI escape sequences.
+        #   Calculate printable display length while ignoring ANSI escape sequences.
         #
-        # Arguments:
-        #   $1  TEXT
-        #
-        # Output:
-        #   Prints the stripped character count to stdout.
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_visible_length TEXT
+        #   sgnd_visible_length ...
     sgnd_visible_length() {
         local text="${1-}"
 
@@ -842,20 +811,19 @@ set -uo pipefail
         printf '%s%*s' "$text" "$pad_len" ""
     }
 
-    # fn: sgnd_wrap_words
+    # fn: sgnd_wrap_words - Wrap words
         # Purpose:
-        #   Wrap a text string to a fixed width on word boundaries.
+        #   Wrap text to a requested visible width.
         #
-        # Arguments:
-        #   --width N
-        #   --text STR
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success, including empty text.
-        #   2 on invalid arguments.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_wrap_words --width N --text STR
+        #   sgnd_wrap_words ...
     sgnd_wrap_words() {
         local width=80
         local text=""

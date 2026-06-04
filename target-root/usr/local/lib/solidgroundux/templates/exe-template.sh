@@ -3,13 +3,13 @@
 # SolidgroundUX - Executable Script Template
 # ------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.1
-#   Build       : 2615311
-#   Checksum    : 145cfc3c5f2971758fbb5c38104af898e0665e5e108a9ae2a86f160b962c00d9
+#   Version     : 1.5
+#   Build       : 2615412
+#   Checksum    : -
 #   Source      : exe-template.sh
 #   Type        : script
 #   Group       : Templates
-#   Purpose     : Canonical executable template for Testadura scripts.
+#   Purpose     : Canonical executable template for SolidGroundUX scripts.
 #
 # Description:
 #   Provides the standard structure for all executable scripts in the framework,
@@ -27,7 +27,7 @@
 #
 # Role in framework:
 #   - Entry point pattern for all SolidGroundUX-based scripts
-#   - Defines how scripts integrate with td-bootstrap and common libraries
+#   - Defines how scripts integrate with sgnd-bootstrap and common libraries
 #
 # Non-goals:
 #   - Business logic implementation (provided by the script author)
@@ -205,7 +205,9 @@ set -uo pipefail
         source "$bootstrap"
     }
 
-    # Minimal colors
+    # var$ Minimal message colors
+        # ANSI color constants used by the fallback UI functions before the full
+        # framework bootstrap has been loaded.
     MSG_CLR_INFO=$'\e[38;5;250m'
     MSG_CLR_STRT=$'\e[38;5;82m'
     MSG_CLR_OK=$'\e[38;5;82m'
@@ -216,10 +218,18 @@ set -uo pipefail
     MSG_CLR_EMPTY=$'\e[2;38;5;250m'
     MSG_CLR_DEBUG=$'\e[1;35m'
 
+    # var$ Minimal terminal colors
+        # Additional ANSI constants used by template/fallback output helpers.
     TUI_COMMIT=$'\e[2;37m'
     RESET=$'\e[0m'
 
-    # Minimal UI
+    # fn$ Minimal fallback UI
+        # Purpose:
+        #   Provide basic status output before sgnd-bootstrap loads the full UI layer.
+        #
+        # Notes:
+        #   - These functions intentionally keep formatting simple.
+        #   - sayinfo and saydebug honor FLAG_VERBOSE and FLAG_DEBUG respectively.
     saystart()   { printf '%sSTART%s\t%s\n' "${MSG_CLR_STRT-}" "${RESET-}" "$*" >&2; }
     sayinfo()    { 
         if (( ${FLAG_VERBOSE:-0} )); then
@@ -238,9 +248,20 @@ set -uo pipefail
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
     
 # - Script metadata (identity) ------------------------------------------------------
+    # var$ SGND_SCRIPT_FILE
+        # Absolute path to the currently executing script.
     SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
+
+    # var$ SGND_SCRIPT_DIR
+        # Directory containing the currently executing script.
     SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"
+
+    # var$ SGND_SCRIPT_BASE
+        # Filename of the currently executing script, including extension.
     SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
+
+    # var$ SGND_SCRIPT_NAME
+        # Script basename without the .sh extension; used for help and display text.
     SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
 
 # - Script metadata (framework integration) -----------------------------------------
@@ -367,32 +388,37 @@ set -uo pipefail
     SGND_ON_EXIT_HANDLERS=(
     )
     
-    # State persistence is opt-in.
+    # var$ SGND_STATE_SAVE
+        # State persistence toggle used by sgnd_bootstrap when state support is enabled.
+        #
         # Scripts that want persistent state must:
         #   1) set SGND_STATE_SAVE=1
-        #   2) call sgnd_bootstrap --state
+        #   2) call sgnd_bootstrap --state or --autostate
     SGND_STATE_SAVE=0
 
-# - Local script Declarations -------------------------------------------------------
-    # Put script-local constants and defaults here (NOT framework config).
-    # Prefer local variables inside functions unless a value must be shared.
+# - Local script declarations -------------------------------------------------------
+    # doc$ Local script declarations
+        # Put script-local constants and defaults here, not framework configuration.
+        # Prefer local variables inside functions unless a value must be shared.
 
 # - Local script functions ----------------------------------------------------------
-# Organize script-specific functions here. These are not reusable framework behavior, but rather the implementation of the script's unique logic and features.
-# Suggested organization:
-#   A
-#   B Initialization
-# -- Local script helpers
-# --- Layout
-# --- Graphical
-# -- Input handling
-# --- Business logic
-# - Validation
-# -- Reporting
-# -- Cleanup
+    # doc$ Local script functions
+        # Organize script-specific functions here.
+        # These functions are not reusable framework behavior; they implement the
+        # unique logic and features of the executable script.
+        #
+        # Suggested organization:
+        #   - Initialization
+        #   - Local script helpers
+        #   - Layout and display helpers
+        #   - Input handling
+        #   - Business logic
+        #   - Validation
+        #   - Reporting
+        #   - Cleanup
 
 # - Main ----------------------------------------------------------------------------
-    # fn: main
+    # fn$ main
         # Purpose:
         #   Canonical entry point for executable scripts.
         #

@@ -2,9 +2,9 @@
 # SolidgroundUX - UI Messaging
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.1
-#   Build       : 2615311
-#   Checksum    : 20e36cf3ae9bc6655861e9fd19407c6f77eebdf90cb93583ff6fcc497e3e58cd
+#   Version     : 1.5
+#   Build       : 2615600
+#   Checksum    : -
 #   Source      : ui-say.sh
 #   Type        : library
 #   Group       : UI
@@ -50,6 +50,7 @@
 # =====================================================================================
 set -uo pipefail
 
+# fn$: _sgnd_lib_guard - Library guard
 # --- Library guard ------------------------------------------------------------------
     # _sgnd_lib_guard
         # Purpose:
@@ -71,6 +72,19 @@ set -uo pipefail
         # Returns:
         #   0 if already loaded or successfully initialized.
         #   Exits with code 2 if executed instead of sourced.
+    # fn$ _sgnd_lib_guard - Sgnd Lib Guard
+        # Purpose:
+        #   Internal helper function for the  sgnd lib guard operation.
+        #
+        # Behavior:
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #
+        # Returns:
+        #   0 on success, non-zero when validation or execution fails.
+        #
+        # Usage:
+        #   _sgnd_lib_guard [arguments...]
     _sgnd_lib_guard() {
         local lib_base
         local guard
@@ -136,6 +150,19 @@ set -uo pipefail
         #
         # Examples:
         #   _say_should_print_console "DEBUG" || return
+    # fn: _say_should_print_console - Say Should Print Console
+        # Purpose:
+        #   Internal helper function for the  say should print console operation.
+        #
+        # Behavior:
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #
+        # Returns:
+        #   0 on success, non-zero when validation or execution fails.
+        #
+        # Usage:
+        #   _say_should_print_console [arguments...]
     _say_should_print_console() {
         local type="${1^^}"
         local level="${SGND_LOG_LEVEL:-normal}"
@@ -184,6 +211,19 @@ set -uo pipefail
         #
         # Examples:
         #   caller="$(_say_caller)"
+    # fn: _say_caller - Say Caller
+        # Purpose:
+        #   Internal helper function for the  say caller operation.
+        #
+        # Behavior:
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #
+        # Returns:
+        #   0 on success, non-zero when validation or execution fails.
+        #
+        # Usage:
+        #   _say_caller [arguments...]
     _say_caller() {
         local i
         for ((i=1; i<${#FUNCNAME[@]}; i++)); do
@@ -231,6 +271,19 @@ set -uo pipefail
         #
         # Examples:
         #   _say_write_log "FAIL" "Connection error" "$(date)"
+    # fn: _say_write_log - Say Write Log
+        # Purpose:
+        #   Internal helper function for the  say write log operation.
+        #
+        # Behavior:
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #
+        # Returns:
+        #   0 on success, non-zero when validation or execution fails.
+        #
+        # Usage:
+        #   _say_write_log [arguments...]
     _say_write_log() {
         local type="${1^^}"
         local msg="$2"
@@ -278,30 +331,19 @@ set -uo pipefail
         printf '%s\n' "$log_line" >>"$logfile" 2>/dev/null || true
     }
 
-    # fn: _sgnd_rotate_logs
+    # fn: _sgnd_rotate_logs - Sgnd Rotate Logs
         # Purpose:
-        #   Perform size-based rotation of a logfile.
+        #   Internal helper function for the  sgnd rotate logs operation.
         #
         # Behavior:
-        #   - Renames logfile to logfile.1, shifts older files upward.
-        #   - Keeps up to SGND_LOG_KEEP rotated files.
-        #   - Optionally compresses rotated files.
-        #   - Recreates the active logfile.
-        #
-        # Arguments:
-        #   $1  LOGFILE
-        #
-        # Inputs (globals):
-        #   SGND_LOG_MAX_BYTES, SGND_LOG_KEEP, SGND_LOG_COMPRESS
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0 always.
+        #   0 on success, non-zero when validation or execution fails.
         #
         # Usage:
-        #   _sgnd_rotate_logs "/var/log/app.log"
-        #
-        # Examples:
-        #   _sgnd_rotate_logs "$logfile"
+        #   _sgnd_rotate_logs [arguments...]
     _sgnd_rotate_logs() {
             # Usage: _sgnd_rotate_logs "/path/to/logfile"
             local logfile="$1"
@@ -337,29 +379,19 @@ set -uo pipefail
             rm -f -- "${logfile}.$((SGND_LOG_KEEP+1))" "${logfile}.$((SGND_LOG_KEEP+1)).gz" 2>/dev/null || true
     }
 
-    # fn: _sgnd_logfile
+    # fn: _sgnd_logfile - Sgnd Logfile
         # Purpose:
-        #   Resolve the effective logfile path based on configured priorities.
+        #   Internal helper function for the  sgnd logfile operation.
         #
         # Behavior:
-        #   - Checks SGND_LOG_PATH first, then SGND_ALT_LOGPATH.
-        #   - Uses sgnd_can_append to validate write capability.
-        #   - Returns the first usable path.
-        #
-        # Outputs:
-        #   Prints the resolved logfile path (no newline).
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0 if a usable path is found
-        #   1 otherwise
+        #   0 on success, non-zero when validation or execution fails.
         #
         # Usage:
-        #   logfile="$(_sgnd_logfile)" || return
-        #
-        # Examples:
-        #   if logfile="$(_sgnd_logfile)"; then
-        #       echo "Logging to $logfile"
-        #   fi
+        #   _sgnd_logfile [arguments...]
     _sgnd_logfile() {
         
         # Determine logfile path according to priority:
@@ -378,38 +410,19 @@ set -uo pipefail
         return 1
     }
 
-    # fn: _sayprogress_write_slot
+    # fn: _sayprogress_write_slot - Sayprogress Write Slot
         # Purpose:
-        #   Write progress text to a reserved progress slot.
+        #   Internal helper function for the  sayprogress write slot operation.
         #
         # Behavior:
-        #   - Saves the current cursor position.
-        #   - Moves to the requested progress slot.
-        #   - Clears and rewrites that line.
-        #   - Restores the original cursor position.
-        #   - Lazily reserves one slot when sayprogress_begin was not called.
-        #
-        # Arguments:
-        #   $1  SLOT
-        #       Zero-based progress slot number.
-        #   $2  TEXT
-        #       Rendered progress text.
-        #
-        # Inputs (globals):
-        #   SGND_PROGRESS_RESERVED
-        #
-        # Outputs (globals):
-        #   SGND_PROGRESS_RESERVED
-        #   SGND_LINEBREAK_PENDING
-        #
-        # Usage:
-        #   _sayprogress_write_slot 0 "$text"
-        #
-        # Examples:
-        #   _sayprogress_write_slot 1 "Parsing file.sh"
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0 always.
+        #   0 on success, non-zero when validation or execution fails.
+        #
+        # Usage:
+        #   _sayprogress_write_slot [arguments...]
     _sayprogress_write_slot() {
         local slot="${1:-0}"
         local text="${2:-}"
@@ -434,19 +447,19 @@ set -uo pipefail
 
         SGND_LINEBREAK_PENDING=1
     }
-    # fn: _sgnd_ensure_linebreak
+    # fn: _sgnd_ensure_linebreak - Sgnd Ensure Linebreak
         # Purpose:
-        #   Ensure progress output is terminated before normal output continues.
+        #   Internal helper function for the  sgnd ensure linebreak operation.
         #
         # Behavior:
-        #   - Prints a newline if a progress line is still active.
-        #   - Resets the pending linebreak flag.
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
-        # Inputs (globals):
-        #   SGND_LINEBREAK_PENDING
+        # Returns:
+        #   0 on success, non-zero when validation or execution fails.
         #
-        # Outputs (globals):
-        #   SGND_LINEBREAK_PENDING
+        # Usage:
+        #   _sgnd_ensure_linebreak [arguments...]
     _sgnd_ensure_linebreak() {
         if (( ${SGND_LINEBREAK_PENDING:-0} )); then
             printf '\n' >&2
@@ -455,31 +468,19 @@ set -uo pipefail
     }
 
 # --- Public API ---------------------------------------------------------------------
-    # fn: say
+    # fn: say - Say
         # Purpose:
-        #   Emit a typed message with formatting, colorization, and optional logging.
+        #   Public API function for the say operation.
         #
         # Behavior:
-        #   - Supports message types: INFO, STRT, WARN, FAIL, CNCL, OK, END, DEBUG, EMPTY
-        #   - Builds prefix using label/icon/symbol based on configuration
-        #   - Applies colorization rules
-        #   - Honors console output policy
-        #   - Logs message if enabled
-        #
-        # Usage:
-        #   say INFO "Starting process"
-        #   say --type WARN "Low disk space"
-        #   say --date --show all --colorize both INFO "Message"
-        #
-        # Examples:
-        #   say STRT "Initializing..."
-        #
-        #   say --date --type FAIL "Connection failed"
-        #
-        #   say DEBUG "Value = $value"
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0 always.
+        #   0 on success, non-zero when validation or execution fails.
+        #
+        # Usage:
+        #   say [arguments...]
     say() {
       # -- Declarations
         local type="EMPTY"
@@ -679,35 +680,19 @@ set -uo pipefail
         _say_write_log "$type" "$msg" "$date_str"
     }
 
-    # fn: sayprogress_begin
+    # fn: sayprogress_begin - Sayprogress Begin
         # Purpose:
-        #   Reserve one or more console lines for progress rendering.
+        #   Public API function for the sayprogress begin operation.
         #
         # Behavior:
-        #   - Creates a fixed progress area on stderr.
-        #   - Stores the number of reserved progress slots globally.
-        #   - Positions the cursor back at the first reserved slot.
-        #   - Allows sayprogress to update individual slots without disturbing others.
-        #
-        # Options:
-        #   --slots N
-        #       Number of progress lines to reserve.
-        #
-        # Outputs (globals):
-        #   SGND_PROGRESS_RESERVED
-        #   SGND_LINEBREAK_PENDING
-        #
-        # Usage:
-        #   sayprogress_begin --slots 2
-        #
-        # Examples:
-        #   sayprogress_begin --slots 2
-        #   sayprogress --slot 0 --current 1 --total 10 --label "Files"
-        #   sayprogress --slot 1 --current 5 --total 100 --label "Lines"
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0 on success.
-        #   1 on invalid option.
+        #   0 on success, non-zero when validation or execution fails.
+        #
+        # Usage:
+        #   sayprogress_begin [arguments...]
     sayprogress_begin() {
         local slots=1
 
@@ -732,45 +717,19 @@ set -uo pipefail
         SGND_LINEBREAK_PENDING=1
     }
 
-    # fn: sayprogress
+    # fn: sayprogress - Sayprogress
         # Purpose:
-        #   Render single-line progress output on stderr and update it in place.
+        #   Public API function for the sayprogress operation.
         #
         # Behavior:
-        #   - Reuses the same console line using carriage return.
-        #   - Builds the rendered output from selected progress parts.
-        #   - Supports absolute counters, percentage, and progress bar output.
-        #   - Applies optional colors independently to bar, indicators, and label.
-        #   - Supports optional left padding.
-        #   - Pads the rendered line so older longer text is cleared.
-        #   - Does not print a trailing newline.
-        #
-        # Options:
-        #   --current N
-        #       Current position.
-        #   --total N
-        #       Total number of items.
-        #   --label TEXT
-        #       Optional label text to append.
-        #   --type N
-        #       Bitmask selecting which progress parts to show:
-        #         1 = absolute counter
-        #         2 = percentage
-        #         4 = progress bar
-        #   --barcolor SGR
-        #       ANSI SGR sequence for the progress bar.
-        #   --labelcolor SGR
-        #       ANSI SGR sequence for the label.
-        #   --indicatorcolor SGR
-        #       ANSI SGR sequence for percentage and absolute indicators.
-        #   --padleft N
-        #       Number of spaces to prefix before rendered output.
-        #   --width N
-        #       Width of the progress bar in characters.
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0 on success.
-        #   1 on invalid option.
+        #   0 on success, non-zero when validation or execution fails.
+        #
+        # Usage:
+        #   sayprogress [arguments...]
     sayprogress() {
         local current=0
         local slot=0
@@ -888,34 +847,19 @@ set -uo pipefail
         _sayprogress_write_slot "$slot" "$text"
     }
 
-    # fn: sayprogress_done
+    # fn: sayprogress_done - Sayprogress Done
         # Purpose:
-        #   Finalize reserved progress output.
+        #   Public API function for the sayprogress done operation.
         #
         # Behavior:
-        #   - Clears all reserved progress slots.
-        #   - Moves the cursor below the progress area.
-        #   - Resets progress reservation state.
-        #   - Ends pending progress output cleanly with a newline.
-        #
-        # Inputs (globals):
-        #   SGND_PROGRESS_RESERVED
-        #
-        # Outputs (globals):
-        #   SGND_PROGRESS_RESERVED
-        #   SGND_LINEBREAK_PENDING
-        #
-        # Usage:
-        #   sayprogress_done
-        #
-        # Examples:
-        #   sayprogress_begin --slots 2
-        #   sayprogress --slot 0 --current 10 --total 10 --label "Files"
-        #   sayprogress --slot 1 --current 100 --total 100 --label "Lines"
-        #   sayprogress_done
+        #   - Performs the operation implied by its name and arguments.
+        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
-        #   0 always.
+        #   0 on success, non-zero when validation or execution fails.
+        #
+        # Usage:
+        #   sayprogress_done [arguments...]
     sayprogress_done() {
         local slots="${SGND_PROGRESS_RESERVED:-1}"
         local i
@@ -941,44 +885,36 @@ set -uo pipefail
     }
 
     # -- Convenience wrappers for say() with a fixed TYPE.
-        # fn: sayinfo
+        # fn: sayinfo - Sayinfo
             # Purpose:
-            #   Emit an INFO message.
+            #   Public API function for the sayinfo operation.
             #
             # Behavior:
-            #   - Delegates to say INFO.
-            #   -             #   - Always returns 0, even when suppressed.
-            #
-            # Inputs (globals):
-            #   SGND_LOG_LEVEL
+            #   - Performs the operation implied by its name and arguments.
+            #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
             #
             # Returns:
-            #   0 always.
+            #   0 on success, non-zero when validation or execution fails.
             #
             # Usage:
-            #   sayinfo "Loading optional libraries..."
-            #
-            # Examples:
-            #   sayinfo "Using default configuration"
+            #   sayinfo [arguments...]
         sayinfo() {
             say INFO "$@"
         }
 
-        # fn: saystart
+        # fn: saystart - Saystart
             # Purpose:
-            #   Emit a STRT message.
+            #   Public API function for the saystart operation.
             #
             # Behavior:
-            #   - Delegates to say STRT.
+            #   - Performs the operation implied by its name and arguments.
+            #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
             #
             # Returns:
-            #   0 always.
+            #   0 on success, non-zero when validation or execution fails.
             #
             # Usage:
-            #   saystart "Initializing framework"
-            #
-            # Examples:
-            #   saystart "Starting installation"
+            #   saystart [arguments...]
         saystart() {
             say STRT "$@"
         }
@@ -999,78 +935,70 @@ set -uo pipefail
             say WARN "$@"
         }
 
-        # fn: sayfail
+        # fn: sayfail - Sayfail
             # Purpose:
-            #   Emit a FAIL message.
+            #   Public API function for the sayfail operation.
             #
             # Behavior:
-            #   - Delegates to say FAIL.
+            #   - Performs the operation implied by its name and arguments.
+            #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
             #
             # Returns:
-            #   0 always.
+            #   0 on success, non-zero when validation or execution fails.
             #
             # Usage:
-            #   sayfail "Cannot create directory: $dir"
-            #
-            # Examples:
-            #   sayfail "Bootstrap failed"
+            #   sayfail [arguments...]
         sayfail() {
             say FAIL "$@"
         }
 
-        # fn: saycancel
+        # fn: saycancel - Saycancel
             # Purpose:
-            #   Emit a CNCL message.
+            #   Public API function for the saycancel operation.
             #
             # Behavior:
-            #   - Delegates to say CNCL.
+            #   - Performs the operation implied by its name and arguments.
+            #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
             #
             # Returns:
-            #   0 always.
+            #   0 on success, non-zero when validation or execution fails.
             #
             # Usage:
-            #   saycancel "Cancelled by user"
-            #
-            # Examples:
-            #   saycancel "Operation aborted"
+            #   saycancel [arguments...]
         saycancel() {
             say CNCL "$@"
         }
 
-        # fn: sayok
+        # fn: sayok - Sayok
             # Purpose:
-            #   Emit an OK message.
+            #   Public API function for the sayok operation.
             #
             # Behavior:
-            #   - Delegates to say OK.
+            #   - Performs the operation implied by its name and arguments.
+            #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
             #
             # Returns:
-            #   0 always.
+            #   0 on success, non-zero when validation or execution fails.
             #
             # Usage:
-            #   sayok "Configuration written successfully"
-            #
-            # Examples:
-            #   sayok "Validation passed"
+            #   sayok [arguments...]
         sayok() {
             say OK "$@"
         }
 
-        # fn: sayend
+        # fn: sayend - Sayend
             # Purpose:
-            #   Emit an END message.
+            #   Public API function for the sayend operation.
             #
             # Behavior:
-            #   - Delegates to say END.
+            #   - Performs the operation implied by its name and arguments.
+            #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
             #
             # Returns:
-            #   0 always.
+            #   0 on success, non-zero when validation or execution fails.
             #
             # Usage:
-            #   sayend "Process completed"
-            #
-            # Examples:
-            #   sayend "Finished successfully"
+            #   sayend [arguments...]
         sayend() {
             say END "$@"
         }
@@ -1087,24 +1015,36 @@ set -uo pipefail
             #
             # Examples:
             #   justsay "Raw output"
+        # fn: justsay - Justsay
+            # Purpose:
+            #   Public API function for the justsay operation.
+            #
+            # Behavior:
+            #   - Performs the operation implied by its name and arguments.
+            #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+            #
+            # Returns:
+            #   0 on success, non-zero when validation or execution fails.
+            #
+            # Usage:
+            #   justsay [arguments...]
         justsay() {
             printf '%s\n' "$@"
         }
 
-        # fn: saydebug
+        # fn: saydebug - Saydebug
             # Purpose:
-            #   Emit a DEBUG message with caller context.
+            #   Public API function for the saydebug operation.
             #
             # Behavior:
-            #   - Only active when SGND_LOG_LEVEL=debug.
-            #   - Appends caller file, function, and line.
-            #   - Delegates to say DEBUG.
+            #   - Performs the operation implied by its name and arguments.
+            #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+            #
+            # Returns:
+            #   0 on success, non-zero when validation or execution fails.
             #
             # Usage:
-            #   saydebug "Value = $x"
-            #
-            # Examples:
-            #   saydebug "Entering function"
+            #   saydebug [arguments...]
         saydebug() {
             if [[ "${SGND_LOG_LEVEL:-normal}" == "debug" ]]; then
                 local src="${BASH_SOURCE[1]##*/}"

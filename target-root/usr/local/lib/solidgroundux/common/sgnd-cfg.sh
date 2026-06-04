@@ -2,9 +2,9 @@
 # SolidgroundUX - Configuration Management
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.1
-#   Build       : 2615311
-#   Checksum    : 043ad34fea43cb9578489f4ab4aa247f0344463c0593342644a8d801f75e38c6
+#   Version     : 1.5
+#   Build       : 2615600
+#   Checksum    : -
 #   Source      : sgnd-cfg.sh
 #   Type        : library
 #   Group       : Common Core
@@ -46,26 +46,19 @@
 # =====================================================================================
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------
-    # fn$ _sgnd_lib_guard
+    # fn$ _sgnd_lib_guard - Lib guard
         # Purpose:
-        #   Ensure the file is sourced as a library and only initialized once.
+        #   Prevent direct execution of a source-only library and avoid repeated initialization when the file is sourced more than once.
         #
         # Behavior:
-        #   - Derives a unique guard variable name from the current filename.
-        #   - Aborts execution if the file is executed instead of sourced.
-        #   - Sets the guard variable on first load.
-        #   - Skips initialization if the library was already loaded.
-        #
-        # Inputs:
-        #   BASH_SOURCE[0]
-        #   $0
-        #
-        # Outputs (globals):
-        #   SGND_<MODULE>_LOADED
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if already loaded or successfully initialized.
-        #   Exits with code 2 if executed instead of sourced.
+        #   0 when the library may continue loading; exits with 2 when executed directly.
+        #
+        # Usage:
+        #   _sgnd_lib_guard ...
     _sgnd_lib_guard() {
         local lib_base
         local guard
@@ -89,64 +82,36 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Internal: file and value manipulation -------------------------------------------
-    # fn: _sgnd_is_ident
+    # fn: _sgnd_is_ident - Is ident
         # Purpose:
-        #   Test whether a string is a valid shell identifier.
+        #   Validate that a string is a safe shell identifier for dynamic variable access.
         #
         # Behavior:
-        #   - Validates the input against shell variable naming rules.
-        #   - Accepts names starting with a letter or underscore.
-        #   - Allows alphanumeric characters and underscores thereafter.
-        #
-        # Arguments:
-        #   $1  NAME
-        #       Candidate identifier.
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if NAME is a valid identifier.
-        #   1 otherwise.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   _sgnd_is_ident NAME
-        #
-        # Examples:
-        #   if _sgnd_is_ident "APP_TITLE"; then
-        #       printf 'valid\n'
-        #   fi
+        #   _sgnd_is_ident ...
     _sgnd_is_ident() {
             [[ "${1:-}" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]
     }
    
-    # fn: _sgnd_kv_load_file
+    # fn: _sgnd_kv_load_file - Kv load file
         # Purpose:
-        #   Load KEY=VALUE pairs from a file into shell variables.
+        #   Load key-value assignments from a configuration file into shell variables.
         #
         # Behavior:
-        #   - Reads plain KEY=VALUE lines from the target file.
-        #   - Ignores blank lines and comment lines.
-        #   - Validates keys as shell identifiers.
-        #   - Assigns values literally without unquoting or escape processing.
-        #
-        # Arguments:
-        #   $1  FILE
-        #       Path to the KEY=VALUE file.
-        #
-        # Outputs (globals):
-        #   Sets variables defined in the file.
-        #
-        # Side effects:
-        #   - May emit warnings for invalid keys.
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   _sgnd_kv_load_file FILE
-        #
-        # Examples:
-        #   _sgnd_kv_load_file "$SGND_CFG_FILE"
-        #
-        #   [[ -r "$file" ]] && _sgnd_kv_load_file "$file"
+        #   _sgnd_kv_load_file ...
     _sgnd_kv_load_file() {
         local file="$1"
         [[ -f "$file" ]] || return 0
@@ -181,39 +146,19 @@ set -uo pipefail
         done < "$file"
     }
 
-    # fn: _sgnd_kv_set
+    # fn: _sgnd_kv_set - Kv set
         # Purpose:
-        #   Write or update a KEY=VALUE entry in a file.
+        #   Set or update a key-value entry in a configuration file.
         #
         # Behavior:
-        #   - Validates the key as a shell identifier.
-        #   - Replaces an existing KEY=VALUE entry when present.
-        #   - Appends a new entry when the key does not exist.
-        #   - Preserves the rest of the file content.
-        #
-        # Arguments:
-        #   $1  FILE
-        #       Path to the KEY=VALUE file.
-        #   $2  KEY
-        #       Key to write.
-        #   $3  VALUE
-        #       Value to assign.
-        #
-        # Side effects:
-        #   - Modifies the target file.
-        #   - May emit warnings for invalid keys.
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   1 on invalid key or write failure.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   _sgnd_kv_set FILE KEY VALUE
-        #
-        # Examples:
-        #   _sgnd_kv_set "$SGND_CFG_FILE" "APP_TITLE" "SolidGround"
-        #
-        #   _sgnd_kv_set "$SGND_STATE_FILE" "CURRENT_PAGE" "2"
+        #   _sgnd_kv_set ...
     _sgnd_kv_set() {
         local file="$1" key="$2" val="$3"
         [[ "$key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || return 1
@@ -259,36 +204,19 @@ set -uo pipefail
         return 0
     }
 
-    # fn: _sgnd_kv_unset
+    # fn: _sgnd_kv_unset - Kv unset
         # Purpose:
-        #   Remove a KEY=VALUE entry from a file.
+        #   Remove a key-value entry from a configuration file.
         #
         # Behavior:
-        #   - Validates the key as a shell identifier.
-        #   - Removes matching KEY=VALUE lines from the file.
-        #   - Leaves the rest of the file unchanged.
-        #
-        # Arguments:
-        #   $1  FILE
-        #       Path to the KEY=VALUE file.
-        #   $2  KEY
-        #       Key to remove.
-        #
-        # Side effects:
-        #   - Modifies the target file.
-        #   - May emit warnings for invalid keys.
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   1 on invalid key or write failure.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   _sgnd_kv_unset FILE KEY
-        #
-        # Examples:
-        #   _sgnd_kv_unset "$SGND_CFG_FILE" "APP_TITLE"
-        #
-        #   _sgnd_kv_unset "$SGND_STATE_FILE" "CURRENT_PAGE"
+        #   _sgnd_kv_unset ...
     _sgnd_kv_unset() {
         local file="$1" key="$2"
         [[ "$key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || return 1
@@ -326,35 +254,19 @@ set -uo pipefail
         rm -f "$file"
     }
 
-    # fn: _sgnd_kv_get
+    # fn: _sgnd_kv_get - Kv get
         # Purpose:
-        #   Read a value for a key from a KEY=VALUE file.
+        #   Read a key-value entry from a configuration file.
         #
         # Behavior:
-        #   - Searches the file for a matching KEY=VALUE entry.
-        #   - Returns the last matching occurrence when duplicates exist.
-        #   - Does not read from the current shell variable.
-        #
-        # Arguments:
-        #   $1  FILE
-        #       Path to the KEY=VALUE file.
-        #   $2  KEY
-        #       Key to retrieve.
-        #
-        # Output:
-        #   Prints the value to stdout without a trailing newline.
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if the key is found.
-        #   1 if the key is not present.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   _sgnd_kv_get FILE KEY
-        #
-        # Examples:
-        #   value="$(_sgnd_kv_get "$SGND_CFG_FILE" "APP_TITLE")" || value=""
-        #
-        #   _sgnd_kv_get "$SGND_STATE_FILE" "CURRENT_PAGE"
+        #   _sgnd_kv_get ...
     _sgnd_kv_get() {
         local file="$1" key="$2"
 
@@ -392,21 +304,19 @@ set -uo pipefail
         grep -q -E "^[[:space:]]*${key}[[:space:]]*=" -- "$file" 2>/dev/null
     }
 
-    # fn: _sgnd_kv_list_keys
+    # fn: _sgnd_kv_list_keys - Kv list keys
         # Purpose:
-        #   Emit file contents as 'key|value' lines (order preserved).
+        #   List all keys found in a configuration file.
         #
-        # Arguments:
-        #   $1  File path.
-        #
-        # Output:
-        #   Prints one line per KEY=VALUE entry as: key|value
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success; non-zero if file is unreadable.
+        #   0 on success unless otherwise noted by the called command.
         #
-        # Notes:
-        #   - Intended for display/debug; not a stable interchange format.
+        # Usage:
+        #   _sgnd_kv_list_keys ...
     _sgnd_kv_list_keys() {
         local file="$1"
         [[ -r "$file" ]] || return 1
@@ -433,80 +343,37 @@ set -uo pipefail
     }
 
 # --- Public API: Config management ---------------------------------------------------
-    # fn: sgnd_cfg_load
+    # fn: sgnd_cfg_load - Cfg load
         # Purpose:
-        #   Load a config file into shell variables.
+        #   Load a framework or script configuration file into the active shell environment.
         #
         # Behavior:
-        #   - Loads KEY=VALUE pairs from the selected config file.
-        #   - Ignores missing files.
-        #   - Accepts only valid shell identifiers as keys.
-        #
-        # Arguments:
-        #   $1  FILE
-        #       Optional config file path.
-        #       Defaults to SGND_CFG_FILE when omitted.
-        #
-        # Inputs (globals):
-        #   SGND_CFG_FILE
-        #
-        # Outputs (globals):
-        #   Sets variables defined in the loaded file.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_cfg_load
-        #
-        # Examples:
-        #   sgnd_cfg_load
-        #
-        #   sgnd_cfg_load "/etc/solidgroundux/myapp.cfg"
-        #
-        # Notes:
-        #   - Missing files are not treated as an error.
+        #   sgnd_cfg_load ...
     sgnd_cfg_load() {
         local file="${1:-$SGND_CFG_FILE}"
         _sgnd_kv_load_file "$file"
     }
 
-    # fn: sgnd_cfg_set
+    # fn: sgnd_cfg_set - Cfg set
         # Purpose:
-        #   Persist a config KEY=VALUE pair and update the current shell variable.
+        #   Persist a configuration value in the user configuration file.
         #
         # Behavior:
-        #   - Validates the key as a shell identifier.
-        #   - Writes or replaces the KEY=VALUE entry in SGND_CFG_FILE.
-        #   - Updates the in-memory shell variable to the same value.
-        #
-        # Arguments:
-        #   $1  KEY
-        #       Config variable name.
-        #   $2  VALUE
-        #       Value to persist.
-        #
-        # Inputs (globals):
-        #   SGND_CFG_FILE
-        #
-        # Outputs (globals):
-        #   Sets $KEY in the current shell.
-        #
-        # Side effects:
-        #   - Updates SGND_CFG_FILE on disk.
-        #   - May emit a warning for invalid keys.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   1 on invalid key or write failure.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_cfg_set KEY VALUE
-        #
-        # Examples:
-        #   sgnd_cfg_set "APP_TITLE" "SolidGround Console"
-        #
-        #   sgnd_cfg_set "SGND_PAGE_MAX_ROWS" "15"
+        #   sgnd_cfg_set ...
     sgnd_cfg_set() {
         local key="$1" val="$2"
         _sgnd_is_ident "$key" || { saywarning "Skipping invalid cfg key: '$key'"; return 1; }
@@ -516,40 +383,19 @@ set -uo pipefail
         printf -v "$key" '%s' "$val"
     }
 
-    # fn: sgnd_cfg_unset
+    # fn: sgnd_cfg_unset - Cfg unset
         # Purpose:
-        #   Remove a config key from the file and unset it in the current shell.
+        #   Remove a configuration value from the user configuration file.
         #
         # Behavior:
-        #   - Validates the key as a shell identifier.
-        #   - Removes the KEY=VALUE entry from SGND_CFG_FILE.
-        #   - Unsets the variable in the current shell (best effort).
-        #
-        # Arguments:
-        #   $1  KEY
-        #       Config variable name.
-        #
-        # Inputs (globals):
-        #   SGND_CFG_FILE
-        #
-        # Outputs (globals):
-        #   Unsets $KEY in the current shell.
-        #
-        # Side effects:
-        #   - Updates SGND_CFG_FILE on disk.
-        #   - May emit a warning for invalid keys.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   1 on invalid key or write failure.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_cfg_unset KEY
-        #
-        # Examples:
-        #   sgnd_cfg_unset "APP_TITLE"
-        #
-        #   sgnd_cfg_unset "SGND_PAGE_MAX_ROWS"
+        #   sgnd_cfg_unset ...
     sgnd_cfg_unset() {
         local key="$1"
         _sgnd_is_ident "$key" || { saywarning "Skipping invalid cfg key: '$key'"; return 1; }
@@ -559,71 +405,38 @@ set -uo pipefail
         unset "$key" || true
     }
 
-    # fn: sgnd_cfg_reset
+    # fn: sgnd_cfg_reset - Cfg reset
         # Purpose:
-        #   Hard-reset the config file by deleting it.
+        #   Reset the user configuration file.
         #
         # Behavior:
-        #   - Resolves the target file from SGND_CFG_FILE.
-        #   - Removes the file if present.
-        #   - Does not recreate a skeleton or defaults.
-        #
-        # Inputs (globals):
-        #   SGND_CFG_FILE
-        #
-        # Side effects:
-        #   - Deletes SGND_CFG_FILE.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_cfg_reset
-        #
-        # Examples:
-        #   sgnd_cfg_reset
-        #
-        # Notes:
-        #   - Skeleton recreation is the responsibility of bootstrap/domain logic.
+        #   sgnd_cfg_reset ...
     sgnd_cfg_reset() {
         local file
         file="${SGND_CFG_FILE}"
         _sgnd_kv_reset_file "$file"
     }
 
-    # fn: sgnd_cfg_get
+    # fn: sgnd_cfg_get - Cfg get
         # Purpose:
-        #   Read a config value from the config file.
+        #   Read an effective configuration value.
         #
         # Behavior:
-        #   - Validates the requested key.
-        #   - Reads the value directly from SGND_CFG_FILE.
-        #   - Does not read from the current shell variable.
-        #
-        # Arguments:
-        #   $1  KEY
-        #       Config variable name.
-        #
-        # Inputs (globals):
-        #   SGND_CFG_FILE
-        #
-        # Output:
-        #   Prints the value to stdout without a trailing newline.
-        #
-        # Side effects:
-        #   - May emit a warning for invalid keys.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if found.
-        #   1 if missing or invalid.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_cfg_get KEY
-        #
-        # Examples:
-        #   value="$(sgnd_cfg_get "APP_TITLE")" || value=""
-        #
-        #   sgnd_cfg_get "SGND_PAGE_MAX_ROWS"
+        #   sgnd_cfg_get ...
     sgnd_cfg_get() {
         local key="$1"
         _sgnd_is_ident "$key" || {
@@ -633,38 +446,19 @@ set -uo pipefail
         _sgnd_kv_get "$SGND_CFG_FILE" "$key"
     }
 
-    # fn: sgnd_cfg_has
+    # fn: sgnd_cfg_has - Cfg has
         # Purpose:
-        #   Test whether a config key exists in the config file.
+        #   Test whether an effective configuration value exists.
         #
         # Behavior:
-        #   - Validates the requested key.
-        #   - Checks SGND_CFG_FILE for a matching KEY=VALUE entry.
-        #   - Treats empty values as present when the key exists.
-        #
-        # Arguments:
-        #   $1  KEY
-        #       Config variable name.
-        #
-        # Inputs (globals):
-        #   SGND_CFG_FILE
-        #
-        # Side effects:
-        #   - May emit a warning for invalid keys.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if present.
-        #   1 if missing or invalid.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_cfg_has KEY
-        #
-        # Examples:
-        #   if sgnd_cfg_has "APP_TITLE"; then
-        #       printf 'configured\n'
-        #   fi
-        #
-        #   sgnd_cfg_has "SGND_PAGE_MAX_ROWS"
+        #   sgnd_cfg_has ...
     sgnd_cfg_has() {
         local key="$1"
         _sgnd_is_ident "$key" || {
@@ -674,35 +468,19 @@ set -uo pipefail
         _sgnd_kv_has "$SGND_CFG_FILE" "$key"
     }
     
-    # fn: sgnd_cfg_show_keys
+    # fn: sgnd_cfg_show_keys - Cfg show keys
         # Purpose:
-        #   Display selected config keys and their stored values.
+        #   Print configuration keys and values for inspection.
         #
         # Behavior:
-        #   - Reads values from SGND_CFG_FILE, not from in-memory shell variables.
-        #   - Renders a formatted section using sgnd_print_* helpers.
-        #   - Shows empty values as "" and missing values as <unset>.
-        #
-        # Arguments:
-        #   $@  KEYS
-        #       Config keys to display.
-        #
-        # Inputs (globals):
-        #   SGND_CFG_FILE
-        #
-        # Side effects:
-        #   - Writes formatted output to stdout.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_cfg_show_keys KEY [KEY ...]
-        #
-        # Examples:
-        #   sgnd_cfg_show_keys APP_TITLE SGND_PAGE_MAX_ROWS
-        #
-        #   sgnd_cfg_show_keys SGND_FRAMEWORK_ROOT SGND_USRCFG_FILE
+        #   sgnd_cfg_show_keys ...
     sgnd_cfg_show_keys() {
         local key val
 
@@ -728,34 +506,19 @@ set -uo pipefail
     # These helpers implement "system + user cfg" behavior driven by a specs array.
     # Intended for bootstrap; stable but not part of the minimal surface area.
 
-    # fn: sgnd_cfg_has_audience
+    # fn: sgnd_cfg_has_audience - Cfg has audience
         # Purpose:
-        #   Test whether a cfg spec array contains entries for a requested audience.
+        #   Test whether a configuration variable applies to a requested audience.
         #
         # Behavior:
-        #   - Scans the supplied spec array.
-        #   - Matches entries marked for the requested audience.
-        #   - Treats "both" entries as matching either "system" or "user".
-        #
-        # Arguments:
-        #   $1  SPEC_ARRAY_NAME
-        #       Name of the specs array variable.
-        #   $2  AUDIENCE
-        #       Requested audience: "system" or "user".
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if at least one matching spec exists.
-        #   1 otherwise.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_cfg_has_audience SPEC_ARRAY_NAME system
-        #
-        # Examples:
-        #   if sgnd_cfg_has_audience SGND_CFG_SPECS "user"; then
-        #       printf 'user cfg supported\n'
-        #   fi
-        #
-        #   sgnd_cfg_has_audience SGND_CFG_SPECS "system"
+        #   sgnd_cfg_has_audience ...
     sgnd_cfg_has_audience() {
         local spec_array_name="${1:-}"
         local want="${2:-}"          # "system" or "user"
@@ -774,21 +537,19 @@ set -uo pipefail
         return 1
     }
 
-    # fn: _sgnd_cfg_write_template_header
+    # fn: _sgnd_cfg_write_template_header - Cfg write template header
         # Purpose:
-        #   Write a standard auto-generated header for a cfg template file.
+        #   Write a generated configuration-template header.
         #
-        # Arguments:
-        #   $1  DOMAIN
-        #       Logical config domain name.
-        #   $2  AUDIENCE
-        #       Config audience: system or user.
-        #
-        # Output:
-        #   Prints header text to stdout.
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   _sgnd_cfg_write_template_header ...
     _sgnd_cfg_write_template_header() {
         local domain="${1:-configuration}"
         local audience="${2:-user}"
@@ -835,34 +596,19 @@ set -uo pipefail
 '
     }
 
-    # fn: sgnd_cfg_create_missing_domain_files
+    # fn: sgnd_cfg_create_missing_domain_files - Cfg create missing domain files
         # Purpose:
-        #   Create missing cfg files for a domain from the active defaults/specs.
+        #   Create missing system and user configuration files for a configuration domain.
         #
         # Behavior:
-        #   - Creates a system cfg when system-audience specs exist and the caller is root.
-        #   - Creates a user cfg when user-audience specs exist.
-        #   - In framework mode under sudo/root, creates both files when missing.
-        #   - Uses current in-memory variable values as the template defaults.
-        #   - Emits informative messages instead of missing-file warnings.
-        #
-        # Arguments:
-        #   $1  DOMAIN
-        #   $2  SYSCFG
-        #   $3  USRCFG
-        #   $4  SPEC_ARRAY_NAME
-        #   $5  MODE
-        #       Optional mode: framework or script.
-        #       Default: script
-        #
-        # Side effects:
-        #   - Creates parent directories as needed.
-        #   - Creates cfg files when required.
-        #   - Writes informational output.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   1 on invalid arguments or file creation failure.
+        #   0 on success unless otherwise noted by the called command.
+        #
+        # Usage:
+        #   sgnd_cfg_create_missing_domain_files ...
     sgnd_cfg_create_missing_domain_files() {
         local domain="${1:-}"
         local syscfg="${2:-}"
@@ -898,42 +644,19 @@ set -uo pipefail
         return 0
     }
 
-    # fn: sgnd_cfg_write_skeleton_filtered
+    # fn: sgnd_cfg_write_skeleton_filtered - Cfg write skeleton filtered
         # Purpose:
-        #   Write an auto-generated cfg skeleton filtered by audience.
+        #   Write a filtered configuration skeleton for selected variables and audience.
         #
         # Behavior:
-        #   - Writes a commented KEY=VALUE config template.
-        #   - Includes only specs matching the requested audience.
-        #   - Includes specs marked "both" for either audience.
-        #   - Uses current shell values as initial defaults where available.
-        #   - Adds a standard auto-generated file header.
-        #
-        # Arguments:
-        #   $1  FILE
-        #       Target cfg file path.
-        #   $2  AUDIENCE
-        #       Audience filter: "system" or "user".
-        #   $3  SPEC_ARRAY_NAME
-        #       Name of the cfg specs array.
-        #   $4  DOMAIN
-        #       Optional logical domain name for header text.
-        #       Default: configuration
-        #
-        # Side effects:
-        #   - Creates or overwrites the target file.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   1 on invalid arguments.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_cfg_write_skeleton_filtered FILE AUDIENCE SPEC_ARRAY_NAME [DOMAIN]
-        #
-        # Examples:
-        #   sgnd_cfg_write_skeleton_filtered "$SGND_USRCFG_FILE" "user" SGND_FRAMEWORK_GLOBALS "Framework"
-        #
-        #   sgnd_cfg_write_skeleton_filtered "$SGND_SYSCFG_FILE" "system" SGND_SCRIPT_GLOBALS "Script"
+        #   sgnd_cfg_write_skeleton_filtered ...
     sgnd_cfg_write_skeleton_filtered() {
         local file="${1:-}"
         local audience_want="${2:-}"
@@ -968,36 +691,19 @@ set -uo pipefail
         return 0
     }
 
-    # fn: sgnd_cfg_load_file
+    # fn: sgnd_cfg_load_file - Cfg load file
         # Purpose:
-        #   Load a specific cfg file into shell variables for domain-level processing.
+        #   Load one configuration file and apply values to the current environment.
         #
         # Behavior:
-        #   - Reads plain KEY=VALUE lines from the target file.
-        #   - Ignores blank lines and comments.
-        #   - Accepts only valid shell identifiers as keys.
-        #   - Stores values literally without unquoting or escape processing.
-        #
-        # Arguments:
-        #   $1  FILE
-        #       Config file path to load.
-        #
-        # Outputs (globals):
-        #   Sets variables defined in the file.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_cfg_load_file FILE
-        #
-        # Examples:
-        #   sgnd_cfg_load_file "$SGND_SYSCFG_FILE"
-        #
-        #   [[ -r "$SGND_USRCFG_FILE" ]] && sgnd_cfg_load_file "$SGND_USRCFG_FILE"
-        #
-        # Notes:
-        #   - Intended for domain/bootstrap flow readability.
+        #   sgnd_cfg_load_file ...
     sgnd_cfg_load_file() {
         local file="${1:-}"
         [[ -r "$file" ]] || return 0
@@ -1031,45 +737,19 @@ set -uo pipefail
         return 0
     }
 
-    # fn: sgnd_cfg_domain_apply
+    # fn: sgnd_cfg_domain_apply - Cfg domain apply
         # Purpose:
-        #   Apply configuration for a domain from system and user cfg files.
+        #   Apply system and user configuration files for a named configuration domain.
         #
         # Behavior:
-        #   - Ensures required cfg files exist for the domain.
-        #   - Loads system cfg first when applicable.
-        #   - Loads user cfg after system cfg so user values override system values.
-        #   - Creates missing cfg files from defaults when possible.
-        #
-        # Arguments:
-        #   $1  DOMAIN
-        #       Logical config domain name.
-        #   $2  SYSCFG
-        #       System cfg file path.
-        #   $3  USRCFG
-        #       User cfg file path.
-        #   $4  SPEC_ARRAY_NAME
-        #       Name of the cfg specs array.
-        #   $5  MODE
-        #       Optional mode: "framework" or "script".
-        #       Default: script
-        #
-        # Side effects:
-        #   - May create cfg files.
-        #   - Loads cfg values into shell variables.
-        #   - May create cfg templates from current defaults.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   1 on invalid arguments or setup failure.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_cfg_domain_apply DOMAIN SYSCFG USRCFG SPEC_ARRAY_NAME [MODE]
-        #
-        # Examples:
-        #   sgnd_cfg_domain_apply "framework" "$SGND_FRAMEWORK_SYSCFG" "$SGND_FRAMEWORK_USRCFG" SGND_FRAMEWORK_CFG_SPECS "framework"
-        #
-        #   sgnd_cfg_domain_apply "script" "$SGND_SYSCFG_FILE" "$SGND_USRCFG_FILE" SGND_SCRIPT_CFG_SPECS
+        #   sgnd_cfg_domain_apply ...
     sgnd_cfg_domain_apply() {
         local domain="${1:-}"
         local syscfg="${2:-}"
@@ -1093,74 +773,37 @@ set -uo pipefail
     }
 
 # --- Bootstrap/advanced: State loading -----------------------------------------------
-    # fn: sgnd_state_load
+    # fn: sgnd_state_load - State load
         # Purpose:
-        #   Load the state file into shell variables.
+        #   Load the current script state file into the active shell environment.
         #
         # Behavior:
-        #   - Reads KEY=VALUE pairs from SGND_STATE_FILE.
-        #   - Ignores missing files.
-        #   - Emits a debug message before loading.
-        #
-        # Inputs (globals):
-        #   SGND_STATE_FILE
-        #
-        # Outputs (globals):
-        #   Sets variables found in the file.
-        #
-        # Side effects:
-        #   - May write a debug message.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_state_load
-        #
-        # Examples:
-        #   sgnd_state_load
+        #   sgnd_state_load ...
     sgnd_state_load() {
         saydebug "Loading state from file ${SGND_STATE_FILE}"
         _sgnd_kv_load_file "$SGND_STATE_FILE"
     }
 
-    # fn: sgnd_state_set
+    # fn: sgnd_state_set - State set
         # Purpose:
-        #   Persist a state KEY=VALUE pair and update the current shell variable.
+        #   Persist a state variable in the script state file.
         #
         # Behavior:
-        #   - Validates the key as a shell identifier.
-        #   - Writes or replaces the KEY=VALUE entry in SGND_STATE_FILE.
-        #   - Updates the in-memory shell variable to the same value.
-        #   - Emits a debug message describing the change.
-        #
-        # Arguments:
-        #   $1  KEY
-        #       State variable name.
-        #   $2  VALUE
-        #       Value to persist.
-        #
-        # Inputs (globals):
-        #   SGND_STATE_FILE
-        #
-        # Outputs (globals):
-        #   Sets $KEY in the current shell.
-        #
-        # Side effects:
-        #   - Updates SGND_STATE_FILE on disk.
-        #   - May emit debug or warning output.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   1 on invalid key or write failure.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_state_set KEY VALUE
-        #
-        # Examples:
-        #   sgnd_state_set "CURRENT_PAGE" "2"
-        #
-        #   sgnd_state_set "LAST_MODULE" "devtools"
+        #   sgnd_state_set ...
     sgnd_state_set() {
         local key="$1" val="$2"
         _sgnd_is_ident "$key" || {
@@ -1174,41 +817,19 @@ set -uo pipefail
         printf -v "$key" '%s' "$val"
     }
 
-    # fn: sgnd_state_unset
+    # fn: sgnd_state_unset - State unset
         # Purpose:
-        #   Remove a state key from the file and unset it in the current shell.
+        #   Remove a state variable from the script state file.
         #
         # Behavior:
-        #   - Validates the key as a shell identifier.
-        #   - Removes the KEY=VALUE entry from SGND_STATE_FILE.
-        #   - Unsets the variable in the current shell.
-        #   - Emits a debug message describing the change.
-        #
-        # Arguments:
-        #   $1  KEY
-        #       State variable name.
-        #
-        # Inputs (globals):
-        #   SGND_STATE_FILE
-        #
-        # Outputs (globals):
-        #   Unsets $KEY in the current shell.
-        #
-        # Side effects:
-        #   - Updates SGND_STATE_FILE on disk.
-        #   - May emit debug or warning output.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 on success.
-        #   1 on invalid key or write failure.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_state_unset KEY
-        #
-        # Examples:
-        #   sgnd_state_unset "CURRENT_PAGE"
-        #
-        #   sgnd_state_unset "LAST_MODULE"
+        #   sgnd_state_unset ...
     sgnd_state_unset() {
         local key="$1"
         _sgnd_is_ident "$key" || {
@@ -1222,69 +843,38 @@ set -uo pipefail
         unset "$key" || true
     }
 
-    # fn: sgnd_state_reset
+    # fn: sgnd_state_reset - State reset
         # Purpose:
-        #   Hard-reset the state file by deleting it.
+        #   Reset the script state file.
         #
         # Behavior:
-        #   - Returns quietly when SGND_STATE_FILE is empty.
-        #   - Emits a debug message before deletion.
-        #   - Removes the state file if present.
-        #
-        # Inputs (globals):
-        #   SGND_STATE_FILE
-        #
-        # Side effects:
-        #   - Deletes SGND_STATE_FILE.
-        #   - May emit a debug message.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_state_reset
-        #
-        # Examples:
-        #   sgnd_state_reset
+        #   sgnd_state_reset ...
     sgnd_state_reset() {
         [[ -n "$SGND_STATE_FILE" ]] || return 0
         saydebug "Deleting statefile $SGND_STATE_FILE"
         _sgnd_kv_reset_file "$SGND_STATE_FILE"
     }
 
-    # fn: sgnd_state_get
+    # fn: sgnd_state_get - State get
         # Purpose:
-        #   Read a state value from the state file.
+        #   Read a persisted state value.
         #
         # Behavior:
-        #   - Validates the requested key.
-        #   - Reads the value directly from SGND_STATE_FILE.
-        #   - Does not read from the current shell variable.
-        #
-        # Arguments:
-        #   $1  KEY
-        #       State variable name.
-        #
-        # Inputs (globals):
-        #   SGND_STATE_FILE
-        #
-        # Output:
-        #   Prints the value to stdout without a trailing newline.
-        #
-        # Side effects:
-        #   - May emit a warning for invalid keys.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if found.
-        #   1 if missing or invalid.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_state_get KEY
-        #
-        # Examples:
-        #   page="$(sgnd_state_get "CURRENT_PAGE")" || page="1"
-        #
-        #   sgnd_state_get "LAST_MODULE"
+        #   sgnd_state_get ...
     sgnd_state_get() {
         local key="$1"
         _sgnd_is_ident "$key" || {
@@ -1294,38 +884,19 @@ set -uo pipefail
         _sgnd_kv_get "$SGND_STATE_FILE" "$key"
     }
 
-    # fn: sgnd_state_has
+    # fn: sgnd_state_has - State has
         # Purpose:
-        #   Test whether a state key exists in the state file.
+        #   Test whether a persisted state value exists.
         #
         # Behavior:
-        #   - Validates the requested key.
-        #   - Checks SGND_STATE_FILE for a matching KEY=VALUE entry.
-        #   - Treats empty values as present when the key exists.
-        #
-        # Arguments:
-        #   $1  KEY
-        #       State variable name.
-        #
-        # Inputs (globals):
-        #   SGND_STATE_FILE
-        #
-        # Side effects:
-        #   - May emit a warning for invalid keys.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 if present.
-        #   1 if missing or invalid.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_state_has KEY
-        #
-        # Examples:
-        #   if sgnd_state_has "CURRENT_PAGE"; then
-        #       printf 'page stored\n'
-        #   fi
-        #
-        #   sgnd_state_has "LAST_MODULE"
+        #   sgnd_state_has ...
     sgnd_state_has() {
         local key="$1"
         _sgnd_is_ident "$key" || {
@@ -1336,37 +907,19 @@ set -uo pipefail
         _sgnd_kv_has "$SGND_STATE_FILE" "$key"
     }
 
-    # fn: sgnd_state_save_keys
+    # fn: sgnd_state_save_keys - State save keys
         # Purpose:
-        #   Persist a list of shell variables to the state store.
+        #   Persist a selected set of shell variables to the script state file.
         #
         # Behavior:
-        #   - Iterates over the supplied variable names.
-        #   - Reads each current value using safe indirect expansion.
-        #   - Persists each value via sgnd_state_set.
-        #   - Skips invalid identifiers with a warning.
-        #
-        # Arguments:
-        #   $@  KEYS
-        #       Variable names to save.
-        #
-        # Inputs (globals):
-        #   SGND_STATE_FILE
-        #
-        # Side effects:
-        #   - Updates SGND_STATE_FILE on disk.
-        #   - May emit debug or warning output through sgnd_state_set.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_state_save_keys KEY [KEY ...]
-        #
-        # Examples:
-        #   sgnd_state_save_keys CURRENT_PAGE LAST_MODULE
-        #
-        #   sgnd_state_save_keys FLAG_DEBUG FLAG_VERBOSE FLAG_DRYRUN
+        #   sgnd_state_save_keys ...
     sgnd_state_save_keys() {
         local key val
         for key in "$@"; do
@@ -1382,39 +935,19 @@ set -uo pipefail
         done
     }
 
-    # fn: sgnd_state_load_keys
+    # fn: sgnd_state_load_keys - State load keys
         # Purpose:
-        #   Load selected state keys from the state store into shell variables.
+        #   Load a selected set of state values into shell variables.
         #
         # Behavior:
-        #   - Iterates over the supplied variable names.
-        #   - Reads each value from SGND_STATE_FILE.
-        #   - Assigns only keys that exist in the state store.
-        #   - Skips invalid identifiers with a warning.
-        #
-        # Arguments:
-        #   $@  KEYS
-        #       Variable names to load.
-        #
-        # Inputs (globals):
-        #   SGND_STATE_FILE
-        #
-        # Outputs (globals):
-        #   Sets variables for keys found in the state store.
-        #
-        # Side effects:
-        #   - May emit warnings for invalid keys.
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_state_load_keys KEY [KEY ...]
-        #
-        # Examples:
-        #   sgnd_state_load_keys CURRENT_PAGE LAST_MODULE
-        #
-        #   sgnd_state_load_keys FLAG_DEBUG FLAG_VERBOSE FLAG_DRYRUN
+        #   sgnd_state_load_keys ...
     sgnd_state_load_keys() {
         local key val
         for key in "$@"; do
@@ -1429,29 +962,19 @@ set -uo pipefail
         done
     }
 
-    # fn: sgnd_state_list_keys
+    # fn: sgnd_state_list_keys - State list keys
         # Purpose:
-        #   List keys currently present in the state file.
+        #   List all keys stored in the script state file.
         #
         # Behavior:
-        #   - Reads SGND_STATE_FILE when it is readable.
-        #   - Emits one key/value pair per line in preserved file order.
-        #   - Treats a missing or unreadable state file as non-fatal.
-        #
-        # Inputs (globals):
-        #   SGND_STATE_FILE
-        #
-        # Output:
-        #   Prints lines in the format: key|value
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_state_list_keys
-        #
-        # Examples:
-        #   sgnd_state_list_keys
+        #   sgnd_state_list_keys ...
     sgnd_state_list_keys() {
         [[ -r "${SGND_STATE_FILE:-}" ]] || return 0
         _sgnd_kv_list_keys "$SGND_STATE_FILE"

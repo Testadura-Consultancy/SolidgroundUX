@@ -2,9 +2,9 @@
 # SolidgroundUX - Default UI Style
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.1
-#   Build       : 2615311
-#   Checksum    : 1b9be554b0f1a8033b6f85f98b573e98dd6be20bc2e3a1eb1fe04249f31ec62a
+#   Version     : 1.5
+#   Build       : 2615600
+#   Checksum    : -
 #   Source      : default-ui-style.sh
 #   Type        : library
 #   Group       : Styles
@@ -39,7 +39,7 @@
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
-#   Client      : 
+#   Client      : -
 #   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
@@ -52,6 +52,19 @@
     SAY_COLORIZE_DEFAULT="label"  # none|label|msg|both|all
     SAY_DATE_FORMAT="%Y-%m-%d %H:%M:%S" 
   
+    # var: style_say_global_defaults - say() global defaults
+        # Purpose:
+        #   Document the variables assigned in this style section.
+        #
+        # Variables:
+        #   SAY_DATE_DEFAULT = 0
+        #   SAY_SHOW_DEFAULT = "label"   # label|icon|symbol|all|label,icon|...
+        #   SAY_COLORIZE_DEFAULT = "label"  # none|label|msg|both|all
+        #   SAY_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+        #
+        # Notes:
+        #   Values are shown as assigned by this file. Referenced palette variables
+        #   are resolved by the active palette when the style is sourced.
   # -- Say prefixes -------------------------------------------------------------
     # Labels
       LBL_CNCL="CANCEL"
@@ -86,6 +99,42 @@
       SYM_WARN="(!)"
       SYM_DEBUG="(~)"
 
+      # var: style_say_prefixes - Say prefixes
+          # Purpose:
+          #   Document the variables assigned in this style section.
+          #
+          # Variables:
+          #   LBL_CNCL = "CANCEL"
+          #   LBL_EMPTY = "     "
+          #   LBL_END = "END"
+          #   LBL_FAIL = "ERROR"
+          #   LBL_INFO = "INFO"
+          #   LBL_OK = "SUCCESS"
+          #   LBL_STRT = "START"
+          #   LBL_WARN = "WARNING"
+          #   LBL_DEBUG = "DEBUG"
+          #   ICO_CNCL = $'⏹️'
+          #   ICO_EMPTY = $''
+          #   ICO_END = $'🏁'
+          #   ICO_FAIL = $'❌'
+          #   ICO_INFO = $'ℹ️'
+          #   ICO_OK = $'✅'
+          #   ICO_STRT = $'▶️'
+          #   ICO_WARN = $'⚠️'
+          #   ICO_DEBUG = $'🐞'
+          #   SYM_CNCL = "(-)"
+          #   SYM_EMPTY = ""
+          #   SYM_END = "<<<"
+          #   SYM_FAIL = "(X)"
+          #   SYM_INFO = "(+)"
+          #   SYM_OK = "(✓)"
+          #   SYM_STRT = ">>>"
+          #   SYM_WARN = "(!)"
+          #   SYM_DEBUG = "(~)"
+          #
+          # Notes:
+          #   Values are shown as assigned by this file. Referenced palette variables
+          #   are resolved by the active palette when the style is sourced.
   # -- Colors -------------------------------------------------------------------
   # By message type
     MSG_CLR_INFO=$SILVER
@@ -127,3 +176,39 @@
 
     TUI_DEFAULT=$DARK_SILVER
 
+    # var: style_colors - Colors
+        # Purpose:
+        #   Document the variables assigned in this style section.
+        #
+        # Variables:
+        #   MSG_CLR_INFO = $SILVER
+        #   MSG_CLR_STRT = $BRIGHT_GREEN
+        #   MSG_CLR_OK = $BRIGHT_GREEN
+        #   MSG_CLR_WARN = $BRIGHT_ORANGE
+        #   MSG_CLR_FAIL = $BRIGHT_RED
+        #   MSG_CLR_CNCL = $YELLOW
+        #   MSG_CLR_END = $BRIGHT_GREEN
+        #   MSG_CLR_EMPTY = $DARK_SILVER
+        #   MSG_CLR_DEBUG = $BRIGHT_MAGENTA
+        #   PROG_BAR_CLR = $BRIGHT_CYAN
+        #   PROG_IND_CLR = $BRIGHT_CYAN
+        #   PROG_TEXT_CLR = $SILVER
+        #   TUI_BORDER = $BRIGHT_CYAN
+        #   TUI_LABEL = $SILVER
+        #   TUI_VALUE = $YELLOW
+        #   TUI_COMMIT = $ORANGE
+        #   TUI_DRYRUN = $GREEN
+        #   TUI_ENABLED = $BRIGHT_WHITE
+        #   TUI_DISABLED = $DARK_WHITE
+        #   TUI_INPUT = $YELLOW
+        #   TUI_PROMPT = $BRIGHT_CYAN
+        #   TUI_INVALID = $ORANGE
+        #   TUI_VALID = $GREEN
+        #   TUI_SUCCESS = $BRIGHT_GREEN
+        #   TUI_ERROR = $BRIGHT_RED
+        #   TUI_TEXT = $SILVER
+        #   TUI_DEFAULT = $DARK_SILVER
+        #
+        # Notes:
+        #   Values are shown as assigned by this file. Referenced palette variables
+        #   are resolved by the active palette when the style is sourced.

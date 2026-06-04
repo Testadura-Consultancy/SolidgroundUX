@@ -2,24 +2,24 @@
 # SolidgroundUX - Monochrome Black Style
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.1
-#   Build       : 2615311
-#   Checksum    : 5a24fece9239c8b4c5b41d35eaf3fc2cd4b8f1058727dc9b373dfa858ee473dc
+#   Version     : 1.5
+#   Build       : 2615600
+#   Checksum    : -
 #   Source      : style-monoblack.sh
 #   Type        : library
 #   Group       : Styles
-#   Purpose     : Alternative style for testing pruposes
+#   Purpose     : Alternative style for testing purposes
 #
 # Description:
 #   Provides the default layout and styling rules used by the SolidgroundUX UI layer.
 #
 # Non-goals:
-#   A pretty or ensible style
+#   A pretty or sensible style
 #
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
-#   Client      : 
+#   Client      : -
 #   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
 # =====================================================================================
@@ -29,6 +29,19 @@
     SAY_COLORIZE_DEFAULT="both"  # none|label|msg|both|all
     SAY_DATE_FORMAT="%Y-%m-%d %H:%M:%S" 
 
+    # var: style_say_global_defaults - say() global defaults
+        # Purpose:
+        #   Document the variables assigned in this style section.
+        #
+        # Variables:
+        #   SAY_DATE_DEFAULT = 0
+        #   SAY_SHOW_DEFAULT = "symbol"   # label|icon|symbol|all|label,icon|...
+        #   SAY_COLORIZE_DEFAULT = "both"  # none|label|msg|both|all
+        #   SAY_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+        #
+        # Notes:
+        #   Values are shown as assigned by this file. Referenced palette variables
+        #   are resolved by the active palette when the style is sourced.
 # -- Say prefixes --------------------------------------------------------------
     # Labels
       #LBL_CNCL="[CNCL]"
@@ -60,6 +73,23 @@
       SYM_STRT=">>>"
       SYM_WARN="(!)"
 
+      # var: style_say_prefixes - Say prefixes
+          # Purpose:
+          #   Document the variables assigned in this style section.
+          #
+          # Variables:
+          #   SYM_CNCL = "(-)"
+          #   SYM_EMPTY = ""
+          #   SYM_END = "<<<"
+          #   SYM_FAIL = "(X)"
+          #   SYM_INFO = "(+)"
+          #   SYM_OK = "(✓)"
+          #   SYM_STRT = ">>>"
+          #   SYM_WARN = "(!)"
+          #
+          # Notes:
+          #   Values are shown as assigned by this file. Referenced palette variables
+          #   are resolved by the active palette when the style is sourced.
 # -- Colors --------------------------------------------------------------------
   # By message type
     MSG_CLR_INFO=$SILVER
@@ -78,3 +108,27 @@
     TUI_INVALID=$BOLD_BLACK
     TUI_VALID=$SILVER
     TUI_DEFAULT=$FAINT_SILVER
+    # var: style_colors - Colors
+        # Purpose:
+        #   Document the variables assigned in this style section.
+        #
+        # Variables:
+        #   MSG_CLR_INFO = $SILVER
+        #   MSG_CLR_STRT = $BOLD_SILVER
+        #   MSG_CLR_OK = $BOLD_SILVER
+        #   MSG_CLR_WARN = $SILVER
+        #   MSG_CLR_FAIL = $BOLD_BLACK
+        #   MSG_CLR_CNCL = $FAINT_BLACK
+        #   MSG_CLR_END = $FAINT_SILVER
+        #   MSG_CLR_EMPTY = $FAINT_SILVER
+        #   TUI_LABEL = $BOLD_SILVER
+        #   TUI_MSG = $SILVER
+        #   TUI_INPUT = $SILVER
+        #   TUI_TEXT = $FAINT_SILVER
+        #   TUI_INVALID = $BOLD_BLACK
+        #   TUI_VALID = $SILVER
+        #   TUI_DEFAULT = $FAINT_SILVER
+        #
+        # Notes:
+        #   Values are shown as assigned by this file. Referenced palette variables
+        #   are resolved by the active palette when the style is sourced.

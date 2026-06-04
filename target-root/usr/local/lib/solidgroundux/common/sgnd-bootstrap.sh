@@ -2,9 +2,9 @@
 # SolidgroundUX - Bootstrap Core
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.1
-#   Build       : 2615311
-#   Checksum    : f164e85c3daa033731a4fa99ee4ae8a65171dbcd2ef3fefc871ef78f4a34a67b
+#   Version     : 1.5
+#   Build       : 2615600
+#   Checksum    : -
 #   Source      : sgnd-bootstrap.sh
 #   Type        : library
 #   Group       : Bootstrap
@@ -46,26 +46,25 @@
 # =====================================================================================
 set -uo pipefail
 # --- Library guard -------------------------------------------------------------------
-    # tmp: _sgnd_lib_guard
+    # fn$: _sgnd_lib_guard - Guard source-only library loading
         # Purpose:
-        #   Ensure the file is sourced as a library and only initialized once.
+        #   Prevent direct execution and repeated initialization of this library.
         #
         # Behavior:
-        #   - Derives a unique guard variable name from the current filename.
-        #   - Aborts execution if the file is executed instead of sourced.
-        #   - Sets the guard variable on first load.
-        #   - Skips initialization if the library was already loaded.
-        #
-        # Inputs:
-        #   BASH_SOURCE[0]
-        #   $0
+        #   - Derives a guard variable name from the current library filename.
+        #   - Exits with status 2 when the file is executed instead of sourced.
+        #   - Returns without action when the guard variable is already set.
+        #   - Sets the guard variable on first successful source.
         #
         # Outputs (globals):
-        #   SGND_<MODULE>_LOADED
+        #   SGND_<LIBRARY_NAME>_LOADED
         #
         # Returns:
-        #   0 if already loaded or successfully initialized.
-        #   Exits with code 2 if executed instead of sourced.
+        #   0 when the library may continue loading or was already loaded.
+        #   Exits with 2 when the file is executed directly.
+        #
+        # Usage:
+        #   _sgnd_lib_guard
     _sgnd_lib_guard() {
         local lib_base
         local guard
@@ -86,7 +85,7 @@ set -uo pipefail
     _sgnd_lib_guard
     unset -f _sgnd_lib_guard
 
-    # _boot_fail
+    # fn: _boot_fail - Report a bootstrap failure
         # Purpose:
         #   Emit a bootstrap failure message with caller context and return a code.
         #
@@ -97,23 +96,18 @@ set -uo pipefail
         #   - Returns the supplied status code unchanged.
         #
         # Arguments:
-        #   $1  MESSAGE
-        #       Failure text to report.
-        #   $2  RETURN_CODE
-        #       Code to return to the caller.
+        #   $1  Failure text to report.
+        #   $2  Return code to return to the caller.
         #       Default: 1
         #
         # Output:
-        #   Writes one formatted FAIL message to stderr.
+        #   Writes one formatted failure message through sayfail.
         #
         # Returns:
         #   The supplied return code.
         #
         # Usage:
         #   cmd || { local rc=$?; _boot_fail "Step failed" "$rc"; return "$rc"; }
-        #
-        # Examples:
-        #   _boot_fail "Framework cfg load failed" 1
     _boot_fail() {
         local msg="${1:-Bootstrap step failed}"
         local rc="${2:-1}"
@@ -130,40 +124,26 @@ set -uo pipefail
     }
 
 # --- Main sequence helpers + EXIT dispatch -------------------------------------------
-    # fn: _parse_bootstrap_args
+    # fn: _parse_bootstrap_args - Parse early bootstrap options
         # Purpose:
-        #   Parse framework-level bootstrap switches before script/builtin parsing.
-        #
-        # Arguments:
-        #   $@  Full command line as received by sgnd_bootstrap().
-        #
-        # Outputs (globals):
-        #   exe_state
-        #     0 = no state, 1 = load state, 2 = load + autosave state on EXIT.
-        #   exe_root
-        #     0 = no constraint, 1 = must be root, 2 = must be non-root.
-        #   SGND_BOOTSTRAP_REST
-        #     Array of remaining arguments after bootstrap parsing (preserved verbatim).
+        #   Extract bootstrap-only options before the full argument parser is available.
         #
         # Behavior:
-        #   - Consumes recognized bootstrap switches from the start of the argument list.
-        #   - Stops parsing at "--" or at the first unknown option.
-        #   - Copies the remaining arguments into SGND_BOOTSTRAP_REST unchanged.
+        #   - Detects state mode, root policy, logfile, and quiet-mode bootstrap options.
+        #   - Stores all remaining arguments in SGND_BOOTSTRAP_REST.
+        #   - Stops parsing at '--' or the first non-bootstrap argument.
+        #
+        # Arguments:
+        #   $@  Raw script arguments passed to sgnd_bootstrap.
+        #
+        # Outputs (globals):
+        #   exe_state, exe_root, SGND_LOGFILE_ENABLED, SGND_LOG_LEVEL, SGND_BOOTSTRAP_REST
         #
         # Returns:
-        #   0 always (validation is deferred to later stages).
+        #   0 always.
         #
-        # Notes:
-        #   Recognized switches:
-        #     --state      -> exe_state=1
-        #     --autostate  -> exe_state=2
-        #     --needroot   -> exe_root=1
-        #     --cannotroot -> exe_root=2
-        #     --log        -> SGND_LOGFILE_ENABLED=1
-        #     --quiet      -> SGND_LOG_LEVEL=quiet (legacy early bootstrap alias)
-        #     --           -> explicit end of bootstrap switches
-        #     <unknown>    -> implicit end of bootstrap switches
-
+        # Usage:
+        #   _parse_bootstrap_args "$@"
     _parse_bootstrap_args() {
         exe_state=0
         exe_root=0
@@ -193,35 +173,25 @@ set -uo pipefail
         done
     }
 
-    # fn: _init_bootstrap
+    # fn: _init_bootstrap - Initialize bootstrap environment
         # Purpose:
-        #   Initialize the early bootstrap environment before core library loading.
+        #   Prepare the minimum framework environment required before core libraries load.
         #
         # Behavior:
-        #   - Resolves SGND_BOOTSTRAP_DIR from the current file location.
-        #   - Sources sgnd-comment-header-parser.sh and sgnd-bootstrap-env.sh.
-        #   - Initializes bootstrap-related module metadata once header parsing is available.
-        #   - Initializes executable metadata for the calling script.
-        #   - Applies default framework values.
-        #   - Rebuilds derived directories and framework cfg paths.
-        #   - Ensures required framework directories exist.
+        #   - Resolves the bootstrap directory.
+        #   - Sources the comment-header parser and bootstrap environment library.
+        #   - Initializes metadata for early-loaded core modules and the active script.
+        #   - Applies defaults, rebases paths, and ensures required directories exist.
         #
         # Outputs (globals):
-        #   SGND_BOOTSTRAP_DIR
-        #
-        # Side effects:
-        #   - Sources bootstrap support libraries.
-        #   - Populates bootstrap and script metadata variables.
-        #   - Recomputes framework path globals.
-        #   - Creates required directories when missing.
+        #   SGND_BOOTSTRAP_DIR and environment/path globals initialized by bootstrap-env.
         #
         # Returns:
-        #   0 on success.
-        #   Non-zero if a sourced dependency or bootstrap step fails.
+        #   0 when initialization succeeds.
+        #   Non-zero when sourcing, metadata initialization, path setup, or directory creation fails.
         #
-        # Notes:
-        #   - Runs before core libraries are sourced.
-        #   - May execute more than once across process boundaries when root re-exec occurs.
+        # Usage:
+        #   _init_bootstrap
     _init_bootstrap() {
         sayinfo "Sourcing bootstrap environment"
         SGND_BOOTSTRAP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -249,23 +219,24 @@ set -uo pipefail
 
     }
 
-    # fn: _source_corelibs
+    # fn: _source_corelibs - Source required core libraries
         # Purpose:
-        #   Source core framework libraries in the defined order (SGND_CORE_LIBS).
-        #
-        # Inputs (globals):
-        #   SGND_COMMON_LIB
-        #   SGND_CORE_LIBS
+        #   Load the fixed set of framework core libraries in bootstrap order.
         #
         # Behavior:
-        #   - Rebase directories.
-        #   - Sources each library from: $SGND_COMMON_LIB/<lib>.
+        #   - Rebases directories before resolving library paths.
+        #   - Iterates SGND_CORE_LIBS in order.
+        #   - Sources each core library from SGND_COMMON_LIB.
         #
-        # Side effects:
-        #   - Defines functions/variables provided by core libraries.
+        # Inputs (globals):
+        #   SGND_CORE_LIBS, SGND_COMMON_LIB
         #
         # Returns:
-        #   Propagates any sourcing failures to the caller.
+        #   0 when all core libraries are sourced.
+        #   Non-zero when a sourced library fails.
+        #
+        # Usage:
+        #   _source_corelibs
     _source_corelibs(){
         sayinfo "Loading core libraries..."  
         sgnd_rebase_directories
@@ -278,22 +249,26 @@ set -uo pipefail
         done
     }
 
-    # fn: _source_usinglibs
+    # fn: _source_usinglibs - Source declared optional libraries
         # Purpose:
-        #   Source optional script-requested libraries from SGND_COMMON_LIB.
-        #
-        # Inputs (globals):
-        #   SGND_COMMON_LIB
-        #   SGND_USING
+        #   Load script-declared framework libraries listed in SGND_USING.
         #
         # Behavior:
-        #   - If SGND_USING is defined and non-empty, sources each library from:
-        #       $SGND_COMMON_LIB/<lib>
-        #   - Libraries are loaded after core libraries, so they may depend on them.
+        #   - Returns without action when SGND_USING is not declared or empty.
+        #   - Resolves each declared library relative to SGND_COMMON_LIB.
+        #   - Validates readability before sourcing.
+        #   - Relies on each library guard to prevent duplicate initialization.
+        #
+        # Inputs (globals):
+        #   SGND_USING, SGND_COMMON_LIB
         #
         # Returns:
-        #   0  success
-        #   Non-zero if any requested library cannot be sourced
+        #   0 when no libraries are declared or all declared libraries load successfully.
+        #   126 when a declared library is missing or unreadable.
+        #   Non-zero when a sourced library fails.
+        #
+        # Usage:
+        #   _source_usinglibs
     _source_usinglibs() {
         local lib path
 
@@ -315,24 +290,24 @@ set -uo pipefail
         done
     }
 
-    # fn: _sgnd_on_exit_run
+    # fn: _sgnd_on_exit_run - Run registered exit handlers
         # Purpose:
-        #   Execute registered EXIT handlers (LIFO) while preserving the original exit code.
+        #   Dispatch registered framework cleanup handlers when the shell exits.
+        #
+        # Behavior:
+        #   - Captures the current exit status immediately.
+        #   - Runs SGND_ON_EXIT_HANDLERS in reverse registration order.
+        #   - Ignores individual handler failures to preserve exit dispatch.
+        #   - Returns the original exit status.
         #
         # Inputs (globals):
         #   SGND_ON_EXIT_HANDLERS
         #
-        # Behavior:
-        #   - Captures the current exit code ($?) immediately.
-        #   - Executes handlers in reverse registration order.
-        #   - Evaluates each handler via eval.
-        #   - Ignores handler failures to ensure all handlers run.
-        #
         # Returns:
-        #   The original exit code.
+        #   The original shell exit status captured on entry.
         #
-        # Notes:
-        #   Installed once via sgnd_on_exit_install().
+        # Usage:
+        #   trap '_sgnd_on_exit_run' EXIT
     _sgnd_on_exit_run() {
         local rc=$?
         local i cmd
@@ -349,20 +324,24 @@ set -uo pipefail
         return "$rc"
     }
 
-    # fn: _sgnd_save_state_dispatch
+    # fn: _sgnd_save_state_dispatch - Save state on clean exit
         # Purpose:
-        #   Save state on EXIT only for clean exits.
+        #   Conditionally persist framework state from the exit-handler stack.
         #
         # Behavior:
-        #   - Captures the current exit code ($?).
-        #   - Calls sgnd_save_state only when rc == 0.
-        #   - Skips save on rc == 130 (Ctrl+C) and other non-zero exits.
+        #   - Captures the current exit status immediately.
+        #   - Saves state only on clean exit when SGND_STATE_SAVE is enabled.
+        #   - Skips state save for Ctrl+C and failing exits.
+        #   - Returns the original exit status.
+        #
+        # Inputs (globals):
+        #   SGND_STATE_SAVE
         #
         # Returns:
-        #   The original exit code.
+        #   The original shell exit status captured on entry.
         #
-        # Notes:
-        #   Registered only when --autostate is active.
+        # Usage:
+        #   sgnd_on_exit_add "_sgnd_save_state_dispatch"
     _sgnd_save_state_dispatch() {
         local rc=$?   # capture immediately!
 
@@ -379,56 +358,31 @@ set -uo pipefail
     }
 
 # --- Public API ----------------------------------------------------------------------
-    # fn: sgnd_script_init_metadata
+    # fn: sgnd_script_init_metadata - Initialize active script metadata
         # Purpose:
-        #   Initialize executable metadata from structured header comments.
+        #   Read structured header metadata from the active script into SGND_SCRIPT_* variables.
         #
         # Behavior:
-        #   - Reads structured header sections once:
-        #       • Banner line  (Product / Title)
-        #       • Description  (multiline)
-        #       • Metadata     (key/value pairs)
-        #       • Attribution  (key/value pairs)
-        #   - Extracts values from these sections and assigns them to
-        #     SGND_SCRIPT_* variables.
-        #   - Preserves existing values, allowing developer overrides.
-        #   - Avoids repeated file scans by working on in-memory section content.
-        #
-        # Arguments:
-        #   None (uses SGND_SCRIPT_FILE)
+        #   - Requires SGND_SCRIPT_FILE to point to a readable script file.
+        #   - Reads banner, description, metadata, and attribution sections.
+        #   - Populates only unset SGND_SCRIPT_* variables.
+        #   - Derives SGND_SCRIPT_DESC from the first description line when needed.
         #
         # Inputs (globals):
-        #   SGND_SCRIPT_FILE  (must be set before calling)
+        #   SGND_SCRIPT_FILE and optional pre-populated SGND_SCRIPT_* variables.
         #
         # Outputs (globals):
-        #   SGND_SCRIPT_PRODUCT
-        #   SGND_SCRIPT_TITLE
-        #   SGND_SCRIPT_DESC
-        #   SGND_SCRIPT_VERSION
-        #   SGND_SCRIPT_BUILD
-        #   SGND_SCRIPT_CHECKSUM
-        #   SGND_SCRIPT_SOURCE
-        #   SGND_SCRIPT_TYPE
-        #   SGND_SCRIPT_PURPOSE
-        #   SGND_SCRIPT_DEVELOPERS
-        #   SGND_SCRIPT_COMPANY
-        #   SGND_SCRIPT_CLIENT
-        #   SGND_SCRIPT_COPYRIGHT
-        #   SGND_SCRIPT_LICENSE
+        #   SGND_SCRIPT_PRODUCT, SGND_SCRIPT_TITLE, SGND_SCRIPT_DESCRIPTION, SGND_SCRIPT_DESC
+        #   SGND_SCRIPT_VERSION, SGND_SCRIPT_BUILD, SGND_SCRIPT_CHECKSUM, SGND_SCRIPT_SOURCE
+        #   SGND_SCRIPT_TYPE, SGND_SCRIPT_PURPOSE, SGND_SCRIPT_DEVELOPERS, SGND_SCRIPT_COMPANY
+        #   SGND_SCRIPT_CLIENT, SGND_SCRIPT_COPYRIGHT, SGND_SCRIPT_LICENSE
         #
         # Returns:
-        #   0  success
-        #   1  missing or unreadable SGND_SCRIPT_FILE
+        #   0 when metadata initialization succeeds.
+        #   1 when SGND_SCRIPT_FILE is missing or unreadable.
         #
         # Usage:
-        #   SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
         #   sgnd_script_init_metadata
-        #
-        # Notes:
-        #   - Must be called after bootstrap initialization, as it depends on
-        #     header parsing helpers (sgnd_header_get_*).
-        #   - Intended for executables (not libraries).
-        #   - Uses sgnd_section_get_field_value for in-memory parsing.
     sgnd_script_init_metadata() {
         local metadata=""
         local attribution=""
@@ -474,47 +428,32 @@ set -uo pipefail
         return 0
     }
 
-    # fn: sgnd_module_init_metadata
+    # fn: sgnd_module_init_metadata - Initialize module metadata
         # Purpose:
-        #   Define module-scoped metadata variables for a sourced library and
-        #   populate them from the library header comment.
+        #   Read structured header metadata from a framework module into module-scoped globals.
         #
         # Behavior:
-        #   - Derives a canonical module prefix from the library filename.
-        #       e.g. sgnd-comment-parser.sh → SGND_COMMENT_PARSER
-        #   - Defines structural variables:
-        #       SGND_<MODULE>_FILE
-        #       SGND_<MODULE>_DIR
-        #       SGND_<MODULE>_BASE
-        #       SGND_<MODULE>_NAME
-        #       SGND_<MODULE>_KEY
-        #   - Loads the script header into the shared header buffer once.
-        #   - Extracts banner metadata:
-        #       SGND_<MODULE>_PRODUCT
-        #       SGND_<MODULE>_TITLE
-        #   - Extracts Description section:
-        #       SGND_<MODULE>_DESC
-        #   - Extracts common metadata and attribution fields from buffered section text:
-        #       Version, Build, Checksum, Source, Type, Purpose
-        #       Developers, Company, Client, Copyright, License
-        #   - Preserves existing values (allows developer override).
+        #   - Resolves the module file to an absolute path.
+        #   - Derives the SGND_<MODULE>_* variable prefix from the filename.
+        #   - Stores structural file, directory, basename, name, and key values.
+        #   - Reads banner, description, metadata, and attribution fields from the module header.
+        #   - Populates only unset module metadata variables.
         #
         # Arguments:
-        #   $1  FILE   (optional; defaults to BASH_SOURCE[1])
+        #   $1  Module file to inspect.
+        #       Default: caller source file.
         #
         # Outputs (globals):
-        #   SGND_<MODULE>_*
+        #   SGND_<MODULE>_FILE, DIR, BASE, NAME, KEY, PRODUCT, TITLE, DESC,
+        #   VERSION, BUILD, CHECKSUM, SOURCE, TYPE, PURPOSE, DEVELOPERS, COMPANY,
+        #   CLIENT, COPYRIGHT, LICENSE
         #
         # Returns:
-        #   0  success
-        #   1  file missing or unreadable
+        #   0 when metadata initialization succeeds.
+        #   1 when the module file cannot be read or resolved.
         #
         # Usage:
         #   sgnd_module_init_metadata "${BASH_SOURCE[0]}"
-        #
-        # Notes:
-        #   - Intended for libraries only.
-        #   - Uses buffered header parsing to reduce repeated file reads.
     sgnd_module_init_metadata() {
         local file="${1:-${BASH_SOURCE[1]}}"
         local abs_file=""
@@ -609,24 +548,23 @@ set -uo pipefail
         return 0
     }
 
-    # fn: sgnd_on_exit_install
+    # fn: sgnd_on_exit_install - Install the framework exit dispatcher
         # Purpose:
-        #   Install the framework EXIT dispatcher (trap) exactly once per process.
+        #   Register the SolidgroundUX exit handler dispatcher exactly once.
         #
         # Behavior:
-        #   - If not yet installed, registers _sgnd_on_exit_run as the EXIT trap.
-        #   - Subsequent calls are no-ops (idempotent).
+        #   - Returns without action when the dispatcher was already installed.
+        #   - Sets _SGND_ON_EXIT_INSTALLED to mark installation.
+        #   - Installs _sgnd_on_exit_run as the EXIT trap.
         #
-        # Side effects:
-        #   - Sets _SGND_ON_EXIT_INSTALLED=1 on first install.
-        #   - Installs an EXIT trap handler.
+        # Outputs (globals):
+        #   _SGND_ON_EXIT_INSTALLED
         #
         # Returns:
         #   0 always.
         #
-        # Notes:
-        #   - This does not register handlers; it only installs the dispatcher.
-        #   - Add handlers via sgnd_on_exit_add().
+        # Usage:
+        #   sgnd_on_exit_install
     sgnd_on_exit_install() {
         # Install once
         [[ "${_SGND_ON_EXIT_INSTALLED-0}" -eq 1 ]] && return 0
@@ -634,83 +572,88 @@ set -uo pipefail
         trap '_sgnd_on_exit_run' EXIT
     }
 
-    # fn: sgnd_parse_statespec
+    # fn: sgnd_parse_statespec - Split one state variable specification
         # Purpose:
-        #   Parse a pipe-delimited state specification into component fields.
-        #
-        # Arguments:
-        #   $1  State specification string in the format:
-        #       key|label|default|validator|colorize
-        #
-        # Outputs (globals):
-        #   _statekey       Variable name to persist (expected identifier).
-        #   _statelabel     Optional human-readable label (UI/prompt usage).
-        #   _statedefault   Optional default value when no persisted value exists.
-        #   _statevalidate  Optional validator function name.
-        #   _statecolorize  Optional UI color token.
+        #   Parse a pipe-separated state specification into state scratch fields.
         #
         # Behavior:
-        #   - Splits the spec on '|' using IFS.
-        #   - Assigns missing fields as empty strings.
+        #   - Clears the state scratch fields before parsing.
+        #   - Splits the specification into key, label, default, validator, and colorizer fields.
+        #
+        # Arguments:
+        #   $1  State specification in key|label|default|validator|colorize format.
+        #
+        # Outputs (globals):
+        #   _statekey, _statelabel, _statedefault, _statevalidate, _statecolorize
         #
         # Returns:
-        #   0 always (parsing only; no validation performed here).
+        #   0 always.
         #
-        # Notes:
-        #   - Callers must validate _statekey and interpret semantics of other fields.
-        #   - Scratch variables are intentionally global to avoid array/echo returns.
+        # Usage:
+        #   sgnd_parse_statespec "$line"
     sgnd_parse_statespec() {
         local spec="${1-}"
         _statekey="" _statelabel="" _statedefault="" _statevalidate="" _statecolorize=""
         IFS='|' read -r _statekey _statelabel _statedefault _statevalidate _statecolorize <<< "$spec"
     }
     
-    # fn: sgnd_enable_save_state
+    # fn: sgnd_enable_save_state - Enable automatic state persistence
         # Purpose:
-        #   Enable automatic state persistence.
+        #   Allow framework state to be persisted during the save-state dispatch path.
         #
         # Behavior:
-        #   - Sets SGND_STATE_SAVE=1.
-        #   - Allows sgnd_save_state to execute when invoked.
+        #   - Sets SGND_STATE_SAVE to 1.
+        #
+        # Outputs (globals):
+        #   SGND_STATE_SAVE
+        #
+        # Returns:
+        #   0 always.
+        #
+        # Usage:
+        #   sgnd_enable_save_state
     sgnd_enable_save_state(){
         SGND_STATE_SAVE=1
     }
 
-    # fn: sgnd_disable_save_state
+    # fn: sgnd_disable_save_state - Disable automatic state persistence
         # Purpose:
-        #   Disable automatic state persistence.
+        #   Prevent framework state from being persisted during the save-state dispatch path.
         #
         # Behavior:
-        #   - Sets SGND_STATE_SAVE=0.
-        #   - Causes sgnd_save_state to become a no-op.
+        #   - Sets SGND_STATE_SAVE to 0.
+        #
+        # Outputs (globals):
+        #   SGND_STATE_SAVE
+        #
+        # Returns:
+        #   0 always.
+        #
+        # Usage:
+        #   sgnd_disable_save_state
     sgnd_disable_save_state(){
         SGND_STATE_SAVE=0
     }
 
-    # fn: sgnd_save_state
+    # fn: sgnd_save_state - Persist configured state variables
         # Purpose:
-        #   Persist selected state variables to storage (as configured by SGND_STATE_VARIABLES).
-        #
-        # Inputs (globals):
-        #   SGND_STATE_SAVE       Gate flag (0 disables saving; non-zero enables saving).
-        #   SGND_STATE_VARIABLES  Array of state specs (pipe-delimited).
+        #   Save configured framework or script state variables to the active state file.
         #
         # Behavior:
-        #   - No-op if SGND_STATE_SAVE is disabled.
-        #   - Parses each SGND_STATE_VARIABLES entry via sgnd_parse_statespec().
-        #   - Collects valid state keys (identifiers) into a local list.
-        #   - Delegates persistence to sgnd_state_save_keys <keys...>.
+        #   - Returns without action when SGND_STATE_SAVE is disabled.
+        #   - In dry-run mode, reports the intended action without writing state.
+        #   - Parses SGND_STATE_VARIABLES and validates state keys as identifiers.
+        #   - Saves valid state keys through sgnd_state_save_keys.
         #
-        # Side effects:
-        #   - Writes state via sgnd_state_save_keys() (implementation-owned).
+        # Inputs (globals):
+        #   SGND_STATE_SAVE, FLAG_DRYRUN, SGND_STATE_VARIABLES
         #
         # Returns:
-        #   0 on success or when no-op (disabled or nothing to save).
-        #   Non-zero if sgnd_state_save_keys fails.
+        #   0 when disabled, skipped, or saved successfully.
+        #   Non-zero when state saving helper calls fail.
         #
-        # Notes:
-        #   - Intended to be called from EXIT dispatch (e.g., _sgnd_save_state_dispatch).
-        #   - Validation is limited to identifier checks; semantics belong to state layer.
+        # Usage:
+        #   sgnd_save_state
     sgnd_save_state(){
 
         (( ! SGND_STATE_SAVE )) && return 0
@@ -739,72 +682,54 @@ set -uo pipefail
         fi
     }    
 
-    # fn: sgnd_on_exit_add
+    # fn: sgnd_on_exit_add - Register an exit handler command
         # Purpose:
-        #   Register a new EXIT handler to be executed by the EXIT dispatcher.
-        #
-        # Arguments:
-        #   $*  Command string to execute on process EXIT (stored as a single string).
-        #
-        # Inputs (globals):
-        #   SGND_ON_EXIT_HANDLERS
+        #   Add a command string to the framework exit-handler stack.
         #
         # Behavior:
-        #   - Appends the handler command string to SGND_ON_EXIT_HANDLERS.
-        #   - Handlers execute in reverse registration order (LIFO).
+        #   - Stores all supplied arguments as one handler command string.
+        #   - Handlers are later executed by _sgnd_on_exit_run in reverse order.
+        #
+        # Arguments:
+        #   $@  Handler command and optional arguments.
+        #
+        # Outputs (globals):
+        #   SGND_ON_EXIT_HANDLERS
         #
         # Returns:
         #   0 always.
         #
-        # Notes:
-        #   - Handlers are evaluated via eval in _sgnd_on_exit_run.
-        #   - Call sgnd_on_exit_install() before relying on handlers running.
+        # Usage:
+        #   sgnd_on_exit_add "_sgnd_save_state_dispatch"
     sgnd_on_exit_add() {
         # store as one string per handler: "fn arg1 arg2 ..."
         SGND_ON_EXIT_HANDLERS+=( "$*" )
     }
 
-    # fn: sgnd_check_license
+    # fn: sgnd_check_license - Validate license acceptance state
         # Purpose:
-        #   Verify that the current framework license has been accepted.
+        #   Ensure the current framework license has been accepted by the user.
         #
         # Behavior:
-        #   - Computes the hash of the current license file.
-        #   - Checks whether a stored acceptance record exists.
-        #   - Compares the stored hash with the current license hash.
-        #   - Prints the license and prompts the user when acceptance is missing or outdated.
-        #   - Stores the current license hash when the user accepts.
-        #   - Updates SGND_LICENSE_ACCEPTED to reflect the resulting state.
+        #   - Computes the hash of the current license file when possible.
+        #   - Compares it with the stored accepted-license hash.
+        #   - Prints the license and prompts the user when no accepted hash matches.
+        #   - Stores the current license hash after acceptance.
+        #   - Updates SGND_LICENSE_ACCEPTED with the acceptance result.
         #
         # Inputs (globals):
-        #   SGND_DOCS_DIR
-        #   SGND_LICENSE_FILE
-        #   SGND_STATE_DIR
+        #   SGND_DOCS_DIR, SGND_LICENSE_FILE, SGND_STATE_DIR
         #
         # Outputs (globals):
         #   SGND_LICENSE_ACCEPTED
         #
-        # Side effects:
-        #   - May print the license text.
-        #   - May prompt the user for acceptance.
-        #   - May write an acceptance file under SGND_STATE_DIR.
-        #
         # Returns:
-        #   0 if the license is accepted.
-        #   2 if the user declines or cancels.
-        #   1 on operational failure.
+        #   0 when the license is already accepted or newly accepted.
+        #   2 when the user cancels or declines the prompt.
+        #   1 for unexpected prompt failure.
         #
         # Usage:
-        #   sgnd_check_license || return $?
-        #
-        # Examples:
         #   sgnd_check_license
-        #
-        # Notes:
-        #   - Intended to run only after root/non-root re-exec decisions are complete,
-        #     to avoid prompting twice.
-        #   - Called only after root constraints are resolved to avoid double prompting
-        #     across sudo re-exec.
     sgnd_check_license() {
         local license_file="$SGND_DOCS_DIR/$SGND_LICENSE_FILE"
         local accepted_file="$SGND_STATE_DIR/$SGND_LICENSE_FILE.accepted"
@@ -875,32 +800,24 @@ set -uo pipefail
         SGND_LICENSE_ACCEPTED=$isaccepted
     }
 
-    # fn: sgnd_load_ui_style
+    # fn: sgnd_load_ui_style - Load the configured UI style and palette
         # Purpose:
-        #   Load the active UI palette and style definitions.
+        #   Source the active UI palette and style files for console output helpers.
         #
         # Behavior:
-        #   - Resolves SGND_UI_PALETTE and SGND_UI_STYLE to full paths when needed.
-        #   - Treats basename-only values as files under SGND_STYLE_DIR.
-        #   - Sources the palette file first.
-        #   - Sources the style file second.
+        #   - Resolves basename values relative to SGND_STYLE_DIR.
+        #   - Verifies that both palette and style files are readable.
+        #   - Sources the palette first, then the style.
         #
         # Inputs (globals):
-        #   SGND_UI_PALETTE
-        #   SGND_UI_STYLE
-        #   SGND_STYLE_DIR
-        #
-        # Side effects:
-        #   - Sources palette and style files into the current shell.
+        #   SGND_UI_STYLE, SGND_UI_PALETTE, SGND_STYLE_DIR
         #
         # Returns:
-        #   0 on success.
-        #   1 if either file is missing or unreadable.
+        #   0 when both files are sourced successfully.
+        #   1 when either file is missing or unreadable.
+        #   Non-zero when a sourced file fails.
         #
         # Usage:
-        #   sgnd_load_ui_style || return 1
-        #
-        # Examples:
         #   sgnd_load_ui_style
     sgnd_load_ui_style() {
         local style_path palette_path
@@ -922,44 +839,33 @@ set -uo pipefail
     }
     
 # --- Main ----------------------------------------------------------------------------
-    # fn: sgnd_bootstrap
+    # fn: sgnd_bootstrap - Initialize the SolidgroundUX runtime
         # Purpose:
-        #   Initialize the Testadura framework runtime environment.
+        #   Run the standard framework startup sequence for executable scripts.
         #
         # Behavior:
-        #   - Sources sgnd-bootstrap-env.sh.
-        #   - Applies default configuration values.
-        #   - Derives framework directory and cfg paths.
-        #   - Ensures required directories exist.
-        #   - Loads core libraries defined in SGND_CORE_LIBS.
-        #   - Applies framework configuration (system + user).
+        #   - Initializes default runtime globals and required arrays.
+        #   - Initializes bootstrap environment and parses bootstrap arguments.
+        #   - Loads core libraries and script-declared SGND_USING libraries.
+        #   - Loads UI style, framework configuration, state, and script configuration.
+        #   - Parses builtin and script arguments in staged order.
+        #   - Applies root policy, license acceptance, run mode, and optional state handling.
         #
-        # Inputs (globals):
-        #   SGND_COMMON_LIB (optional override before call)
+        # Arguments:
+        #   $@  Raw arguments supplied by the executable script.
         #
         # Outputs (globals):
-        #   All SGND_* framework variables
-        #   Loaded functions from core libraries
-        #
-        # Side effects:
-        #   - Creates directories if missing
-        #   - Sources multiple library files
-        #   - Applies configuration values to global state
+        #   Framework runtime globals, parsed argument variables, SGND_BOOTSTRAP_REST,
+        #   RUN_MODE, state/config variables, and loaded module metadata.
         #
         # Returns:
-        #   0   success
-        #   1   failure loading required components
+        #   0 when bootstrap completes successfully.
+        #   1 for initialization, parsing, configuration, run-mode, or license failures.
+        #   2 when license acceptance is cancelled.
+        #   Other non-zero codes propagated from failing helper calls.
         #
         # Usage:
-        #   sgnd_bootstrap
-        #
-        # Examples:
-        #   # Minimal bootstrap
-        #   sgnd_bootstrap
-        #
-        #   # Override root before bootstrap
-        #   SGND_FRAMEWORK_ROOT="/opt/solidgroundux"
-        #   sgnd_bootstrap
+        #   sgnd_bootstrap "$@"
     sgnd_bootstrap() {
         saystart "Initializing framework"
         # Definitions

@@ -2,9 +2,9 @@
 # SolidgroundUX - Console Module Template
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.1
-#   Build       : 2615311
-#   Checksum    : a0dbab09fbf5a8e47bf3c7b6a5b054f214cc46673ad7640a23644aa7390475a9
+#   Version     : 1.5
+#   Build       : 2615412
+#   Checksum    : -
 #   Source      : mod-template.sh
 #   Type        : module
 #   Group       : Templates
@@ -92,27 +92,28 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
     
 # - Internal helpers -------------------------------------------------------------
-    # Naming:
-    #   - Prefix internal-only helpers with "_"
-    #   - Keep internal helpers module-local and menu-focused
-    #
-    # Example:
-    #   _sample_format_status() { :; }
+    # doc$ Internal helper naming
+        # Prefix internal-only helpers with "_".
+        # Keep internal helpers module-local and menu-focused.
+        #
+        # Example:
+        #   _sample_format_status() { :; }
 
 # - Public module actions --------------------------------------------------------
-    # Naming:
-    #   - Use clear action-style names for functions registered as menu handlers
-    #   - Registered handlers do not need a sgnd_ prefix; they belong to the module surface
-    #
-    # Example:
-    #   sample_show_message() { :; }
-    #   sys_status() { :; }
+    # doc$ Public module action naming
+        # Use clear action-style names for functions registered as menu handlers.
+        # Registered handlers do not need a sgnd_ prefix; they belong to the module surface.
+        #
+        # Example:
+        #   sample_show_message() { :; }
+        #   sys_status() { :; }
 
 # - Console registration ---------------------------------------------------------
-    # Allowed side effect:
-    #   - On source, the module may register groups and items with sgnd-console.
-    #
-    # Example:
+    # doc$ Console registration
+        # Allowed side effect:
+        #   - On source, the module may register groups and items with sgnd-console.
+        #
+        # Example:
     #   sgnd_console_register_group "system" "System tools" "General system operations"
     #
     #   sgnd_console_register_item \

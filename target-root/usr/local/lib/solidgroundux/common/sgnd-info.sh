@@ -2,9 +2,9 @@
 # SolidgroundUX - Framework Information
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.1
-#   Build       : 2615311
-#   Checksum    : e334502ee8bd651f297cf9f09d8b517c874b7f5b29d1ede45bc4f0da957033bd
+#   Version     : 1.5
+#   Build       : 2615600
+#   Checksum    : -
 #   Source      : sgnd-info.sh
 #   Type        : library
 #   Group       : Common Core
@@ -65,6 +65,19 @@ set -uo pipefail
         # Returns:
         #   0 if already loaded or successfully initialized.
         #   Exits with code 2 if executed instead of sourced.
+    # fn$ _sgnd_lib_guard - Lib guard
+        # Purpose:
+        #   Prevent direct execution of a source-only library and avoid repeated initialization when the file is sourced more than once.
+        #
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
+        #
+        # Returns:
+        #   0 when the library may continue loading; exits with 2 when executed directly.
+        #
+        # Usage:
+        #   _sgnd_lib_guard ...
     _sgnd_lib_guard() {
         local lib_base
         local guard
@@ -91,25 +104,19 @@ set -uo pipefail
     : "${_section_indent:=2}"
     : "${_items_indent:=4}"
 
-    # fn: _sgnd_print_arg_spec_entry
+    # fn: _sgnd_print_arg_spec_entry - Print arg spec entry
         # Purpose:
-        #   Render a single SGND_ARGS_SPEC or SGND_BUILTIN_ARGS entry as a labeled value line.
+        #   Print one command-line argument specification entry.
         #
-        # Arguments:
-        #   $1  Spec entry string in format:
-        #       name|short|type|varname|help|choices
-        #
-        # Inputs (globals):
-        #   _items_indent
-        #
-        # Outputs:
-        #   Prints one formatted line via sgnd_print_labeledvalue.
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   _sgnd_print_arg_spec_entry "debug|d|flag|FLAG_DEBUG|Enable debug mode|"
+        #   _sgnd_print_arg_spec_entry ...
     _sgnd_print_arg_spec_entry() {
         local entry="${1-}"
         local name=""
@@ -138,25 +145,19 @@ set -uo pipefail
         sgnd_print_labeledvalue "$label" "$value" --pad "$_items_indent"
     }
 
-    # fn: _sgnd_print_arg_spec_list
+    # fn: _sgnd_print_arg_spec_list - Print arg spec list
         # Purpose:
-        #   Print all argument spec entries from a named array, with a section header.
+        #   Print a list of command-line argument specifications.
         #
-        # Arguments:
-        #   $1  Header text.
-        #   $2  Array variable name containing spec entries.
-        #
-        # Inputs (globals):
-        #   _section_indent
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   _sgnd_print_arg_spec_list "Script arguments" "SGND_ARGS_SPEC"
-        #
-        # Notes:
-        #   - Requires bash 4.3+ (nameref).
+        #   _sgnd_print_arg_spec_list ...
     _sgnd_print_arg_spec_list() {
         local header="${1:?missing header}"
         local array_name="${2:?missing array name}"
@@ -177,27 +178,19 @@ set -uo pipefail
         done
     }
 
-    # fn: _sgnd_print_cfg_pass
+    # fn: _sgnd_print_cfg_pass - Print cfg pass
         # Purpose:
-        #   Print configuration values for selected scopes from a named spec array.
+        #   Print one configuration pass for inspection.
         #
-        # Arguments:
-        #   $1  Header text.
-        #   $2  Spec array name.
-        #   $@  Accepted scopes after the first two arguments.
-        #
-        # Inputs (globals):
-        #   _section_indent
-        #   _items_indent
+        # Behavior:
+        #   - Acts as a internal helper within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   _sgnd_print_cfg_pass "System globals" SGND_FRAMEWORK_GLOBALS system both
-        #
-        # Notes:
-        #   - Requires bash 4.3+ (nameref).
+        #   _sgnd_print_cfg_pass ...
     _sgnd_print_cfg_pass() {
         local header_text="${1:?missing header text}"
         local array_name="${2:?missing array name}"
@@ -234,31 +227,19 @@ set -uo pipefail
     }
 
 # --- Public API ----------------------------------------------------------------------
-    # fn: sgnd_print_cfg
+    # fn: sgnd_print_cfg - Print cfg
         # Purpose:
-        #   Print configuration variables described by a spec array.
+        #   Print configuration values for a named configuration variable list.
         #
-        # Arguments:
-        #   $1  Spec array name containing entries:
-        #       scope|VARNAME|description|default_or_extra
-        #   $2  Filter scope selector: system | user | both
-        #
-        # Inputs (globals):
-        #   _section_indent
-        #   _items_indent
-        #
-        # Outputs:
-        #   Prints formatted configuration values.
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_print_cfg SGND_SCRIPT_GLOBALS both
-        #   sgnd_print_cfg SGND_FRAMEWORK_GLOBALS system
-        #
-        # Notes:
-        #   - Requires bash 4.3+ (nameref).
+        #   sgnd_print_cfg ...
     sgnd_print_cfg() {
         local array_name="${1:?missing spec array name}"
         local filter="${2:-both}"
@@ -279,26 +260,19 @@ set -uo pipefail
         fi
     }
 
-    # fn: sgnd_print_framework_metadata
+    # fn: sgnd_print_framework_metadata - Print framework metadata
         # Purpose:
-        #   Print framework identity and versioning metadata.
+        #   Print framework metadata.
         #
-        # Inputs (globals):
-        #   SGND_PRODUCT
-        #   SGND_VERSION
-        #   SGND_VERSION_DATE
-        #   SGND_COMPANY
-        #   SGND_COPYRIGHT
-        #   SGND_LICENSE
-        #
-        # Outputs:
-        #   Prints formatted metadata values.
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_print_framework_metadata
+        #   sgnd_print_framework_metadata ...
     sgnd_print_framework_metadata() {
         sgnd_print_sectionheader --text "Framework metadata" --padleft "$_section_indent"
         sgnd_print_labeledvalue "Product"      "$SGND_PRODUCT" --pad "$_items_indent"
@@ -310,25 +284,19 @@ set -uo pipefail
         sgnd_print
     }
 
-    # fn: sgnd_print_metadata
+    # fn: sgnd_print_metadata - Print metadata
         # Purpose:
-        #   Print script identity and build metadata.
+        #   Print active script metadata.
         #
-        # Inputs (globals):
-        #   SGND_SCRIPT_FILE
-        #   SGND_SCRIPT_DESC
-        #   SGND_SCRIPT_DIR
-        #   SGND_SCRIPT_VERSION
-        #   SGND_SCRIPT_BUILD
-        #
-        # Outputs:
-        #   Prints formatted metadata values.
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_print_metadata
+        #   sgnd_print_metadata ...
     sgnd_print_metadata() {
         sgnd_print_sectionheader --text "Script metadata" --padleft "$_section_indent"
         sgnd_print_labeledvalue "File"               "$SGND_SCRIPT_FILE" --pad "$_items_indent"
@@ -338,23 +306,19 @@ set -uo pipefail
         sgnd_print
     }
 
-    # fn: sgnd_print_args
+    # fn: sgnd_print_args - Print args
         # Purpose:
-        #   Print a formatted overview of parsed arguments and their current values.
+        #   Print parsed command-line argument values.
         #
-        # Inputs (globals):
-        #   SGND_ARGS_SPEC
-        #   SGND_BUILTIN_ARGS
-        #   SGND_POSITIONAL
-        #
-        # Outputs:
-        #   Prints formatted argument overview.
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_print_args
+        #   sgnd_print_args ...
     sgnd_print_args() {
         sgnd_print
         _sgnd_print_arg_spec_list "Script arguments" "SGND_ARGS_SPEC"
@@ -375,21 +339,19 @@ set -uo pipefail
         sgnd_print
     }
 
-    # fn: sgnd_print_state
+    # fn: sgnd_print_state - Print state
         # Purpose:
-        #   Print the current persistent state key/value pairs.
+        #   Print persisted state values.
         #
-        # Inputs:
-        #   sgnd_state_list_keys output (key|value)
-        #
-        # Outputs:
-        #   Prints formatted state variables.
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_print_state
+        #   sgnd_print_state ...
     sgnd_print_state() {
         sgnd_state_list_keys | {
             local printed_header=0
@@ -408,26 +370,19 @@ set -uo pipefail
         }
     }
 
-    # fn: sgnd_print_license
+    # fn: sgnd_print_license - Print license
         # Purpose:
-        #   Print the framework license text, including acceptance status.
+        #   Print the framework license text.
         #
-        # Inputs (globals):
-        #   SGND_DOCS_DIR
-        #   SGND_LICENSE_FILE
-        #   SGND_LICENSE_ACCEPTED
-        #   TUI_INVALID
-        #   TUI_VALID
-        #   RESET
-        #
-        # Outputs:
-        #   Prints formatted license text when the file is readable.
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_print_license
+        #   sgnd_print_license ...
     sgnd_print_license() {
         local license_file="$SGND_DOCS_DIR/$SGND_LICENSE_FILE"
         local status_text="${TUI_INVALID}NOT ACCEPTED${RESET}"
@@ -452,21 +407,19 @@ set -uo pipefail
         fi
     }
 
-    # fn: sgnd_print_readme
+    # fn: sgnd_print_readme - Print readme
         # Purpose:
-        #   Print the framework README file if present.
+        #   Print the framework README text.
         #
-        # Inputs (globals):
-        #   SGND_DOCS_DIR
-        #
-        # Outputs:
-        #   Prints README contents.
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_print_readme
+        #   sgnd_print_readme ...
     sgnd_print_readme() {
         local readme_file="$SGND_DOCS_DIR/README.md"
 
@@ -475,29 +428,19 @@ set -uo pipefail
         fi
     }
 
-    # fn: sgnd_showenvironment
+    # fn: sgnd_showenvironment - Showenvironment
         # Purpose:
-        #   Print a full diagnostic snapshot of the current script/framework context.
+        #   Print framework, path, and runtime environment details.
         #
-        # Inputs (globals expected):
-        #   Metadata, arguments, configuration specs, and state variables.
-        #
-        # Outputs:
-        #   Prints complete environment overview.
+        # Behavior:
+        #   - Acts as a public API function within this module.
+        #   - Uses framework conventions for return codes and diagnostic output.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless otherwise noted by the called command.
         #
         # Usage:
-        #   sgnd_showenvironment
-        #
-        # Examples:
-        #   if (( FLAG_DEBUG )); then
-        #       sgnd_showenvironment
-        #   fi
-        #
-        # Notes:
-        #   - Name retained for backward compatibility.
+        #   sgnd_showenvironment ...
     sgnd_showenvironment() {
         sgnd_print_titlebar
         sgnd_print
