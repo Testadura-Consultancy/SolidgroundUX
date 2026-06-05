@@ -82,46 +82,28 @@ set -uo pipefail
     unset -f _sgnd_lib_guard
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
-
-# --- Label and status formatting -----------------------------------------------------
-    # _sgnd_console_toggleword
+    # fn: _sgnd_console_toggleword - Render toggle word
         # Purpose:
-        #   Render a toggle label (e.g. DEBUG, DRYRUN) with color and hotkey styling.
+        #   Render a toggle label while emphasizing its hotkey character.
+        #
+        # Behavior:
+        #   - Supports the module implementation; not intended as a public framework API.
         #
         # Arguments:
-        #   $1  Word (e.g. "DEBUG")
-        #   $2  Hotkey (single character)
-        #   $3  State (0=off, 1=on)
-        #   $4  Optional ON color
-        #   $5  Optional OFF color
+        #   $1  WORD - Text word or label to render.
+        #   $2  HOTKEY - Character within the word that should be emphasized as the hotkey.
+        #   $3  STATE - Boolean or numeric state value.
+        #   $4  ONCLR - Color used for the enabled state.
+        #   $5  OFFCLR - Color used for the disabled state.
         #
-        # Behavior:
-        #   - Highlights hotkey with underline.
-        #   - Applies color and bold styling depending on state.
-        #   - Supports special-case transformations (e.g. DRYRUN → COMMIT).
-        #
-        # Outputs:
-        #   Prints formatted toggle text.
+        # Output:
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
-        #   _sgnd_console_toggleword "DEBUG" "B" 1
-        #   _sgnd_console_toggleword "DRYRUN" "D" 0
-    # fn: _sgnd_console_toggleword - Console toggleword
-        # Purpose:
-        #   Return a display word for a boolean toggle state.
-        #
-        # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
-        #
-        # Returns:
-        #   0 on success unless otherwise noted by the called command.
-        #
-        # Usage:
-        #   _sgnd_console_toggleword ...
+        #   _sgnd_console_toggleword "${WORD}" "${HOTKEY}" "${STATE}" "${ONCLR}" "${OFFCLR}"
     _sgnd_console_toggleword() {
         local word="${1:?missing word}"
         local hotkey="${2:?missing hotkey}"
@@ -161,34 +143,26 @@ set -uo pipefail
             "$word_style" "$suffix" \
             "$RESET"
     }
-
-    # _sgnd_console_onoff
+    # fn: _sgnd_console_onoff - Render on/off state
         # Purpose:
-        #   Render a colored "On" or "Off" state fragment.
-        #
-        # Arguments:
-        #   $1  VALUE    Truthy numeric state.
-        #   $2  ONCLR    Optional color for the On state.
-        #   $3  OFFCLR   Optional color for the Off state.
-        #
-        # Output:
-        #   Prints the styled state text to stdout (no newline).
-        #
-        # Returns:
-        #   0 always
-    # fn: _sgnd_console_onoff - Console onoff
-        # Purpose:
-        #   Return ON or OFF for a boolean toggle state.
+        #   Render a colored On/Off fragment for a boolean state.
         #
         # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #
+        # Arguments:
+        #   $1  VALUE - Value to read, validate, render, or store.
+        #   $2  ONCLR - Color used for the enabled state.
+        #   $3  OFFCLR - Color used for the disabled state.
+        #
+        # Output:
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
         # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
-        #   _sgnd_console_onoff ...
+        #   _sgnd_console_onoff "${VALUE}" "${ONCLR}" "${OFFCLR}"
     _sgnd_console_onoff() {
         local value="${1:-0}"
         local onclr="${2:-$BRIGHT_GREEN}"
@@ -200,166 +174,120 @@ set -uo pipefail
             printf '%sOff%s' "$(sgnd_sgr "$offclr")" "$RESET"
         fi
     }
-
-    # _sgnd_console_label_clearonrender
+    # fn: _sgnd_console_label_clearonrender - Build clear-on-render label
         # Purpose:
-        #   Build the current label text for the clear-on-render builtin item.
-        #
-        # Output:
-        #   Prints the label to stdout (no newline).
-        #
-        # Returns:
-        #   0 always
-    # fn: _sgnd_console_label_clearonrender - Console label clearonrender
-        # Purpose:
-        #   Build the Clear-on-render toggle label.
+        #   Build the current menu label for the clear-on-render toggle.
         #
         # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #
+        # Output:
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
         # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
-        #   _sgnd_console_label_clearonrender ...
+        #   _sgnd_console_label_clearonrender
     _sgnd_console_label_clearonrender() {
         : "${SGND_CLEAR_ONRENDER:=1}"
         printf 'Clear screen: %s' "$(_sgnd_console_onoff "$SGND_CLEAR_ONRENDER")"
     }
-
-    # _sgnd_console_label_dryrun
+    # fn: _sgnd_console_label_dryrun - Build dry-run label
         # Purpose:
-        #   Build the current label text for the dry-run builtin item.
-        #
-        # Output:
-        #   Prints the label to stdout (no newline).
-        #
-        # Returns:
-        #   0 always
-    # fn: _sgnd_console_label_dryrun - Console label dryrun
-        # Purpose:
-        #   Build the Dry-run toggle label.
+        #   Build the current menu label for the dry-run/commit toggle.
         #
         # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #
+        # Output:
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
         # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
-        #   _sgnd_console_label_dryrun ...
+        #   _sgnd_console_label_dryrun
     _sgnd_console_label_dryrun() {
         : "${FLAG_DRYRUN:=0}"
         printf 'Dry-run: %s' "$(_sgnd_console_onoff "$FLAG_DRYRUN" "$TUI_DRYRUN" "$TUI_COMMIT")"
     }
-
-    # _sgnd_console_label_debug
+    # fn: _sgnd_console_label_debug - Build debug label
         # Purpose:
-        #   Build the current label text for the debug builtin item.
-        #
-        # Output:
-        #   Prints the label to stdout (no newline).
-        #
-        # Returns:
-        #   0 always
-    # fn: _sgnd_console_label_debug - Console label debug
-        # Purpose:
-        #   Build the Debug toggle label.
+        #   Build the current menu label for the debug toggle.
         #
         # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #
+        # Output:
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
         # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
-        #   _sgnd_console_label_debug ...
+        #   _sgnd_console_label_debug
     _sgnd_console_label_debug() {
         : "${FLAG_DEBUG:=0}"
         printf 'Debug: %s' "$(_sgnd_console_onoff "$FLAG_DEBUG")"
     }
-
-    # _sgnd_console_label_verbose
+    # fn: _sgnd_console_label_verbose - Build verbose label
         # Purpose:
-        #   Build the current label text for the verbose builtin item.
-        #
-        # Output:
-        #   Prints the label to stdout (no newline).
-        #
-        # Returns:
-        #   0 always
-    # fn: _sgnd_console_label_verbose - Console label verbose
-        # Purpose:
-        #   Build the Verbose toggle label.
+        #   Build the current menu label for the verbose toggle.
         #
         # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #
+        # Output:
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
         # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
-        #   _sgnd_console_label_verbose ...
+        #   _sgnd_console_label_verbose
     _sgnd_console_label_verbose() {
         : "${FLAG_VERBOSE:=0}"
         printf 'Verbose: %s' "$(_sgnd_console_onoff "$FLAG_VERBOSE")"
     }
-
-    # _sgnd_console_label_logfile
+    # fn: _sgnd_console_label_logfile - Build logfile label
         # Purpose:
-        #   Build the current label text for the logfile builtin item.
-        #
-        # Output:
-        #   Prints the label to stdout (no newline).
-        #
-        # Returns:
-        #   0 always
-    # fn: _sgnd_console_label_logfile - Console label logfile
-        # Purpose:
-        #   Build the Logfile toggle label.
+        #   Build the current menu label for the logfile toggle.
         #
         # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #
+        # Output:
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
         # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
-        #   _sgnd_console_label_logfile ...
+        #   _sgnd_console_label_logfile
     _sgnd_console_label_logfile() {
         : "${SGND_LOGFILE_ENABLED:=0}"
         printf 'Logfile: %s' "$(_sgnd_console_onoff "$SGND_LOGFILE_ENABLED")"
     }
-
-# --- Builtin actions -----------------------------------------------------------------
-    # _sgnd_console_toggle_clearonrender
+    # fn: _sgnd_console_toggle_clearonrender - Toggle clear-on-render
         # Purpose:
-        #   Toggle whether the console clears the screen before each render.
+        #   Render the console toggle clearonrender portion of the current workflow.
         #
         # Behavior:
-        #   - Flips SGND_CLEAR_ONRENDER between 0 and 1.
-        #   - Emits an informational message reflecting the new state.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #   - Uses framework UI/output conventions for terminal or dialog interaction.
+        #
+        # Outputs (globals):
+        #   May update SGND_* globals shown in the function body.
         #
         # Returns:
-        #   0 always
-    # fn: _sgnd_console_toggle_clearonrender - Console toggle clearonrender
-        # Purpose:
-        #   Toggle the console clear-on-render option.
-        #
-        # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
-        #
-        # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
-        #   _sgnd_console_toggle_clearonrender ...
+        #   _sgnd_console_toggle_clearonrender
     _sgnd_console_toggle_clearonrender() {
         : "${SGND_CLEAR_ONRENDER:=1}"
 
@@ -371,30 +299,19 @@ set -uo pipefail
             sayinfo "Clear-on-render enabled"
         fi
     }
-
-    # _sgnd_console_toggle_dryrun
+    # fn: _sgnd_console_toggle_dryrun - Toggle dry-run
         # Purpose:
-        #   Toggle dry-run mode for the current session.
+        #   Handle console menu toggle dryrun behavior.
         #
         # Behavior:
-        #   - Flips FLAG_DRYRUN between 0 and 1.
-        #   - Emits an informational message reflecting the new state.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
         # Returns:
-        #   0 always
-    # fn: _sgnd_console_toggle_dryrun - Console toggle dryrun
-        # Purpose:
-        #   Toggle dry-run mode for the active console session.
-        #
-        # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
-        #
-        # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
-        #   _sgnd_console_toggle_dryrun ...
+        #   _sgnd_console_toggle_dryrun
     _sgnd_console_toggle_dryrun() {
         : "${FLAG_DRYRUN:=0}"
 
@@ -407,31 +324,19 @@ set -uo pipefail
         fi
         
     }
-
-    # _sgnd_console_toggle_debug
+    # fn: _sgnd_console_toggle_debug - Toggle debug
         # Purpose:
-        #   Toggle debug output for the current session.
+        #   Handle console menu toggle debug behavior.
         #
         # Behavior:
-        #   - Flips FLAG_DEBUG between 0 and 1.
-        #   - Emits an informational message reflecting the new state.
-        #   - Calls sgnd_update_runmode so framework UI/debug state stays synchronized.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
         # Returns:
-        #   0 always
-    # fn: _sgnd_console_toggle_debug - Console toggle debug
-        # Purpose:
-        #   Toggle debug output for the active console session.
-        #
-        # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
-        #
-        # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
-        #   _sgnd_console_toggle_debug ...
+        #   _sgnd_console_toggle_debug
     _sgnd_console_toggle_debug() {
         : "${FLAG_DEBUG:=0}"
 
@@ -444,30 +349,19 @@ set -uo pipefail
         fi
         sgnd_update_runmode
     }
-
-    # _sgnd_console_toggle_verbose
+    # fn: _sgnd_console_toggle_verbose - Toggle verbose
         # Purpose:
-        #   Toggle verbose output for the current session.
+        #   Handle console menu toggle verbose behavior.
         #
         # Behavior:
-        #   - Flips FLAG_VERBOSE between 0 and 1.
-        #   - Emits an informational message reflecting the new state.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
         # Returns:
-        #   0 always
-    # fn: _sgnd_console_toggle_verbose - Console toggle verbose
-        # Purpose:
-        #   Toggle verbose output for the active console session.
-        #
-        # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
-        #
-        # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
-        #   _sgnd_console_toggle_verbose ...
+        #   _sgnd_console_toggle_verbose
     _sgnd_console_toggle_verbose() {
         : "${FLAG_VERBOSE:=0}"
 
@@ -479,30 +373,23 @@ set -uo pipefail
             sayinfo "Verbose enabled"
         fi
     }
-
-    # _sgnd_console_toggle_logfile
+    # fn: _sgnd_console_toggle_logfile - Toggle logfile
         # Purpose:
-        #   Toggle logfile output for the current session.
+        #   Handle console menu toggle logfile behavior.
         #
         # Behavior:
-        #   - Flips SGND_LOGFILE_ENABLED between 0 and 1.
-        #   - Emits an informational message reflecting the new state.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #   - Uses framework UI/output conventions for terminal or dialog interaction.
+        #
+        # Outputs (globals):
+        #   May update SGND_* globals shown in the function body.
         #
         # Returns:
-        #   0 always
-    # fn: _sgnd_console_toggle_logfile - Console toggle logfile
-        # Purpose:
-        #   Toggle logfile output for the active console session.
-        #
-        # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
-        #
-        # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
-        #   _sgnd_console_toggle_logfile ...
+        #   _sgnd_console_toggle_logfile
     _sgnd_console_toggle_logfile() {
         : "${SGND_LOGFILE_ENABLED:=0}"
 
@@ -514,79 +401,52 @@ set -uo pipefail
             sayinfo "Logfile enabled"
         fi
     }
-
-    # _sgnd_console_redraw
-        # Purpose:
-        #   No-op action used to force a menu redraw cycle.
-        #
-        # Returns:
-        #   0 always
     # fn: _sgnd_console_redraw - Console redraw
         # Purpose:
-        #   Request a console menu redraw.
+        #   Handle console menu redraw behavior.
         #
         # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
+        #   - Supports the module implementation; not intended as a public framework API.
         #
         # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
-        #   _sgnd_console_redraw ...
+        #   _sgnd_console_redraw
     _sgnd_console_redraw() {
         return 0
     }
-
-    # _sgnd_console_quit
-        # Purpose:
-        #   Signal the console loop to terminate.
-        #
-        # Returns:
-        #   200 as a sentinel value consumed by _sgnd_console_run
     # fn: _sgnd_console_quit - Console quit
         # Purpose:
-        #   Request console menu termination.
+        #   Handle console menu quit behavior.
         #
         # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
+        #   - Supports the module implementation; not intended as a public framework API.
         #
         # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
-        #   _sgnd_console_quit ...
+        #   _sgnd_console_quit
     _sgnd_console_quit() {
         return 200
     }
-
-    # _sgnd_console_nextpage
+    # fn: _sgnd_console_nextpage - Console nextpage
         # Purpose:
-        #   Advance to the next rendered menu page when available.
+        #   Handle console menu nextpage behavior.
         #
         # Behavior:
-        #   - Rebuilds the current paging model.
-        #   - Increments SGND_PAGE_INDEX only when a later page exists.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #
+        # Outputs (globals):
+        #   May update SGND_* globals shown in the function body.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
         #   _sgnd_console_nextpage
-    # fn: _sgnd_console_nextpage - Console nextpage
-        # Purpose:
-        #   Move the console menu to the next page.
-        #
-        # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
-        #
-        # Returns:
-        #   0 on success unless otherwise noted by the called command.
-        #
-        # Usage:
-        #   _sgnd_console_nextpage ...
     _sgnd_console_nextpage() {
         _sgnd_console_build_pages
 
@@ -596,32 +456,25 @@ set -uo pipefail
 
         return 0
     }
-
-    # _sgnd_console_prevpage
+    # fn: _sgnd_console_prevpage - Console prevpage
         # Purpose:
-        #   Return to the previous rendered menu page when available.
+        #   Handle console menu prevpage behavior.
         #
         # Behavior:
-        #   - Decrements SGND_PAGE_INDEX only when the current page is not the first page.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #
+        # Outputs (globals):
+        #   May update SGND_* globals shown in the function body.
+        #
+        # Side effects:
+        #   May update files, directories, runtime state, or process state required by the workflow.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
         #   _sgnd_console_prevpage
-    # fn: _sgnd_console_prevpage - Console prevpage
-        # Purpose:
-        #   Move the console menu to the previous page.
-        #
-        # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
-        #
-        # Returns:
-        #   0 on success unless otherwise noted by the called command.
-        #
-        # Usage:
-        #   _sgnd_console_prevpage ...
     _sgnd_console_prevpage() {
         if (( SGND_PAGE_INDEX > 0 )); then
             SGND_PAGE_INDEX=$(( SGND_PAGE_INDEX - 1 ))
@@ -629,39 +482,26 @@ set -uo pipefail
 
         return 0
     }
-
-# --- Menu layout ---------------------------------------------------------------------
-    # _sgnd_console_build_pages
+    # fn: _sgnd_console_build_pages - Console build pages
         # Purpose:
-        #   Simulate pagination and determine the start item of each rendered page.
+        #   Handle console menu build pages behavior.
         #
         # Behavior:
-        #   - Rebuilds visible item order.
-        #   - Calculates how many rendered lines each item and group header will consume.
-        #   - Starts a new page when the next item would exceed body height.
-        #   - Stores the visible item start index for each page.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #   - Uses SolidGroundUX datatable rows and schemas for structured state.
         #
         # Outputs (globals):
-        #   SGND_PAGE_STARTS
+        #   May update SGND_* globals shown in the function body.
+        #
+        # Side effects:
+        #   May update files, directories, runtime state, or process state required by the workflow.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
         #   _sgnd_console_build_pages
-    # fn: _sgnd_console_build_pages - Console build pages
-        # Purpose:
-        #   Build page metadata for the currently visible console menu items.
-        #
-        # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
-        #
-        # Returns:
-        #   0 on success unless otherwise noted by the called command.
-        #
-        # Usage:
-        #   _sgnd_console_build_pages ...
     _sgnd_console_build_pages() {
         local body_height=0
         local used_lines=0
@@ -713,67 +553,48 @@ set -uo pipefail
             used_lines=$(( used_lines + item_lines ))
         done
     }
-
-    # _sgnd_console_body_height
+    # fn: _sgnd_console_body_height - Console body height
+        # Purpose:
+        #   Handle console menu body height behavior.
+        #
+        # Behavior:
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #
+        # Output:
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
+        #
         # Returns:
-        #   Prints the effective maximum number of body rows for one rendered page.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
         #   _sgnd_console_body_height
-    # fn: _sgnd_console_body_height - Console body height
-        # Purpose:
-        #   Calculate the available body height for menu rendering.
-        #
-        # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
-        #
-        # Returns:
-        #   0 on success unless otherwise noted by the called command.
-        #
-        # Usage:
-        #   _sgnd_console_body_height ...
     _sgnd_console_body_height() {
         local body_height="${SGND_PAGE_MAX_ROWS:-20}"
 
         (( body_height < 5 )) && body_height=5
         printf '%s\n' "$body_height"
     }
-
-    # _sgnd_console_measure_item_lines
-        # Purpose:
-        #   Measure how many screen lines a menu item will occupy when rendered.
-        #
-        # Behavior:
-        #   - Returns 1 when the item has no description text.
-        #   - Wraps the description to the current right-column width.
-        #   - Counts the wrapped output lines.
-        #
-        # Arguments:
-        #   $1  ROW_INDEX
-        #       Row index in SGND_ITEM_ROWS.
-        #
-        # Output:
-        #   Prints the rendered line count.
-        #
-        # Returns:
-        #   0 always.
-        #
-        # Usage:
-        #   _sgnd_console_measure_item_lines "$row_index"
     # fn: _sgnd_console_measure_item_lines - Console measure item lines
         # Purpose:
-        #   Measure how many display lines one menu item requires.
+        #   Handle console menu measure item lines behavior.
         #
         # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #   - Uses SolidGroundUX datatable rows and schemas for structured state.
+        #
+        # Arguments:
+        #   $1  ROW_INDEX - Zero-based datatable row index.
+        #
+        # Output:
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
         # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
-        #   _sgnd_console_measure_item_lines ...
+        #   _sgnd_console_measure_item_lines "${ROW_INDEX}"
     _sgnd_console_measure_item_lines() {
         local row_index="${1:?missing row index}"
         local desc=""
@@ -803,81 +624,67 @@ set -uo pipefail
         (( wrapped_count < 1 )) && wrapped_count=1
         printf '%s\n' "$wrapped_count"
     }
-
-    # _sgnd_console_measure_group_header_lines
+    # fn: _sgnd_console_measure_group_header_lines - Console measure group header lines
+        # Purpose:
+        #   Handle console menu measure group header lines behavior.
+        #
+        # Behavior:
+        #   - Supports the module implementation; not intended as a public framework API.
+        #
+        # Output:
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
+        #
         # Returns:
-        #   Prints the rendered line count for one group header block.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
         #   _sgnd_console_measure_group_header_lines
-    # fn: _sgnd_console_measure_group_header_lines - Console measure group header lines
-        # Purpose:
-        #   Measure how many display lines a group header requires.
-        #
-        # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
-        #
-        # Returns:
-        #   0 on success unless otherwise noted by the called command.
-        #
-        # Usage:
-        #   _sgnd_console_measure_group_header_lines ...
     _sgnd_console_measure_group_header_lines() {
         # group label + underline
         printf '2\n'
     }
-
-    # _sgnd_console_visible_item_count
+    # fn: _sgnd_console_visible_item_count - Console visible item count
+        # Purpose:
+        #   Handle console menu visible item count behavior.
+        #
+        # Behavior:
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #
+        # Output:
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
+        #
         # Returns:
-        #   Prints the current number of visible non-builtin menu items.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
         #   _sgnd_console_visible_item_count
-    # fn: _sgnd_console_visible_item_count - Console visible item count
-        # Purpose:
-        #   Count menu items that are currently visible.
-        #
-        # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
-        #
-        # Returns:
-        #   0 on success unless otherwise noted by the called command.
-        #
-        # Usage:
-        #   _sgnd_console_visible_item_count ...
     _sgnd_console_visible_item_count() {
         printf '%s\n' "${#SGND_VISIBLE_ITEM_INDEXES[@]}"
     }
-
-    # _sgnd_console_get_visible_row_index
-        # Purpose:
-        #   Resolve a visible item position to its underlying SGND_ITEM_ROWS row index.
-        #
-        # Arguments:
-        #   $1  VISIBLE_INDEX
-        #       Zero-based index in SGND_VISIBLE_ITEM_INDEXES.
-        #
-        # Returns:
-        #   0 if the index is valid.
-        #   1 otherwise.
-        #
-        # Usage:
-        #   _sgnd_console_get_visible_row_index "$visible_index"
     # fn: _sgnd_console_get_visible_row_index - Console get visible row index
         # Purpose:
-        #   Resolve a visible row number to the corresponding menu item index.
+        #   Handle console menu get visible row index behavior.
         #
         # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #
+        # Arguments:
+        #   $1  VISIBLE_INDEX - Zero-based index.
+        #
+        # Output:
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
+        #
+        # Side effects:
+        #   May update files, directories, runtime state, or process state required by the workflow.
         #
         # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success.
+        #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # Usage:
-        #   _sgnd_console_get_visible_row_index ...
+        #   _sgnd_console_get_visible_row_index "${VISIBLE_INDEX}"
     _sgnd_console_get_visible_row_index() {
         local visible_index="${1:?missing visible index}"
 
@@ -887,38 +694,23 @@ set -uo pipefail
 
         printf '%s\n' "${SGND_VISIBLE_ITEM_INDEXES[$visible_index]}"
     }
-
-    # _sgnd_console_collect_visible_item_indexes
-        # Purpose:
-        #   Build the canonical visible numeric menu order for non-builtin items.
-        #
-        # Behavior:
-        #   - Traverses groups in canonical render order.
-        #   - Includes only non-builtin items.
-        #   - Within each group, preserves item registration order.
-        #   - Includes only items whose visible state is:
-        #       1 = visible/enabled
-        #       2 = visible/disabled
-        #   - Excludes hidden items (state 0).
-        #
-        # Output:
-        #   Populates SGND_VISIBLE_ITEM_INDEXES with SGND_ITEM_ROWS row indexes.
-        #
-        # Returns:
-        #   0 always
     # fn: _sgnd_console_collect_visible_item_indexes - Console collect visible item indexes
         # Purpose:
-        #   Collect indexes of menu items that are visible on the current page.
+        #   Handle console menu collect visible item indexes behavior.
         #
         # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #   - Uses SolidGroundUX datatable rows and schemas for structured state.
+        #
+        # Outputs (globals):
+        #   May update SGND_* globals shown in the function body.
         #
         # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
-        #   _sgnd_console_collect_visible_item_indexes ...
+        #   _sgnd_console_collect_visible_item_indexes
     _sgnd_console_collect_visible_item_indexes() {
         local gi
         local ii
@@ -956,34 +748,26 @@ set -uo pipefail
             done
         done
     }
-
-    # _sgnd_console_calc_label_width
-        # Purpose:
-        #   Calculate the left-column width needed for rendered menu items.
-        #
-        # Behavior:
-        #   - Includes builtin items.
-        #   - Includes non-builtin items present in the canonical visible order.
-        #   - Caps the final width at 35 characters.
-        #
-        # Output:
-        #   Prints the calculated width to stdout.
-        #
-        # Returns:
-        #   0 always
     # fn: _sgnd_console_calc_label_width - Console calc label width
         # Purpose:
-        #   Calculate the label column width for visible menu items.
+        #   Handle console menu calc label width behavior.
         #
         # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #   - Uses SolidGroundUX datatable rows and schemas for structured state.
+        #
+        # Output:
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
+        #
+        # Side effects:
+        #   May update files, directories, runtime state, or process state required by the workflow.
         #
         # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
-        #   _sgnd_console_calc_label_width ...
+        #   _sgnd_console_calc_label_width
     _sgnd_console_calc_label_width() {
         local i
         local row_count=0
@@ -1015,33 +799,26 @@ set -uo pipefail
         (( max_width > 35 )) && max_width=35
         printf '%s\n' "$max_width"
     }
-
-    # _sgnd_console_find_visible_pos_for_row
-        # Purpose:
-        #   Find the visible-order position for a row index in SGND_ITEM_ROWS.
-        #
-        # Arguments:
-        #   $1  ROW_INDEX
-        #
-        # Output:
-        #   Prints the 0-based visible position.
-        #
-        # Returns:
-        #   0 if found
-        #   1 otherwise
     # fn: _sgnd_console_find_visible_pos_for_row - Console find visible pos for row
         # Purpose:
-        #   Find the visible-position index for a menu row.
+        #   Handle console menu find visible pos for row behavior.
         #
         # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #
+        # Arguments:
+        #   $1  ROW_INDEX - Zero-based datatable row index.
+        #
+        # Output:
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
         # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success.
+        #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # Usage:
-        #   _sgnd_console_find_visible_pos_for_row ...
+        #   _sgnd_console_find_visible_pos_for_row "${ROW_INDEX}"
     _sgnd_console_find_visible_pos_for_row() {
         local row_index="${1:?missing row index}"
         local i
@@ -1055,32 +832,25 @@ set -uo pipefail
 
         return 1
     }
-
-    # _sgnd_console_group_continues_after_visible_pos
-        # Purpose:
-        #   Determine whether a group has more visible items after a given visible
-        #   position in the canonical visible item order.
-        #
-        # Arguments:
-        #   $1  GROUP_KEY
-        #   $2  LAST_VISIBLE_POS
-        #
-        # Returns:
-        #   0 if the group continues on a later page
-        #   1 otherwise
     # fn: _sgnd_console_group_continues_after_visible_pos - Console group continues after visible pos
         # Purpose:
-        #   Test whether a menu group continues after the current visible position.
+        #   Handle console menu group continues after visible pos behavior.
         #
         # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #   - Uses SolidGroundUX datatable rows and schemas for structured state.
+        #
+        # Arguments:
+        #   $1  GROUP_KEY - Unique key or identifier.
+        #   $2  LAST_VISIBLE_POS - Positional value used by this function.
         #
         # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success.
+        #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # Usage:
-        #   _sgnd_console_group_continues_after_visible_pos ...
+        #   _sgnd_console_group_continues_after_visible_pos "${GROUP_KEY}" "${LAST_VISIBLE_POS}"
     _sgnd_console_group_continues_after_visible_pos() {
         local group_key="${1:?missing group key}"
         local last_visible_pos="${2:?missing visible position}"
@@ -1099,33 +869,26 @@ set -uo pipefail
 
         return 1
     }
-
-    # _sgnd_console_get_visible_display_number
-        # Purpose:
-        #   Resolve the visible numeric display number for an item row index.
-        #
-        # Arguments:
-        #   $1  ROW_INDEX   Index in SGND_ITEM_ROWS
-        #
-        # Output:
-        #   Prints the 1-based display number, or nothing if not visible.
-        #
-        # Returns:
-        #   0 if the item is in the visible numeric order
-        #   1 otherwise
     # fn: _sgnd_console_get_visible_display_number - Console get visible display number
         # Purpose:
-        #   Resolve the display number for a visible menu item.
+        #   Handle console menu get visible display number behavior.
         #
         # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #
+        # Arguments:
+        #   $1  ROW_INDEX - Zero-based datatable row index.
+        #
+        # Output:
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
         # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success.
+        #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # Usage:
-        #   _sgnd_console_get_visible_display_number ...
+        #   _sgnd_console_get_visible_display_number "${ROW_INDEX}"
     _sgnd_console_get_visible_display_number() {
         local row_index="${1:?missing row index}"
         local i
@@ -1139,36 +902,26 @@ set -uo pipefail
 
         return 1
     }
-
-    # _sgnd_console_collect_group_render_indexes
-        # Purpose:
-        #   Build the canonical render order for menu groups.
-        #
-        # Behavior:
-        #   - Includes all registered groups.
-        #   - Sorts non-builtin groups before builtin groups.
-        #   - Within each bucket, sorts by ascending ord.
-        #   - For equal ord values, preserves registration order.
-        #
-        # Output:
-        #   Populates SGND_GROUP_RENDER_INDEXES with SGND_GROUP_ROWS row indexes
-        #   in render order.
-        #
-        # Returns:
-        #   0 always
     # fn: _sgnd_console_collect_group_render_indexes - Console collect group render indexes
         # Purpose:
-        #   Collect render indexes for grouped menu output.
+        #   Render the console collect group indexes portion of the current workflow.
         #
         # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #   - Uses SolidGroundUX datatable rows and schemas for structured state.
+        #
+        # Outputs (globals):
+        #   May update SGND_* globals shown in the function body.
+        #
+        # Output:
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
         # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
-        #   _sgnd_console_collect_group_render_indexes ...
+        #   _sgnd_console_collect_group_render_indexes
     _sgnd_console_collect_group_render_indexes() {
         local i
         local row_count=0
@@ -1202,54 +955,23 @@ set -uo pipefail
             SGND_GROUP_RENDER_INDEXES+=("${sorted_rows[$i]##*|}")
         done
     }
-
-# --- Menu rendering ------------------------------------------------------------------
-    # _sgnd_console_render_menu
-        # Purpose:
-        #   Render the complete console menu for the current state.
-        #
-        # Behavior:
-        #   - Refreshes builtin labels so toggle-driven labels stay current.
-        #   - Builds the canonical group render order.
-        #   - Builds the canonical visible item order.
-        #   - Calculates the left-column render width.
-        #   - Renders the menu title, paged non-builtin body, builtin groups,
-        #     and bottom toggle bar.
-        #
-        # Inputs (globals):
-        #   SGND_GROUP_ROWS
-        #   SGND_ITEM_ROWS
-        #   SGND_GROUP_SCHEMA
-        #   SGND_ITEM_SCHEMA
-        #   SGND_RENDER_LABEL_WIDTH
-        #
-        # Outputs (globals):
-        #   SGND_RENDER_LABEL_WIDTH
-        #
-        # Side effects:
-        #   - Writes the full menu render to stdout.
-        #
-        # Returns:
-        #   0 always.
-        #
-        # Usage:
-        #   _sgnd_console_render_menu
-        #
-        # Examples:
-        #   _sgnd_console_render_menu
     # fn: _sgnd_console_render_menu - Console render menu
         # Purpose:
-        #   Render the complete console menu screen.
+        #   Render the console menu portion of the current workflow.
         #
         # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #   - Uses SolidGroundUX datatable rows and schemas for structured state.
+        #
+        # Outputs (globals):
+        #   May update SGND_* globals shown in the function body.
         #
         # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
-        #   _sgnd_console_render_menu ...
+        #   _sgnd_console_render_menu
     _sgnd_console_render_menu() {
         local idx=""
         local group_key=""
@@ -1273,31 +995,20 @@ set -uo pipefail
 
         _sgnd_console_render_togglebar
     }
-
-    # _sgnd_console_render_menu_title
-        # Purpose:
-        #   Render the console title and description banner.
-        #
-        # Behavior:
-        #   - Clears the screen first when SGND_CLEAR_ONRENDER is enabled.
-        #   - Prints the console title and description.
-        #   - Wraps them in the standard section borders.
-        #
-        # Returns:
-        #   0 always
     # fn: _sgnd_console_render_menu_title - Console render menu title
         # Purpose:
-        #   Render the console menu title area.
+        #   Render the console menu title portion of the current workflow.
         #
         # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
         # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
-        #   _sgnd_console_render_menu_title ...
+        #   _sgnd_console_render_menu_title
     _sgnd_console_render_menu_title() {
         (( ! SGND_CLEAR_ONRENDER )) || clear
         
@@ -1310,57 +1021,26 @@ set -uo pipefail
         sgnd_print_sectionheader --border "$LN_H" --maxwidth "$width"
         sgnd_print
     }
-
-    # _sgnd_console_render_menu_body_paged
-        # Purpose:
-        #   Render the current non-builtin menu page using the computed paging model.
-        #
-        # Behavior:
-        #   - Rebuilds visible item order and page starts.
-        #   - Normalizes SGND_PAGE_INDEX to a valid page.
-        #   - Determines whether previous and next pages are available.
-        #   - Selects the visible row indexes that belong to the current page.
-        #   - Delegates final row rendering to _sgnd_console_render_page_rows.
-        #
-        # Inputs (globals):
-        #   SGND_VISIBLE_ITEM_INDEXES
-        #   SGND_PAGE_STARTS
-        #   SGND_PAGE_INDEX
-        #   SGND_PAGE_MAX_ROWS
-        #   SGND_GROUP_ROWS
-        #   SGND_ITEM_ROWS
-        #   SGND_GROUP_SCHEMA
-        #   SGND_ITEM_SCHEMA
-        #
-        # Outputs (globals):
-        #   SGND_PAGE_HAS_PREV
-        #   SGND_PAGE_HAS_NEXT
-        #   SGND_PAGE_INDEX
-        #
-        # Side effects:
-        #   - Writes the paged menu body to stdout.
-        #
-        # Returns:
-        #   0 always.
-        #
-        # Usage:
-        #   _sgnd_console_render_menu_body_paged
-        #
-        # Examples:
-        #   _sgnd_console_render_menu_body_paged
     # fn: _sgnd_console_render_menu_body_paged - Console render menu body paged
         # Purpose:
-        #   Render the paged console menu body.
+        #   Render the console menu body paged portion of the current workflow.
         #
         # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #   - Uses SolidGroundUX datatable rows and schemas for structured state.
+        #
+        # Outputs (globals):
+        #   May update SGND_* globals shown in the function body.
+        #
+        # Side effects:
+        #   May update files, directories, runtime state, or process state required by the workflow.
         #
         # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
-        #   _sgnd_console_render_menu_body_paged ...
+        #   _sgnd_console_render_menu_body_paged
     _sgnd_console_render_menu_body_paged() {
         local body_height=0
         local used_lines=0
@@ -1436,59 +1116,31 @@ set -uo pipefail
 
         _sgnd_console_render_page_rows page_groups page_rows
     }
-
-    # _sgnd_console_render_page_rows
-        # Purpose:
-        #   Render a prepared set of ordered groups and item rows for one menu page.
-        #
-        # Arguments:
-        #   $1  PAGE_GROUPS_VAR
-        #       Name of the array variable containing ordered group keys.
-        #   $2  PAGE_ROWS_VAR
-        #       Name of the array variable containing ordered item row indexes.
-        #
-        # Behavior:
-        #   - Resolves group labels from SGND_GROUP_ROWS.
-        #   - Renders each group header once.
-        #   - Renders enabled items normally and disabled items faint.
-        #   - Wraps descriptions to the available right-column width.
-        #   - Appends " ....." to a group title when that group continues
-        #     on a later page.
-        #
-        # Inputs (globals):
-        #   SGND_GROUP_ROWS
-        #   SGND_ITEM_ROWS
-        #   SGND_GROUP_SCHEMA
-        #   SGND_ITEM_SCHEMA
-        #   SGND_RENDER_LABEL_WIDTH
-        #
-        # Side effects:
-        #   - Writes rendered groups and item rows to stdout.
-        #
-        # Returns:
-        #   0 always.
-        #
-        # Usage:
-        #   _sgnd_console_render_page_rows page_groups page_rows
-        #
-        # Examples:
-        #   _sgnd_console_render_page_rows page_groups page_rows
-        #
-        # Notes:
-        #   - Requires bash 4.3+ (nameref).
     # fn: _sgnd_console_render_page_rows - Console render page rows
         # Purpose:
-        #   Render all rows for the current menu page.
+        #   Render the console page rows portion of the current workflow.
         #
         # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #   - Uses SolidGroundUX datatable rows and schemas for structured state.
+        #   - Uses framework UI/output conventions for terminal or dialog interaction.
+        #
+        # Arguments:
+        #   $1  ARG1 - Positional value used by this function.
+        #   $2  ARG2 - Positional value used by this function.
+        #
+        # Output:
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
+        #
+        # Side effects:
+        #   May update files, directories, runtime state, or process state required by the workflow.
         #
         # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
-        #   _sgnd_console_render_page_rows ...
+        #   _sgnd_console_render_page_rows "${ARG1}" "${ARG2}"
     _sgnd_console_render_page_rows() {
         local -n _page_groups="$1"
         local -n _page_rows="$2"
@@ -1619,53 +1271,27 @@ set -uo pipefail
             sgnd_print
         done
     }
-
-    # _sgnd_console_render_group
-        # Purpose:
-        #   Render one complete menu group and its currently renderable items.
-        #
-        # Arguments:
-        #   $1  GROUP_KEY
-        #       Registered group key to render.
-        #
-        # Behavior:
-        #   - Skips missing or hidden groups.
-        #   - Skips groups with no visible or disabled items.
-        #   - Renders builtin items by key and non-builtin items by visible number.
-        #   - Renders disabled items faint.
-        #   - Wraps descriptions to the available right-column width.
-        #
-        # Inputs (globals):
-        #   SGND_GROUP_ROWS
-        #   SGND_ITEM_ROWS
-        #   SGND_GROUP_SCHEMA
-        #   SGND_ITEM_SCHEMA
-        #   SGND_RENDER_LABEL_WIDTH
-        #
-        # Side effects:
-        #   - Writes the rendered group to stdout.
-        #
-        # Returns:
-        #   0 always.
-        #
-        # Usage:
-        #   _sgnd_console_render_group "$group_key"
-        #
-        # Examples:
-        #   _sgnd_console_render_group "builtin"
     # fn: _sgnd_console_render_group - Console render group
         # Purpose:
-        #   Render one menu group and its visible items.
+        #   Render the console group portion of the current workflow.
         #
         # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #   - Uses SolidGroundUX datatable rows and schemas for structured state.
+        #   - Uses framework UI/output conventions for terminal or dialog interaction.
+        #
+        # Arguments:
+        #   $1  GROUP_KEY - Unique key or identifier.
+        #
+        # Output:
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
         # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
-        #   _sgnd_console_render_group ...
+        #   _sgnd_console_render_group "${GROUP_KEY}"
     _sgnd_console_render_group() {
         local group_key="${1:?missing group key}"
         local _tpad=3
@@ -1800,52 +1426,26 @@ set -uo pipefail
 
         sgnd_print
     }
-
-    # _sgnd_console_render_togglebar
-        # Purpose:
-        #   Render the bottom console status and navigation bar.
-        #
-        # Behavior:
-        #   - Builds styled status words for runtime toggles.
-        #   - Shows previous and next page indicators only when paging is active.
-        #   - Shows the current page indicator when more than one page exists.
-        #   - Centers the composed bar within the current terminal width.
-        #   - Prints a bottom border before the bar.
-        #
-        # Inputs (globals):
-        #   FLAG_DEBUG
-        #   FLAG_DRYRUN
-        #   SGND_LOGFILE_ENABLED
-        #   FLAG_VERBOSE
-        #   SGND_CLEAR_ONRENDER
-        #   SGND_PAGE_INDEX
-        #   SGND_PAGE_STARTS
-        #
-        # Side effects:
-        #   - Writes the rendered toggle bar to stdout.
-        #   - Emits debug output for page count and page index.
-        #
-        # Returns:
-        #   0 always.
-        #
-        # Usage:
-        #   _sgnd_console_render_togglebar
-        #
-        # Examples:
-        #   _sgnd_console_render_togglebar
     # fn: _sgnd_console_render_togglebar - Console render togglebar
         # Purpose:
-        #   Render the console toggle/status bar.
+        #   Render the console togglebar portion of the current workflow.
         #
         # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #   - Uses framework UI/output conventions for terminal or dialog interaction.
+        #
+        # Output:
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
+        #
+        # Side effects:
+        #   May update files, directories, runtime state, or process state required by the workflow.
         #
         # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
-        #   _sgnd_console_render_togglebar ...
+        #   _sgnd_console_render_togglebar
     _sgnd_console_render_togglebar() {
         local render_width=80
         local pad=3
@@ -1923,46 +1523,23 @@ set -uo pipefail
         sgnd_print_sectionheader --border "$DL_H" --maxwidth "$render_width"
         printf '%*s%s\n' "$left_pad" "" "$bar_text"
     }
-
-# --- Menu dispatch -------------------------------------------------------------------
-    # _sgnd_console_valid_choices_csv
+    # fn: _sgnd_console_valid_choices_csv - Console valid choices csv
         # Purpose:
-        #   Build the current valid choice list for immediate console input.
+        #   Handle console menu valid choices csv behavior.
         #
         # Behavior:
-        #   - Includes numbered choices for visible non-builtin items.
-        #   - Includes builtin item keys directly, even when hidden from the menu body.
-        #   - Returns the result as a comma-separated list.
-        #
-        # Inputs (globals):
-        #   SGND_VISIBLE_ITEM_INDEXES
-        #   SGND_ITEM_ROWS
-        #   SGND_ITEM_SCHEMA
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #   - Uses SolidGroundUX datatable rows and schemas for structured state.
         #
         # Output:
-        #   Prints a comma-separated choice list to stdout.
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
         # Returns:
-        #   0 always.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
         #   _sgnd_console_valid_choices_csv
-        #
-        # Examples:
-        #   choices="$(_sgnd_console_valid_choices_csv)"
-    # fn: _sgnd_console_valid_choices_csv - Console valid choices csv
-        # Purpose:
-        #   Build the valid-choice list for the current menu page.
-        #
-        # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
-        #
-        # Returns:
-        #   0 on success unless otherwise noted by the called command.
-        #
-        # Usage:
-        #   _sgnd_console_valid_choices_csv ...
     _sgnd_console_valid_choices_csv() {
         local i
         local out=""
@@ -1990,58 +1567,31 @@ set -uo pipefail
 
         printf '%s' "$out"
     }
-
-    # _sgnd_console_dispatch
-        # Purpose:
-        #   Dispatch a user menu choice to the matching registered handler.
-        #
-        # Arguments:
-        #   $1  CHOICE
-        #       Numeric menu selection or registered builtin item key.
-        #
-        # Behavior:
-        #   - Numeric choices resolve against the canonical visible non-builtin order.
-        #   - Hidden non-builtin items are excluded from numbering and dispatch.
-        #   - Disabled items are recognized but not executed.
-        #   - Builtin item keys remain dispatchable directly.
-        #   - Stores the selected item's waitsecs in SGND_LAST_WAITSECS before execution.
-        #
-        # Inputs (globals):
-        #   SGND_VISIBLE_ITEM_INDEXES
-        #   SGND_ITEM_ROWS
-        #   SGND_ITEM_SCHEMA
-        #
-        # Outputs (globals):
-        #   SGND_LAST_WAITSECS
-        #
-        # Side effects:
-        #   - Executes the matched handler function.
-        #   - May emit warnings for invalid or disabled selections.
-        #
-        # Returns:
-        #   Handler return code when dispatched successfully.
-        #   1 when the choice is invalid or disabled.
-        #
-        # Usage:
-        #   _sgnd_console_dispatch "$choice"
-        #
-        # Examples:
-        #   _sgnd_console_dispatch "1"
-        #
-        #   _sgnd_console_dispatch "Q"
     # fn: _sgnd_console_dispatch - Console dispatch
         # Purpose:
-        #   Dispatch a selected console menu action.
+        #   Handle console menu dispatch behavior.
         #
         # Behavior:
-        #   - Acts as a internal helper within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #   - Uses SolidGroundUX datatable rows and schemas for structured state.
+        #   - Uses framework UI/output conventions for terminal or dialog interaction.
+        #
+        # Arguments:
+        #   $1  CHOICE - Positional value used by this function.
+        #
+        # Outputs (globals):
+        #   May update SGND_* globals shown in the function body.
+        #
+        # Side effects:
+        #   May update files, directories, runtime state, or process state required by the workflow.
         #
         # Returns:
-        #   0 on success unless otherwise noted by the called command.
+        #   0 on success.
+        #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # Usage:
-        #   _sgnd_console_dispatch ...
+        #   _sgnd_console_dispatch "${CHOICE}"
     _sgnd_console_dispatch() {
         local choice="${1:?missing choice}"
         local handler=""

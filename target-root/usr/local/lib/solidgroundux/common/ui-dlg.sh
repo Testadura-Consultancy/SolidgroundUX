@@ -86,19 +86,26 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # --- Internal helpers ------------------------------------------------------------------
-    # fn: _dlg_keymap - Dlg Keymap
+    # fn: _dlg_keymap - Dlg keymap
         # Purpose:
-        #   Internal helper function for the  dlg keymap operation.
+        #   Return the dialog key/action mapping used by custom dialog controls.
         #
         # Behavior:
-        #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Preserves the existing SolidGroundUX console/UI behavior.
+        #   - Uses current palette, style, runtime, or logging globals where applicable.
+        #
+        # Arguments:
+        #   $@ - Values consumed by the helper. See usage for the expected call shape.
+        #
+        # Output:
+        #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
         #
         # Returns:
-        #   0 on success, non-zero when validation or execution fails.
+        #   0 on success.
+        #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # Usage:
-        #   _dlg_keymap [arguments...]
+        #   _dlg_keymap "$value"
     _dlg_keymap(){
         local choices="$1"
         local keymap=""
@@ -125,19 +132,26 @@ set -uo pipefail
         printf '%s' "$keymap"
     }
 
-    # fn: sgnd_decision_expand_choices - Sgnd Decision Expand Choices
+    # fn: sgnd_decision_expand_choices - Decision expand choices
         # Purpose:
-        #   Public API function for the sgnd decision expand choices operation.
+        #   Expand decision aliases into canonical/alias records.
         #
         # Behavior:
-        #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Preserves the existing SolidGroundUX console/UI behavior.
+        #   - Uses current palette, style, runtime, or logging globals where applicable.
+        #
+        # Arguments:
+        #   $@ - Values consumed by the helper. See usage for the expected call shape.
+        #
+        # Output:
+        #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
         #
         # Returns:
-        #   0 on success, non-zero when validation or execution fails.
+        #   0 on success.
+        #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # Usage:
-        #   sgnd_decision_expand_choices [arguments...]
+        #   sgnd_decision_expand_choices "$value"
     sgnd_decision_expand_choices() {
         local spec="${1-}"
         local group=""
@@ -166,19 +180,26 @@ set -uo pipefail
     }
 
 
-    # fn: sgnd_decision_normalize - Sgnd Decision Normalize
+    # fn: sgnd_decision_normalize - Decision normalize
         # Purpose:
-        #   Public API function for the sgnd decision normalize operation.
+        #   Normalize a typed decision alias to its canonical value.
         #
         # Behavior:
-        #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Preserves the existing SolidGroundUX console/UI behavior.
+        #   - Uses current palette, style, runtime, or logging globals where applicable.
+        #
+        # Arguments:
+        #   $@ - Values consumed by the helper. See usage for the expected call shape.
+        #
+        # Output:
+        #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
         #
         # Returns:
-        #   0 on success, non-zero when validation or execution fails.
+        #   0 on success.
+        #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # Usage:
-        #   sgnd_decision_normalize [arguments...]
+        #   sgnd_decision_normalize "$value"
     sgnd_decision_normalize() {
         local value="${1-}"
         local choices="${2-}"
@@ -204,19 +225,26 @@ set -uo pipefail
         return 1
     }
 
-    # fn: sgnd_decision_display_choices - Sgnd Decision Display Choices
+    # fn: sgnd_decision_display_choices - Decision display choices
         # Purpose:
-        #   Public API function for the sgnd decision display choices operation.
+        #   Build a compact display string from a decision choice specification.
         #
         # Behavior:
-        #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Preserves the existing SolidGroundUX console/UI behavior.
+        #   - Uses current palette, style, runtime, or logging globals where applicable.
+        #
+        # Arguments:
+        #   $@ - Values consumed by the helper. See usage for the expected call shape.
+        #
+        # Output:
+        #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
         #
         # Returns:
-        #   0 on success, non-zero when validation or execution fails.
+        #   0 on success.
+        #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # Usage:
-        #   sgnd_decision_display_choices [arguments...]
+        #   sgnd_decision_display_choices "$value"
     sgnd_decision_display_choices() {
         local spec="${1-}"
         local group=""
@@ -241,19 +269,26 @@ set -uo pipefail
     }
 
 
-    # fn: sgnd_decision_from_dialog_rc - Sgnd Decision From Dialog Rc
+    # fn: sgnd_decision_from_dialog_rc - Decision from dialog rc
         # Purpose:
-        #   Public API function for the sgnd decision from dialog rc operation.
+        #   Map a dialog return code to a canonical decision value.
         #
         # Behavior:
-        #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Preserves the existing SolidGroundUX console/UI behavior.
+        #   - Uses current palette, style, runtime, or logging globals where applicable.
+        #
+        # Arguments:
+        #   $@ - Values consumed by the helper. See usage for the expected call shape.
+        #
+        # Output:
+        #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
         #
         # Returns:
-        #   0 on success, non-zero when validation or execution fails.
+        #   0 on success.
+        #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # Usage:
-        #   sgnd_decision_from_dialog_rc [arguments...]
+        #   sgnd_decision_from_dialog_rc "$value"
     sgnd_decision_from_dialog_rc() {
         local rc="${1:-}"
         local choices="${2-}"
@@ -294,19 +329,26 @@ set -uo pipefail
     }
 
 # --- Public API ---------------------------------------------------------------------
-    # fn: sgnd_dlg_autocontinue - Sgnd Dlg Autocontinue
+    # fn: sgnd_dlg_autocontinue - Dlg autocontinue
         # Purpose:
-        #   Public API function for the sgnd dlg autocontinue operation.
+        #   Show an interruptible dialog-based auto-continue prompt.
         #
         # Behavior:
-        #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Preserves the existing SolidGroundUX console/UI behavior.
+        #   - Uses current palette, style, runtime, or logging globals where applicable.
+        #
+        # Arguments:
+        #   $@ - Values consumed by the helper. See usage for the expected call shape.
+        #
+        # Output:
+        #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
         #
         # Returns:
-        #   0 on success, non-zero when validation or execution fails.
+        #   0 on success.
+        #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # Usage:
-        #   sgnd_dlg_autocontinue [arguments...]
+        #   sgnd_dlg_autocontinue "$value"
     sgnd_dlg_autocontinue() {
         local seconds="${1:-5}"
         local msg="${2:-}"
@@ -343,19 +385,26 @@ set -uo pipefail
         # Return code for a custom key, or empty if not a custom key.
         # Custom keys are matched exactly as provided, but also accept case-insensitive
         # match if the provided key is alphabetic.
-        # fn: sgnd_dlg_custom_rc_for_key - Sgnd Dlg Custom Rc For Key
+        # fn: sgnd_dlg_custom_rc_for_key - Dlg custom rc for key
             # Purpose:
-            #   Public API function for the sgnd dlg custom rc for key operation.
+            #   Return the dialog return code associated with a configured key.
             #
             # Behavior:
-            #   - Performs the operation implied by its name and arguments.
-            #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
+            #   - Preserves the existing SolidGroundUX console/UI behavior.
+            #   - Uses current palette, style, runtime, or logging globals where applicable.
+            #
+            # Arguments:
+            #   $@ - Values consumed by the helper. See usage for the expected call shape.
+            #
+            # Output:
+            #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
             #
             # Returns:
-            #   0 on success, non-zero when validation or execution fails.
+            #   0 on success.
+            #   Non-zero when validation, resolution, I/O, or user cancellation fails.
             #
             # Usage:
-            #   sgnd_dlg_custom_rc_for_key [arguments...]
+            #   sgnd_dlg_custom_rc_for_key "$value"
         sgnd_dlg_custom_rc_for_key() {
             local pressed="${1:-}"
             local j=0
@@ -505,19 +554,25 @@ set -uo pipefail
         done
     }
 
-    # fn: sgnd_prompt_fromlist - Sgnd Prompt Fromlist
+    # fn: sgnd_prompt_fromlist - Prompt fromlist
         # Purpose:
-        #   Public API function for the sgnd prompt fromlist operation.
+        #   Prompt the user to select one value from a list.
         #
         # Behavior:
-        #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Preserves the existing SolidGroundUX console/UI behavior.
+        #   - Uses current palette, style, runtime, or logging globals where applicable.
+        #
+        # Options:
+        #   --labelwidth VALUE
+        #   --autoalign VALUE
+        #   --colorize VALUE
         #
         # Returns:
-        #   0 on success, non-zero when validation or execution fails.
+        #   0 on success.
+        #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # Usage:
-        #   sgnd_prompt_fromlist [arguments...]
+        #   sgnd_prompt_fromlist --labelwidth --autoalign --colorize
     sgnd_prompt_fromlist() {
         local labelwidth=0
         local autoalign=0
@@ -607,19 +662,37 @@ set -uo pipefail
         done
     }
 
-    # fn: sgnd_ask_decision - Sgnd Ask Decision
+    # fn: sgnd_ask_decision - Ask decision
         # Purpose:
-        #   Public API function for the sgnd ask decision operation.
+        #   Ask a constrained symbolic decision using the dialog helpers when available.
         #
         # Behavior:
-        #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Preserves the existing SolidGroundUX console/UI behavior.
+        #   - Uses current palette, style, runtime, or logging globals where applicable.
+        #
+        # Options:
+        #   --label VALUE
+        #   --choices VALUE
+        #   --default VALUE
+        #   --var VALUE
+        #   --seconds VALUE
+        #   --dlgchoices VALUE
+        #   --displaychoices VALUE
+        #   --colorize VALUE
+        #   --labelclr VALUE
+        #   --inputclr VALUE
+        #   --labelwidth VALUE
+        #   --pad VALUE
+        #
+        # Output:
+        #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
         #
         # Returns:
-        #   0 on success, non-zero when validation or execution fails.
+        #   0 on success.
+        #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # Usage:
-        #   sgnd_ask_decision [arguments...]
+        #   sgnd_ask_decision --label "..." --choices "..." --default "..." --var "..."
     sgnd_ask_decision() {
         local label=""
         local choices=""

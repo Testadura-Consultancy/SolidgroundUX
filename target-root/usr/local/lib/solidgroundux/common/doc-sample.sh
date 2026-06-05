@@ -38,66 +38,18 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # ==================================================================================
 set -uo pipefail
-# fn$
-# - Module sections ----------------------------------------------------------------
-# This is a level 1 section body line.
-# It belongs directly to the "Module sections" section.
-
-    # -- Level 2 section ------------------------------------------------------------
-    # This is a level 2 section body line.
-    # It demonstrates nested documentation sections.
-
-        # --- Level 3 section -------------------------------------------------------
-        # This is a level 3 section body line.
-        # It demonstrates the deepest currently supported section level.
-
-# - Style hints --------------------------------------------------------------------
-# Normal body text is rendered with the default body style.
-# : Label style
-# ! Emphasis style
-# ~ Quote style
-# - List item style
-# > Indented text style
-#
-# Style hints are written after the comment marker:
-#   # : label
-#   # ! emphasis
-#   # ~ quote
-#   # - list item
-#   # > indent
-
-# - General documentation items -----------------------------------------------------
-    # doc: overview - General documentation item
+    # fn: sample_public_function - Sample public function
         # Purpose:
-        #   Demonstrate the doc: item marker.
+        #   Sample public function.
         #
         # Behavior:
-        #   - Creates a general documentation item.
-        #   - Uses the gendoc header/body content type.
-        #   - Is useful for prose blocks that are not functions or variables.
-        #
-        # Notes:
-        #   doc: items are prose documentation items. They are not included in the
-        #   function or variable glossary.
-
-# - Function items -----------------------------------------------------------------
-    # fn: sample_public_function - Public function documentation
-        # Purpose:
-        #   Demonstrate a normal documented function.
-        #
-        # Behavior:
-        #   - Creates a function item.
-        #   - Uses the function header/body content type.
-        #   - Is included in the function glossary.
-        #
-        # Arguments:
-        #   $1  Example input value.
+        #   - Provides a public SolidGroundUX helper or command entry point.
         #
         # Returns:
-        #   0 on success.
+        #   0 on success unless the called command returns a different status.
         #
-        # Examples:
-        #   sample_public_function "value"
+        # Usage:
+        #   sample_public_function
     sample_public_function() {
         return 0
     }
@@ -115,18 +67,15 @@ set -uo pipefail
     _sample_internal_function() {
         return 0
     }
-
-    # fn$ sample_template_function - Template function documentation
+    # fn: sample_template_function - Sample template function
         # Purpose:
-        #   Demonstrate the fn$ template marker.
+        #   Sample template function.
         #
         # Behavior:
-        #   - The dollar marker means this is a template/example item.
-        #   - Template items are only shown when the module belongs to the Templates group.
+        #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Notes:
-        #   If a real module overrides this template with an actual function, document it
-        #   with fn: instead of fn$.
+        # Returns:
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
         #   sample_template_function

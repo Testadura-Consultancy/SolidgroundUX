@@ -760,28 +760,30 @@ set -uo pipefail
 
             saydebug "Header section detected: $doc_headersection"
         }
-
-        # fn: _detect_default - Emit default content for active documentation context
+        # fn: _detect_default - Detect default
             # Purpose:
-            #   Convert ordinary comment lines into documentation content when a content type is active.
+            #   Internal helper for detect default.
             #
             # Behavior:
-            #   - Skips lines already handled by earlier detectors.
-            #   - Requires an active doc_contenttype.
-            #   - Removes leading indentation, comment marker, and trailing whitespace.
-            #   - Marks the normalized line for emission.
+            #   - Supports the module implementation; not intended as a public framework API.
+            #   - Uses framework UI/output conventions for terminal or dialog interaction.
             #
-            # Inputs (globals):
-            #   src_line, src_haltlineprocessing, doc_contenttype
+            # Arguments:
+            #   $1  ARG1 - Positional value used by this function.
+            #   $2  ARG2 - Positional value used by this function.
+            #   $3  ARG3 - Positional value used by this function.
+            #   $4  ARG4 - Positional value used by this function.
+            #   $5  ARG5 - Positional value used by this function.
+            #   $6  ARG6 - Positional value used by this function.
             #
-            # Outputs (globals):
-            #   doc_content, doc_emitline
+            # Side effects:
+            #   May read, write, create, update, or remove files/directories required by the workflow.
             #
             # Returns:
-            #   0 always.
+            #   0 on success unless the called command returns a different status.
             #
             # Usage:
-            #   _detect_default
+            #   _detect_default "${ARG1}" "${ARG2}" "${ARG3}" "${ARG4}" "${ARG5}"
         _detect_default(){
             (( src_haltlineprocessing )) && return 0
 
@@ -836,27 +838,33 @@ set -uo pipefail
             doc_emitline=1
 
         }
-
-        # fn: _get_section_comments - Convert section comments into section body lines
+        # fn: _get_section_comments - Get section comments
             # Purpose:
-            #   Emit body text belonging directly to a documentation section.
+            #   Internal helper for get section comments.
             #
             # Behavior:
-            #   - Runs only when src_linetype is sectioncomment.
-            #   - Strips indentation and the comment prefix.
-            #   - Marks the normalized section body line for emission.
+            #   - Supports the module implementation; not intended as a public framework API.
+            #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+            #   - Uses SolidGroundUX datatable rows and schemas for structured state.
+            #   - Uses framework UI/output conventions for terminal or dialog interaction.
             #
-            # Inputs (globals):
-            #   src_line, src_linetype, src_haltlineprocessing
+            # Arguments:
+            #   $1  MODULE_NAME - Variable, field, or item name.
+            #   $2  GRANDPARENT_SECTION - Header section name.
+            #   $3  PARENT_SECTION - Header section name.
+            #   $4  SECTION_NAME - Variable, field, or item name.
+            #   $5  ITEM_NAME - Variable, field, or item name.
+            #   $6  CURRENTVALUE - Value to read, validate, render, or store.
             #
-            # Outputs (globals):
-            #   doc_contenttype, doc_content, doc_emitline
+            # Output:
+            #   Writes computed or formatted text to stdout/stderr as appropriate for the function.
             #
             # Returns:
-            #   0 always.
+            #   0 on success.
+            #   Non-zero when validation, resolution, user cancellation, or execution fails.
             #
             # Usage:
-            #   _get_section_comments
+            #   _get_section_comments "${MODULE_NAME}" "${GRANDPARENT_SECTION}" "${PARENT_SECTION}" "${SECTION_NAME}" "${ITEM_NAME}"
         _get_section_comments() {
             (( src_haltlineprocessing )) && return 0
 

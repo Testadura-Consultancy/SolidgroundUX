@@ -308,34 +308,27 @@ set -uo pipefail
          "  ${SGND_SCRIPT_NAME:-<script>} --log --loglevel off"
          "  ${SGND_SCRIPT_NAME:-<script>} --show env"
     ) 
-
-    # fn: sgnd_show_help - Print command-line help
+    # fn: sgnd_show_help - Show help
         # Purpose:
-        #   Render standardized command-line help for the current script.
+        #   Print usage information generated from a SolidGroundUX argument specification.
         #
         # Behavior:
-        #   - Prints script usage and description.
-        #   - Prints script-specific options from SGND_ARGS_SPEC when present.
-        #   - Optionally prints builtin framework options.
-        #   - Prints script and builtin examples when present.
+        #   - Provides a public SolidGroundUX helper or command entry point.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
         # Arguments:
-        #   $1  Include builtin options and examples flag.
-        #       Default: 1
+        #   $0  ARG0 - Positional value used by this function.
+        #   $1  INCLUDE_BUILTINS - Positional value used by this function.
         #
-        # Inputs (globals):
-        #   SGND_SCRIPT_NAME, SGND_SCRIPT_FILE, SGND_SCRIPT_DESC
-        #   SGND_ARGS_SPEC, SGND_BUILTIN_ARGS, SGND_SCRIPT_EXAMPLES, SGND_BUILTIN_EXAMPLES
-        #
-        # Output:
-        #   Writes formatted help text to the console.
+        # Side effects:
+        #   May update files, directories, runtime state, or process state required by the workflow.
         #
         # Returns:
-        #   0 always unless an underlying print helper fails.
+        #   0 on success unless the called command returns a different status.
         #
         # Usage:
-        #   sgnd_show_help
-        #   sgnd_show_help 0
+        #   sgnd_show_help "${ARG0}" "${INCLUDE_BUILTINS}"
     sgnd_show_help() {
         local include_builtins="${1:-1}"
         local script_name="${SGND_SCRIPT_NAME:-$(basename "${SGND_SCRIPT_FILE:-$0}")}"
@@ -436,32 +429,34 @@ set -uo pipefail
         sgnd_print
         sgnd_print_sectionheader
     }
-
-    # fn: sgnd_parse_args - Parse command-line arguments
+    # fn: sgnd_parse_args - Parse args
         # Purpose:
-        #   Parse framework and/or script command-line options into configured variables.
+        #   Parse command-line options according to SGND_ARG_SPEC and dispatch built-in argument handlers.
         #
         # Behavior:
-        #   - Supports long options, single-letter short options, flags, values, and enums.
-        #   - Initializes argument target variables before parsing.
-        #   - Stops at '--' and stores the remaining values as positional arguments.
-        #   - Optionally stops at the first unknown option for staged bootstrap parsing.
-        #   - Validates enum values against the configured choice list.
+        #   - Provides a public SolidGroundUX helper or command entry point.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
         # Arguments:
-        #   --stop-at-unknown  Stop parsing at the first unknown option and keep the rest.
-        #   $@                 Argument list to parse.
+        #   $1  ARG1 - Positional value used by this function.
+        #   $2  ARG2 - Positional value used by this function.
         #
         # Outputs (globals):
-        #   SGND_POSITIONAL and configured argument target variables.
+        #   May update SGND_* globals shown in the function body.
+        #
+        # Output:
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
+        #
+        # Side effects:
+        #   May update files, directories, runtime state, or process state required by the workflow.
         #
         # Returns:
-        #   0 when parsing succeeds.
-        #   1 for unknown options, missing values, invalid enum values, or invalid specs.
+        #   0 on success.
+        #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # Usage:
-        #   sgnd_parse_args "$@"
-        #   sgnd_parse_args --stop-at-unknown "$@"
+        #   sgnd_parse_args "${ARG1}" "${ARG2}"
     sgnd_parse_args() {
 
         local stop_at_unknown=0
@@ -619,28 +614,24 @@ set -uo pipefail
 
         return 0
     }
-
-    # fn: sgnd_builtinarg_handler - Execute builtin argument actions
+    # fn: sgnd_builtinarg_handler - Builtinarg handler
         # Purpose:
-        #   Apply framework-level argument side effects after parsing builtin options.
+        #   Handle built-in framework options such as help, debug, verbose, dry-run, logfile, and UI mode.
         #
         # Behavior:
-        #   - Enables logfile output when requested.
-        #   - Applies the selected console log level.
-        #   - Handles informational --show targets and exits after printing them.
-        #   - Handles --help and exits after printing usage information.
-        #   - Resets state when requested, respecting dry-run mode.
-        #
-        # Inputs (globals):
-        #   FLAG_LOG, ARG_LOGLEVEL, FLAG_HELP, ARG_SHOW, FLAG_STATERESET, FLAG_DRYRUN
+        #   - Provides a public SolidGroundUX helper or command entry point.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
         # Outputs (globals):
-        #   SGND_LOGFILE_ENABLED, SGND_LOG_LEVEL
+        #   May update SGND_* globals shown in the function body.
+        #
+        # Side effects:
+        #   May update files, directories, runtime state, or process state required by the workflow.
         #
         # Returns:
-        #   0 when no failing builtin action is requested.
-        #   1 when an unknown show target is requested.
-        #   Exits with 0 after informational builtin actions.
+        #   0 on success.
+        #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # Usage:
         #   sgnd_builtinarg_handler

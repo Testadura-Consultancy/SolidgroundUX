@@ -132,19 +132,26 @@ set -uo pipefail
         #
         # Examples:
         #   _say_should_print_console "DEBUG" || return
-    # fn: _say_should_print_console - Say Should Print Console
+    # fn: _say_should_print_console - Say should print console
         # Purpose:
-        #   Internal helper function for the  say should print console operation.
+        #   Decide whether a message type should be printed to the console.
         #
         # Behavior:
-        #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Preserves the existing SolidGroundUX console/UI behavior.
+        #   - Uses current palette, style, runtime, or logging globals where applicable.
+        #
+        # Arguments:
+        #   $@ - Values consumed by the helper. See usage for the expected call shape.
+        #
+        # Outputs (globals):
+        #   Updates SolidGroundUX UI/runtime globals documented by the function body.
         #
         # Returns:
-        #   0 on success, non-zero when validation or execution fails.
+        #   0 on success.
+        #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # Usage:
-        #   _say_should_print_console [arguments...]
+        #   _say_should_print_console "$value"
     _say_should_print_console() {
         local type="${1^^}"
         local level="${SGND_LOG_LEVEL:-normal}"
@@ -193,19 +200,26 @@ set -uo pipefail
         #
         # Examples:
         #   caller="$(_say_caller)"
-    # fn: _say_caller - Say Caller
+    # fn: _say_caller - Say caller
         # Purpose:
-        #   Internal helper function for the  say caller operation.
+        #   Determine the script or function context that emitted a say message.
         #
         # Behavior:
-        #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Preserves the existing SolidGroundUX console/UI behavior.
+        #   - Uses current palette, style, runtime, or logging globals where applicable.
+        #
+        # Arguments:
+        #   $@ - Values consumed by the helper. See usage for the expected call shape.
+        #
+        # Output:
+        #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
         #
         # Returns:
-        #   0 on success, non-zero when validation or execution fails.
+        #   0 on success.
+        #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # Usage:
-        #   _say_caller [arguments...]
+        #   _say_caller "$value"
     _say_caller() {
         local i
         for ((i=1; i<${#FUNCNAME[@]}; i++)); do
@@ -253,19 +267,29 @@ set -uo pipefail
         #
         # Examples:
         #   _say_write_log "FAIL" "Connection error" "$(date)"
-    # fn: _say_write_log - Say Write Log
+    # fn: _say_write_log - Say write log
         # Purpose:
-        #   Internal helper function for the  say write log operation.
+        #   Append a formatted say message to the active SolidGroundUX log file.
         #
         # Behavior:
-        #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Preserves the existing SolidGroundUX console/UI behavior.
+        #   - Uses current palette, style, runtime, or logging globals where applicable.
+        #
+        # Arguments:
+        #   $@ - Values consumed by the helper. See usage for the expected call shape.
+        #
+        # Output:
+        #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
+        #
+        # Outputs (globals):
+        #   Updates SolidGroundUX UI/runtime globals documented by the function body.
         #
         # Returns:
-        #   0 on success, non-zero when validation or execution fails.
+        #   0 on success.
+        #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # Usage:
-        #   _say_write_log [arguments...]
+        #   _say_write_log "$value"
     _say_write_log() {
         local type="${1^^}"
         local msg="$2"
@@ -313,19 +337,26 @@ set -uo pipefail
         printf '%s\n' "$log_line" >>"$logfile" 2>/dev/null || true
     }
 
-    # fn: _sgnd_rotate_logs - Sgnd Rotate Logs
+    # fn: _sgnd_rotate_logs - Rotate logs
         # Purpose:
-        #   Internal helper function for the  sgnd rotate logs operation.
+        #   Rotate log files when log retention settings require it.
         #
         # Behavior:
-        #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Preserves the existing SolidGroundUX console/UI behavior.
+        #   - Uses current palette, style, runtime, or logging globals where applicable.
+        #
+        # Arguments:
+        #   $@ - Values consumed by the helper. See usage for the expected call shape.
+        #
+        # Outputs (globals):
+        #   Updates SolidGroundUX UI/runtime globals documented by the function body.
         #
         # Returns:
-        #   0 on success, non-zero when validation or execution fails.
+        #   0 on success.
+        #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # Usage:
-        #   _sgnd_rotate_logs [arguments...]
+        #   _sgnd_rotate_logs "$value"
     _sgnd_rotate_logs() {
             # Usage: _sgnd_rotate_logs "/path/to/logfile"
             local logfile="$1"
@@ -361,19 +392,26 @@ set -uo pipefail
             rm -f -- "${logfile}.$((SGND_LOG_KEEP+1))" "${logfile}.$((SGND_LOG_KEEP+1)).gz" 2>/dev/null || true
     }
 
-    # fn: _sgnd_logfile - Sgnd Logfile
+    # fn: _sgnd_logfile - Logfile
         # Purpose:
-        #   Internal helper function for the  sgnd logfile operation.
+        #   Resolve the active SolidGroundUX log file path.
         #
         # Behavior:
-        #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Preserves the existing SolidGroundUX console/UI behavior.
+        #   - Uses current palette, style, runtime, or logging globals where applicable.
+        #
+        # Arguments:
+        #   $@ - Values consumed by the helper. See usage for the expected call shape.
+        #
+        # Output:
+        #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
         #
         # Returns:
-        #   0 on success, non-zero when validation or execution fails.
+        #   0 on success.
+        #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # Usage:
-        #   _sgnd_logfile [arguments...]
+        #   _sgnd_logfile "$value"
     _sgnd_logfile() {
         
         # Determine logfile path according to priority:
@@ -392,19 +430,29 @@ set -uo pipefail
         return 1
     }
 
-    # fn: _sayprogress_write_slot - Sayprogress Write Slot
+    # fn: _sayprogress_write_slot - Sayprogress write slot
         # Purpose:
-        #   Internal helper function for the  sayprogress write slot operation.
+        #   Render one progress slot in the active sayprogress line.
         #
         # Behavior:
-        #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Preserves the existing SolidGroundUX console/UI behavior.
+        #   - Uses current palette, style, runtime, or logging globals where applicable.
+        #
+        # Arguments:
+        #   $@ - Values consumed by the helper. See usage for the expected call shape.
+        #
+        # Output:
+        #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
+        #
+        # Outputs (globals):
+        #   Updates SolidGroundUX UI/runtime globals documented by the function body.
         #
         # Returns:
-        #   0 on success, non-zero when validation or execution fails.
+        #   0 on success.
+        #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # Usage:
-        #   _sayprogress_write_slot [arguments...]
+        #   _sayprogress_write_slot "$value"
     _sayprogress_write_slot() {
         local slot="${1:-0}"
         local text="${2:-}"
@@ -429,19 +477,29 @@ set -uo pipefail
 
         SGND_LINEBREAK_PENDING=1
     }
-    # fn: _sgnd_ensure_linebreak - Sgnd Ensure Linebreak
+    # fn: _sgnd_ensure_linebreak - Ensure linebreak
         # Purpose:
-        #   Internal helper function for the  sgnd ensure linebreak operation.
+        #   Ensure the next message starts on a clean line after progress output.
         #
         # Behavior:
-        #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Preserves the existing SolidGroundUX console/UI behavior.
+        #   - Uses current palette, style, runtime, or logging globals where applicable.
+        #
+        # Arguments:
+        #   $@ - Values consumed by the helper. See usage for the expected call shape.
+        #
+        # Output:
+        #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
+        #
+        # Outputs (globals):
+        #   Updates SolidGroundUX UI/runtime globals documented by the function body.
         #
         # Returns:
-        #   0 on success, non-zero when validation or execution fails.
+        #   0 on success.
+        #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # Usage:
-        #   _sgnd_ensure_linebreak [arguments...]
+        #   _sgnd_ensure_linebreak "$value"
     _sgnd_ensure_linebreak() {
         if (( ${SGND_LINEBREAK_PENDING:-0} )); then
             printf '\n' >&2
@@ -1008,36 +1066,40 @@ set -uo pipefail
     }
 
     # -- Convenience wrappers for say() with a fixed TYPE.
-        # fn: sayinfo - Sayinfo
-            # Purpose:
-            #   Public API function for the sayinfo operation.
-            #
-            # Behavior:
-            #   - Performs the operation implied by its name and arguments.
-            #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
-            #
-            # Returns:
-            #   0 on success, non-zero when validation or execution fails.
-            #
-            # Usage:
-            #   sayinfo [arguments...]
+            # fn: sayinfo - Write an informational message
+                # Purpose:
+                #   Write a normal informational message through the SolidGroundUX message layer.
+                #
+                # Arguments:
+                #   $@ - Message text to write.
+                #
+                # Output:
+                #   Writes the formatted message to the configured console/log targets.
+                #
+                # Returns:
+                #   0 when the message was handled.
+                #
+                # Usage:
+                #   sayinfo "Workspace created"
         sayinfo() {
             say INFO "$@"
         }
 
-        # fn: saystart - Saystart
-            # Purpose:
-            #   Public API function for the saystart operation.
-            #
-            # Behavior:
-            #   - Performs the operation implied by its name and arguments.
-            #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
-            #
-            # Returns:
-            #   0 on success, non-zero when validation or execution fails.
-            #
-            # Usage:
-            #   saystart [arguments...]
+            # fn: saystart - Write a start/progress message
+                # Purpose:
+                #   Announce the start of an operation through the SolidGroundUX message layer.
+                #
+                # Arguments:
+                #   $@ - Message text to write.
+                #
+                # Output:
+                #   Writes the formatted start message to the configured console/log targets.
+                #
+                # Returns:
+                #   0 when the message was handled.
+                #
+                # Usage:
+                #   saystart "Installing framework files"
         saystart() {
             say STRT "$@"
         }
@@ -1058,70 +1120,78 @@ set -uo pipefail
             say WARN "$@"
         }
 
-        # fn: sayfail - Sayfail
-            # Purpose:
-            #   Public API function for the sayfail operation.
-            #
-            # Behavior:
-            #   - Performs the operation implied by its name and arguments.
-            #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
-            #
-            # Returns:
-            #   0 on success, non-zero when validation or execution fails.
-            #
-            # Usage:
-            #   sayfail [arguments...]
+            # fn: sayfail - Write a failure message
+                # Purpose:
+                #   Report a failed operation through the SolidGroundUX message layer.
+                #
+                # Arguments:
+                #   $@ - Message text to write.
+                #
+                # Output:
+                #   Writes the formatted failure message to the configured console/log targets.
+                #
+                # Returns:
+                #   0 when the message was handled.
+                #
+                # Usage:
+                #   sayfail "Checksum validation failed"
         sayfail() {
             say FAIL "$@"
         }
 
-        # fn: saycancel - Saycancel
-            # Purpose:
-            #   Public API function for the saycancel operation.
-            #
-            # Behavior:
-            #   - Performs the operation implied by its name and arguments.
-            #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
-            #
-            # Returns:
-            #   0 on success, non-zero when validation or execution fails.
-            #
-            # Usage:
-            #   saycancel [arguments...]
+            # fn: saycancel - Write a cancellation message
+                # Purpose:
+                #   Report a cancelled operation through the SolidGroundUX message layer.
+                #
+                # Arguments:
+                #   $@ - Message text to write.
+                #
+                # Output:
+                #   Writes the formatted cancellation message to the configured console/log targets.
+                #
+                # Returns:
+                #   0 when the message was handled.
+                #
+                # Usage:
+                #   saycancel "Deployment cancelled by user"
         saycancel() {
             say CNCL "$@"
         }
 
-        # fn: sayok - Sayok
-            # Purpose:
-            #   Public API function for the sayok operation.
-            #
-            # Behavior:
-            #   - Performs the operation implied by its name and arguments.
-            #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
-            #
-            # Returns:
-            #   0 on success, non-zero when validation or execution fails.
-            #
-            # Usage:
-            #   sayok [arguments...]
+            # fn: sayok - Write a success message
+                # Purpose:
+                #   Report a successful operation through the SolidGroundUX message layer.
+                #
+                # Arguments:
+                #   $@ - Message text to write.
+                #
+                # Output:
+                #   Writes the formatted success message to the configured console/log targets.
+                #
+                # Returns:
+                #   0 when the message was handled.
+                #
+                # Usage:
+                #   sayok "Installation complete"
         sayok() {
             say OK "$@"
         }
 
-        # fn: sayend - Sayend
-            # Purpose:
-            #   Public API function for the sayend operation.
-            #
-            # Behavior:
-            #   - Performs the operation implied by its name and arguments.
-            #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
-            #
-            # Returns:
-            #   0 on success, non-zero when validation or execution fails.
-            #
-            # Usage:
-            #   sayend [arguments...]
+            # fn: sayend - Write an operation-complete message
+                # Purpose:
+                #   Mark the end of an operation through the SolidGroundUX message layer.
+                #
+                # Arguments:
+                #   $@ - Message text to write.
+                #
+                # Output:
+                #   Writes the formatted end message to the configured console/log targets.
+                #
+                # Returns:
+                #   0 when the message was handled.
+                #
+                # Usage:
+                #   sayend "Workspace deployment finished"
         sayend() {
             say END "$@"
         }
@@ -1138,36 +1208,40 @@ set -uo pipefail
             #
             # Examples:
             #   justsay "Raw output"
-        # fn: justsay - Justsay
-            # Purpose:
-            #   Public API function for the justsay operation.
-            #
-            # Behavior:
-            #   - Performs the operation implied by its name and arguments.
-            #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
-            #
-            # Returns:
-            #   0 on success, non-zero when validation or execution fails.
-            #
-            # Usage:
-            #   justsay [arguments...]
+            # fn: justsay - Write plain message text
+                # Purpose:
+                #   Write message text without applying a semantic say-state such as ok, fail, or warning.
+                #
+                # Arguments:
+                #   $@ - Message text to write.
+                #
+                # Output:
+                #   Writes the message to the configured console/log targets.
+                #
+                # Returns:
+                #   0 when the message was handled.
+                #
+                # Usage:
+                #   justsay "Raw status line"
         justsay() {
             printf '%s\n' "$@"
         }
 
-        # fn: saydebug - Saydebug
-            # Purpose:
-            #   Public API function for the saydebug operation.
-            #
-            # Behavior:
-            #   - Performs the operation implied by its name and arguments.
-            #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
-            #
-            # Returns:
-            #   0 on success, non-zero when validation or execution fails.
-            #
-            # Usage:
-            #   saydebug [arguments...]
+            # fn: saydebug - Write a debug message
+                # Purpose:
+                #   Write diagnostic output when debug messaging is enabled by the runtime configuration.
+                #
+                # Arguments:
+                #   $@ - Debug message text to write.
+                #
+                # Output:
+                #   Writes the debug message to the configured console/log targets when enabled.
+                #
+                # Returns:
+                #   0 when the message was ignored or handled.
+                #
+                # Usage:
+                #   saydebug "Resolved install root: $install_root"
         saydebug() {
             if [[ "${SGND_LOG_LEVEL:-normal}" == "debug" ]]; then
                 local src="${BASH_SOURCE[1]##*/}"

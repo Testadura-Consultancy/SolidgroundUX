@@ -1172,6 +1172,31 @@ body {
     margin-top: 28px;
 }
 
+.doc-title-page-summary {
+    margin-top: 36px;
+}
+
+.doc-summary-table {
+    border-collapse: collapse;
+    margin-top: 12px;
+    min-width: 420px;
+}
+
+.doc-summary-table th,
+.doc-summary-table td {
+    border: 1px solid #d0d0d0;
+    padding: 8px 12px;
+}
+
+.doc-summary-table th {
+    text-align: left;
+}
+
+.doc-summary-table td {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
 """
 
 
@@ -1184,6 +1209,102 @@ body {
                 return row.get("content", "") or fallback
         return fallback
 
+    def regular_module_rows(self) -> List[Row]:
+        rows: List[Row] = []
+
+        for product_name, product_modules in self.modules_by_product().items():
+            _product_specials, _group_specials, normal_modules = self.split_special_comment_modules(
+                product_name,
+                product_modules,
+            )
+            rows.extend(normal_modules)
+
+        return rows
+
+    def count_source_lines(self, source_path: str) -> tuple[int, int]:
+        if not source_path:
+            return (0, 0)
+
+        path = Path(source_path)
+        if not path.exists():
+            return (0, 0)
+
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError:
+            return (0, 0)
+
+        line_count = len(lines)
+        code_line_count = 0
+
+        for line in lines:
+            stripped = line.strip()
+            if not stripped:
+                continue
+            if stripped.startswith("#"):
+                continue
+            code_line_count += 1
+
+        return (line_count, code_line_count)
+
+    def collect_landing_summary(self) -> Dict[str, int]:
+        module_rows = self.regular_module_rows()
+        source_files = {row.get("file", "") for row in module_rows if row.get("file", "")}
+        documented_modules = {row.get("name", "") for row in module_rows if row.get("name", "")}
+
+        total_lines = 0
+        total_code_lines = 0
+
+        for source_file in sorted(source_files):
+            line_count, code_line_count = self.count_source_lines(source_file)
+            total_lines += line_count
+            total_code_lines += code_line_count
+
+        function_count = 0
+        for item in self.mod_items:
+            if item.get("type", "") != "function":
+                continue
+            if item.get("modulename", "") not in documented_modules:
+                continue
+            function_count += 1
+
+        return {
+            "modules": len(module_rows),
+            "lines": total_lines,
+            "code_lines": total_code_lines,
+            "functions": function_count,
+        }
+
+    def render_landing_summary(self) -> str:
+        summary = self.collect_landing_summary()
+
+        rows = [
+            ("Modules", summary["modules"]),
+            ("Lines of code", summary["lines"]),
+            ("Lines of code excluding comments", summary["code_lines"]),
+            ("Functions", summary["functions"]),
+        ]
+
+        lines = [
+            '<section class="doc-title-page-summary">',
+            '<h2 class="ct-L2Sectionheader">Documentation summary</h2>',
+            '<table class="doc-summary-table">',
+            '<tbody>',
+        ]
+
+        for label, value in rows:
+            lines.append(
+                f'<tr><td>{esc(label)}</td><td>{value:,}</td></tr>'
+            )
+
+        lines.extend([
+            '</tbody>',
+            '</table>',
+            '</section>',
+        ])
+
+        return "\n".join(lines)
+
     def render_title_page(self) -> None:
         output_file = self.page_dir / "title.html"
         output_file.parent.mkdir(parents=True, exist_ok=True)
@@ -1195,6 +1316,8 @@ body {
         if self.doc_version:
             meta_lines.append(f'<div class="ct-documentbody"><strong>Version:</strong> {esc(self.doc_version)}</div>')
         meta_lines.append(f'<div class="ct-documentbody"><strong>Generated:</strong> {esc(self.doc_render_date)}</div>')
+
+        summary_html = self.render_landing_summary()
 
         html_lines = [
             "<!doctype html>",
@@ -1213,6 +1336,7 @@ body {
             '<div class="doc-title-page-meta">',
             *meta_lines,
             '</div>',
+            summary_html,
             "</main>",
             "</body>",
             "</html>",

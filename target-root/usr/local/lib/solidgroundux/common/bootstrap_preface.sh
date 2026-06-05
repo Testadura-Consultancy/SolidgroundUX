@@ -42,11 +42,11 @@
 # > Conceptually, the startup sequence is:
 #   
 # >     Script starts
-#          ↓
+# >         ↓
 # >     Bootstrap file is located
 # >        ↓
 # >     Bootstrap environment is initialized
-#          ↓
+# >        ↓
 # >     Standard SolidGroundUX globals are prepared
 #          ↓
 # >     Built-in command-line arguments are registered
