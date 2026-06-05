@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =====================================================================================
-# SolidgroundUX - Uninstall Installed Release
+# SolidGroundUX - Uninstall Installed Release
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
@@ -8,11 +8,11 @@
 #   Checksum    : -
 #   Source      : sgnd-uninstall.sh
 #   Type        : script
-#   Purpose     : Uninstall a previously installed SolidgroundUX release from a target root
+#   Purpose     : Uninstall a previously installed SolidGroundUX release from a target root
 #   Group       : Deployment
 #
 # Description:
-#   Standalone uninstaller for SolidgroundUX installed release records.
+#   Standalone uninstaller for SolidGroundUX installed release records.
 #
 #   The script:
 #     - Reads installed release metadata from the target system

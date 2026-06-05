@@ -1,5 +1,5 @@
 # =====================================================================================
-# SolidgroundUX - UI Rendering
+# SolidGroundUX - UI Rendering
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
@@ -12,7 +12,7 @@
 #
 # Description:
 #   Provides the core rendering layer for styled terminal output within
-#   the SolidgroundUX framework.
+#   the SolidGroundUX framework.
 #
 #   The library:
 #     - Defines reusable rendering helpers for text and layout
@@ -28,7 +28,7 @@
 #   - Consistent rendering semantics across all console tools
 #
 # Role in framework:
-#   - Core visual layer for console-based SolidgroundUX tooling
+#   - Core visual layer for console-based SolidGroundUX tooling
 #   - Supports higher-level interaction modules such as ui-ask and sgnd-console
 #
 # Non-goals:
@@ -40,8 +40,8 @@
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
 #   Client      : -
-#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
-#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------
@@ -116,7 +116,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -137,7 +137,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -171,7 +171,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -226,7 +226,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -243,7 +243,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -263,7 +263,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -356,7 +356,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -374,7 +374,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -438,7 +438,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -472,7 +472,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -490,7 +490,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -573,7 +573,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -647,7 +647,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -730,7 +730,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -824,7 +824,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -908,7 +908,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -988,7 +988,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -1062,7 +1062,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -1090,7 +1090,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -1189,7 +1189,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -1197,7 +1197,7 @@ set -uo pipefail
         # Usage:
         #   sgnd_color_samples [arguments...]
     sgnd_color_samples(){
-        printf '\n%s\n\n' "---- Available foreground colors & effects in SolidgroundUX ----"
+        printf '\n%s\n\n' "---- Available foreground colors & effects in SolidGroundUX ----"
 
         sgnd_sample_row	BLUE	BRIGHT_BLUE	    DARK_BLUE	    BG_BLUE	    BG_DARK_BLUE
         sgnd_sample_row	BROWN	BRIGHT_BROWN	DARK_BROWN      BG_BROWN	BG_DARK_BROWN
@@ -1221,7 +1221,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -1278,7 +1278,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.

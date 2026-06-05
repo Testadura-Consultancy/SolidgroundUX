@@ -30,3 +30,4 @@ target-root/var/lib/solidgroundux/releases/*.sha256
 # Allow installer scripts
 !target-root/var/lib/solidgroundux/releases/sgnd-install.sh
 !target-root/var/lib/solidgroundux/releases/sgnd-uninstall.sh
+!target-root/var/lib/solidgroundux/releases/deployment_preface.sh

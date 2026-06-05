@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =====================================================================================
-# SolidgroundUX - Create Workspace
+# SolidGroundUX - Create Workspace
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
@@ -8,7 +8,7 @@
 #   Checksum    : -
 #   Source      : create-workspace.sh
 #   Type        : script
-#   Group       : Developer Tools
+#   Group       : SDK Tools
 #   Purpose     : Create a new development workspace from templates
 #
 # Description:
@@ -24,7 +24,7 @@
 #
 # Design principles:
 #   - Workspace creation is deterministic and repeatable
-#   - Follows SolidgroundUX project conventions
+#   - Follows SolidGroundUX project conventions
 #   - Supports dry-run for all filesystem operations
 #
 # Role in framework:
@@ -39,8 +39,8 @@
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
 #   Client      : -
-#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
-#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
 # --- Bootstrap -----------------------------------------------------------------------
@@ -69,7 +69,7 @@ set -uo pipefail
         #   _framework_locator || return $?
         #
         # Examples:
-        # fn$ _framework_locator - Locate the SolidgroundUX framework root
+        # fn$ _framework_locator - Locate the SolidGroundUX framework root
         #
         # Notes:
         #   - Under sudo, configuration is resolved relative to SUDO_USER instead of /root.
@@ -187,7 +187,7 @@ set -uo pipefail
         #   _load_bootstrapper || return $?
         #
         # Examples:
-        # fn$ _load_bootstrapper - Load the SolidgroundUX bootstrapper
+        # fn$ _load_bootstrapper - Load the SolidGroundUX bootstrapper
         #
         # Notes:
         #   - This is executable-level startup logic, not reusable framework behavior.
@@ -359,8 +359,8 @@ set -uo pipefail
     : "${SGND_SCRIPT_BUILD:=20250110}"    
     : "${SGND_SCRIPT_DEVELOPERS:=Mark Fieten}"
     : "${SGND_SCRIPT_COMPANY:=Testadura Consultancy}"
-    : "${SGND_SCRIPT_COPYRIGHT:=© 2025 Mark Fieten — Testadura Consultancy}"
-    : "${SGND_SCRIPT_LICENSE:=Testadura Non-Commercial License (TD-NC) v1.0}"
+    : "${SGND_SCRIPT_COPYRIGHT:=© 2025 - 2026 Testadura Consultancy}"
+    : "${SGND_SCRIPT_LICENSE:=Testadura Non-Commercial License (TD-NC) v1.1."
    
 # --- Script metadata (framework integration) -----------------------------------------
     # SGND_USING

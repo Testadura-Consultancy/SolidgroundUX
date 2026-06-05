@@ -1,5 +1,5 @@
 # =====================================================================================
-# SolidgroundUX - Datatable
+# SolidGroundUX - Datatable
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
@@ -28,7 +28,7 @@
 #   - Lightweight implementation without external dependencies
 #
 # Role in framework:
-#   - Core data structure used across SolidgroundUX tooling
+#   - Core data structure used across SolidGroundUX tooling
 #   - Backbone for metadata parsing, UI rendering, and data exchange
 #
 # Non-goals:
@@ -40,8 +40,8 @@
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
 #   Client      : -
-#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
-#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
 

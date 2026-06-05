@@ -1,5 +1,5 @@
 # =====================================================================================
-# SolidgroundUX - Default UI Style
+# SolidGroundUX - Default UI Style
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
@@ -11,7 +11,7 @@
 #   Purpose     : Define default UI layout, spacing, and styling conventions
 #
 # Description:
-#   Provides the default layout and styling rules used by the SolidgroundUX UI layer.
+#   Provides the default layout and styling rules used by the SolidGroundUX UI layer.
 #
 #   The library:
 #     - Defines spacing, padding, and alignment conventions
@@ -40,8 +40,8 @@
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
 #   Client      : -
-#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
-#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 
 # --- Message type labels and icons ---------------------------------------------------

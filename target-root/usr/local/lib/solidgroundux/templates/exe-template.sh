@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =====================================================================================
-# SolidgroundUX - Executable Script Template
+# SolidGroundUX - Executable Script Template
 # ------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
@@ -37,8 +37,8 @@
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
 #   Client      : -
-#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
-#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
 # - Bootstrap -----------------------------------------------------------------------

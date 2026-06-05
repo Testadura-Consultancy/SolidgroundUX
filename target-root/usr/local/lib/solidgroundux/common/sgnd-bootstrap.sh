@@ -1,5 +1,5 @@
 # =====================================================================================
-# SolidgroundUX - Bootstrap Core
+# SolidGroundUX - Bootstrap Core
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
@@ -8,10 +8,10 @@
 #   Source      : sgnd-bootstrap.sh
 #   Type        : library
 #   Group       : Bootstrap
-#   Purpose     : Initialize the SolidgroundUX framework and load core modules
+#   Purpose     : Initialize the SolidGroundUX framework and load core modules
 #
 # Description:
-#   Provides the central bootstrap mechanism for all SolidgroundUX scripts.
+#   Provides the central bootstrap mechanism for all SolidGroundUX scripts.
 #
 #   The library:
 #     - Orchestrates framework initialization sequence
@@ -28,7 +28,7 @@
 #   - Minimal assumptions about script context
 #
 # Role in framework:
-#   - Central orchestrator of the SolidgroundUX runtime
+#   - Central orchestrator of the SolidGroundUX runtime
 #   - Bridges bootstrap environment, argument parsing, and module loading
 #   - Ensures every script runs within a fully initialized framework context
 #
@@ -41,8 +41,8 @@
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
 #   Client      : -
-#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
-#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
 # --- Library guard -------------------------------------------------------------------
@@ -547,7 +547,7 @@ set -uo pipefail
 
     # fn: sgnd_on_exit_install - Install the framework exit dispatcher
         # Purpose:
-        #   Register the SolidgroundUX exit handler dispatcher exactly once.
+        #   Register the SolidGroundUX exit handler dispatcher exactly once.
         #
         # Behavior:
         #   - Returns without action when the dispatcher was already installed.
@@ -836,7 +836,7 @@ set -uo pipefail
     }
     
 # --- Main ----------------------------------------------------------------------------
-    # fn: sgnd_bootstrap - Initialize the SolidgroundUX runtime
+    # fn: sgnd_bootstrap - Initialize the SolidGroundUX runtime
         # Purpose:
         #   Run the standard framework startup sequence for executable scripts.
         #

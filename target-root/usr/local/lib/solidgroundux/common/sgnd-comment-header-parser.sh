@@ -1,5 +1,5 @@
 # =====================================================================================
-# SolidgroundUX - Header Parser
+# SolidGroundUX - Header Parser
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
@@ -7,12 +7,12 @@
 #   Checksum    : -
 #   Source      : sgnd-comment-header-parser.sh
 #   Type        : library
-#   Group       : Developer Tools
-#   Purpose     : Read, parse, and update canonical script header comments in SolidgroundUX files
+#   Group       : Common Core
+#   Purpose     : Read, parse, and update canonical script header comments in SolidGroundUX files
 #
 # Description:
 #   Provides parsing, lookup, and update utilities for canonical script header comments
-#   used throughout the SolidgroundUX framework.
+#   used throughout the SolidGroundUX framework.
 #
 #   The library:
 #     - Detects top-level canonical header sections
@@ -43,8 +43,8 @@
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
 #   Client      : -
-#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
-#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 
 set -uo pipefail

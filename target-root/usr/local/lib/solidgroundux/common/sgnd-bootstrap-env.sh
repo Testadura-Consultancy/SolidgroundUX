@@ -1,5 +1,5 @@
 # =====================================================================================
-# SolidgroundUX - Bootstrap Environment
+# SolidGroundUX - Bootstrap Environment
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
@@ -11,7 +11,7 @@
 #   Purpose     : Initialize framework environment variables and directory structure
 #
 # Description:
-#   Establishes the runtime environment for SolidgroundUX scripts.
+#   Establishes the runtime environment for SolidGroundUX scripts.
 #
 #   The library:
 #     - Defines and initializes core framework directories
@@ -40,8 +40,8 @@
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
 #   Client      : -
-#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
-#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------
@@ -88,12 +88,12 @@ set -uo pipefail
         # Purpose:
         #   Define product, version, license, and documentation identity used by
         #   framework metadata, informational output, and license checks.
-    SGND_PRODUCT="SolidgroundUX"
+    SGND_PRODUCT="SolidGroundUX"
     SGND_VERSION="1.5"
     SGND_VERSION_DATE="2026-01-08"
     SGND_COMPANY="Testadura Consultancy"
-    SGND_COPYRIGHT="© 2025 Mark Fieten — Testadura Consultancy"
-    SGND_LICENSE="Testadura Non-Commercial License (TD-NC) v1.0"
+    SGND_COPYRIGHT="© 2025 - 2026 Testadura Consultancy"
+    SGND_LICENSE="Testadura Non-Commercial License (TD-NC) v1.1."
     SGND_LICENSE_FILE="LICENSE"
     SGND_LICENSE_ACCEPTED=0
     SGND_README_FILE="README.md"

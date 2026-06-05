@@ -1,5 +1,5 @@
 # =====================================================================================
-# SolidgroundUX - Framework Information
+# SolidGroundUX - Framework Information
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
@@ -11,7 +11,7 @@
 #   Purpose     : Provide framework metadata and runtime information helpers
 #
 # Description:
-#   Exposes information about the SolidgroundUX framework and runtime environment.
+#   Exposes information about the SolidGroundUX framework and runtime environment.
 #
 #   The library:
 #     - Provides access to framework identity (name, version, paths)
@@ -39,8 +39,8 @@
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
 #   Client      : -
-#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
-#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
 

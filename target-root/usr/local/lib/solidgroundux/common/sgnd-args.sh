@@ -1,5 +1,5 @@
 # =====================================================================================
-# SolidgroundUX - Argument Parsing
+# SolidGroundUX - Argument Parsing
 # -------------------------------------------------------------------------------------
 # Metadata: 
 #   Version     : 1.5
@@ -11,7 +11,7 @@
 #   Purpose     : Parse and manage command-line arguments for scripts
 #
 # Description:
-#   Provides a structured argument parsing system for SolidgroundUX scripts.
+#   Provides a structured argument parsing system for SolidGroundUX scripts.
 #
 #   The library:
 #     - Parses short and long command-line arguments
@@ -41,8 +41,8 @@
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
 #   Client      : -
-#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
-#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------

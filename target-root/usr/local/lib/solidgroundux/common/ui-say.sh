@@ -1,5 +1,5 @@
 # =====================================================================================
-# SolidgroundUX - UI Messaging
+# SolidGroundUX - UI Messaging
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
@@ -27,7 +27,7 @@
 #   - Keep output predictable and script-friendly
 #
 # Role in framework:
-#   - Core messaging layer used by all SolidgroundUX scripts
+#   - Core messaging layer used by all SolidGroundUX scripts
 #   - Serves as the primary mechanism for user-facing output and diagnostics
 #   - Works alongside ui.sh for rendering and formatting
 #
@@ -45,8 +45,8 @@
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
 #   Client      : -
-#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
-#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
 
@@ -138,7 +138,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -199,7 +199,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -259,7 +259,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -319,7 +319,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -367,7 +367,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -398,7 +398,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -435,7 +435,7 @@ set -uo pipefail
         #
         # Behavior:
         #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
         #
         # Returns:
         #   0 on success, non-zero when validation or execution fails.
@@ -452,17 +452,63 @@ set -uo pipefail
 # --- Public API ---------------------------------------------------------------------
     # fn: say - Say
         # Purpose:
-        #   Public API function for the say operation.
+        #   Emit a standardized SolidGroundUX console message.
         #
         # Behavior:
-        #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Renders a message using the framework message style maps.
+        #   - Supports typed messages such as INFO, STRT, WARN, FAIL, CNCL, OK, END,
+        #     DEBUG, and EMPTY.
+        #   - Accepts the message type either as a positional first argument or through
+        #     the --type option.
+        #   - Applies optional date, label, icon, and symbol prefixes according to the
+        #     active style configuration.
+        #   - Applies optional colorization to the label, message, date, or all visible
+        #     message parts.
+        #   - Respects SGND_LOG_LEVEL for console visibility.
+        #   - Writes to the logfile when logfile output is enabled, even when console
+        #     output is suppressed by the current log level.
+        #   - Ensures pending progress output is followed by a clean line break before
+        #     printing a normal message.
+        #
+        # Arguments:
+        #   $1...  TYPE and/or MESSAGE
+        #          When the first positional argument is a known message type, it is
+        #          treated as TYPE and the remaining arguments form the message.
+        #          Otherwise all positional arguments form the message and TYPE defaults
+        #          to EMPTY.
+        #
+        # Options:
+        #   --type TYPE
+        #       Explicitly set the message type.
+        #
+        #   --date
+        #       Prefix the message with the current date/time using SAY_DATE_FORMAT.
+        #
+        #   --show VALUE
+        #       Select which prefix elements are shown. Supported values are label,
+        #       icon, symbol, all, or combinations using comma or plus separators.
+        #
+        #   --colorize VALUE
+        #       Select which parts are colorized. Supported values are none, label,
+        #       msg, date, both, and all.
+        #
+        # Inputs (globals):
+        #   SAY_DATE_DEFAULT, SAY_SHOW_DEFAULT, SAY_COLORIZE_DEFAULT, SAY_DATE_FORMAT
+        #   SGND_LOG_LEVEL, SGND_LOGFILE_ENABLED, SGND_LINEBREAK_PENDING
+        #   LBL_*, ICO_*, SYM_*, MSG_CLR_*, RESET
+        #
+        # Outputs:
+        #   Prints the rendered message to stdout when allowed by SGND_LOG_LEVEL.
+        #   Appends a best-effort logfile record when logfile output is enabled.
         #
         # Returns:
-        #   0 on success, non-zero when validation or execution fails.
+        #   0 always. Unknown message types are normalized to EMPTY.
         #
         # Usage:
-        #   say [arguments...]
+        #   say INFO "Starting workspace deployment"
+        #   say --type WARN --date "Configuration file not found"
+        #   say --show label,icon --colorize all OK "Deployment completed"
+        #   say "Plain output without a message prefix"
     say() {
       # -- Declarations
         local type="EMPTY"
@@ -662,19 +708,70 @@ set -uo pipefail
         _say_write_log "$type" "$msg" "$date_str"
     }
 
+    # doc: sayprogress usage patterns - Sayprogress Usage Patterns
+        # Purpose:
+        #   Describe the intended usage patterns for the sayprogress family.
+        #
+        # Details:
+        #   sayprogress renders one or more transient progress lines. It is useful for
+        #   long-running loops where the user should see progress without flooding the
+        #   console with a new line for every iteration.
+        #
+        #   For simple one-line progress output, sayprogress can be called directly.
+        #   When no progress region has been reserved yet, the first call automatically
+        #   reserves enough space for the requested slot.
+        #
+        # Usage pattern - simple progress:
+        #   total=100
+        #   for ((i=1; i<=total; i++)); do
+        #       sayprogress --current "$i" --total "$total" --label "Processing files"
+        #   done
+        #   sayprogress_done
+        #
+        #   For multi-line progress output, reserve the required number of slots first.
+        #   Each subsequent sayprogress call targets a slot. Slot numbering starts at 0.
+        #
+        # Usage pattern - multiple progress lines:
+        #   sayprogress_begin --slots 2
+        #   for ((i=1; i<=total; i++)); do
+        #       sayprogress --slot 0 --current "$i" --total "$total" --label "Copying files"
+        #       sayprogress --slot 1 --current "$i" --total "$total" --label "Updating metadata"
+        #   done
+        #   sayprogress_done
+        #
+        # Notes:
+        #   - Always call sayprogress_done when a progress region has been used.
+        #   - Normal say output will force a line break when progress output is pending.
+        #   - The --type option is a bit mask: 1 shows current/total, 2 shows percent,
+        #     and 4 shows the progress bar. The default value 7 shows all three.
+        #   - Use --width to control the progress bar width and --padleft to indent
+        #     the rendered progress line.
+
     # fn: sayprogress_begin - Sayprogress Begin
         # Purpose:
-        #   Public API function for the sayprogress begin operation.
+        #   Reserve one or more console lines for transient progress output.
         #
         # Behavior:
-        #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Prints the requested number of blank lines to stderr.
+        #   - Moves the cursor back up to the start of the reserved progress region.
+        #   - Stores the reserved slot count in SGND_PROGRESS_RESERVED.
+        #   - Marks a pending line break so later normal messages can restore clean
+        #     output formatting.
+        #
+        # Options:
+        #   --slots COUNT
+        #       Number of progress lines to reserve. Values less than 1 are normalized
+        #       to 1.
+        #
+        # Outputs:
+        #   Writes terminal cursor control sequences to stderr.
         #
         # Returns:
-        #   0 on success, non-zero when validation or execution fails.
+        #   0 on success.
+        #   1 when an unknown argument is supplied.
         #
         # Usage:
-        #   sayprogress_begin [arguments...]
+        #   sayprogress_begin --slots 2
     sayprogress_begin() {
         local slots=1
 
@@ -701,17 +798,57 @@ set -uo pipefail
 
     # fn: sayprogress - Sayprogress
         # Purpose:
-        #   Public API function for the sayprogress operation.
+        #   Render or update a transient progress line.
         #
         # Behavior:
-        #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Calculates progress from --current and --total.
+        #   - Optionally renders current/total, percentage, and a progress bar.
+        #   - Writes the rendered line into the selected progress slot.
+        #   - Automatically reserves a progress region when none exists yet.
+        #   - Clamps invalid progress values to safe ranges.
+        #
+        # Options:
+        #   --current VALUE
+        #       Current progress value. Values below 0 are normalized to 0.
+        #
+        #   --total VALUE
+        #       Total progress value. Values below 1 are normalized to 1.
+        #
+        #   --label TEXT
+        #       Text appended to the progress indicators.
+        #
+        #   --type MASK
+        #       Bit mask controlling visible indicators. 1 shows current/total,
+        #       2 shows percentage, and 4 shows the progress bar.
+        #
+        #   --barcolor VALUE
+        #       Color token used for the progress bar.
+        #
+        #   --labelcolor VALUE
+        #       Color token used for the label.
+        #
+        #   --indicatorcolor VALUE
+        #       Color token used for numeric progress indicators.
+        #
+        #   --padleft COUNT
+        #       Number of spaces to prefix before the progress text.
+        #
+        #   --slot INDEX
+        #       Reserved progress slot to update. Slot numbering starts at 0.
+        #
+        #   --width COUNT
+        #       Width of the progress bar.
+        #
+        # Outputs:
+        #   Writes terminal cursor control sequences and progress text to stderr.
         #
         # Returns:
-        #   0 on success, non-zero when validation or execution fails.
+        #   0 on success.
+        #   1 when an unknown argument is supplied.
         #
         # Usage:
-        #   sayprogress [arguments...]
+        #   sayprogress --current 25 --total 100 --label "Processing"
+        #   sayprogress --slot 1 --current "$done" --total "$total" --type 3
     sayprogress() {
         local current=0
         local slot=0
@@ -831,17 +968,21 @@ set -uo pipefail
 
     # fn: sayprogress_done - Sayprogress Done
         # Purpose:
-        #   Public API function for the sayprogress done operation.
+        #   Clear the reserved progress region and return output to normal flow.
         #
         # Behavior:
-        #   - Performs the operation implied by its name and arguments.
-        #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+        #   - Clears all reserved progress slots.
+        #   - Moves the cursor below the progress region.
+        #   - Resets SGND_PROGRESS_RESERVED and SGND_LINEBREAK_PENDING.
+        #
+        # Outputs:
+        #   Writes terminal cursor control sequences to stderr.
         #
         # Returns:
-        #   0 on success, non-zero when validation or execution fails.
+        #   0 always.
         #
         # Usage:
-        #   sayprogress_done [arguments...]
+        #   sayprogress_done
     sayprogress_done() {
         local slots="${SGND_PROGRESS_RESERVED:-1}"
         local i
@@ -873,7 +1014,7 @@ set -uo pipefail
             #
             # Behavior:
             #   - Performs the operation implied by its name and arguments.
-            #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+            #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
             #
             # Returns:
             #   0 on success, non-zero when validation or execution fails.
@@ -890,7 +1031,7 @@ set -uo pipefail
             #
             # Behavior:
             #   - Performs the operation implied by its name and arguments.
-            #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+            #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
             #
             # Returns:
             #   0 on success, non-zero when validation or execution fails.
@@ -923,7 +1064,7 @@ set -uo pipefail
             #
             # Behavior:
             #   - Performs the operation implied by its name and arguments.
-            #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+            #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
             #
             # Returns:
             #   0 on success, non-zero when validation or execution fails.
@@ -940,7 +1081,7 @@ set -uo pipefail
             #
             # Behavior:
             #   - Performs the operation implied by its name and arguments.
-            #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+            #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
             #
             # Returns:
             #   0 on success, non-zero when validation or execution fails.
@@ -957,7 +1098,7 @@ set -uo pipefail
             #
             # Behavior:
             #   - Performs the operation implied by its name and arguments.
-            #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+            #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
             #
             # Returns:
             #   0 on success, non-zero when validation or execution fails.
@@ -974,7 +1115,7 @@ set -uo pipefail
             #
             # Behavior:
             #   - Performs the operation implied by its name and arguments.
-            #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+            #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
             #
             # Returns:
             #   0 on success, non-zero when validation or execution fails.
@@ -1003,7 +1144,7 @@ set -uo pipefail
             #
             # Behavior:
             #   - Performs the operation implied by its name and arguments.
-            #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+            #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
             #
             # Returns:
             #   0 on success, non-zero when validation or execution fails.
@@ -1020,7 +1161,7 @@ set -uo pipefail
             #
             # Behavior:
             #   - Performs the operation implied by its name and arguments.
-            #   - Uses SolidgroundUX UI, logging, or bootstrap conventions where applicable.
+            #   - Uses SolidGroundUX UI, logging, or bootstrap conventions where applicable.
             #
             # Returns:
             #   0 on success, non-zero when validation or execution fails.

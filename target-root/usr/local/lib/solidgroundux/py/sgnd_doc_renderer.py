@@ -1690,7 +1690,12 @@ body {
 
         title = self.title_from_rows(node.contentref, node.node_title or node.node_name)
         breadcrumb = self.breadcrumb_from_contentref(node.contentref)
-        body = self.render_content_for_ref(node.contentref, skip_first_header=True)
+
+        if self.is_module_level_special_page(node):
+            module_name = node.contentref.split(":", 1)[0]
+            body = self.render_module_content(module_name, skip_first_header=True)
+        else:
+            body = self.render_content_for_ref(node.contentref, skip_first_header=True)
 
         html_lines = [
             "<!doctype html>",
@@ -1770,11 +1775,32 @@ body {
 
         return " / ".join(part for part in breadcrumb_parts if part)
 
-    def render_content_for_ref(self, ref: str, skip_first_header: bool = False) -> str:
+    def is_module_level_special_page(self, node: NavNode) -> bool:
+        if node.nodetype not in {"preface", "epilogue", "documentation"}:
+            return False
+
+        parts = node.contentref.split(":")
+        while len(parts) < 5:
+            parts.append("")
+
+        return bool(parts[0]) and not any(parts[1:5])
+
+    def render_module_content(self, module_name: str, skip_first_header: bool = False) -> str:
+        rows = sorted(
+            [row for row in self.doc_content_lines if row.get("file", "") == module_name],
+            key=lambda row: (
+                int(row.get("source_linenr", "0") or "0"),
+                int(row.get("doc_linenr", "0") or "0"),
+            ),
+        )
+
+        return self.render_rows(rows, skip_first_header=skip_first_header)
+
+    def render_rows(self, rows: Sequence[Row], skip_first_header: bool = False) -> str:
         lines: List[str] = []
         skipped_first_header = False
 
-        for row in self.content_by_ref.get(ref, []):
+        for row in rows:
             if row.get("suppress", "0") == "1":
                 continue
 
@@ -1782,6 +1808,7 @@ body {
             if skip_first_header and not skipped_first_header and content_type.endswith("header"):
                 skipped_first_header = True
                 continue
+
             style_hint = row.get("stylehint", "normal") or "normal"
             content = row.get("content", "")
 
@@ -1793,6 +1820,9 @@ body {
             lines.append(f'<div class="{esc(css_class)}">{esc(content)}</div>')
 
         return "\n".join(lines)
+
+    def render_content_for_ref(self, ref: str, skip_first_header: bool = False) -> str:
+        return self.render_rows(self.content_by_ref.get(ref, []), skip_first_header=skip_first_header)
 
 
 def main(argv: Sequence[str]) -> int:

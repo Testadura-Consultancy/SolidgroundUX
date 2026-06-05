@@ -1,5 +1,5 @@
 # =====================================================================================
-# SolidgroundUX - Core Utilities
+# SolidGroundUX - Core Utilities
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
@@ -11,7 +11,7 @@
 #   Purpose     : Provide foundational utility functions and shared primitives
 #
 # Description:
-#   Contains the lowest-level generic helpers used throughout the SolidgroundUX
+#   Contains the lowest-level generic helpers used throughout the SolidGroundUX
 #   framework.
 #
 #   The library:
@@ -41,8 +41,8 @@
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
 #   Client      : -
-#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
-#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
 

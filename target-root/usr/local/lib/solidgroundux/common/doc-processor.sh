@@ -1,5 +1,5 @@
 # ==================================================================================
-# SolidgroundUX - Document processor
+# SolidGroundUX - Document processor
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
@@ -7,7 +7,7 @@
 #   Checksum    : -
 #   Source      : doc-processor.sh
 #   Type        : library
-#   Group       : Developer Tools
+#   Group       : SDK Documentation
 #   Purpose     : Parse source files for structured comments and assemble normalized
 #                 documentation data
 #
@@ -49,8 +49,8 @@
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
 #   Client      : -
-#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
-#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # ==================================================================================
 set -uo pipefail
 # - Library guard ------------------------------------------------------------------
@@ -227,7 +227,7 @@ set -uo pipefail
         #       2. Module title
         #
         #     Example:
-        #       # SolidgroundUX - Library Template
+        #       # SolidGroundUX - Library Template
         #
         #   _rgx_headersectionheader
         #     Matches comment section headers and captures the section name.

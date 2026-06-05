@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =====================================================================================
-# SolidgroundUX - Documentation Generator Script
+# SolidGroundUX - Documentation Generator Script
 # ------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
@@ -8,7 +8,7 @@
 #   Checksum    : -
 #   Source      : doc-generator.sh
 #   Type        : script
-#   Group       : Developer Tools
+#   Group       : SDK Documentation
 #   Purpose     : Collect and prepare documentation data from source files using the SolidGroundUX framework.
 #
 # Description:
@@ -40,14 +40,14 @@
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
 #   Client      : -
-#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
-#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
 # - Bootstrap -----------------------------------------------------------------------
     # Some extra comments to be added in the bootstrapsection
     # could be multiple lines
-    # fn$ _framework_locator - Locate the SolidgroundUX framework root
+    # fn$ _framework_locator - Locate the SolidGroundUX framework root
         # Purpose:
         #   Locate, create, and load the SolidGroundUX bootstrap configuration.
         #
@@ -163,7 +163,7 @@ set -uo pipefail
 
     }
 
-    # fn$ _load_bootstrapper - Load the SolidgroundUX bootstrapper
+    # fn$ _load_bootstrapper - Load the SolidGroundUX bootstrapper
         # Purpose:
         #   Resolve and source the framework bootstrap library.
         #

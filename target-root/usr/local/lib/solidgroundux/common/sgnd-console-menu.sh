@@ -1,12 +1,12 @@
 # =====================================================================================
-# SolidgroundUX - Console Menu System
+# SolidGroundUX - Console Menu System
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
 #   Build       : 2615600
 #   Checksum    : -
 #   Source      : sgnd-console-menu.sh
-#   Group       : Solidground Console
+#   Group       : SolidGround Console
 #   Type        : library
 #   Purpose     : Provide menu definition and rendering logic for sgnd-console
 #
@@ -40,8 +40,8 @@
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
 #   Client      : -
-#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
-#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------

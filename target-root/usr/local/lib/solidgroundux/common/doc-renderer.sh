@@ -1,5 +1,5 @@
 # ==================================================================================
-# SolidgroundUX - Documentation Renderer
+# SolidGroundUX - Documentation Renderer
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
@@ -7,7 +7,7 @@
 #   Checksum    : -
 #   Source      : doc-renderer.sh
 #   Type        : library
-#   Group       : Developer Tools
+#   Group       : SDK Documentation
 #   Purpose     : Prepare normalized parser data and invoke the documentation renderer
 #
 # Description:
@@ -34,8 +34,8 @@
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
 #   Client      : -
-#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
-#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # ==================================================================================
 set -uo pipefail
 # - Library guard ------------------------------------------------------------------

@@ -1,5 +1,5 @@
 # =====================================================================================
-# SolidgroundUX - Monochrome Black Style
+# SolidGroundUX - Monochrome Black Style
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
@@ -11,7 +11,7 @@
 #   Purpose     : Alternative style for testing purposes
 #
 # Description:
-#   Provides the default layout and styling rules used by the SolidgroundUX UI layer.
+#   Provides the default layout and styling rules used by the SolidGroundUX UI layer.
 #
 # Non-goals:
 #   A pretty or sensible style
@@ -20,8 +20,8 @@
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
 #   Client      : -
-#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
-#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 # --- say() global defaults ----------------------------------------------------
     SAY_DATE_DEFAULT=0     # 0 = no date, 1 = add date

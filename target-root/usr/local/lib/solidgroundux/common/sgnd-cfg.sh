@@ -1,5 +1,5 @@
 # =====================================================================================
-# SolidgroundUX - Configuration Management
+# SolidGroundUX - Configuration Management
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
@@ -11,7 +11,7 @@
 #   Purpose     : Load, manage, and persist configuration settings
 #
 # Description:
-#   Provides configuration handling for the SolidgroundUX framework.
+#   Provides configuration handling for the SolidGroundUX framework.
 #
 #   The library:
 #     - Loads configuration from system and user locations
@@ -41,8 +41,8 @@
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
 #   Client      : -
-#   Copyright   : © 2025 Mark Fieten — Testadura Consultancy
-#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------
@@ -560,138 +560,26 @@ set -uo pipefail
 
         generated="$(date '+%Y-%m-%d %H:%M:%S')"
 
-        printf '# =====================================================================================
-'
-        printf '# SolidgroundUX - %s configuration (%s)
-' "$domain" "$audience"
-        printf '# -------------------------------------------------------------------------------------
-'
-        printf '# Generated   : %s
-' "$generated"
-        printf '#
-'
-        printf '# Description:
-'
-        printf '#   Auto-generated configuration template based on current defaults.
-'
-        printf '#
-'
-        printf '# Precedence:
-'
-        printf '#   - System configuration is loaded first when present
-'
-        printf '#   - User configuration is loaded after system configuration
-'
-        printf '#   - User values override system values
-'
-        printf '#
-'
-        printf '# Notes:
-'
-        printf '#   - This file may be edited safely
-'
-        printf '#   - Only KEY=VALUE lines are processed
-'
-        printf '#   - Missing values fall back to in-memory defaults
-'
-        printf '# =====================================================================================
-
-'
-    }
-
-    # fn: sgnd_cfg_create_missing_domain_files - Cfg create missing domain files
-        # Purpose:
-        #   Create missing system and user configuration files for a configuration domain.
-        #
-        # Behavior:
-        #   - Acts as a public API function within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
-        #
-        # Returns:
-        #   0 on success unless otherwise noted by the called command.
-        #
-        # Usage:
-        #   sgnd_cfg_create_missing_domain_files ...
-    sgnd_cfg_create_missing_domain_files() {
-        local domain="${1:-}"
-        local syscfg="${2:-}"
-        local usrcfg="${3:-}"
-        local spec_array_name="${4:-}"
-        local mode="${5:-script}"
-
-        [[ -n "$domain" && -n "$spec_array_name" ]] || return 1
-
-        local is_root=0
-        (( EUID == 0 )) && is_root=1
-
-        if sgnd_cfg_has_audience "$spec_array_name" "system"; then
-            if (( is_root )) && [[ -n "$syscfg" && ! -f "$syscfg" ]]; then
-                sgnd_ensure_writable_dir "$(dirname -- "$syscfg")" || return 1
-                sgnd_cfg_write_skeleton_filtered "$syscfg" "system" "$spec_array_name" "$domain" || return 1
-                sayinfo "[$domain] created system cfg: $syscfg"
-            fi
-        fi
-
-        if sgnd_cfg_has_audience "$spec_array_name" "user"; then
-            if [[ -n "$usrcfg" && ! -f "$usrcfg" ]]; then
-                sgnd_ensure_writable_dir "$(dirname -- "$usrcfg")" || return 1
-                sgnd_cfg_write_skeleton_filtered "$usrcfg" "user" "$spec_array_name" "$domain" || return 1
-                sayinfo "[$domain] created user cfg: $usrcfg"
-            fi
-        fi
-
-        if sgnd_cfg_has_audience "$spec_array_name" "system" && [[ -n "$syscfg" && ! -f "$syscfg" ]] && (( ! is_root )); then
-            saydebug "[$domain] system cfg missing but not created because current session is not root"
-        fi
-
-        return 0
-    }
-
-    # fn: sgnd_cfg_write_skeleton_filtered - Cfg write skeleton filtered
-        # Purpose:
-        #   Write a filtered configuration skeleton for selected variables and audience.
-        #
-        # Behavior:
-        #   - Acts as a public API function within this module.
-        #   - Uses framework conventions for return codes and diagnostic output.
-        #
-        # Returns:
-        #   0 on success unless otherwise noted by the called command.
-        #
-        # Usage:
-        #   sgnd_cfg_write_skeleton_filtered ...
-    sgnd_cfg_write_skeleton_filtered() {
-        local file="${1:-}"
-        local audience_want="${2:-}"
-        local spec_array_name="${3:-}"
-        local domain="${4:-configuration}"
-
-        [[ -n "$file" && -n "$audience_want" && -n "$spec_array_name" ]] || return 1
-
-        local -n specs="$spec_array_name"
-
-        {
-            _sgnd_cfg_write_template_header "$domain" "$audience_want"
-
-            local spec audience var desc extra val
-            for spec in "${specs[@]}"; do
-                IFS='|' read -r audience var desc extra <<< "$spec"
-                [[ -n "$var" ]] || continue
-
-                case "$audience" in
-                    "$audience_want"|both)
-                        printf '# %s
-' "${desc:-$var}"
-                        val="${!var:-}"
-                        printf '%s=%s
-
-' "$var" "$val"
-                        ;;
-                esac
-            done
-        } > "$file"
-
-        return 0
+        printf '%s\n' \
+            '# =====================================================================================' \
+            "# SolidGroundUX - ${domain} configuration (${audience})" \
+            '# -------------------------------------------------------------------------------------' \
+            "# Generated   : ${generated}" \
+            '#' \
+            '# Description:' \
+            '#   Auto-generated configuration template based on current defaults.' \
+            '#' \
+            '# Precedence:' \
+            '#   - System configuration is loaded first when present' \
+            '#   - User configuration is loaded after system configuration' \
+            '#   - User values override system values' \
+            '#' \
+            '# Notes:' \
+            '#   - This file may be edited safely' \
+            '#   - Only KEY=VALUE lines are processed' \
+            '#   - Missing values fall back to in-memory defaults' \
+            '# =====================================================================================' \
+            ''
     }
 
     # fn: sgnd_cfg_load_file - Cfg load file

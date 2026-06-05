@@ -34,13 +34,13 @@ dsc=$WHITE
 rst=$RESET
 
 printf "=========================================================================================\n"
-printf " ${ttl}SolidgroundUX %s${rst}\n\n" "$SGND_VERSION"
+printf " ${ttl}SolidGroundUX %s${rst}\n\n" "$SGND_VERSION"
 printf " ${lbl}Build date :${rst} %s\n" "$SGND_VERSION_DATE"
 printf "\n"
-printf " © 2025 Mark Fieten — Testadura Consultancy\n"
-printf " Licensed under the Testadura Non-Commercial License (TD-NC) v1.0.\n"
+printf " © 2025 - 2026 Testadura Consultancy\n"
+printf " Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.\n"
 printf "-----------------------------------------------------------------------------------------\n\n"
-printf "${lbl}SolidgroundUX${rst} provides a structured runtime for disciplined Bash tooling.\n\n"
+printf "${lbl}SolidGroundUX${rst} provides a structured runtime for disciplined Bash tooling.\n\n"
 printf "  • Deterministic bootstrap lifecycle\n"
 printf "  • Declarative argument parsing\n"
 printf "  • Unified state and configuration handling\n"

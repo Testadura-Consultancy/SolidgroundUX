@@ -1,15 +1,15 @@
 
 # ==================================================================================
-# SolidGroundUX - UI Framework
+# SolidGroundUX - Setup and Update
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
 #   Build       : 2615600
 #   Checksum    : -
-#   Source      : ui_preface.sh
+#   Source      : sdk documentation_preface.sh
 #   Type        : documentation
-#   Group       : UI
-#   Purpose     : Product preface
+#   Group       : Deployment
+#   Purpose     : Group preface
 #
 # Attribution:
 #   Developers  : Mark Fieten

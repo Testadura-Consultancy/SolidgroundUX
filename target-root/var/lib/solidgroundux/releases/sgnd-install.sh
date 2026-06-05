@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =====================================================================================
-# SolidgroundUX - Install Release Package
+# SolidGroundUX - Install Release Package
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
@@ -8,11 +8,11 @@
 #   Checksum    : -
 #   Source      : sgnd-install.sh
 #   Type        : script
-#   Purpose     : Install a packaged SolidgroundUX release into a target root
+#   Purpose     : Install a packaged SolidGroundUX release into a target root
 #   Group       : Deployment
 #
 # Description:
-#   Standalone installer for SolidgroundUX release archives.
+#   Standalone installer for SolidGroundUX release archives.
 #
 #   The script:
 #     - Scans a releases directory for .tar.gz release archives
