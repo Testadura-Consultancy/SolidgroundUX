@@ -40,6 +40,7 @@ Row = Dict[str, str]
 ATTRIBUTION_PREFIX = "appendix:attribution:"
 GLOSSARY_PREFIX = "appendix:glossary:"
 INTEGRITY_PREFIX = "appendix:integrity:"
+GLOBALS_PREFIX = "appendix:globals:"
 
 
 def read_psv(path: Path, *, required: bool = True) -> List[Row]:
@@ -126,6 +127,10 @@ def integrity_ref(product_name: str) -> str:
     return f"{INTEGRITY_PREFIX}{product_name}"
 
 
+def globals_ref(product_name: str) -> str:
+    return f"{GLOBALS_PREFIX}{product_name}"
+
+
 def page_href_from_contentref(ref: str) -> str:
     return f"pages/{slugify(ref)}.html"
 
@@ -170,6 +175,7 @@ class DocRenderer:
         self.mod_sections: List[Row] = []
         self.mod_items: List[Row] = []
         self.mod_attribution: List[Row] = []
+        self.mod_globals: List[Row] = []
         self.doc_content_lines: List[Row] = []
         self.config: Dict[str, str] = {}
 
@@ -197,6 +203,7 @@ class DocRenderer:
         self.mod_sections = read_psv(self.input_dir / "mod_sections.psv")
         self.mod_items = read_psv(self.input_dir / "mod_items.psv")
         self.mod_attribution = read_psv(self.input_dir / "mod_attribution.psv", required=False)
+        self.mod_globals = read_psv(self.input_dir / "mod_globals.psv", required=False)
         self.doc_content_lines = read_psv(self.input_dir / "doc_content_lines.psv")
         self.config = read_config(self.input_dir / "render_config.psv")
 
@@ -392,6 +399,19 @@ class DocRenderer:
                     hierarchy_level=2,
                     docindex=f"{appendices_docindex}.3",
                     contentref=integrity_ref(product_name),
+                )
+            )
+
+            self.nav.append(
+                NavNode(
+                    nodeid=f"appendix:{product_name}:globals",
+                    parentnodeid=appendices_node_id,
+                    nodetype="appendix",
+                    node_name="Appendix D: Global Variables",
+                    node_title="Appendix D: Global Variables",
+                    hierarchy_level=2,
+                    docindex=f"{appendices_docindex}.4",
+                    contentref=globals_ref(product_name),
                 )
             )
 
@@ -1227,7 +1247,7 @@ body {
         index_file.write_text("\n".join(html_lines), encoding="utf-8")
 
     def has_renderable_page(self, ref: str) -> bool:
-        return ref.startswith(ATTRIBUTION_PREFIX) or ref.startswith(GLOSSARY_PREFIX) or ref.startswith(INTEGRITY_PREFIX) or ref in self.content_by_ref
+        return ref.startswith(ATTRIBUTION_PREFIX) or ref.startswith(GLOSSARY_PREFIX) or ref.startswith(INTEGRITY_PREFIX) or ref.startswith(GLOBALS_PREFIX) or ref in self.content_by_ref
 
     def render_navigation(self) -> str:
         lines: List[str] = []
@@ -1270,7 +1290,7 @@ body {
                     f'href="{esc(href)}" target="docframe">{esc(label)}</a>'
                 )
 
-            elif self.has_renderable_page(node.contentref):
+            elif self.has_renderable_page(node.contentref) or self.is_module_level_special_page(node):
                 lines.append(
                     f'<a class="doc-nav-section type-{type_class}{special_class}" style="{style}" '
                     f'href="{esc(href)}" target="docframe">{esc(label)}</a>'
@@ -1297,7 +1317,7 @@ body {
                 return page_href_from_contentref(node.contentref)
 
         for node in self.nav:
-            if node.contentref and (node.contentref.startswith(ATTRIBUTION_PREFIX) or node.contentref.startswith(GLOSSARY_PREFIX) or node.contentref.startswith(INTEGRITY_PREFIX)):
+            if node.contentref and (node.contentref.startswith(ATTRIBUTION_PREFIX) or node.contentref.startswith(GLOSSARY_PREFIX) or node.contentref.startswith(INTEGRITY_PREFIX) or node.contentref.startswith(GLOBALS_PREFIX)):
                 return page_href_from_contentref(node.contentref)
 
         return "about:blank"
@@ -1311,13 +1331,14 @@ body {
             self.render_attribution_page(product_name)
             self.render_glossary_page(product_name)
             self.render_integrity_page(product_name)
+            self.render_globals_page(product_name)
 
         for node in self.nav:
             if not node.contentref:
                 continue
-            if node.contentref.startswith(ATTRIBUTION_PREFIX) or node.contentref.startswith(GLOSSARY_PREFIX) or node.contentref.startswith(INTEGRITY_PREFIX):
+            if node.contentref.startswith(ATTRIBUTION_PREFIX) or node.contentref.startswith(GLOSSARY_PREFIX) or node.contentref.startswith(INTEGRITY_PREFIX) or node.contentref.startswith(GLOBALS_PREFIX):
                 continue
-            if node.contentref not in self.content_by_ref:
+            if node.contentref not in self.content_by_ref and not self.is_module_level_special_page(node):
                 continue
 
             self.render_content_page(node)
@@ -1681,6 +1702,134 @@ body {
             '</table>',
         ])
 
+        return "\n".join(lines)
+
+    def render_globals_page(self, product_name: str) -> None:
+        ref = globals_ref(product_name)
+        href = page_href_from_contentref(ref)
+        output_file = self.output_dir / href
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+
+        body = self.render_globals_body(product_name)
+
+        html_lines = [
+            "<!doctype html>",
+            "<html>",
+            "<head>",
+            '  <meta charset="utf-8">',
+            "  <title>Appendix D: Global Variables</title>",
+            '  <link rel="stylesheet" href="../assets/doc.css">',
+            '  <link rel="stylesheet" href="../assets/theme.css">',
+            "</head>",
+            "<body>",
+            '<main class="doc-page">',
+            '<header class="doc-page-header">',
+            '  <div class="doc-title">Appendix D: Global Variables</div>',
+            f'  <div class="doc-breadcrumb">{esc(product_name)} / Appendices / Appendix D: Global Variables</div>',
+            "</header>",
+            body,
+            "</main>",
+            "</body>",
+            "</html>",
+        ]
+
+        output_file.write_text("\n".join(html_lines), encoding="utf-8")
+
+    def render_globals_body(self, product_name: str) -> str:
+        modules_by_name: Dict[str, Row] = {
+            module.get("name", ""): module
+            for module in self.mod_table
+            if module.get("name", "")
+        }
+
+        rows: List[Row] = []
+        for global_row in self.mod_globals:
+            module_name = global_row.get("modulename", "")
+            module = modules_by_name.get(module_name, {})
+            row_product = module.get("product", "") or self.doc_product or "Documentation"
+
+            if row_product != product_name:
+                continue
+
+            rows.append({
+                "scope": global_row.get("scope", ""),
+                "audience": global_row.get("audience", ""),
+                "name": global_row.get("name", ""),
+                "description": global_row.get("description", ""),
+                "extra": global_row.get("extra", ""),
+                "currentvalue": global_row.get("currentvalue", ""),
+                "module": module_name,
+                "group": module.get("group", ""),
+            })
+
+        lines: List[str] = [
+            '<div class="ct-documentbody">This appendix lists global variables declared through SGND_FRAMEWORK_GLOBALS, SGND_RUNTIME_GLOBALS, and SGND_SCRIPT_GLOBALS.</div>',
+        ]
+
+        if not rows:
+            lines.append('<div class="ct-documentbody">No global variable declarations were exported.</div>')
+            return "\n".join(lines)
+
+        framework_rows = [row for row in rows if row.get("scope", "") == "framework"]
+        runtime_rows = [row for row in rows if row.get("scope", "") == "runtime"]
+        script_rows = [row for row in rows if row.get("scope", "") == "script"]
+        other_rows = [row for row in rows if row.get("scope", "") not in {"framework", "runtime", "script"}]
+
+        lines.append(self.render_globals_table("Framework Globals", framework_rows))
+        lines.append(self.render_globals_table("Runtime Globals", runtime_rows))
+        lines.append(self.render_globals_table("Script Globals", script_rows))
+
+        if other_rows:
+            lines.append(self.render_globals_table("Other Globals", other_rows))
+
+        return "\n".join(lines)
+
+    def render_globals_table(self, title: str, rows: List[Row]) -> str:
+        lines: List[str] = [
+            '<section class="doc-globals-block">',
+            f'<h2 class="ct-L2Sectionheader">{esc(title)}</h2>',
+        ]
+
+        if not rows:
+            lines.extend([
+                '<div class="ct-documentbody">No entries found.</div>',
+                '</section>',
+            ])
+            return "\n".join(lines)
+
+        rows = sorted(
+            rows,
+            key=lambda row: (
+                row.get("group", "").casefold(),
+                row.get("module", "").casefold(),
+                row.get("name", "").casefold(),
+            ),
+        )
+
+        lines.extend([
+            '<table class="doc-data-table">',
+            '<thead><tr><th>Variable</th><th>Audience</th><th>Description</th><th>Current Value</th><th>Module</th><th>Group</th><th>Extra</th></tr></thead>',
+            '<tbody>',
+        ])
+
+        for row in rows:
+            lines.append(
+                "<tr>"
+                f'<td>{esc(row.get("name", ""))}</td>'
+                f'<td>{esc(row.get("audience", ""))}</td>'
+                f'<td>{esc(row.get("description", ""))}</td>'
+                f'<td>{esc(row.get("currentvalue", ""))}</td>'
+                f'<td>{esc(row.get("module", ""))}</td>'
+                f'<td>{esc(row.get("group", ""))}</td>'
+                f'<td>{esc(row.get("extra", ""))}</td>'
+                "</tr>"
+            )
+
+        lines.extend([
+            '</tbody>',
+            '</table>',
+            '</section>',
+        ])
         return "\n".join(lines)
 
     def render_content_page(self, node: NavNode) -> None:

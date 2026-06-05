@@ -111,6 +111,10 @@ set -uo pipefail
         #     One row per parsed source module.
         #     Holds developer, company, client, copyright, and license information.
         #
+        #   MOD_GLOBALS
+        #     One row per detected framework or script global declaration.
+        #     Holds module, scope, audience, variable name, description, and extra metadata.
+        #
         #   MOD_SECTIONS
         #     One row per detected documentation section.
         #     Holds module, section, parent, grandparent, display title, and hierarchy level.
@@ -132,6 +136,9 @@ set -uo pipefail
 
         MOD_ATTRIBUTION_SCHEMA="modulename|developers|company|client|copyright|license"
         MOD_ATTRIBUTION=()
+
+        MOD_GLOBALS_SCHEMA="modulename|scope|audience|name|description|extra|currentvalue"
+        MOD_GLOBALS=()
 
         MOD_SECTIONS_SCHEMA="modulename|section|parent|grandparent|title|level"
         MOD_SECTIONS=()
@@ -163,6 +170,7 @@ set -uo pipefail
         #
         # Outputs (globals):
         #   src_line, src_linenr, src_linetype, src_haltlineprocessing
+        #   doc_globalblock, doc_globalscope
         #   mod_product, mod_title, mod_name
         #   doc_section, doc_sectionlevel, doc_parentsection, doc_grandparentsection
         #   doc_item, doc_itemtitle, doc_itemtype, doc_itemmarker
@@ -180,6 +188,9 @@ set -uo pipefail
         src_linenr=0
         src_linetype=""
         src_haltlineprocessing=0
+
+        doc_globalblock=0
+        doc_globalscope=""
 
         mod_product=""
         mod_title=""
@@ -260,6 +271,8 @@ set -uo pipefail
     _rgx_section='^[[:space:]]*#[[:space:]](-{1,3})[[:space:]]+(.+)[[:space:]]*-*[[:space:]]*$'
     _rgx_docitem='^[[:space:]]*#[[:space:]]+([a-z]{2,3})([:$])[[:space:]]+([^[:space:]]+)([[:space:]]+-[[:space:]]+(.+))?[[:space:]]*$'
     _rgx_commentseparator='^[[:space:]]*#[[:space:]]+-{3,}[[:space:]]*$'
+    _rgx_globalarray_start='^[[:space:]]*(SGND_FRAMEWORK_GLOBALS|SGND_RUNTIME_GLOBALS|SGND_SCRIPT_GLOBALS)[[:space:]]*=\([[:space:]]*$'
+    _rgx_globalarray_entry='^[[:space:]]*["'"'"']([^"'"'"']*)["'"'"'][[:space:]]*(#.*)?$'
 
     # -- Semantic registries ----------------------------------------------------------
         # fn: _sgnd_doc_list_contains - Test whether a value exists in a named array
@@ -779,43 +792,44 @@ set -uo pipefail
 
             [[ -z "$doc_contenttype" ]] && return 0
 
-            # Remove leading whitespace before the comment marker.
+            # Remove only indentation before the comment marker and the marker itself.
+            # Preserve the author's layout after "# " so diagrams, workflows, trees,
+            # and aligned examples render as written.
             doc_content="${src_line#"${src_line%%[![:space:]]*}"}"
-
-            # Remove leading '# ' (exactly one # and optional one space).
             doc_content="${doc_content#\#}"
             doc_content="${doc_content# }"
-
-            # Remove trailing whitespace.
-            doc_content="${doc_content%"${doc_content##*[![:space:]]}"}"
 
             doc_stylehint="normal"
 
             # Style hints are presentation hints layered on top of the structural
-            # content type. They may be indented after the comment marker.
-            local hinted_content="$doc_content"
-            hinted_content="${hinted_content#"${hinted_content%%[![:space:]]*}"}"
-
-            case "$hinted_content" in
+            # content type. They must be the first token after "# ". Do not strip
+            # leading whitespace before checking for hints; indented content is
+            # author layout and must be preserved.
+            case "$doc_content" in
+                '> '*)
+                    # Plain documentation line marker. This is not a style hint.
+                    # It exists so documentation source remains visibly distinct
+                    # from incidental comments while preserving author layout.
+                    doc_content="${doc_content#> }"
+                    ;;
+                '>' )
+                    doc_content=""
+                    ;;
                 ': '*)
                     doc_stylehint="label"
-                    doc_content="${hinted_content#: }"
+                    doc_content="${doc_content#: }"
                     ;;
                 '! '*)
                     doc_stylehint="emphasis"
-                    doc_content="${hinted_content#! }"
+                    doc_content="${doc_content#! }"
                     ;;
                 '~ '*)
                     doc_stylehint="quote"
-                    doc_content="${hinted_content#~ }"
+                    doc_content="${doc_content#~ }"
                     ;;
                 '- '*)
                     doc_stylehint="listitem"
-                    doc_content="${hinted_content#- }"
-                    ;;
-                '> '*)
-                    doc_stylehint="indent"
-                    doc_content="${hinted_content#> }"
+                    doc_content="${doc_content#- }"
                     ;;
             esac
 
@@ -852,13 +866,107 @@ set -uo pipefail
             doc_stylehint="normal"
             doc_content="$src_line"
 
-            # Strip leading indentation, "#", and exactly one following space.
+            # Strip only leading indentation before the comment marker and the marker
+            # itself. Preserve the author's layout after "# ".
             doc_content="${doc_content#"${doc_content%%[![:space:]]*}"}"
-            doc_content="${doc_content#\# }"
+            doc_content="${doc_content#\#}"
+            doc_content="${doc_content# }"
 
             doc_emitline=1
 
             saydebug "Section comment detected: $doc_contenttype, $doc_linenr, $doc_content, $doc_section, $doc_sectionlevel, $doc_headersection"
+        }
+
+        # fn: _detect_global_array_start - Detect framework/runtime/script globals array declarations
+            # Purpose:
+            #   Detect SGND_FRAMEWORK_GLOBALS, SGND_RUNTIME_GLOBALS, and SGND_SCRIPT_GLOBALS array blocks.
+            #
+            # Behavior:
+            #   - Recognizes the start of strict-format global declaration arrays.
+            #   - Records whether following entries belong to framework or script scope.
+            #   - Prevents normal documentation detectors from processing the array start line.
+            #
+            # Outputs (globals):
+            #   doc_globalblock, doc_globalscope, src_haltlineprocessing
+            #
+            # Returns:
+            #   0 always.
+            #
+            # Usage:
+            #   _detect_global_array_start
+        _detect_global_array_start() {
+            (( src_haltlineprocessing )) && return 0
+
+            [[ "$src_line" =~ $_rgx_globalarray_start ]] || return 0
+
+            case "${BASH_REMATCH[1]}" in
+                SGND_FRAMEWORK_GLOBALS) doc_globalscope="framework" ;;
+                SGND_RUNTIME_GLOBALS)   doc_globalscope="runtime" ;;
+                SGND_SCRIPT_GLOBALS)    doc_globalscope="script" ;;
+                *)                      doc_globalscope="" ;;
+            esac
+
+            doc_globalblock=1
+            src_haltlineprocessing=1
+
+            saydebug "Global declaration block detected: $doc_globalscope"
+        }
+
+        # fn: _detect_global_array_entry - Detect global declaration array entries
+            # Purpose:
+            #   Parse entries inside SGND_FRAMEWORK_GLOBALS, SGND_RUNTIME_GLOBALS, and SGND_SCRIPT_GLOBALS.
+            #
+            # Behavior:
+            #   - Runs only while inside a global declaration array block.
+            #   - Ends the block when a closing parenthesis is encountered.
+            #   - Parses strict pipe-delimited entries:
+            #       audience|VARNAME|Description|extra
+            #   - Emits one global declaration record per valid entry.
+            #
+            # Outputs (globals):
+            #   MOD_GLOBALS, doc_globalblock, doc_globalscope, src_haltlineprocessing
+            #
+            # Returns:
+            #   0 always.
+            #
+            # Usage:
+            #   _detect_global_array_entry
+        _detect_global_array_entry() {
+            (( src_haltlineprocessing )) && return 0
+            (( doc_globalblock )) || return 0
+
+            local trimmed="$src_line"
+            trimmed="${trimmed#"${trimmed%%[![:space:]]*}"}"
+            trimmed="${trimmed%"${trimmed##*[![:space:]]}"}"
+
+            if [[ "$trimmed" == ')' ]]; then
+                doc_globalblock=0
+                doc_globalscope=""
+                src_haltlineprocessing=1
+                saydebug "Global declaration block ended"
+                return 0
+            fi
+
+            [[ "$trimmed" =~ $_rgx_globalarray_entry ]] || {
+                src_haltlineprocessing=1
+                return 0
+            }
+
+            local spec="${BASH_REMATCH[1]}"
+            local audience=""
+            local name=""
+            local description=""
+            local extra=""
+
+            IFS='|' read -r audience name description extra <<< "$spec"
+
+            [[ -n "$name" ]] || {
+                src_haltlineprocessing=1
+                return 0
+            }
+
+            _emit_globalrecord "$doc_globalscope" "$audience" "$name" "$description" "$extra"
+            src_haltlineprocessing=1
         }
 
         # fn: _detect_commentseparator - Ignore visual comment separators
@@ -981,6 +1089,56 @@ set -uo pipefail
         }
 
     # -- Emitters -------------------------------------------------------------------
+        # fn: _emit_globalrecord - Append a framework/runtime/script global declaration record
+            # Purpose:
+            #   Store a detected global variable declaration in the module globals table.
+            #
+            # Behavior:
+            #   - Appends module name, scope, audience, variable name, description, extra metadata, and current value.
+            #   - Preserves the array source through the scope field.
+            #
+            # Arguments:
+            #   $1  Scope, normally framework or script.
+            #   $2  Audience, normally system, user, or both.
+            #   $3  Global variable name.
+            #   $4  Human-readable description.
+            #   $5  Extra metadata, reserved for future use.
+            #   $6  Current shell value captured during documentation generation.
+            #
+            # Outputs (globals):
+            #   MOD_GLOBALS
+            #
+            # Returns:
+            #   0 if the table append succeeds.
+            #
+            # Usage:
+            #   _emit_globalrecord "framework" "both" "SGND_ROOT" "Framework root" ""
+        _emit_globalrecord() {
+            local scope="${1:-}"
+            local audience="${2:-}"
+            local name="${3:-}"
+            local description="${4:-}"
+            local extra="${5:-}"
+            local currentvalue="${6-}"
+
+            if [[ $# -lt 6 && -n "$name" ]]; then
+                currentvalue="${!name-}"
+            fi
+
+            [[ -n "$scope" && -n "$name" ]] || return 0
+
+            sgnd_dt_append \
+                "$MOD_GLOBALS_SCHEMA" \
+                MOD_GLOBALS \
+                "$mod_name" \
+                "$scope" \
+                "$audience" \
+                "$name" \
+                "$description" \
+                "$extra" \
+                "$currentvalue"
+        }
+
         # fn: _emit_contentline - Append a normalized documentation content line
             # Purpose:
             #   Emit the current normalized content state into DOC_CONTENT_LINES.
@@ -1160,6 +1318,10 @@ set -uo pipefail
 
             src_haltlineprocessing=0
             
+            # Source-level declarations
+            _detect_global_array_entry
+            _detect_global_array_start
+
             # Early filter
             _detect_commentseparator
             

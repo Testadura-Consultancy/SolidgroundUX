@@ -164,6 +164,36 @@ set -uo pipefail
     SGND_FRAMEWORK_DIRS=(
     )
 
+    SGND_RUNTIME_GLOBALS=(
+        "both|SGND_FRAMEWORK_ROOT|Root path used as the base for framework filesystem locations.|"
+        "both|SGND_APPLICATION_ROOT|Root path used as the base for application filesystem locations.|"
+        "both|SGND_COMMON_LIB|Directory containing common SolidGroundUX library files.|"
+        "system|SGND_SYSCFG_DIR|Directory containing system-level SolidGroundUX configuration files.|"
+        "user|SGND_USRCFG_DIR|Directory containing user-level SolidGroundUX configuration files.|"
+        "user|SGND_STATE_DIR|Directory containing user-level SolidGroundUX state files.|"
+        "system|SGND_STYLE_DIR|Directory containing SolidGroundUX style and palette files.|"
+        "system|SGND_DOCS_DIR|Directory containing SolidGroundUX documentation files.|"
+        "system|SGND_LOG_PATH|Primary logfile path for framework or application logging.|"
+        "user|SGND_ALTLOG_PATH|Fallback user-level logfile path for framework or application logging.|"
+
+        "both|SGND_LOG_MAX_BYTES|Maximum logfile size before log rotation is attempted.|"
+        "both|SGND_LOG_KEEP|Number of rotated logfile copies to retain.|"
+        "both|SGND_LOG_COMPRESS|Controls whether rotated logfiles are compressed.|"
+        "both|SGND_LOGFILE_ENABLED|Controls whether best-effort logfile output is enabled.|"
+        "both|SGND_LOG_LEVEL|Controls console message visibility. Supported values are off, quiet, normal, and debug.|"
+
+        "user|SGND_USER_HOME|Effective user home directory, honoring SUDO_USER when present.|"
+
+        "both|SGND_UI_STYLE|Selected SolidGroundUX UI style file.|"
+        "both|SGND_UI_PALETTE|Selected SolidGroundUX UI palette file.|"
+
+        "both|SAY_DATE_DEFAULT|Default setting controlling whether say output includes a timestamp.|"
+        "both|SAY_SHOW_DEFAULT|Default say output prefix mode, such as label, icon, symbol, or combinations.|"
+        "both|SAY_COLORIZE_DEFAULT|Default say colorization mode, such as none, label, msg, both, all, or date.|"
+        "both|SAY_DATE_FORMAT|Date format used when say output includes timestamps.|"
+
+        "both|SGND_FRAMEWORK_CFG_BASENAME|Basename of the framework globals configuration file.|"
+    )
 # --- Helpers -------------------------------------------------------------------------
     # fn: _build_framework_dirs - Build framework directory specifications
         # Purpose:

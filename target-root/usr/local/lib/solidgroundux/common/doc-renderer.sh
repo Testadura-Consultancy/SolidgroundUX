@@ -256,14 +256,14 @@ set -uo pipefail
             #
             # Behavior:
             #   - Creates the export directory when needed.
-            #   - Exports module, section, item, attribution, and content-line tables as PSV files.
+            #   - Exports module, section, item, attribution, global, and content-line tables as PSV files.
             #   - Exports renderer configuration alongside parser data.
             #
             # Arguments:
             #   $1  Directory that receives the exported PSV files.
             #
             # Inputs (globals):
-            #   MOD_TABLE, MOD_SECTIONS, MOD_ITEMS, MOD_ATTRIBUTION, DOC_CONTENT_LINES
+            #   MOD_TABLE, MOD_SECTIONS, MOD_ITEMS, MOD_ATTRIBUTION, MOD_GLOBALS, DOC_CONTENT_LINES
             #   and their corresponding schema variables.
             #
             # Returns:
@@ -299,6 +299,12 @@ set -uo pipefail
                 "$MOD_ATTRIBUTION_SCHEMA" \
                 MOD_ATTRIBUTION \
                 "$export_dir/mod_attribution.psv" \
+                || return 1
+
+            sgnd_dt_export_psv \
+                "$MOD_GLOBALS_SCHEMA" \
+                MOD_GLOBALS \
+                "$export_dir/mod_globals.psv" \
                 || return 1
 
             sgnd_dt_export_psv \

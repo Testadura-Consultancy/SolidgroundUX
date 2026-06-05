@@ -27,7 +27,7 @@
 # > locations, initializes common globals, loads requested libraries, prepares
 # > configuration handling, and registers the framework's built-in command-line
 # > arguments.
-# >
+#   
 # > In normal use, application scripts should not need to reproduce this logic.
 # > Instead, they should follow the bootstrap section shown in the executable
 # > template. The template demonstrates the expected startup pattern and should be
@@ -42,25 +42,25 @@
 # > Conceptually, the startup sequence is:
 #   
 # >     Script starts
-# >         ↓
+#          ↓
 # >     Bootstrap file is located
-# >         ↓
+# >        ↓
 # >     Bootstrap environment is initialized
-# >         ↓
+#          ↓
 # >     Standard SolidGroundUX globals are prepared
-# >         ↓
+#          ↓
 # >     Built-in command-line arguments are registered
 # >         ↓
 # >     Script-declared dependencies are resolved
-# >         ↓
+#          ↓
 # >     Core and requested libraries are sourced
-# >         ↓
+#          ↓
 # >     Configuration definitions are processed
-# >         ↓
+#          ↓
 # >     Command-line arguments are parsed
-# >         ↓
+#          ↓
 # >     Configuration values are loaded and applied
-# >         ↓
+#          ↓
 # >     Application code runs
 #   
 # > The exact implementation is intentionally hidden behind the bootstrap API. The
@@ -152,7 +152,7 @@
 # > copying bootstrap code from an existing script by hand. Existing scripts may
 # > contain historical details, local deviations, or project-specific behavior,
 # > while the template represents the current intended pattern.
-# >
+#   
 # > In practical terms, the template shows where to declare dependencies, where to
 # > define globals, where to register custom arguments, and where application logic
 # > begins after bootstrap has completed.
