@@ -18,7 +18,7 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # ==================================================================================
 
-# - Raison d'être -------------------------------------------------------------------
+# - How it came to pass... ---------------------------------------------------------
 # > During a period in which I found myself lacking mental challenges in my current project, I decided to explore
 # > the Linux world. Frustrated with the current software market, I envisioned creating a subscription-free,
 # > vendor-neutral, on-site software solution. This started with configuring a few VMs, which quickly led to

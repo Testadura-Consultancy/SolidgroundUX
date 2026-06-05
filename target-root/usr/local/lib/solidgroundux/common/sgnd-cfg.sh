@@ -628,6 +628,59 @@ set -uo pipefail
         return 0
     }
 
+    # fn: sgnd_cfg_create_missing_domain_files - Cfg create missing domain files
+        # Purpose:
+        #   Create missing system and user configuration files for a configuration domain.
+        #
+        # Behavior:
+        #   - Creates the system configuration file when system values exist, the file
+        #     is missing, and the current session has sufficient privileges.
+        #   - Creates the user configuration file when user values exist and the file is
+        #     missing.
+        #   - Uses the filtered skeleton writer so each generated file receives only
+        #     the values intended for its audience.
+        #
+        # Returns:
+        #   0 on success.
+        #   1 when required arguments are missing or file creation fails.
+        #
+        # Usage:
+        #   sgnd_cfg_create_missing_domain_files "$domain" "$syscfg" "$usrcfg" "$spec_array_name" "$mode"
+    sgnd_cfg_create_missing_domain_files() {
+        local domain="${1:-}"
+        local syscfg="${2:-}"
+        local usrcfg="${3:-}"
+        local spec_array_name="${4:-}"
+        local mode="${5:-script}"
+
+        [[ -n "$domain" && -n "$spec_array_name" ]] || return 1
+
+        local is_root=0
+        (( EUID == 0 )) && is_root=1
+
+        if sgnd_cfg_has_audience "$spec_array_name" "system"; then
+            if (( is_root )) && [[ -n "$syscfg" && ! -f "$syscfg" ]]; then
+                sgnd_ensure_writable_dir "$(dirname -- "$syscfg")" || return 1
+                sgnd_cfg_write_skeleton_filtered "$syscfg" "system" "$spec_array_name" "$domain" || return 1
+                sayinfo "[$domain] created system cfg: $syscfg"
+            fi
+        fi
+
+        if sgnd_cfg_has_audience "$spec_array_name" "user"; then
+            if [[ -n "$usrcfg" && ! -f "$usrcfg" ]]; then
+                sgnd_ensure_writable_dir "$(dirname -- "$usrcfg")" || return 1
+                sgnd_cfg_write_skeleton_filtered "$usrcfg" "user" "$spec_array_name" "$domain" || return 1
+                sayinfo "[$domain] created user cfg: $usrcfg"
+            fi
+        fi
+
+        if sgnd_cfg_has_audience "$spec_array_name" "system" && [[ -n "$syscfg" && ! -f "$syscfg" ]] && (( ! is_root )); then
+            saydebug "[$domain] system cfg missing but not created because current session is not root"
+        fi
+
+        return 0
+    }
+
     # fn: sgnd_cfg_domain_apply - Cfg domain apply
         # Purpose:
         #   Apply system and user configuration files for a named configuration domain.
