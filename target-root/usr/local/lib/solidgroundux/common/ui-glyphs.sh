@@ -46,20 +46,20 @@ set -uo pipefail
 
 # --- Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard - Library guard
-        # Purpose:
+        # . Purpose
         #   Prevent direct execution of a source-only module and avoid repeated initialization.
         #
-        # Behavior:
+        # . Behavior
         #   - Derives a module-specific guard variable from the current filename.
         #   - Exits with status 2 when the file is executed directly.
         #   - Returns immediately when the module has already been loaded.
         #   - Marks the module as loaded before normal initialization continues.
         #
-        # Returns:
+        # . Returns
         #   0 when the module may continue loading or was already loaded.
         #   Exits with status 2 when executed directly.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
         local lib_base
@@ -85,7 +85,7 @@ set -uo pipefail
     
 # --- Glyph variable reference ------------------------------------------------------
     # var: Glyph variables - Console glyph constants
-        # Purpose:
+        # . Purpose
         #   Document the glyph constants exposed by this module.
         #
         # ! Line drawing characters:

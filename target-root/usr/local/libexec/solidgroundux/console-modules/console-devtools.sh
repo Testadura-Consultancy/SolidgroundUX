@@ -51,20 +51,20 @@
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard - Library guard
-        # Purpose:
+        # . Purpose
         #   Prevent direct execution of a source-only module and avoid repeated initialization.
         #
-        # Behavior:
+        # . Behavior
         #   - Derives a module-specific guard variable from the current filename.
         #   - Exits with status 2 when the file is executed directly.
         #   - Returns immediately when the module has already been loaded.
         #   - Marks the module as loaded before normal initialization continues.
         #
-        # Returns:
+        # . Returns
         #   0 when the module may continue loading or was already loaded.
         #   Exits with status 2 when executed directly.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
         local lib_base
@@ -90,17 +90,17 @@ set -uo pipefail
 
 # --- Internal helpers -------------------------------------------------------------
     # fn: _exe_createworkspace - Launch the create-workspace developer tool
-        # Purpose:
+        # . Purpose
         #   Launch the create-workspace developer tool through the sgnd-console runtime.
         #
-        # Behavior:
+        # . Behavior
         #   - Delegates execution to _sgnd_run_script.
         #   - Invokes create-workspace.sh
         #
-        # Returns:
+        # . Returns
         #   Exit code of the executed script.
         #
-        # Usage:
+        # . Usage
         #   _exe_createworkspace
         #
         # Examples:
@@ -110,16 +110,16 @@ set -uo pipefail
     }
     
     # fn: _exe_deployworkspace - Launch the deploy-workspace developer tool
-        # Purpose:
+        # . Purpose
         #   Launch the deploy-workspace developer tool through the sgnd-console runtime.
         #
-        # Behavior:
+        # . Behavior
         #   - Delegates execution to _sgnd_run_script.
         #   - Invokes deploy-workspace.sh 
-        # Returns:
+        # . Returns
         #   Exit code of the executed script.
         #
-        # Usage:
+        # . Usage
         #   _exe_deployworkspace
         #
         # Examples:
@@ -129,17 +129,17 @@ set -uo pipefail
     }
 
     # fn: _exe_preparerelease - Launch the prepare-release developer tool
-        # Purpose:
+        # . Purpose
         #   Launch the prepare-release developer tool through the sgnd-console runtime.
         #
-        # Behavior:
+        # . Behavior
         #   - Delegates execution to _sgnd_run_script.
         #   - Invokes prepare-release.sh 
         #
-        # Returns:
+        # . Returns
         #   Exit code of the executed script.
         #
-        # Usage:
+        # . Usage
         #   _exe_preparerelease
         #
         # Examples:
@@ -149,17 +149,17 @@ set -uo pipefail
     }
 
     # fn: _exe_metadata-editor - Launch the metadata editor developer tool
-        # Purpose:
+        # . Purpose
         #   Launch the metadata-editor developer tool through the sgnd-console runtime.
         #
-        # Behavior:
+        # . Behavior
         #   - Delegates execution to _sgnd_run_script.
         #   - Invokes metadata-editor.sh.
         #
-        # Returns:
+        # . Returns
         #   Exit code of the executed script.
         #
-        # Usage:
+        # . Usage
         #   _exe_metadata-editor
         #
         # Examples:

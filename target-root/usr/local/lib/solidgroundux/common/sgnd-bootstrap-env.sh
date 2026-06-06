@@ -46,20 +46,20 @@
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard - Library guard
-        # Purpose:
+        # . Purpose
         #   Prevent direct execution of a source-only module and avoid repeated initialization.
         #
-        # Behavior:
+        # . Behavior
         #   - Derives a module-specific guard variable from the current filename.
         #   - Exits with status 2 when the file is executed directly.
         #   - Returns immediately when the module has already been loaded.
         #   - Marks the module as loaded before normal initialization continues.
         #
-        # Returns:
+        # . Returns
         #   0 when the module may continue loading or was already loaded.
         #   Exits with status 2 when executed directly.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
         local lib_base
@@ -85,7 +85,7 @@ set -uo pipefail
 
 # --- Framework identity --------------------------------------------------------------
     # var: Framework identity
-        # Purpose:
+        # . Purpose
         #   Define product, version, license, and documentation identity used by
         #   framework metadata, informational output, and license checks.
     SGND_PRODUCT="SolidGroundUX"
@@ -100,7 +100,7 @@ set -uo pipefail
 
 # --- Framework metadata --------------------------------------------------------------
     # var: SGND_FRAMEWORK_GLOBALS - Framework configuration variable registry
-        # Purpose:
+        # . Purpose
         #   Declare framework variables that may be managed through system and/or user
         #   configuration files.
         #
@@ -136,7 +136,7 @@ set -uo pipefail
     )
 
     # var: SGND_CORE_LIBS - Ordered core library list
-        # Purpose:
+        # . Purpose
         #   Define the core libraries that sgnd-bootstrap loads in fixed order.
         #
         # Notes:
@@ -155,7 +155,7 @@ set -uo pipefail
     )
 
     # var: SGND_FRAMEWORK_DIRS - Framework directory specifications
-        # Purpose:
+        # . Purpose
         #   Hold the rebuilt path specification list consumed by sgnd_ensure_dirs.
         #
         # Format:
@@ -196,10 +196,10 @@ set -uo pipefail
     )
 # --- Helpers -------------------------------------------------------------------------
     # fn: _build_framework_dirs - Build framework directory specifications
-        # Purpose:
+        # . Purpose
         #   Rebuild the directory specification list used by sgnd_ensure_dirs.
         #
-        # Behavior:
+        # . Behavior
         #   - Uses the currently rebased framework path globals.
         #   - Marks framework-owned paths as system directories.
         #   - Marks user configuration, state, and alternate log paths as user directories.
@@ -211,10 +211,10 @@ set -uo pipefail
         # Outputs (globals):
         #   SGND_FRAMEWORK_DIRS
         #
-        # Returns:
+        # . Returns
         #   0 always.
         #
-        # Usage:
+        # . Usage
         #   _build_framework_dirs
     _build_framework_dirs(){
         SGND_FRAMEWORK_DIRS=(
@@ -229,20 +229,20 @@ set -uo pipefail
         )
     }
     # fn: sgnd_apply_defaults - Apply defaults
-        # Purpose:
+        # . Purpose
         #   Apply default framework path, metadata, runtime, UI, and logging globals when they are not already set.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #
         # Outputs (globals):
         #   May update SGND_* globals shown in the function body.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_apply_defaults
     sgnd_apply_defaults() {
         : "${SGND_FRAMEWORK_ROOT:=/}"
@@ -273,17 +273,17 @@ set -uo pipefail
 
     }
     # fn: sgnd_defaults_reset - Defaults reset
-        # Purpose:
+        # . Purpose
         #   Reset default framework environment values so they can be rebuilt from the current root.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_defaults_reset
     sgnd_defaults_reset() {
         local spec audience var desc extra
@@ -297,10 +297,10 @@ set -uo pipefail
         sgnd_apply_defaults
     }
     # fn: sgnd_rebase_directories - Rebase directories
-        # Purpose:
+        # . Purpose
         #   Recalculate framework directory globals from the current SGND_FRAMEWORK_ROOT.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
@@ -308,13 +308,13 @@ set -uo pipefail
         # Outputs (globals):
         #   May update SGND_* globals shown in the function body.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_rebase_directories
     sgnd_rebase_directories() {
         local product=""
@@ -345,41 +345,41 @@ set -uo pipefail
         _build_framework_dirs
     }
     # fn: sgnd_rebase_framework_cfg_paths - Rebase framework cfg paths
-        # Purpose:
+        # . Purpose
         #   Recalculate framework configuration file paths from the configured etc directory.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #
         # Outputs (globals):
         #   May update SGND_* globals shown in the function body.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_rebase_framework_cfg_paths
     sgnd_rebase_framework_cfg_paths() {
         SGND_FRAMEWORK_SYSCFG_FILE="$SGND_SYSCFG_DIR/$SGND_FRAMEWORK_CFG_BASENAME"
         SGND_FRAMEWORK_USRCFG_FILE="$SGND_USRCFG_DIR/$SGND_FRAMEWORK_CFG_BASENAME"
     }
     # fn: sgnd_ensure_dirs - Ensure dirs
-        # Purpose:
+        # . Purpose
         #   Create the standard SolidGroundUX runtime, cache, log, state, and configuration directories.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Side effects:
+        # . Side effects
         #   May update files, directories, runtime state, or process state required by the workflow.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_ensure_dirs
     sgnd_ensure_dirs() {
         local spec

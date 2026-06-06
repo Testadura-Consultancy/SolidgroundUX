@@ -119,11 +119,17 @@
 # > Good sectioning is especially important in larger modules, where a long list of
 # > functions would otherwise become difficult to read.
 #
-# # -- Style Hints --------------------------------------------------------------------
+# -- Style Hints --------------------------------------------------------------------
 #
-# > Documentation lines may include a style hint to influence how the rendered
-# > output is displayed.
+# > Documentation lines may include an optional leading marker that either identifies
+# > plain documentation content or assigns a renderer style hint.
 #
+# > The plain documentation marker is:
+#
+# >     >           Plain documentation line
+# >     >           When used without text, emits an intentional blank line
+#
+# > Style hints are presentation hints layered on top of the structural content type.
 # > The renderer reads the exported stylehint value for each documentation line.
 # > When the style hint is normal, no additional style class is added. When another
 # > value is supplied, the renderer adds a corresponding sh-<stylehint> CSS class.
@@ -131,11 +137,17 @@
 # > The currently supported style hints are:
 #
 # >     normal      Standard rendered text
-# >     label       (:) Label-style text
+# >     label       (:) Label or small subheader text
+# >     highlight   (.) Highlighted text
 # >     emphasis    (!) Emphasized text
-# >     quote       (>) Quoted or aside text
+# >     underline   (_) Underlined text
+# >     quote       (~) Quoted or aside text
 # >     listitem    (-) Bullet-style list item
-# >     indent      (~) Indented continuation text
+# >     indent          Reserved indentation style
+#
+# > Marker characters are only interpreted when they are the first token after the
+# > comment marker. Leading whitespace after "# " is preserved as author layout and
+# > prevents marker interpretation.
 #
 # > These symbols are intended as visual cues and make it easier to identify the
 # > purpose of a line while scanning a page.

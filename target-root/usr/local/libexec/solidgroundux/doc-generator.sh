@@ -48,10 +48,10 @@ set -uo pipefail
     # Some extra comments to be added in the bootstrapsection
     # could be multiple lines
     # fn$ _framework_locator - Locate the SolidGroundUX framework root
-        # Purpose:
+        # . Purpose
         #   Locate, create, and load the SolidGroundUX bootstrap configuration.
         #
-        # Behavior:
+        # . Behavior
         #   - Searches user and system bootstrap configuration locations.
         #   - Prefers the invoking user's config over the system config.
         #   - Creates a new bootstrap config when none exists.
@@ -63,12 +63,12 @@ set -uo pipefail
         #   SGND_FRAMEWORK_ROOT
         #   SGND_APPLICATION_ROOT
         #
-        # Returns:
+        # . Returns
         #   0   success
         #   126 configuration unreadable or invalid
         #   127 configuration directory or file could not be created
         #
-        # Usage:
+        # . Usage
         #   _framework_locator || return $?
         #
         # Examples:
@@ -164,10 +164,10 @@ set -uo pipefail
     }
 
     # fn$ _load_bootstrapper - Load the SolidGroundUX bootstrapper
-        # Purpose:
+        # . Purpose
         #   Resolve and source the framework bootstrap library.
         #
-        # Behavior:
+        # . Behavior
         #   - Calls _framework_locator to establish framework roots.
         #   - Derives the sgnd-bootstrap.sh path from SGND_FRAMEWORK_ROOT.
         #   - Verifies that the bootstrap library is readable.
@@ -176,11 +176,11 @@ set -uo pipefail
         # Inputs (globals):
         #   SGND_FRAMEWORK_ROOT
         #
-        # Returns:
+        # . Returns
         #   0   success
         #   126 bootstrap library unreadable
         #
-        # Usage:
+        # . Usage
         #   _load_bootstrapper || return $?
         #
         # Examples:
@@ -226,31 +226,31 @@ set -uo pipefail
 
     # Minimal UI
     # fn$ saystart - Emit a minimal START message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal START message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saystart
     saystart()   { printf '%sSTART%s\t%s\n' "${MSG_CLR_STRT-}" "${RESET-}" "$*" >&2; }
     # fn$ sayinfo - Emit a minimal INFO message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal INFO message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayinfo
     sayinfo()    { 
         if (( ${FLAG_VERBOSE:-0} )); then
@@ -258,59 +258,59 @@ set -uo pipefail
         fi
     }
     # fn$ sayok - Emit a minimal OK message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal OK message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayok
     sayok()      { printf '%sOK%s   \t%s\n' "${MSG_CLR_OK-}"   "${RESET-}" "$*" >&2; }
     # fn$ saywarning - Emit a minimal WARN message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal WARN message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saywarning
     saywarning() { printf '%sWARN%s \t%s\n' "${MSG_CLR_WARN-}" "${RESET-}" "$*" >&2; }
     # fn$ sayfail - Emit a minimal FAIL message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal FAIL message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayfail
     sayfail()    { printf '%sFAIL%s \t%s\n' "${MSG_CLR_FAIL-}" "${RESET-}" "$*" >&2; }
     # fn$ saydebug - Emit a minimal DEBUG message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal DEBUG message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saydebug
     saydebug() {
         if (( ${FLAG_DEBUG:-0} )); then
@@ -318,31 +318,31 @@ set -uo pipefail
         fi
     }
     # fn$ saycancel - Emit a minimal CANCEL message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal CANCEL message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saycancel
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
     # fn$ sayend - Emit a minimal END message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal END message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayend
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
     
@@ -417,11 +417,11 @@ set -uo pipefail
     # SGND_SCRIPT_GLOBALS
         # Explicit declaration of global variables intentionally used by this script.
         #
-        # Purpose:
+        # . Purpose
         #   - Declares which globals are part of the script’s public/config contract.
         #   - Enables optional configuration loading when non-empty.
         #
-        # Behavior:
+        # . Behavior
         #   - If this array is non-empty, sgnd_bootstrap enables config integration.
         #   - Variables listed here may be populated from configuration files.
         #   - Unlisted globals will NOT be auto-populated.
@@ -443,10 +443,10 @@ set -uo pipefail
     # SGND_STATE_VARIABLES
         # List of variables participating in persistent state.
         #
-        # Purpose:
+        # . Purpose
         #   - Declares which variables should be saved/restored when state is enabled.
         #
-        # Behavior:
+        # . Behavior
         #   - Only used when sgnd_bootstrap is invoked with --state.
         #   - Variables listed here are serialized on exit (if SGND_STATE_SAVE=1).
         #   - On startup, previously saved values are restored before main logic runs.
@@ -473,10 +473,10 @@ set -uo pipefail
     # SGND_ON_EXIT_HANDLERS
         # List of functions to be invoked on script termination.
         #
-        # Purpose:
+        # . Purpose
         #   - Allows scripts to register cleanup or finalization hooks.
         #
-        # Behavior:
+        # . Behavior
         #   - Functions listed here are executed during framework exit handling.
         #   - Execution order follows array order.
         #   - Handlers run regardless of normal exit or controlled termination.
@@ -505,20 +505,20 @@ set -uo pipefail
 
 # - Local script functions ----------------------------------------------------------
     # fn: _init_parameters - Initialize documentation generator parameters
-        # Purpose:
+        # . Purpose
         #   Initialize parameter variables from defaults when still unset.
         #
-        # Behavior:
+        # . Behavior
         #   - Preserves values already supplied through parsed arguments or restored state.
         #   - Applies default values only where variables are unset or empty.
         #   - Does not validate or interpret parameter values.
         #   - Does not override explicit user input.
         #   - Does not perform interactive prompting.
         #
-        # Returns:
+        # . Returns
         #   0 always.
         #
-        # Usage:
+        # . Usage
         #   _init_parameters
         #
         # Examples:
@@ -545,10 +545,10 @@ set -uo pipefail
     }
 
     # fn: _get_userinput - Collect documentation generator input
-        # Purpose:
+        # . Purpose
         #   Interactively collect and confirm documentation generator parameters.
         #
-        # Behavior:
+        # . Behavior
         #   - Displays grouped prompts for source, destination, and behavioral flags.
         #   - Applies validation to supported fields.
         #   - Normalizes Y/N replies into numeric flag values.
@@ -563,11 +563,11 @@ set -uo pipefail
         #   FLAG_VIEW_RESULTS
         #   SGND_STATE_SAVE
         #
-        # Returns:
+        # . Returns
         #   0 on confirmed input.
         #   1 if the user cancels or an unexpected dialog result occurs.
         #
-        # Usage:
+        # . Usage
         #   _get_userinput || return $?
         #
         # Examples:
@@ -711,27 +711,27 @@ set -uo pipefail
     }
 
     # fn: _iterate_files - Iterate source files and collect documentation data
-        # Purpose:
+        # . Purpose
         #   Iterate over files in a directory using a file mask,
         #   optionally recursing into subdirectories.
         #
-        # Behavior:
+        # . Behavior
         #   - Expands file_spec within source_dir
         #   - Supports recursive and non-recursive modes
         #   - Calls a callback function for each matched file
         #   - Skips non-regular files
         #
-        # Arguments:
+        # . Arguments
         #   $1  SOURCE_DIR
         #   $2  FILE_SPEC
         #   $3  FLAG_RECURSIVE   (0 = no recursion, 1 = recursive)
         #   $4  CALLBACK_FUNC
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #   1 on invalid input
         #
-        # Usage:
+        # . Usage
         #   _iterate_files "./src" "*.sh" 1 sgnd_doc_process_file
     _iterate_files() {
         local source_dir="$1"
@@ -804,14 +804,14 @@ set -uo pipefail
     }
 
     # fn: _summary - Print documentation generation summary
-        # Purpose:
+        # . Purpose
         #   Generate a summary of the documentation data collected.
         #
-        # Behavior:
+        # . Behavior
         #   - Aggregates key metadata from processed modules and items.
         #   - Prints a concise summary to the console for review.
         #
-        # Usage:
+        # . Usage
         #   _summary
     _summary() {
         local module_count
@@ -832,10 +832,10 @@ set -uo pipefail
     }
 # - Main ----------------------------------------------------------------------------
     # fn$ main - Run the executable main sequence
-        # Purpose:
+        # . Purpose
         #   Provide the canonical executable entry point for the documentation generator.
         #
-        # Behavior:
+        # . Behavior
         #   - Loads the framework bootstrapper.
         #   - Initializes the runtime through sgnd_bootstrap.
         #   - Processes built-in framework arguments.
@@ -844,14 +844,14 @@ set -uo pipefail
         #   - Prompts for interactive input when auto-run is not enabled.
         #   - Hands off control to the script's main logic.
         #
-        # Arguments:
+        # . Arguments
         #   $@  Command-line arguments (framework and script-specific).
         #
-        # Returns:
+        # . Returns
         #   0  on success.
         #   Non-zero on bootstrap, input, or script failure.
         #
-        # Usage:
+        # . Usage
         #   main "$@"
         #
         # Examples:

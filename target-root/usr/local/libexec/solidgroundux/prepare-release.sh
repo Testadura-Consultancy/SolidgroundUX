@@ -47,10 +47,10 @@
 set -uo pipefail
 # --- Bootstrap -----------------------------------------------------------------------
     # _framework_locator
-        # Purpose:
+        # . Purpose
         #   Locate, create, and load the SolidGroundUX bootstrap configuration.
         #
-        # Behavior:
+        # . Behavior
         #   - Searches user and system bootstrap configuration locations.
         #   - Prefers the invoking user's config over the system config.
         #   - Creates a new bootstrap config when none exists.
@@ -62,12 +62,12 @@ set -uo pipefail
         #   SGND_FRAMEWORK_ROOT
         #   SGND_APPLICATION_ROOT
         #
-        # Returns:
+        # . Returns
         #   0   success
         #   126 configuration unreadable or invalid
         #   127 configuration directory or file could not be created
         #
-        # Usage:
+        # . Usage
         #   _framework_locator || return $?
         #
         # Examples:
@@ -169,10 +169,10 @@ set -uo pipefail
     }
 
     # _load_bootstrapper
-        # Purpose:
+        # . Purpose
         #   Resolve and source the framework bootstrap library.
         #
-        # Behavior:
+        # . Behavior
         #   - Calls _framework_locator to establish framework roots.
         #   - Derives the sgnd-bootstrap.sh path from SGND_FRAMEWORK_ROOT.
         #   - Verifies that the bootstrap library is readable.
@@ -181,11 +181,11 @@ set -uo pipefail
         # Inputs (globals):
         #   SGND_FRAMEWORK_ROOT
         #
-        # Returns:
+        # . Returns
         #   0   success
         #   126 bootstrap library unreadable
         #
-        # Usage:
+        # . Usage
         #   _load_bootstrapper || return $?
         #
         # Examples:
@@ -227,31 +227,31 @@ set -uo pipefail
 
     # Minimal UI
     # fn$ saystart - Emit a minimal START message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal START message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saystart
     saystart()   { printf '%sSTART%s\t%s\n' "${MSG_CLR_STRT-}" "${RESET-}" "$*" >&2; }
     # fn$ sayinfo - Emit a minimal INFO message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal INFO message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayinfo
     sayinfo()    {
         if (( ${FLAG_VERBOSE:-0} )); then
@@ -259,59 +259,59 @@ set -uo pipefail
         fi
     }
     # fn$ sayok - Emit a minimal OK message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal OK message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayok
     sayok()      { printf '%sOK%s   \t%s\n' "${MSG_CLR_OK-}"   "${RESET-}" "$*" >&2; }
     # fn$ saywarning - Emit a minimal WARN message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal WARN message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saywarning
     saywarning() { printf '%sWARN%s \t%s\n' "${MSG_CLR_WARN-}" "${RESET-}" "$*" >&2; }
     # fn$ sayfail - Emit a minimal FAIL message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal FAIL message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayfail
     sayfail()    { printf '%sFAIL%s \t%s\n' "${MSG_CLR_FAIL-}" "${RESET-}" "$*" >&2; }
     # fn$ saydebug - Emit a minimal DEBUG message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal DEBUG message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saydebug
     saydebug() {
         if (( ${FLAG_DEBUG:-0} )); then
@@ -319,31 +319,31 @@ set -uo pipefail
         fi
     }
     # fn$ saycancel - Emit a minimal CANCEL message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal CANCEL message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saycancel
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
     # fn$ sayend - Emit a minimal END message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal END message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayend
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
 
@@ -413,11 +413,11 @@ set -uo pipefail
     # SGND_SCRIPT_GLOBALS
         # Explicit declaration of global variables intentionally used by this script.
         #
-        # Purpose:
+        # . Purpose
         #   - Declares which globals are part of the script’s public/config contract.
         #   - Enables optional configuration loading when non-empty.
         #
-        # Behavior:
+        # . Behavior
         #   - If this array is non-empty, sgnd_bootstrap enables config integration.
         #   - Variables listed here may be populated from configuration files.
         #   - Unlisted globals will NOT be auto-populated.
@@ -439,10 +439,10 @@ set -uo pipefail
     # SGND_STATE_VARIABLES
         # List of variables participating in persistent state.
         #
-        # Purpose:
+        # . Purpose
         #   - Declares which variables should be saved/restored when state is enabled.
         #
-        # Behavior:
+        # . Behavior
         #   - Only used when sgnd_bootstrap is invoked with --state.
         #   - Variables listed here are serialized on exit (if SGND_STATE_SAVE=1).
         #   - On startup, previously saved values are restored before main logic runs.
@@ -459,10 +459,10 @@ set -uo pipefail
     # SGND_ON_EXIT_HANDLERS
         # List of functions to be invoked on script termination.
         #
-        # Purpose:
+        # . Purpose
         #   - Allows scripts to register cleanup or finalization hooks.
         #
-        # Behavior:
+        # . Behavior
         #   - Functions listed here are executed during framework exit handling.
         #   - Execution order follows array order.
         #   - Handlers run regardless of normal exit or controlled termination.
@@ -494,10 +494,10 @@ set -uo pipefail
 
 # --- Local script functions ----------------------------------------------------------
     # _save_parameters
-        # Purpose:
+        # . Purpose
         #   Persist the current release parameters to the framework state store.
         #
-        # Behavior:
+        # . Behavior
         #   - Saves all resolved and confirmed release parameters for later reuse.
         #   - Supports repeatable runs through --auto mode.
         #   - Skips state writes when FLAG_DRYRUN is enabled.
@@ -511,14 +511,14 @@ set -uo pipefail
         #   FLAG_USEEXISTING
         #   FLAG_DRYRUN
         #
-        # Side effects:
+        # . Side effects
         #   - Writes state entries via sgnd_state_set when not in dry-run mode.
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #   Non-zero if state storage fails
         #
-        # Usage:
+        # . Usage
         #   _save_parameters
         #
         # Examples:
@@ -527,17 +527,17 @@ set -uo pipefail
         # Notes:
         #   - Requires sgnd_bootstrap --state so the state backend is available.
     # fn: _save_parameters - Persist prepare-release parameters
-        # Purpose:
+        # . Purpose
         #   Persist prepare-release parameters.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _save_parameters
     _save_parameters(){
         if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
@@ -557,10 +557,10 @@ set -uo pipefail
     }
 
     # _get_parameters
-        # Purpose:
+        # . Purpose
         #   Resolve and collect all parameters required to prepare a release archive.
         #
-        # Behavior:
+        # . Behavior
         #   - Computes default values from framework metadata and workspace paths.
         #   - In auto mode, reuses existing or default values without prompting.
         #   - In interactive mode, prompts for release settings and confirms them.
@@ -589,11 +589,11 @@ set -uo pipefail
         #   FLAG_CLEANUP
         #   FLAG_USEEXISTING
         #
-        # Returns:
+        # . Returns
         #   0 on successful resolution and confirmation
         #   Exits the script with status 1 if the user cancels
         #
-        # Usage:
+        # . Usage
         #   _get_parameters
         #
         # Examples:
@@ -603,17 +603,17 @@ set -uo pipefail
         #   - Uses ask() and ask_ok_redo_quit() for interactive input.
         #   - Auto mode assumes state was loaded during bootstrap (--state).
     # fn: _get_parameters - Collect prepare-release parameters
-        # Purpose:
+        # . Purpose
         #   Collect prepare-release parameters.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _get_parameters
     _get_parameters(){
         PRODUCT="${PRODUCT:-"$SGND_PRODUCT"}"
@@ -739,15 +739,15 @@ set -uo pipefail
     }
 
     # sgnd_release_write_checksum
-        # Purpose:
+        # . Purpose
         #   Add or update a SHA256SUMS entry for a release artifact.
         #
-        # Behavior:
+        # . Behavior
         #   - Ensures SHA256SUMS contains exactly one entry for the specified filename.
         #   - Removes any existing line for the same filename before appending a new one.
         #   - Stores only the basename in the checksum file.
         #
-        # Arguments:
+        # . Arguments
         #   $1  TAR_PATH
         #       Path to the file to hash.
         #   $2  TAR_FILE
@@ -755,15 +755,15 @@ set -uo pipefail
         #   $3  STAGING_ROOT
         #       Directory containing SHA256SUMS.
         #
-        # Side effects:
+        # . Side effects
         #   - Creates or updates:
         #       <staging_root>/SHA256SUMS
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #   1 if required arguments are missing or file operations fail
         #
-        # Usage:
+        # . Usage
         #   sgnd_release_write_checksum "$tar_path" "$TAR_FILE" "$STAGING_ROOT"
         #
         # Examples:
@@ -773,17 +773,17 @@ set -uo pipefail
         #   - Idempotent for a given filename.
         #   - Requires sha256sum, sed, awk, and write permission to staging_root.
     # fn: sgnd_release_write_checksum - Write release checksum metadata for a file
-        # Purpose:
+        # . Purpose
         #   Write release checksum metadata for a file.
         #
-        # Behavior:
+        # . Behavior
         #   - Public entry point.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_release_write_checksum
     sgnd_release_write_checksum() {
         local tar_path="${1:-}"
@@ -811,10 +811,10 @@ set -uo pipefail
     }
 
     # _create_tar
-        # Purpose:
+        # . Purpose
         #   Stage a clean release tree and produce a versioned tar.gz archive.
         #
-        # Behavior:
+        # . Behavior
         #   - Ensures the release-specific staging directory exists.
         #   - Populates the staging directory from SOURCE_DIR via rsync.
         #   - Reuses existing staging files when requested and non-empty.
@@ -832,7 +832,7 @@ set -uo pipefail
         #   FLAG_DRYRUN
         #   FLAG_USEEXISTING
         #
-        # Side effects:
+        # . Side effects
         #   - Creates and updates staged files and release artifacts under STAGING_ROOT.
         #
         # Output artifacts:
@@ -842,11 +842,11 @@ set -uo pipefail
         #   - $STAGING_ROOT/$TAR_FILE.sha256
         #   - $STAGING_ROOT/$RELEASE.manifest.sha256
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #   1 on failure to stage, package, hash, or write artifacts
         #
-        # Usage:
+        # . Usage
         #   _create_tar
         #
         # Examples:
@@ -856,17 +856,17 @@ set -uo pipefail
         #   - In dry-run mode, only reports the intended actions.
         #   - Manifest is generated before embedding, so it does not list itself.
     # fn: _create_tar - Create the release tar archive
-        # Purpose:
+        # . Purpose
         #   Create the release tar archive.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _create_tar
     _create_tar() {
         saystart "Creating release: $RELEASE"
@@ -966,10 +966,10 @@ set -uo pipefail
     }
 
     # fn: _apply_version_bump - Apply release version bump metadata
-        # Purpose:
+        # . Purpose
         #   Apply header checksum/build refresh and optional version bumping to source files.
         #
-        # Behavior:
+        # . Behavior
         #   - Scans SOURCE_DIR for readable shell source files.
         #   - Applies sgnd_header_bump_version to each file.
         #   - Uses --bumpmajor or --bumpminor to decide the bump mode.
@@ -984,7 +984,7 @@ set -uo pipefail
         #   FLAG_DRYRUN
         #   FLAG_NOSOURCEUPDATE
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #   1 on failure
     _apply_version_bump() {
@@ -1040,23 +1040,23 @@ set -uo pipefail
 
 # --- Main Sequence -------------------------------------------------------------------
     # fn$ main - Run the executable main sequence
-        # Purpose:
+        # . Purpose
         #   Execute the release preparation workflow.
         #
-        # Behavior:
+        # . Behavior
         #   - Loads and initializes the framework bootstrap.
         #   - Executes builtin framework argument handling.
         #   - Prepares the standard UI state and title bar.
         #   - Resolves release parameters.
         #   - Creates the release archive and related metadata.
         #
-        # Arguments:
+        # . Arguments
         #   $@  Framework and script-specific command-line arguments
         #
-        # Returns:
+        # . Returns
         #   Exits with the resulting status from bootstrap or release operations
         #
-        # Usage:
+        # . Usage
         #   main "$@"
         #
         # Examples:

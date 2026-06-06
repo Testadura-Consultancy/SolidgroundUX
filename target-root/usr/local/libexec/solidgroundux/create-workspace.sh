@@ -45,10 +45,10 @@
 set -uo pipefail
 # --- Bootstrap -----------------------------------------------------------------------
     # _framework_locator
-        # Purpose:
+        # . Purpose
         #   Locate, create, and load the SolidGroundUX bootstrap configuration.
         #
-        # Behavior:
+        # . Behavior
         #   - Searches user and system bootstrap configuration locations.
         #   - Prefers the invoking user's config over the system config.
         #   - Creates a new bootstrap config when none exists.
@@ -60,12 +60,12 @@ set -uo pipefail
         #   SGND_FRAMEWORK_ROOT
         #   SGND_APPLICATION_ROOT
         #
-        # Returns:
+        # . Returns
         #   0   success
         #   126 configuration unreadable or invalid
         #   127 configuration directory or file could not be created
         #
-        # Usage:
+        # . Usage
         #   _framework_locator || return $?
         #
         # Examples:
@@ -167,10 +167,10 @@ set -uo pipefail
     }
 
     # _load_bootstrapper
-        # Purpose:
+        # . Purpose
         #   Resolve and source the framework bootstrap library.
         #
-        # Behavior:
+        # . Behavior
         #   - Calls _framework_locator to establish framework roots.
         #   - Derives the sgnd-bootstrap.sh path from SGND_FRAMEWORK_ROOT.
         #   - Verifies that the bootstrap library is readable.
@@ -179,11 +179,11 @@ set -uo pipefail
         # Inputs (globals):
         #   SGND_FRAMEWORK_ROOT
         #
-        # Returns:
+        # . Returns
         #   0   success
         #   126 bootstrap library unreadable
         #
-        # Usage:
+        # . Usage
         #   _load_bootstrapper || return $?
         #
         # Examples:
@@ -226,31 +226,31 @@ set -uo pipefail
 
     # Minimal UI
     # fn$ saystart - Emit a minimal START message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal START message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saystart
     saystart()   { printf '%sSTART%s\t%s\n' "${MSG_CLR_STRT-}" "${RESET-}" "$*" >&2; }
     # fn$ sayinfo - Emit a minimal INFO message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal INFO message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayinfo
     sayinfo()    { 
         if (( ${FLAG_VERBOSE:-0} )); then
@@ -258,59 +258,59 @@ set -uo pipefail
         fi
     }
     # fn$ sayok - Emit a minimal OK message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal OK message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayok
     sayok()      { printf '%sOK%s   \t%s\n' "${MSG_CLR_OK-}"   "${RESET-}" "$*" >&2; }
     # fn$ saywarning - Emit a minimal WARN message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal WARN message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saywarning
     saywarning() { printf '%sWARN%s \t%s\n' "${MSG_CLR_WARN-}" "${RESET-}" "$*" >&2; }
     # fn$ sayfail - Emit a minimal FAIL message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal FAIL message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayfail
     sayfail()    { printf '%sFAIL%s \t%s\n' "${MSG_CLR_FAIL-}" "${RESET-}" "$*" >&2; }
     # fn$ saydebug - Emit a minimal DEBUG message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal DEBUG message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saydebug
     saydebug() {
         if (( ${FLAG_DEBUG:-0} )); then
@@ -318,31 +318,31 @@ set -uo pipefail
         fi
     }
     # fn$ saycancel - Emit a minimal CANCEL message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal CANCEL message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saycancel
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
     # fn$ sayend - Emit a minimal END message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal END message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayend
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
     
@@ -423,11 +423,11 @@ set -uo pipefail
     # SGND_SCRIPT_GLOBALS
         # Explicit declaration of global variables intentionally used by this script.
         #
-        # Purpose:
+        # . Purpose
         #   - Declares which globals are part of the script’s public/config contract.
         #   - Enables optional configuration loading when non-empty.
         #
-        # Behavior:
+        # . Behavior
         #   - If this array is non-empty, sgnd_bootstrap enables config integration.
         #   - Variables listed here may be populated from configuration files.
         #   - Unlisted globals will NOT be auto-populated.
@@ -449,10 +449,10 @@ set -uo pipefail
     # SGND_STATE_VARIABLES
         # List of variables participating in persistent state.
         #
-        # Purpose:
+        # . Purpose
         #   - Declares which variables should be saved/restored when state is enabled.
         #
-        # Behavior:
+        # . Behavior
         #   - Only used when sgnd_bootstrap is invoked with --state.
         #   - Variables listed here are serialized on exit (if SGND_STATE_SAVE=1).
         #   - On startup, previously saved values are restored before main logic runs.
@@ -469,10 +469,10 @@ set -uo pipefail
     # SGND_ON_EXIT_HANDLERS
         # List of functions to be invoked on script termination.
         #
-        # Purpose:
+        # . Purpose
         #   - Allows scripts to register cleanup or finalization hooks.
         #
-        # Behavior:
+        # . Behavior
         #   - Functions listed here are executed during framework exit handling.
         #   - Execution order follows array order.
         #   - Handlers run regardless of normal exit or controlled termination.
@@ -502,10 +502,10 @@ set -uo pipefail
 # --- local script functions ----------------------------------------------------------
  # -- General helpers
     # fn: _normalize_project_flags - Normalize create-workspace option flags
-        # Purpose:
+        # . Purpose
         #   Normalize project selection flags into a coherent default state.
         #
-        # Behavior:
+        # . Behavior
         #   - If no project flags are given, defaults to executable and library.
         #
         # Inputs (globals):
@@ -518,7 +518,7 @@ set -uo pipefail
         #   FLAG_LIB
         #   FLAG_MOD
         #
-        # Returns:
+        # . Returns
         #   0 on success
     _normalize_project_flags() {
         if (( ! ${FLAG_EXE:-0} )) && (( ! ${FLAG_LIB:-0} )) && (( ! ${FLAG_MOD:-0} )); then
@@ -531,20 +531,20 @@ set -uo pipefail
     }
 
     # fn: _copy_template_file - Copy one template file into the workspace
-        # Purpose:
+        # . Purpose
         #   Copy a single template file to a target location.
         #
-        # Behavior:
+        # . Behavior
         #   - Verifies the source template exists.
         #   - Creates the destination parent directory when needed.
         #   - Honors dry-run mode by reporting the intended action only.
         #   - Records the destination file in the manifest only when it did not exist before.
         #
-        # Arguments:
+        # . Arguments
         #   $1  Source template file
         #   $2  Destination file
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #   1 on failure
     _copy_template_file() {
@@ -575,10 +575,10 @@ set -uo pipefail
     }
 
     # fn: _get_template_filenames - Resolve template filenames for workspace creation
-        # Purpose:
+        # . Purpose
         #   Determine output filenames for selected template types.
         #
-        # Arguments:
+        # . Arguments
         #   $1  Name reference for exe filename
         #   $2  Name reference for lib filename
         #   $3  Name reference for mod filename
@@ -603,10 +603,10 @@ set -uo pipefail
     }
 
     # fn: _copy_project_templates - Copy project templates into the workspace
-        # Purpose:
+        # . Purpose
         #   Copy the appropriate template file(s) for the selected project components.
         #
-        # Behavior:
+        # . Behavior
         #   - Copies exe-template when FLAG_EXE=1
         #   - Copies lib-template when FLAG_LIB=1
         #   - Copies mod-template when FLAG_MOD=1
@@ -620,7 +620,7 @@ set -uo pipefail
         #   FLAG_MOD
         #   SGND_COMMON_LIB
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #   1 on failure
     _copy_project_templates() {
@@ -665,16 +665,16 @@ set -uo pipefail
     }
 
     # fn: _get_project_directories - Resolve project directory layout
-        # Purpose:
+        # . Purpose
         #   Build the directory list required for the selected project components.
         #
-        # Behavior:
+        # . Behavior
         #   - Adds shared target-root folders when any component is selected
         #   - Adds executable folders when FLAG_EXE=1
         #   - Adds library folders when FLAG_LIB=1
         #   - Adds module folders when FLAG_MOD=1
         #
-        # Arguments:
+        # . Arguments
         #   $1  Name reference to output array
         #
         # Inputs (globals):
@@ -683,7 +683,7 @@ set -uo pipefail
         #   FLAG_LIB
         #   FLAG_MOD
         #
-        # Returns:
+        # . Returns
         #   0 on success
     _get_project_directories() {
         local -n out_ref=$1
@@ -729,10 +729,10 @@ set -uo pipefail
 
  # -- Manifest helpers
     # fn: _manifest_init - Initialize the workspace creation manifest
-        # Purpose:
+        # . Purpose
         #   Initialize the workspace creation manifest.
         #
-        # Behavior:
+        # . Behavior
         #   - Sets WORKSPACE_MANIFEST under the project root.
         #   - Writes a small manifest header with project name and timestamp.
         #   - Honors dry-run mode by reporting the intended action without writing the file.
@@ -745,7 +745,7 @@ set -uo pipefail
         # Outputs (globals):
         #   WORKSPACE_MANIFEST
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #   Non-zero on failure
     _manifest_init() {
@@ -766,18 +766,18 @@ set -uo pipefail
     }
 
     # fn: _manifest_record_file - Record a created file in the manifest
-        # Purpose:
+        # . Purpose
         #   Append a file entry to the workspace manifest.
         #
-        # Arguments:
+        # . Arguments
         #   $1  Absolute file path
         #
-        # Behavior:
+        # . Behavior
         #   - Does nothing when WORKSPACE_MANIFEST is unset.
         #   - Does nothing in dry-run mode.
         #   - Appends a FILE record to the manifest.
         #
-        # Returns:
+        # . Returns
         #   0 always
     _manifest_record_file() {
         local path="$1"
@@ -789,18 +789,18 @@ set -uo pipefail
     }
 
     # fn: _manifest_record_dir - Record a created directory in the manifest
-        # Purpose:
+        # . Purpose
         #   Append a directory entry to the workspace manifest.
         #
-        # Arguments:
+        # . Arguments
         #   $1  Absolute directory path
         #
-        # Behavior:
+        # . Behavior
         #   - Does nothing when WORKSPACE_MANIFEST is unset.
         #   - Does nothing in dry-run mode.
         #   - Appends a DIR record to the manifest.
         #
-        # Returns:
+        # . Returns
         #   0 always
     _manifest_record_dir() {
         local path="$1"
@@ -812,10 +812,10 @@ set -uo pipefail
     }
 
     # fn: _uncreate_from_manifest - Remove artifacts recorded in the create manifest
-        # Purpose:
+        # . Purpose
         #   Remove files and directories listed in a workspace manifest.
         #
-        # Behavior:
+        # . Behavior
         #   - Validates that the manifest exists.
         #   - Reads FILE and DIR entries from the manifest.
         #   - Removes files first.
@@ -824,10 +824,10 @@ set -uo pipefail
         #   - Removes the manifest itself last.
         #   - Honors dry-run mode by reporting intended actions without modifying the filesystem.
         #
-        # Arguments:
+        # . Arguments
         #   $1  Manifest file path
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #   1 when the manifest does not exist
     _uncreate_from_manifest() {
@@ -894,10 +894,10 @@ set -uo pipefail
 
  # -- Main sequence
     # _resolve_project_settings
-        # Purpose:
+        # . Purpose
         #   Resolve and confirm the project name and target folder for a new workspace.
         #
-        # Behavior:
+        # . Behavior
         #   - Prompts for the project name.
         #   - Prompts whether to include executable, library, and console-module components.
         #   - Prompts for the console module app folder when module support is enabled.
@@ -912,11 +912,11 @@ set -uo pipefail
         #   PROJECT_NAME
         #   PROJECT_FOLDER
         #
-        # Returns:
+        # . Returns
         #   0  settings confirmed
         #   1  user aborted or an unexpected response occurred
         #
-        # Usage:
+        # . Usage
         #   _resolve_project_settings || return $?
         #
         # Examples:
@@ -928,17 +928,17 @@ set -uo pipefail
         #   - Uses ask() and ask_ok_redo_quit() for interactive input.
         #   - Confirmation includes a short auto-continue timeout.
     # fn: _resolve_project_settings - Resolve project creation settings
-        # Purpose:
+        # . Purpose
         #   Resolve project creation settings.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _resolve_project_settings
     _resolve_project_settings(){
         local slug=""
@@ -1065,10 +1065,10 @@ set -uo pipefail
     }
     
     # fn: _create_repository - Create the repository directory structure
-        # Purpose:
+        # . Purpose
         #   Create the project repository structure and copy template files.
         #
-        # Behavior:
+        # . Behavior
         #   - Creates the project root folder when needed.
         #   - Builds the directory structure based on selected project components.
         #   - Copies only the applicable template file(s).
@@ -1083,7 +1083,7 @@ set -uo pipefail
         #   SGND_COMMON_LIB
         #   FLAG_DRYRUN
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #   Non-zero if required filesystem operations fail
     _create_repository(){
@@ -1122,10 +1122,10 @@ set -uo pipefail
     }
 
     # _create_workspace_file
-        # Purpose:
+        # . Purpose
         #   Generate a VS Code workspace file for the new project.
         #
-        # Behavior:
+        # . Behavior
         #   - Creates a .code-workspace file in the project root.
         #   - Configures the project root as the workspace folder.
         #   - Adds a minimal set of editor settings and file exclusions.
@@ -1136,15 +1136,15 @@ set -uo pipefail
         #   PROJECT_NAME
         #   FLAG_DRYRUN
         #
-        # Side effects:
+        # . Side effects
         #   - Creates or overwrites:
         #       ${PROJECT_FOLDER}/${PROJECT_NAME}.code-workspace
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #   Non-zero if file creation fails
         #
-        # Usage:
+        # . Usage
         #   _create_workspace_file
         #
         # Examples:
@@ -1153,17 +1153,17 @@ set -uo pipefail
         # Notes:
         #   - The generated workspace assumes the project root as the workspace folder.
     # fn: _create_workspace_file - Create the VS Code workspace file
-        # Purpose:
+        # . Purpose
         #   Create the VS Code workspace file.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _create_workspace_file
     _create_workspace_file(){
         local workspace_file="${PROJECT_FOLDER}/${PROJECT_NAME}.code-workspace"
@@ -1199,10 +1199,10 @@ set -uo pipefail
     }
 
     # _create_gitignore_file
-        # Purpose:
+        # . Purpose
         #   Create a standard .gitignore file in the project workspace root.
         #
-        # Behavior:
+        # . Behavior
         #   - Writes a predefined .gitignore containing common exclusions for
         #     Testadura / SolidGround development environments.
         #   - Covers OS artifacts, IDE metadata, logs, runtime state, build output,
@@ -1213,14 +1213,14 @@ set -uo pipefail
         #   PROJECT_FOLDER
         #   FLAG_DRYRUN
         #
-        # Side effects:
+        # . Side effects
         #   - Creates or overwrites:
         #       ${PROJECT_FOLDER}/.gitignore
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #
-        # Usage:
+        # . Usage
         #   _create_gitignore_file
         #
         # Examples:
@@ -1229,17 +1229,17 @@ set -uo pipefail
         # Notes:
         #   - The ignore rules are intentionally generic and safe for most script-based projects.
     # fn: _create_gitignore_file - Create the workspace .gitignore file
-        # Purpose:
+        # . Purpose
         #   Create the workspace .gitignore file.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _create_gitignore_file
     _create_gitignore_file(){
         local gitignore_file="${PROJECT_FOLDER}/.gitignore"
@@ -1321,10 +1321,10 @@ set -uo pipefail
     }
 
     # fn: _create_mod_appcfg - Create the module application configuration file
-        # Purpose:
+        # . Purpose
         #   Create a console-module application configuration file.
         #
-        # Behavior:
+        # . Behavior
         #   - Does nothing when MOD_FOLDER is empty.
         #   - Creates the MOD_FOLDER directory when needed.
         #   - Writes a <project>.app.cfg file pointing to the generated module script.
@@ -1336,7 +1336,7 @@ set -uo pipefail
         #   MOD_FOLDER
         #   FLAG_DRYRUN
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #   Non-zero on failure
     _create_mod_appcfg() {
@@ -1385,10 +1385,10 @@ set -uo pipefail
 
 # --- main ----------------------------------------------------------------------------
     # main
-        # Purpose:
+        # . Purpose
         #   Execute the workspace creation or uncreation workflow.
         #
-        # Behavior:
+        # . Behavior
         #   - Loads the framework bootstrapper.
         #   - Initializes the framework runtime via sgnd_bootstrap.
         #   - Executes builtin framework argument handling.
@@ -1405,13 +1405,13 @@ set -uo pipefail
         #       - optionally creates a console-module app config
         #       - applies final ownership and permission fixes when not in dry-run mode.
         #
-        # Arguments:
+        # . Arguments
         #   $@  Framework and script-specific command-line arguments
         #
-        # Returns:
+        # . Returns
         #   Exits with the resulting status produced by bootstrap or script logic
         #
-        # Usage:
+        # . Usage
         #   main "$@"
         #
         # Examples:
@@ -1420,17 +1420,17 @@ set -uo pipefail
         # Notes:
         #   - sgnd_bootstrap splits framework arguments from script arguments automatically.
     # fn: main - Run the executable main sequence
-        # Purpose:
+        # . Purpose
         #   Run the executable main sequence.
         #
-        # Behavior:
+        # . Behavior
         #   - Public entry point.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   main
     main() {
         # -- Bootstrap

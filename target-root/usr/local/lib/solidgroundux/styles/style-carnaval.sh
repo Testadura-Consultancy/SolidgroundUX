@@ -30,7 +30,7 @@
     SAY_COLORIZE_DEFAULT="all"  # none|label|msg|both|all
     SAY_DATE_FORMAT="%Y-%j %H:%M:%S" 
     # var: style_say_global_defaults - say() global defaults
-        # Purpose:
+        # . Purpose
         #   Document the variables assigned in this style section.
         #
         # Variables:
@@ -74,7 +74,7 @@
         SYM_WARN="⚠"
 
         # var: style_say_prefixes - Say prefixes
-            # Purpose:
+            # . Purpose
             #   Document the variables assigned in this style section.
             #
             # Variables:
@@ -109,7 +109,7 @@
         TUI_VALID=$BOLD_GREEN
         TUI_DEFAULT=$FAINT_SILVER
         # var: style_colors - Colors
-            # Purpose:
+            # . Purpose
             #   Document the variables assigned in this style section.
             #
             # Variables:

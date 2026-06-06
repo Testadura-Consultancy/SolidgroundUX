@@ -43,10 +43,10 @@
 set -uo pipefail
 # - Bootstrap -----------------------------------------------------------------------
     # fn$ _framework_locator
-        # Purpose:
+        # . Purpose
         #   Locate, create, and load the SolidGroundUX bootstrap configuration.
         #
-        # Behavior:
+        # . Behavior
         #   - Searches user and system bootstrap configuration locations.
         #   - Prefers the invoking user's config over the system config.
         #   - Creates a new bootstrap config when none exists.
@@ -58,12 +58,12 @@ set -uo pipefail
         #   SGND_FRAMEWORK_ROOT
         #   SGND_APPLICATION_ROOT
         #
-        # Returns:
+        # . Returns
         #   0   success
         #   126 configuration unreadable or invalid
         #   127 configuration directory or file could not be created
         #
-        # Usage:
+        # . Usage
         #   _framework_locator || return $?
         #
         # Examples:
@@ -159,10 +159,10 @@ set -uo pipefail
     }
 
     # fn$ _load_bootstrapper
-        # Purpose:
+        # . Purpose
         #   Resolve and source the framework bootstrap library.
         #
-        # Behavior:
+        # . Behavior
         #   - Calls _framework_locator to establish framework roots.
         #   - Derives the sgnd-bootstrap.sh path from SGND_FRAMEWORK_ROOT.
         #   - Verifies that the bootstrap library is readable.
@@ -171,11 +171,11 @@ set -uo pipefail
         # Inputs (globals):
         #   SGND_FRAMEWORK_ROOT
         #
-        # Returns:
+        # . Returns
         #   0   success
         #   126 bootstrap library unreadable
         #
-        # Usage:
+        # . Usage
         #   _load_bootstrapper || return $?
         #
         # Examples:
@@ -224,7 +224,7 @@ set -uo pipefail
     RESET=$'\e[0m'
 
     # fn$ Minimal fallback UI
-        # Purpose:
+        # . Purpose
         #   Provide basic status output before sgnd-bootstrap loads the full UI layer.
         #
         # Notes:
@@ -319,11 +319,11 @@ set -uo pipefail
     # var$ SGND_SCRIPT_GLOBALS
         # Explicit declaration of global variables intentionally used by this script.
         #
-        # Purpose:
+        # . Purpose
         #   - Declares which globals are part of the script’s public/config contract.
         #   - Enables optional configuration loading when non-empty.
         #
-        # Behavior:
+        # . Behavior
         #   - If this array is non-empty, sgnd_bootstrap enables config integration.
         #   - Variables listed here may be populated from configuration files.
         #   - Unlisted globals will NOT be auto-populated.
@@ -345,10 +345,10 @@ set -uo pipefail
     # var$ SGND_STATE_VARIABLES
         # List of variables participating in persistent state.
         #
-        # Purpose:
+        # . Purpose
         #   - Declares which variables should be saved/restored when state is enabled.
         #
-        # Behavior:
+        # . Behavior
         #   - Only used when sgnd_bootstrap is invoked with --state.
         #   - Variables listed here are serialized on exit (if SGND_STATE_SAVE=1).
         #   - On startup, previously saved values are restored before main logic runs.
@@ -365,10 +365,10 @@ set -uo pipefail
     # var$ SGND_ON_EXIT_HANDLERS
         # List of functions to be invoked on script termination.
         #
-        # Purpose:
+        # . Purpose
         #   - Allows scripts to register cleanup or finalization hooks.
         #
-        # Behavior:
+        # . Behavior
         #   - Functions listed here are executed during framework exit handling.
         #   - Execution order follows array order.
         #   - Handlers run regardless of normal exit or controlled termination.
@@ -419,23 +419,23 @@ set -uo pipefail
 
 # - Main ----------------------------------------------------------------------------
     # fn$ main
-        # Purpose:
+        # . Purpose
         #   Canonical entry point for executable scripts.
         #
-        # Behavior:
+        # . Behavior
         #   - Loads the framework bootstrapper.
         #   - Initializes runtime via sgnd_bootstrap.
         #   - Handles built-in framework arguments.
         #   - Prepares UI state (runmode + title bar).
         #   - Executes script-specific logic.
         #
-        # Arguments:
+        # . Arguments
         #   $@  Command-line arguments (framework + script-specific).
         #
-        # Returns:
+        # . Returns
         #   Exits with the resulting status code from bootstrap or script logic.
         #
-        # Usage:
+        # . Usage
         #   main "$@"
         #
         # Examples:

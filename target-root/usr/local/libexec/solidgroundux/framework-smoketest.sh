@@ -41,10 +41,10 @@
 set -uo pipefail
 # --- Bootstrap -----------------------------------------------------------------------
     # _framework_locator
-        # Purpose:
+        # . Purpose
         #   Locate, create, and load the SolidGroundUX bootstrap configuration.
         #
-        # Behavior:
+        # . Behavior
         #   - Searches user and system bootstrap configuration locations.
         #   - Prefers the invoking user's config over the system config.
         #   - Creates a new bootstrap config when none exists.
@@ -56,12 +56,12 @@ set -uo pipefail
         #   SGND_FRAMEWORK_ROOT
         #   SGND_APPLICATION_ROOT
         #
-        # Returns:
+        # . Returns
         #   0   success
         #   126 configuration unreadable or invalid
         #   127 configuration directory or file could not be created
         #
-        # Usage:
+        # . Usage
         #   _framework_locator || return $?
         #
         # Examples:
@@ -163,10 +163,10 @@ set -uo pipefail
     }
 
     # _load_bootstrapper
-        # Purpose:
+        # . Purpose
         #   Resolve and source the framework bootstrap library.
         #
-        # Behavior:
+        # . Behavior
         #   - Calls _framework_locator to establish framework roots.
         #   - Derives the sgnd-bootstrap.sh path from SGND_FRAMEWORK_ROOT.
         #   - Verifies that the bootstrap library is readable.
@@ -175,11 +175,11 @@ set -uo pipefail
         # Inputs (globals):
         #   SGND_FRAMEWORK_ROOT
         #
-        # Returns:
+        # . Returns
         #   0   success
         #   126 bootstrap library unreadable
         #
-        # Usage:
+        # . Usage
         #   _load_bootstrapper || return $?
         #
         # Examples:
@@ -222,31 +222,31 @@ set -uo pipefail
 
     # Minimal UI
     # fn$ saystart - Emit a minimal START message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal START message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saystart
     saystart()   { printf '%sSTART%s\t%s\n' "${MSG_CLR_STRT-}" "${RESET-}" "$*" >&2; }
     # fn$ sayinfo - Emit a minimal INFO message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal INFO message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayinfo
     sayinfo()    { 
         if (( ${FLAG_VERBOSE:-0} )); then
@@ -254,59 +254,59 @@ set -uo pipefail
         fi
     }
     # fn$ sayok - Emit a minimal OK message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal OK message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayok
     sayok()      { printf '%sOK%s   \t%s\n' "${MSG_CLR_OK-}"   "${RESET-}" "$*" >&2; }
     # fn$ saywarning - Emit a minimal WARN message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal WARN message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saywarning
     saywarning() { printf '%sWARN%s \t%s\n' "${MSG_CLR_WARN-}" "${RESET-}" "$*" >&2; }
     # fn$ sayfail - Emit a minimal FAIL message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal FAIL message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayfail
     sayfail()    { printf '%sFAIL%s \t%s\n' "${MSG_CLR_FAIL-}" "${RESET-}" "$*" >&2; }
     # fn$ saydebug - Emit a minimal DEBUG message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal DEBUG message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saydebug
     saydebug() {
         if (( ${FLAG_DEBUG:-0} )); then
@@ -314,31 +314,31 @@ set -uo pipefail
         fi
     }
     # fn$ saycancel - Emit a minimal CANCEL message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal CANCEL message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saycancel
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
     # fn$ sayend - Emit a minimal END message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal END message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayend
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
     
@@ -442,34 +442,34 @@ set -uo pipefail
     
 # --- Local script functions -------------------------------------------------------
     # fn: input_test - Run simple shell input tests
-        # Purpose:
+        # . Purpose
         #   Run simple shell input tests.
         #
-        # Behavior:
+        # . Behavior
         #   - Public entry point.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   input_test
     input_test() {
         ask_prompt_form --autoalign "${SGND_STATE_VARIABLES[@]}" 
     }
 
     # fn: ask_test - Run interactive ask helper tests
-        # Purpose:
+        # . Purpose
         #   Run interactive ask helper tests.
         #
-        # Behavior:
+        # . Behavior
         #   - Public entry point.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   ask_test
     ask_test(){
         # -----------------------------------------------------------------------------
@@ -595,17 +595,17 @@ set -uo pipefail
     }
         # -- Sample/demo renderers
     # fn: say_test - Run console message helper tests
-        # Purpose:
+        # . Purpose
         #   Run console message helper tests.
         #
-        # Behavior:
+        # . Behavior
         #   - Public entry point.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   say_test
     say_test(){
         sayinfo "Info message"
@@ -645,17 +645,17 @@ set -uo pipefail
         #   - Scripts may override builtin handling, but doing so transfers
         #     responsibility for correct behavior to the script author.
     # fn: main - Run the executable main sequence
-        # Purpose:
+        # . Purpose
         #   Run the executable main sequence.
         #
-        # Behavior:
+        # . Behavior
         #   - Public entry point.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   main
     main() {
         # -- Bootstrap

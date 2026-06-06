@@ -77,7 +77,7 @@ saydebug() {
 }
 
 # print_usage
-    # Purpose:
+    # . Purpose
     #   Print command usage and supported options.
 print_usage() {
     cat <<EOF
@@ -104,7 +104,7 @@ EOF
 }
 
 # run_cmd
-    # Purpose:
+    # . Purpose
     #   Execute a command or echo it in dry-run mode.
 run_cmd() {
     if (( FLAG_DRYRUN )); then
@@ -118,7 +118,7 @@ run_cmd() {
 }
 
 # require_command
-    # Purpose:
+    # . Purpose
     #   Ensure an external command is available.
 require_command() {
     local cmd="${1:?missing command}"
@@ -130,7 +130,7 @@ require_command() {
 }
 
 # parse_args
-    # Purpose:
+    # . Purpose
     #   Parse script arguments into global option variables.
 parse_args() {
     while (( $# > 0 )); do
@@ -178,7 +178,7 @@ parse_args() {
 }
 
 # normalize_rooted_path
-    # Purpose:
+    # . Purpose
     #   Join a target root with an absolute-style path.
 normalize_rooted_path() {
     local root="${1:?missing root}"
@@ -195,7 +195,7 @@ normalize_rooted_path() {
 }
 
 # init_paths
-    # Purpose:
+    # . Purpose
     #   Resolve working paths from target root and options.
 init_paths() {
     VAL_TARGET_ROOT="${VAL_TARGET_ROOT%/}"
@@ -207,7 +207,7 @@ init_paths() {
 }
 
 # list_installed_releases
-    # Purpose:
+    # . Purpose
     #   List installed release bases from install metadata.
 list_installed_releases() {
     local installs_dir="${VAL_STATE_ROOT%/}/installed"
@@ -221,7 +221,7 @@ list_installed_releases() {
 }
 
 # select_manual_release
-    # Purpose:
+    # . Purpose
     #   Present installed releases and let the user choose one.
 select_manual_release() {
     local entries=()
@@ -262,7 +262,7 @@ select_manual_release() {
 }
 
 # resolve_release_base
-    # Purpose:
+    # . Purpose
     #   Resolve which installed release base to uninstall.
 resolve_release_base() {
     local current_file=""
@@ -289,7 +289,7 @@ resolve_release_base() {
 }
 
 # load_release_meta
-    # Purpose:
+    # . Purpose
     #   Load install metadata for the selected release.
 load_release_meta() {
     local release_base="${1:?missing release base}"
@@ -317,7 +317,7 @@ load_release_meta() {
 }
 
 # manifest_paths
-    # Purpose:
+    # . Purpose
     #   Extract installed paths from a manifest.
 manifest_paths() {
     local manifest="${1:?missing manifest}"
@@ -341,7 +341,7 @@ manifest_paths() {
 }
 
 # remove_installed_paths
-    # Purpose:
+    # . Purpose
     #   Remove paths listed in the install manifest.
 remove_installed_paths() {
     local manifest="${1:?missing manifest}"
@@ -366,7 +366,7 @@ remove_installed_paths() {
 }
 
 # restore_backup
-    # Purpose:
+    # . Purpose
     #   Restore backed-up files into the target root.
 restore_backup() {
     local backup_dir="${1:-}"
@@ -391,7 +391,7 @@ restore_backup() {
 }
 
 # archive_uninstall_records
-    # Purpose:
+    # . Purpose
     #   Move install records to uninstall history and update current markers.
 archive_uninstall_records() {
     local release_base="${1:?missing release base}"
@@ -430,7 +430,7 @@ archive_uninstall_records() {
 }
 
 # main
-    # Purpose:
+    # . Purpose
     #   Execute the uninstall flow.
 main() {
     local release_base=""

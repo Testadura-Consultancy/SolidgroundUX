@@ -85,7 +85,7 @@ saydebug() {
 }
 
 # print_usage
-    # Purpose:
+    # . Purpose
     #   Print command usage and supported options.
 print_usage() {
     cat <<EOF
@@ -120,7 +120,7 @@ EOF
 }
 
 # run_cmd
-    # Purpose:
+    # . Purpose
     #   Execute a command or echo it in dry-run mode.
 run_cmd() {
     if (( FLAG_DRYRUN )); then
@@ -134,7 +134,7 @@ run_cmd() {
 }
 
 # require_command
-    # Purpose:
+    # . Purpose
     #   Ensure an external command is available.
 require_command() {
     local cmd="${1:?missing command}"
@@ -146,7 +146,7 @@ require_command() {
 }
 
 # parse_args
-    # Purpose:
+    # . Purpose
     #   Parse script arguments into global option variables.
 parse_args() {
     while (( $# > 0 )); do
@@ -215,7 +215,7 @@ parse_args() {
 }
 
 # normalize_rooted_path
-    # Purpose:
+    # . Purpose
     #   Join a target root with an absolute-style path.
 normalize_rooted_path() {
     local root="${1:?missing root}"
@@ -232,7 +232,7 @@ normalize_rooted_path() {
 }
 
 # init_paths
-    # Purpose:
+    # . Purpose
     #   Resolve installer working paths from target root and options.
 init_paths() {
     VAL_TARGET_ROOT="${VAL_TARGET_ROOT%/}"
@@ -252,7 +252,7 @@ init_paths() {
 }
 
 # release_base_from_archive
-    # Purpose:
+    # . Purpose
     #   Return the archive basename without .tar.gz.
 release_base_from_archive() {
     local archive="${1:?missing archive}"
@@ -264,7 +264,7 @@ release_base_from_archive() {
 }
 
 # release_build_from_base
-    # Purpose:
+    # . Purpose
     #   Return trailing numeric build from a release basename.
 release_build_from_base() {
     local base="${1:?missing base}"
@@ -275,7 +275,7 @@ release_build_from_base() {
 }
 
 # release_product_from_base
-    # Purpose:
+    # . Purpose
     #   Return product name inferred from release basename.
 release_product_from_base() {
     local base="${1:?missing base}"
@@ -284,7 +284,7 @@ release_product_from_base() {
 }
 
 # find_candidate_archives
-    # Purpose:
+    # . Purpose
     #   Scan the releases directory for candidate package archives.
 find_candidate_archives() {
     [[ -d "$VAL_RELEASES_DIR" ]] || {
@@ -296,7 +296,7 @@ find_candidate_archives() {
 }
 
 # build_package_table
-    # Purpose:
+    # . Purpose
     #   Create a tab-separated package table for candidate archives.
 build_package_table() {
     local archive=""
@@ -325,7 +325,7 @@ build_package_table() {
 }
 
 # select_latest_archive
-    # Purpose:
+    # . Purpose
     #   Select the newest archive by numeric build number.
 select_latest_archive() {
     local product=""
@@ -349,7 +349,7 @@ select_latest_archive() {
 }
 
 # select_manual_archive
-    # Purpose:
+    # . Purpose
     #   Present matching archives and let the user choose one.
 select_manual_archive() {
     local entries=()
@@ -395,7 +395,7 @@ select_manual_archive() {
 }
 
 # resolve_selected_archive
-    # Purpose:
+    # . Purpose
     #   Resolve the archive to install.
 resolve_selected_archive() {
     local candidate=""
@@ -425,7 +425,7 @@ resolve_selected_archive() {
 }
 
 # verify_sha256_file
-    # Purpose:
+    # . Purpose
     #   Verify one file using a companion .sha256 file.
 verify_sha256_file() {
     local file_path="${1:?missing file}"
@@ -446,7 +446,7 @@ verify_sha256_file() {
 }
 
 # verify_release_set
-    # Purpose:
+    # . Purpose
     #   Verify archive, manifest, and companion checksum files.
 verify_release_set() {
     local archive="${1:?missing archive}"
@@ -471,7 +471,7 @@ verify_release_set() {
 }
 
 # manifest_paths
-    # Purpose:
+    # . Purpose
     #   Extract installed paths from a manifest.
 manifest_paths() {
     local manifest="${1:?missing manifest}"
@@ -495,7 +495,7 @@ manifest_paths() {
 }
 
 # backup_affected_paths
-    # Purpose:
+    # . Purpose
     #   Back up existing manifest paths into a timestamped backup root.
 backup_affected_paths() {
     local manifest="${1:?missing manifest}"
@@ -535,7 +535,7 @@ backup_affected_paths() {
 }
 
 # extract_release_archive
-    # Purpose:
+    # . Purpose
     #   Extract a release archive into the target root.
 extract_release_archive() {
     local archive="${1:?missing archive}"
@@ -546,7 +546,7 @@ extract_release_archive() {
 }
 
 # write_install_records
-    # Purpose:
+    # . Purpose
     #   Write install manifest and install metadata to target state storage.
 write_install_records() {
     local archive="${1:?missing archive}"
@@ -601,7 +601,7 @@ EOF
 }
 
 # main
-    # Purpose:
+    # . Purpose
     #   Execute the standalone package installation flow.
 main() {
     local archive=""

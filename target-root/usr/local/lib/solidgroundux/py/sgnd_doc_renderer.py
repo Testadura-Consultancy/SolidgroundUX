@@ -143,8 +143,8 @@ def display_name_with_title(name: str, title: str) -> str:
     clean_name = name or ""
     clean_title = title or ""
 
-    if clean_title and clean_title != clean_name:
-        return f"{clean_name} - {clean_title}"
+    if clean_title:
+        return clean_title
 
     return clean_name
 
@@ -966,7 +966,7 @@ body {
 }
 
 .doc-nav-title {
-    font-size: 12pt;
+    font-size: 16pt;
     font-weight: bold;
 }
 
@@ -975,7 +975,7 @@ body {
 }
 
 .doc-nav-node.level-0 > summary {
-    font-size: 11pt;
+    font-size: 12pt;
     font-weight: bold;
 }
 
@@ -1004,7 +1004,7 @@ body {
 
 .doc-title {
     font-family: Arial, sans-serif;
-    font-size: 18pt;
+    font-size: 16pt;
     font-weight: bold;
     font-style: normal;
     line-height: 1.25;
@@ -1020,7 +1020,7 @@ body {
 .ct-prefaceheader,
 .ct-moduleheader {
     font-family: Arial, sans-serif;
-    font-size: 22pt;
+    font-size: 16pt;
     font-weight: bold;
     font-style: normal;
     line-height: 1.2;
@@ -1030,7 +1030,7 @@ body {
 .ct-epilogueheader,
 .ct-appendixheader {
     font-family: Arial, sans-serif;
-    font-size: 20pt;
+    font-size: 16pt;
     font-weight: bold;
     font-style: normal;
     line-height: 1.2;
@@ -1039,7 +1039,7 @@ body {
 
 .ct-L1Sectionheader {
     font-family: Arial, sans-serif;
-    font-size: 18pt;
+    font-size: 14pt;
     font-weight: bold;
     font-style: normal;
     line-height: 1.25;
@@ -1048,8 +1048,8 @@ body {
 
 .ct-L2Sectionheader {
     font-family: Arial, sans-serif;
-    font-size: 15pt;
-    font-weight: bold;
+    font-size: 14pt;
+    font-weight: 600;
     font-style: normal;
     line-height: 1.25;
     margin: 18px 0 8px 0;
@@ -1057,8 +1057,8 @@ body {
 
 .ct-L3Sectionheader {
     font-family: Arial, sans-serif;
-    font-size: 13pt;
-    font-weight: bold;
+    font-size: 14pt;
+    font-weight: 600;
     font-style: normal;
     line-height: 1.25;
     margin: 14px 0 6px 0;
@@ -1067,7 +1067,7 @@ body {
 .ct-functionheader,
 .ct-variableheader {
     font-family: Arial, sans-serif;
-    font-size: 11pt;
+    font-size: 12pt;
     font-weight: bold;
     font-style: normal;
     line-height: 1.35;
@@ -1109,13 +1109,20 @@ body {
     margin: 8px 0 3px 0;
 }
 
+.sh-highlight {
+    font-weight: 600;
+}
+
 .sh-emphasis {
     font-weight: bold;
 }
 
+.sh-underline {
+    text-decoration: underline;
+}
+
 .sh-quote {
     font-style: italic;
-    margin-left: 18px;
 }
 
 .sh-listitem {
@@ -1156,7 +1163,7 @@ body {
 
 .doc-title-page-title {
     font-family: Arial, sans-serif;
-    font-size: 28pt;
+    font-size: 20pt;
     font-weight: bold;
     line-height: 1.2;
     margin: 0 0 16px 0;
@@ -1192,7 +1199,11 @@ body {
     text-align: left;
 }
 
-.doc-summary-table td {
+.doc-summary-table td:first-child {
+    text-align: left;
+}
+
+.doc-summary-table td:last-child {
     text-align: right;
     font-variant-numeric: tabular-nums;
 }
@@ -1381,7 +1392,7 @@ body {
         for node in self.nav:
             label = node.node_name
             current_level = node.hierarchy_level
-            indent = current_level * 12
+            indent = current_level * 10
             special_nav_types = {"product", "group", "appendices", "appendix", "preface", "epilogue"}
             style = f"padding-left:{indent}px"
             href = page_href_from_contentref(node.contentref) if node.contentref else ""
@@ -1961,7 +1972,11 @@ body {
         output_file = self.output_dir / href
         output_file.parent.mkdir(parents=True, exist_ok=True)
 
-        title = self.title_from_rows(node.contentref, node.node_title or node.node_name)
+        if is_item_node(node.nodetype) and node.node_title:
+            title = node.node_title
+        else:
+            title = self.title_from_rows(node.contentref, node.node_title or node.node_name)
+        
         breadcrumb = self.breadcrumb_from_contentref(node.contentref)
 
         if self.is_module_level_special_page(node):

@@ -50,20 +50,20 @@
 set -uo pipefail
 # - Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard - Library guard
-        # Purpose:
+        # . Purpose
         #   Prevent direct execution of a source-only module and avoid repeated initialization.
         #
-        # Behavior:
+        # . Behavior
         #   - Derives a module-specific guard variable from the current filename.
         #   - Exits with status 2 when the file is executed directly.
         #   - Returns immediately when the module has already been loaded.
         #   - Marks the module as loaded before normal initialization continues.
         #
-        # Returns:
+        # . Returns
         #   0 when the module may continue loading or was already loaded.
         #   Exits with status 2 when executed directly.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
         local lib_base
@@ -85,23 +85,23 @@ set -uo pipefail
     _sgnd_lib_guard
     unset -f _sgnd_lib_guard
     # fn: sgnd_header_read - Header read
-        # Purpose:
+        # . Purpose
         #   Read a SolidGroundUX script header from a file.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Arguments:
+        # . Arguments
         #   $1  FILE - File path.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_header_read "${FILE}"
     sgnd_header_read() {
         local file="${1:?missing file}"
@@ -133,27 +133,27 @@ set -uo pipefail
         printf '%s' "${result%$'\n'}"
     }
     # fn: sgnd_header_load_section_to_dt - Header load section to dt
-        # Purpose:
+        # . Purpose
         #   Load a named header section into a SolidGroundUX datatable.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Uses SolidGroundUX datatable rows and schemas for structured state.
         #
-        # Arguments:
+        # . Arguments
         #   $1  FILE - File path.
         #   $2  SECTION - Header section name.
         #   $3  SCHEMA - Datatable schema string.
         #   $4  TABLE_NAME - Variable, field, or item name.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_header_load_section_to_dt "${FILE}" "${SECTION}" "${SCHEMA}" "${TABLE_NAME}"
     sgnd_header_load_section_to_dt() {
         local file="${1:?missing file}"
@@ -196,20 +196,20 @@ set -uo pipefail
         done < "$file"
     }
     # fn: sgnd_header_is_section_header - Header is section header
-        # Purpose:
+        # . Purpose
         #   Check whether a line starts a named header section.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Arguments:
+        # . Arguments
         #   $1  LINE - Input line.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_header_is_section_header "${LINE}"
     sgnd_header_is_section_header() {
         local line="${1-}"
@@ -219,24 +219,24 @@ set -uo pipefail
         return 0
     }
     # fn: sgnd_header_buffer_load - Header buffer load
-        # Purpose:
+        # . Purpose
         #   Load a file header into the reusable header buffer.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #
-        # Arguments:
+        # . Arguments
         #   $1  FILE - File path.
         #
         # Outputs (globals):
         #   May update SGND_* globals shown in the function body.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_header_buffer_load "${FILE}"
     sgnd_header_buffer_load() {
         local file="${1:?missing file}"
@@ -247,22 +247,22 @@ set -uo pipefail
         SGND_HEADER_BUFFER_TEXT="$(sgnd_header_read "$file")" || return 1
     }
     # fn: sgnd_header_buffer_get_section - Header buffer get section
-        # Purpose:
+        # . Purpose
         #   Extract a section from the reusable header buffer.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #
-        # Arguments:
+        # . Arguments
         #   $1  SECTION - Header section name.
         #   $2  _OUTVAR - Target variable name.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_header_buffer_get_section "${SECTION}" "${_OUTVAR}"
     sgnd_header_buffer_get_section() {
         local section="${1:?missing section}"
@@ -272,23 +272,23 @@ set -uo pipefail
         sgnd_header_get_section_from_text "$SGND_HEADER_BUFFER_TEXT" "$section" "$_outvar"
     }
     # fn: sgnd_header_calc_checksum - Header calc checksum
-        # Purpose:
+        # . Purpose
         #   Calculate the managed-body checksum for a script file.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Arguments:
+        # . Arguments
         #   $1  FILE - File path.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_header_calc_checksum "${FILE}"
     sgnd_header_calc_checksum() {
         local file="${1:?missing file}"
@@ -306,26 +306,26 @@ set -uo pipefail
         ' "$file" | sha256sum | awk '{print $1}'
     }
     # fn: sgnd_header_bump_version - Header bump version
-        # Purpose:
+        # . Purpose
         #   Bump a semantic version string according to a requested bump mode.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Arguments:
+        # . Arguments
         #   $1  FILE - File path.
         #   $2  MODE - Operation mode.
         #
         # Outputs (globals):
         #   May update SGND_* globals shown in the function body.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_header_bump_version "${FILE}" "${MODE}"
     sgnd_header_bump_version() {
         local file="${1:?missing file}"
@@ -407,24 +407,24 @@ set -uo pipefail
         return 0
     }
     # fn: sgnd_header_get_section - Header get section
-        # Purpose:
+        # . Purpose
         #   Read a named header section from a script file.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Arguments:
+        # . Arguments
         #   $1  FILE - File path.
         #   $2  SECTION - Header section name.
         #   $3  _RESULTVAR - Target variable name.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_header_get_section "${FILE}" "${SECTION}" "${_RESULTVAR}"
     sgnd_header_get_section() {
         local file="${1:?missing file}"
@@ -459,24 +459,24 @@ set -uo pipefail
         printf -v "$_resultvar" '%s' "$result"
     }
     # fn: sgnd_header_get_section_from_text - Header get section from text
-        # Purpose:
+        # . Purpose
         #   Extract a named header section from supplied header text.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Arguments:
+        # . Arguments
         #   $1  TEXT - Text value.
         #   $2  SECTION - Header section name.
         #   $3  _OUTVAR - Target variable name.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_header_get_section_from_text "${TEXT}" "${SECTION}" "${_OUTVAR}"
     sgnd_header_get_section_from_text() {
         local text="${1-}"
@@ -510,25 +510,25 @@ set -uo pipefail
         (( found ))
     }
     # fn: sgnd_header_get_banner_parts_from_text - Header get banner parts from text
-        # Purpose:
+        # . Purpose
         #   Parse banner name, version, and release fields from supplied header text.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Arguments:
+        # . Arguments
         #   $1  TEXT - Text value.
         #   $2  _PRODUCT_VAR - Target variable name.
         #   $3  _TITLE_VAR - Target variable name.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_header_get_banner_parts_from_text "${TEXT}" "${_PRODUCT_VAR}" "${_TITLE_VAR}"
     sgnd_header_get_banner_parts_from_text() {
         local text="${1-}"
@@ -571,25 +571,25 @@ set -uo pipefail
         return 1
     }
     # fn: sgnd_header_parse_banner_line - Header parse banner line
-        # Purpose:
+        # . Purpose
         #   Parse one SolidGroundUX banner line into structured fields.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Arguments:
+        # . Arguments
         #   $1  LINE - Input line.
         #   $2  _PRODUCT_VAR - Target variable name.
         #   $3  _TITLE_VAR - Target variable name.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_header_parse_banner_line "${LINE}" "${_PRODUCT_VAR}" "${_TITLE_VAR}"
     sgnd_header_parse_banner_line() {
         local line="${1-}"
@@ -617,26 +617,26 @@ set -uo pipefail
         return 1
     }
     # fn: sgnd_header_get_field - Header get field
-        # Purpose:
+        # . Purpose
         #   Read a named metadata field from a script file.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Arguments:
+        # . Arguments
         #   $1  FILE - File path.
         #   $2  SECTION - Header section name.
         #   $3  FIELD - Metadata field name.
         #   $4  _RESULTVAR - Target variable name.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_header_get_field "${FILE}" "${SECTION}" "${FIELD}" "${_RESULTVAR}"
     sgnd_header_get_field() {
         local file="${1:?missing file}"
@@ -683,24 +683,24 @@ set -uo pipefail
         return 1
     }
     # fn: sgnd_header_get_field_value - Header get field value
-        # Purpose:
+        # . Purpose
         #   Read the value part of a named metadata field from a script file.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Arguments:
+        # . Arguments
         #   $1  FILE - File path.
         #   $2  SECTION - Header section name.
         #   $3  FIELD - Metadata field name.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_header_get_field_value "${FILE}" "${SECTION}" "${FIELD}"
     sgnd_header_get_field_value() {
         local file="$1"
@@ -712,25 +712,25 @@ set -uo pipefail
         printf '%s' "$value"
     }
     # fn: sgnd_header_get_banner_parts - Header get banner parts
-        # Purpose:
+        # . Purpose
         #   Read banner name, version, and release fields from a script file.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Arguments:
+        # . Arguments
         #   $1  FILE - File path.
         #   $2  _PRODUCT_VAR - Target variable name.
         #   $3  _TITLE_VAR - Target variable name.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_header_get_banner_parts "${FILE}" "${_PRODUCT_VAR}" "${_TITLE_VAR}"
     sgnd_header_get_banner_parts() {
         local file="${1:?missing file}"
@@ -773,23 +773,23 @@ set -uo pipefail
         return 1
     }
     # fn: sgnd_section_get_field_value - Section get field value
-        # Purpose:
+        # . Purpose
         #   Read the value of a field from an already extracted section.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Arguments:
+        # . Arguments
         #   $1  SECTION - Header section name.
         #   $2  FIELD - Metadata field name.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_section_get_field_value "${SECTION}" "${FIELD}"
     sgnd_section_get_field_value() {
         local section="${1-}"
@@ -819,30 +819,30 @@ set -uo pipefail
         printf ''
     }
     # fn: sgnd_header_add_field - Header add field
-        # Purpose:
+        # . Purpose
         #   Add a metadata field to a named header section.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Arguments:
+        # . Arguments
         #   $1  FILE - File path.
         #   $2  SECTION - Header section name.
         #   $3  FIELD - Metadata field name.
         #   $4  VALUE - Value to read, validate, render, or store.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Side effects:
+        # . Side effects
         #   May update files, directories, runtime state, or process state required by the workflow.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_header_add_field "${FILE}" "${SECTION}" "${FIELD}" "${VALUE}"
     sgnd_header_add_field() {
         local file="${1:?missing file}"
@@ -905,22 +905,22 @@ set -uo pipefail
         return 1
     }
     # fn: sgnd_header_upsert_field - Header upsert field
-        # Purpose:
+        # . Purpose
         #   Add or replace a metadata field in a named header section.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Arguments:
+        # . Arguments
         #   $1  FILE - File path.
         #   $2  SECTION - Header section name.
         #   $3  FIELD - Metadata field name.
         #   $4  VALUE - Value to read, validate, render, or store.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_header_upsert_field "${FILE}" "${SECTION}" "${FIELD}" "${VALUE}"
     sgnd_header_upsert_field() {
         local file="${1:?missing file}"
@@ -939,30 +939,30 @@ set -uo pipefail
         esac
     }
     # fn: sgnd_header_set_field - Header set field
-        # Purpose:
+        # . Purpose
         #   Set an existing metadata field in a named header section.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Arguments:
+        # . Arguments
         #   $1  FILE - File path.
         #   $2  SECTION - Header section name.
         #   $3  FIELD - Metadata field name.
         #   $4  VALUE - Value to read, validate, render, or store.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Side effects:
+        # . Side effects
         #   May update files, directories, runtime state, or process state required by the workflow.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_header_set_field "${FILE}" "${SECTION}" "${FIELD}" "${VALUE}"
     sgnd_header_set_field() {
         local file="${1:?missing file}"

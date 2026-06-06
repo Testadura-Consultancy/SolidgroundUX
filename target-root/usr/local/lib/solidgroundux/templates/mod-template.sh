@@ -50,10 +50,10 @@
 set -uo pipefail
 # - Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard
-        # Purpose:
+        # . Purpose
         #   Ensure the file is sourced as a library and only initialized once.
         #
-        # Behavior:
+        # . Behavior
         #   - Derives a unique guard variable name from the current filename.
         #   - Aborts execution if the file is executed instead of sourced.
         #   - Sets the guard variable on first load.
@@ -66,7 +66,7 @@ set -uo pipefail
         # Outputs (globals):
         #   SGND_<MODULE>_LOADED
         #
-        # Returns:
+        # . Returns
         #   0 if already loaded or successfully initialized.
         #   Exits with code 2 if executed instead of sourced.
     _sgnd_lib_guard() {

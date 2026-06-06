@@ -40,20 +40,20 @@
 set -uo pipefail
 # - Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard - Library guard
-        # Purpose:
+        # . Purpose
         #   Prevent direct execution of a source-only module and avoid repeated initialization.
         #
-        # Behavior:
+        # . Behavior
         #   - Derives a module-specific guard variable from the current filename.
         #   - Exits with status 2 when the file is executed directly.
         #   - Returns immediately when the module has already been loaded.
         #   - Marks the module as loaded before normal initialization continues.
         #
-        # Returns:
+        # . Returns
         #   0 when the module may continue loading or was already loaded.
         #   Exits with status 2 when executed directly.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
         local lib_base
@@ -79,10 +79,10 @@ set -uo pipefail
 
 # - Local definitions -------------------------------------------------------------
     # var: DOC_RENDER_CACHE_DIR - Optional renderer cache directory
-        # Purpose:
+        # . Purpose
         #   Reserve a shared variable for renderer cache location configuration.
         #
-        # Behavior:
+        # . Behavior
         #   - Defaults to an empty value.
         #   - May be populated by future renderer/cache logic.
         #
@@ -91,10 +91,10 @@ set -uo pipefail
         DOC_RENDER_CACHE_DIR=""
 
     # var: Postprocess datamodel - Renderer-side documentation indexes
-        # Purpose:
+        # . Purpose
         #   Define renderer-owned index tables derived from parser output.
         #
-        # Behavior:
+        # . Behavior
         #   - Stores attribution and function lookup data for documentation indexes.
         #   - Keeps post-processing output separate from parser-owned tables.
         #   - Uses schema strings as explicit table contracts for sgnd-datatable helpers.
@@ -117,10 +117,10 @@ set -uo pipefail
 
     # -- Arguments ------------------------------------------------------------------
         # doc: render_options - Documentation output selection and ordering defaults
-            # Purpose:
+            # . Purpose
             #   Define default renderer options used by documentation generation.
             #
-            # Behavior:
+            # . Behavior
             #   - Controls whether internal items and empty sections are included.
             #   - Defines default grouping and sort expressions for indexes, sections, and items.
             #
@@ -136,10 +136,10 @@ set -uo pipefail
 
     # -- Helpers --------------------------------------------------------------------
         # fn: _init_metadata - Initialize document-level render metadata
-            # Purpose:
+            # . Purpose
             #   Populate renderer metadata from document configuration values.
             #
-            # Behavior:
+            # . Behavior
             #   - Copies configured title, subtitle, version, and product values into DOC_* variables.
             #   - Records the render timestamp in UTC ISO-like format.
             #
@@ -149,10 +149,10 @@ set -uo pipefail
             # Outputs (globals):
             #   DOC_TITLE, DOC_SUBTITLE, DOC_VERSION, DOC_PRODUCT, DOC_RENDER_DATE
             #
-            # Returns:
+            # . Returns
             #   0 on successful initialization.
             #
-            # Usage:
+            # . Usage
             #   _init_metadata
         _init_metadata() {
             DOC_TITLE="${VAL_DOCUMENT_TITLE:-}"
@@ -163,25 +163,25 @@ set -uo pipefail
         }
 
         # fn: _prepare_output_directory - Create and optionally clean the documentation output directory
-            # Purpose:
+            # . Purpose
             #   Ensure the configured output directory exists and is ready for rendering.
             #
-            # Behavior:
+            # . Behavior
             #   - Creates VAL_OUTDIR when it does not exist.
             #   - Cleans existing output when FLAG_CLEAN_OUTPUT is enabled.
             #   - Preserves an existing assets/theme.css file across clean output runs.
             #
-            # Inputs (globals):
+            # . Inputs (globals):
             #   VAL_OUTDIR, FLAG_CLEAN_OUTPUT
             #
-            # Outputs:
+            # . Outputs
             #   Creates or modifies files under VAL_OUTDIR.
             #
-            # Returns:
+            # . Returns
             #   0 when the directory is ready.
             #   1 when creation, cleanup, or theme preservation fails.
             #
-            # Usage:
+            # . Usage
             #   _prepare_output_directory
         _prepare_output_directory() {
             if [[ -d "$VAL_OUTDIR" ]]; then
@@ -217,22 +217,22 @@ set -uo pipefail
         }
 
         # fn: _export_render_config - Export renderer configuration to a PSV file
-            # Purpose:
+            # . Purpose
             #   Write document-level render settings in the same table format used by exported parser data.
             #
-            # Behavior:
+            # . Behavior
             #   - Writes a key|value header.
             #   - Exports title, subtitle, version, product, clean-output behavior, and navigation width.
             #   - Forces FLAG_CLEAN_OUTPUT to 0 for the Python renderer hand-off to avoid recursive cleanup.
             #
-            # Arguments:
+            # . Arguments
             #   $1  Target render_config.psv file.
             #
-            # Returns:
+            # . Returns
             #   0 when the file is written.
             #   Non-zero when the target file cannot be written.
             #
-            # Usage:
+            # . Usage
             #   _export_render_config "$export_dir/render_config.psv"
         _export_render_config() {
 
@@ -251,26 +251,26 @@ set -uo pipefail
         }
 
         # fn: _export_render_tables - Export parser tables for the Python renderer
-            # Purpose:
+            # . Purpose
             #   Persist normalized documentation tables into a temporary render hand-off directory.
             #
-            # Behavior:
+            # . Behavior
             #   - Creates the export directory when needed.
             #   - Exports module, section, item, attribution, global, and content-line tables as PSV files.
             #   - Exports renderer configuration alongside parser data.
             #
-            # Arguments:
+            # . Arguments
             #   $1  Directory that receives the exported PSV files.
             #
             # Inputs (globals):
             #   MOD_TABLE, MOD_SECTIONS, MOD_ITEMS, MOD_ATTRIBUTION, MOD_GLOBALS, DOC_CONTENT_LINES
             #   and their corresponding schema variables.
             #
-            # Returns:
+            # . Returns
             #   0 when all tables and config are exported.
             #   1 when directory creation or any export step fails.
             #
-            # Usage:
+            # . Usage
             #   _export_render_tables "$export_dir"
         _export_render_tables() {
             local export_dir="${1:?missing export dir}"
@@ -318,12 +318,44 @@ set -uo pipefail
                 || return 1
         }
 
+        # fn: _cleanup_old_render_exports - Clean old renderer export folders
+            # . Purpose
+            # > Remove stale temporary documentation renderer export folders from /tmp.
+            #
+            # . Behavior
+            # > - Finds directories matching /tmp/sgnd-doc-render.*.
+            # > - Sorts them by modification time, newest first.
+            # > - Keeps the two newest render export folders.
+            # > - Deletes older render export folders.
+            # > - Ignores missing matches without raising an error.
+            #
+            # . Notes
+            # > This cleanup only affects temporary renderer input exports.
+            # > It does not touch generated documentation output.
+            #
+            # . Returns
+            # > 0 after cleanup completes.
+            #
+            # . Usage
+            # > _cleanup_old_render_exports
+        _cleanup_old_render_exports() {
+            find /tmp \
+                -maxdepth 1 \
+                -type d \
+                -name 'sgnd-doc-render.*' \
+                -printf '%T@ %p\n' |
+            sort -nr |
+            tail -n +3 |
+            cut -d' ' -f2- |
+            xargs -r rm -rf
+        }
+
 # - Main sequence ----------------------------------------------------------
     # fn: _render_site - Render collected documentation data
-        # Purpose:
+        # . Purpose
         #   Provide the renderer hand-off point for collected documentation tables.
         #
-        # Behavior:
+        # . Behavior
         #   - Validates the output folder argument.
         #   - Prepares and optionally cleans the output directory.
         #   - Initializes document-level metadata.
@@ -331,14 +363,14 @@ set -uo pipefail
         #   - Invokes the Python HTML renderer.
         #   - Verifies that index.html was created.
         #
-        # Arguments:
+        # . Arguments
         #   $1  Output folder for generated documentation.
         #
-        # Returns:
+        # . Returns
         #   0 when rendering completes and index.html exists.
         #   1 when validation, preparation, export, rendering, or output verification fails.
         #
-        # Usage:
+        # . Usage
         #   _render_site "$VAL_OUTDIR"
     _render_site(){
         local output_folder="${1:-}"
@@ -357,6 +389,8 @@ set -uo pipefail
             sayerror "Failed to initialize documentation metadata"
             return 1
         }
+
+        _cleanup_old_render_exports
 
         local export_dir=""
         export_dir="$(mktemp -d "/tmp/sgnd-doc-render.XXXXXX")" || {

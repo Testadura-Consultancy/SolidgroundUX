@@ -59,7 +59,7 @@
   FX_STRIKE=9         # Strikethrough (not universally supported)
 
   # var: style_text_attributes_sgr - Text attributes (SGR)
-      # Purpose:
+      # . Purpose
       #   Document the variables assigned in this style section.
       #
       # Variables:
@@ -80,7 +80,7 @@
   # Reset
     RESET=$'\e[0m'
     # var: style_color_codes - Color codes
-        # Purpose:
+        # . Purpose
         #   Document the variables assigned in this style section.
         #
         # Variables:
@@ -177,7 +177,7 @@
   BROWN=$'\e[38;5;130m'
 
   # var: style_foreground_bright - Foreground: Bright
-      # Purpose:
+      # . Purpose
       #   Document the variables assigned in this style section.
       #
       # Variables:
@@ -227,7 +227,7 @@
 
 
   # var: style_background_dark_muted - Background: Dark / muted
-      # Purpose:
+      # . Purpose
       #   Document the variables assigned in this style section.
       #
       # Variables:
@@ -267,7 +267,7 @@
   BG_DARK_BROWN=$'\e[48;5;94m'
 
   # var: style_background_normal - Background: Normal
-      # Purpose:
+      # . Purpose
       #   Document the variables assigned in this style section.
       #
       # Variables:
@@ -309,7 +309,7 @@
   BG_BROWN=$'\e[48;5;130m'
 
   # var: style_background_bright - Background: Bright
-      # Purpose:
+      # . Purpose
       #   Document the variables assigned in this style section.
       #
       # Variables:

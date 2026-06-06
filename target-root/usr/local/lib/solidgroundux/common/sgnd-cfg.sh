@@ -47,20 +47,20 @@
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard - Library guard
-        # Purpose:
+        # . Purpose
         #   Prevent direct execution of a source-only module and avoid repeated initialization.
         #
-        # Behavior:
+        # . Behavior
         #   - Derives a module-specific guard variable from the current filename.
         #   - Exits with status 2 when the file is executed directly.
         #   - Returns immediately when the module has already been loaded.
         #   - Marks the module as loaded before normal initialization continues.
         #
-        # Returns:
+        # . Returns
         #   0 when the module may continue loading or was already loaded.
         #   Exits with status 2 when executed directly.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
         local lib_base
@@ -84,40 +84,40 @@ set -uo pipefail
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
     # fn: _sgnd_is_ident - Is ident
-        # Purpose:
+        # . Purpose
         #   Internal helper for is ident.
         #
-        # Behavior:
+        # . Behavior
         #   - Supports the module implementation; not intended as a public framework API.
         #
-        # Arguments:
+        # . Arguments
         #   $1  ARG1 - Positional value used by this function.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_is_ident "${ARG1}"
     _sgnd_is_ident() {
             [[ "${1:-}" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]
     }
     # fn: _sgnd_kv_load_file - Kv load file
-        # Purpose:
+        # . Purpose
         #   Load kv file into the current shell context.
         #
-        # Behavior:
+        # . Behavior
         #   - Supports the module implementation; not intended as a public framework API.
         #
-        # Arguments:
+        # . Arguments
         #   $1  FILE - File path.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_kv_load_file "${FILE}"
     _sgnd_kv_load_file() {
         local file="$1"
@@ -153,28 +153,28 @@ set -uo pipefail
         done < "$file"
     }
     # fn: _sgnd_kv_set - Kv set
-        # Purpose:
+        # . Purpose
         #   Internal helper for kv set.
         #
-        # Behavior:
+        # . Behavior
         #   - Supports the module implementation; not intended as a public framework API.
         #
-        # Arguments:
+        # . Arguments
         #   $1  FILE - File path.
         #   $2  ARG2 - Positional value used by this function.
         #   $3  ARG3 - Positional value used by this function.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Side effects:
+        # . Side effects
         #   May update files, directories, runtime state, or process state required by the workflow.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_kv_set "${FILE}" "${ARG2}" "${ARG3}"
     _sgnd_kv_set() {
         local file="$1" key="$2" val="$3"
@@ -221,27 +221,27 @@ set -uo pipefail
         return 0
     }
     # fn: _sgnd_kv_unset - Kv unset
-        # Purpose:
+        # . Purpose
         #   Internal helper for kv unset.
         #
-        # Behavior:
+        # . Behavior
         #   - Supports the module implementation; not intended as a public framework API.
         #
-        # Arguments:
+        # . Arguments
         #   $1  FILE - File path.
         #   $2  ARG2 - Positional value used by this function.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Side effects:
+        # . Side effects
         #   May update files, directories, runtime state, or process state required by the workflow.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_kv_unset "${FILE}" "${ARG2}"
     _sgnd_kv_unset() {
         local file="$1" key="$2"
@@ -264,43 +264,43 @@ set -uo pipefail
     }
 
     # fn: _sgnd_kv_reset_file
-        # Purpose:
+        # . Purpose
         #   Hard-delete a KEY=VALUE file.
         #
-        # Arguments:
+        # . Arguments
         #   $1  File path.
         #
-        # Side effects:
+        # . Side effects
         #   Removes the file if present.
         #
-        # Returns:
+        # . Returns
         #   0 always (rm -f semantics).
     _sgnd_kv_reset_file() {
         local file="$1"
         rm -f "$file"
     }
     # fn: _sgnd_kv_get - Kv get
-        # Purpose:
+        # . Purpose
         #   Internal helper for kv get.
         #
-        # Behavior:
+        # . Behavior
         #   - Supports the module implementation; not intended as a public framework API.
         #
-        # Arguments:
+        # . Arguments
         #   $1  FILE - File path.
         #   $2  ARG2 - Positional value used by this function.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Side effects:
+        # . Side effects
         #   May update files, directories, runtime state, or process state required by the workflow.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_kv_get "${FILE}" "${ARG2}"
     _sgnd_kv_get() {
         local file="$1" key="$2"
@@ -318,14 +318,14 @@ set -uo pipefail
     }
 
     # fn: _sgnd_kv_has
-        # Purpose:
+        # . Purpose
         #   Test whether a KEY exists in a KEY=VALUE file (even if empty).
         #
-        # Arguments:
+        # . Arguments
         #   $1  File path.
         #   $2  Key (must be a valid identifier).
         #
-        # Returns:
+        # . Returns
         #   0 if present,
         #   1 if not present,
         #   2 on argument/read error.
@@ -339,23 +339,23 @@ set -uo pipefail
         grep -q -E "^[[:space:]]*${key}[[:space:]]*=" -- "$file" 2>/dev/null
     }
     # fn: _sgnd_kv_list_keys - Kv list keys
-        # Purpose:
+        # . Purpose
         #   Internal helper for kv list keys.
         #
-        # Behavior:
+        # . Behavior
         #   - Supports the module implementation; not intended as a public framework API.
         #
-        # Arguments:
+        # . Arguments
         #   $1  FILE - File path.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_kv_list_keys "${FILE}"
     _sgnd_kv_list_keys() {
         local file="$1"
@@ -382,46 +382,46 @@ set -uo pipefail
         done < "$file"
     }
     # fn: sgnd_cfg_load - Cfg load
-        # Purpose:
+        # . Purpose
         #   Load a configuration domain into shell variables.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #
-        # Arguments:
+        # . Arguments
         #   $1  FILE - File path.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_cfg_load "${FILE}"
     sgnd_cfg_load() {
         local file="${1:-$SGND_CFG_FILE}"
         _sgnd_kv_load_file "$file"
     }
     # fn: sgnd_cfg_set - Cfg set
-        # Purpose:
+        # . Purpose
         #   Set a key in a configuration domain.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Arguments:
+        # . Arguments
         #   $1  KEY - Unique key or identifier.
         #   $2  ARG2 - Positional value used by this function.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_cfg_set "${KEY}" "${ARG2}"
     sgnd_cfg_set() {
         local key="$1" val="$2"
@@ -432,22 +432,22 @@ set -uo pipefail
         printf -v "$key" '%s' "$val"
     }
     # fn: sgnd_cfg_unset - Cfg unset
-        # Purpose:
+        # . Purpose
         #   Remove a key from a configuration domain.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Arguments:
+        # . Arguments
         #   $1  KEY - Unique key or identifier.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_cfg_unset "${KEY}"
     sgnd_cfg_unset() {
         local key="$1"
@@ -458,17 +458,17 @@ set -uo pipefail
         unset "$key" || true
     }
     # fn: sgnd_cfg_reset - Cfg reset
-        # Purpose:
+        # . Purpose
         #   Clear all keys from a configuration domain.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_cfg_reset
     sgnd_cfg_reset() {
         local file
@@ -476,22 +476,22 @@ set -uo pipefail
         _sgnd_kv_reset_file "$file"
     }
     # fn: sgnd_cfg_get - Cfg get
-        # Purpose:
+        # . Purpose
         #   Read a key from a configuration domain.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Arguments:
+        # . Arguments
         #   $1  KEY - Unique key or identifier.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_cfg_get "${KEY}"
     sgnd_cfg_get() {
         local key="$1"
@@ -502,22 +502,22 @@ set -uo pipefail
         _sgnd_kv_get "$SGND_CFG_FILE" "$key"
     }
     # fn: sgnd_cfg_has - Cfg has
-        # Purpose:
+        # . Purpose
         #   Check whether a key exists in a configuration domain.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Arguments:
+        # . Arguments
         #   $1  KEY - Unique key or identifier.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_cfg_has "${KEY}"
     sgnd_cfg_has() {
         local key="$1"
@@ -528,20 +528,20 @@ set -uo pipefail
         _sgnd_kv_has "$SGND_CFG_FILE" "$key"
     }
     # fn: sgnd_cfg_show_keys - Cfg show keys
-        # Purpose:
+        # . Purpose
         #   Print all keys stored in a configuration domain.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Side effects:
+        # . Side effects
         #   May update files, directories, runtime state, or process state required by the workflow.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_cfg_show_keys
     sgnd_cfg_show_keys() {
         local key val
@@ -564,21 +564,21 @@ set -uo pipefail
         sgnd_print
     }
     # fn: sgnd_cfg_has_audience - Cfg has audience
-        # Purpose:
+        # . Purpose
         #   Check whether the active script or framework metadata matches a configuration audience.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Arguments:
+        # . Arguments
         #   $1  SPEC_ARRAY_NAME - Variable, field, or item name.
         #   $2  WANT - Positional value used by this function.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_cfg_has_audience "${SPEC_ARRAY_NAME}" "${WANT}"
     sgnd_cfg_has_audience() {
         local spec_array_name="${1:-}"
@@ -598,23 +598,23 @@ set -uo pipefail
         return 1
     }
     # fn: _sgnd_cfg_write_template_header - Cfg write template header
-        # Purpose:
+        # . Purpose
         #   Internal helper for cfg write template header.
         #
-        # Behavior:
+        # . Behavior
         #   - Supports the module implementation; not intended as a public framework API.
         #
-        # Arguments:
+        # . Arguments
         #   $1  DOMAIN - Configuration or state domain name.
         #   $2  AUDIENCE - Positional value used by this function.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_cfg_write_template_header "${DOMAIN}" "${AUDIENCE}"
     _sgnd_cfg_write_template_header() {
         local domain="${1:-configuration}"
@@ -645,22 +645,22 @@ set -uo pipefail
             ''
     }
     # fn: sgnd_cfg_load_file - Cfg load file
-        # Purpose:
+        # . Purpose
         #   Load a SolidGroundUX key/value configuration file into shell variables.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Arguments:
+        # . Arguments
         #   $1  FILE - File path.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_cfg_load_file "${FILE}"
     sgnd_cfg_load_file() {
         local file="${1:-}"
@@ -695,25 +695,25 @@ set -uo pipefail
         return 0
     }
     # fn: sgnd_cfg_create_missing_domain_files - Cfg create missing domain files
-        # Purpose:
+        # . Purpose
         #   Create missing configuration files for configured domains.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Arguments:
+        # . Arguments
         #   $1  DOMAIN - Configuration or state domain name.
         #   $2  SYSCFG - Positional value used by this function.
         #   $3  USRCFG - Positional value used by this function.
         #   $4  SPEC_ARRAY_NAME - Variable, field, or item name.
         #   $5  MODE - Operation mode.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_cfg_create_missing_domain_files "${DOMAIN}" "${SYSCFG}" "${USRCFG}" "${SPEC_ARRAY_NAME}" "${MODE}"
     sgnd_cfg_create_missing_domain_files() {
         local domain="${1:-}"
@@ -750,24 +750,24 @@ set -uo pipefail
         return 0
     }
     # fn: sgnd_cfg_domain_apply - Cfg domain apply
-        # Purpose:
+        # . Purpose
         #   Apply default, system, user, and script configuration domains in precedence order.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Arguments:
+        # . Arguments
         #   $1  DOMAIN - Configuration or state domain name.
         #   $2  SYSCFG - Positional value used by this function.
         #   $3  USRCFG - Positional value used by this function.
         #   $4  SPEC_ARRAY_NAME - Variable, field, or item name.
         #   $5  MODE - Operation mode.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_cfg_domain_apply "${DOMAIN}" "${SYSCFG}" "${USRCFG}" "${SPEC_ARRAY_NAME}" "${MODE}"
     sgnd_cfg_domain_apply() {
         local domain="${1:-}"
@@ -791,44 +791,44 @@ set -uo pipefail
         return 0
     }
     # fn: sgnd_state_load - State load
-        # Purpose:
+        # . Purpose
         #   Load the current script state domain.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_state_load
     sgnd_state_load() {
         saydebug "Loading state from file ${SGND_STATE_FILE}"
         _sgnd_kv_load_file "$SGND_STATE_FILE"
     }
     # fn: sgnd_state_set - State set
-        # Purpose:
+        # . Purpose
         #   Store a key in the current script state domain.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Arguments:
+        # . Arguments
         #   $1  KEY - Unique key or identifier.
         #   $2  ARG2 - Positional value used by this function.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_state_set "${KEY}" "${ARG2}"
     sgnd_state_set() {
         local key="$1" val="$2"
@@ -843,22 +843,22 @@ set -uo pipefail
         printf -v "$key" '%s' "$val"
     }
     # fn: sgnd_state_unset - State unset
-        # Purpose:
+        # . Purpose
         #   Remove a key from the current script state domain.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Arguments:
+        # . Arguments
         #   $1  KEY - Unique key or identifier.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_state_unset "${KEY}"
     sgnd_state_unset() {
         local key="$1"
@@ -873,18 +873,18 @@ set -uo pipefail
         unset "$key" || true
     }
     # fn: sgnd_state_reset - State reset
-        # Purpose:
+        # . Purpose
         #   Clear the current script state domain.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_state_reset
     sgnd_state_reset() {
         [[ -n "$SGND_STATE_FILE" ]] || return 0
@@ -892,22 +892,22 @@ set -uo pipefail
         _sgnd_kv_reset_file "$SGND_STATE_FILE"
     }
     # fn: sgnd_state_get - State get
-        # Purpose:
+        # . Purpose
         #   Read a key from the current script state domain.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Arguments:
+        # . Arguments
         #   $1  KEY - Unique key or identifier.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_state_get "${KEY}"
     sgnd_state_get() {
         local key="$1"
@@ -918,22 +918,22 @@ set -uo pipefail
         _sgnd_kv_get "$SGND_STATE_FILE" "$key"
     }
     # fn: sgnd_state_has - State has
-        # Purpose:
+        # . Purpose
         #   Check whether a key exists in the current script state domain.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Arguments:
+        # . Arguments
         #   $1  KEY - Unique key or identifier.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_state_has "${KEY}"
     sgnd_state_has() {
         local key="$1"
@@ -945,17 +945,17 @@ set -uo pipefail
         _sgnd_kv_has "$SGND_STATE_FILE" "$key"
     }
     # fn: sgnd_state_save_keys - State save keys
-        # Purpose:
+        # . Purpose
         #   Save selected shell variables to the current script state domain.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_state_save_keys
     sgnd_state_save_keys() {
         local key val
@@ -972,20 +972,20 @@ set -uo pipefail
         done
     }
     # fn: sgnd_state_load_keys - State load keys
-        # Purpose:
+        # . Purpose
         #   Load selected state keys back into shell variables.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_state_load_keys
     sgnd_state_load_keys() {
         local key val
@@ -1001,17 +1001,17 @@ set -uo pipefail
         done
     }
     # fn: sgnd_state_list_keys - State list keys
-        # Purpose:
+        # . Purpose
         #   Print all keys stored in the current script state domain.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_state_list_keys
     sgnd_state_list_keys() {
         [[ -r "${SGND_STATE_FILE:-}" ]] || return 0

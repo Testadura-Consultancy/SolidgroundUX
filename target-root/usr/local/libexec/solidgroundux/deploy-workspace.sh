@@ -48,10 +48,10 @@
 set -uo pipefail
 # --- Bootstrap -----------------------------------------------------------------------
     # _framework_locator
-        # Purpose:
+        # . Purpose
         #   Locate, create, and load the SolidGroundUX bootstrap configuration.
         #
-        # Behavior:
+        # . Behavior
         #   - Searches user and system bootstrap configuration locations.
         #   - Prefers the invoking user's config over the system config.
         #   - Creates a new bootstrap config when none exists.
@@ -63,12 +63,12 @@ set -uo pipefail
         #   SGND_FRAMEWORK_ROOT
         #   SGND_APPLICATION_ROOT
         #
-        # Returns:
+        # . Returns
         #   0   success
         #   126 configuration unreadable or invalid
         #   127 configuration directory or file could not be created
         #
-        # Usage:
+        # . Usage
         #   _framework_locator || return $?
         #
         # Examples:
@@ -170,10 +170,10 @@ set -uo pipefail
     }
 
     # _load_bootstrapper
-        # Purpose:
+        # . Purpose
         #   Resolve and source the framework bootstrap library.
         #
-        # Behavior:
+        # . Behavior
         #   - Calls _framework_locator to establish framework roots.
         #   - Derives the sgnd-bootstrap.sh path from SGND_FRAMEWORK_ROOT.
         #   - Verifies that the bootstrap library is readable.
@@ -182,11 +182,11 @@ set -uo pipefail
         # Inputs (globals):
         #   SGND_FRAMEWORK_ROOT
         #
-        # Returns:
+        # . Returns
         #   0   success
         #   126 bootstrap library unreadable
         #
-        # Usage:
+        # . Usage
         #   _load_bootstrapper || return $?
         #
         # Examples:
@@ -229,31 +229,31 @@ set -uo pipefail
 
     # Minimal UI
     # fn$ saystart - Emit a minimal START message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal START message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saystart
     saystart()   { printf '%sSTART%s\t%s\n' "${MSG_CLR_STRT-}" "${RESET-}" "$*" >&2; }
     # fn$ sayinfo - Emit a minimal INFO message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal INFO message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayinfo
     sayinfo()    { 
         if (( ${FLAG_VERBOSE:-0} )); then
@@ -261,59 +261,59 @@ set -uo pipefail
         fi
     }
     # fn$ sayok - Emit a minimal OK message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal OK message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayok
     sayok()      { printf '%sOK%s   \t%s\n' "${MSG_CLR_OK-}"   "${RESET-}" "$*" >&2; }
     # fn$ saywarning - Emit a minimal WARN message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal WARN message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saywarning
     saywarning() { printf '%sWARN%s \t%s\n' "${MSG_CLR_WARN-}" "${RESET-}" "$*" >&2; }
     # fn$ sayfail - Emit a minimal FAIL message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal FAIL message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayfail
     sayfail()    { printf '%sFAIL%s \t%s\n' "${MSG_CLR_FAIL-}" "${RESET-}" "$*" >&2; }
     # fn$ saydebug - Emit a minimal DEBUG message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal DEBUG message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saydebug
     saydebug() {
         if (( ${FLAG_DEBUG:-0} )); then
@@ -321,31 +321,31 @@ set -uo pipefail
         fi
     }
     # fn$ saycancel - Emit a minimal CANCEL message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal CANCEL message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saycancel
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
     # fn$ sayend - Emit a minimal END message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal END message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayend
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
     
@@ -456,10 +456,10 @@ set -uo pipefail
     # var$ SGND_STATE_VARIABLES
         # List of variables participating in persistent state.
         #
-        # Purpose:
+        # . Purpose
         #   - Declares which variables should be saved/restored when state is enabled.
         #
-        # Behavior:
+        # . Behavior
         #   - Only used when sgnd_bootstrap is invoked with --state.
         #   - Variables listed here are serialized on exit (if SGND_STATE_SAVE=1).
         #   - On startup, previously saved values are restored before main logic runs.
@@ -476,10 +476,10 @@ set -uo pipefail
     # var$ SGND_ON_EXIT_HANDLERS
         # List of functions to be invoked on script termination.
         #
-        # Purpose:
+        # . Purpose
         #   - Allows scripts to register cleanup or finalization hooks.
         #
-        # Behavior:
+        # . Behavior
         #   - Functions listed here are executed during framework exit handling.
         #   - Execution order follows array order.
         #   - Handlers run regardless of normal exit or controlled termination.
@@ -539,23 +539,23 @@ set -uo pipefail
 # --- local script functions ----------------------------------------------------------tree
  # -- Manifests
     # fn: _manifest_source_id - Build a stable deployment source identifier
-        # Purpose:
+        # . Purpose
         #   Derive a stable manifest namespace identifier from SRC_ROOT.
         #
-        # Behavior:
+        # . Behavior
         #   - Hashes SRC_ROOT using sha256
         #   - Prints the resulting identifier to stdout
         #
         # Inputs (globals):
         #   SRC_ROOT
         #
-        # Output:
+        # . Output
         #   Prints source-root identifier to stdout
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #
-        # Usage:
+        # . Usage
         #   id="$(_manifest_source_id)"
         #
         # Notes:
@@ -566,10 +566,10 @@ set -uo pipefail
     }
 
     # fn: _manifest_source_dir - Resolve the deployment manifest source directory
-        # Purpose:
+        # . Purpose
         #   Resolve the manifest directory for the current SRC_ROOT.
         #
-        # Behavior:
+        # . Behavior
         #   - Derives a stable source-root identifier
         #   - Combines it with MANIFEST_BASE_DIR
         #   - Prints the directory path to stdout
@@ -578,13 +578,13 @@ set -uo pipefail
         #   SRC_ROOT
         #   MANIFEST_BASE_DIR
         #
-        # Output:
+        # . Output
         #   Prints manifest directory path to stdout
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #
-        # Usage:
+        # . Usage
         #   dir="$(_manifest_source_dir)"
     _manifest_source_dir() {
         local id
@@ -593,10 +593,10 @@ set -uo pipefail
     }
 
     # _manifest_init
-        # Purpose:
+        # . Purpose
         #   Initialize a new manifest for the current deployment run.
         #
-        # Behavior:
+        # . Behavior
         #   - Creates the source-root-specific manifest directory
         #   - Generates a manifest name if MANIFEST_NAME is not already set
         #   - Creates a temporary manifest file
@@ -621,28 +621,28 @@ set -uo pipefail
         #   MANIFEST_PATH
         #   MANIFEST_TMP
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #   1 on failure
         #
-        # Usage:
+        # . Usage
         #   _manifest_init || return $?
         #
         # Notes:
         #   - In dry-run mode, no manifest file is created
         #   - Caller must later invoke _manifest_commit or _manifest_discard
     # fn: _manifest_init - Initialize the workspace creation manifest
-        # Purpose:
+        # . Purpose
         #   Initialize the workspace creation manifest.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _manifest_init
     _manifest_init() {
         local stamp
@@ -686,13 +686,13 @@ set -uo pipefail
     }
 
     # _manifest_add_file
-        # Purpose:
+        # . Purpose
         #   Record a file CREATED during the current deployment run.
         #
-        # Arguments:
+        # . Arguments
         #   $1  abs_rel   Absolute-style relative target path (e.g. "/usr/local/bin/foo")
         #
-        # Behavior:
+        # . Behavior
         #   - Appends a file entry to the current manifest temp file
         #   - Does nothing in dry-run mode
         #
@@ -703,27 +703,27 @@ set -uo pipefail
         #   MANIFEST_TMP
         #   FLAG_DRYRUN
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #   1 on write failure
         #
-        # Usage:
+        # . Usage
         #   _manifest_add_file "/usr/local/bin/foo"
         #
         # Notes:
         #   - Only call this when the target file did not exist prior to install
     # fn: _manifest_add_file - Add a deployed file to the manifest buffer
-        # Purpose:
+        # . Purpose
         #   Add a deployed file to the manifest buffer.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _manifest_add_file
     _manifest_add_file() {
         local abs_rel="$1"
@@ -740,13 +740,13 @@ set -uo pipefail
     }
 
     # _manifest_add_dir
-        # Purpose:
+        # . Purpose
         #   Record a directory CREATED during the current deployment run.
         #
-        # Arguments:
+        # . Arguments
         #   $1  abs_rel   Absolute-style relative target path (e.g. "/etc/solidgroundux")
         #
-        # Behavior:
+        # . Behavior
         #   - Appends a directory entry to the current manifest temp file
         #   - Does nothing in dry-run mode
         #
@@ -757,27 +757,27 @@ set -uo pipefail
         #   MANIFEST_TMP
         #   FLAG_DRYRUN
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #   1 on write failure
         #
-        # Usage:
+        # . Usage
         #   _manifest_add_dir "/etc/solidgroundux"
         #
         # Notes:
         #   - Only call this when the target directory did not exist prior to creation
     # fn: _manifest_add_dir - Add a deployed directory to the manifest buffer
-        # Purpose:
+        # . Purpose
         #   Add a deployed directory to the manifest buffer.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _manifest_add_dir
     _manifest_add_dir() {
         local abs_rel="$1"
@@ -794,10 +794,10 @@ set -uo pipefail
     }
 
     # fn: _manifest_commit - Write the deployment manifest to disk
-        # Purpose:
+        # . Purpose
         #   Finalize the current manifest after a successful deployment run.
         #
-        # Behavior:
+        # . Behavior
         #   - Renames the temporary manifest file into its final name
         #   - Does nothing in dry-run mode
         #
@@ -806,11 +806,11 @@ set -uo pipefail
         #   MANIFEST_PATH
         #   FLAG_DRYRUN
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #   1 on failure
         #
-        # Usage:
+        # . Usage
         #   _manifest_commit || return $?
         #
         # Notes:
@@ -831,10 +831,10 @@ set -uo pipefail
     }
 
     # fn: _manifest_discard - Discard the temporary deployment manifest
-        # Purpose:
+        # . Purpose
         #   Remove the temporary manifest after an interrupted or failed deployment run.
         #
-        # Behavior:
+        # . Behavior
         #   - Deletes MANIFEST_TMP if it exists
         #   - Does nothing in dry-run mode
         #
@@ -842,10 +842,10 @@ set -uo pipefail
         #   MANIFEST_TMP
         #   FLAG_DRYRUN
         #
-        # Returns:
+        # . Returns
         #   0 always
         #
-        # Usage:
+        # . Usage
         #   _manifest_discard
         #
         # Notes:
@@ -864,10 +864,10 @@ set -uo pipefail
     }
 
     # _manifest_resolve_for_undeploy
-        # Purpose:
+        # . Purpose
         #   Resolve which manifest should be used for undeploy.
         #
-        # Behavior:
+        # . Behavior
         #   - Uses MANIFEST_NAME when explicitly provided
         #   - Otherwise selects the latest manifest for the current SRC_ROOT
         #   - Populates MANIFEST_SOURCE_ID, MANIFEST_SOURCE_DIR, and MANIFEST_PATH
@@ -886,27 +886,27 @@ set -uo pipefail
         #   MANIFEST_SOURCE_DIR
         #   MANIFEST_PATH
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #   1 if no suitable manifest is found
         #
-        # Usage:
+        # . Usage
         #   _manifest_resolve_for_undeploy || return $?
         #
         # Notes:
         #   - Assumes manifest names are time-sortable when auto-generated
     # fn: _manifest_resolve_for_undeploy - Resolve the manifest used for undeploy
-        # Purpose:
+        # . Purpose
         #   Resolve the manifest used for undeploy.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _manifest_resolve_for_undeploy
     _manifest_resolve_for_undeploy() {
         local latest
@@ -946,10 +946,10 @@ set -uo pipefail
     }
 
     # fn: _manifest_list - List available deployment manifests
-        # Purpose:
+        # . Purpose
         #   List available manifests for the current source root.
         #
-        # Behavior:
+        # . Behavior
         #   - Prints manifest filenames for the current SRC_ROOT namespace
         #   - Sorted lexically
         #
@@ -957,11 +957,11 @@ set -uo pipefail
         #   SRC_ROOT
         #   MANIFEST_BASE_DIR
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #   1 if manifest directory does not exist
         #
-        # Usage:
+        # . Usage
         #   _manifest_list
     _manifest_list() {
         local dir
@@ -977,10 +977,10 @@ set -uo pipefail
     }
 
     # fn: _manifest_verify_target - Verify manifest target compatibility
-        # Purpose:
+        # . Purpose
         #   Verify that the resolved manifest belongs to the current DEST_ROOT.
         #
-        # Behavior:
+        # . Behavior
         #   - Reads the target= header from the resolved manifest
         #   - Compares it to the current DEST_ROOT
         #   - Fails when the two targets do not match
@@ -989,11 +989,11 @@ set -uo pipefail
         #   MANIFEST_PATH
         #   DEST_ROOT
         #
-        # Returns:
+        # . Returns
         #   0 when target matches
         #   1 when target differs or cannot be read
         #
-        # Usage:
+        # . Usage
         #   _manifest_verify_target || return $?
         #
         # Notes:
@@ -1019,29 +1019,29 @@ set -uo pipefail
 
  # -- Main sequence  
     # fn: _perm_resolve - Resolve permission policy for a path
-        # Purpose:
+        # . Purpose
         #   Resolve the effective permission mode for a given path based on PERMISSION_RULES.
         #
-        # Arguments:
+        # . Arguments
         #   $1  abs_rel   Absolute path relative to root (e.g. "/usr/local/bin/foo")
         #   $2  kind      "file" or "dir"
         #
-        # Behavior:
+        # . Behavior
         #   - Applies longest-prefix match against PERMISSION_RULES
         #   - Returns file_mode or dir_mode depending on kind
         #   - Falls back to defaults when no rule matches
         #
-        # Output:
+        # . Output
         #   Prints the resolved mode to stdout (no newline)
         #
-        # Returns:
+        # . Returns
         #   0 always
         #
         # Defaults:
         #   file → 644
         #   dir  → 755
         #
-        # Usage:
+        # . Usage
         #   mode="$(_perm_resolve "/usr/local/bin/foo" "file")"
         #
         # Examples:
@@ -1076,10 +1076,10 @@ set -uo pipefail
     }
 
     # fn: _update_lastdeployinfo - Update the last deployment information file
-        # Purpose:
+        # . Purpose
         #   Persist metadata of the last deployment run for reuse (e.g. auto mode).
         #
-        # Behavior:
+        # . Behavior
         #   - Stores timestamp, source, and target in state for later reuse
         #   - Skips writes when FLAG_DRYRUN is enabled
         #
@@ -1093,10 +1093,10 @@ set -uo pipefail
         #   DEST_ROOT
         #   FLAG_DRYRUN
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #
-        # Usage:
+        # . Usage
         #   _update_lastdeployinfo
     _update_lastdeployinfo() {
         if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
@@ -1110,10 +1110,10 @@ set -uo pipefail
     }
 
     # fn: _getparameters - Collect deployment parameters
-        # Purpose:
+        # . Purpose
         #   Collect deployment parameters (source and target roots).
         #
-        # Behavior:
+        # . Behavior
         #   - Auto mode:
         #       Uses last deployment settings when available
         #   - Interactive mode:
@@ -1129,11 +1129,11 @@ set -uo pipefail
         #   SRC_ROOT
         #   DEST_ROOT
         #
-        # Returns:
+        # . Returns
         #   0 → confirmed
         #   1 → aborted
         #
-        # Usage:
+        # . Usage
         #   _getparameters ; return $?
         #
         # Notes:
@@ -1200,10 +1200,10 @@ set -uo pipefail
     }
 
     # fn: _deploy - Deploy workspace files to the target root
-        # Purpose:
+        # . Purpose
         #   Deploy workspace files from SRC_ROOT into DEST_ROOT.
         #
-        # Behavior:
+        # . Behavior
         #   - Recursively processes files under SRC_ROOT
         #   - Computes relative path and destination path
         #   - Skips:
@@ -1235,11 +1235,11 @@ set -uo pipefail
         #   FLAG_DRYRUN
         #   PERMISSION_RULES
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #   1 on fatal deployment/manifest failure
         #
-        # Usage:
+        # . Usage
         #   _deploy
         #
         # Notes:
@@ -1339,10 +1339,10 @@ set -uo pipefail
     }
 
     # fn: _undeploy - Remove deployed files recorded in a manifest
-        # Purpose:
+        # . Purpose
         #   Remove previously deployed files and directories using a manifest.
         #
-        # Behavior:
+        # . Behavior
         #   - Resolves a manifest for the current SRC_ROOT
         #   - Uses MANIFEST_NAME when provided
         #   - Otherwise uses the latest manifest for the source root
@@ -1363,11 +1363,11 @@ set -uo pipefail
         #   MANIFEST_NAME
         #   FLAG_DRYRUN
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #   1 if manifest resolution fails
         #
-        # Usage:
+        # . Usage
         #   _undeploy
         #
         # Notes:
@@ -1428,10 +1428,10 @@ set -uo pipefail
 
 # --- Main ----------------------------------------------------------------------------
     # fn$ main - Run the executable main sequence
-        # Purpose:
+        # . Purpose
         #   Execute the workspace deployment workflow.
         #
-        # Behavior:
+        # . Behavior
         #   - Loads and initializes the framework bootstrap
         #   - Handles builtin arguments
         #   - Displays title bar
@@ -1439,13 +1439,13 @@ set -uo pipefail
         #   - Executes deploy or undeploy
         #   - Persists deployment metadata
         #
-        # Arguments:
+        # . Arguments
         #   $@  Framework and script-specific arguments
         #
-        # Returns:
+        # . Returns
         #   Exit status from executed operations
         #
-        # Usage:
+        # . Usage
         #   main "$@"
     main() {
         # -- Bootstrap

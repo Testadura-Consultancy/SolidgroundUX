@@ -67,10 +67,10 @@
 set -uo pipefail
 # --- Bootstrap -----------------------------------------------------------------------
     # _framework_locator
-        # Purpose:
+        # . Purpose
         #   Locate, create, and load the SolidGroundUX bootstrap configuration.
         #
-        # Behavior:
+        # . Behavior
         #   - Searches user and system bootstrap configuration locations.
         #   - Prefers the invoking user's config over the system config.
         #   - Creates a new bootstrap config when none exists.
@@ -82,12 +82,12 @@ set -uo pipefail
         #   SGND_FRAMEWORK_ROOT
         #   SGND_APPLICATION_ROOT
         #
-        # Returns:
+        # . Returns
         #   0   success
         #   126 configuration unreadable or invalid
         #   127 configuration directory or file could not be created
         #
-        # Usage:
+        # . Usage
         #   _framework_locator || return $?
         #
         # Examples:
@@ -189,10 +189,10 @@ set -uo pipefail
     }
 
     # _load_bootstrapper
-        # Purpose:
+        # . Purpose
         #   Resolve and source the framework bootstrap library.
         #
-        # Behavior:
+        # . Behavior
         #   - Calls _framework_locator to establish framework roots.
         #   - Derives the sgnd-bootstrap.sh path from SGND_FRAMEWORK_ROOT.
         #   - Verifies that the bootstrap library is readable.
@@ -201,11 +201,11 @@ set -uo pipefail
         # Inputs (globals):
         #   SGND_FRAMEWORK_ROOT
         #
-        # Returns:
+        # . Returns
         #   0   success
         #   126 bootstrap library unreadable
         #
-        # Usage:
+        # . Usage
         #   _load_bootstrapper || return $?
         #
         # Examples:
@@ -248,31 +248,31 @@ set -uo pipefail
 
     # Minimal UI
     # fn$ saystart - Emit a minimal START message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal START message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saystart
     saystart()   { printf '%sSTART%s\t%s\n' "${MSG_CLR_STRT-}" "${RESET-}" "$*" >&2; }
     # fn$ sayinfo - Emit a minimal INFO message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal INFO message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayinfo
     sayinfo()    { 
         if (( ${FLAG_VERBOSE:-0} )); then
@@ -280,59 +280,59 @@ set -uo pipefail
         fi
     }
     # fn$ sayok - Emit a minimal OK message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal OK message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayok
     sayok()      { printf '%sOK%s   \t%s\n' "${MSG_CLR_OK-}"   "${RESET-}" "$*" >&2; }
     # fn$ saywarning - Emit a minimal WARN message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal WARN message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saywarning
     saywarning() { printf '%sWARN%s \t%s\n' "${MSG_CLR_WARN-}" "${RESET-}" "$*" >&2; }
     # fn$ sayfail - Emit a minimal FAIL message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal FAIL message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayfail
     sayfail()    { printf '%sFAIL%s \t%s\n' "${MSG_CLR_FAIL-}" "${RESET-}" "$*" >&2; }
     # fn$ saydebug - Emit a minimal DEBUG message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal DEBUG message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saydebug
     saydebug() {
         if (( ${FLAG_DEBUG:-0} )); then
@@ -340,31 +340,31 @@ set -uo pipefail
         fi
     }
     # fn$ saycancel - Emit a minimal CANCEL message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal CANCEL message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saycancel
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
     # fn$ sayend - Emit a minimal END message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal END message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayend
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
     
@@ -462,15 +462,15 @@ set -uo pipefail
 
 # --- Local UI ------------------------------------------------------------------------
     # _print_section_labeledvalues
-        # Purpose:
+        # . Purpose
         #   Print all rows from one metadata section as labeled values.
         #
-        # Behavior:
+        # . Behavior
         #   - Reads rows from the supplied sgnd-datatable.
         #   - Filters rows by the requested section name.
         #   - Prints each matching field/value pair using sgnd_print_labeledvalue().
         #
-        # Arguments:
+        # . Arguments
         #   $1  SCHEMA
         #       Datatable schema string.
         #   $2  TABLE_NAME
@@ -478,27 +478,27 @@ set -uo pipefail
         #   $3  WANTED_SECTION
         #       Section name to render (for example: Metadata, Attribution).
         #
-        # Returns:
+        # . Returns
         #   0  success
         #   1  failed to read datatable contents
         #
-        # Usage:
+        # . Usage
         #   _print_section_labeledvalues "$META_SCHEMA" META_ROWS "Metadata"
         #
         # Examples:
         #   _print_section_labeledvalues "$META_SCHEMA" META_ROWS "Attribution"
     # fn: _print_section_labeledvalues - Print labeled values for one metadata section
-        # Purpose:
+        # . Purpose
         #   Print labeled values for one metadata section.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _print_section_labeledvalues
     _print_section_labeledvalues() {
         local schema="${1:?missing schema}"
@@ -527,10 +527,10 @@ set -uo pipefail
     }
 
     # fn: _show_current_metadata - Display current metadata for the selected file
-        # Purpose:
+        # . Purpose
         #   Render the currently loaded metadata for the active script.
         #
-        # Behavior:
+        # . Behavior
         #   - Prints a titled block for the current header data.
         #   - Renders the Metadata section.
         #   - Renders the Attribution section.
@@ -539,11 +539,11 @@ set -uo pipefail
         #   META_SCHEMA
         #   META_ROWS
         #
-        # Returns:
+        # . Returns
         #   0  success
         #   1  failed to render section contents
         #
-        # Usage:
+        # . Usage
         #   _show_current_metadata
         #
         # Examples:
@@ -561,17 +561,17 @@ set -uo pipefail
     }
 
     # _show_pending_value_buffer
-        # Purpose:
+        # . Purpose
         #   Show a summary of changed fields in the pending value buffer.
         #
-        # Behavior:
+        # . Behavior
         #   - Compares the supplied buffer against the current values in META_ROWS.
         #   - Prints only fields whose values have changed.
         #   - Groups changed fields by section.
         #   - Does not print the new values, only the changed field names.
         #   - Prints "No changes" when the buffer matches the current metadata.
         #
-        # Arguments:
+        # . Arguments
         #   $1  BUFFER_NAME
         #       Name of the pending value buffer array variable.
         #
@@ -579,27 +579,27 @@ set -uo pipefail
         #   META_SCHEMA
         #   META_ROWS
         #
-        # Returns:
+        # . Returns
         #   0  success
         #   1  failed to read metadata rows
         #
-        # Usage:
+        # . Usage
         #   _show_pending_value_buffer value_buffer
         #
         # Examples:
         #   _show_pending_value_buffer io_buffer
     # fn: _show_pending_value_buffer - Display pending metadata values
-        # Purpose:
+        # . Purpose
         #   Display pending metadata values.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _show_pending_value_buffer
     _show_pending_value_buffer() {
         local -n in_buffer="$1"
@@ -642,27 +642,27 @@ set -uo pipefail
 
 # --- Local script functions ----------------------------------------------------------
     # _field_is_selected
-        # Purpose:
+        # . Purpose
         #   Test whether a field is included in the interactive prompt selection.
         #
-        # Behavior:
+        # . Behavior
         #   - When VAL_PROMPTFOR is empty, all fields are considered selected.
         #   - When VAL_PROMPTFOR is set, splits the comma-separated list.
         #   - Trims surrounding whitespace from each list item.
         #   - Matches the requested field name exactly.
         #
-        # Arguments:
+        # . Arguments
         #   $1  FIELD
         #       Field name to test.
         #
         # Inputs (globals):
         #   VAL_PROMPTFOR
         #
-        # Returns:
+        # . Returns
         #   0  field is selected
         #   1  field is not selected
         #
-        # Usage:
+        # . Usage
         #   _field_is_selected "Version"
         #
         # Examples:
@@ -670,17 +670,17 @@ set -uo pipefail
         #       :
         #   fi
     # fn: _field_is_selected - Test whether a metadata field is selected
-        # Purpose:
+        # . Purpose
         #   Test whether a metadata field is selected.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _field_is_selected
     _field_is_selected() {
         local wanted="${1:?missing field}"
@@ -702,10 +702,10 @@ set -uo pipefail
     }
 
     # _resolve_source
-        # Purpose:
+        # . Purpose
         #   Resolve effective processing targets into SOURCE_FILES.
         #
-        # Behavior:
+        # . Behavior
         #   - Normalizes folder and file mask via _resolve_source_input().
         #   - Combines folder + mask into a single glob expression.
         #   - Expands matches using shell globbing.
@@ -720,27 +720,27 @@ set -uo pipefail
         # Outputs (globals):
         #   SOURCE_FILES
         #
-        # Returns:
+        # . Returns
         #   0  success
         #   1  invalid folder or no readable matches found
         #
-        # Usage:
+        # . Usage
         #   _resolve_source || return 1
         #
         # Examples:
         #   _resolve_source
     # fn: _resolve_source - Resolve metadata editor source files
-        # Purpose:
+        # . Purpose
         #   Resolve metadata editor source files.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _resolve_source
     _resolve_source() {
         local folder=""
@@ -783,10 +783,10 @@ set -uo pipefail
     }
 
     # _get_metadata
-        # Purpose:
+        # . Purpose
         #   Load header metadata for the current script into META_ROWS.
         #
-        # Behavior:
+        # . Behavior
         #   - Clears the current META_ROWS buffer.
         #   - Loads the Metadata section from the current script header.
         #   - Loads the Attribution section from the current script header.
@@ -798,11 +798,11 @@ set -uo pipefail
         # Outputs (globals):
         #   META_ROWS
         #
-        # Returns:
+        # . Returns
         #   0  success
         #   1  failed to load one or more header sections
         #
-        # Usage:
+        # . Usage
         #   _get_metadata || return 1
         #
         # Examples:
@@ -822,10 +822,10 @@ set -uo pipefail
     }
 
     # _resolve_bump_mode
-        # Purpose:
+        # . Purpose
         #   Resolve the effective non-interactive version update mode from flags.
         #
-        # Behavior:
+        # . Behavior
         #   - Initializes BUMP_MODE to none.
         #   - Maps --bumpversion to none.
         #   - Maps --bumpmajor to major.
@@ -840,27 +840,27 @@ set -uo pipefail
         # Outputs (globals):
         #   BUMP_MODE
         #
-        # Returns:
+        # . Returns
         #   0  success
         #   1  conflicting bump flags supplied
         #
-        # Usage:
+        # . Usage
         #   _resolve_bump_mode || exit 2
         #
         # Examples:
         #   _resolve_bump_mode
     # fn: _resolve_bump_mode - Resolve requested version bump mode
-        # Purpose:
+        # . Purpose
         #   Resolve requested version bump mode.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _resolve_bump_mode
     _resolve_bump_mode() {
         local bump_count=0
@@ -891,10 +891,10 @@ set -uo pipefail
     }
 
     # _validate_auto_args
-        # Purpose:
+        # . Purpose
         #   Validate required arguments for automatic field update mode.
         #
-        # Behavior:
+        # . Behavior
         #   - Performs no checks when FLAG_AUTO is not set.
         #   - Requires --file or --folder.
         #   - Requires --section.
@@ -909,27 +909,27 @@ set -uo pipefail
         #   VAL_FIELD
         #   VAL_VALUE
         #
-        # Returns:
+        # . Returns
         #   0  success
         #   1  missing required auto-mode arguments
         #
-        # Usage:
+        # . Usage
         #   _validate_auto_args || exit 2
         #
         # Examples:
         #   _validate_auto_args
     # fn: _validate_auto_args - Validate non-interactive metadata editor arguments
-        # Purpose:
+        # . Purpose
         #   Validate non-interactive metadata editor arguments.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _validate_auto_args
     _validate_auto_args() {
         (( ${FLAG_AUTO:-0} )) || return 0
@@ -958,10 +958,10 @@ set -uo pipefail
     }
 
     # _validate_bump_args
-        # Purpose:
+        # . Purpose
         #   Validate required arguments for version metadata update mode.
         #
-        # Behavior:
+        # . Behavior
         #   - Performs checks only when one or more bump flags are set.
         #   - Requires exactly one target source: --file or --folder.
         #   - Rejects cases where both are supplied.
@@ -973,27 +973,27 @@ set -uo pipefail
         #   VAL_FILE
         #   VAL_FOLDER
         #
-        # Returns:
+        # . Returns
         #   0  success
         #   1  invalid or missing bump-mode target arguments
         #
-        # Usage:
+        # . Usage
         #   _validate_bump_args || exit 2
         #
         # Examples:
         #   _validate_bump_args
     # fn: _validate_bump_args - Validate version bump arguments
-        # Purpose:
+        # . Purpose
         #   Validate version bump arguments.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _validate_bump_args
     _validate_bump_args() {
         if (( ${FLAG_BUMPVERSION:-0} || ${FLAG_BUMPMAJOR:-0} || ${FLAG_BUMPMINOR:-0} )); then
@@ -1012,10 +1012,10 @@ set -uo pipefail
     }
 
     # fn: _auto_update_files - Apply automatic metadata updates
-        # Purpose:
+        # . Purpose
         #   Apply one direct field update to all resolved target files.
         #
-        # Behavior:
+        # . Behavior
         #   - Resolves target files from --file or --folder.
         #   - Applies sgnd_header_set_field() to each target.
         #   - Continues across failures and reports a summary.
@@ -1025,11 +1025,11 @@ set -uo pipefail
         #   VAL_FIELD
         #   VAL_VALUE
         #
-        # Returns:
+        # . Returns
         #   0  all updates succeeded
         #   1  target resolution failed or one or more updates failed
         #
-        # Usage:
+        # . Usage
         #   _auto_update_files || exit $?
         #
         # Examples:
@@ -1065,14 +1065,14 @@ set -uo pipefail
     }
 
     # fn: _bump_one_file - Apply a version bump to one file
-        # Purpose:
+        # . Purpose
         #   Apply a version bump to one file, respecting dry-run.
         #
-        # Arguments:
+        # . Arguments
         #   $1  FILE
         #   $2  MODE   none | major | minor
         #
-        # Returns:
+        # . Returns
         #   0  success
         #   1  failure
     _bump_one_file() {
@@ -1092,10 +1092,10 @@ set -uo pipefail
     }
 
     # fn: _bump_version_files - Apply version bumps to selected files
-        # Purpose:
+        # . Purpose
         #   Apply the resolved version metadata update mode to all target files.
         #
-        # Behavior:
+        # . Behavior
         #   - Resolves target files from --file or --folder.
         #   - Applies _bump_one_file() to each target.
         #   - Reports per-file results and a final summary.
@@ -1103,11 +1103,11 @@ set -uo pipefail
         # Inputs (globals):
         #   BUMP_MODE
         #
-        # Returns:
+        # . Returns
         #   0  all targets processed successfully
         #   1  target resolution failed or one or more updates failed
         #
-        # Usage:
+        # . Usage
         #   _bump_version_files || exit $?
         #
         # Examples:
@@ -1138,13 +1138,13 @@ set -uo pipefail
     }
 
     # fn: _collect_changed_fields - Collect changed metadata fields
-        # Purpose:
+        # . Purpose
         #   Collect the names of fields whose pending values differ from current metadata.
         #
-        # Arguments:
+        # . Arguments
         #   $1  BUFFER_NAME
         #
-        # Outputs:
+        # . Outputs
         #   Writes changed field names to stdout, one per line.
     _collect_changed_fields() {
         local -n in_buffer="$1"
@@ -1165,10 +1165,10 @@ set -uo pipefail
 
 # --- User input ----------------------------------------------------------------------
     # _resolve_source_input
-        # Purpose:
+        # . Purpose
         #   Normalize and optionally prompt for target folder and file mask.
         #
-        # Behavior:
+        # . Behavior
         #   - Accepts values from:
         #       VAL_FOLDER  (folder)
         #       VAL_FILE    (file name or glob mask)
@@ -1190,26 +1190,26 @@ set -uo pipefail
         #   VAL_FOLDER
         #   VAL_FILE
         #
-        # Returns:
+        # . Returns
         #   0  success
         #
-        # Usage:
+        # . Usage
         #   _resolve_source_input
         #
         # Examples:
         #   _resolve_source_input
     # fn: _resolve_source_input - Prompt for source selection input
-        # Purpose:
+        # . Purpose
         #   Prompt for source selection input.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _resolve_source_input
     _resolve_source_input() {
         local _folder="${VAL_FOLDER:-}"
@@ -1236,15 +1236,15 @@ set -uo pipefail
     }
 
     # _build_value_buffer_from_meta
-        # Purpose:
+        # . Purpose
         #   Build an editable value buffer from the current metadata rows.
         #
-        # Behavior:
+        # . Behavior
         #   - Clears the destination array.
         #   - Copies the value column from META_ROWS into the destination buffer.
         #   - Preserves row order so buffer indexes match metadata row indexes.
         #
-        # Arguments:
+        # . Arguments
         #   $1  OUT_BUFFER_NAME
         #       Name of the destination array variable.
         #
@@ -1255,27 +1255,27 @@ set -uo pipefail
         # Outputs (globals):
         #   Writes values into the supplied output buffer by reference.
         #
-        # Returns:
+        # . Returns
         #   0  success
         #   1  failed to read metadata rows
         #
-        # Usage:
+        # . Usage
         #   _build_value_buffer_from_meta value_buffer
         #
         # Examples:
         #   _build_value_buffer_from_meta io_buffer
     # fn: _build_value_buffer_from_meta - Build editable metadata value buffers
-        # Purpose:
+        # . Purpose
         #   Build editable metadata value buffers.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _build_value_buffer_from_meta
     _build_value_buffer_from_meta() {
         local -n out_buffer="$1"
@@ -1291,10 +1291,10 @@ set -uo pipefail
     }
 
     # _prompt_value_buffer
-        # Purpose:
+        # . Purpose
         #   Prompt interactively for editable field values and update the buffer in place.
         #
-        # Behavior:
+        # . Behavior
         #   - Iterates through META_ROWS in order.
         #   - Prompts only for fields selected by _field_is_selected().
         #   - Groups prompts by section.
@@ -1302,7 +1302,7 @@ set -uo pipefail
         #   - Writes accepted values back into the supplied buffer.
         #   - When prompt_mode is idem, skips prompting entirely.
         #
-        # Arguments:
+        # . Arguments
         #   $1  BUFFER_NAME
         #       Name of the editable value buffer array variable.
         #   $2  PROMPT_MODE
@@ -1318,27 +1318,27 @@ set -uo pipefail
         # Outputs (globals):
         #   Updates the supplied buffer by reference.
         #
-        # Returns:
+        # . Returns
         #   0  success
         #   1  failed to read metadata rows
         #
-        # Usage:
+        # . Usage
         #   _prompt_value_buffer value_buffer normal
         #
         # Examples:
         #   _prompt_value_buffer io_buffer idem
     # fn: _prompt_value_buffer - Prompt for metadata field values
-        # Purpose:
+        # . Purpose
         #   Prompt for metadata field values.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _prompt_value_buffer
     _prompt_value_buffer() {
         local -n buffer_ref="$1"
@@ -1384,15 +1384,15 @@ set -uo pipefail
     }
 
     # _ask_interactive_action
-        # Purpose:
+        # . Purpose
         #   Ask which interactive action to apply to the selected targets.
         #
-        # Behavior:
+        # . Behavior
         #   - Displays the interactive action menu.
         #   - Reads the user's choice through ask_choose().
         #   - Maps the accepted choice to an action token.
         #
-        # Arguments:
+        # . Arguments
         #   $1  OUT_ACTION
         #       Name of the destination variable.
         #
@@ -1400,33 +1400,33 @@ set -uo pipefail
         #   Sets the supplied variable (by reference) to:
         #     edit | bump | cancel
         #
-        # Returns:
+        # . Returns
         #   0  success
         #
-        # Usage:
+        # . Usage
         #   _ask_interactive_action action
         #
         # Examples:
         #   local action=""
         #   _ask_interactive_action action
-            # Purpose:
+            # . Purpose
             #   Ask whether to edit fields or bump version.
             #
-            # Outputs:
+            # . Outputs
             #   Writes selected action token to stdout:
             #     edit | bump | cancel
     # fn: _ask_interactive_action - Ask which metadata action to perform
-        # Purpose:
+        # . Purpose
         #   Ask which metadata action to perform.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _ask_interactive_action
     _ask_interactive_action() {
         local -n out_action="$1"
@@ -1456,15 +1456,15 @@ set -uo pipefail
     }
 
     # _ask_bump_mode
-        # Purpose:
+        # . Purpose
         #   Ask which version metadata update mode to apply.
         #
-        # Behavior:
+        # . Behavior
         #   - Displays the version update menu.
         #   - Supports refresh-only mode and semantic version bump modes.
         #   - Maps the accepted choice to a mode token.
         #
-        # Arguments:
+        # . Arguments
         #   $1  OUT_MODE
         #       Name of the destination variable.
         #
@@ -1472,33 +1472,33 @@ set -uo pipefail
         #   Sets the supplied variable (by reference) to:
         #     none | major | minor | cancel
         #
-        # Returns:
+        # . Returns
         #   0  success
         #
-        # Usage:
+        # . Usage
         #   _ask_bump_mode mode
         #
         # Examples:
         #   local mode=""
         #   _ask_bump_mode mode
-            # Purpose:
+            # . Purpose
             #   Ask which semantic version bump to apply.
             #
-            # Outputs:
+            # . Outputs
             #   Writes selected mode token to stdout:
             #     major | minor | cancel
     # fn: _ask_bump_mode - Ask which version bump mode to use
-        # Purpose:
+        # . Purpose
         #   Ask which version bump mode to use.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _ask_bump_mode
     _ask_bump_mode() {
         local -n out_mode="$1"
@@ -1526,17 +1526,17 @@ set -uo pipefail
     }
     
     # _apply_value_buffer_to_file
-        # Purpose:
+        # . Purpose
         #   Apply changed values from the pending buffer to the current script header.
         #
-        # Behavior:
+        # . Behavior
         #   - Compares the supplied buffer against the current values in META_ROWS.
         #   - Updates only fields whose values actually changed.
         #   - Respects dry-run mode and reports simulated changes instead of writing.
         #   - Continues across field update failures and reports them individually.
         #   - Reports when there are no metadata changes to apply.
         #
-        # Arguments:
+        # . Arguments
         #   $1  BUFFER_NAME
         #       Name of the pending value buffer array variable.
         #
@@ -1546,27 +1546,27 @@ set -uo pipefail
         #   META_ROWS
         #   FLAG_DRYRUN
         #
-        # Returns:
+        # . Returns
         #   0  all changed fields applied successfully (or no changes)
         #   1  one or more field updates failed
         #
-        # Usage:
+        # . Usage
         #   _apply_value_buffer_to_file value_buffer
         #
         # Examples:
         #   _apply_value_buffer_to_file io_buffer
     # fn: _apply_value_buffer_to_file - Apply buffered metadata values to a file
-        # Purpose:
+        # . Purpose
         #   Apply buffered metadata values to a file.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _apply_value_buffer_to_file
     _apply_value_buffer_to_file() {
         local -n in_buffer="$1"
@@ -1614,15 +1614,15 @@ set -uo pipefail
 
 # --- Main ----------------------------------------------------------------------------
     # _interactive_bump_files
-        # Purpose:
+        # . Purpose
         #   Apply an interactive version metadata update to the first file or all files.
         #
-        # Behavior:
+        # . Behavior
         #   - Prompts for the desired update mode.
         #   - Supports refresh-only, major, and minor update modes.
         #   - Applies the selected mode either to the first file only or to all targets.
         #
-        # Arguments:
+        # . Arguments
         #   $1  APPLY_ALL
         #       0 = first file only
         #       1 = all target files
@@ -1630,28 +1630,28 @@ set -uo pipefail
         # Inputs (globals):
         #   SOURCE_FILES
         #
-        # Returns:
+        # . Returns
         #   0  success
         #   1  failure
         #   2  cancelled
         #
-        # Usage:
+        # . Usage
         #   _interactive_bump_files 0
         #
         # Examples:
         #   _interactive_bump_files "$apply_all_answers"
     # fn: _interactive_bump_files - Run interactive version bump workflow
-        # Purpose:
+        # . Purpose
         #   Run interactive version bump workflow.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _interactive_bump_files
     _interactive_bump_files() {
         local apply_all="${1:-0}"
@@ -1690,10 +1690,10 @@ set -uo pipefail
     }
 
     # _interactive_edit_current_file
-        # Purpose:
+        # . Purpose
         #   Interactively edit metadata for the current script using a fresh value buffer.
         #
-        # Behavior:
+        # . Behavior
         #   - Loads current metadata into META_ROWS.
         #   - Builds an editable buffer from the current values.
         #   - Prompts for new values.
@@ -1704,28 +1704,28 @@ set -uo pipefail
         # Inputs (globals):
         #   current_script
         #
-        # Returns:
+        # . Returns
         #   0  success
         #   1  failure or user abort
         #
-        # Usage:
+        # . Usage
         #   _interactive_edit_current_file
         #
         # Examples:
         #   current_script="$file"
         #   _interactive_edit_current_file
     # fn: _interactive_edit_current_file - Edit metadata for the current file interactively
-        # Purpose:
+        # . Purpose
         #   Edit metadata for the current file interactively.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _interactive_edit_current_file
     _interactive_edit_current_file() {
         local -a value_buffer=()
@@ -1784,17 +1784,17 @@ set -uo pipefail
     }
 
     # _interactive_edit_current_file_with_buffer
-        # Purpose:
+        # . Purpose
         #   Interactively edit metadata for the current script using a supplied value buffer.
         #
-        # Behavior:
+        # . Behavior
         #   - Reuses the caller-supplied buffer by reference.
         #   - Supports normal prompting and idem-style buffer reuse.
         #   - Shows the current metadata and the list of changed fields.
         #   - Confirms whether the changed fields should be applied.
         #   - Allows redo before committing changes.
         #
-        # Arguments:
+        # . Arguments
         #   $1  BUFFER_NAME
         #       Name of the editable value buffer array variable.
         #   $2  PROMPT_MODE
@@ -1806,28 +1806,28 @@ set -uo pipefail
         # Inputs (globals):
         #   current_script
         #
-        # Returns:
+        # . Returns
         #   0  success
         #   1  failure
         #   2  cancelled
         #
-        # Usage:
+        # . Usage
         #   _interactive_edit_current_file_with_buffer value_buffer normal
         #
         # Examples:
         #   _interactive_edit_current_file_with_buffer value_buffer idem_reuse
     # fn: _interactive_edit_current_file_with_buffer - Edit current file using a prepared value buffer
-        # Purpose:
+        # . Purpose
         #   Edit current file using a prepared value buffer.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _interactive_edit_current_file_with_buffer
     _interactive_edit_current_file_with_buffer() {
             local -n io_buffer="$1"
@@ -1884,15 +1884,15 @@ set -uo pipefail
     
     
     # fn: _interactive_edit_files - Run interactive metadata editing workflow
-        # Purpose:
+        # . Purpose
         #   Interactive entry flow for target files.
         #
-        # Behavior:
+        # . Behavior
         #   - Shows the first file name.
         #   - In multi-file mode, optionally reuses first-file answers for all files.
         #   - Lets the user choose between editing fields and bumping version.
         #
-        # Returns:
+        # . Returns
         #   0  success
         #   1  failure
         #   2  cancelled
@@ -1977,10 +1977,10 @@ set -uo pipefail
     }
 
     # fn$ main - Run the executable main sequence
-        # Purpose:
+        # . Purpose
         #   Bootstrap the framework, validate arguments, and run metadata-editor mode logic.
         #
-        # Behavior:
+        # . Behavior
         #   - Loads the framework bootstrapper.
         #   - Runs sgnd_bootstrap() and builtin argument handling.
         #   - Prints the title bar and updates run-mode state.
@@ -1988,10 +1988,10 @@ set -uo pipefail
         #   - Dispatches to auto update mode, version metadata update mode,
         #     or interactive edit mode.
         #
-        # Returns:
+        # . Returns
         #   Exits with an appropriate process status code.
         #
-        # Usage:
+        # . Usage
         #   main "$@"
         #
         # Examples:

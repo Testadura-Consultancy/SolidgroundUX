@@ -46,20 +46,20 @@ set -uo pipefail
 
 # --- Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard - Library guard
-        # Purpose:
+        # . Purpose
         #   Prevent direct execution of a source-only module and avoid repeated initialization.
         #
-        # Behavior:
+        # . Behavior
         #   - Derives a module-specific guard variable from the current filename.
         #   - Exits with status 2 when the file is executed directly.
         #   - Returns immediately when the module has already been loaded.
         #   - Marks the module as loaded before normal initialization continues.
         #
-        # Returns:
+        # . Returns
         #   0 when the module may continue loading or was already loaded.
         #   Exits with status 2 when executed directly.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
         local lib_base
@@ -83,24 +83,24 @@ set -uo pipefail
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
     # fn: sgnd_need_root - Need root
-        # Purpose:
+        # . Purpose
         #   Require the current process to run as root.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Arguments:
+        # . Arguments
         #   $0  ARG0 - Positional value used by this function.
         #
         # Outputs (globals):
         #   May update SGND_* globals shown in the function body.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_need_root "${ARG0}"
     sgnd_need_root() {
         sayinfo "Script requires root permissions"
@@ -116,18 +116,18 @@ set -uo pipefail
         return 0
     }
     # fn: sgnd_cannot_root - Cannot root
-        # Purpose:
+        # . Purpose
         #   Reject execution as root.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_cannot_root
     sgnd_cannot_root() {
         sayinfo "Script requires NOT having root permissions"
@@ -138,74 +138,74 @@ set -uo pipefail
         fi
     }
     # fn: sgnd_need_systemd - Need systemd
-        # Purpose:
+        # . Purpose
         #   Require systemd/systemctl availability.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_need_systemd
     sgnd_need_systemd() { sgnd_have systemctl || { sayfail "Systemd not available."; exit 1; }; }
     # fn: sgnd_need_writable - Need writable
-        # Purpose:
+        # . Purpose
         #   Require a writable filesystem path.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Arguments:
+        # . Arguments
         #   $1  ARG1 - Positional value used by this function.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_need_writable "${ARG1}"
     sgnd_need_writable() { [[ -w "$1" ]] || { sayfail "Not writable: $1"; exit 1; }; }
     # fn: sgnd_is_active - Is active
-        # Purpose:
+        # . Purpose
         #   Check whether a systemd service is active.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Arguments:
+        # . Arguments
         #   $1  ARG1 - Positional value used by this function.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_is_active "${ARG1}"
     sgnd_is_active() { systemctl is-active --quiet "$1"; }
     # fn: sgnd_ensure_writable_dir - Ensure writable dir
-        # Purpose:
+        # . Purpose
         #   Create a directory and verify that it is writable.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Arguments:
+        # . Arguments
         #   $1  DIR - Directory path.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Side effects:
+        # . Side effects
         #   May update files, directories, runtime state, or process state required by the workflow.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_ensure_writable_dir "${DIR}"
     sgnd_ensure_writable_dir() {
         local dir="${1:-}"
@@ -230,64 +230,64 @@ set -uo pipefail
         return 0
     }
     # fn: sgnd_get_primary_nic - Get primary nic
-        # Purpose:
+        # . Purpose
         #   Print the network interface used for the default route.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Arguments:
+        # . Arguments
         #   $5  ARG5 - Positional value used by this function.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Side effects:
+        # . Side effects
         #   May update files, directories, runtime state, or process state required by the workflow.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_get_primary_nic "${ARG5}"
     sgnd_get_primary_nic() { ip route show default 2>/dev/null | awk 'NR==1 {print $5}'; }
     # fn: sgnd_ping_ok - Ping ok
-        # Purpose:
+        # . Purpose
         #   Check whether a host responds to one ping probe.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Arguments:
+        # . Arguments
         #   $1  ARG1 - Positional value used by this function.
         #
-        # Side effects:
+        # . Side effects
         #   May update files, directories, runtime state, or process state required by the workflow.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_ping_ok "${ARG1}"
     sgnd_ping_ok() { ping -c1 -W1 "$1" &>/dev/null; }
     # fn: sgnd_port_open - Port open
-        # Purpose:
+        # . Purpose
         #   Check whether a TCP port is reachable.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Arguments:
+        # . Arguments
         #   $1  H - Positional value used by this function.
         #   $2  P - Positional value used by this function.
         #
-        # Side effects:
+        # . Side effects
         #   May update files, directories, runtime state, or process state required by the workflow.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_port_open "${H}" "${P}"
     sgnd_port_open() {
         local h="$1"
@@ -300,41 +300,41 @@ set -uo pipefail
         fi
     }
     # fn: sgnd_get_ip - Get ip
-        # Purpose:
+        # . Purpose
         #   Print the first local IP address reported by hostname.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Arguments:
+        # . Arguments
         #   $1  ARG1 - Positional value used by this function.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Side effects:
+        # . Side effects
         #   May update files, directories, runtime state, or process state required by the workflow.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_get_ip "${ARG1}"
     sgnd_get_ip() { hostname -I 2>/dev/null | awk '{print $1}'; }
     # fn: sgnd_real_user - Real user
-        # Purpose:
+        # . Purpose
         #   Print the non-root user behind sudo, or the current user.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_real_user
     sgnd_real_user() {
         if [[ -n "${SUDO_USER-}" && "${SUDO_USER}" != "root" ]]; then
@@ -344,16 +344,16 @@ set -uo pipefail
         fi
     }
     # fn: sgnd_real_home - Real home
-        # Purpose:
+        # . Purpose
         #   Print the home directory for the real user.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_real_home
     sgnd_real_home() {
         local user
@@ -361,16 +361,16 @@ set -uo pipefail
         getent passwd "${user}" | cut -d: -f6
     }
     # fn: sgnd_run_as_real_user - Run as real user
-        # Purpose:
+        # . Purpose
         #   Run a command as the real non-root user when invoked through sudo.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_run_as_real_user
     sgnd_run_as_real_user() {
         local user
@@ -383,22 +383,22 @@ set -uo pipefail
         fi
     }
     # fn: sgnd_fix_ownership - Fix ownership
-        # Purpose:
+        # . Purpose
         #   Apply recursive ownership to a path.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Arguments:
+        # . Arguments
         #   $1  PATH - Filesystem path.
         #
-        # Side effects:
+        # . Side effects
         #   May update files, directories, runtime state, or process state required by the workflow.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_fix_ownership "${PATH}"
     sgnd_fix_ownership() {
         local path="$1"
@@ -410,22 +410,22 @@ set -uo pipefail
         chown -R "${user}:${group}" "${path}"
     }
     # fn: sgnd_fix_permissions - Fix permissions
-        # Purpose:
+        # . Purpose
         #   Apply recursive permissions to a path.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Arguments:
+        # . Arguments
         #   $1  PATH - Filesystem path.
         #
-        # Side effects:
+        # . Side effects
         #   May update files, directories, runtime state, or process state required by the workflow.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_fix_permissions "${PATH}"
     sgnd_fix_permissions() {
         local path="$1"
@@ -434,47 +434,47 @@ set -uo pipefail
         find "${path}" -type f -exec chmod 644 {} +
     }
     # fn: sgnd_get_os - Get os
-        # Purpose:
+        # . Purpose
         #   Print the operating system ID from /etc/os-release.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_get_os
     sgnd_get_os() { grep -E '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"'; }
     # fn: sgnd_get_os_version - Get os version
-        # Purpose:
+        # . Purpose
         #   Print the operating system version ID from /etc/os-release.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_get_os_version
     sgnd_get_os_version() { grep -E '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '"'; }
     # fn: sgnd_die - Die
-        # Purpose:
+        # . Purpose
         #   Print a failure message and terminate the current script.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Arguments:
+        # . Arguments
         #   $1  MSG - Positional value used by this function.
         #   $2  RC - Return code.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_die "${MSG}" "${RC}"
     sgnd_die() {
         local msg="${1-}"
@@ -490,17 +490,17 @@ set -uo pipefail
         exit "$rc"
     }
     # fn: sgnd_require - Require
-        # Purpose:
+        # . Purpose
         #   Require a command to succeed, terminating on failure.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_require
     sgnd_require() {
         "$@"
@@ -513,16 +513,16 @@ set -uo pipefail
         return "$rc"
     }
     # fn: sgnd_must - Must
-        # Purpose:
+        # . Purpose
         #   Run a command and terminate with a contextual failure message if it fails.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_must
     sgnd_must() {
         "$@"

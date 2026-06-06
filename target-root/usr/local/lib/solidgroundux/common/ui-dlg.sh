@@ -45,20 +45,20 @@
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard - Library guard
-        # Purpose:
+        # . Purpose
         #   Prevent direct execution of a source-only module and avoid repeated initialization.
         #
-        # Behavior:
+        # . Behavior
         #   - Derives a module-specific guard variable from the current filename.
         #   - Exits with status 2 when the file is executed directly.
         #   - Returns immediately when the module has already been loaded.
         #   - Marks the module as loaded before normal initialization continues.
         #
-        # Returns:
+        # . Returns
         #   0 when the module may continue loading or was already loaded.
         #   Exits with status 2 when executed directly.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
         local lib_base
@@ -87,24 +87,24 @@ set -uo pipefail
 
 # --- Internal helpers ------------------------------------------------------------------
     # fn: _dlg_keymap - Dlg keymap
-        # Purpose:
+        # . Purpose
         #   Return the dialog key/action mapping used by custom dialog controls.
         #
-        # Behavior:
+        # . Behavior
         #   - Preserves the existing SolidGroundUX console/UI behavior.
         #   - Uses current palette, style, runtime, or logging globals where applicable.
         #
-        # Arguments:
+        # . Arguments
         #   $@ - Values consumed by the helper. See usage for the expected call shape.
         #
-        # Output:
+        # . Output
         #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
-        # Usage:
+        # . Usage
         #   _dlg_keymap "$value"
     _dlg_keymap(){
         local choices="$1"
@@ -133,24 +133,24 @@ set -uo pipefail
     }
 
     # fn: sgnd_decision_expand_choices - Decision expand choices
-        # Purpose:
+        # . Purpose
         #   Expand decision aliases into canonical/alias records.
         #
-        # Behavior:
+        # . Behavior
         #   - Preserves the existing SolidGroundUX console/UI behavior.
         #   - Uses current palette, style, runtime, or logging globals where applicable.
         #
-        # Arguments:
+        # . Arguments
         #   $@ - Values consumed by the helper. See usage for the expected call shape.
         #
-        # Output:
+        # . Output
         #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_decision_expand_choices "$value"
     sgnd_decision_expand_choices() {
         local spec="${1-}"
@@ -181,24 +181,24 @@ set -uo pipefail
 
 
     # fn: sgnd_decision_normalize - Decision normalize
-        # Purpose:
+        # . Purpose
         #   Normalize a typed decision alias to its canonical value.
         #
-        # Behavior:
+        # . Behavior
         #   - Preserves the existing SolidGroundUX console/UI behavior.
         #   - Uses current palette, style, runtime, or logging globals where applicable.
         #
-        # Arguments:
+        # . Arguments
         #   $@ - Values consumed by the helper. See usage for the expected call shape.
         #
-        # Output:
+        # . Output
         #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_decision_normalize "$value"
     sgnd_decision_normalize() {
         local value="${1-}"
@@ -226,24 +226,24 @@ set -uo pipefail
     }
 
     # fn: sgnd_decision_display_choices - Decision display choices
-        # Purpose:
+        # . Purpose
         #   Build a compact display string from a decision choice specification.
         #
-        # Behavior:
+        # . Behavior
         #   - Preserves the existing SolidGroundUX console/UI behavior.
         #   - Uses current palette, style, runtime, or logging globals where applicable.
         #
-        # Arguments:
+        # . Arguments
         #   $@ - Values consumed by the helper. See usage for the expected call shape.
         #
-        # Output:
+        # . Output
         #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_decision_display_choices "$value"
     sgnd_decision_display_choices() {
         local spec="${1-}"
@@ -270,24 +270,24 @@ set -uo pipefail
 
 
     # fn: sgnd_decision_from_dialog_rc - Decision from dialog rc
-        # Purpose:
+        # . Purpose
         #   Map a dialog return code to a canonical decision value.
         #
-        # Behavior:
+        # . Behavior
         #   - Preserves the existing SolidGroundUX console/UI behavior.
         #   - Uses current palette, style, runtime, or logging globals where applicable.
         #
-        # Arguments:
+        # . Arguments
         #   $@ - Values consumed by the helper. See usage for the expected call shape.
         #
-        # Output:
+        # . Output
         #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_decision_from_dialog_rc "$value"
     sgnd_decision_from_dialog_rc() {
         local rc="${1:-}"
@@ -330,24 +330,24 @@ set -uo pipefail
 
 # --- Public API ---------------------------------------------------------------------
     # fn: sgnd_dlg_autocontinue - Dlg autocontinue
-        # Purpose:
+        # . Purpose
         #   Show an interruptible dialog-based auto-continue prompt.
         #
-        # Behavior:
+        # . Behavior
         #   - Preserves the existing SolidGroundUX console/UI behavior.
         #   - Uses current palette, style, runtime, or logging globals where applicable.
         #
-        # Arguments:
+        # . Arguments
         #   $@ - Values consumed by the helper. See usage for the expected call shape.
         #
-        # Output:
+        # . Output
         #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_dlg_autocontinue "$value"
     sgnd_dlg_autocontinue() {
         local seconds="${1:-5}"
@@ -386,24 +386,24 @@ set -uo pipefail
         # Custom keys are matched exactly as provided, but also accept case-insensitive
         # match if the provided key is alphabetic.
         # fn: sgnd_dlg_custom_rc_for_key - Dlg custom rc for key
-            # Purpose:
+            # . Purpose
             #   Return the dialog return code associated with a configured key.
             #
-            # Behavior:
+            # . Behavior
             #   - Preserves the existing SolidGroundUX console/UI behavior.
             #   - Uses current palette, style, runtime, or logging globals where applicable.
             #
-            # Arguments:
+            # . Arguments
             #   $@ - Values consumed by the helper. See usage for the expected call shape.
             #
-            # Output:
+            # . Output
             #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
             #
-            # Returns:
+            # . Returns
             #   0 on success.
             #   Non-zero when validation, resolution, I/O, or user cancellation fails.
             #
-            # Usage:
+            # . Usage
             #   sgnd_dlg_custom_rc_for_key "$value"
         sgnd_dlg_custom_rc_for_key() {
             local pressed="${1:-}"
@@ -555,23 +555,23 @@ set -uo pipefail
     }
 
     # fn: sgnd_prompt_fromlist - Prompt fromlist
-        # Purpose:
+        # . Purpose
         #   Prompt the user to select one value from a list.
         #
-        # Behavior:
+        # . Behavior
         #   - Preserves the existing SolidGroundUX console/UI behavior.
         #   - Uses current palette, style, runtime, or logging globals where applicable.
         #
-        # Options:
+        # . options
         #   --labelwidth VALUE
         #   --autoalign VALUE
         #   --colorize VALUE
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_prompt_fromlist --labelwidth --autoalign --colorize
     sgnd_prompt_fromlist() {
         local labelwidth=0
@@ -663,14 +663,14 @@ set -uo pipefail
     }
 
     # fn: sgnd_ask_decision - Ask decision
-        # Purpose:
+        # . Purpose
         #   Ask a constrained symbolic decision using the dialog helpers when available.
         #
-        # Behavior:
+        # . Behavior
         #   - Preserves the existing SolidGroundUX console/UI behavior.
         #   - Uses current palette, style, runtime, or logging globals where applicable.
         #
-        # Options:
+        # . options
         #   --label VALUE
         #   --choices VALUE
         #   --default VALUE
@@ -684,14 +684,14 @@ set -uo pipefail
         #   --labelwidth VALUE
         #   --pad VALUE
         #
-        # Output:
+        # . Output
         #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_ask_decision --label "..." --choices "..." --default "..." --var "..."
     sgnd_ask_decision() {
         local label=""

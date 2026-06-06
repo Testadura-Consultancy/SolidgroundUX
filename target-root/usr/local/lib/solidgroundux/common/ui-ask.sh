@@ -40,20 +40,20 @@
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard - Library guard
-        # Purpose:
+        # . Purpose
         #   Prevent direct execution of a source-only module and avoid repeated initialization.
         #
-        # Behavior:
+        # . Behavior
         #   - Derives a module-specific guard variable from the current filename.
         #   - Exits with status 2 when the file is executed directly.
         #   - Returns immediately when the module has already been loaded.
         #   - Marks the module as loaded before normal initialization continues.
         #
-        # Returns:
+        # . Returns
         #   0 when the module may continue loading or was already loaded.
         #   Exits with status 2 when executed directly.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
         local lib_base
@@ -79,25 +79,25 @@ set -uo pipefail
 
 # --- Internal helpers ----------------------------------------------------------------
     # fn: _ask_expand_choices - Expand compact choice specifications
-        # Purpose:
+        # . Purpose
         #   Expand a comma-separated choice specification into one choice per line.
         #
-        # Behavior:
+        # . Behavior
         #   - Splits the specification on commas.
         #   - Trims surrounding whitespace from each part.
         #   - Expands single-character ranges such as A-D or 1-4.
         #   - Emits invalid reversed ranges as warnings and skips them.
         #
-        # Arguments:
+        # . Arguments
         #   $1 - Choice specification to expand.
         #
-        # Output:
+        # . Output
         #   Writes one expanded choice per line to stdout.
         #
-        # Returns:
+        # . Returns
         #   0 after processing the supplied specification.
         #
-        # Usage:
+        # . Usage
         #   mapfile -t choices < <(_ask_expand_choices "A-D,Q")
     _ask_expand_choices() {
         local spec="$1"
@@ -142,14 +142,14 @@ set -uo pipefail
     }
 
     # fn: _ask_choice_is_valid
-        # Purpose:
+        # . Purpose
         #   Validate a single choice against a ask_choose-style choices list.
         #
-        # Arguments:
+        # . Arguments
         #   $1  VALUE
         #   $2  CHOICES
         #
-        # Returns:
+        # . Returns
         #   0 if valid
         #   1 if invalid
     _ask_choice_is_valid() {
@@ -171,15 +171,15 @@ set -uo pipefail
     }
 
     # fn: _ask_build_prompt - Build a readline-safe ask prompt
-        # Purpose:
+        # . Purpose
         #   Build the colored prompt string used by ask-style input functions.
         #
-        # Behavior:
+        # . Behavior
         #   - Applies optional left padding and visible label width alignment.
         #   - Adds readline control markers around non-printing ANSI sequences.
         #   - Applies label and input colors according to the colorize mode.
         #
-        # Arguments:
+        # . Arguments
         #   $1 - Label text.
         #   $2 - Visible label width, or empty to avoid width padding.
         #   $3 - Number of leading spaces to add before the label.
@@ -187,13 +187,13 @@ set -uo pipefail
         #   $5 - ANSI sequence used for the input color.
         #   $6 - Colorize mode: none, label, input, or both.
         #
-        # Output:
+        # . Output
         #   Writes the prompt string to stdout.
         #
-        # Returns:
+        # . Returns
         #   0 when the prompt string was written.
         #
-        # Usage:
+        # . Usage
         #   prompt="$(_ask_build_prompt "User name" 25 2 "$TUI_LABEL" "$TUI_INPUT" both)"
     _ask_build_prompt() {
         local label="$1"
@@ -245,14 +245,14 @@ set -uo pipefail
     }
 
     # fn: _ask_validate
-        # Purpose:
+        # . Purpose
         #   Run a validation callback when provided.
         #
-        # Arguments:
+        # . Arguments
         #   $1  VALIDATE_FUNCTION
         #   $2  VALUE
         #
-        # Returns:
+        # . Returns
         #   0 if valid or no validator is supplied.
         #   Non-zero when the validator rejects the value.
     _ask_validate() {
@@ -264,25 +264,25 @@ set -uo pipefail
     }
 
     # fn: _ask_decision_expand_choices - Expand decision aliases
-        # Purpose:
+        # . Purpose
         #   Expand a decision choice specification into canonical/alias pairs.
         #
-        # Behavior:
+        # . Behavior
         #   - Splits groups on commas.
         #   - Splits aliases inside each group on pipe characters.
         #   - Uses the first alias in each group as the canonical value.
         #   - Normalizes aliases to uppercase for matching.
         #
-        # Arguments:
+        # . Arguments
         #   $1 - Decision specification, for example "YES|Y,NO|N,CANCEL|C".
         #
-        # Output:
+        # . Output
         #   Writes CANONICAL|ALIAS records to stdout.
         #
-        # Returns:
+        # . Returns
         #   0 after processing the supplied specification.
         #
-        # Usage:
+        # . Usage
         #   _ask_decision_expand_choices "YES|Y,NO|N"
     _ask_decision_expand_choices() {
         local spec="${1-}"
@@ -310,27 +310,27 @@ set -uo pipefail
     }
 
     # fn: _ask_decision_normalize - Normalize a typed decision
-        # Purpose:
+        # . Purpose
         #   Convert a typed decision or alias into its canonical decision value.
         #
-        # Behavior:
+        # . Behavior
         #   - Uses the default value when the supplied value is empty.
         #   - Trims surrounding whitespace.
         #   - Compares values case-insensitively through uppercase aliases.
         #
-        # Arguments:
+        # . Arguments
         #   $1 - Typed value to normalize.
         #   $2 - Decision choice specification.
         #   $3 - Default value used when $1 is empty.
         #
-        # Output:
+        # . Output
         #   Writes the canonical decision value to stdout.
         #
-        # Returns:
+        # . Returns
         #   0 when the value matched a known alias.
         #   1 when the value could not be normalized.
         #
-        # Usage:
+        # . Usage
         #   decision="$(_ask_decision_normalize "y" "YES|Y,NO|N" "NO")"
     _ask_decision_normalize() {
         local value="${1-}"
@@ -355,16 +355,16 @@ set -uo pipefail
     }
 
     # fn: _ask_decision_display
-        # Purpose:
+        # . Purpose
         #   Build a compact display string from a decision specification.
         #
-        # Arguments:
+        # . Arguments
         #   $1  CHOICES
         #
-        # Output:
+        # . Output
         #   Writes display string, e.g. YES/NO.
         #
-        # Returns:
+        # . Returns
         #   0 always.
     _ask_decision_display() {
         local spec="${1-}"
@@ -386,27 +386,27 @@ set -uo pipefail
     }
 
     # fn: _ask_decision_map_dlg_rc - Map autocontinue return codes to decisions
-        # Purpose:
+        # . Purpose
         #   Convert ask_dlg_autocontinue return codes into canonical decision values.
         #
-        # Behavior:
+        # . Behavior
         #   - Maps continue/timeout behavior to the configured default value.
         #   - Maps cancel-style return codes to CANCEL, QUIT, or NO where available.
         #   - Maps redo return codes to REDO where available.
         #
-        # Arguments:
+        # . Arguments
         #   $1 - Return code from ask_dlg_autocontinue.
         #   $2 - Decision choice specification.
         #   $3 - Default decision value.
         #
-        # Output:
+        # . Output
         #   Writes the mapped canonical decision value to stdout.
         #
-        # Returns:
+        # . Returns
         #   0 when a mapping was found.
         #   1 when the return code cannot be mapped to the supplied choices.
         #
-        # Usage:
+        # . Usage
         #   decision="$(_ask_decision_map_dlg_rc "$dlg_rc" "YES|Y,NO|N,CANCEL|C" "YES")"
     _ask_decision_map_dlg_rc() {
         local rc="${1-}"
@@ -442,15 +442,15 @@ set -uo pipefail
     }
 
     # fn: _ask_parse_fieldspec - Parse an ask_prompt_form field specification
-        # Purpose:
+        # . Purpose
         #   Split a form field specification into the temporary parser globals used by ask_prompt_form.
         #
-        # Behavior:
+        # . Behavior
         #   - Parses pipe-delimited field specifications.
         #   - Populates _ask_field_key, _ask_field_label, _ask_field_default, and _ask_field_validate.
         #   - Leaves validation of the parsed key to the caller.
         #
-        # Arguments:
+        # . Arguments
         #   $1 - Field specification in KEY|LABEL|DEFAULT|VALIDATOR format.
         #
         # Outputs (globals):
@@ -459,10 +459,10 @@ set -uo pipefail
         #   _ask_field_default  - Default value.
         #   _ask_field_validate - Optional validator function name.
         #
-        # Returns:
+        # . Returns
         #   0 when the specification was parsed.
         #
-        # Usage:
+        # . Usage
         #   _ask_parse_fieldspec "TARGET_DIR|Target directory|/tmp|sgnd_validate_dir_exists"
     _ask_parse_fieldspec() {
         local spec="${1-}"
@@ -476,13 +476,13 @@ set -uo pipefail
     }
 
     # fn: _ask_is_ident
-        # Purpose:
+        # . Purpose
         #   Test whether a value is a valid shell variable identifier.
         #
-        # Arguments:
+        # . Arguments
         #   $1  VALUE
         #
-        # Returns:
+        # . Returns
         #   0 if valid
         #   1 if invalid
     _ask_is_ident() {
@@ -491,16 +491,16 @@ set -uo pipefail
 
 # --- Public API ---------------------------------------------------------------------
     # fn: ask - Ask for a single typed value
-        # Purpose:
+        # . Purpose
         #   Prompt the user for one text value through the SolidGroundUX console UI.
         #
-        # Behavior:
+        # . Behavior
         #   - Reads from /dev/tty so piped stdin remains available to callers.
         #   - Supports readline editing and editable default values.
         #   - Applies optional label alignment, padding, and input coloring.
         #   - Re-prompts until the optional validation callback accepts the value.
         #
-        # Options:
+        # . options
         #   --label TEXT
         #       Prompt label shown before the input field.
         #   --var NAME
@@ -543,17 +543,17 @@ set -uo pipefail
         # Outputs (globals):
         #   Variable named by --var, when --var is supplied.
         #
-        # Output:
+        # . Output
         #   Writes the value to stdout only when --echo is used without --var.
         #
-        # Side effects:
+        # . Side effects
         #   Writes the interactive prompt, validation message, and optional echoed value to /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 when a valid value was accepted.
         #   2 when /dev/tty is not available.
         #
-        # Usage:
+        # . Usage
         #   ask --label "Target directory" \
         #       --var TARGET_DIR \
         #       --default "$TARGET_DIR" \
@@ -646,16 +646,16 @@ set -uo pipefail
     }
 
     # fn: ask_decision - Ask for a canonical symbolic decision
-        # Purpose:
+        # . Purpose
         #   Prompt the user for a constrained decision and store the canonical result.
         #
-        # Behavior:
+        # . Behavior
         #   - Displays the configured decision choices next to the prompt by default.
         #   - Accepts aliases such as YES|Y or NO|N and stores the canonical value.
         #   - Can auto-continue after a timeout and map redo/cancel keys to decisions.
         #   - Re-prompts until the entered value matches the configured choice list.
         #
-        # Options:
+        # . options
         #   --label TEXT
         #       Prompt text displayed to the user.
         #   --choices SPEC
@@ -682,10 +682,10 @@ set -uo pipefail
         # Outputs (globals):
         #   Variable named by --var.
         #
-        # Returns:
+        # . Returns
         #   0 when a canonical decision was stored.
         #
-        # Usage:
+        # . Usage
         #   ask_decision --label "Install now" \
         #       --choices "YES|Y,NO|N,CANCEL|C" \
         #       --default "YES" \
@@ -772,16 +772,16 @@ set -uo pipefail
     }
 
     # fn: ask_dlg_autocontinue - Show an interruptible auto-continue countdown
-        # Purpose:
+        # . Purpose
         #   Display a short countdown prompt that continues automatically unless the user intervenes.
         #
-        # Behavior:
+        # . Behavior
         #   - Writes countdown status and optional legend to /dev/tty.
         #   - Allows Enter or any key to continue depending on options.
         #   - Optionally supports redo, cancel, and pause/resume keys.
         #   - Returns distinct codes so callers can map user intervention to decisions.
         #
-        # Options:
+        # . options
         #   --seconds COUNT
         #       Countdown length in seconds. Defaults to 5.
         #   --message TEXT
@@ -797,16 +797,16 @@ set -uo pipefail
         #   --hidelegend
         #       Suppresses the key legend line.
         #
-        # Output:
+        # . Output
         #   Writes countdown UI to /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 when the user continues explicitly.
         #   1 when the countdown expires.
         #   2 when the user cancels.
         #   3 when the user requests redo.
         #
-        # Usage:
+        # . Usage
         #   ask_dlg_autocontinue --seconds 10 --message "Continuing deployment" --redo --cancel --pause
     ask_dlg_autocontinue() {
         local seconds=5
@@ -938,16 +938,16 @@ set -uo pipefail
     }
 
     # fn: ask_choose - Ask for a value from a choice list
-        # Purpose:
+        # . Purpose
         #   Prompt the user for a choice and store the entered value in a named variable.
         #
-        # Behavior:
+        # . Behavior
         #   - Optionally displays the accepted choices next to the prompt label.
         #   - Validates the response against a compact choice list when supplied.
         #   - Supports expanded ranges such as A-D through _ask_expand_choices.
         #   - Can either keep asking or accept the invalid value after warning.
         #
-        # Options:
+        # . options
         #   --label TEXT
         #       Prompt label shown to the user.
         #   --var NAME
@@ -972,10 +972,10 @@ set -uo pipefail
         # Outputs (globals):
         #   Variable named by --var.
         #
-        # Returns:
+        # . Returns
         #   0 after storing the selected or accepted value.
         #
-        # Usage:
+        # . Usage
         #   ask_choose --label "Select action" --choices "A-D,Q" --var action
     ask_choose() {
         local label=""
@@ -1046,17 +1046,17 @@ set -uo pipefail
     }
 
     # fn: ask_choose_immediate - Ask for a choice with instant single-key acceptance
-        # Purpose:
+        # . Purpose
         #   Prompt for a choice while allowing configured single-key choices to be accepted immediately.
         #
-        # Behavior:
+        # . Behavior
         #   - Reads one character at a time from /dev/tty.
         #   - Accepts instant choices without requiring Enter.
         #   - Allows longer typed values to be completed with Enter.
         #   - Supports backspace editing for the typed buffer.
         #   - Validates the final response against the configured choice list when supplied.
         #
-        # Options:
+        # . options
         #   --label TEXT
         #       Prompt label shown to the user.
         #   --var NAME
@@ -1083,11 +1083,11 @@ set -uo pipefail
         # Outputs (globals):
         #   Variable named by --var.
         #
-        # Returns:
+        # . Returns
         #   0 after storing a valid selected value.
         #   1 when reading from /dev/tty fails.
         #
-        # Usage:
+        # . Usage
         #   ask_choose_immediate --label "Menu" --choices "1-9,Q" --instantchoices "1-9,Q" --var menu_choice
     ask_choose_immediate() {
         local label=""
@@ -1202,17 +1202,17 @@ set -uo pipefail
     }
 
     # fn: ask_prompt_form - Prompt for multiple named fields
-        # Purpose:
+        # . Purpose
         #   Prompt the user for a list of field specifications and assign each response to its target variable.
         #
-        # Behavior:
+        # . Behavior
         #   - Accepts field specifications in KEY|LABEL|DEFAULT|VALIDATOR format.
         #   - Uses the current variable value as the editable default when available.
         #   - Falls back to the field default when the target variable is empty.
         #   - Optionally auto-aligns labels based on the widest field label.
         #   - Skips invalid shell variable names with a warning.
         #
-        # Options:
+        # . options
         #   --labelwidth WIDTH
         #       Visible label width for all fields.
         #   --autoalign
@@ -1226,17 +1226,17 @@ set -uo pipefail
         #   --inputclr ANSI
         #       ANSI sequence used for input.
         #
-        # Arguments:
+        # . Arguments
         #   FIELD_SPEC...
         #       One or more KEY|LABEL|DEFAULT|VALIDATOR records.
         #
         # Outputs (globals):
         #   Variables named by the KEY component of each valid field specification.
         #
-        # Returns:
+        # . Returns
         #   0 after all valid fields have been prompted.
         #
-        # Usage:
+        # . Usage
         #   ask_prompt_form --autoalign \
         #       "TARGET_DIR|Target directory|/tmp|sgnd_validate_dir_exists" \
         #       "RETRY_COUNT|Retry count|3|sgnd_validate_int"

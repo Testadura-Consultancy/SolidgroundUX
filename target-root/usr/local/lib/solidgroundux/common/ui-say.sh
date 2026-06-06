@@ -52,20 +52,20 @@ set -uo pipefail
 
 # --- Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard - Library guard
-        # Purpose:
+        # . Purpose
         #   Prevent direct execution of a source-only module and avoid repeated initialization.
         #
-        # Behavior:
+        # . Behavior
         #   - Derives a module-specific guard variable from the current filename.
         #   - Exits with status 2 when the file is executed directly.
         #   - Returns immediately when the module has already been loaded.
         #   - Marks the module as loaded before normal initialization continues.
         #
-        # Returns:
+        # . Returns
         #   0 when the module may continue loading or was already loaded.
         #   Exits with status 2 when executed directly.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
         local lib_base
@@ -102,55 +102,25 @@ set -uo pipefail
     SGND_LINEBREAK_PENDING=0  # Internal flag to track if a line break is needed before the next message (used by sayprogress)
 
 # --- Helpers ------------------------------------------------------------------------
-    # fn: say_should_print_console
-        # Purpose:
-        #   Determine whether a message type should be printed to the console
-        #   according to the current output policy.
-        #
-        # Behavior:
-        #   - Uses SGND_LOG_LEVEL as the single console visibility control.
-        #   - off    suppresses all console output.
-        #   - quiet  shows only WARN and FAIL.
-        #   - normal shows all non-DEBUG message types.
-        #   - debug  shows all message types.
-        #
-        # Arguments:
-        #   $1  TYPE
-        #       Message type token (case-insensitive).
-        #
-        # Inputs (globals):
-        #   SGND_LOG_LEVEL
-        #
-        # Returns:
-        #   0 if the message should be printed.
-        #   1 otherwise.
-        #
-        # Usage:
-        #   if _say_should_print_console "INFO"; then
-        #       printf "...\n"
-        #   fi
-        #
-        # Examples:
-        #   _say_should_print_console "DEBUG" || return
     # fn: _say_should_print_console - Say should print console
-        # Purpose:
+        # . Purpose
         #   Decide whether a message type should be printed to the console.
         #
-        # Behavior:
+        # . Behavior
         #   - Preserves the existing SolidGroundUX console/UI behavior.
         #   - Uses current palette, style, runtime, or logging globals where applicable.
         #
-        # Arguments:
+        # . Arguments
         #   $@ - Values consumed by the helper. See usage for the expected call shape.
         #
         # Outputs (globals):
         #   Updates SolidGroundUX UI/runtime globals documented by the function body.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
-        # Usage:
+        # . Usage
         #   _say_should_print_console "$value"
     _say_should_print_console() {
         local type="${1^^}"
@@ -178,47 +148,25 @@ set -uo pipefail
         esac
     }
 
-
-    # fn: say_caller
-        # Purpose:
-        #   Resolve the originating caller location for logging purposes.
-        #
-        # Behavior:
-        #   - Traverses the call stack.
-        #   - Skips internal say* wrappers.
-        #   - Returns the first non-wrapper frame.
-        #
-        # Outputs:
-        #   Prints:
-        #     <function>\t<file>\t<line>
-        #
-        # Returns:
-        #   0 always.
-        #
-        # Usage:
-        #   IFS=$'\t' read -r func file line <<< "$(_say_caller)"
-        #
-        # Examples:
-        #   caller="$(_say_caller)"
     # fn: _say_caller - Say caller
-        # Purpose:
+        # . Purpose
         #   Determine the script or function context that emitted a say message.
         #
-        # Behavior:
+        # . Behavior
         #   - Preserves the existing SolidGroundUX console/UI behavior.
         #   - Uses current palette, style, runtime, or logging globals where applicable.
         #
-        # Arguments:
+        # . Arguments
         #   $@ - Values consumed by the helper. See usage for the expected call shape.
         #
-        # Output:
+        # . Output
         #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
-        # Usage:
+        # . Usage
         #   _say_caller "$value"
     _say_caller() {
         local i
@@ -239,56 +187,28 @@ set -uo pipefail
         printf '<main>\t<unknown>\t?'
     }
 
-    # fn: say_write_log
-        # Purpose:
-        #   Append a formatted log record to the logfile with optional rotation.
-        #
-        # Behavior:
-        #   - No-op when logging is disabled or no valid logfile is available.
-        #   - Sanitizes message (removes ANSI, normalizes whitespace).
-        #   - Adds timestamp, user, type, and caller metadata.
-        #   - Rotates logfile when size exceeds SGND_LOG_MAX_BYTES.
-        #   - Never fails the caller (best-effort).
-        #
-        # Arguments:
-        #   $1  TYPE
-        #   $2  MSG
-        #   $3  DATE_STR (optional)
-        #
-        # Inputs (globals):
-        #   SGND_LOGFILE_ENABLED, SGND_LOG_MAX_BYTES, SGND_LOG_KEEP, SGND_LOG_COMPRESS
-        #   SAY_DATE_FORMAT
-        #
-        # Returns:
-        #   0 always.
-        #
-        # Usage:
-        #   _say_write_log "INFO" "Starting process" ""
-        #
-        # Examples:
-        #   _say_write_log "FAIL" "Connection error" "$(date)"
     # fn: _say_write_log - Say write log
-        # Purpose:
+        # . Purpose
         #   Append a formatted say message to the active SolidGroundUX log file.
         #
-        # Behavior:
+        # . Behavior
         #   - Preserves the existing SolidGroundUX console/UI behavior.
         #   - Uses current palette, style, runtime, or logging globals where applicable.
         #
-        # Arguments:
+        # . Arguments
         #   $@ - Values consumed by the helper. See usage for the expected call shape.
         #
-        # Output:
+        # . Output
         #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
         #
         # Outputs (globals):
         #   Updates SolidGroundUX UI/runtime globals documented by the function body.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
-        # Usage:
+        # . Usage
         #   _say_write_log "$value"
     _say_write_log() {
         local type="${1^^}"
@@ -338,27 +258,27 @@ set -uo pipefail
     }
 
     # fn: _sgnd_rotate_logs - Rotate logs
-        # Purpose:
+        # . Purpose
         #   Rotate log files when log retention settings require it.
         #
-        # Behavior:
+        # . Behavior
         #   - Preserves the existing SolidGroundUX console/UI behavior.
         #   - Uses current palette, style, runtime, or logging globals where applicable.
         #
-        # Arguments:
+        # . Arguments
         #   $@ - Values consumed by the helper. See usage for the expected call shape.
         #
         # Outputs (globals):
         #   Updates SolidGroundUX UI/runtime globals documented by the function body.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_rotate_logs "$value"
     _sgnd_rotate_logs() {
-            # Usage: _sgnd_rotate_logs "/path/to/logfile"
+            # . Usage _sgnd_rotate_logs "/path/to/logfile"
             local logfile="$1"
             [[ -n "$logfile" ]] || return 0
             [[ -f "$logfile" ]] || return 0
@@ -393,24 +313,24 @@ set -uo pipefail
     }
 
     # fn: _sgnd_logfile - Logfile
-        # Purpose:
+        # . Purpose
         #   Resolve the active SolidGroundUX log file path.
         #
-        # Behavior:
+        # . Behavior
         #   - Preserves the existing SolidGroundUX console/UI behavior.
         #   - Uses current palette, style, runtime, or logging globals where applicable.
         #
-        # Arguments:
+        # . Arguments
         #   $@ - Values consumed by the helper. See usage for the expected call shape.
         #
-        # Output:
+        # . Output
         #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_logfile "$value"
     _sgnd_logfile() {
         
@@ -431,27 +351,27 @@ set -uo pipefail
     }
 
     # fn: _sayprogress_write_slot - Sayprogress write slot
-        # Purpose:
+        # . Purpose
         #   Render one progress slot in the active sayprogress line.
         #
-        # Behavior:
+        # . Behavior
         #   - Preserves the existing SolidGroundUX console/UI behavior.
         #   - Uses current palette, style, runtime, or logging globals where applicable.
         #
-        # Arguments:
+        # . Arguments
         #   $@ - Values consumed by the helper. See usage for the expected call shape.
         #
-        # Output:
+        # . Output
         #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
         #
         # Outputs (globals):
         #   Updates SolidGroundUX UI/runtime globals documented by the function body.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
-        # Usage:
+        # . Usage
         #   _sayprogress_write_slot "$value"
     _sayprogress_write_slot() {
         local slot="${1:-0}"
@@ -478,27 +398,27 @@ set -uo pipefail
         SGND_LINEBREAK_PENDING=1
     }
     # fn: _sgnd_ensure_linebreak - Ensure linebreak
-        # Purpose:
+        # . Purpose
         #   Ensure the next message starts on a clean line after progress output.
         #
-        # Behavior:
+        # . Behavior
         #   - Preserves the existing SolidGroundUX console/UI behavior.
         #   - Uses current palette, style, runtime, or logging globals where applicable.
         #
-        # Arguments:
+        # . Arguments
         #   $@ - Values consumed by the helper. See usage for the expected call shape.
         #
-        # Output:
+        # . Output
         #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
         #
         # Outputs (globals):
         #   Updates SolidGroundUX UI/runtime globals documented by the function body.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_ensure_linebreak "$value"
     _sgnd_ensure_linebreak() {
         if (( ${SGND_LINEBREAK_PENDING:-0} )); then
@@ -509,10 +429,10 @@ set -uo pipefail
 
 # --- Public API ---------------------------------------------------------------------
     # fn: say - Say
-        # Purpose:
+        # . Purpose
         #   Emit a standardized SolidGroundUX console message.
         #
-        # Behavior:
+        # . Behavior
         #   - Renders a message using the framework message style maps.
         #   - Supports typed messages such as INFO, STRT, WARN, FAIL, CNCL, OK, END,
         #     DEBUG, and EMPTY.
@@ -528,17 +448,17 @@ set -uo pipefail
         #   - Ensures pending progress output is followed by a clean line break before
         #     printing a normal message.
         #
-        # Arguments:
+        # . Arguments
         #   $1...  TYPE and/or MESSAGE
         #          When the first positional argument is a known message type, it is
         #          treated as TYPE and the remaining arguments form the message.
         #          Otherwise all positional arguments form the message and TYPE defaults
         #          to EMPTY.
-        #
-        # Options:
+        #   
+        # . options
         #   --type TYPE
         #       Explicitly set the message type.
-        #
+        #   
         #   --date
         #       Prefix the message with the current date/time using SAY_DATE_FORMAT.
         #
@@ -555,14 +475,14 @@ set -uo pipefail
         #   SGND_LOG_LEVEL, SGND_LOGFILE_ENABLED, SGND_LINEBREAK_PENDING
         #   LBL_*, ICO_*, SYM_*, MSG_CLR_*, RESET
         #
-        # Outputs:
+        # . Outputs
         #   Prints the rendered message to stdout when allowed by SGND_LOG_LEVEL.
         #   Appends a best-effort logfile record when logfile output is enabled.
         #
-        # Returns:
+        # . Returns
         #   0 always. Unknown message types are normalized to EMPTY.
         #
-        # Usage:
+        # . Usage
         #   say INFO "Starting workspace deployment"
         #   say --type WARN --date "Configuration file not found"
         #   say --show label,icon --colorize all OK "Deployment completed"
@@ -767,7 +687,7 @@ set -uo pipefail
     }
 
     # doc: sayprogress usage patterns - Sayprogress Usage Patterns
-        # Purpose:
+        # . Purpose
         #   Describe the intended usage patterns for the sayprogress family.
         #
         # Details:
@@ -806,29 +726,29 @@ set -uo pipefail
         #     the rendered progress line.
 
     # fn: sayprogress_begin - Sayprogress Begin
-        # Purpose:
+        # . Purpose
         #   Reserve one or more console lines for transient progress output.
         #
-        # Behavior:
+        # . Behavior
         #   - Prints the requested number of blank lines to stderr.
         #   - Moves the cursor back up to the start of the reserved progress region.
         #   - Stores the reserved slot count in SGND_PROGRESS_RESERVED.
         #   - Marks a pending line break so later normal messages can restore clean
         #     output formatting.
         #
-        # Options:
+        # . options
         #   --slots COUNT
         #       Number of progress lines to reserve. Values less than 1 are normalized
         #       to 1.
         #
-        # Outputs:
+        # . Outputs
         #   Writes terminal cursor control sequences to stderr.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   1 when an unknown argument is supplied.
         #
-        # Usage:
+        # . Usage
         #   sayprogress_begin --slots 2
     sayprogress_begin() {
         local slots=1
@@ -855,17 +775,17 @@ set -uo pipefail
     }
 
     # fn: sayprogress - Sayprogress
-        # Purpose:
+        # . Purpose
         #   Render or update a transient progress line.
         #
-        # Behavior:
+        # . Behavior
         #   - Calculates progress from --current and --total.
         #   - Optionally renders current/total, percentage, and a progress bar.
         #   - Writes the rendered line into the selected progress slot.
         #   - Automatically reserves a progress region when none exists yet.
         #   - Clamps invalid progress values to safe ranges.
         #
-        # Options:
+        # . options
         #   --current VALUE
         #       Current progress value. Values below 0 are normalized to 0.
         #
@@ -897,14 +817,14 @@ set -uo pipefail
         #   --width COUNT
         #       Width of the progress bar.
         #
-        # Outputs:
+        # . Outputs
         #   Writes terminal cursor control sequences and progress text to stderr.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   1 when an unknown argument is supplied.
         #
-        # Usage:
+        # . Usage
         #   sayprogress --current 25 --total 100 --label "Processing"
         #   sayprogress --slot 1 --current "$done" --total "$total" --type 3
     sayprogress() {
@@ -1025,21 +945,21 @@ set -uo pipefail
     }
 
     # fn: sayprogress_done - Sayprogress Done
-        # Purpose:
+        # . Purpose
         #   Clear the reserved progress region and return output to normal flow.
         #
-        # Behavior:
+        # . Behavior
         #   - Clears all reserved progress slots.
         #   - Moves the cursor below the progress region.
         #   - Resets SGND_PROGRESS_RESERVED and SGND_LINEBREAK_PENDING.
         #
-        # Outputs:
+        # . Outputs
         #   Writes terminal cursor control sequences to stderr.
         #
-        # Returns:
+        # . Returns
         #   0 always.
         #
-        # Usage:
+        # . Usage
         #   sayprogress_done
     sayprogress_done() {
         local slots="${SGND_PROGRESS_RESERVED:-1}"
@@ -1067,51 +987,51 @@ set -uo pipefail
 
     # -- Convenience wrappers for say() with a fixed TYPE.
             # fn: sayinfo - Write an informational message
-                # Purpose:
+                # . Purpose
                 #   Write a normal informational message through the SolidGroundUX message layer.
                 #
-                # Arguments:
+                # . Arguments
                 #   $@ - Message text to write.
                 #
-                # Output:
+                # . Output
                 #   Writes the formatted message to the configured console/log targets.
                 #
-                # Returns:
+                # . Returns
                 #   0 when the message was handled.
                 #
-                # Usage:
+                # . Usage
                 #   sayinfo "Workspace created"
         sayinfo() {
             say INFO "$@"
         }
 
             # fn: saystart - Write a start/progress message
-                # Purpose:
+                # . Purpose
                 #   Announce the start of an operation through the SolidGroundUX message layer.
                 #
-                # Arguments:
+                # . Arguments
                 #   $@ - Message text to write.
                 #
-                # Output:
+                # . Output
                 #   Writes the formatted start message to the configured console/log targets.
                 #
-                # Returns:
+                # . Returns
                 #   0 when the message was handled.
                 #
-                # Usage:
+                # . Usage
                 #   saystart "Installing framework files"
         saystart() {
             say STRT "$@"
         }
 
         # fn: saywarning
-            # Purpose:
+            # . Purpose
             #   Emit a WARN message.
             #
-            # Behavior:
+            # . Behavior
             #   - Delegates to say WARN.
             #
-            # Usage:
+            # . Usage
             #   saywarning "Disk space low"
             #
             # Examples:
@@ -1121,126 +1041,126 @@ set -uo pipefail
         }
 
             # fn: sayfail - Write a failure message
-                # Purpose:
+                # . Purpose
                 #   Report a failed operation through the SolidGroundUX message layer.
                 #
-                # Arguments:
+                # . Arguments
                 #   $@ - Message text to write.
                 #
-                # Output:
+                # . Output
                 #   Writes the formatted failure message to the configured console/log targets.
                 #
-                # Returns:
+                # . Returns
                 #   0 when the message was handled.
                 #
-                # Usage:
+                # . Usage
                 #   sayfail "Checksum validation failed"
         sayfail() {
             say FAIL "$@"
         }
 
             # fn: saycancel - Write a cancellation message
-                # Purpose:
+                # . Purpose
                 #   Report a cancelled operation through the SolidGroundUX message layer.
                 #
-                # Arguments:
+                # . Arguments
                 #   $@ - Message text to write.
                 #
-                # Output:
+                # . Output
                 #   Writes the formatted cancellation message to the configured console/log targets.
                 #
-                # Returns:
+                # . Returns
                 #   0 when the message was handled.
                 #
-                # Usage:
+                # . Usage
                 #   saycancel "Deployment cancelled by user"
         saycancel() {
             say CNCL "$@"
         }
 
             # fn: sayok - Write a success message
-                # Purpose:
+                # . Purpose
                 #   Report a successful operation through the SolidGroundUX message layer.
                 #
-                # Arguments:
+                # . Arguments
                 #   $@ - Message text to write.
                 #
-                # Output:
+                # . Output
                 #   Writes the formatted success message to the configured console/log targets.
                 #
-                # Returns:
+                # . Returns
                 #   0 when the message was handled.
                 #
-                # Usage:
+                # . Usage
                 #   sayok "Installation complete"
         sayok() {
             say OK "$@"
         }
 
             # fn: sayend - Write an operation-complete message
-                # Purpose:
+                # . Purpose
                 #   Mark the end of an operation through the SolidGroundUX message layer.
                 #
-                # Arguments:
+                # . Arguments
                 #   $@ - Message text to write.
                 #
-                # Output:
+                # . Output
                 #   Writes the formatted end message to the configured console/log targets.
                 #
-                # Returns:
+                # . Returns
                 #   0 when the message was handled.
                 #
-                # Usage:
+                # . Usage
                 #   sayend "Workspace deployment finished"
         sayend() {
             say END "$@"
         }
 
         # justsay
-            # Purpose:
+            # . Purpose
             #   Emit plain text without formatting or logging.
             #
-            # Behavior:
+            # . Behavior
             #   - Prints directly to stdout.
             #
-            # Usage:
+            # . Usage
             #   justsay "Hello world"
             #
             # Examples:
             #   justsay "Raw output"
             # fn: justsay - Write plain message text
-                # Purpose:
+                # . Purpose
                 #   Write message text without applying a semantic say-state such as ok, fail, or warning.
                 #
-                # Arguments:
+                # . Arguments
                 #   $@ - Message text to write.
                 #
-                # Output:
+                # . Output
                 #   Writes the message to the configured console/log targets.
                 #
-                # Returns:
+                # . Returns
                 #   0 when the message was handled.
                 #
-                # Usage:
+                # . Usage
                 #   justsay "Raw status line"
         justsay() {
             printf '%s\n' "$@"
         }
 
             # fn: saydebug - Write a debug message
-                # Purpose:
+                # . Purpose
                 #   Write diagnostic output when debug messaging is enabled by the runtime configuration.
                 #
-                # Arguments:
+                # . Arguments
                 #   $@ - Debug message text to write.
                 #
-                # Output:
+                # . Output
                 #   Writes the debug message to the configured console/log targets when enabled.
                 #
-                # Returns:
+                # . Returns
                 #   0 when the message was ignored or handled.
                 #
-                # Usage:
+                # . Usage
                 #   saydebug "Resolved install root: $install_root"
         saydebug() {
             if [[ "${SGND_LOG_LEVEL:-normal}" == "debug" ]]; then

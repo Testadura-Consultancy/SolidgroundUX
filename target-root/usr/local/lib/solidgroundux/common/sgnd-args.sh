@@ -47,20 +47,20 @@
 set -uo pipefail
 # --- Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard - Library guard
-        # Purpose:
+        # . Purpose
         #   Prevent direct execution of a source-only module and avoid repeated initialization.
         #
-        # Behavior:
+        # . Behavior
         #   - Derives a module-specific guard variable from the current filename.
         #   - Exits with status 2 when the file is executed directly.
         #   - Returns immediately when the module has already been loaded.
         #   - Marks the module as loaded before normal initialization continues.
         #
-        # Returns:
+        # . Returns
         #   0 when the module may continue loading or was already loaded.
         #   Exits with status 2 when executed directly.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
         local lib_base
@@ -86,26 +86,26 @@ set -uo pipefail
 
 # --- Helper functions ----------------------------------------------------------------
     # fn: _sgnd_arg_split - Split one argument specification
-        # Purpose:
+        # . Purpose
         #   Parse a pipe-separated argument specification into parser fields.
         #
-        # Behavior:
+        # . Behavior
         #   - Reads one SGND argument specification string.
         #   - Splits the string into name, short option, type, target variable,
         #     help text, default value, and enum choices.
         #   - Stores parsed fields in parser-scoped scratch variables.
         #
-        # Arguments:
+        # . Arguments
         #   $1  Argument specification in name|short|type|var|help|default|choices format.
         #
         # Outputs (globals):
         #   _sgnd_name, _sgnd_short, _sgnd_type, _sgnd_var
         #   _sgnd_help, _sgnd_default, _sgnd_choices
         #
-        # Returns:
+        # . Returns
         #   0 always.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_arg_split "$spec"
     _sgnd_arg_split() {
         local spec="$1"
@@ -113,28 +113,28 @@ set -uo pipefail
     }
 
     # fn: _sgnd_arg_find_spec - Find an argument specification
-        # Purpose:
+        # . Purpose
         #   Locate the effective argument specification for a long or short option.
         #
-        # Behavior:
+        # . Behavior
         #   - Iterates SGND_EFFECTIVE_ARGS_SPEC in declaration order.
         #   - Matches either the long option name or the short option letter.
         #   - Prints the matching raw specification to stdout.
         #
-        # Arguments:
+        # . Arguments
         #   $1  Long option name or short option letter to find.
         #
         # Inputs (globals):
         #   SGND_EFFECTIVE_ARGS_SPEC
         #
-        # Output:
+        # . Output
         #   Matching raw argument specification on stdout.
         #
-        # Returns:
+        # . Returns
         #   0 when a matching specification is found.
         #   1 when no matching specification exists.
         #
-        # Usage:
+        # . Usage
         #   spec="$(_sgnd_arg_find_spec "$opt")"
     _sgnd_arg_find_spec() {
         local wanted="$1"
@@ -152,23 +152,23 @@ set -uo pipefail
     }
     
     # fn: _sgnd_arg_validate_enum - Validate an enum argument value
-        # Purpose:
+        # . Purpose
         #   Test whether a supplied value is present in a comma-separated choice list.
         #
-        # Behavior:
+        # . Behavior
         #   - Splits the allowed choices on commas.
         #   - Compares the value with each allowed choice exactly.
         #   - Produces no output.
         #
-        # Arguments:
+        # . Arguments
         #   $1  Value to validate.
         #   $2  Comma-separated list of allowed values.
         #
-        # Returns:
+        # . Returns
         #   0 when the value is allowed.
         #   1 when the value is not allowed.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_arg_validate_enum "$value" "$choices_csv"
     _sgnd_arg_validate_enum() {
         local value="$1"
@@ -190,16 +190,16 @@ set -uo pipefail
     }
 
     # fn: _sgnd_arg_init_defaults - Initialize argument defaults
-        # Purpose:
+        # . Purpose
         #   Initialize argument target variables from builtin and/or script argument specs.
         #
-        # Behavior:
+        # . Behavior
         #   - Selects builtin specs, script specs, or both depending on the source argument.
         #   - Initializes flag variables to their configured default or 0.
         #   - Initializes value and enum variables to their configured default or empty.
         #   - Stores the selected combined specification in SGND_EFFECTIVE_ARGS_SPEC.
         #
-        # Arguments:
+        # . Arguments
         #   $1  Source selector: builtins, script, or both.
         #       Default: both
         #
@@ -209,10 +209,10 @@ set -uo pipefail
         # Outputs (globals):
         #   SGND_EFFECTIVE_ARGS_SPEC and configured argument target variables.
         #
-        # Returns:
+        # . Returns
         #   0 always.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_arg_init_defaults both
     _sgnd_arg_init_defaults() {
         local source="${1:-both}"
@@ -266,7 +266,7 @@ set -uo pipefail
 
 # --- Public API ----------------------------------------------------------------------
     # var: Help layout settings
-        # Purpose:
+        # . Purpose
         #   Configure indentation used by sgnd_show_help when rendering section headers
         #   and option descriptions.
         #
@@ -277,7 +277,7 @@ set -uo pipefail
     _text_indent=3
 
     # var: SGND_BUILTIN_ARGS - Builtin framework argument specifications
-        # Purpose:
+        # . Purpose
         #   Define standard command-line options available to framework-enabled scripts.
         #
         # Format:
@@ -297,7 +297,7 @@ set -uo pipefail
     )
 
     # var: SGND_BUILTIN_EXAMPLES - Builtin help examples
-        # Purpose:
+        # . Purpose
         #   Provide reusable help examples for standard framework options.
         #
         # Notes:
@@ -309,25 +309,25 @@ set -uo pipefail
          "  ${SGND_SCRIPT_NAME:-<script>} --show env"
     ) 
     # fn: sgnd_show_help - Show help
-        # Purpose:
+        # . Purpose
         #   Print usage information generated from a SolidGroundUX argument specification.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Arguments:
+        # . Arguments
         #   $0  ARG0 - Positional value used by this function.
         #   $1  INCLUDE_BUILTINS - Positional value used by this function.
         #
-        # Side effects:
+        # . Side effects
         #   May update files, directories, runtime state, or process state required by the workflow.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_show_help "${ARG0}" "${INCLUDE_BUILTINS}"
     sgnd_show_help() {
         local include_builtins="${1:-1}"
@@ -430,32 +430,32 @@ set -uo pipefail
         sgnd_print_sectionheader
     }
     # fn: sgnd_parse_args - Parse args
-        # Purpose:
+        # . Purpose
         #   Parse command-line options according to SGND_ARG_SPEC and dispatch built-in argument handlers.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Arguments:
+        # . Arguments
         #   $1  ARG1 - Positional value used by this function.
         #   $2  ARG2 - Positional value used by this function.
         #
         # Outputs (globals):
         #   May update SGND_* globals shown in the function body.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Side effects:
+        # . Side effects
         #   May update files, directories, runtime state, or process state required by the workflow.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_parse_args "${ARG1}" "${ARG2}"
     sgnd_parse_args() {
 
@@ -615,10 +615,10 @@ set -uo pipefail
         return 0
     }
     # fn: sgnd_builtinarg_handler - Builtinarg handler
-        # Purpose:
+        # . Purpose
         #   Handle built-in framework options such as help, debug, verbose, dry-run, logfile, and UI mode.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
@@ -626,14 +626,14 @@ set -uo pipefail
         # Outputs (globals):
         #   May update SGND_* globals shown in the function body.
         #
-        # Side effects:
+        # . Side effects
         #   May update files, directories, runtime state, or process state required by the workflow.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_builtinarg_handler
     sgnd_builtinarg_handler(){
         local show_target="${ARG_SHOW:-}"

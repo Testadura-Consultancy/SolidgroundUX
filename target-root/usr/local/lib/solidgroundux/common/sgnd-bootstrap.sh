@@ -47,20 +47,20 @@
 set -uo pipefail
 # --- Library guard -------------------------------------------------------------------
     # fn$ _sgnd_lib_guard - Library guard
-        # Purpose:
+        # . Purpose
         #   Prevent direct execution of a source-only module and avoid repeated initialization.
         #
-        # Behavior:
+        # . Behavior
         #   - Derives a module-specific guard variable from the current filename.
         #   - Exits with status 2 when the file is executed directly.
         #   - Returns immediately when the module has already been loaded.
         #   - Marks the module as loaded before normal initialization continues.
         #
-        # Returns:
+        # . Returns
         #   0 when the module may continue loading or was already loaded.
         #   Exits with status 2 when executed directly.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
         local lib_base
@@ -83,27 +83,27 @@ set -uo pipefail
     unset -f _sgnd_lib_guard
 
     # fn: _boot_fail - Report a bootstrap failure
-        # Purpose:
+        # . Purpose
         #   Emit a bootstrap failure message with caller context and return a code.
         #
-        # Behavior:
+        # . Behavior
         #   - Captures caller file, function, and line information.
         #   - Formats one contextual failure message.
         #   - Writes the message through sayfail.
         #   - Returns the supplied status code unchanged.
         #
-        # Arguments:
+        # . Arguments
         #   $1  Failure text to report.
         #   $2  Return code to return to the caller.
         #       Default: 1
         #
-        # Output:
+        # . Output
         #   Writes one formatted failure message through sayfail.
         #
-        # Returns:
+        # . Returns
         #   The supplied return code.
         #
-        # Usage:
+        # . Usage
         #   cmd || { local rc=$?; _boot_fail "Step failed" "$rc"; return "$rc"; }
     _boot_fail() {
         local msg="${1:-Bootstrap step failed}"
@@ -122,24 +122,24 @@ set -uo pipefail
 
 # --- Main sequence helpers + EXIT dispatch -------------------------------------------
     # fn: _parse_bootstrap_args - Parse early bootstrap options
-        # Purpose:
+        # . Purpose
         #   Extract bootstrap-only options before the full argument parser is available.
         #
-        # Behavior:
+        # . Behavior
         #   - Detects state mode, root policy, logfile, and quiet-mode bootstrap options.
         #   - Stores all remaining arguments in SGND_BOOTSTRAP_REST.
         #   - Stops parsing at '--' or the first non-bootstrap argument.
         #
-        # Arguments:
+        # . Arguments
         #   $@  Raw script arguments passed to sgnd_bootstrap.
         #
         # Outputs (globals):
         #   exe_state, exe_root, SGND_LOGFILE_ENABLED, SGND_LOG_LEVEL, SGND_BOOTSTRAP_REST
         #
-        # Returns:
+        # . Returns
         #   0 always.
         #
-        # Usage:
+        # . Usage
         #   _parse_bootstrap_args "$@"
     _parse_bootstrap_args() {
         exe_state=0
@@ -171,10 +171,10 @@ set -uo pipefail
     }
 
     # fn: _init_bootstrap - Initialize bootstrap environment
-        # Purpose:
+        # . Purpose
         #   Prepare the minimum framework environment required before core libraries load.
         #
-        # Behavior:
+        # . Behavior
         #   - Resolves the bootstrap directory.
         #   - Sources the comment-header parser and bootstrap environment library.
         #   - Initializes metadata for early-loaded core modules and the active script.
@@ -183,11 +183,11 @@ set -uo pipefail
         # Outputs (globals):
         #   SGND_BOOTSTRAP_DIR and environment/path globals initialized by bootstrap-env.
         #
-        # Returns:
+        # . Returns
         #   0 when initialization succeeds.
         #   Non-zero when sourcing, metadata initialization, path setup, or directory creation fails.
         #
-        # Usage:
+        # . Usage
         #   _init_bootstrap
     _init_bootstrap() {
         sayinfo "Sourcing bootstrap environment"
@@ -217,10 +217,10 @@ set -uo pipefail
     }
 
     # fn: _source_corelibs - Source required core libraries
-        # Purpose:
+        # . Purpose
         #   Load the fixed set of framework core libraries in bootstrap order.
         #
-        # Behavior:
+        # . Behavior
         #   - Rebases directories before resolving library paths.
         #   - Iterates SGND_CORE_LIBS in order.
         #   - Sources each core library from SGND_COMMON_LIB.
@@ -228,11 +228,11 @@ set -uo pipefail
         # Inputs (globals):
         #   SGND_CORE_LIBS, SGND_COMMON_LIB
         #
-        # Returns:
+        # . Returns
         #   0 when all core libraries are sourced.
         #   Non-zero when a sourced library fails.
         #
-        # Usage:
+        # . Usage
         #   _source_corelibs
     _source_corelibs(){
         sayinfo "Loading core libraries..."  
@@ -247,10 +247,10 @@ set -uo pipefail
     }
 
     # fn: _source_usinglibs - Source declared optional libraries
-        # Purpose:
+        # . Purpose
         #   Load script-declared framework libraries listed in SGND_USING.
         #
-        # Behavior:
+        # . Behavior
         #   - Returns without action when SGND_USING is not declared or empty.
         #   - Resolves each declared library relative to SGND_COMMON_LIB.
         #   - Validates readability before sourcing.
@@ -259,12 +259,12 @@ set -uo pipefail
         # Inputs (globals):
         #   SGND_USING, SGND_COMMON_LIB
         #
-        # Returns:
+        # . Returns
         #   0 when no libraries are declared or all declared libraries load successfully.
         #   126 when a declared library is missing or unreadable.
         #   Non-zero when a sourced library fails.
         #
-        # Usage:
+        # . Usage
         #   _source_usinglibs
     _source_usinglibs() {
         local lib path
@@ -288,10 +288,10 @@ set -uo pipefail
     }
 
     # fn: _sgnd_on_exit_run - Run registered exit handlers
-        # Purpose:
+        # . Purpose
         #   Dispatch registered framework cleanup handlers when the shell exits.
         #
-        # Behavior:
+        # . Behavior
         #   - Captures the current exit status immediately.
         #   - Runs SGND_ON_EXIT_HANDLERS in reverse registration order.
         #   - Ignores individual handler failures to preserve exit dispatch.
@@ -300,10 +300,10 @@ set -uo pipefail
         # Inputs (globals):
         #   SGND_ON_EXIT_HANDLERS
         #
-        # Returns:
+        # . Returns
         #   The original shell exit status captured on entry.
         #
-        # Usage:
+        # . Usage
         #   trap '_sgnd_on_exit_run' EXIT
     _sgnd_on_exit_run() {
         local rc=$?
@@ -322,10 +322,10 @@ set -uo pipefail
     }
 
     # fn: _sgnd_save_state_dispatch - Save state on clean exit
-        # Purpose:
+        # . Purpose
         #   Conditionally persist framework state from the exit-handler stack.
         #
-        # Behavior:
+        # . Behavior
         #   - Captures the current exit status immediately.
         #   - Saves state only on clean exit when SGND_STATE_SAVE is enabled.
         #   - Skips state save for Ctrl+C and failing exits.
@@ -334,10 +334,10 @@ set -uo pipefail
         # Inputs (globals):
         #   SGND_STATE_SAVE
         #
-        # Returns:
+        # . Returns
         #   The original shell exit status captured on entry.
         #
-        # Usage:
+        # . Usage
         #   sgnd_on_exit_add "_sgnd_save_state_dispatch"
     _sgnd_save_state_dispatch() {
         local rc=$?   # capture immediately!
@@ -354,21 +354,21 @@ set -uo pipefail
         return "$rc"
     }
     # fn: sgnd_script_init_metadata - Script init metadata
-        # Purpose:
+        # . Purpose
         #   Initialize script metadata globals from a script comment header.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #
         # Outputs (globals):
         #   May update SGND_* globals shown in the function body.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_script_init_metadata
     sgnd_script_init_metadata() {
         local metadata=""
@@ -415,24 +415,24 @@ set -uo pipefail
         return 0
     }
     # fn: sgnd_module_init_metadata - Module init metadata
-        # Purpose:
+        # . Purpose
         #   Initialize module metadata globals from a sourced library or module comment header.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #
-        # Arguments:
+        # . Arguments
         #   $1  FILE - File path.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_module_init_metadata "${FILE}"
     sgnd_module_init_metadata() {
         local file="${1:-${BASH_SOURCE[1]}}"
@@ -528,17 +528,17 @@ set -uo pipefail
         return 0
     }
     # fn: sgnd_on_exit_install - On exit install
-        # Purpose:
+        # . Purpose
         #   Install the SolidGroundUX exit trap dispatcher once for the current shell.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_on_exit_install
     sgnd_on_exit_install() {
         # Install once
@@ -547,19 +547,19 @@ set -uo pipefail
         trap '_sgnd_on_exit_run' EXIT
     }
     # fn: sgnd_parse_statespec - Parse statespec
-        # Purpose:
+        # . Purpose
         #   Parse a save-state specification into source variable and state key parts.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Arguments:
+        # . Arguments
         #   $1  SPEC - Positional value used by this function.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_parse_statespec "${SPEC}"
     sgnd_parse_statespec() {
         local spec="${1-}"
@@ -567,56 +567,56 @@ set -uo pipefail
         IFS='|' read -r _statekey _statelabel _statedefault _statevalidate _statecolorize <<< "$spec"
     }
     # fn: sgnd_enable_save_state - Enable save state
-        # Purpose:
+        # . Purpose
         #   Enable automatic persistence of selected runtime values on shell exit.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #
         # Outputs (globals):
         #   May update SGND_* globals shown in the function body.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_enable_save_state
     sgnd_enable_save_state(){
         SGND_STATE_SAVE=1
     }
     # fn: sgnd_disable_save_state - Disable save state
-        # Purpose:
+        # . Purpose
         #   Disable automatic save-state handling for the current shell.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #
         # Outputs (globals):
         #   May update SGND_* globals shown in the function body.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_disable_save_state
     sgnd_disable_save_state(){
         SGND_STATE_SAVE=0
     }
     # fn: sgnd_save_state - Save state
-        # Purpose:
+        # . Purpose
         #   Persist configured runtime state values to the active state domain.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_save_state
     sgnd_save_state(){
 
@@ -646,27 +646,27 @@ set -uo pipefail
         fi
     }    
     # fn: sgnd_on_exit_add - On exit add
-        # Purpose:
+        # . Purpose
         #   Register a function or command to run through the SolidGroundUX exit dispatcher.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_on_exit_add
     sgnd_on_exit_add() {
         # store as one string per handler: "fn arg1 arg2 ..."
         SGND_ON_EXIT_HANDLERS+=( "$*" )
     }
     # fn: sgnd_check_license - Check license
-        # Purpose:
+        # . Purpose
         #   Validate the current SolidGroundUX license state when licensing is enabled.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
@@ -674,17 +674,17 @@ set -uo pipefail
         # Outputs (globals):
         #   May update SGND_* globals shown in the function body.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Side effects:
+        # . Side effects
         #   May update files, directories, runtime state, or process state required by the workflow.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_check_license
     sgnd_check_license() {
         local license_file="$SGND_DOCS_DIR/$SGND_LICENSE_FILE"
@@ -756,19 +756,19 @@ set -uo pipefail
         SGND_LICENSE_ACCEPTED=$isaccepted
     }
     # fn: sgnd_load_ui_style - Load ui style
-        # Purpose:
+        # . Purpose
         #   Load the configured SolidGroundUX UI palette and style files.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_load_ui_style
     sgnd_load_ui_style() {
         local style_path palette_path
@@ -789,10 +789,10 @@ set -uo pipefail
         source "$style_path"
     }
     # fn: sgnd_bootstrap - Bootstrap
-        # Purpose:
+        # . Purpose
         #   Bootstrap the SolidGroundUX framework for an executable script.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
@@ -800,17 +800,17 @@ set -uo pipefail
         # Outputs (globals):
         #   May update SGND_* globals shown in the function body.
         #
-        # Output:
+        # . Output
         #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
-        # Side effects:
+        # . Side effects
         #   May update files, directories, runtime state, or process state required by the workflow.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
-        # Usage:
+        # . Usage
         #   sgnd_bootstrap
     sgnd_bootstrap() {
         saystart "Initializing framework"

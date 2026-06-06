@@ -39,45 +39,45 @@
 # ==================================================================================
 set -uo pipefail
     # fn: sample_public_function - Sample public function
-        # Purpose:
+        # . Purpose
         #   Sample public function.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sample_public_function
     sample_public_function() {
         return 0
     }
 
     # fn: _sample_internal_function - Internal function documentation
-        # Purpose:
+        # . Purpose
         #   Demonstrate an internal function.
         #
-        # Behavior:
+        # . Behavior
         #   - A leading underscore marks the function as internal.
         #   - The renderer may use this visibility metadata later.
         #
-        # Returns:
+        # . Returns
         #   0 on success.
     _sample_internal_function() {
         return 0
     }
     # fn: sample_template_function - Sample template function
-        # Purpose:
+        # . Purpose
         #   Sample template function.
         #
-        # Behavior:
+        # . Behavior
         #   - Provides a public SolidGroundUX helper or command entry point.
         #
-        # Returns:
+        # . Returns
         #   0 on success unless the called command returns a different status.
         #
-        # Usage:
+        # . Usage
         #   sample_template_function
     sample_template_function() {
         return 0
@@ -85,10 +85,10 @@ set -uo pipefail
 
 # - Variable items -----------------------------------------------------------------
     # var: SAMPLE_PUBLIC_VARIABLE - Public variable documentation
-        # Purpose:
+        # . Purpose
         #   Demonstrate a normal documented variable.
         #
-        # Behavior:
+        # . Behavior
         #   - Creates a variable item.
         #   - Uses the variable header/body content type.
         #   - Is included in the variable glossary.
@@ -98,19 +98,19 @@ set -uo pipefail
     SAMPLE_PUBLIC_VARIABLE=""
 
     # var: _SAMPLE_INTERNAL_VARIABLE - Internal variable documentation
-        # Purpose:
+        # . Purpose
         #   Demonstrate an internal variable.
         #
-        # Behavior:
+        # . Behavior
         #   - A leading underscore marks the variable as internal.
         #   - The renderer may use this visibility metadata later.
     _SAMPLE_INTERNAL_VARIABLE=""
 
     # var$ SAMPLE_TEMPLATE_VARIABLE - Template variable documentation
-        # Purpose:
+        # . Purpose
         #   Demonstrate the var$ template marker.
         #
-        # Behavior:
+        # . Behavior
         #   - The dollar marker means this is a template/example variable.
         #   - Template variables are only shown when the module belongs to the Templates group.
         #
@@ -120,7 +120,7 @@ set -uo pipefail
 
 # - Recommended prose blocks --------------------------------------------------------
     # doc: purpose_block - Purpose block convention
-        # Purpose:
+        # . Purpose
         #   Demonstrate the preferred prose structure for documented items.
         #
         # Recommended labels:

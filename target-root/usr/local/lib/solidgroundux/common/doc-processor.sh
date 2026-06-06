@@ -55,20 +55,20 @@
 set -uo pipefail
 # - Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard - Library guard
-        # Purpose:
+        # . Purpose
         #   Prevent direct execution of a source-only module and avoid repeated initialization.
         #
-        # Behavior:
+        # . Behavior
         #   - Derives a module-specific guard variable from the current filename.
         #   - Exits with status 2 when the file is executed directly.
         #   - Returns immediately when the module has already been loaded.
         #   - Marks the module as loaded before normal initialization continues.
         #
-        # Returns:
+        # . Returns
         #   0 when the module may continue loading or was already loaded.
         #   Exits with status 2 when executed directly.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
         local lib_base
@@ -93,10 +93,10 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 # - Local definitions
     # var: Datamodel - Content tables for parsed documentation data
-        # Purpose:
+        # . Purpose
         #   Define the parser-owned documentation tables.
         #
-        # Behavior:
+        # . Behavior
         #   - Stores collected module metadata, attribution, sections, documented items,
         #     and normalized content lines.
         #   - Keeps parsing output independent from rendering output.
@@ -153,16 +153,18 @@ set -uo pipefail
             "normal"
             "label"
             "emphasis"
+            "highlight"
+            "underline"
             "quote"
             "listitem"
             "indent"
         )
 
     # fn: _init_localvars - Initialize parser state variables
-        # Purpose:
+        # . Purpose
         #   Reset source, module, item, section, and emission state before parsing a file.
         #
-        # Behavior:
+        # . Behavior
         #   - Clears source-line tracking values.
         #   - Clears module metadata values populated from the file header.
         #   - Resets current section, parent section, item, and style-hint context.
@@ -178,10 +180,10 @@ set -uo pipefail
         #   doc_headersection, doc_stylehint, doc_linenr, doc_contenttype
         #   doc_content, doc_inheader, doc_started, doc_titleextracted, doc_emitline
         #
-        # Returns:
+        # . Returns
         #   0 on successful initialization.
         #
-        # Usage:
+        # . Usage
         #   _init_localvars
     _init_localvars(){
         src_line=""
@@ -276,23 +278,23 @@ set -uo pipefail
 
     # -- Semantic registries ----------------------------------------------------------
         # fn: _sgnd_doc_list_contains - Test whether a value exists in a named array
-            # Purpose:
+            # . Purpose
             #   Provide a small membership helper for semantic registries.
             #
-            # Behavior:
+            # . Behavior
             #   - Uses a nameref to inspect the array named by the first argument.
             #   - Compares each array element with the requested value.
             #   - Returns success on the first exact match.
             #
-            # Arguments:
+            # . Arguments
             #   $1  Name of the array to inspect.
             #   $2  Value to find.
             #
-            # Returns:
+            # . Returns
             #   0 when the value exists in the named array.
             #   1 when the array name/value is missing or no match is found.
             #
-            # Usage:
+            # . Usage
             #   _sgnd_doc_list_contains SGND_DOC_STYLEHINTS "normal"
         _sgnd_doc_list_contains() {
             local array_name="${1:-}"
@@ -310,21 +312,21 @@ set -uo pipefail
         }
 
         # fn: _sgnd_doc_is_valid_stylehint - Validate documentation style hint
-            # Purpose:
+            # . Purpose
             #   Check whether a style hint is part of the supported documentation style registry.
             #
-            # Behavior:
+            # . Behavior
             #   - Delegates membership testing to _sgnd_doc_list_contains.
             #   - Does not mutate parser state.
             #
-            # Arguments:
+            # . Arguments
             #   $1  Style hint to validate.
             #
-            # Returns:
+            # . Returns
             #   0 when the style hint is valid.
             #   1 when the style hint is unknown or missing.
             #
-            # Usage:
+            # . Usage
             #   _sgnd_doc_is_valid_stylehint "$doc_stylehint"
         _sgnd_doc_is_valid_stylehint() {
             _sgnd_doc_list_contains SGND_DOC_STYLEHINTS "${1:-}"
@@ -333,10 +335,10 @@ set -uo pipefail
 
     # -- Detectors -------------------------------------------------------------------
         # fn: _detect_noncommentline - Detect non-comment source lines
-            # Purpose:
+            # . Purpose
             #   Stop documentation parsing for source lines that are not structured comments.
             #
-            # Behavior:
+            # . Behavior
             #   - Ignores the line when another detector already handled it.
             #   - Returns without action for comment lines.
             #   - Clears the current source/content type for executable or ordinary source lines.
@@ -348,10 +350,10 @@ set -uo pipefail
             # Outputs (globals):
             #   src_linetype, doc_contenttype, doc_headersection, doc_emitline, src_haltlineprocessing
             #
-            # Returns:
+            # . Returns
             #   0 always.
             #
-            # Usage:
+            # . Usage
             #   _detect_noncommentline
         _detect_noncommentline() {
             (( src_haltlineprocessing )) && return 0
@@ -372,10 +374,10 @@ set -uo pipefail
         }
 
         # fn: _detect_headermarker - Detect module header boundary lines
-            # Purpose:
+            # . Purpose
             #   Detect the opening and closing marker of the file-level documentation header.
             #
-            # Behavior:
+            # . Behavior
             #   - Matches header separator lines using _rgx_header.
             #   - Marks the parser as started on the first header marker.
             #   - Ends header mode and emits module metadata on the closing header marker.
@@ -387,10 +389,10 @@ set -uo pipefail
             # Outputs (globals):
             #   src_linetype, doc_inheader, doc_started, doc_emitline, doc_headersection, src_haltlineprocessing
             #
-            # Returns:
+            # . Returns
             #   0 always.
             #
-            # Usage:
+            # . Usage
             #   _detect_headermarker
         _detect_headermarker() {
             (( src_haltlineprocessing )) && return 0
@@ -417,10 +419,10 @@ set -uo pipefail
         }
 
         # fn: _detect_moduletitle - Detect the module title line
-            # Purpose:
+            # . Purpose
             #   Extract product and title information from the first title line in the file header.
             #
-            # Behavior:
+            # . Behavior
             #   - Runs only while inside the module header and before a title was extracted.
             #   - Matches the title line using _rgx_moduletitle.
             #   - Stores product and module title metadata.
@@ -432,10 +434,10 @@ set -uo pipefail
             # Outputs (globals):
             #   mod_product, mod_title, doc_contenttype, doc_content, doc_emitline, doc_titleextracted, src_haltlineprocessing
             #
-            # Returns:
+            # . Returns
             #   0 always.
             #
-            # Usage:
+            # . Usage
             #   _detect_moduletitle
         _detect_moduletitle() {
             (( doc_inheader == 1 && doc_titleextracted == 0 )) || return 0
@@ -459,10 +461,10 @@ set -uo pipefail
         }
 
         # fn: _detect_headerfields - Detect metadata and attribution fields
-            # Purpose:
+            # . Purpose
             #   Extract named header fields and map them to mod_* variables.
             #
-            # Behavior:
+            # . Behavior
             #   - Runs only while inside the file header.
             #   - Accepts fields only under Metadata or Attribution header sections.
             #   - Normalizes field names to lowercase shell variable names.
@@ -474,10 +476,10 @@ set -uo pipefail
             # Outputs (globals):
             #   mod_* variables derived from header field names, src_haltlineprocessing
             #
-            # Returns:
+            # . Returns
             #   0 always.
             #
-            # Usage:
+            # . Usage
             #   _detect_headerfields
         _detect_headerfields() {       
             (( src_haltlineprocessing )) && return 0
@@ -512,10 +514,10 @@ set -uo pipefail
         }
 
         # fn: _detect_section - Detect documentation section headers
-            # Purpose:
+            # . Purpose
             #   Detect structured level 1, 2, and 3 documentation section headers.
             #
-            # Behavior:
+            # . Behavior
             #   - Matches section marker lines using _rgx_section.
             #   - Determines section level from marker depth.
             #   - Maintains current section, parent section, and grandparent section context.
@@ -528,10 +530,10 @@ set -uo pipefail
             #   src_linetype, doc_headersection, doc_section, doc_parentsection, doc_grandparentsection
             #   doc_sectionlevel, doc_content, doc_contenttype, doc_emitline, src_haltlineprocessing
             #
-            # Returns:
+            # . Returns
             #   0 always.
             #
-            # Usage:
+            # . Usage
             #   _detect_section
         _detect_section() {       
             (( src_haltlineprocessing )) && return 0
@@ -624,10 +626,10 @@ set -uo pipefail
         }
 
         # fn: _detect_items - Detect documented items
-            # Purpose:
+            # . Purpose
             #   Detect structured item markers such as functions, variables, and general documentation blocks.
             #
-            # Behavior:
+            # . Behavior
             #   - Matches item declaration lines using _rgx_docitem.
             #   - Extracts item type, marker, name, and optional title.
             #   - Marks template items when the item marker is '$'.
@@ -642,10 +644,10 @@ set -uo pipefail
             #   doc_itemvisibility, doc_itemrole, doc_itemmarker, doc_itemtitle
             #   doc_emitline, src_haltlineprocessing
             #
-            # Returns:
+            # . Returns
             #   0 always.
             #
-            # Usage:
+            # . Usage
             #   _detect_items
         _detect_items(){
             (( src_haltlineprocessing )) && return 0
@@ -709,11 +711,11 @@ set -uo pipefail
         }
 
         # fn: _detect_headersectionheader - Detect named header sections
-            # Purpose:
+            # . Purpose
             #   Detect named sections inside the module header, such as Metadata and
             #   Attribution, without emitting render content.
             #
-            # Behavior:
+            # . Behavior
             #   - Runs only while inside the file header.
             #   - Matches lines such as '# Metadata:' and '# Attribution:'.
             #   - Stores the active header section for field extraction.
@@ -724,10 +726,10 @@ set -uo pipefail
             # Outputs (globals):
             #   doc_headersection, src_linetype, src_haltlineprocessing
             #
-            # Returns:
+            # . Returns
             #   0 always.
             #
-            # Usage:
+            # . Usage
             #   _detect_headersectionheader
         _detect_headersectionheader() {
             (( src_haltlineprocessing )) && return 0
@@ -761,14 +763,14 @@ set -uo pipefail
             saydebug "Header section detected: $doc_headersection"
         }
         # fn: _detect_default - Detect default
-            # Purpose:
+            # . Purpose
             #   Internal helper for detect default.
             #
-            # Behavior:
+            # . Behavior
             #   - Supports the module implementation; not intended as a public framework API.
             #   - Uses framework UI/output conventions for terminal or dialog interaction.
             #
-            # Arguments:
+            # . Arguments
             #   $1  ARG1 - Positional value used by this function.
             #   $2  ARG2 - Positional value used by this function.
             #   $3  ARG3 - Positional value used by this function.
@@ -776,13 +778,13 @@ set -uo pipefail
             #   $5  ARG5 - Positional value used by this function.
             #   $6  ARG6 - Positional value used by this function.
             #
-            # Side effects:
+            # . Side effects
             #   May read, write, create, update, or remove files/directories required by the workflow.
             #
-            # Returns:
+            # . Returns
             #   0 on success unless the called command returns a different status.
             #
-            # Usage:
+            # . Usage
             #   _detect_default "${ARG1}" "${ARG2}" "${ARG3}" "${ARG4}" "${ARG5}"
         _detect_default(){
             (( src_haltlineprocessing )) && return 0
@@ -809,21 +811,26 @@ set -uo pipefail
             # author layout and must be preserved.
             case "$doc_content" in
                 '> '*)
-                    # Plain documentation line marker. This is not a style hint.
-                    # It exists so documentation source remains visibly distinct
-                    # from incidental comments while preserving author layout.
                     doc_content="${doc_content#> }"
                     ;;
-                '>' )
+                '>')
                     doc_content=""
                     ;;
                 ': '*)
                     doc_stylehint="label"
                     doc_content="${doc_content#: }"
                     ;;
+                '. '*)
+                    doc_stylehint="highlight"
+                    doc_content="${doc_content#. }"
+                    ;;
                 '! '*)
                     doc_stylehint="emphasis"
                     doc_content="${doc_content#! }"
+                    ;;
+                '_ '*)
+                    doc_stylehint="underline"
+                    doc_content="${doc_content#_ }"
                     ;;
                 '~ '*)
                     doc_stylehint="quote"
@@ -839,16 +846,16 @@ set -uo pipefail
 
         }
         # fn: _get_section_comments - Get section comments
-            # Purpose:
+            # . Purpose
             #   Internal helper for get section comments.
             #
-            # Behavior:
+            # . Behavior
             #   - Supports the module implementation; not intended as a public framework API.
             #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
             #   - Uses SolidGroundUX datatable rows and schemas for structured state.
             #   - Uses framework UI/output conventions for terminal or dialog interaction.
             #
-            # Arguments:
+            # . Arguments
             #   $1  MODULE_NAME - Variable, field, or item name.
             #   $2  GRANDPARENT_SECTION - Header section name.
             #   $3  PARENT_SECTION - Header section name.
@@ -856,14 +863,14 @@ set -uo pipefail
             #   $5  ITEM_NAME - Variable, field, or item name.
             #   $6  CURRENTVALUE - Value to read, validate, render, or store.
             #
-            # Output:
+            # . Output
             #   Writes computed or formatted text to stdout/stderr as appropriate for the function.
             #
-            # Returns:
+            # . Returns
             #   0 on success.
             #   Non-zero when validation, resolution, user cancellation, or execution fails.
             #
-            # Usage:
+            # . Usage
             #   _get_section_comments "${MODULE_NAME}" "${GRANDPARENT_SECTION}" "${PARENT_SECTION}" "${SECTION_NAME}" "${ITEM_NAME}"
         _get_section_comments() {
             (( src_haltlineprocessing )) && return 0
@@ -886,10 +893,10 @@ set -uo pipefail
         }
 
         # fn: _detect_global_array_start - Detect framework/runtime/script globals array declarations
-            # Purpose:
+            # . Purpose
             #   Detect SGND_FRAMEWORK_GLOBALS, SGND_RUNTIME_GLOBALS, and SGND_SCRIPT_GLOBALS array blocks.
             #
-            # Behavior:
+            # . Behavior
             #   - Recognizes the start of strict-format global declaration arrays.
             #   - Records whether following entries belong to framework or script scope.
             #   - Prevents normal documentation detectors from processing the array start line.
@@ -897,10 +904,10 @@ set -uo pipefail
             # Outputs (globals):
             #   doc_globalblock, doc_globalscope, src_haltlineprocessing
             #
-            # Returns:
+            # . Returns
             #   0 always.
             #
-            # Usage:
+            # . Usage
             #   _detect_global_array_start
         _detect_global_array_start() {
             (( src_haltlineprocessing )) && return 0
@@ -921,10 +928,10 @@ set -uo pipefail
         }
 
         # fn: _detect_global_array_entry - Detect global declaration array entries
-            # Purpose:
+            # . Purpose
             #   Parse entries inside SGND_FRAMEWORK_GLOBALS, SGND_RUNTIME_GLOBALS, and SGND_SCRIPT_GLOBALS.
             #
-            # Behavior:
+            # . Behavior
             #   - Runs only while inside a global declaration array block.
             #   - Ends the block when a closing parenthesis is encountered.
             #   - Parses strict pipe-delimited entries:
@@ -934,10 +941,10 @@ set -uo pipefail
             # Outputs (globals):
             #   MOD_GLOBALS, doc_globalblock, doc_globalscope, src_haltlineprocessing
             #
-            # Returns:
+            # . Returns
             #   0 always.
             #
-            # Usage:
+            # . Usage
             #   _detect_global_array_entry
         _detect_global_array_entry() {
             (( src_haltlineprocessing )) && return 0
@@ -978,10 +985,10 @@ set -uo pipefail
         }
 
         # fn: _detect_commentseparator - Ignore visual comment separators
-            # Purpose:
+            # . Purpose
             #   Detect separator-only comment lines and prevent them from becoming content.
             #
-            # Behavior:
+            # . Behavior
             #   - Matches separator lines using _rgx_commentseparator.
             #   - Clears pending content state.
             #   - Prevents later detectors from processing the same line.
@@ -992,10 +999,10 @@ set -uo pipefail
             # Outputs (globals):
             #   src_haltlineprocessing, doc_contenttype, doc_content
             #
-            # Returns:
+            # . Returns
             #   0 always.
             #
-            # Usage:
+            # . Usage
             #   _detect_commentseparator
         _detect_commentseparator() {
             (( src_haltlineprocessing )) && return 0
@@ -1011,10 +1018,10 @@ set -uo pipefail
 
     # -- Action -------------------------------------------------------------------
         # fn: _action_headerend - Emit module-level header data
-            # Purpose:
+            # . Purpose
             #   Store collected file header metadata in module-level data tables.
             #
-            # Behavior:
+            # . Behavior
             #   - Appends module identity and metadata to MOD_TABLE.
             #   - Appends attribution information to MOD_ATTRIBUTION.
             #   - Clears pending content emission for the header marker line.
@@ -1026,10 +1033,10 @@ set -uo pipefail
             # Outputs (globals):
             #   MOD_TABLE, MOD_ATTRIBUTION, doc_emitline
             #
-            # Returns:
+            # . Returns
             #   0 if table append calls succeed.
             #
-            # Usage:
+            # . Usage
             #   _action_headerend
         _action_headerend() {
 
@@ -1066,10 +1073,10 @@ set -uo pipefail
         }
 
         # fn: _guess_nextcontenttype - Advance content type after emitted headers
-            # Purpose:
+            # . Purpose
             #   Prepare the parser for body content following a recognized header line.
             #
-            # Behavior:
+            # . Behavior
             #   - Maps module, section, item, and recognized headers to their body content types.
             #   - Leaves unknown or body content types unchanged.
             #
@@ -1079,10 +1086,10 @@ set -uo pipefail
             # Outputs (globals):
             #   doc_contenttype
             #
-            # Returns:
+            # . Returns
             #   0 always.
             #
-            # Usage:
+            # . Usage
             #   _guess_nextcontenttype
         _guess_nextcontenttype(){
             case "$doc_contenttype" in
@@ -1098,14 +1105,14 @@ set -uo pipefail
 
     # -- Emitters -------------------------------------------------------------------
         # fn: _emit_globalrecord - Append a framework/runtime/script global declaration record
-            # Purpose:
+            # . Purpose
             #   Store a detected global variable declaration in the module globals table.
             #
-            # Behavior:
+            # . Behavior
             #   - Appends module name, scope, audience, variable name, description, extra metadata, and current value.
             #   - Preserves the array source through the scope field.
             #
-            # Arguments:
+            # . Arguments
             #   $1  Scope, normally framework or script.
             #   $2  Audience, normally system, user, or both.
             #   $3  Global variable name.
@@ -1116,10 +1123,10 @@ set -uo pipefail
             # Outputs (globals):
             #   MOD_GLOBALS
             #
-            # Returns:
+            # . Returns
             #   0 if the table append succeeds.
             #
-            # Usage:
+            # . Usage
             #   _emit_globalrecord "framework" "both" "SGND_ROOT" "Framework root" ""
         _emit_globalrecord() {
             local scope="${1:-}"
@@ -1148,11 +1155,11 @@ set -uo pipefail
         }
 
         # fn: _emit_contentline - Append a normalized documentation content line
-            # Purpose:
+            # . Purpose
             #   Emit the current normalized content state into DOC_CONTENT_LINES.
             #
-            # Behavior:
-            #   - Skips emission when content type, content, or emit flag is missing.
+            # . Behavior
+            #   - Skips emission when content type or emit flag is missing.
             #   - Increments the documentation line counter.
             #   - Appends the normalized content line with current section and item context.
             #   - Clears the emit flag after successful emission.
@@ -1164,14 +1171,13 @@ set -uo pipefail
             # Outputs (globals):
             #   DOC_CONTENT_LINES, doc_linenr, doc_emitline
             #
-            # Returns:
+            # . Returns
             #   0 when skipped or appended successfully.
             #
-            # Usage:
+            # . Usage
             #   _emit_contentline
         _emit_contentline() {
             [[ -z "$doc_contenttype" ]] && return 0
-            [[ -z "$doc_content" ]] && return 0
             (( ! doc_emitline )) && return 0
 
             _sgnd_doc_is_valid_stylehint "$doc_stylehint" || {
@@ -1180,8 +1186,8 @@ set -uo pipefail
             }
 
             ((doc_linenr++))
-            saydebug "Emitting line: $mod_name, $src_linenr, $doc_linenr, $doc_section, $doc_parentsection, $doc_grandparentsection, $doc_headersection, $doc_item, $doc_itemtitle, $doc_contenttype, $doc_content"
             contentref="$(_build_content_ref "$mod_name" "$doc_grandparentsection" "$doc_parentsection" "$doc_section" "$doc_item")"
+
             sgnd_dt_append \
                 "$DOC_CONTENT_LINES_SCHEMA" \
                 DOC_CONTENT_LINES \
@@ -1198,15 +1204,14 @@ set -uo pipefail
                 "$doc_content" \
                 "$contentref"
 
-            saydebug "Rendered content emitted: $doc_contenttype, $doc_item, $doc_content"
             doc_emitline=0
         }
 
         # fn: _emit_itemrecord - Append a documented item record
-            # Purpose:
+            # . Purpose
             #   Store the current documented item in the module item index.
             #
-            # Behavior:
+            # . Behavior
             #   - Appends module, section, item type, visibility, role, name, and title to MOD_ITEMS.
             #   - Preserves the item role so template-origin items can be distinguished from normal items.
             #
@@ -1217,10 +1222,10 @@ set -uo pipefail
             # Outputs (globals):
             #   MOD_ITEMS
             #
-            # Returns:
+            # . Returns
             #   0 if the table append succeeds.
             #
-            # Usage:
+            # . Usage
             #   _emit_itemrecord
         _emit_itemrecord(){
     
@@ -1243,10 +1248,10 @@ set -uo pipefail
         }
 
         # fn: _emit_sectionrecord - Append a documentation section record
-            # Purpose:
+            # . Purpose
             #   Store the current section context in the module section index.
             #
-            # Behavior:
+            # . Behavior
             #   - Appends module name, section name, parent section, grandparent section, title, and level.
             #   - Preserves hierarchy context for later renderer-side navigation construction.
             #
@@ -1257,10 +1262,10 @@ set -uo pipefail
             # Outputs (globals):
             #   MOD_SECTIONS
             #
-            # Returns:
+            # . Returns
             #   0 if the table append succeeds.
             #
-            # Usage:
+            # . Usage
             #   _emit_sectionrecord
         _emit_sectionrecord(){
             sgnd_dt_append \
@@ -1277,27 +1282,27 @@ set -uo pipefail
 
 # - Internal API ----------------------------------------------------------------
     # fn: _parse_module_file - Parse one module source file
-        # Purpose:
+        # . Purpose
         #   Parse a source file and collect normalized documentation tables.
         #
-        # Behavior:
+        # . Behavior
         #   - Validates the source filename argument.
         #   - Resets parser state for the file.
         #   - Reads the file line-by-line in source order.
         #   - Runs detectors in deterministic order.
         #   - Emits normalized content, section, item, metadata, and attribution records.
         #
-        # Arguments:
+        # . Arguments
         #   $1  Source file to parse.
         #
         # Outputs (globals):
         #   MOD_TABLE, MOD_ATTRIBUTION, MOD_SECTIONS, MOD_ITEMS, DOC_CONTENT_LINES
         #
-        # Returns:
+        # . Returns
         #   0 on successful parsing.
         #   1 when no source filename is supplied.
         #
-        # Usage:
+        # . Usage
         #   _parse_module_file "$src_file"
     _parse_module_file(){
         src_file="${1:-}"
@@ -1365,25 +1370,25 @@ set -uo pipefail
     } 
 
     # fn: _build_content_ref - Build a stable documentation content reference
-        # Purpose:
+        # . Purpose
         #   Create the canonical reference key used to link content to a module, section, and item context.
         #
-        # Behavior:
+        # . Behavior
         #   - Joins module, grandparent section, parent section, section, and item values.
         #   - Preserves empty hierarchy parts so the reference shape remains stable.
         #   - Writes the generated reference to stdout.
         #
-        # Arguments:
+        # . Arguments
         #   $1  Module name.
         #   $2  Grandparent section name.
         #   $3  Parent section name.
         #   $4  Current section name.
         #   $5  Current item name.
         #
-        # Returns:
+        # . Returns
         #   0 after writing the content reference.
         #
-        # Usage:
+        # . Usage
         #   _build_content_ref "$mod_name" "$doc_grandparentsection" "$doc_parentsection" "$doc_section" "$doc_item"
     _build_content_ref() {
         local module_name="${1-}"

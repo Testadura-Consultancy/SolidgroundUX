@@ -48,10 +48,10 @@
 set -uo pipefail
 # --- Bootstrap -----------------------------------------------------------------------
     # _framework_locator
-        # Purpose:
+        # . Purpose
         #   Locate, create, and load the SolidGroundUX bootstrap configuration.
         #
-        # Behavior:
+        # . Behavior
         #   - Searches user and system bootstrap configuration locations.
         #   - Prefers the invoking user's config over the system config.
         #   - Creates a new bootstrap config when none exists.
@@ -63,12 +63,12 @@ set -uo pipefail
         #   SGND_FRAMEWORK_ROOT
         #   SGND_APPLICATION_ROOT
         #
-        # Returns:
+        # . Returns
         #   0   success
         #   126 configuration unreadable or invalid
         #   127 configuration directory or file could not be created
         #
-        # Usage:
+        # . Usage
         #   _framework_locator || return $?
         #
         # Examples:
@@ -170,10 +170,10 @@ set -uo pipefail
     }
 
     # _load_bootstrapper
-        # Purpose:
+        # . Purpose
         #   Resolve and source the framework bootstrap library.
         #
-        # Behavior:
+        # . Behavior
         #   - Calls _framework_locator to establish framework roots.
         #   - Derives the sgnd-bootstrap.sh path from SGND_FRAMEWORK_ROOT.
         #   - Verifies that the bootstrap library is readable.
@@ -182,11 +182,11 @@ set -uo pipefail
         # Inputs (globals):
         #   SGND_FRAMEWORK_ROOT
         #
-        # Returns:
+        # . Returns
         #   0   success
         #   126 bootstrap library unreadable
         #
-        # Usage:
+        # . Usage
         #   _load_bootstrapper || return $?
         #
         # Examples:
@@ -229,31 +229,31 @@ set -uo pipefail
 
     # Minimal UI
     # fn$ saystart - Emit a minimal START message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal START message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saystart
     saystart()   { printf '%sSTART%s\t%s\n' "${MSG_CLR_STRT-}" "${RESET-}" "$*" >&2; }
     # fn$ sayinfo - Emit a minimal INFO message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal INFO message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayinfo
     sayinfo()    { 
         if (( ${FLAG_VERBOSE:-0} )); then
@@ -261,59 +261,59 @@ set -uo pipefail
         fi
     }
     # fn$ sayok - Emit a minimal OK message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal OK message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayok
     sayok()      { printf '%sOK%s   \t%s\n' "${MSG_CLR_OK-}"   "${RESET-}" "$*" >&2; }
     # fn$ saywarning - Emit a minimal WARN message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal WARN message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saywarning
     saywarning() { printf '%sWARN%s \t%s\n' "${MSG_CLR_WARN-}" "${RESET-}" "$*" >&2; }
     # fn$ sayfail - Emit a minimal FAIL message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal FAIL message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayfail
     sayfail()    { printf '%sFAIL%s \t%s\n' "${MSG_CLR_FAIL-}" "${RESET-}" "$*" >&2; }
     # fn$ saydebug - Emit a minimal DEBUG message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal DEBUG message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saydebug
     saydebug() {
         if (( ${FLAG_DEBUG:-0} )); then
@@ -321,31 +321,31 @@ set -uo pipefail
         fi
     }
     # fn$ saycancel - Emit a minimal CANCEL message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal CANCEL message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   saycancel
     saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
     # fn$ sayend - Emit a minimal END message before bootstrap
-        # Purpose:
+        # . Purpose
         #   Emit a minimal END message before bootstrap.
         #
-        # Behavior:
+        # . Behavior
         #   - Template/bootstrap helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sayend
     sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
     
@@ -421,11 +421,11 @@ set -uo pipefail
     # SGND_SCRIPT_GLOBALS
         # Explicit declaration of global variables intentionally used by this script.
         #
-        # Purpose:
+        # . Purpose
         #   - Declares which globals are part of the script’s public/config contract.
         #   - Enables optional configuration loading when non-empty.
         #
-        # Behavior:
+        # . Behavior
         #   - If this array is non-empty, sgnd_bootstrap enables config integration.
         #   - Variables listed here may be populated from configuration files.
         #   - Unlisted globals will NOT be auto-populated.
@@ -447,10 +447,10 @@ set -uo pipefail
     # SGND_STATE_VARIABLES
         # List of variables participating in persistent state.
         #
-        # Purpose:
+        # . Purpose
         #   - Declares which variables should be saved/restored when state is enabled.
         #
-        # Behavior:
+        # . Behavior
         #   - Only used when sgnd_bootstrap is invoked with --state.
         #   - Variables listed here are serialized on exit (if SGND_STATE_SAVE=1).
         #   - On startup, previously saved values are restored before main logic runs.
@@ -467,10 +467,10 @@ set -uo pipefail
     # SGND_ON_EXIT_HANDLERS
         # List of functions to be invoked on script termination.
         #
-        # Purpose:
+        # . Purpose
         #   - Allows scripts to register cleanup or finalization hooks.
         #
-        # Behavior:
+        # . Behavior
         #   - Functions listed here are executed during framework exit handling.
         #   - Execution order follows array order.
         #   - Handlers run regardless of normal exit or controlled termination.
@@ -528,10 +528,10 @@ set -uo pipefail
             
     # --- Module loading and registration 
     # _sgnd_console_register_builtin_items
-        # Purpose:
+        # . Purpose
         #   Register the console's builtin groups and builtin menu actions.
         #
-        # Behavior:
+        # . Behavior
         #   - Defines the builtin runtime and session group keys.
         #   - Registers builtin console groups.
         #   - Registers builtin menu items for runtime toggles and session actions.
@@ -542,28 +542,28 @@ set -uo pipefail
         #   SGND_GROUP_RUNTIME
         #   SGND_GROUP_SESSION
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #   Non-zero if group or item registration fails
         #
-        # Usage:
+        # . Usage
         #   _sgnd_console_register_builtin_items
         #
         # Examples:
         #   _sgnd_console_register_builtin_items || exit 1
         #   non-zero if group/item registration fails
     # fn: _sgnd_console_register_builtin_items - Register built-in console menu items
-        # Purpose:
+        # . Purpose
         #   Register built-in console menu items.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_console_register_builtin_items
     _sgnd_console_register_builtin_items() {
         SGND_GROUP_RUNTIME="runtime"
@@ -585,24 +585,24 @@ set -uo pipefail
     }
 
     # fn: _sgnd_console_register_fallback_group - Register fallback console group
-        # Purpose:
+        # . Purpose
         #   Register a fallback group for an item that references an unknown group key.
         #
-        # Behavior:
+        # . Behavior
         #   - Uses "Other" as the default fallback label.
         #   - For keys of the form "module:<id>", attempts to resolve the module
         #     name from SGND_MODULE_ROWS and uses that as the group label.
         #   - Registers the derived group as a non-builtin visible group.
         #
-        # Arguments:
+        # . Arguments
         #   $1  GROUP_KEY
         #       Missing group key to register.
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #   Non-zero if registration fails
         #
-        # Usage:
+        # . Usage
         #   _sgnd_console_register_fallback_group "$group_key"
         #
         # Examples:
@@ -639,18 +639,18 @@ set -uo pipefail
     }
 
     # fn: _sgnd_console_group_exists - Test whether a console group exists
-        # Purpose:
+        # . Purpose
         #   Test whether a group key already exists in the console group model.
         #
-        # Arguments:
+        # . Arguments
         #   $1  GROUP_KEY
         #       Group key to test.
         #
-        # Returns:
+        # . Returns
         #   0 if the group exists
         #   1 if the group does not exist
         #
-        # Usage:
+        # . Usage
         #   if _sgnd_console_group_exists "$group"; then ...
         #
         # Examples:
@@ -662,10 +662,10 @@ set -uo pipefail
     }
 
     # _sgnd_console_load_config
-        # Purpose:
+        # . Purpose
         #   Load console-specific configuration and resolve the module directory.
         #
-        # Behavior:
+        # . Behavior
         #   - Applies built-in defaults for title, description, module directory,
         #     and page size.
         #   - Applies --maxrows when provided.
@@ -690,28 +690,28 @@ set -uo pipefail
         #   SGND_CONSOLE_MODULE_DIR
         #   SGND_PAGE_MAX_ROWS
         #
-        # Returns:
+        # . Returns
         #   0   success
         #   126 unreadable config
         #   127 config could not be created or written
         #
-        # Usage:
+        # . Usage
         #   _sgnd_console_load_config || return $?
         #
         # Examples:
         #   _sgnd_console_load_config
     # fn: _sgnd_console_load_config - Load console configuration
-        # Purpose:
+        # . Purpose
         #   Load console configuration.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_console_load_config
     _sgnd_console_load_config() {
         local cfg="${VAL_APPCFG-}"
@@ -760,25 +760,25 @@ set -uo pipefail
     }
 
     # fn: _sgnd_console_create_appcfg - Create console application configuration
-        # Purpose:
+        # . Purpose
         #   Create a new console app configuration file with sensible defaults.
         #
-        # Behavior:
+        # . Behavior
         #   - Prompts interactively for title, description, and module directory
         #     when running on a TTY.
         #   - Uses defaults automatically in non-interactive mode.
         #   - Creates the parent directory if needed.
         #   - Writes a minimal shell-style config file.
         #
-        # Arguments:
+        # . Arguments
         #   $1  CFG_PATH
         #       Path of the appcfg file to create.
         #
-        # Returns:
+        # . Returns
         #   0   success
         #   127 config directory or file could not be created
         #
-        # Usage:
+        # . Usage
         #   _sgnd_console_create_appcfg "$cfg"
         #
         # Examples:
@@ -826,10 +826,10 @@ set -uo pipefail
     }
 
     # _sgnd_console_load_modules
-        # Purpose:
+        # . Purpose
         #   Source all console module scripts from the configured module directory.
         #
-        # Behavior:
+        # . Behavior
         #   - Verifies that the module directory exists.
         #   - Sources each "*.sh" module file found in that directory.
         #   - Sets SGND_CURRENT_MODULE while loading each module so registration
@@ -842,27 +842,27 @@ set -uo pipefail
         # Outputs (globals):
         #   SGND_CURRENT_MODULE
         #
-        # Returns:
+        # . Returns
         #   0   success
         #   126 module directory missing or module load failed
         #
-        # Usage:
+        # . Usage
         #   _sgnd_console_load_modules || return $?
         #
         # Examples:
         #   _sgnd_console_load_modules
     # fn: _sgnd_console_load_modules - Load console modules
-        # Purpose:
+        # . Purpose
         #   Load console modules.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_console_load_modules
     _sgnd_console_load_modules() {
         local mod_dir="${SGND_CONSOLE_MODULE_DIR:?missing module dir}"
@@ -896,17 +896,17 @@ set -uo pipefail
 
 # --- Script execution ----------------------------------------------------------------
     # _sgnd_run_script
-        # Purpose:
+        # . Purpose
         #   Resolve and execute a script within the sgnd-console environment.
         #
-        # Behavior:
+        # . Behavior
         #   - Resolves relative script paths against SGND_SCRIPT_DIR.
         #   - Normalizes the resolved path when readlink is available.
         #   - Verifies that the script exists and is executable.
         #   - Forwards active framework flags to the target script.
         #   - Executes the script with all original remaining arguments preserved.
         #
-        # Arguments:
+        # . Arguments
         #   $1  SCRIPT
         #       Script path, absolute or relative to SGND_SCRIPT_DIR.
         #   $@  ARGS
@@ -918,11 +918,11 @@ set -uo pipefail
         #   FLAG_DEBUG          -> --debug
         #   SGND_LOGFILE_ENABLED  -> --logfile <file>
         #
-        # Returns:
+        # . Returns
         #   Exit code of the executed script
         #   1 if validation fails
         #
-        # Usage:
+        # . Usage
         #   _sgnd_run_script "jobs/import.sh" --customer 42
         #
         # Examples:
@@ -931,17 +931,17 @@ set -uo pipefail
         # Notes:
         #   - Uses argument arrays to preserve proper quoting.
     # fn: _sgnd_run_script - Run a tool script from the console
-        # Purpose:
+        # . Purpose
         #   Run a tool script from the console.
         #
-        # Behavior:
+        # . Behavior
         #   - Internal helper.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   _sgnd_run_script
     _sgnd_run_script() {
         local script="${1:?missing script}"
@@ -984,21 +984,21 @@ set -uo pipefail
     }
 
     # fn: _sgnd_flag_is_on - Interpret a console flag value
-        # Purpose:
+        # . Purpose
         #   Evaluate whether a value represents a logical "true".
         #
         # Accepted values:
         #   1, true, TRUE, yes, YES, on, ON
         #
-        # Arguments:
+        # . Arguments
         #   $1  VALUE
         #       Value to evaluate.
         #
-        # Returns:
+        # . Returns
         #   0 if VALUE is considered on
         #   1 otherwise
         #
-        # Usage:
+        # . Usage
         #   if _sgnd_flag_is_on "${FLAG_DEBUG:-0}"; then ...
         #
         # Examples:
@@ -1012,10 +1012,10 @@ set -uo pipefail
 
 # --- Console loop --------------------------------------------------------------------
     # fn: _sgnd_console_run - Run the console interaction loop
-        # Purpose:
+        # . Purpose
         #   Run the interactive console event loop.
         #
-        # Behavior:
+        # . Behavior
         #   - Renders the menu.
         #   - Builds the valid choice list for the current menu state.
         #   - Reads a choice via ask_choose_immediate.
@@ -1023,11 +1023,11 @@ set -uo pipefail
         #   - Exits when a handler returns sentinel value 200.
         #   - Optionally pauses after actions according to SGND_LAST_WAITSECS.
         #
-        # Returns:
+        # . Returns
         #   0 on normal console exit
         #   1 on input or dispatch failure
         #
-        # Usage:
+        # . Usage
         #   _sgnd_console_run
         #
         # Examples:
@@ -1067,10 +1067,10 @@ set -uo pipefail
 
 # --- Public API ----------------------------------------------------------------------
     # sgnd_console_register_item
-        # Purpose:
+        # . Purpose
         #   Register one menu item in the console item model.
         #
-        # Behavior:
+        # . Behavior
         #   - Validates key uniqueness.
         #   - Verifies that the handler function exists.
         #   - Assigns a default module-based group when GROUP is empty.
@@ -1078,7 +1078,7 @@ set -uo pipefail
         #   - Captures source ownership from SGND_CURRENT_MODULE.
         #   - Appends the item row to SGND_ITEM_ROWS.
         #
-        # Arguments:
+        # . Arguments
         #   $1  KEY
         #       Unique item key.
         #   $2  GROUP
@@ -1096,27 +1096,27 @@ set -uo pipefail
         #   $8  VISIBLE
         #       0 = hidden, 1 = visible/enabled, 2 = visible/disabled.
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #   1 on validation or append failure
         #
-        # Usage:
+        # . Usage
         #   sgnd_console_register_item "Q" "session" "Quit" "_sgnd_console_quit" "Exit console" 1 0 1
         #
         # Examples:
         #   sgnd_console_register_item "sys-status" "system" "System status" "sys_status" "Show system status" 0 15 1
     # fn: sgnd_console_register_item - Register a console menu item
-        # Purpose:
+        # . Purpose
         #   Register a console menu item.
         #
-        # Behavior:
+        # . Behavior
         #   - Public entry point.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_console_register_item
     sgnd_console_register_item() {
         local key="${1:?missing key}"
@@ -1155,15 +1155,15 @@ set -uo pipefail
     }
 
     # sgnd_console_register_group
-        # Purpose:
+        # . Purpose
         #   Register one menu group in the console group model.
         #
-        # Behavior:
+        # . Behavior
         #   - Ignores duplicate group keys.
         #   - Captures source ownership from SGND_CURRENT_MODULE.
         #   - Appends a new group row to SGND_GROUP_ROWS when absent.
         #
-        # Arguments:
+        # . Arguments
         #   $1  KEY
         #       Unique group key.
         #   $2  LABEL
@@ -1177,27 +1177,27 @@ set -uo pipefail
         #   $6  ORD
         #       Sort/order weight.
         #
-        # Returns:
+        # . Returns
         #   0 on success
         #   1 on append failure
         #
-        # Usage:
+        # . Usage
         #   sgnd_console_register_group "system" "System tools" "" 0 1 100
         #
         # Examples:
         #   sgnd_console_register_group "runtime" "Runtime toggles" "" 1 0 980
     # fn: sgnd_console_register_group - Register a console menu group
-        # Purpose:
+        # . Purpose
         #   Register a console menu group.
         #
-        # Behavior:
+        # . Behavior
         #   - Public entry point.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   sgnd_console_register_group
     sgnd_console_register_group() {
         local key="${1:?missing group key}"
@@ -1220,10 +1220,10 @@ set -uo pipefail
     }
 # --- Main ----------------------------------------------------------------------------
     # main
-        # Purpose:
+        # . Purpose
         #   Execute the sgnd-console startup and interactive runtime flow.
         #
-        # Behavior:
+        # . Behavior
         #   - Resolves and loads the framework bootstrap library.
         #   - Initializes framework runtime via sgnd_bootstrap.
         #   - Executes builtin framework argument handling.
@@ -1233,29 +1233,29 @@ set -uo pipefail
         #   - Loads console modules.
         #   - Starts the interactive console loop.
         #
-        # Arguments:
+        # . Arguments
         #   $@  Framework and script-specific command-line arguments.
         #
-        # Returns:
+        # . Returns
         #   Exits with the resulting status from bootstrap or console logic.
         #
-        # Usage:
+        # . Usage
         #   main "$@"
         #
         # Examples:
         #   main "$@"
     # fn: main - Run the executable main sequence
-        # Purpose:
+        # . Purpose
         #   Run the executable main sequence.
         #
-        # Behavior:
+        # . Behavior
         #   - Public entry point.
         #   - Preserves existing script runtime behavior.
         #
-        # Returns:
+        # . Returns
         #   Returns the underlying command or workflow status.
         #
-        # Usage:
+        # . Usage
         #   main
     main() {
         # -- Bootstrap
