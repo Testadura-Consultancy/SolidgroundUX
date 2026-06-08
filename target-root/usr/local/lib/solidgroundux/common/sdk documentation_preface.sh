@@ -11,7 +11,6 @@
 #   Group       : SDK Documentation
 #   Purpose     : Group preface
 #
-#   Checksum : 70b0cb552daa93a71a50fe036dd34cbe107c23ea01079001a1b01bc28d3fe39d
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy

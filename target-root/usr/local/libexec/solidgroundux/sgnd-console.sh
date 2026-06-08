@@ -362,7 +362,7 @@ set -uo pipefail
     : "${SGND_SCRIPT_DEVELOPERS:=Mark Fieten}"
     : "${SGND_SCRIPT_COMPANY:=Testadura Consultancy}"
     : "${SGND_SCRIPT_COPYRIGHT:=© 2025 - 2026 Testadura Consultancy}"
-    : "${SGND_SCRIPT_LICENSE:=Testadura Non-Commercial License (TD-NC) v1.1."
+    : "${SGND_SCRIPT_LICENSE:=Testadura Non-Commercial License (TD-NC) v1.1.}"
 
 # --- Script metadata (framework integration) -----------------------------------------
     # SGND_USING

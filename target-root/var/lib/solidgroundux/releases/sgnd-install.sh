@@ -8,32 +8,84 @@
 #   Checksum    : -
 #   Source      : sgnd-install.sh
 #   Type        : script
-#   Purpose     : Install a packaged SolidGroundUX release into a target root
 #   Group       : Deployment
+#   Purpose     : Install or update a packaged SolidGroundUX release in a target root.
 #
 # Description:
 #   Standalone installer for SolidGroundUX release archives.
 #
-#   The script:
-#     - Scans a releases directory for .tar.gz release archives
-#     - Selects the newest matching release automatically by build number
-#     - Optionally allows manual package selection
-#     - Verifies archive and manifest checksum files before installation
-#     - Backs up existing files and directories affected by the manifest
-#     - Extracts the selected archive into a target root
-#     - Writes install metadata and an install manifest to the target system
+#   The installer scans or accepts a release archive, validates the matching archive
+#   and manifest checksums, backs up existing affected files, extracts the package
+#   into the selected target root, and records install state for later updates and
+#   uninstallation.
 #
-# Design principles:
-#   - Standalone first: no framework bootstrap or library dependency
-#   - Safe by default: verify and back up before extracting
-#   - Deterministic automatic package selection
-#   - Explicit manual override when desired
-#   - Suitable for first-time framework installation
+# Design:
+#   - Standalone: does not depend on an installed SolidGroundUX runtime.
+#   - Version-aware: selects the newest matching package by parsed build number.
+#   - Safe by default: validates release artifacts and creates backups before install.
+#   - Repeatable: records manifest and metadata under the installer state root.
+#
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      : -
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 
 set -uo pipefail
 
-# --- Defaults ------------------------------------------------------------------------
+# var: Installer runtime state - Command-line flags, selected paths, and display constants
+    # . Purpose
+    #   Defines mutable installer state initialized before argument parsing.
+    #
+    # . Variables
+    #   FLAG_MANUAL
+    #       Enables manual package selection.
+    #
+    #   FLAG_FORCE
+    #       Reserved reinstall or downgrade override flag.
+    #
+    #   FLAG_NO_BACKUP
+    #       Disables backup creation when set.
+    #
+    #   FLAG_VERBOSE
+    #       Enables informational logging.
+    #
+    #   FLAG_DEBUG
+    #       Enables debug logging.
+    #
+    #   FLAG_DRYRUN
+    #       Prints filesystem actions without executing them.
+    #
+    #   VAL_PRODUCT
+    #       Optional product filter for package selection.
+    #
+    #   VAL_RELEASES_DIR
+    #       Directory containing release archives and manifests.
+    #
+    #   VAL_TARGET_ROOT
+    #       Root path into which the package is installed.
+    #
+    #   VAL_BACKUP_ROOT
+    #       Directory used for install backups.
+    #
+    #   VAL_STATE_ROOT
+    #       Directory used for installer state records.
+    #
+    #   VAL_SELECTED_PACKAGE
+    #       Explicit package selected through --package.
+    #
+    #   SCRIPT_FILE, SCRIPT_BASE, SCRIPT_NAME
+    #       Resolved script identity values used by usage output.
+    #
+    #   CLR_INFO, CLR_OK, CLR_WARN, CLR_FAIL, CLR_DEBUG, CLR_RESET
+    #       Terminal color escape sequences used by status output.
+    #
+    # . Notes
+    #   These values are intentionally global because this script is a standalone
+    #   executable and does not depend on the SolidGroundUX runtime.
+
 FLAG_MANUAL=0
 FLAG_FORCE=0
 FLAG_NO_BACKUP=0
@@ -52,7 +104,6 @@ SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
 SCRIPT_BASE="$(basename -- "$SCRIPT_FILE")"
 SCRIPT_NAME="${SCRIPT_BASE%.sh}"
 
-# --- Minimal UI ----------------------------------------------------------------------
 CLR_INFO=$'\e[38;5;250m'
 CLR_OK=$'\e[38;5;82m'
 CLR_WARN=$'\e[1;38;5;208m'
@@ -60,68 +111,142 @@ CLR_FAIL=$'\e[38;5;196m'
 CLR_DEBUG=$'\e[1;35m'
 CLR_RESET=$'\e[0m'
 
+# fn: sayinfo - Write an informational message
+    # . Purpose
+    #   Writes an informational message to stderr when verbose logging is enabled.
+    #
+    # . Arguments
+    #   $@  Message text to write.
+    #
+    # . Returns
+    #   0.
+    #
+    # . Usage
+    #   sayinfo "message"
 sayinfo() {
     if (( FLAG_VERBOSE )); then
         printf '%sINFO%s  %s\n' "$CLR_INFO" "$CLR_RESET" "$*" >&2
     fi
 }
 
+# fn: sayok - Write a success message
+    # . Purpose
+    #   Writes a success message to stderr.
+    #
+    # . Arguments
+    #   $@  Message text to write.
+    #
+    # . Returns
+    #   0.
+    #
+    # . Usage
+    #   sayok "message"
 sayok() {
     printf '%sOK%s    %s\n' "$CLR_OK" "$CLR_RESET" "$*" >&2
 }
 
+# fn: saywarning - Write a warning message
+    # . Purpose
+    #   Writes a warning message to stderr.
+    #
+    # . Arguments
+    #   $@  Message text to write.
+    #
+    # . Returns
+    #   0.
+    #
+    # . Usage
+    #   saywarning "message"
 saywarning() {
     printf '%sWARN%s  %s\n' "$CLR_WARN" "$CLR_RESET" "$*" >&2
 }
 
+# fn: sayfail - Write a failure message
+    # . Purpose
+    #   Writes a failure message to stderr.
+    #
+    # . Arguments
+    #   $@  Message text to write.
+    #
+    # . Returns
+    #   0.
+    #
+    # . Usage
+    #   sayfail "message"
 sayfail() {
     printf '%sFAIL%s  %s\n' "$CLR_FAIL" "$CLR_RESET" "$*" >&2
 }
 
+# fn: saydebug - Write a debug message
+    # . Purpose
+    #   Writes a debug message to stderr when debug logging is enabled.
+    #
+    # . Arguments
+    #   $@  Message text to write.
+    #
+    # . Returns
+    #   0.
+    #
+    # . Usage
+    #   saydebug "message"
 saydebug() {
     if (( FLAG_DEBUG )); then
         printf '%sDEBUG%s %s\n' "$CLR_DEBUG" "$CLR_RESET" "$*" >&2
     fi
 }
 
-# print_usage
+# fn: print_usage - Print installer usage
     # . Purpose
-    #   Print command usage and supported options.
+    #   Prints installer usage, options, default paths, and package selection rules.
+    #
+    # . Returns
+    #   0.
+    #
+    # . Usage
+    #   print_usage
 print_usage() {
-    cat <<EOF
-Usage:
-  $SCRIPT_NAME [options]
-
-Options:
-  --product NAME         Limit candidate packages to the given product
-  --manual               Select a package manually from a list
-  --package FILE         Install a specific package archive
-  --releases-dir PATH    Releases directory to scan
-  --target-root PATH     Target root to install into (default: /)
-  --backup-root PATH     Backup root directory
-  --state-root PATH      Installer state root directory
-  --no-backup            Skip backup creation
-  --force                Continue when some target paths do not yet exist
-  --dryrun               Show actions without changing the filesystem
-  --verbose              Show informational logging
-  --debug                Show debug logging
-  --help                 Show this help
-
-Default locations:
-  releases-dir : <target-root>/var/lib/solidgroundux/releases
-  backup-root  : <target-root>/var/lib/solidgroundux/backups
-  state-root   : <target-root>/var/lib/solidgroundux
-
-Selection rules:
-  - In automatic mode the newest package is selected by highest build number.
-  - If --product is given, only matching product packages are considered.
-  - If --manual is given, a menu is shown for selection.
-EOF
+    printf '%s\n' \
+        'Usage:' \
+        "  $SCRIPT_NAME [options]" \
+        '' \
+        'Options:' \
+        '  --product NAME         Limit candidate packages to the given product' \
+        '  --manual               Select a package manually from a list' \
+        '  --package FILE         Install a specific package archive' \
+        '  --releases-dir PATH    Releases directory to scan' \
+        '  --target-root PATH     Target root to install into (default: /)' \
+        '  --backup-root PATH     Backup root directory' \
+        '  --state-root PATH      Installer state root directory' \
+        '  --no-backup            Skip backup creation' \
+        '  --force                Accepted for future reinstall or downgrade handling; currently reserved' \
+        '  --dryrun               Show actions without changing the filesystem' \
+        '  --verbose              Show informational logging' \
+        '  --debug                Show debug logging' \
+        '  --help                 Show this help' \
+        '' \
+        'Default locations:' \
+        '  releases-dir : <target-root>/var/lib/solidgroundux/releases' \
+        '  backup-root  : <target-root>/var/lib/solidgroundux/backups' \
+        '  state-root   : <target-root>/var/lib/solidgroundux' \
+        '' \
+        'Selection rules:' \
+        '  - In automatic mode the newest package is selected by highest build number.' \
+        '  - If --product is given, only matching product packages are considered.' \
+        '  - If --manual is given, a menu is shown for selection.'
 }
 
-# run_cmd
+# fn: run_cmd - Run a command with dry-run support
     # . Purpose
-    #   Execute a command or echo it in dry-run mode.
+    #   Executes a command, or prints the command when dry-run mode is enabled.
+    #
+    # . Arguments
+    #   $@  Command name followed by command arguments.
+    #
+    # . Returns
+    #   Command exit status, or 0 in dry-run mode.
+    #
+    # . Usage
+    #   run_cmd mkdir -p "$target_dir"
 run_cmd() {
     if (( FLAG_DRYRUN )); then
         printf '[DRYRUN]'
@@ -133,9 +258,18 @@ run_cmd() {
     "$@"
 }
 
-# require_command
+# fn: require_command - Require an external command
     # . Purpose
-    #   Ensure an external command is available.
+    #   Verifies that a required external command is available on PATH.
+    #
+    # . Arguments
+    #   $1  Command name to check.
+    #
+    # . Returns
+    #   0 when available; non-zero when missing.
+    #
+    # . Usage
+    #   require_command tar
 require_command() {
     local cmd="${1:?missing command}"
 
@@ -145,9 +279,18 @@ require_command() {
     }
 }
 
-# parse_args
+# fn: parse_args - Parse installer arguments
     # . Purpose
-    #   Parse script arguments into global option variables.
+    #   Parses installer command-line options into global flags and value variables.
+    #
+    # . Arguments
+    #   $@  Installer command-line arguments.
+    #
+    # . Returns
+    #   0 when parsing succeeds; non-zero on invalid or incomplete options.
+    #
+    # . Usage
+    #   parse_args "$@"
 parse_args() {
     while (( $# > 0 )); do
         case "$1" in
@@ -214,9 +357,19 @@ parse_args() {
     return 0
 }
 
-# normalize_rooted_path
+# fn: normalize_rooted_path - Normalize a path below a target root
     # . Purpose
-    #   Join a target root with an absolute-style path.
+    #   Combines a target root and relative path into a normalized absolute target path.
+    #
+    # . Arguments
+    #   $1  Target root path.
+    #   $2  Path below the target root.
+    #
+    # . Returns
+    #   Prints the normalized path.
+    #
+    # . Usage
+    #   normalize_rooted_path "$VAL_TARGET_ROOT" "/var/lib/solidgroundux"
 normalize_rooted_path() {
     local root="${1:?missing root}"
     local rel="${2:?missing relative path}"
@@ -231,9 +384,15 @@ normalize_rooted_path() {
     fi
 }
 
-# init_paths
+# fn: init_paths - Initialize installer paths
     # . Purpose
-    #   Resolve installer working paths from target root and options.
+    #   Initializes default releases, backup, and state paths below the selected target root.
+    #
+    # . Returns
+    #   0.
+    #
+    # . Usage
+    #   init_paths
 init_paths() {
     VAL_TARGET_ROOT="${VAL_TARGET_ROOT%/}"
     [[ -n "$VAL_TARGET_ROOT" ]] || VAL_TARGET_ROOT="/"
@@ -251,9 +410,18 @@ init_paths() {
     fi
 }
 
-# release_base_from_archive
+# fn: release_base_from_archive - Derive release base from archive
     # . Purpose
-    #   Return the archive basename without .tar.gz.
+    #   Derives the release base name from a .tar.gz archive path.
+    #
+    # . Arguments
+    #   $1  Archive path.
+    #
+    # . Returns
+    #   Prints the release base name.
+    #
+    # . Usage
+    #   release_base_from_archive "$archive"
 release_base_from_archive() {
     local archive="${1:?missing archive}"
     local name=""
@@ -263,9 +431,18 @@ release_base_from_archive() {
     printf '%s\n' "$name"
 }
 
-# release_build_from_base
+# fn: release_build_from_base - Extract release build number
     # . Purpose
-    #   Return trailing numeric build from a release basename.
+    #   Extracts the numeric build component from a release base name.
+    #
+    # . Arguments
+    #   $1  Release base name.
+    #
+    # . Returns
+    #   Prints the build number; returns non-zero when no build component is found.
+    #
+    # . Usage
+    #   release_build_from_base "$base"
 release_build_from_base() {
     local base="${1:?missing base}"
     local build="${base##*.}"
@@ -274,18 +451,33 @@ release_build_from_base() {
     printf '%s\n' "$build"
 }
 
-# release_product_from_base
+# fn: release_product_from_base - Extract release product name
     # . Purpose
-    #   Return product name inferred from release basename.
+    #   Extracts the product name from a release base name.
+    #
+    # . Arguments
+    #   $1  Release base name.
+    #
+    # . Returns
+    #   Prints the product name before the first dash.
+    #
+    # . Usage
+    #   release_product_from_base "$base"
 release_product_from_base() {
     local base="${1:?missing base}"
     local product="${base%%-*}"
     printf '%s\n' "$product"
 }
 
-# find_candidate_archives
+# fn: find_candidate_archives - Find candidate release archives
     # . Purpose
-    #   Scan the releases directory for candidate package archives.
+    #   Lists candidate .tar.gz release archives from the configured releases directory.
+    #
+    # . Returns
+    #   Matching archive paths on stdout.
+    #
+    # . Usage
+    #   find_candidate_archives
 find_candidate_archives() {
     [[ -d "$VAL_RELEASES_DIR" ]] || {
         sayfail "Releases directory not found: $VAL_RELEASES_DIR"
@@ -295,9 +487,15 @@ find_candidate_archives() {
     find "$VAL_RELEASES_DIR" -maxdepth 1 -type f -name '*.tar.gz' | sort
 }
 
-# build_package_table
+# fn: build_package_table - Build package selection table
     # . Purpose
-    #   Create a tab-separated package table for candidate archives.
+    #   Builds sortable package table rows from candidate release archives.
+    #
+    # . Returns
+    #   Tab-separated product, build, base, and archive rows on stdout.
+    #
+    # . Usage
+    #   build_package_table
 build_package_table() {
     local archive=""
     local base=""
@@ -324,9 +522,15 @@ build_package_table() {
     done < <(find_candidate_archives)
 }
 
-# select_latest_archive
+# fn: select_latest_archive - Select newest release archive
     # . Purpose
-    #   Select the newest archive by numeric build number.
+    #   Selects the newest available package by highest parsed build number.
+    #
+    # . Returns
+    #   Prints the selected archive path; non-zero when no package is available.
+    #
+    # . Usage
+    #   select_latest_archive
 select_latest_archive() {
     local product=""
     local build=""
@@ -348,9 +552,15 @@ select_latest_archive() {
     printf '%s\n' "$best_archive"
 }
 
-# select_manual_archive
+# fn: select_manual_archive - Select release archive manually
     # . Purpose
-    #   Present matching archives and let the user choose one.
+    #   Prompts for manual selection from available release packages.
+    #
+    # . Returns
+    #   Prints the selected archive path; non-zero when selection fails.
+    #
+    # . Usage
+    #   select_manual_archive
 select_manual_archive() {
     local entries=()
     local display=()
@@ -394,9 +604,15 @@ select_manual_archive() {
     done
 }
 
-# resolve_selected_archive
+# fn: resolve_selected_archive - Resolve selected release archive
     # . Purpose
-    #   Resolve the archive to install.
+    #   Resolves the package archive to install from explicit, manual, or automatic selection.
+    #
+    # . Returns
+    #   Prints the selected archive path; non-zero when no valid archive is selected.
+    #
+    # . Usage
+    #   resolve_selected_archive
 resolve_selected_archive() {
     local candidate=""
 
@@ -424,9 +640,19 @@ resolve_selected_archive() {
     select_latest_archive
 }
 
-# verify_sha256_file
+# fn: verify_sha256_file - Verify a file checksum
     # . Purpose
-    #   Verify one file using a companion .sha256 file.
+    #   Verifies one file using its checksum file.
+    #
+    # . Arguments
+    #   $1  File path to verify.
+    #   $2  Checksum file path.
+    #
+    # . Returns
+    #   0 when verification succeeds; non-zero when checksum validation fails.
+    #
+    # . Usage
+    #   verify_sha256_file "$archive" "$archive_sha"
 verify_sha256_file() {
     local file_path="${1:?missing file}"
     local sha_file="${2:?missing sha file}"
@@ -445,9 +671,18 @@ verify_sha256_file() {
     sayok "Verified checksum: $(basename -- "$file_path")"
 }
 
-# verify_release_set
+# fn: verify_release_set - Verify release artifact set
     # . Purpose
-    #   Verify archive, manifest, and companion checksum files.
+    #   Verifies the selected archive and matching manifest using their checksum files.
+    #
+    # . Arguments
+    #   $1  Archive path.
+    #
+    # . Returns
+    #   Prints the manifest path when all required release artifacts validate.
+    #
+    # . Usage
+    #   verify_release_set "$archive"
 verify_release_set() {
     local archive="${1:?missing archive}"
     local base=""
@@ -470,9 +705,18 @@ verify_release_set() {
     printf '%s\n' "$manifest"
 }
 
-# manifest_paths
+# fn: manifest_paths - Read normalized manifest paths
     # . Purpose
-    #   Extract installed paths from a manifest.
+    #   Reads normalized installable or removable paths from a manifest file.
+    #
+    # . Arguments
+    #   $1  Manifest path to read.
+    #
+    # . Returns
+    #   Prints normalized manifest paths on stdout.
+    #
+    # . Usage
+    #   manifest_paths "$manifest"
 manifest_paths() {
     local manifest="${1:?missing manifest}"
     local raw=""
@@ -494,9 +738,19 @@ manifest_paths() {
     done < "$manifest"
 }
 
-# backup_affected_paths
+# fn: backup_affected_paths - Back up affected target paths
     # . Purpose
-    #   Back up existing manifest paths into a timestamped backup root.
+    #   Creates a timestamped backup of target paths affected by the selected manifest.
+    #
+    # . Arguments
+    #   $1  Manifest path.
+    #   $2  Release base name.
+    #
+    # . Returns
+    #   Prints the backup directory path, or an empty value when backups are skipped.
+    #
+    # . Usage
+    #   backup_affected_paths "$manifest" "$base"
 backup_affected_paths() {
     local manifest="${1:?missing manifest}"
     local release_base="${2:?missing release base}"
@@ -534,9 +788,18 @@ backup_affected_paths() {
     printf '%s\n' "$backup_dir"
 }
 
-# extract_release_archive
+# fn: extract_release_archive - Extract release archive
     # . Purpose
-    #   Extract a release archive into the target root.
+    #   Extracts the selected release archive into the configured target root.
+    #
+    # . Arguments
+    #   $1  Archive path.
+    #
+    # . Returns
+    #   0 when extraction succeeds.
+    #
+    # . Usage
+    #   extract_release_archive "$archive"
 extract_release_archive() {
     local archive="${1:?missing archive}"
 
@@ -545,9 +808,20 @@ extract_release_archive() {
     sayok "Archive extracted into $VAL_TARGET_ROOT"
 }
 
-# write_install_records
+# fn: write_install_records - Write install records
     # . Purpose
-    #   Write install manifest and install metadata to target state storage.
+    #   Stores the install manifest, install metadata, and current-install marker files.
+    #
+    # . Arguments
+    #   $1  Archive path.
+    #   $2  Package manifest path.
+    #   $3  Optional backup directory path.
+    #
+    # . Returns
+    #   0 when install records are written.
+    #
+    # . Usage
+    #   write_install_records "$archive" "$manifest" "$backup_dir"
 write_install_records() {
     local archive="${1:?missing archive}"
     local package_manifest="${2:?missing manifest}"
@@ -579,17 +853,26 @@ write_install_records() {
 
     cp -f "$package_manifest" "$install_manifest" || return 1
 
-    cat > "$meta_file" <<EOF
-ARCHIVE=$(printf '%q' "$archive")
-PACKAGE_MANIFEST=$(printf '%q' "$package_manifest")
-INSTALL_MANIFEST=$(printf '%q' "$install_manifest")
-BACKUP_DIR=$(printf '%q' "$backup_dir")
-TARGET_ROOT=$(printf '%q' "$VAL_TARGET_ROOT")
-INSTALLED_AT=$(printf '%q' "$(date -Is)")
-PRODUCT=$(printf '%q' "$product")
-BUILD=$(printf '%q' "$build")
-RELEASE_BASE=$(printf '%q' "$base")
-EOF
+    {
+        printf 'ARCHIVE=%q
+' "$archive"
+        printf 'PACKAGE_MANIFEST=%q
+' "$package_manifest"
+        printf 'INSTALL_MANIFEST=%q
+' "$install_manifest"
+        printf 'BACKUP_DIR=%q
+' "$backup_dir"
+        printf 'TARGET_ROOT=%q
+' "$VAL_TARGET_ROOT"
+        printf 'INSTALLED_AT=%q
+' "$(date -Is)"
+        printf 'PRODUCT=%q
+' "$product"
+        printf 'BUILD=%q
+' "$build"
+        printf 'RELEASE_BASE=%q
+' "$base"
+    } > "$meta_file"
 
     printf '%s\n' "$base" > "${VAL_STATE_ROOT%/}/CURRENT"
     printf '%s\n' "$archive" > "${VAL_STATE_ROOT%/}/CURRENT.package"
@@ -600,9 +883,18 @@ EOF
     sayok "Recorded install metadata"
 }
 
-# main
+# fn: main - Run installer
     # . Purpose
-    #   Execute the standalone package installation flow.
+    #   Runs installer validation, package selection, verification, backup, extraction, and state recording.
+    #
+    # . Arguments
+    #   $@  Installer command-line arguments.
+    #
+    # . Returns
+    #   Process exit status.
+    #
+    # . Usage
+    #   main "$@"
 main() {
     local archive=""
     local manifest=""

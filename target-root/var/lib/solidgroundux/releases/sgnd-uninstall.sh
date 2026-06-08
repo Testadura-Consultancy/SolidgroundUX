@@ -8,29 +8,69 @@
 #   Checksum    : -
 #   Source      : sgnd-uninstall.sh
 #   Type        : script
-#   Purpose     : Uninstall a previously installed SolidGroundUX release from a target root
 #   Group       : Deployment
+#   Purpose     : Remove a previously installed SolidGroundUX release from a target root.
 #
 # Description:
-#   Standalone uninstaller for SolidGroundUX installed release records.
+#   Standalone uninstaller for SolidGroundUX install records.
 #
-#   The script:
-#     - Reads installed release metadata from the target system
-#     - Selects the current or a specific installed release
-#     - Removes files and directories listed in the install manifest
-#     - Restores backed-up files when a backup snapshot exists
-#     - Moves uninstall records to a history directory
+#   The uninstaller reads install metadata from the selected target root, resolves
+#   the release to remove, removes framework-owned files listed in the install
+#   manifest, restores recorded backup content when available, and archives the
+#   uninstall records for traceability.
 #
-# Design principles:
-#   - Standalone first: no framework bootstrap or library dependency
-#   - Operates from install records stored on the target system
-#   - Safe by default: restore backup after removal when available
-#   - Explicit selection for manual or specific uninstall
+# Design:
+#   - Standalone: does not depend on an installed SolidGroundUX runtime.
+#   - Manifest-driven: removes files based on recorded install manifests.
+#   - Conservative: targets framework-owned files and preserves unrelated user data.
+#   - Traceable: moves uninstall records into history instead of silently discarding them.
+#
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      : -
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 
 set -uo pipefail
 
-# --- Defaults ------------------------------------------------------------------------
+# var: Uninstaller runtime state - Command-line flags, selected paths, and display constants
+    # . Purpose
+    #   Defines mutable uninstaller state initialized before argument parsing.
+    #
+    # . Variables
+    #   FLAG_MANUAL
+    #       Enables manual installed-release selection.
+    #
+    #   FLAG_VERBOSE
+    #       Enables informational logging.
+    #
+    #   FLAG_DEBUG
+    #       Enables debug logging.
+    #
+    #   FLAG_DRYRUN
+    #       Prints filesystem actions without executing them.
+    #
+    #   VAL_TARGET_ROOT
+    #       Root path from which the release is uninstalled.
+    #
+    #   VAL_STATE_ROOT
+    #       Directory used for installer state records.
+    #
+    #   VAL_RELEASE_BASE
+    #       Explicit release base selected through --release.
+    #
+    #   SCRIPT_FILE, SCRIPT_BASE, SCRIPT_NAME
+    #       Resolved script identity values used by usage output.
+    #
+    #   CLR_INFO, CLR_OK, CLR_WARN, CLR_FAIL, CLR_DEBUG, CLR_RESET
+    #       Terminal color escape sequences used by status output.
+    #
+    # . Notes
+    #   These values are intentionally global because this script is a standalone
+    #   executable and does not depend on the SolidGroundUX runtime.
+
 FLAG_MANUAL=0
 FLAG_VERBOSE=0
 FLAG_DEBUG=0
@@ -44,7 +84,6 @@ SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
 SCRIPT_BASE="$(basename -- "$SCRIPT_FILE")"
 SCRIPT_NAME="${SCRIPT_BASE%.sh}"
 
-# --- Minimal UI ----------------------------------------------------------------------
 CLR_INFO=$'\e[38;5;250m'
 CLR_OK=$'\e[38;5;82m'
 CLR_WARN=$'\e[1;38;5;208m'
@@ -52,60 +91,134 @@ CLR_FAIL=$'\e[38;5;196m'
 CLR_DEBUG=$'\e[1;35m'
 CLR_RESET=$'\e[0m'
 
+# fn: sayinfo - Write an informational message
+    # . Purpose
+    #   Writes an informational message to stderr when verbose logging is enabled.
+    #
+    # . Arguments
+    #   $@  Message text to write.
+    #
+    # . Returns
+    #   0.
+    #
+    # . Usage
+    #   sayinfo "message"
 sayinfo() {
     if (( FLAG_VERBOSE )); then
         printf '%sINFO%s  %s\n' "$CLR_INFO" "$CLR_RESET" "$*" >&2
     fi
 }
 
+# fn: sayok - Write a success message
+    # . Purpose
+    #   Writes a success message to stderr.
+    #
+    # . Arguments
+    #   $@  Message text to write.
+    #
+    # . Returns
+    #   0.
+    #
+    # . Usage
+    #   sayok "message"
 sayok() {
     printf '%sOK%s    %s\n' "$CLR_OK" "$CLR_RESET" "$*" >&2
 }
 
+# fn: saywarning - Write a warning message
+    # . Purpose
+    #   Writes a warning message to stderr.
+    #
+    # . Arguments
+    #   $@  Message text to write.
+    #
+    # . Returns
+    #   0.
+    #
+    # . Usage
+    #   saywarning "message"
 saywarning() {
     printf '%sWARN%s  %s\n' "$CLR_WARN" "$CLR_RESET" "$*" >&2
 }
 
+# fn: sayfail - Write a failure message
+    # . Purpose
+    #   Writes a failure message to stderr.
+    #
+    # . Arguments
+    #   $@  Message text to write.
+    #
+    # . Returns
+    #   0.
+    #
+    # . Usage
+    #   sayfail "message"
 sayfail() {
     printf '%sFAIL%s  %s\n' "$CLR_FAIL" "$CLR_RESET" "$*" >&2
 }
 
+# fn: saydebug - Write a debug message
+    # . Purpose
+    #   Writes a debug message to stderr when debug logging is enabled.
+    #
+    # . Arguments
+    #   $@  Message text to write.
+    #
+    # . Returns
+    #   0.
+    #
+    # . Usage
+    #   saydebug "message"
 saydebug() {
     if (( FLAG_DEBUG )); then
         printf '%sDEBUG%s %s\n' "$CLR_DEBUG" "$CLR_RESET" "$*" >&2
     fi
 }
 
-# print_usage
+# fn: print_usage - Print uninstaller usage
     # . Purpose
-    #   Print command usage and supported options.
+    #   Prints uninstaller usage, options, default paths, and release selection rules.
+    #
+    # . Returns
+    #   0.
+    #
+    # . Usage
+    #   print_usage
 print_usage() {
-    cat <<EOF
-Usage:
-  $SCRIPT_NAME [options]
-
-Options:
-  --release NAME         Uninstall the specified installed release base
-  --manual               Select installed release manually
-  --target-root PATH     Target root to uninstall from (default: /)
-  --state-root PATH      Installer state root directory
-  --dryrun               Show actions without changing the filesystem
-  --verbose              Show informational logging
-  --debug                Show debug logging
-  --help                 Show this help
-
-Default locations:
-  state-root : <target-root>/var/lib/solidgroundux
-
-Selection rules:
-  - Without --release or --manual, the CURRENT installed release is used.
-  - With --manual, a menu of installed releases is shown.
-EOF
+    printf '%s\n' \
+        'Usage:' \
+        "  $SCRIPT_NAME [options]" \
+        '' \
+        'Options:' \
+        '  --release NAME         Uninstall the specified installed release base' \
+        '  --manual               Select installed release manually' \
+        '  --target-root PATH     Target root to uninstall from (default: /)' \
+        '  --state-root PATH      Installer state root directory' \
+        '  --dryrun               Show actions without changing the filesystem' \
+        '  --verbose              Show informational logging' \
+        '  --debug                Show debug logging' \
+        '  --help                 Show this help' \
+        '' \
+        'Default locations:' \
+        '  state-root : <target-root>/var/lib/solidgroundux' \
+        '' \
+        'Selection rules:' \
+        '  - Without --release or --manual, the CURRENT installed release is used.' \
+        '  - With --manual, a menu of installed releases is shown.'
 }
 
-# run_cmd
+# fn: run_cmd - Run a command with dry-run support
     # . Purpose
-    #   Execute a command or echo it in dry-run mode.
+    #   Executes a command, or prints the command when dry-run mode is enabled.
+    #
+    # . Arguments
+    #   $@  Command name followed by command arguments.
+    #
+    # . Returns
+    #   Command exit status, or 0 in dry-run mode.
+    #
+    # . Usage
+    #   run_cmd mkdir -p "$target_dir"
 run_cmd() {
     if (( FLAG_DRYRUN )); then
         printf '[DRYRUN]'
@@ -117,9 +230,18 @@ run_cmd() {
     "$@"
 }
 
-# require_command
+# fn: require_command - Require an external command
     # . Purpose
-    #   Ensure an external command is available.
+    #   Verifies that a required external command is available on PATH.
+    #
+    # . Arguments
+    #   $1  Command name to check.
+    #
+    # . Returns
+    #   0 when available; non-zero when missing.
+    #
+    # . Usage
+    #   require_command tar
 require_command() {
     local cmd="${1:?missing command}"
 
@@ -129,9 +251,18 @@ require_command() {
     }
 }
 
-# parse_args
+# fn: parse_args - Parse uninstaller arguments
     # . Purpose
-    #   Parse script arguments into global option variables.
+    #   Parses uninstaller command-line options into global flags and value variables.
+    #
+    # . Arguments
+    #   $@  Uninstaller command-line arguments.
+    #
+    # . Returns
+    #   0 when parsing succeeds; non-zero on invalid or incomplete options.
+    #
+    # . Usage
+    #   parse_args "$@"
 parse_args() {
     while (( $# > 0 )); do
         case "$1" in
@@ -177,9 +308,19 @@ parse_args() {
     return 0
 }
 
-# normalize_rooted_path
+# fn: normalize_rooted_path - Normalize a path below a target root
     # . Purpose
-    #   Join a target root with an absolute-style path.
+    #   Combines a target root and relative path into a normalized absolute target path.
+    #
+    # . Arguments
+    #   $1  Target root path.
+    #   $2  Path below the target root.
+    #
+    # . Returns
+    #   Prints the normalized path.
+    #
+    # . Usage
+    #   normalize_rooted_path "$VAL_TARGET_ROOT" "/var/lib/solidgroundux"
 normalize_rooted_path() {
     local root="${1:?missing root}"
     local rel="${2:?missing relative path}"
@@ -194,9 +335,15 @@ normalize_rooted_path() {
     fi
 }
 
-# init_paths
+# fn: init_paths - Initialize uninstaller paths
     # . Purpose
-    #   Resolve working paths from target root and options.
+    #   Initializes the default installer state path below the selected target root.
+    #
+    # . Returns
+    #   0.
+    #
+    # . Usage
+    #   init_paths
 init_paths() {
     VAL_TARGET_ROOT="${VAL_TARGET_ROOT%/}"
     [[ -n "$VAL_TARGET_ROOT" ]] || VAL_TARGET_ROOT="/"
@@ -206,9 +353,15 @@ init_paths() {
     fi
 }
 
-# list_installed_releases
+# fn: list_installed_releases - List installed releases
     # . Purpose
-    #   List installed release bases from install metadata.
+    #   Lists installed release records from the installer state directory.
+    #
+    # . Returns
+    #   Installed release base names on stdout.
+    #
+    # . Usage
+    #   list_installed_releases
 list_installed_releases() {
     local installs_dir="${VAL_STATE_ROOT%/}/installed"
     local file=""
@@ -220,9 +373,15 @@ list_installed_releases() {
     done
 }
 
-# select_manual_release
+# fn: select_manual_release - Select installed release manually
     # . Purpose
-    #   Present installed releases and let the user choose one.
+    #   Prompts for manual selection from installed release records.
+    #
+    # . Returns
+    #   Selected release base name on stdout; non-zero when selection fails.
+    #
+    # . Usage
+    #   select_manual_release
 select_manual_release() {
     local entries=()
     local entry=""
@@ -261,9 +420,15 @@ select_manual_release() {
     done
 }
 
-# resolve_release_base
+# fn: resolve_release_base - Resolve release to uninstall
     # . Purpose
-    #   Resolve which installed release base to uninstall.
+    #   Resolves the installed release to uninstall from explicit, manual, or CURRENT state.
+    #
+    # . Returns
+    #   Selected release base name on stdout; non-zero when none can be selected.
+    #
+    # . Usage
+    #   resolve_release_base
 resolve_release_base() {
     local current_file=""
 
@@ -288,9 +453,18 @@ resolve_release_base() {
     printf '%s\n' "$VAL_RELEASE_BASE"
 }
 
-# load_release_meta
+# fn: load_release_meta - Load installed release metadata
     # . Purpose
-    #   Load install metadata for the selected release.
+    #   Loads uninstall-relevant metadata for the selected installed release.
+    #
+    # . Arguments
+    #   $1  Release base name.
+    #
+    # . Returns
+    #   0 when metadata and install manifest are available.
+    #
+    # . Usage
+    #   load_release_meta "$release_base"
 load_release_meta() {
     local release_base="${1:?missing release base}"
     local meta_file="${VAL_STATE_ROOT%/}/installed/${release_base}.install.meta"
@@ -316,9 +490,18 @@ load_release_meta() {
     return 0
 }
 
-# manifest_paths
+# fn: manifest_paths - Read normalized manifest paths
     # . Purpose
-    #   Extract installed paths from a manifest.
+    #   Reads normalized installable or removable paths from a manifest file.
+    #
+    # . Arguments
+    #   $1  Manifest path to read.
+    #
+    # . Returns
+    #   Prints normalized manifest paths on stdout.
+    #
+    # . Usage
+    #   manifest_paths "$manifest"
 manifest_paths() {
     local manifest="${1:?missing manifest}"
     local raw=""
@@ -340,9 +523,18 @@ manifest_paths() {
     done < "$manifest"
 }
 
-# remove_installed_paths
+# fn: remove_installed_paths - Remove installed paths
     # . Purpose
-    #   Remove paths listed in the install manifest.
+    #   Removes files and empty directories listed in the install manifest from the target root.
+    #
+    # . Arguments
+    #   $1  Install manifest path.
+    #
+    # . Returns
+    #   0 when the removal pass completes.
+    #
+    # . Usage
+    #   remove_installed_paths "$INSTALL_MANIFEST"
 remove_installed_paths() {
     local manifest="${1:?missing manifest}"
     local rel_path=""
@@ -365,9 +557,18 @@ remove_installed_paths() {
     done
 }
 
-# restore_backup
+# fn: restore_backup - Restore recorded backup
     # . Purpose
-    #   Restore backed-up files into the target root.
+    #   Restores files from the recorded backup directory when one is available.
+    #
+    # . Arguments
+    #   $1  Optional backup directory path.
+    #
+    # . Returns
+    #   0 when no restore is needed or restore succeeds.
+    #
+    # . Usage
+    #   restore_backup "$BACKUP_DIR"
 restore_backup() {
     local backup_dir="${1:-}"
 
@@ -390,9 +591,18 @@ restore_backup() {
     sayok "Restored backup from $backup_dir"
 }
 
-# archive_uninstall_records
+# fn: archive_uninstall_records - Archive uninstall records
     # . Purpose
-    #   Move install records to uninstall history and update current markers.
+    #   Moves install records for the uninstalled release into uninstall history.
+    #
+    # . Arguments
+    #   $1  Release base name.
+    #
+    # . Returns
+    #   0 when records are archived or dry-run reports the intended action.
+    #
+    # . Usage
+    #   archive_uninstall_records "$release_base"
 archive_uninstall_records() {
     local release_base="${1:?missing release base}"
     local history_dir="${VAL_STATE_ROOT%/}/history"
@@ -429,9 +639,18 @@ archive_uninstall_records() {
     sayok "Archived uninstall records"
 }
 
-# main
+# fn: main - Run uninstaller
     # . Purpose
-    #   Execute the uninstall flow.
+    #   Runs uninstaller validation, release selection, metadata loading, removal, optional restore, and record archiving.
+    #
+    # . Arguments
+    #   $@  Uninstaller command-line arguments.
+    #
+    # . Returns
+    #   Process exit status.
+    #
+    # . Usage
+    #   main "$@"
 main() {
     local release_base=""
 
