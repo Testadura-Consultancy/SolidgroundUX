@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2615600
-#   Checksum    : -
+#   Build       : 2615900
+#   Checksum    : f43dddc49231d9ffaa33a75006fd8ca9ab386cee94ef5e8f83dbafa05308de6c
 #   Source      : style-monogreen.sh
 #   Type        : library
 #   Group       : Styles

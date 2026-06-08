@@ -4,8 +4,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2615600
-#   Checksum    : -
+#   Build       : 2615900
+#   Checksum    : f1200d48f3a035eb8406ab5f978c5dcd439140b151d522ac142a98e9fabe2d54
 #   Source      : doc-sample.sh
 #   Type        : documentation
 #   Group       : SDK Documentation

@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2615600
-#   Checksum    : -
+#   Build       : 2615900
+#   Checksum    : 74e04b6a49ce86d70dcbb70e80eae2083c596a497a82c563e5ee88f0ea5f5db9
 #   Source      : ui.sh
 #   Type        : library
 #   Group       : UI

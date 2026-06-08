@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2615600
-#   Checksum    : -
+#   Build       : 2615900
+#   Checksum    : a40edd148016af1471e3bc2609f7dcc1ed62940eee3b3d5c9e68a9691da0f5d7
 #   Source      : style-monoblack.sh
 #   Type        : library
 #   Group       : Styles

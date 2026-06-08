@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2615600
-#   Checksum    : -
+#   Build       : 2615900
+#   Checksum    : f38f47bdc266cda7c9ed93c8db4f2c04b3f6e8385b05c5890dcf2d5e5a5ee44c
 #   Source      : style-greenyellow.sh
 #   Type        : library
 #   Group       : Styles

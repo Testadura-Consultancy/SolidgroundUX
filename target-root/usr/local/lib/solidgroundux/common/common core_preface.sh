@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2615600
-#   Checksum    : -
+#   Build       : 2615900
+#   Checksum    : e200aac99ed20ec670214866399444f12f748505e652085c12dbce216d353344
 #   Source      : common core_preface.sh
 #   Type        : documentation
 #   Group       : Common Core

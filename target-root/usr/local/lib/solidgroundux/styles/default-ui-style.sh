@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2615600
-#   Checksum    : -
+#   Build       : 2615900
+#   Checksum    : f307d3d66d1603ade78d5ee5f57121313ae54baee293e2bb2ac2b2954107bdd3
 #   Source      : default-ui-style.sh
 #   Type        : library
 #   Group       : Styles
