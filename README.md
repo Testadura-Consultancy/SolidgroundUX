@@ -21,11 +21,13 @@ Rather than treating every script as a standalone program, SolidGroundUX encoura
 
 The result is less repetitive code, more predictable behavior, and easier maintenance.
 
-## Documentation
+## Documentation and Installation
 
-The complete SolidGroundUX documentation set is available online:
+Documentation:
+https://testadura-consultancy.github.io/SolidGroundUX/
 
-https://testadura-mark.github.io/SolidGroundUX/
+Installation Guide:
+https://github.com/Testadura-Mark/SolidGroundUX/blob/main/INSTALL.md
 
 ---
 
