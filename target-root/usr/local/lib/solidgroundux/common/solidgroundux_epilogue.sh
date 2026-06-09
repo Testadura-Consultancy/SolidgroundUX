@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : -
-#   Checksum    : -
+#   Build       : 2616001
+#   Checksum    : 92c8dcb19969ec66d6b07f7078427bd7f1b14df3ab105b54d051cafce3ad2de0
 #   Source      : solidgroundux_epilogue.sh
 #   Type        : documentation
 #   Group       : SolidGroundUX

@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2615900
-#   Checksum    : 25ce4f3c27d0f41be3a9bd468f4d6ed16c0ea1190fe992d48659ca388317a90e
+#   Build       : 2616001
+#   Checksum    : 95aa7710bf973102e9ae8f7f9e94e8ad86e33695e53ba3394a38b79c0b2df09a
 #   Source      : sgnd-console.sh
 #   Type        : script
 #   Group       : SolidGround Console

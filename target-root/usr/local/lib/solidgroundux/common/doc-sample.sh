@@ -28,8 +28,8 @@
 #
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2615900
-#   Checksum    : f1200d48f3a035eb8406ab5f978c5dcd439140b151d522ac142a98e9fabe2d54
+#   Build       : 2616001
+#   Checksum    : 5f69fcc7a19546d5048acad6b64ebfdc7cc37ead02b37509abab8b82cfe9b615
 #   Source      : doc-sample.sh
 #   Type        : documentation
 #   Group       : SDK Documentation
