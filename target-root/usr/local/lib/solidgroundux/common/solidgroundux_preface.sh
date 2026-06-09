@@ -78,6 +78,147 @@
 #   
 # > At present, the documentation system supports Bash source files, but the architecture has been designed
 # > with future support for Python and C# in mind.
+
+# - Framework capabilities summary --------------------------------------------------
+#
+# > SolidGroundUX can be used as a small runtime framework, a documentation system,
+# > a console application host, and a deployment toolkit. The sections below provide
+# > a compact map of the most important capabilities before the detailed module
+# > documentation begins.
+#
+# -- Bootstrap and runtime initialization -------------------------------------------
+#
+# > The bootstrap libraries initialize the SolidGroundUX runtime environment for
+# > executable scripts, reusable libraries, and console modules. They resolve common
+# > filesystem locations, initialize standard globals, load configuration and state
+# > support, and prepare the script for using framework services.
+#
+# > Typical use is through the executable, library, and module templates. A script
+# > should bootstrap once near startup and then use framework functions instead of
+# > repeating path discovery and initialization code locally.
+#
+# -- Library loading with sgnd_using -------------------------------------------------
+#
+# > The sgnd_using mechanism loads framework libraries on demand and keeps scripts
+# > from having to source every possible dependency manually. It provides a simple
+# > way to declare that a script needs a particular framework service before using it.
+#
+# > Use it when a script depends on functionality such as configuration, state,
+# > logging, user interaction, or datatable helpers. This keeps scripts readable and
+# > makes dependency intent visible near the code that needs it.
+#
+# -- Built-in and custom arguments ---------------------------------------------------
+#
+# > The argument framework provides common command-line behavior such as help,
+# > verbose output, debug output, dry-run handling, and other standard script flags.
+# > This gives SolidGroundUX scripts a consistent command-line feel.
+#
+# > Scripts can also define custom arguments for their own behavior. This allows a
+# > script to combine framework-standard options with application-specific options
+# > without rewriting argument parsing from scratch every time.
+#
+# -- Configuration management --------------------------------------------------------
+#
+# > The configuration system provides a reusable way to read and manage configuration
+# > values for scripts and framework components. It helps keep operational settings
+# > outside the script body while still making them accessible through standard
+# > framework calls.
+#
+# > Use configuration support when a value should be user-editable, environment-
+# > specific, or shared across multiple scripts. This is generally preferable to
+# > hardcoding local paths, defaults, and behavior switches throughout a script.
+#
+# -- State management ----------------------------------------------------------------
+#
+# > The state system stores runtime or persistent values that describe the current
+# > framework, script, or user state. It is intended for values that are discovered,
+# > derived, or changed during execution rather than static configuration.
+#
+# > Use state support for values that need to survive across function boundaries or
+# > be reused by framework components without forcing every function to pass the same
+# > values around explicitly.
+#
+# -- Screen logging and user messages ------------------------------------------------
+#
+# > The screen logging helpers provide consistent user-facing output for information,
+# > warnings, errors, success messages, debug messages, and status reporting. They
+# > reduce repeated printf boilerplate and keep scripts visually consistent.
+#
+# > Use the screen logging helpers whenever a script communicates with the user.
+# > This makes output easier to scan and gives all tools a shared SolidGroundUX
+# > command-line style.
+#
+# -- File logging --------------------------------------------------------------------
+#
+# > File logging provides persistent logging for scripts that need traceability
+# > beyond the current terminal session. It is useful for deployment, automation,
+# > diagnostics, and any script where later inspection of what happened matters.
+#
+# > Use file logging for operations that change system state, touch files, perform
+# > deployment actions, or may need to be reviewed after failure.
+#
+# -- Pretty UI and dialogs -----------------------------------------------------------
+#
+# > The UI helpers provide higher-level console interaction patterns such as banners,
+# > prompts, formatted messages, questions, and confirmation flows. They are intended
+# > to make interactive scripts feel deliberate instead of improvised.
+#
+# > The auto-continue dialog is part of this interaction style. It gives scripts a
+# > standard way to pause, inform the user, and continue automatically or after user
+# > confirmation depending on the selected behavior.
+#
+# -- Datatable helpers ---------------------------------------------------------------
+#
+# > The datatable helpers provide functions for treating pipe-separated arrays as
+# > rows in a lightweight table-like structure. This makes it easier to pass around,
+# > inspect, and process structured row data in Bash without introducing heavier
+# > external dependencies.
+#
+# > Use datatable support when a script needs to work with repeated structured data,
+# > such as menu entries, generated lists, metadata rows, selection candidates, or
+# > other small tabular datasets.
+#
+# -- Modular console host ------------------------------------------------------------
+#
+# > The SolidGroundUX console provides a menu-driven host application that can load
+# > independently maintained modules. Modules register menu groups and commands with
+# > the host, allowing the console to grow without hardcoding every action into one
+# > large script.
+#
+# > Use console modules for administrative or SDK actions that benefit from an
+# > interactive menu, especially when those actions belong to different functional
+# > groups but should remain available from one common entry point.
+#
+# -- Documentation generator ---------------------------------------------------------
+#
+# > The documentation generator extracts module headers, function documentation,
+# > variable documentation, general documentation blocks, glossaries, hierarchy data,
+# > and appendices from the source tree and renders a navigable HTML documentation
+# > set.
+#
+# > Use the documentation conventions demonstrated by doc-sample.sh when writing new
+# > scripts or modules. Keeping documentation close to the code allows the generated
+# > documentation to stay synchronized with the implementation.
+#
+# -- SDK templates -------------------------------------------------------------------
+#
+# > The SDK templates provide starting points for executable scripts, reusable
+# > libraries, and console modules. They encode the expected module header, bootstrap,
+# > guard, documentation, and entry-point structure.
+#
+# > Use templates when starting new SolidGroundUX components. This keeps new code
+# > aligned with the framework conventions and reduces the amount of structural code
+# > that has to be recreated manually.
+#
+# -- Workspace and deployment tools --------------------------------------------------
+#
+# > The SDK tools can create workspaces, deploy workspace content, prepare release
+# > packages, install releases, update existing installations, and uninstall installed
+# > releases. Together, these tools provide a simple development-to-deployment flow.
+#
+# > The intended release flow is to update the source tree, regenerate documentation,
+# > run the release preparation tool, validate the generated manifest and checksums,
+# > and then install or update from the generated release archive.
 # - Architecture --------------------------------------------------------------------
 #
 # > SolidGroundUX is designed as a framework rather than a collection of unrelated
