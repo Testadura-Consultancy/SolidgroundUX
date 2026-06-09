@@ -19,6 +19,9 @@ target-root/usr/local/share/doc/solidgroundux/
 !target-root/var/lib/solidgroundux/
 !target-root/var/lib/solidgroundux/releases/
 
+# Ignore everything inside releases
+target-root/var/lib/solidgroundux/releases/*
+
 # Explicit generated artifacts
 target-root/var/lib/solidgroundux/releases/*.tar*
 target-root/var/lib/solidgroundux/releases/*.manifest*
