@@ -1,5 +1,7 @@
 # SolidGroundUX
 
+![Presenting SolidGroundUX](docs/images/Presenting SolidGroundUX medium.png)
+
 *A framework for building structured Bash applications.*
 
 SolidGroundUX is a collection of libraries, tools, templates, and conventions designed to reduce boilerplate when developing Bash applications.
