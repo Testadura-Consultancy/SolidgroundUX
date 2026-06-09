@@ -1,6 +1,6 @@
 # SolidGroundUX
 
-!docs/images/Presenting SolidGroundUX medium.png
+![SolidGroundUX](docs/images/Presenting%20SolidGroundUX%20medium.png)
 
 *A framework for building structured Bash applications.*
 
