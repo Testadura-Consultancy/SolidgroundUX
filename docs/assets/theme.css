@@ -1,0 +1,257 @@
+html, body {
+    font-family: Arial, sans-serif;
+    color: #222;
+    background: #ffffff;
+}
+
+body {
+    font-size: 10pt;
+}
+
+.doc-nav {
+    background: #f6f6f6;
+}
+
+.doc-nav-title {
+    font-size: 12pt;
+    font-weight: bold;
+}
+
+.doc-nav-node summary {
+    font-weight: bold;
+}
+
+.doc-nav-node.level-0 > summary {
+    font-size: 11pt;
+    font-weight: bold;
+}
+
+.doc-nav-module {
+    color: #111;
+}
+
+.doc-nav-section {
+    font-size: 10pt;
+    color: #111;
+}
+
+.doc-nav-section.level-1,
+.doc-nav-section.level-2 {
+    font-weight: 600;
+}
+
+.doc-nav-section.level-3 {
+    font-weight: 500;
+}
+
+.doc-nav-item {
+    color: #204a87;
+    font-size: 10pt;
+}
+
+.doc-title {
+    font-family: Arial, sans-serif;
+    font-size: 16pt;
+    font-weight: bold;
+    font-style: normal;
+    line-height: 1.25;
+    margin: 0 0 14px 0;
+}
+
+.doc-breadcrumb {
+    font-style: italic;
+    color: #666;
+    font-size: 10pt;
+}
+
+.ct-prefaceheader,
+.ct-moduleheader {
+    font-family: Arial, sans-serif;
+    font-size: 16pt;
+    font-weight: bold;
+    font-style: normal;
+    line-height: 1.2;
+    margin: 0 0 16px 0;
+}
+
+.ct-epilogueheader,
+.ct-appendixheader {
+    font-family: Arial, sans-serif;
+    font-size: 16pt;
+    font-weight: bold;
+    font-style: normal;
+    line-height: 1.2;
+    margin: 0 0 14px 0;
+}
+
+.ct-L1Sectionheader {
+    font-family: Arial, sans-serif;
+    font-size: 14pt;
+    font-weight: bold;
+    font-style: normal;
+    line-height: 1.25;
+    margin: 24px 0 10px 0;
+}
+
+.ct-L2Sectionheader {
+    font-family: Arial, sans-serif;
+    font-size: 14pt;
+    font-weight: 600;
+    font-style: normal;
+    line-height: 1.25;
+    margin: 18px 0 8px 0;
+}
+
+.ct-L3Sectionheader {
+    font-family: Arial, sans-serif;
+    font-size: 14pt;
+    font-weight: 600;
+    font-style: normal;
+    line-height: 1.25;
+    margin: 14px 0 6px 0;
+}
+
+.ct-functionheader,
+.ct-variableheader {
+    font-family: Arial, sans-serif;
+    font-size: 12pt;
+    font-weight: bold;
+    font-style: normal;
+    line-height: 1.35;
+    margin: 12px 0 4px 0;
+}
+
+.ct-gendocheader {
+    font-family: Arial, sans-serif;
+    font-size: 12pt;
+    font-weight: bold;
+    font-style: normal;
+    line-height: 1.35;
+    margin: 12px 0 5px 0;
+}
+
+.ct-prefacebody,
+.ct-modulebody,
+.ct-epiloguebody,
+.ct-appendixbody,
+.ct-L1Sectionbody,
+.ct-L2Sectionbody,
+.ct-L3Sectionbody,
+.ct-functionbody,
+.ct-variablebody,
+.ct-gendocbody,
+.ct-documentbody {
+    font-family: Arial, sans-serif;
+    font-size: 10pt;
+    font-weight: normal;
+    font-style: normal;
+    line-height: 1.45;
+    margin: 0 0 6px 0;
+    white-space: pre-wrap;
+    tab-size: 4;
+}
+
+.sh-label {
+    font-weight: bold;
+    margin: 8px 0 3px 0;
+}
+
+.sh-highlight {
+    font-weight: 600;
+}
+
+.sh-emphasis {
+    font-weight: bold;
+}
+
+.sh-underline {
+    text-decoration: underline;
+}
+
+.sh-quote {
+    font-style: italic;
+}
+
+.sh-listitem {
+    margin-left: 22px;
+}
+
+.sh-listitem::before {
+    content: "\2022 ";
+}
+
+.sh-indent {
+    margin-left: 22px;
+}
+
+.doc-nav-special,
+.doc-nav-special a,
+.doc-nav-special > summary,
+.type-product,
+.type-product a,
+.type-group,
+.type-group a,
+.type-group > summary,
+.type-appendices,
+.type-appendices a,
+.type-appendices > summary,
+.type-appendix,
+.type-appendix a,
+.type-preface,
+.type-preface a,
+.type-epilogue,
+.type-epilogue a {
+    font-weight: bold;
+}
+
+.doc-title-page {
+    max-width: 900px;
+}
+
+.doc-title-page-title {
+    font-family: Arial, sans-serif;
+    font-size: 20pt;
+    font-weight: bold;
+    line-height: 1.2;
+    margin: 0 0 16px 0;
+}
+
+.doc-title-page-subtitle {
+    font-size: 15pt;
+    font-style: italic;
+    margin: 0 0 18px 0;
+}
+
+.doc-title-page-meta {
+    margin-top: 28px;
+}
+
+.doc-title-page-summary {
+    margin-top: 36px;
+}
+
+.doc-summary-table {
+    border-collapse: collapse;
+    margin-top: 12px;
+    min-width: 420px;
+}
+
+.doc-summary-table th,
+.doc-summary-table td {
+    border: 1px solid #d0d0d0;
+    padding: 8px 12px;
+}
+
+.doc-summary-table th {
+    text-align: left;
+}
+
+.doc-summary-table td:first-child {
+    text-align: left;
+}
+
+.doc-summary-table td:last-child {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+

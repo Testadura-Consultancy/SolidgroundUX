@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>_load_bootstrapper - Load the SolidGroundUX bootstrapper</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">_load_bootstrapper - Load the SolidGroundUX bootstrapper</div>
+  <div class="doc-breadcrumb">doc-generator.sh:::Bootstrap:_load_bootstrapper</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Resolve and source the framework bootstrap library.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Calls _framework_locator to establish framework roots.</div>
+<div class="ct-functionbody">  - Derives the sgnd-bootstrap.sh path from SGND_FRAMEWORK_ROOT.</div>
+<div class="ct-functionbody">  - Verifies that the bootstrap library is readable.</div>
+<div class="ct-functionbody">  - Sources sgnd-bootstrap.sh into the current shell.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Inputs (globals):</div>
+<div class="ct-functionbody">  SGND_FRAMEWORK_ROOT</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0   success</div>
+<div class="ct-functionbody">  126 bootstrap library unreadable</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  _load_bootstrapper</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Notes:</div>
+<div class="ct-functionbody">  - This is executable-level startup logic, not reusable framework behavior.</div>
+</main>
+</body>
+</html>

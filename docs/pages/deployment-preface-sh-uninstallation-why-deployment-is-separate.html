@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Why Deployment Is Separate</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Why Deployment Is Separate</div>
+  <div class="doc-breadcrumb">deployment_preface.sh::Uninstallation:Why Deployment Is Separate:</div>
+</header>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Keeping deployment separate from the runtime framework keeps the framework</div>
+<div class="ct-L2Sectionbody">cleaner.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Runtime libraries should not need to know how they were installed. Executable</div>
+<div class="ct-L2Sectionbody">tools should be able to run from the deployed filesystem layout without carrying</div>
+<div class="ct-L2Sectionbody">installer logic around with them.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">This separation also makes releases easier to reason about: prepare-release</div>
+<div class="ct-L2Sectionbody">builds the package, the installer applies the package, and the framework runs</div>
+<div class="ct-L2Sectionbody">after installation.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">That distinction is what makes the deployment scripts framework-adjacent rather</div>
+<div class="ct-L2Sectionbody">than core runtime components.</div>
+</main>
+</body>
+</html>

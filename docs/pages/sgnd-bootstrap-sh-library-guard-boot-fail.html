@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Report a bootstrap failure</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Report a bootstrap failure</div>
+  <div class="doc-breadcrumb">SolidgroundUX / sgnd-bootstrap.sh / Library guard / _boot_fail</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Emit a bootstrap failure message with caller context and return a code.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Captures caller file, function, and line information.</div>
+<div class="ct-functionbody">  - Formats one contextual failure message.</div>
+<div class="ct-functionbody">  - Writes the message through sayfail.</div>
+<div class="ct-functionbody">  - Returns the supplied status code unchanged.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Arguments</div>
+<div class="ct-functionbody">  $1  Failure text to report.</div>
+<div class="ct-functionbody">  $2  Return code to return to the caller.</div>
+<div class="ct-functionbody">      Default: 1</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Output</div>
+<div class="ct-functionbody">  Writes one formatted failure message through sayfail.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  The supplied return code.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+</main>
+</body>
+</html>

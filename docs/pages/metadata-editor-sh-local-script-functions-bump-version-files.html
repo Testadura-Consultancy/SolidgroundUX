@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Apply version bumps to selected files</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Apply version bumps to selected files</div>
+  <div class="doc-breadcrumb">SolidgroundUX / metadata-editor.sh / Local script functions / _bump_version_files</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Apply the resolved version metadata update mode to all target files.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Resolves target files from --file or --folder.</div>
+<div class="ct-functionbody">  - Applies _bump_one_file() to each target.</div>
+<div class="ct-functionbody">  - Reports per-file results and a final summary.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Inputs (globals):</div>
+<div class="ct-functionbody">  BUMP_MODE</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0  all targets processed successfully</div>
+<div class="ct-functionbody">  1  target resolution failed or one or more updates failed</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  _bump_version_files</div>
+</main>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Typical Installation Workflow</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Typical Installation Workflow</div>
+  <div class="doc-breadcrumb">deployment_preface.sh::Deployment:Typical Installation Workflow:</div>
+</header>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">A typical installation starts with a prepared release archive.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Conceptually, the workflow is:</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">    Download release archive</div>
+<div class="ct-L2Sectionbody">        ↓</div>
+<div class="ct-L2Sectionbody">    Extract or make the installer available</div>
+<div class="ct-L2Sectionbody">        ↓</div>
+<div class="ct-L2Sectionbody">    Run sgnd-install.sh</div>
+<div class="ct-L2Sectionbody">        ↓</div>
+<div class="ct-L2Sectionbody">    Installer reads release metadata</div>
+<div class="ct-L2Sectionbody">        ↓</div>
+<div class="ct-L2Sectionbody">    Installer evaluates current installed version</div>
+<div class="ct-L2Sectionbody">        ↓</div>
+<div class="ct-L2Sectionbody">    Installer determines whether this is a fresh install, update, downgrade,</div>
+<div class="ct-L2Sectionbody">    reinstall, or no-op</div>
+<div class="ct-L2Sectionbody">        ↓</div>
+<div class="ct-L2Sectionbody">    Installer copies files into the target filesystem layout</div>
+<div class="ct-L2Sectionbody">        ↓</div>
+<div class="ct-L2Sectionbody">    Installer applies permissions and executable flags</div>
+<div class="ct-L2Sectionbody">        ↓</div>
+<div class="ct-L2Sectionbody">    Installer records or reports the installed result</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">The exact installation behavior may depend on command-line options and the</div>
+<div class="ct-L2Sectionbody">metadata available in the release package.</div>
+<div class="ct-L2Sectionbody"></div>
+</main>
+</body>
+</html>
