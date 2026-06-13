@@ -699,12 +699,25 @@ set -uo pipefail
                 printf " 2) Input test\n"
                 printf " 3) Say test\n"
                 printf " q) Quit\n"
-                printf "-----------------------------------------\n"
+                printf '%s\n' '-----------------------------------------'
                 printf "Select option: "
 
-                # Read single key (no Enter required)
-                read -r -n1 choice
+                choice=""
+
+                for seconds_left in {30..1}; do
+                    printf "\rSelect option (auto-exit in %2ss): " "$seconds_left"
+
+                    if read -r -s -n1 -t 1 choice; then
+                        break
+                    fi
+                done
+
                 printf "\n"
+
+                if [[ -z "$choice" ]]; then
+                    printf "No selection made. Exiting...\n"
+                    break
+                fi
 
                 case "${choice,,}" in
                     1)

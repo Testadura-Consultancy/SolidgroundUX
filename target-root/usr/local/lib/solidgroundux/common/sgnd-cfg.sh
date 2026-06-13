@@ -597,6 +597,76 @@ set -uo pipefail
 
         return 1
     }
+        # fn: sgnd_cfg_write_skeleton_filtered
+        # Purpose:
+        #   Write an auto-generated cfg skeleton filtered by audience.
+        #
+        # Behavior:
+        #   - Writes a commented KEY=VALUE config template.
+        #   - Includes only specs matching the requested audience.
+        #   - Includes specs marked "both" for either audience.
+        #   - Uses current shell values as initial defaults where available.
+        #   - Adds a standard auto-generated file header.
+        #
+        # Arguments:
+        #   $1  FILE
+        #       Target cfg file path.
+        #   $2  AUDIENCE
+        #       Audience filter: "system" or "user".
+        #   $3  SPEC_ARRAY_NAME
+        #       Name of the cfg specs array.
+        #   $4  DOMAIN
+        #       Optional logical domain name for header text.
+        #       Default: configuration
+        #
+        # Side effects:
+        #   - Creates or overwrites the target file.
+        #
+        # Returns:
+        #   0 on success.
+        #   1 on invalid arguments.
+        #
+        # Usage:
+        #   sgnd_cfg_write_skeleton_filtered FILE AUDIENCE SPEC_ARRAY_NAME [DOMAIN]
+        #
+        # Examples:
+        #   sgnd_cfg_write_skeleton_filtered "$SGND_USRCFG_FILE" "user" SGND_FRAMEWORK_GLOBALS "Framework"
+        #
+        #   sgnd_cfg_write_skeleton_filtered "$SGND_SYSCFG_FILE" "system" SGND_SCRIPT_GLOBALS "Script"
+    sgnd_cfg_write_skeleton_filtered() {
+            local file="${1:-}"
+            local audience_want="${2:-}"
+            local spec_array_name="${3:-}"
+            local domain="${4:-configuration}"
+
+            [[ -n "$file" && -n "$audience_want" && -n "$spec_array_name" ]] || return 1
+
+            local -n specs="$spec_array_name"
+
+            {
+                _sgnd_cfg_write_template_header "$domain" "$audience_want"
+
+                local spec audience var desc extra val
+                for spec in "${specs[@]}"; do
+                    IFS='|' read -r audience var desc extra <<< "$spec"
+                    [[ -n "$var" ]] || continue
+
+                    case "$audience" in
+                        "$audience_want"|both)
+                            printf '# %s
+    ' "${desc:-$var}"
+                            val="${!var:-}"
+                            printf '%s=%s
+
+    ' "$var" "$val"
+                            ;;
+                    esac
+                done
+            } > "$file"
+
+            return 0
+    }
+    
     # fn: _sgnd_cfg_write_template_header - Cfg write template header
         # . Purpose
         #   Internal helper for cfg write template header.
