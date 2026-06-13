@@ -2,57 +2,78 @@
 
 ## Download
 
-Download the latest release from:
+Download the latest SolidGroundUX release bundle from:
 
 https://github.com/Testadura-Mark/SolidGroundUX/releases
 
-A release consists of:
+The release bundle is provided as:
+
+* `SolidGroundUX-<version>-release.zip`
+
+Copy the release bundle to the target machine and extract it into the SolidGroundUX releases directory:
+
+```bash
+sudo mkdir -p /var/lib/solidgroundux/releases
+
+sudo unzip SolidGroundUX-<version>-release.zip \
+    -d /var/lib/solidgroundux/releases
+```
+
+After extraction, the releases directory should contain files similar to:
 
 * `SolidGroundUX-<version>.tar.gz`
 * `SolidGroundUX-<version>.manifest`
-
-Optional verification files:
-
-* `SHA256SUMS`
-* `*.sha256`
+* `SolidGroundUX-<version>.tar.gz.sha256`
+* `SolidGroundUX-<version>.manifest.sha256`
 
 ## Verify (Optional)
 
-Verify the downloaded files:
+Verify the downloaded release files:
 
 ```bash
-sha256sum -c SHA256SUMS
+cd /var/lib/solidgroundux/releases
+
+sha256sum -c SolidGroundUX-<version>.tar.gz.sha256
+sha256sum -c SolidGroundUX-<version>.manifest.sha256
 ```
 
-## Install
+## First-time Installation
 
-Run the installer using the downloaded archive and manifest:
+For a first-time installation, extract the release archive directly into the root filesystem:
 
 ```bash
-sgnd-install \
-    --package SolidGroundUX-1.5.2615900.tar.gz \
-    --manifest SolidGroundUX-1.5.2615900.manifest
+sudo tar -xzpf \
+    /var/lib/solidgroundux/releases/SolidGroundUX-<version>.tar.gz \
+    -C /
 ```
 
-or follow the installation instructions provided by the installer.
+The release archive contains a prepared filesystem layout and will install the
+SolidGroundUX commands, libraries, templates, documentation, and deployment
+tools into their expected locations.
+
+## Updating
+
+Download the newer SolidGroundUX release bundle and copy it to the target machine.
+
+Extract the release bundle into the SolidGroundUX releases directory and start the installer:
+
+```bash
+sudo mkdir -p /var/lib/solidgroundux/releases
+
+sudo unzip SolidGroundUX-<version>-release.zip \
+    -d /var/lib/solidgroundux/releases
+
+sudo sgnd-install --product SolidGroundUX
+```
+The installer selects the newest available SolidGroundUX release package from
+/var/lib/solidgroundux/releases, verifies the release files, creates backups,
+extracts the package, and updates the installation records.
 
 ## Documentation
 
 Framework documentation is available online:
 
 https://testadura-consultancy.github.io/SolidGroundUX/
-
-## Updating
-
-Download a newer release and run:
-
-```bash
-sgnd-install \
-    --package <new-package>.tar.gz \
-    --manifest <new-manifest>.manifest
-```
-
-The installer detects an existing installation and performs an upgrade.
 
 ## Uninstalling
 
