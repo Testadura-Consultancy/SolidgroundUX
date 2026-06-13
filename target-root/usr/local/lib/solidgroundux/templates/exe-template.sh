@@ -50,9 +50,14 @@ set -uo pipefail
         #   - Searches user and system bootstrap configuration locations.
         #   - Prefers the invoking user's config over the system config.
         #   - Creates a new bootstrap config when none exists.
-        #   - Prompts for framework/application roots in interactive mode.
+        #   - Prompts for framework/application roots in interactive mode, uses defaults otherwise
         #   - Applies default values when running non-interactively.
         #   - Sources the selected configuration file.
+        #
+        #     System location
+        #       /etc/solidgroundux/solidgroundux.cfg
+        #     User location:
+        #       ~/.config/solidgroundux/solidgroundux.cfg
         #
         # Outputs (globals):
         #   SGND_FRAMEWORK_ROOT
