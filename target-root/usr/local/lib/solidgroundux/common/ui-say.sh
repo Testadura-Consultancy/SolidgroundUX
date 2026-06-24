@@ -102,50 +102,141 @@ set -uo pipefail
     SGND_LINEBREAK_PENDING=0  # Internal flag to track if a line break is needed before the next message (used by sayprogress)
 
 # --- Helpers ------------------------------------------------------------------------
-    # fn: _say_should_print_console - Say should print console
+    # fn: _say_normalize_log_level - Normalize a log level name
         # . Purpose
-        #   Decide whether a message type should be printed to the console.
+        #   Convert aliases and legacy log-level names into a canonical
+        #   SolidGroundUX log-level value.
+        #
+        # . Parameters
+        #   $1 Requested log level.
         #
         # . Behavior
-        #   - Preserves the existing SolidGroundUX console/UI behavior.
-        #   - Uses current palette, style, runtime, or logging globals where applicable.
+        #   - Accepts legacy aliases.
+        #   - Returns a canonical log-level name.
         #
-        # . Arguments
-        #   $@ - Values consumed by the helper. See usage for the expected call shape.
-        #
-        # Outputs (globals):
-        #   Updates SolidGroundUX UI/runtime globals documented by the function body.
+        # . Output
+        #   Writes the normalized log-level name to stdout.
         #
         # . Returns
-        #   0 on success.
-        #   Non-zero when validation, resolution, I/O, or user cancellation fails.
+        #   0 always.
+    _say_normalize_log_level() {
+
+        case "${1,,}" in
+
+            off|none|silent)
+                printf '%s\n' 'silent'
+                ;;
+
+            warn|quiet)
+                printf '%s\n' 'quiet'
+                ;;
+
+            normal|'')
+                printf '%s\n' 'normal'
+                ;;
+
+            verbose)
+                printf '%s\n' 'verbose'
+                ;;
+
+            debug)
+                printf '%s\n' 'debug'
+                ;;
+
+            trace|all)
+                printf '%s\n' 'trace'
+                ;;
+
+            *)
+                printf '%s\n' 'silent'
+                ;;
+
+        esac
+    }
+
+    # fn: _say_should_print_console - Determine whether a message should be written to the console
+        # . Purpose
+        #   Determine whether a message of the specified type should be
+        #   written to the console based on the current log level.
         #
-        # . Usage
-        #   _say_should_print_console "$value"
+        # . Parameters
+        #   $1 Message type (START, INFO, WARN, FAIL, DEBUG, TRACE, ...)
+        #
+        # . Behavior
+        #   - Evaluates SGND_LOG_LEVEL.
+        #   - Applies the SolidGroundUX log-level visibility rules.
+        #   - Returns success when the message should be displayed.
+        #
+        # . Globals (read)
+        #   SGND_LOG_LEVEL
+        #
+        # . Returns
+        #   0 if the message should be displayed.
+        #   1 if the message should be suppressed.
     _say_should_print_console() {
+
         local type="${1^^}"
-        local level="${SGND_LOG_LEVEL:-normal}"
+        local level
+
+        level="$(_say_normalize_log_level "${SGND_LOG_LEVEL:-silent}")"
 
         case "$level" in
-            off)
+
+            silent)
                 return 1
                 ;;
+
             quiet)
                 case "$type" in
-                    WARN|FAIL) return 0 ;;
-                    *)         return 1 ;;
+                    WARN|WARNING|FAIL|ERROR)
+                        return 0
+                        ;;
+                    *)
+                        return 1
+                        ;;
                 esac
                 ;;
+
+            normal)
+                case "$type" in
+                    START|STRT|OK|WARN|WARNING|FAIL|ERROR|CANCEL|CNCL|END)
+                        return 0
+                        ;;
+                    *)
+                        return 1
+                        ;;
+                esac
+                ;;
+
+            verbose)
+                case "$type" in
+                    DEBUG|TRACE)
+                        return 1
+                        ;;
+                    *)
+                        return 0
+                        ;;
+                esac
+                ;;
+
             debug)
+                case "$type" in
+                    TRACE)
+                        return 1
+                        ;;
+                    *)
+                        return 0
+                        ;;
+                esac
+                ;;
+
+            trace)
                 return 0
                 ;;
-            normal|*)
-                case "$type" in
-                    DEBUG) return 1 ;;
-                    *)     return 0 ;;
-                esac
-                ;;
+
         esac
+
+        return 1
     }
 
     # fn: _say_caller - Say caller
@@ -1147,7 +1238,7 @@ set -uo pipefail
             printf '%s\n' "$@"
         }
 
-            # fn: saydebug - Write a debug message
+        # fn: saydebug - Write a debug message
                 # . Purpose
                 #   Write diagnostic output when debug messaging is enabled by the runtime configuration.
                 #
@@ -1163,13 +1254,11 @@ set -uo pipefail
                 # . Usage
                 #   saydebug "Resolved install root: $install_root"
         saydebug() {
-            if [[ "${SGND_LOG_LEVEL:-normal}" == "debug" ]]; then
-                local src="${BASH_SOURCE[1]##*/}"
-                local func="${FUNCNAME[1]}"
-                local line="${BASH_LINENO[0]}"
+            local src="${BASH_SOURCE[1]##*/}"
+            local func="${FUNCNAME[1]}"
+            local line="${BASH_LINENO[0]}"
 
-                say DEBUG "$@" "[$src:$func:$line]"
-            fi
+            say DEBUG "$@" "[$src:$func:$line]"
             return 0
         }
 

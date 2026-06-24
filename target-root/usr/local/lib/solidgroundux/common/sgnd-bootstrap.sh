@@ -126,7 +126,8 @@ set -uo pipefail
         #   Extract bootstrap-only options before the full argument parser is available.
         #
         # . Behavior
-        #   - Detects state mode, root policy, logfile, and quiet-mode bootstrap options.
+        #   - Detects state mode, root policy, logfile, and console loglevel bootstrap options.
+        #   - Supports --loglevel <silent|quiet|normal|verbose|debug|trace>, --loglevel=<...>, --quiet, and --silent.
         #   - Stores all remaining arguments in SGND_BOOTSTRAP_REST.
         #   - Stops parsing at '--' or the first non-bootstrap argument.
         #
@@ -161,6 +162,32 @@ set -uo pipefail
                     SGND_LOGFILE_ENABLED=1; shift ;;
                 --quiet)
                     SGND_LOG_LEVEL="quiet"
+                    shift ;;
+                --silent)
+                    SGND_LOG_LEVEL="silent"
+                    shift ;;
+                --loglevel)
+                    shift
+                    case "${1:-}" in
+                        off|none|silent) SGND_LOG_LEVEL="silent" ;;
+                        warn|quiet)      SGND_LOG_LEVEL="quiet" ;;
+                        normal)          SGND_LOG_LEVEL="normal" ;;
+                        verbose)         SGND_LOG_LEVEL="verbose" ;;
+                        debug)           SGND_LOG_LEVEL="debug" ;;
+                        trace|all)       SGND_LOG_LEVEL="trace" ;;
+                        *)               SGND_LOG_LEVEL="silent" ;;
+                    esac
+                    [[ $# -gt 0 ]] && shift ;;
+                --loglevel=*)
+                    case "${1#--loglevel=}" in
+                        off|none|silent) SGND_LOG_LEVEL="silent" ;;
+                        warn|quiet)      SGND_LOG_LEVEL="quiet" ;;
+                        normal)          SGND_LOG_LEVEL="normal" ;;
+                        verbose)         SGND_LOG_LEVEL="verbose" ;;
+                        debug)           SGND_LOG_LEVEL="debug" ;;
+                        trace|all)       SGND_LOG_LEVEL="trace" ;;
+                        *)               SGND_LOG_LEVEL="silent" ;;
+                    esac
                     shift ;;
                 --) 
                     shift; SGND_BOOTSTRAP_REST=("$@"); return 0 ;;
@@ -687,14 +714,14 @@ set -uo pipefail
         # . Usage
         #   sgnd_check_license
     sgnd_check_license() {
-        local license_file="$SGND_DOCS_DIR/$SGND_LICENSE_FILE"
+        local license_file="$SGND_LOCAL_DOC/$SGND_LICENSE_FILE"
         local accepted_file="$SGND_STATE_DIR/$SGND_LICENSE_FILE.accepted"
         local isaccepted=0
         local wasaccepted=0
         local current_hash
 
         if ! current_hash="$(sgnd_hash_sha256_file "$license_file")"; then
-            saywarning "sgnd_check_license: could not compute hash"
+            saywarning "sgnd_check_license: could not compute hash ($SGND_LOG_LEVEL)"
             current_hash=""
         fi
 
@@ -813,7 +840,6 @@ set -uo pipefail
         # . Usage
         #   sgnd_bootstrap
     sgnd_bootstrap() {
-        saystart "Initializing framework"
         # Definitions
             : "${TUI_COMMIT:=$(printf '\e[38;5;214m')}"
             : "${TUI_DRYRUN:=$(printf '\e[38;5;214m')}"
@@ -825,7 +851,11 @@ set -uo pipefail
             : "${FLAG_HELP:=0}"
             : "${FLAG_LOG:=0}"
             : "${ARG_SHOW:=}"
-            : "${ARG_LOGLEVEL:=normal}"
+            : "${ARG_LOGLEVEL:=}"
+
+            _parse_bootstrap_args "$@" || { local rc=$?; _boot_fail "Failed parsing bootstrap arguments" "$rc"; return "$rc"; }
+
+            saystart "Initializing framework"
 
             if ! declare -p SGND_SCRIPT_GLOBALS >/dev/null 2>&1; then
                 declare -ag SGND_SCRIPT_GLOBALS=()
@@ -842,9 +872,6 @@ set -uo pipefail
         # Basic initialization - Defaults
             sayinfo "Initializing bootstrap..."
             _init_bootstrap || { local rc=$?; _boot_fail "Failed to initialize bootstrapper" "$rc"; return "$rc"; }
-
-            sayinfo "Parsing bootstrap arguments..."
-            _parse_bootstrap_args "$@" || { local rc=$?; _boot_fail "Failed parsing bootstrap arguments" "$rc"; return "$rc"; }
 
             _source_corelibs || { local rc=$?; _boot_fail "Failed to load core libraries" "$rc"; return "$rc"; }
             _source_usinglibs || { local rc=$?; _boot_fail "Failed to load optional libraries" "$rc"; return "$rc"; }
@@ -939,7 +966,7 @@ set -uo pipefail
         else
             sayinfo "Running in $RUN_MODE mode (changes will be applied)."
         fi
-        sayend "Finished bootstrap"
+        sayend "Finished bootstrap ($SGND_LOG_LEVEL)"
         return 0
     }
 

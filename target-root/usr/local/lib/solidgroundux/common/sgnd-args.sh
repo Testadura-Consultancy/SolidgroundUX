@@ -291,7 +291,7 @@ set -uo pipefail
         "dryrun|D|flag|FLAG_DRYRUN|Emulate only; do not perform actions|"
         "help|H|flag|FLAG_HELP|Show command-line help and exit|"
         "log|G|flag|FLAG_LOG|Enable logfile output|"
-        "loglevel||enum|ARG_LOGLEVEL|Set console output level|normal|off,quiet,normal,debug"
+        "loglevel||enum|ARG_LOGLEVEL|Set console output level||silent,quiet,normal,verbose,debug,trace"
         "show||enum|ARG_SHOW|Show internal information and exit||args,cfg,state,meta,license,readme,env"
         "statereset|R|flag|FLAG_STATERESET|Reset the state file|"
     )
@@ -305,7 +305,7 @@ set -uo pipefail
         #   - SGND_SCRIPT_NAME is resolved lazily for display.
     SGND_BUILTIN_EXAMPLES=(
          "  ${SGND_SCRIPT_NAME:-<script>} --dryrun --loglevel debug"
-         "  ${SGND_SCRIPT_NAME:-<script>} --log --loglevel off"
+         "  ${SGND_SCRIPT_NAME:-<script>} --log --loglevel silent"
          "  ${SGND_SCRIPT_NAME:-<script>} --show env"
     ) 
     # fn: sgnd_show_help - Show help
@@ -637,19 +637,16 @@ set -uo pipefail
         #   sgnd_builtinarg_handler
     sgnd_builtinarg_handler(){
         local show_target="${ARG_SHOW:-}"
-        local loglevel="${ARG_LOGLEVEL:-normal}"
+        local loglevel="${ARG_LOGLEVEL:-}"
 
         if (( ${FLAG_LOG:-0} )); then
             SGND_LOGFILE_ENABLED=1
         fi
 
-        # Apply loglevel first so downstream output follows the requested policy.
+        # Apply an explicit CLI loglevel without resetting a bootstrap/script default.
         case "$loglevel" in
-            off|quiet|debug)
+            silent|quiet|normal|verbose|debug|trace)
                 SGND_LOG_LEVEL="$loglevel"
-                ;;
-            normal|*)
-                SGND_LOG_LEVEL="normal"
                 ;;
         esac
 

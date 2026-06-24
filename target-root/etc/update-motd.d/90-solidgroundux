@@ -1,37 +1,18 @@
 #!/usr/bin/env bash
 # =====================================================================================
-# SolidGroundUX - Executable Script Template
+# SolidGroundUX - 90-solidgroundUX
 # ------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
 #   Build       : 2616423
-#   Checksum    : 4b98350fbbf7df27dcad9b979eafbbc0b26e257e5a7dd9de6b978e026b05443f
-#   Source      : exe-template.sh
-#   Type        : script
-#   Group       : Templates
-#   Purpose     : Canonical executable template for SolidGroundUX scripts.
+#   Checksum    : -
+#   Source      : 90-solidgroundUX
+#   Type        : motd
+#   Group       : Scripts
+#   Purpose     : Message of the day script for SolidGroundUX.
 #
 # Description:
-#   Provides the standard structure for all executable scripts in the framework,
-#   including:
-#     - bootstrap resolution and framework initialization
-#     - optional argument parsing and configuration integration
-#     - metadata declaration and lifecycle hooks
-#     - a consistent main() entry pattern
-#
-# Design principles:
-#   - Executables are explicit: resolve, bootstrap, then run
-#   - Libraries never auto-execute (composition over inheritance)
-#   - Framework integration is opt-in and declarative
-#   - UI and input must be TTY-safe
-#
-# Role in framework:
-#   - Entry point pattern for all SolidGroundUX-based scripts
-#   - Defines how scripts integrate with sgnd-bootstrap and common libraries
-#
-# Non-goals:
-#   - Business logic implementation (provided by the script author)
-#   - Library behavior (handled in /common modules)
+#   Prints out some general system information, indicating SolidGroundUX has been installed
 #
 # Attribution:
 #   Developers  : Mark Fieten
@@ -200,7 +181,7 @@ set -uo pipefail
         fi
 
         [[ -r "$bootstrap" ]] || {
-            sayfail "FATAL: Cannot read bootstrap: $bootstrap"
+            sayfail "FATAL: Cannot read bootstrap: %s\n" "$bootstrap" >&2
             return 126
         }
         
@@ -228,136 +209,29 @@ set -uo pipefail
     TUI_COMMIT=$'\e[2;37m'
     RESET=$'\e[0m'
 
-    # fn: _sgnd_minimal_say_normalize_log_level - Normalize a minimal bootstrap log level
+    # fn$ Minimal fallback UI
         # . Purpose
-        #   Convert aliases and legacy log-level names into a canonical SolidGroundUX
-        #   log-level value before the full UI layer is available.
+        #   Provide basic status output before sgnd-bootstrap loads the full UI layer.
         #
-        # . Parameters
-        #   $1 Requested log level.
-        #
-        # . Output
-        #   Writes the normalized log-level name to stdout.
-        #
-        # . Returns
-        #   0 always.
-    _sgnd_minimal_say_normalize_log_level() {
-        case "${1,,}" in
-            off|none|silent) printf '%s\n' 'silent' ;;
-            warn|quiet)      printf '%s\n' 'quiet' ;;
-            normal|'')       printf '%s\n' 'normal' ;;
-            verbose)         printf '%s\n' 'verbose' ;;
-            debug)           printf '%s\n' 'debug' ;;
-            trace|all)       printf '%s\n' 'trace' ;;
-            *)               printf '%s\n' 'silent' ;;
-        esac
+        # Notes:
+        #   - These functions intentionally keep formatting simple.
+        #   - sayinfo and saydebug honor FLAG_VERBOSE and FLAG_DEBUG respectively.
+    saystart()   { printf '%sSTART%s\t%s\n' "${MSG_CLR_STRT-}" "${RESET-}" "$*" >&2; }
+    sayinfo()    { 
+        if (( ${FLAG_VERBOSE:-0} )); then
+            printf '%sINFO%s \t%s\n' "${MSG_CLR_INFO-}" "${RESET-}" "$*" >&2; 
+        fi
     }
-
-    # fn: _sgnd_minimal_say_should_print_console - Determine minimal bootstrap console visibility
-        # . Purpose
-        #   Determine whether a bootstrap message should be written before the full
-        #   SolidGroundUX UI layer is loaded.
-        #
-        # . Parameters
-        #   $1 Message type.
-        #
-        # . Globals (read)
-        #   SGND_LOG_LEVEL
-        #
-        # . Returns
-        #   0 if the message should be displayed.
-        #   1 if the message should be suppressed.
-    _sgnd_minimal_say_should_print_console() {
-        local type="${1^^}"
-        local level=""
-
-        level="$(_sgnd_minimal_say_normalize_log_level "${SGND_LOG_LEVEL:-silent}")"
-
-        case "$level" in
-            silent)
-                return 1
-                ;;
-            quiet)
-                case "$type" in
-                    WARN|WARNING|FAIL|ERROR) return 0 ;;
-                    *)                       return 1 ;;
-                esac
-                ;;
-            normal)
-                case "$type" in
-                    START|STRT|OK|WARN|WARNING|FAIL|ERROR|CANCEL|CNCL|END) return 0 ;;
-                    *)                                                     return 1 ;;
-                esac
-                ;;
-            verbose)
-                case "$type" in
-                    DEBUG|TRACE) return 1 ;;
-                    *)           return 0 ;;
-                esac
-                ;;
-            debug)
-                case "$type" in
-                    TRACE) return 1 ;;
-                    *)     return 0 ;;
-                esac
-                ;;
-            trace)
-                return 0
-                ;;
-        esac
-
-        return 1
+    sayok()      { printf '%sOK%s   \t%s\n' "${MSG_CLR_OK-}"   "${RESET-}" "$*" >&2; }
+    saywarning() { printf '%sWARN%s \t%s\n' "${MSG_CLR_WARN-}" "${RESET-}" "$*" >&2; }
+    sayfail()    { printf '%sFAIL%s \t%s\n' "${MSG_CLR_FAIL-}" "${RESET-}" "$*" >&2; }
+    saydebug() {
+        if (( ${FLAG_DEBUG:-0} )); then
+            printf '%sDEBUG%s \t%s\n' "${MSG_CLR_DEBUG-}" "${RESET-}" "$*" >&2;
+        fi
     }
-
-    # fn: say - Emit a minimal bootstrap message
-        # . Purpose
-        #   Emit a status message before the full SolidGroundUX UI layer is loaded.
-        #
-        # . Parameters
-        #   $1 Message type.
-        #   $@ Message text after the type.
-        #
-        # . Globals (read)
-        #   SGND_LOG_LEVEL, MSG_CLR_*, RESET
-        #
-        # . Output
-        #   Writes a formatted message to stderr when allowed by SGND_LOG_LEVEL.
-        #
-        # . Returns
-        #   0 always.
-    say() {
-        local type="${1^^}"
-        local label=""
-        local color=""
-
-        shift || true
-
-        _sgnd_minimal_say_should_print_console "$type" || return 0
-
-        case "$type" in
-            START|STRT)   label="START";  color="${MSG_CLR_STRT-}" ;;
-            INFO)         label="INFO";   color="${MSG_CLR_INFO-}" ;;
-            OK)           label="OK";     color="${MSG_CLR_OK-}" ;;
-            WARN|WARNING) label="WARN";   color="${MSG_CLR_WARN-}" ;;
-            FAIL|ERROR)   label="FAIL";   color="${MSG_CLR_FAIL-}" ;;
-            DEBUG)        label="DEBUG";  color="${MSG_CLR_DEBUG-}" ;;
-            TRACE)        label="TRACE";  color="${MSG_CLR_DEBUG-}" ;;
-            CANCEL|CNCL)  label="CANCEL"; color="${MSG_CLR_CNCL-}" ;;
-            END)          label="END";    color="${MSG_CLR_END-}" ;;
-            *)            label="$type";  color="${MSG_CLR_EMPTY-}" ;;
-        esac
-
-        printf '%s%-6s%s\t%s\n' "$color" "$label" "${RESET-}" "$*" >&2
-    }
-
-    saystart()   { say START "$@"; }
-    sayinfo()    { say INFO "$@"; }
-    sayok()      { say OK "$@"; }
-    saywarning() { say WARN "$@"; }
-    sayfail()    { say FAIL "$@"; }
-    saydebug()   { say DEBUG "$@"; }
-    saycancel()  { say CANCEL "$@"; }
-    sayend()     { say END "$@"; }
+    saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
+    sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
     
 # - Script metadata (identity) ------------------------------------------------------
     # var$ SGND_SCRIPT_FILE
@@ -513,6 +387,56 @@ set -uo pipefail
         # Put script-local constants and defaults here, not framework configuration.
         # Prefer local variables inside functions unless a value must be shared.
 
+    _collect_info(){
+        HOSTNAME=$(hostname)
+        USERNAME=$(whoami)
+
+        IP4=$(ip -4 route get 1.1.1.1 2>/dev/null \
+            | awk '{for(i=1;i<=NF;i++) if($i=="src") {print $(i+1); exit}}')
+
+        GW=$(ip route show default 2>/dev/null \
+            | awk '/^default/ {print $3; exit}')
+
+        DNS=$(resolvectl status 2>/dev/null \
+            | awk -F': ' '/DNS Servers/ {print $2}' \
+            | tr ' ' '\n' | sort -u | xargs)
+
+        [ -n "$DNS" ] || DNS=$(awk '/^nameserver/ {print $2}' /etc/resolv.conf | xargs)
+
+        sgnd_check_license
+
+    }
+
+    _print_motd(){
+        local _items_indent=4
+        local _licacc="${ICO_WARN}"
+
+        (( SGND_LICENSE_ACCEPTED )) && _licacc="${ICO_OK}"
+        
+        sgnd_print_sectionheader --text "$SGND_PRODUCT" --border $DL_H
+        sgnd_print_labeledvalue "Product"      "$SGND_PRODUCT" --pad "$_items_indent"
+        sgnd_print_labeledvalue "Version"      "$SGND_VERSION" --pad "$_items_indent"
+        sgnd_print_labeledvalue "Release date" "$SGND_VERSION_DATE" --pad "$_items_indent"
+        sgnd_print_labeledvalue "Company"      "$SGND_COMPANY" --pad "$_items_indent"
+        sgnd_print_labeledvalue "Copyright"    "$SGND_COPYRIGHT" --pad "$_items_indent"
+        sgnd_print_labeledvalue "License"      "$SGND_LICENSE $_licacc" --pad "$_items_indent"
+
+        sgnd_print_sectionheader --text "System Information"
+
+        sgnd_print_labeledvalue "Hostname" "$HOSTNAME" --pad "$_items_indent"
+        sgnd_print_labeledvalue "IPv4"     "$IP4"      --pad "$_items_indent"
+        sgnd_print_labeledvalue "Gateway"  "$GW"       --pad "$_items_indent"
+        sgnd_print_labeledvalue "DNS"      "$DNS"      --pad "$_items_indent"
+        sgnd_print_labeledvalue "User"     "$USERNAME" --pad "$_items_indent"
+
+        sgnd_print_sectionheader --text "Additional Information"
+        sgnd_print_labeledvalue "Latest release" "$SGND_RELEASE_URL" --pad "$_items_indent"
+        sgnd_print_labeledvalue "Framework documentation" --sep "" --pad "$_items_indent" 
+        sgnd_print_labeledvalue --label " " --value "$SGND_LOCAL_DOC" --sep "" --pad "$_items_indent" --labelwidth 1
+        sgnd_print_labeledvalue --label " " "$SGND_ONLINE_DOC" --sep "" --pad "$_items_indent" --labelwidth 1
+
+        sgnd_print_sectionheader --border $DL_H
+    }
 # - Local script functions ----------------------------------------------------------
     # doc$ Local script functions
         # Organize script-specific functions here.
@@ -568,10 +492,12 @@ set -uo pipefail
             #     --needroot   -> restart script if not root
             #     --cannotroot -> exit script if root
             #     --log        -> enable file logging
-            #     --console    -> enable console logging
+            #     --loglevel   -> set console output level: off, quiet, normal, debug
+            #     --quiet      -> set console output level to quiet
+            #     --silent     -> set console output level to off
             # Example:
             #   sgnd_bootstrap --state --needroot -- "$@"
-            sgnd_bootstrap -- "$@"
+            sgnd_bootstrap --silent -- "$@"
             rc=$?
 
             saydebug "After bootstrap: $rc"
@@ -583,10 +509,12 @@ set -uo pipefail
             saydebug "Exited builtinarg handler"
 
         # -- UI
-            sgnd_update_runmode
-            sgnd_print_titlebar
+            #sgnd_update_runmode
+            #sgnd_print_titlebar
 
         # -- Main script logic
+        _collect_info
+        _print_motd
 
     }
 

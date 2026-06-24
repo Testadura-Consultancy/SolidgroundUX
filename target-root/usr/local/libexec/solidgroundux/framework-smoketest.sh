@@ -221,126 +221,149 @@ set -uo pipefail
     RESET=$'\e[0m'
 
     # Minimal UI
-    # fn$ saystart - Emit a minimal START message before bootstrap
+     # fn: _sgnd_minimal_say_normalize_log_level - Normalize a minimal bootstrap log level
         # . Purpose
-        #   Emit a minimal START message before bootstrap.
+        #   Convert aliases and legacy log-level names into a canonical SolidGroundUX
+        #   log-level value before the full UI layer is available.
         #
-        # . Behavior
-        #   - Template/bootstrap helper.
-        #   - Preserves existing script runtime behavior.
+        # . Parameters
+        #   $1 Requested log level.
+        #
+        # . Output
+        #   Writes the normalized log-level name to stdout.
         #
         # . Returns
-        #   Returns the underlying command or workflow status.
-        #
-        # . Usage
-        #   saystart
-    saystart()   { printf '%sSTART%s\t%s\n' "${MSG_CLR_STRT-}" "${RESET-}" "$*" >&2; }
-    # fn$ sayinfo - Emit a minimal INFO message before bootstrap
+        #   0 always.
+    # fn: _sgnd_minimal_say_normalize_log_level - Normalize a minimal bootstrap log level
         # . Purpose
-        #   Emit a minimal INFO message before bootstrap.
+        #   Convert aliases and legacy log-level names into a canonical SolidGroundUX
+        #   log-level value before the full UI layer is available.
         #
-        # . Behavior
-        #   - Template/bootstrap helper.
-        #   - Preserves existing script runtime behavior.
+        # . Parameters
+        #   $1 Requested log level.
+        #
+        # . Output
+        #   Writes the normalized log-level name to stdout.
         #
         # . Returns
-        #   Returns the underlying command or workflow status.
-        #
-        # . Usage
-        #   sayinfo
-    sayinfo()    { 
-        if (( ${FLAG_VERBOSE:-0} )); then
-            printf '%sINFO%s \t%s\n' "${MSG_CLR_INFO-}" "${RESET-}" "$*" >&2; 
-        fi
+        #   0 always.
+    _sgnd_minimal_say_normalize_log_level() {
+        case "${1,,}" in
+            off|none|silent) printf '%s\n' 'silent' ;;
+            warn|quiet)      printf '%s\n' 'quiet' ;;
+            normal|'')       printf '%s\n' 'normal' ;;
+            verbose)         printf '%s\n' 'verbose' ;;
+            debug)           printf '%s\n' 'debug' ;;
+            trace|all)       printf '%s\n' 'trace' ;;
+            *)               printf '%s\n' 'silent' ;;
+        esac
     }
-    # fn$ sayok - Emit a minimal OK message before bootstrap
+
+    # fn: _sgnd_minimal_say_should_print_console - Determine minimal bootstrap console visibility
         # . Purpose
-        #   Emit a minimal OK message before bootstrap.
+        #   Determine whether a bootstrap message should be written before the full
+        #   SolidGroundUX UI layer is loaded.
         #
-        # . Behavior
-        #   - Template/bootstrap helper.
-        #   - Preserves existing script runtime behavior.
+        # . Parameters
+        #   $1 Message type.
+        #
+        # . Globals (read)
+        #   SGND_LOG_LEVEL
         #
         # . Returns
-        #   Returns the underlying command or workflow status.
-        #
-        # . Usage
-        #   sayok
-    sayok()      { printf '%sOK%s   \t%s\n' "${MSG_CLR_OK-}"   "${RESET-}" "$*" >&2; }
-    # fn$ saywarning - Emit a minimal WARN message before bootstrap
-        # . Purpose
-        #   Emit a minimal WARN message before bootstrap.
-        #
-        # . Behavior
-        #   - Template/bootstrap helper.
-        #   - Preserves existing script runtime behavior.
-        #
-        # . Returns
-        #   Returns the underlying command or workflow status.
-        #
-        # . Usage
-        #   saywarning
-    saywarning() { printf '%sWARN%s \t%s\n' "${MSG_CLR_WARN-}" "${RESET-}" "$*" >&2; }
-    # fn$ sayfail - Emit a minimal FAIL message before bootstrap
-        # . Purpose
-        #   Emit a minimal FAIL message before bootstrap.
-        #
-        # . Behavior
-        #   - Template/bootstrap helper.
-        #   - Preserves existing script runtime behavior.
-        #
-        # . Returns
-        #   Returns the underlying command or workflow status.
-        #
-        # . Usage
-        #   sayfail
-    sayfail()    { printf '%sFAIL%s \t%s\n' "${MSG_CLR_FAIL-}" "${RESET-}" "$*" >&2; }
-    # fn$ saydebug - Emit a minimal DEBUG message before bootstrap
-        # . Purpose
-        #   Emit a minimal DEBUG message before bootstrap.
-        #
-        # . Behavior
-        #   - Template/bootstrap helper.
-        #   - Preserves existing script runtime behavior.
-        #
-        # . Returns
-        #   Returns the underlying command or workflow status.
-        #
-        # . Usage
-        #   saydebug
-    saydebug() {
-        if (( ${FLAG_DEBUG:-0} )); then
-            printf '%sDEBUG%s \t%s\n' "${MSG_CLR_DEBUG-}" "${RESET-}" "$*" >&2;
-        fi
+        #   0 if the message should be displayed.
+        #   1 if the message should be suppressed.
+    _sgnd_minimal_say_should_print_console() {
+        local type="${1^^}"
+        local level=""
+
+        level="$(_sgnd_minimal_say_normalize_log_level "${SGND_LOG_LEVEL:-silent}")"
+
+        case "$level" in
+            silent)
+                return 1
+                ;;
+            quiet)
+                case "$type" in
+                    WARN|WARNING|FAIL|ERROR) return 0 ;;
+                    *)                       return 1 ;;
+                esac
+                ;;
+            normal)
+                case "$type" in
+                    START|STRT|OK|WARN|WARNING|FAIL|ERROR|CANCEL|CNCL|END) return 0 ;;
+                    *)                                                     return 1 ;;
+                esac
+                ;;
+            verbose)
+                case "$type" in
+                    DEBUG|TRACE) return 1 ;;
+                    *)           return 0 ;;
+                esac
+                ;;
+            debug)
+                case "$type" in
+                    TRACE) return 1 ;;
+                    *)     return 0 ;;
+                esac
+                ;;
+            trace)
+                return 0
+                ;;
+        esac
+
+        return 1
     }
-    # fn$ saycancel - Emit a minimal CANCEL message before bootstrap
+
+    # fn: say - Emit a minimal bootstrap message
         # . Purpose
-        #   Emit a minimal CANCEL message before bootstrap.
+        #   Emit a status message before the full SolidGroundUX UI layer is loaded.
         #
-        # . Behavior
-        #   - Template/bootstrap helper.
-        #   - Preserves existing script runtime behavior.
+        # . Parameters
+        #   $1 Message type.
+        #   $@ Message text after the type.
+        #
+        # . Globals (read)
+        #   SGND_LOG_LEVEL, MSG_CLR_*, RESET
+        #
+        # . Output
+        #   Writes a formatted message to stderr when allowed by SGND_LOG_LEVEL.
         #
         # . Returns
-        #   Returns the underlying command or workflow status.
-        #
-        # . Usage
-        #   saycancel
-    saycancel() { printf '%sCANCEL%s\t%s\n' "${MSG_CLR_CNCL-}" "${RESET-}" "$*" >&2; }
-    # fn$ sayend - Emit a minimal END message before bootstrap
-        # . Purpose
-        #   Emit a minimal END message before bootstrap.
-        #
-        # . Behavior
-        #   - Template/bootstrap helper.
-        #   - Preserves existing script runtime behavior.
-        #
-        # . Returns
-        #   Returns the underlying command or workflow status.
-        #
-        # . Usage
-        #   sayend
-    sayend() { printf '%sEND%s   \t%s\n' "${MSG_CLR_END-}" "${RESET-}" "$*" >&2; }
+        #   0 always.
+    say() {
+        local type="${1^^}"
+        local label=""
+        local color=""
+
+        shift || true
+
+        _sgnd_minimal_say_should_print_console "$type" || return 0
+
+        case "$type" in
+            START|STRT)   label="START";  color="${MSG_CLR_STRT-}" ;;
+            INFO)         label="INFO";   color="${MSG_CLR_INFO-}" ;;
+            OK)           label="OK";     color="${MSG_CLR_OK-}" ;;
+            WARN|WARNING) label="WARN";   color="${MSG_CLR_WARN-}" ;;
+            FAIL|ERROR)   label="FAIL";   color="${MSG_CLR_FAIL-}" ;;
+            DEBUG)        label="DEBUG";  color="${MSG_CLR_DEBUG-}" ;;
+            TRACE)        label="TRACE";  color="${MSG_CLR_DEBUG-}" ;;
+            CANCEL|CNCL)  label="CANCEL"; color="${MSG_CLR_CNCL-}" ;;
+            END)          label="END";    color="${MSG_CLR_END-}" ;;
+            *)            label="$type";  color="${MSG_CLR_EMPTY-}" ;;
+        esac
+
+        printf '%s%-6s%s\t%s\n' "$color" "$label" "${RESET-}" "$*" >&2
+    }
+
+    saystart()   { say START "$@"; }
+    sayinfo()    { say INFO "$@"; }
+    sayok()      { say OK "$@"; }
+    saywarning() { say WARN "$@"; }
+    sayfail()    { say FAIL "$@"; }
+    saydebug()   { say DEBUG "$@"; }
+    saycancel()  { say CANCEL "$@"; }
+    sayend()     { say END "$@"; }
     
 
 # --- Script metadata (identity) ---------------------------------------------------
@@ -349,6 +372,7 @@ set -uo pipefail
     SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
     SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
     SGND_SCRIPT_DESC="Canonical executable template for Testadura scripts"
+    SGND_LOG_LEVEL="${SGND_LOG_LEVEL:-silent}"
     : "${SGND_SCRIPT_DESC:=Canonical executable template for Testadura scripts}"
     : "${SGND_SCRIPT_VERSION:=1.0}"
     : "${SGND_SCRIPT_BUILD:=20250110}"
@@ -618,6 +642,57 @@ set -uo pipefail
         saydebug "Debug message"
         justsay "Just saying"
     }
+
+    # fn: loglevel_test - Run console message visibility tests for every log level
+        # . Purpose
+        #   Cycle through all supported SGND_LOG_LEVEL values and emit one test message
+        #   for each message type.
+        #
+        # . Behavior
+        #   - Public smoke-test entry point.
+        #   - Temporarily sets SGND_LOG_LEVEL to off, quiet, normal, and debug.
+        #   - Emits INFO, STRT, WARN, FAIL, CNCL, OK, END, DEBUG, and EMPTY messages
+        #     for each level so console filtering can be inspected visually.
+        #   - Restores the original SGND_LOG_LEVEL before returning.
+        #
+        # . Returns
+        #   0 when the test sequence completes.
+        #
+        # . Usage
+        #   loglevel_test
+    loglevel_test() {
+        local original_loglevel="${SGND_LOG_LEVEL:-silent}"
+        local level=""
+
+        for level in silent quiet normal verbose debug trace; do
+            SGND_LOG_LEVEL="$level"
+
+            printf '\n'
+            printf '%s\n' '-----------------------------------------'
+            printf 'SGND_LOG_LEVEL=%s\n' "$SGND_LOG_LEVEL"
+            printf '%s\n' 'Expected visible message types depend on _say_should_print_console.'
+            printf '%s\n' '-----------------------------------------'
+
+            sayinfo "INFO message at loglevel=$SGND_LOG_LEVEL"
+            saystart "STRT message at loglevel=$SGND_LOG_LEVEL"
+            saywarning "WARN message at loglevel=$SGND_LOG_LEVEL"
+            sayfail "FAIL message at loglevel=$SGND_LOG_LEVEL"
+            saycancel "CNCL message at loglevel=$SGND_LOG_LEVEL"
+            sayok "OK message at loglevel=$SGND_LOG_LEVEL"
+            sayend "END message at loglevel=$SGND_LOG_LEVEL"
+            saydebug "DEBUG message at loglevel=$SGND_LOG_LEVEL"
+            say EMPTY "EMPTY message at loglevel=$SGND_LOG_LEVEL"
+        done
+
+        SGND_LOG_LEVEL="$original_loglevel"
+
+        printf '\n'
+        printf 'Restored SGND_LOG_LEVEL=%s\n' "$SGND_LOG_LEVEL"
+    }
+
+    motd_test() {
+        bash ~/dev/SolidgroundUX/target-root/etc/update-motd.d/90-solidgroundux
+    }
 # --- Main -------------------------------------------------------------------------
     # main MUST BE LAST function in script
         # Main entry point for the executable script.
@@ -698,6 +773,8 @@ set -uo pipefail
                 printf " 1) Ask tests\n"
                 printf " 2) Input test\n"
                 printf " 3) Say test\n"
+                printf " 4) Log level visibility test\n"
+                printf " 5) Call motd\n"
                 printf " q) Quit\n"
                 printf '%s\n' '-----------------------------------------'
                 printf "Select option: "
@@ -728,6 +805,12 @@ set -uo pipefail
                         ;;
                     3)
                         say_test
+                        ;;
+                    4)
+                        loglevel_test
+                        ;;
+                    5)
+                        motd_test
                         ;;
                     q)
                         printf "Exiting...\n"
