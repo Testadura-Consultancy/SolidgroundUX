@@ -4,18 +4,13 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2616423
+#   Build       : 2617512
 #   Checksum    : d23c2a8d939566824bc33fa6cc3871ec5eb2fe188425f78996a05902cb356a30
 #   Source      : ui_preface.sh
 #   Type        : documentation
 #   Group       : UI
 #   Purpose     : Product preface
 #
-#   Checksum : d23c2a8d939566824bc33fa6cc3871ec5eb2fe188425f78996a05902cb356a30
-#   Checksum : d23c2a8d939566824bc33fa6cc3871ec5eb2fe188425f78996a05902cb356a30
-#   Checksum : d23c2a8d939566824bc33fa6cc3871ec5eb2fe188425f78996a05902cb356a30
-#   Checksum : d23c2a8d939566824bc33fa6cc3871ec5eb2fe188425f78996a05902cb356a30
-#   Checksum : d23c2a8d939566824bc33fa6cc3871ec5eb2fe188425f78996a05902cb356a30
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy

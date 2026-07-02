@@ -91,6 +91,7 @@ set -uo pipefail
     unset -f _sgnd_lib_guard
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
+    
 # - Local definitions
     # var: Datamodel - Content tables for parsed documentation data
         # . Purpose

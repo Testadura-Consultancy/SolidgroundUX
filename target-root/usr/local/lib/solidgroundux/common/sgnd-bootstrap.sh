@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2615900
-#   Checksum    : e58092fde299001ae24243c3597e7f11a2126c71feedd628bc1f7e52b1ca60eb
+#   Build       : 2617512
+#   Checksum    : 295924a6fa6fd41e758d0703cbdf2125d285cfb38f84d828e35cc3d53e7e41ba
 #   Source      : sgnd-bootstrap.sh
 #   Type        : library
 #   Group       : Bootstrap
@@ -721,7 +721,7 @@ set -uo pipefail
         local current_hash
 
         if ! current_hash="$(sgnd_hash_sha256_file "$license_file")"; then
-            saywarning "sgnd_check_license: could not compute hash ($SGND_LOG_LEVEL)"
+            saywarning "sgnd_check_license: could not compute hash"
             current_hash=""
         fi
 
@@ -874,6 +874,11 @@ set -uo pipefail
             _init_bootstrap || { local rc=$?; _boot_fail "Failed to initialize bootstrapper" "$rc"; return "$rc"; }
 
             _source_corelibs || { local rc=$?; _boot_fail "Failed to load core libraries" "$rc"; return "$rc"; }
+
+            if [[ -r "$SGND_COMMON_LIB/sgnd-exe-common.sh" ]]; then
+                sgnd_module_init_metadata "$SGND_COMMON_LIB/sgnd-exe-common.sh"
+            fi
+
             _source_usinglibs || { local rc=$?; _boot_fail "Failed to load optional libraries" "$rc"; return "$rc"; }
 
             sayinfo "Loading UI style"
@@ -966,7 +971,7 @@ set -uo pipefail
         else
             sayinfo "Running in $RUN_MODE mode (changes will be applied)."
         fi
-        sayend "Finished bootstrap ($SGND_LOG_LEVEL)"
+        sayend "Finished bootstrap"
         return 0
     }
 

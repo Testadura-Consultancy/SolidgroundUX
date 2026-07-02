@@ -1,20 +1,15 @@
-
 # ==================================================================================
 # SolidGroundUX - Documentation Generator Overview
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2616423
+#   Build       : 2617512
 #   Checksum    : 70b0cb552daa93a71a50fe036dd34cbe107c23ea01079001a1b01bc28d3fe39d
 #   Source      : sdk documentation_preface.sh
 #   Type        : documentation
 #   Group       : SDK Documentation
 #   Purpose     : Group preface
 #
-#   Checksum : 70b0cb552daa93a71a50fe036dd34cbe107c23ea01079001a1b01bc28d3fe39d
-#   Checksum : 70b0cb552daa93a71a50fe036dd34cbe107c23ea01079001a1b01bc28d3fe39d
-#   Checksum : 70b0cb552daa93a71a50fe036dd34cbe107c23ea01079001a1b01bc28d3fe39d
-#   Checksum : 70b0cb552daa93a71a50fe036dd34cbe107c23ea01079001a1b01bc28d3fe39d
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy

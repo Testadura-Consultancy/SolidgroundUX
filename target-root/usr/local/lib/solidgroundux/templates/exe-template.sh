@@ -4,8 +4,8 @@
 # ------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2616423
-#   Checksum    : 4b98350fbbf7df27dcad9b979eafbbc0b26e257e5a7dd9de6b978e026b05443f
+#   Build       : 2617512
+#   Checksum    : 433259d05abd0e417299b9a4e4e48ddc230ba1764e10793f1c0995494612e9b6
 #   Source      : exe-template.sh
 #   Type        : script
 #   Group       : Templates
@@ -42,40 +42,39 @@
 # =====================================================================================
 set -uo pipefail
 # - Bootstrap -----------------------------------------------------------------------
-    # fn$ _framework_locator
+    # fn$ _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
         # . Purpose
-        #   Locate, create, and load the SolidGroundUX bootstrap configuration.
+        #   Locate, create, and load the SolidGroundUX bootstrap configuration, then
+        #   load the executable runtime support library.
         #
         # . Behavior
         #   - Searches user and system bootstrap configuration locations.
         #   - Prefers the invoking user's config over the system config.
         #   - Creates a new bootstrap config when none exists.
-        #   - Prompts for framework/application roots in interactive mode, uses defaults otherwise
+        #   - Prompts for framework/application roots in interactive mode.
         #   - Applies default values when running non-interactively.
-        #   - Sources the selected configuration file.
+        #   - Sources the selected bootstrap configuration file.
+        #   - Loads sgnd-exe-common.sh from the resolved framework root.
         #
-        #     System location
-        #       /etc/solidgroundux/solidgroundux.cfg
-        #     User location:
-        #       ~/.config/solidgroundux/solidgroundux.cfg
-        #
-        # Outputs (globals):
+        # . Globals (write)
         #   SGND_FRAMEWORK_ROOT
         #   SGND_APPLICATION_ROOT
         #
+        # . Output
+        #   Writes primitive printf-based messages before the framework UI is available.
+        #
         # . Returns
-        #   0   success
-        #   126 configuration unreadable or invalid
-        #   127 configuration directory or file could not be created
+        #   0 when the bootstrap configuration and executable common library were loaded.
+        #   126 when configuration or executable common library is unreadable or invalid.
+        #   127 when the configuration directory or file could not be created.
         #
         # . Usage
         #   _framework_locator || return $?
         #
-        # Examples:
-        #   _framework_locator
-        #
         # Notes:
         #   - Under sudo, configuration is resolved relative to SUDO_USER instead of /root.
+        #   - This function intentionally uses printf rather than say* helpers because
+        #     the executable common library has not been loaded yet.
     _framework_locator (){
         local cfg_home="$HOME"
 
@@ -108,9 +107,9 @@ set -uo pipefail
             # Interactive prompts (first run only)
             if [[ -t 0 && -t 1 ]]; then
 
-                sayinfo "SolidGroundUX bootstrap configuration"
-                sayinfo "No configuration file found."
-                sayinfo "Creating: $cfg"
+                printf '%s\n' "SolidGroundUX bootstrap configuration"
+                printf '%s\n'  "No configuration file found."
+                printf '%s\n'  "Creating: $cfg"
 
                 printf "SGND_FRAMEWORK_ROOT [/] : " > /dev/tty
                 read -r reply < /dev/tty
@@ -124,12 +123,12 @@ set -uo pipefail
             # Validate paths (must be absolute)
             case "$fw_root" in
                 /*) ;;
-                *) sayfail "ERR: SGND_FRAMEWORK_ROOT must be an absolute path"; return 126 ;;
+                *) printf '%s\n' "ERR: SGND_FRAMEWORK_ROOT must be an absolute path"; return 126 ;;
             esac
 
             case "$app_root" in
                 /*) ;;
-                *) sayfail "ERR: SGND_APPLICATION_ROOT must be an absolute path"; return 126 ;;
+                *) printf '%s\n' "ERR: SGND_APPLICATION_ROOT must be an absolute path"; return 126 ;;
             esac
 
             # Create configuration file
@@ -144,7 +143,7 @@ set -uo pipefail
                 printf 'SGND_APPLICATION_ROOT=%q\n' "$app_root"
             } > "$cfg" || return 127
 
-            saydebug "Created bootstrap cfg: $cfg"
+           printf '%s\n' "Created bootstrap cfg: $cfg"
         fi
 
         # Load configuration
@@ -155,211 +154,43 @@ set -uo pipefail
             : "${SGND_FRAMEWORK_ROOT:=/}"
             : "${SGND_APPLICATION_ROOT:=$SGND_FRAMEWORK_ROOT}"
         else
-            sayfail "Cannot read bootstrap cfg: $cfg"
+            printf '%s\n' "Cannot read bootstrap cfg: $cfg"
             return 126
         fi
 
-        saydebug "Bootstrap cfg loaded: $cfg, SGND_FRAMEWORK_ROOT=$SGND_FRAMEWORK_ROOT, SGND_APPLICATION_ROOT=$SGND_APPLICATION_ROOT"
+        case "${SGND_LOG_LEVEL:-silent}" in
+            silent|quiet)
+                ;;
+            *)
+                printf '%s\n' "Bootstrap cfg loaded: $cfg, SGND_FRAMEWORK_ROOT=$SGND_FRAMEWORK_ROOT, SGND_APPLICATION_ROOT=$SGND_APPLICATION_ROOT"
+                ;;
+        esac
 
-    }
+        local exe_common=""
 
-    # fn$ _load_bootstrapper
-        # . Purpose
-        #   Resolve and source the framework bootstrap library.
-        #
-        # . Behavior
-        #   - Calls _framework_locator to establish framework roots.
-        #   - Derives the sgnd-bootstrap.sh path from SGND_FRAMEWORK_ROOT.
-        #   - Verifies that the bootstrap library is readable.
-        #   - Sources sgnd-bootstrap.sh into the current shell.
-        #
-        # Inputs (globals):
-        #   SGND_FRAMEWORK_ROOT
-        #
-        # . Returns
-        #   0   success
-        #   126 bootstrap library unreadable
-        #
-        # . Usage
-        #   _load_bootstrapper || return $?
-        #
-        # Examples:
-        #   _load_bootstrapper
-        #
-        # Notes:
-        #   - This is executable-level startup logic, not reusable framework behavior.
-    _load_bootstrapper(){
-        local bootstrap=""
+        exe_common="${SGND_FRAMEWORK_ROOT%/}/usr/local/lib/solidgroundux/common/sgnd-exe-common.sh"
 
-        _framework_locator || return $?
-
-        if [[ "$SGND_FRAMEWORK_ROOT" == "/" ]]; then
-            bootstrap="/usr/local/lib/solidgroundux/common/sgnd-bootstrap.sh"
-        else
-            bootstrap="${SGND_FRAMEWORK_ROOT%/}/usr/local/lib/solidgroundux/common/sgnd-bootstrap.sh"
-        fi
-
-        [[ -r "$bootstrap" ]] || {
-            sayfail "FATAL: Cannot read bootstrap: $bootstrap"
+        [[ -r "$exe_common" ]] || {
+            printf 'FATAL: Cannot read executable common library: %s\n' "$exe_common" >&2
             return 126
         }
-        
-        saydebug "Loading $bootstrap"
-            
+
         # shellcheck source=/dev/null
-        source "$bootstrap"
+        source "$exe_common"
     }
 
-    # var$ Minimal message colors
-        # ANSI color constants used by the fallback UI functions before the full
-        # framework bootstrap has been loaded.
-    MSG_CLR_INFO=$'\e[38;5;250m'
-    MSG_CLR_STRT=$'\e[38;5;82m'
-    MSG_CLR_OK=$'\e[38;5;82m'
-    MSG_CLR_WARN=$'\e[1;38;5;208m'
-    MSG_CLR_FAIL=$'\e[38;5;196m'
-    MSG_CLR_CNCL=$'\e[0;33m'
-    MSG_CLR_END=$'\e[38;5;82m'
-    MSG_CLR_EMPTY=$'\e[2;38;5;250m'
-    MSG_CLR_DEBUG=$'\e[1;35m'
+# - Script identity ------------------------------------------------------------------
+    # var: SGND_SCRIPT_FILE - Absolute path to the currently executing script
+    SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
 
-    # var$ Minimal terminal colors
-        # Additional ANSI constants used by template/fallback output helpers.
-    TUI_COMMIT=$'\e[2;37m'
-    RESET=$'\e[0m'
+    # var: SGND_SCRIPT_DIR - Directory containing the currently executing script
+    SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"
 
-    # fn: _sgnd_minimal_say_normalize_log_level - Normalize a minimal bootstrap log level
-        # . Purpose
-        #   Convert aliases and legacy log-level names into a canonical SolidGroundUX
-        #   log-level value before the full UI layer is available.
-        #
-        # . Parameters
-        #   $1 Requested log level.
-        #
-        # . Output
-        #   Writes the normalized log-level name to stdout.
-        #
-        # . Returns
-        #   0 always.
-    _sgnd_minimal_say_normalize_log_level() {
-        case "${1,,}" in
-            off|none|silent) printf '%s\n' 'silent' ;;
-            warn|quiet)      printf '%s\n' 'quiet' ;;
-            normal|'')       printf '%s\n' 'normal' ;;
-            verbose)         printf '%s\n' 'verbose' ;;
-            debug)           printf '%s\n' 'debug' ;;
-            trace|all)       printf '%s\n' 'trace' ;;
-            *)               printf '%s\n' 'silent' ;;
-        esac
-    }
+    # var: SGND_SCRIPT_BASE - Filename of the currently executing script
+    SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
 
-    # fn: _sgnd_minimal_say_should_print_console - Determine minimal bootstrap console visibility
-        # . Purpose
-        #   Determine whether a bootstrap message should be written before the full
-        #   SolidGroundUX UI layer is loaded.
-        #
-        # . Parameters
-        #   $1 Message type.
-        #
-        # . Globals (read)
-        #   SGND_LOG_LEVEL
-        #
-        # . Returns
-        #   0 if the message should be displayed.
-        #   1 if the message should be suppressed.
-    _sgnd_minimal_say_should_print_console() {
-        local type="${1^^}"
-        local level=""
-
-        level="$(_sgnd_minimal_say_normalize_log_level "${SGND_LOG_LEVEL:-silent}")"
-
-        case "$level" in
-            silent)
-                return 1
-                ;;
-            quiet)
-                case "$type" in
-                    WARN|WARNING|FAIL|ERROR) return 0 ;;
-                    *)                       return 1 ;;
-                esac
-                ;;
-            normal)
-                case "$type" in
-                    START|STRT|OK|WARN|WARNING|FAIL|ERROR|CANCEL|CNCL|END) return 0 ;;
-                    *)                                                     return 1 ;;
-                esac
-                ;;
-            verbose)
-                case "$type" in
-                    DEBUG|TRACE) return 1 ;;
-                    *)           return 0 ;;
-                esac
-                ;;
-            debug)
-                case "$type" in
-                    TRACE) return 1 ;;
-                    *)     return 0 ;;
-                esac
-                ;;
-            trace)
-                return 0
-                ;;
-        esac
-
-        return 1
-    }
-
-    # fn: say - Emit a minimal bootstrap message
-        # . Purpose
-        #   Emit a status message before the full SolidGroundUX UI layer is loaded.
-        #
-        # . Parameters
-        #   $1 Message type.
-        #   $@ Message text after the type.
-        #
-        # . Globals (read)
-        #   SGND_LOG_LEVEL, MSG_CLR_*, RESET
-        #
-        # . Output
-        #   Writes a formatted message to stderr when allowed by SGND_LOG_LEVEL.
-        #
-        # . Returns
-        #   0 always.
-    say() {
-        local type="${1^^}"
-        local label=""
-        local color=""
-
-        shift || true
-
-        _sgnd_minimal_say_should_print_console "$type" || return 0
-
-        case "$type" in
-            START|STRT)   label="START";  color="${MSG_CLR_STRT-}" ;;
-            INFO)         label="INFO";   color="${MSG_CLR_INFO-}" ;;
-            OK)           label="OK";     color="${MSG_CLR_OK-}" ;;
-            WARN|WARNING) label="WARN";   color="${MSG_CLR_WARN-}" ;;
-            FAIL|ERROR)   label="FAIL";   color="${MSG_CLR_FAIL-}" ;;
-            DEBUG)        label="DEBUG";  color="${MSG_CLR_DEBUG-}" ;;
-            TRACE)        label="TRACE";  color="${MSG_CLR_DEBUG-}" ;;
-            CANCEL|CNCL)  label="CANCEL"; color="${MSG_CLR_CNCL-}" ;;
-            END)          label="END";    color="${MSG_CLR_END-}" ;;
-            *)            label="$type";  color="${MSG_CLR_EMPTY-}" ;;
-        esac
-
-        printf '%s%-6s%s\t%s\n' "$color" "$label" "${RESET-}" "$*" >&2
-    }
-
-    saystart()   { say START "$@"; }
-    sayinfo()    { say INFO "$@"; }
-    sayok()      { say OK "$@"; }
-    saywarning() { say WARN "$@"; }
-    sayfail()    { say FAIL "$@"; }
-    saydebug()   { say DEBUG "$@"; }
-    saycancel()  { say CANCEL "$@"; }
-    sayend()     { say END "$@"; }
-    
-# - Script metadata (identity) ------------------------------------------------------
+    # var: SGND_SCRIPT_NAME - Script basename without the .sh extension
+    SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
     # var$ SGND_SCRIPT_FILE
         # Absolute path to the currently executing script.
     SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
@@ -376,8 +207,8 @@ set -uo pipefail
         # Script basename without the .sh extension; used for help and display text.
     SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
 
-# - Script metadata (framework integration) -----------------------------------------
-    # var$ SGND_USING
+# --- Framework integration ----------------------------------------------------------
+    # var: SGND_USING - Optional framework libraries to source after core bootstrap
         # Libraries to source from SGND_COMMON_LIB.
         # These are loaded automatically by sgnd_bootstrap AFTER core libraries.
         #
@@ -388,7 +219,7 @@ set -uo pipefail
     SGND_USING=(
     )
 
-    # var$ SGND_ARGS_SPEC 
+    # var: SGND_ARGS_SPEC - Script-specific command-line argument specification
         # Optional: script-specific arguments
         # --- Example: Arguments
         # Each entry:
@@ -408,7 +239,7 @@ set -uo pipefail
     SGND_ARGS_SPEC=(
     )
 
-    # var$ SGND_SCRIPT_EXAMPLES
+    # var: SGND_SCRIPT_EXAMPLES - Optional help examples for this script
         # Optional: examples for --help output.
         # Each entry is a string that will be printed verbatim.
         #
@@ -428,7 +259,7 @@ set -uo pipefail
         "  $SGND_SCRIPT_NAME --verbose"
     ) 
 
-    # var$ SGND_SCRIPT_GLOBALS
+    # var: SGND_SCRIPT_GLOBALS - Script globals participating in configuration loading# var: SGND_SCRIPT_GLOBALS - Script globals participating in configuration loading
         # Explicit declaration of global variables intentionally used by this script.
         #
         # . Purpose
@@ -454,7 +285,7 @@ set -uo pipefail
     SGND_SCRIPT_GLOBALS=(
     )
 
-    # var$ SGND_STATE_VARIABLES
+    # var: SGND_STATE_VARIABLES - Script variables participating in persistent state
         # List of variables participating in persistent state.
         #
         # . Purpose
@@ -474,7 +305,7 @@ set -uo pipefail
     SGND_STATE_VARIABLES=(
     )
 
-    # var$ SGND_ON_EXIT_HANDLERS
+    # var: SGND_ON_EXIT_HANDLERS - Script-specific exit handler list
         # List of functions to be invoked on script termination.
         #
         # . Purpose
@@ -530,64 +361,30 @@ set -uo pipefail
         #   - Cleanup
 
 # - Main ----------------------------------------------------------------------------
-    # fn$ main
+    # fn: main - Run the executable main sequence
         # . Purpose
-        #   Canonical entry point for executable scripts.
-        #
-        # . Behavior
-        #   - Loads the framework bootstrapper.
-        #   - Initializes runtime via sgnd_bootstrap.
-        #   - Handles built-in framework arguments.
-        #   - Prepares UI state (runmode + title bar).
-        #   - Executes script-specific logic.
+        #   Run the standard executable startup sequence and then execute
+        #   script-specific logic.
         #
         # . Arguments
-        #   $@  Command-line arguments (framework + script-specific).
+        #   $@  Command-line arguments.
+        #
+        # . Behavior
+        #   - Locates the SolidGroundUX framework.
+        #   - Loads executable runtime support.
+        #   - Starts the framework runtime through sgnd_exe_start.
+        #   - Continues with script-specific logic.
         #
         # . Returns
-        #   Exits with the resulting status code from bootstrap or script logic.
+        #   Exits with the resulting status code from startup or script logic.
         #
         # . Usage
         #   main "$@"
-        #
-        # Examples:
-        #   # Standard script entrypoint
-        #   main "$@"
-        #
-        # Notes:
-        #   - sgnd_bootstrap splits framework and script arguments automatically..
-    main() {
-        # -- Bootstrap
-            local rc=0
+    main() {     
+        _framework_locator || exit $?
+        sgnd_exe_start "$@"
 
-            _load_bootstrapper || exit $?            
-
-            # Recognized switches:
-            #     --state      -> enable saving state variables 
-            #     --autostate  -> enable state support and auto-save SGND_STATE_VARIABLES on exit
-            #     --needroot   -> restart script if not root
-            #     --cannotroot -> exit script if root
-            #     --log        -> enable file logging
-            #     --console    -> enable console logging
-            # Example:
-            #   sgnd_bootstrap --state --needroot -- "$@"
-            sgnd_bootstrap -- "$@"
-            rc=$?
-
-            saydebug "After bootstrap: $rc"
-            (( rc != 0 )) && exit "$rc"
-                        
-        # -- Handle builtin arguments
-            saydebug "Calling builtinarg handler"
-            sgnd_builtinarg_handler
-            saydebug "Exited builtinarg handler"
-
-        # -- UI
-            sgnd_update_runmode
-            sgnd_print_titlebar
-
-        # -- Main script logic
-
+        # script logic
     }
 
     # Entrypoint: sgnd_bootstrap will split framework args from script args.

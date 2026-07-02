@@ -223,6 +223,9 @@ set -uo pipefail
         "section|s|enum|VAL_SECTION|Header section to update|Metadata,Attribution"
         "field||value|VAL_FIELD|Field name to update|"
         "value||value|VAL_VALUE|New value to write|"
+        "line||value|VAL_FIELDLINE|Field assignment in '<Fieldname> : value' form|"
+        "setversion||value|VAL_SETVERSION|Set Version to a specific value and refresh checksum/build metadata|"
+        "changedsince||value|VAL_CHANGEDSINCE|Only process files changed in the last N days|"
         "auto|a|flag|FLAG_AUTO|Run non-interactively and update immediately|0|"
         "promptfor||value|VAL_PROMPTFOR|Comma-separated list of field names to prompt for|"
         "idem||flag|FLAG_IDEM|In multi-file mode, ask each selected field only once and reuse the answers|1|"
@@ -251,8 +254,14 @@ set -uo pipefail
         "Bump minor version on one file:"
         "  metadata-editor.sh --file ./my-script.sh --bumpminor"
         ""
-        "Bump major version on all scripts in a folder:"
-        "  metadata-editor.sh --folder ./scripts --bumpmajor"
+        "Set a specific version on one file:"
+        "  metadata-editor.sh --file ./my-script.sh --setversion 1.6"
+        ""
+        "Update a field using field-line form:"
+        "  metadata-editor.sh --auto --file ./my-script.sh --section Metadata --line 'Purpose : Updated purpose text'"
+        ""
+        "Bump major version on scripts changed in the last 7 days:"
+        "  metadata-editor.sh --folder ./scripts --bumpmajor --changedsince 7"
     )
 
     # SGND_SCRIPT_GLOBALS
@@ -267,6 +276,8 @@ set -uo pipefail
         "FLAG_BUMPVERSION|Refresh checksum and buildnr|Y|"
         "FLAG_BUMPMAJOR|Bump major version by one|Y|"
         "FLAG_BUMPMINOR|Bump minor version by one|Y|"
+        "VAL_SETVERSION|Set explicit version||"
+        "VAL_CHANGEDSINCE|Changed since days||sgnd_is_number"
     )
 
     # SGND_ON_EXIT_HANDLERS
@@ -600,6 +611,18 @@ set -uo pipefail
                 saywarning "Skipping unreadable file: $file"
                 continue
             fi
+            if [[ -n "${VAL_CHANGEDSINCE:-}" ]]; then
+                if ! [[ "$VAL_CHANGEDSINCE" =~ ^[0-9]+$ ]]; then
+                    sayfail "--changedsince expects a number of days"
+                    shopt -u nullglob
+                    return 1
+                fi
+
+                if [[ -z "$(find "$file" -type f -mtime -"$VAL_CHANGEDSINCE" -print -quit 2>/dev/null)" ]]; then
+                    continue
+                fi
+            fi
+
             SOURCE_FILES+=( "$(readlink -f "$file")" )
         done
         shopt -u nullglob
@@ -610,6 +633,176 @@ set -uo pipefail
         fi
 
         return 0
+    }
+
+
+
+    # fn: _parse_field_assignment - Parse a field assignment line
+        # . Purpose
+        #   Parse a metadata field assignment in the form '<Fieldname> : value'.
+        #
+        # . Arguments
+        #   $1  LINE
+        #       Field assignment text.
+        #   $2  OUT_FIELD
+        #       Name of the output variable that receives the field name.
+        #   $3  OUT_VALUE
+        #       Name of the output variable that receives the value.
+        #
+        # . Returns
+        #   0 when the assignment was parsed.
+        #   1 when the assignment is empty or malformed.
+    _parse_field_assignment() {
+        local line="${1:-}"
+        local -n out_field="$2"
+        local -n out_value="$3"
+
+        out_field=""
+        out_value=""
+
+        [[ "$line" == *:* ]] || return 1
+
+        out_field="${line%%:*}"
+        out_value="${line#*:}"
+
+        out_field="${out_field#"${out_field%%[![:space:]]*}"}"
+        out_field="${out_field%"${out_field##*[![:space:]]}"}"
+        out_value="${out_value#"${out_value%%[![:space:]]*}"}"
+        out_value="${out_value%"${out_value##*[![:space:]]}"}"
+
+        [[ -n "$out_field" ]]
+    }
+
+    # fn: _header_set_or_add_field - Set or add a script header field
+        # . Purpose
+        #   Update a field in a named script header section, adding the field when it
+        #   does not yet exist in that section.
+        #
+        # . Arguments
+        #   $1  FILE
+        #   $2  SECTION
+        #   $3  FIELD
+        #   $4  VALUE
+        #
+        # . Behavior
+        #   - Looks for a section header in the form '# Section:'.
+        #   - Updates '#   Field : value' when the field exists.
+        #   - Inserts the field before the section's first non-field line when missing.
+        #   - Preserves the rest of the file unchanged.
+        #
+        # . Returns
+        #   0 when the file was updated.
+        #   1 when the update failed.
+    _header_set_or_add_field() {
+        local file="${1:?missing file}"
+        local section="${2:?missing section}"
+        local field="${3:?missing field}"
+        local value="${4-}"
+        local tmp=""
+
+        [[ -r "$file" && -w "$file" ]] || return 1
+
+        tmp="$(mktemp)" || return 1
+
+        awk -v section="$section" -v field="$field" -v value="$value" '
+            BEGIN {
+                in_section = 0
+                section_seen = 0
+                field_done = 0
+                inserted = 0
+                section_re = "^#[[:space:]]*" section ":[[:space:]]*$"
+                field_re = "^#[[:space:]]*" field "[[:space:]]*:"
+            }
+
+            function emit_field() {
+                printf "#   %-12s: %s\n", field, value
+                inserted = 1
+                field_done = 1
+            }
+
+            {
+                if ($0 ~ section_re) {
+                    in_section = 1
+                    section_seen = 1
+                    print
+                    next
+                }
+
+                if (in_section) {
+                    if ($0 ~ field_re) {
+                        emit_field()
+                        next
+                    }
+
+                    if ($0 !~ /^#[[:space:]]+[A-Za-z0-9_ -]+[[:space:]]*:/) {
+                        if (!field_done) {
+                            emit_field()
+                        }
+                        in_section = 0
+                    }
+                }
+
+                print
+            }
+
+            END {
+                if (section_seen && in_section && !field_done) {
+                    emit_field()
+                }
+                if (!section_seen) {
+                    exit 2
+                }
+            }
+        ' "$file" > "$tmp"
+
+        case $? in
+            0)
+                if (( ${FLAG_DRYRUN:-0} )); then
+                    sayinfo "[DRYRUN] Would update [$section] $field in $file: '$value'"
+                    rm -f "$tmp"
+                    return 0
+                fi
+                cat "$tmp" > "$file"
+                rm -f "$tmp"
+                return 0
+                ;;
+            2)
+                rm -f "$tmp"
+                saywarning "Header section not found: [$section] in $file"
+                return 1
+                ;;
+            *)
+                rm -f "$tmp"
+                return 1
+                ;;
+        esac
+    }
+
+    # fn: _apply_field_assignment_to_file - Apply a field assignment to a file
+        # . Purpose
+        #   Apply a '<Fieldname> : value' assignment to the current header section.
+        #
+        # . Arguments
+        #   $1  FILE
+        #   $2  SECTION
+        #   $3  ASSIGNMENT
+        #
+        # . Returns
+        #   0 when applied.
+        #   1 when parsing or applying failed.
+    _apply_field_assignment_to_file() {
+        local file="${1:?missing file}"
+        local section="${2:?missing section}"
+        local assignment="${3:?missing assignment}"
+        local field=""
+        local value=""
+
+        _parse_field_assignment "$assignment" field value || {
+            sayfail "Invalid field assignment, expected '<Fieldname> : value': $assignment"
+            return 1
+        }
+
+        _header_set_or_add_field "$file" "$section" "$field" "$value"
     }
 
     # _get_metadata
@@ -712,8 +905,13 @@ set -uo pipefail
             (( bump_count++ ))
         fi
 
+        if [[ -n "${VAL_SETVERSION:-}" ]]; then
+            BUMP_MODE="set"
+            (( bump_count++ ))
+        fi
+
         if (( bump_count > 1 )); then
-            sayfail "Use only one of --bumpversion, --bumpmajor, or --bumpminor"
+            sayfail "Use only one of --bumpversion, --bumpmajor, --bumpminor, or --setversion"
             return 1
         fi
 
@@ -774,13 +972,17 @@ set -uo pipefail
             return 1
         }
 
+        if [[ -n "${VAL_FIELDLINE:-}" ]]; then
+            return 0
+        fi
+
         [[ -n "${VAL_FIELD:-}" ]] || {
-            sayfail "--auto requires --field"
+            sayfail "--auto requires --field or --line"
             return 1
         }
 
         [[ -v VAL_VALUE ]] || {
-            sayfail "--auto requires --value"
+            sayfail "--auto requires --value when --line is not used"
             return 1
         }
 
@@ -826,7 +1028,7 @@ set -uo pipefail
         # . Usage
         #   _validate_bump_args
     _validate_bump_args() {
-        if (( ${FLAG_BUMPVERSION:-0} || ${FLAG_BUMPMAJOR:-0} || ${FLAG_BUMPMINOR:-0} )); then
+        if (( ${FLAG_BUMPVERSION:-0} || ${FLAG_BUMPMAJOR:-0} || ${FLAG_BUMPMINOR:-0} )) || [[ -n "${VAL_SETVERSION:-}" ]]; then
             if [[ -z "${VAL_FILE:-}" && -z "${VAL_FOLDER:-}" ]]; then
                 sayfail "Version bump mode requires --file or --folder"
                 return 1
@@ -873,19 +1075,22 @@ set -uo pipefail
         _resolve_source || return 1
 
         for file in "${SOURCE_FILES[@]}"; do
-            if sgnd_header_set_field "$file" "$VAL_SECTION" "$VAL_FIELD" "$VAL_VALUE"; then
+            if [[ -n "${VAL_FIELDLINE:-}" ]]; then
+                if _apply_field_assignment_to_file "$file" "$VAL_SECTION" "$VAL_FIELDLINE"; then
+                    sayok "Updated [$VAL_SECTION] $VAL_FIELDLINE in $file"
+                    (( changed++ ))
+                else
+                    sayfail "Failed to update [$VAL_SECTION] $VAL_FIELDLINE in $file"
+                    (( failed++ ))
+                fi
+                continue
+            fi
+
+            if _header_set_or_add_field "$file" "$VAL_SECTION" "$VAL_FIELD" "$VAL_VALUE"; then
                 sayok "Updated [$VAL_SECTION] $VAL_FIELD in $file"
                 (( changed++ ))
             else
-                rc=$?
-                case "$rc" in
-                    2)
-                        saywarning "Header mismatch: [$VAL_SECTION] $VAL_FIELD not found in $file"
-                        ;;
-                    *)
-                        sayfail "Failed to update [$VAL_SECTION] $VAL_FIELD in $file"
-                        ;;
-                esac
+                sayfail "Failed to update [$VAL_SECTION] $VAL_FIELD in $file"
                 (( failed++ ))
             fi
         done
@@ -913,9 +1118,16 @@ set -uo pipefail
             case "$mode" in
                 major) sayinfo "[DRYRUN] Would bump major version in $file" ;;
                 minor) sayinfo "[DRYRUN] Would bump minor version in $file" ;;
+                set)   sayinfo "[DRYRUN] Would set version to ${VAL_SETVERSION:-<unset>} in $file and refresh build/checksum" ;;
                 none)  sayinfo "[DRYRUN] Would update build/checksum in $file" ;;
             esac
             return 0
+        fi
+
+        if [[ "$mode" == "set" ]]; then
+            _header_set_or_add_field "$file" "Metadata" "Version" "$VAL_SETVERSION" || return 1
+            sgnd_header_bump_version "$file" "none"
+            return $?
         fi
 
         sgnd_header_bump_version "$file" "$mode"
@@ -954,6 +1166,7 @@ set -uo pipefail
                 case "$BUMP_MODE" in
                     major) sayok "Bumped major version in $file" ;;
                     minor) sayok "Bumped minor version in $file" ;;
+                    set)   sayok "Set version to $VAL_SETVERSION and updated build/checksum in $file" ;;
                     none)  sayok "Updated build/checksum in $file" ;;
                 esac
                 (( changed++ ))
@@ -1044,6 +1257,7 @@ set -uo pipefail
     _resolve_source_input() {
         local _folder="${VAL_FOLDER:-}"
         local _mask="${VAL_FILE:-}"
+        local _changed_since="${VAL_CHANGEDSINCE:-}"
 
         # If file contains a path, split it
         if [[ -z "$_folder" && -n "$_mask" && "$_mask" == */* ]]; then
@@ -1057,12 +1271,14 @@ set -uo pipefail
 
         # Interactive prompt (TTY only)
         if [[ -t 0 && -t 1 ]]; then
-            ask --label "Folder"    --default "$_folder" --var _folder --pad "$_ask_lp" --default "$VAL_FOLDER" --labelwidth "$_ask_lw" --labelclr "${CYAN}"
-            ask --label "File mask" --default "$_mask"   --var _mask --pad "$_ask_lp" --default "$VAL_FILE" --labelwidth "$_ask_lw" --labelclr "${CYAN}"
+            ask --label "Folder" --default "$_folder" --var _folder --pad "$_ask_lp" --labelwidth "$_ask_lw" --labelclr "${CYAN}"
+            ask --label "File mask" --default "$_mask" --var _mask --pad "$_ask_lp" --labelwidth "$_ask_lw" --labelclr "${CYAN}"
+            ask --label "Changed since days" --default "$_changed_since" --var _changed_since --pad "$_ask_lp" --labelwidth "$_ask_lw" --labelclr "${CYAN}"
         fi
 
         VAL_FOLDER="$_folder"
         VAL_FILE="$_mask"
+        VAL_CHANGEDSINCE="$_changed_since"
     }
 
     # _build_value_buffer_from_meta
@@ -1264,21 +1480,23 @@ set -uo pipefail
 
         sgnd_print
         sgnd_print_sectionheader "Action" --border "${LN_H}" --padleft 2
-        sgnd_print_labeledvalue --label "E" --value "Edit fields" --pad 3 --labelwidth 3
-        sgnd_print_labeledvalue --label "B" --value "Bump version" --pad 3 --labelwidth 3
+        sgnd_print_labeledvalue --label "E" --value "Edit existing fields" --pad 3 --labelwidth 3
+        sgnd_print_labeledvalue --label "L" --value "Set/add field line" --pad 3 --labelwidth 3
+        sgnd_print_labeledvalue --label "B" --value "Bump or set version" --pad 3 --labelwidth 3
         sgnd_print_labeledvalue --label "Q" --value "Cancel" --pad 3 --labelwidth 3
         sgnd_print
         
         ask_choose_immediate \
             --label "Choose" \
-            --choices "E,B,Q" \
-            --instantchoices "E,B,Q" \
+            --choices "E,L,B,Q" \
+            --instantchoices "E,L,B,Q" \
             --var choice \
             --pad "$_ask_lp" \
             --labelclr "${CYAN}"
 
         case "${choice^^}" in
             E) out_action="edit" ;;
+            L) out_action="line" ;;
             B) out_action="bump" ;;
             Q) out_action="cancel" ;;
             *) out_action="cancel" ;;
@@ -1341,15 +1559,17 @@ set -uo pipefail
         sgnd_print_labeledvalue "0" "Refresh build/checksum" --pad "$lp" --labelwidth "$lw"
         sgnd_print_labeledvalue "1" "Major" --pad "$lp" --labelwidth "$lw"
         sgnd_print_labeledvalue "2" "Minor" --pad "$lp" --labelwidth "$lw"
+        sgnd_print_labeledvalue "3" "Set version" --pad "$lp" --labelwidth "$lw"
         sgnd_print_labeledvalue "Q" "Cancel" --pad "$lp" --labelwidth "$lw"
         sgnd_print
 
-        ask_choose --label "Choose" --choices "0, 1,2,Q" --var choice   --pad "$_ask_lp" --labelclr "${CYAN}"
+        ask_choose --label "Choose" --choices "0,1,2,3,Q" --var choice --pad "$_ask_lp" --labelclr "${CYAN}"
 
         case "${choice^^}" in
             0) out_mode="none" ;;
             1) out_mode="major" ;;
             2) out_mode="minor" ;;
+            3) out_mode="set" ;;
             Q) out_mode="cancel" ;;
             *) out_mode="cancel" ;;
         esac
@@ -1423,14 +1643,10 @@ set -uo pipefail
                 continue
             fi
 
-            if sgnd_header_set_field "$current_script" "$section" "$field" "$new_value"; then
+            if _header_set_or_add_field "$current_script" "$section" "$field" "$new_value"; then
                 (( changed++ ))
             else
-                rc=$?
-                case "$rc" in
-                    2) saywarning "Header mismatch: [$section] $field not found in $current_script" ;;
-                    *) sayfail "Failed to update [$section] $field in $current_script" ;;
-                esac
+                sayfail "Failed to update [$section] $field in $current_script"
                 (( failed++ ))
             fi
         done
@@ -1443,6 +1659,78 @@ set -uo pipefail
     }
 
 # --- Main ----------------------------------------------------------------------------
+
+
+    # fn: _ask_set_version - Ask for an explicit version value
+        # . Purpose
+        #   Prompt for the version value used by set-version mode.
+        #
+        # . Arguments
+        #   $1  OUT_VERSION
+        #       Name of the destination variable.
+        #
+        # . Returns
+        #   0 when a value was entered.
+        #   1 when no value was entered.
+    _ask_set_version() {
+        local -n out_version="$1"
+        local version="${VAL_SETVERSION:-}"
+
+        ask --label "Version" --var version --default "$version" --pad "$_ask_lp" --labelwidth "$_ask_lw" --labelclr "${CYAN}"
+        [[ -n "$version" ]] || return 1
+
+        out_version="$version"
+        VAL_SETVERSION="$version"
+        return 0
+    }
+
+    # fn: _interactive_field_line_files - Set or add a field line interactively
+        # . Purpose
+        #   Prompt for one '<Fieldname> : value' line and apply it to selected files.
+        #
+        # . Arguments
+        #   $1  APPLY_ALL
+        #       0 = first file only.
+        #       1 = all resolved files.
+        #
+        # . Returns
+        #   0 when all selected files were updated.
+        #   1 on failure.
+        #   2 when cancelled or no line was provided.
+    _interactive_field_line_files() {
+        local apply_all="${1:-0}"
+        local section="${VAL_SECTION:-Metadata}"
+        local assignment="${VAL_FIELDLINE:-}"
+        local file=""
+        local -a target_files=()
+        local failed=0
+
+        ask --label "Section" --var section --default "$section" --pad "$_ask_lp" --labelwidth "$_ask_lw" --labelclr "${CYAN}"
+        ask --label "Field : value" --var assignment --default "$assignment" --pad "$_ask_lp" --labelwidth "$_ask_lw" --labelclr "${CYAN}"
+
+        [[ -n "$assignment" ]] || return 2
+
+        VAL_SECTION="$section"
+        VAL_FIELDLINE="$assignment"
+
+        if (( apply_all )); then
+            target_files=( "${SOURCE_FILES[@]}" )
+        else
+            target_files=( "${SOURCE_FILES[0]}" )
+        fi
+
+        for file in "${target_files[@]}"; do
+            if _apply_field_assignment_to_file "$file" "$section" "$assignment"; then
+                sayok "Updated [$section] $assignment in $file"
+            else
+                sayfail "Failed to update [$section] $assignment in $file"
+                (( failed++ ))
+            fi
+        done
+
+        (( failed == 0 ))
+    }
+
     # _interactive_bump_files
         # . Purpose
         #   Apply an interactive version metadata update to the first file or all files.
@@ -1494,6 +1782,9 @@ set -uo pipefail
 
         case "$mode" in
             cancel) return 2 ;;
+            set)
+                _ask_set_version VAL_SETVERSION || return 2
+                ;;
             none|major|minor) ;;
             *) return 2 ;;
         esac
@@ -1509,6 +1800,8 @@ set -uo pipefail
                 case "$mode" in
                     major) sayok "Bumped major version in $file" ;;
                     minor) sayok "Bumped minor version in $file" ;;
+                    set)   sayok "Set version to $VAL_SETVERSION in $file" ;;
+                    none)  sayok "Updated build/checksum in $file" ;;
                 esac
             else
                 sayfail "Failed version bump in $file"
@@ -1764,6 +2057,10 @@ set -uo pipefail
                 _interactive_bump_files "$apply_all_answers"
                 return $?
                 ;;
+            line)
+                _interactive_field_line_files "$apply_all_answers"
+                return $?
+                ;;
             edit)
                 ;;
             *)
@@ -1840,12 +2137,12 @@ set -uo pipefail
             saywarning "--idem is ignored in --auto mode"
         fi
 
-        if (( ${FLAG_AUTO:-0} )) && (( ${FLAG_BUMPVERSION:-0} || ${FLAG_BUMPMAJOR:-0} || ${FLAG_BUMPMINOR:-0} )); then
-            sayfail "Do not combine --auto with --bumpversion, --bumpmajor, or --bumpminor"
+        if (( ${FLAG_AUTO:-0} )) && { (( ${FLAG_BUMPVERSION:-0} || ${FLAG_BUMPMAJOR:-0} || ${FLAG_BUMPMINOR:-0} )) || [[ -n "${VAL_SETVERSION:-}" ]]; }; then
+            sayfail "Do not combine --auto with --bumpversion, --bumpmajor, --bumpminor, or --setversion"
             exit 2
         fi
 
-        if (( ${FLAG_IDEM:-0} )) && (( ${FLAG_BUMPVERSION:-0} || ${FLAG_BUMPMAJOR:-0} || ${FLAG_BUMPMINOR:-0} )); then
+        if (( ${FLAG_IDEM:-0} )) && { (( ${FLAG_BUMPVERSION:-0} || ${FLAG_BUMPMAJOR:-0} || ${FLAG_BUMPMINOR:-0} )) || [[ -n "${VAL_SETVERSION:-}" ]]; }; then
             saywarning "--idem is ignored in version bump mode"
         fi
 
@@ -1854,7 +2151,7 @@ set -uo pipefail
             exit 0
         fi
 
-        if (( ${FLAG_BUMPVERSION:-0} || ${FLAG_BUMPMAJOR:-0} || ${FLAG_BUMPMINOR:-0} )); then
+        if (( ${FLAG_BUMPVERSION:-0} || ${FLAG_BUMPMAJOR:-0} || ${FLAG_BUMPMINOR:-0} )) || [[ -n "${VAL_SETVERSION:-}" ]]; then
             _bump_version_files || exit $?
             exit 0
         fi

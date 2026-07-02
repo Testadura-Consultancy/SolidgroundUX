@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2616001
-#   Checksum    : 92c8dcb19969ec66d6b07f7078427bd7f1b14df3ab105b54d051cafce3ad2de0
+#   Build       : 2617512
+#   Checksum    : c6461fec463b0033157a52936bd47fce66e973d6fa8cf2d45f1ea0142ffa88ea
 #   Source      : solidgroundux_epilogue.sh
 #   Type        : documentation
 #   Group       : SolidGroundUX
@@ -161,3 +161,336 @@
 # >         "Undeploy everything:"
 # >         "  $SGND_SCRIPT_NAME --undeploy"
 # >     )
+# - Subsystem Reference Guide --------------------------------------------------------
+#
+# > This section provides a compact developer reference for the main SolidGroundUX
+# > subsystems. It is intended as a quick map of what exists, which files are involved,
+# > which globals matter, and how a script normally opts into the feature.
+#
+# -- 1. Executable Startup Contract --------------------------------------------------
+#
+# > Purpose
+# >     Provide a standard startup pattern for executable SolidGroundUX scripts.
+#
+# > Main files
+# >     exe-template.sh
+# >     sgnd-exe-common.sh
+#
+# > Main functions
+# >     _framework_locator
+# >     sgnd_exe_start
+#
+# > Important globals
+# >     SGND_FRAMEWORK_ROOT
+# >     SGND_APPLICATION_ROOT
+# >     SGND_SCRIPT_FILE
+# >     SGND_SCRIPT_DIR
+# >     SGND_SCRIPT_BASE
+# >     SGND_SCRIPT_NAME
+#
+# > Typical usage
+# >     main() {
+# >         _framework_locator || exit $?
+# >         sgnd_exe_start "$@"
+# >
+# >         # script logic
+# >     }
+#
+# -- 2. Bootstrap and Runtime Initialization -----------------------------------------
+#
+# > Purpose
+# >     Initialize the framework runtime, apply defaults, resolve directories,
+# >     load core libraries, and prepare the script for framework services.
+#
+# > Main files
+# >     sgnd-bootstrap.sh
+# >     sgnd-bootstrap-env.sh
+#
+# > Main functions
+# >     sgnd_bootstrap
+# >     sgnd_apply_defaults
+# >     sgnd_rebase_directories
+# >     sgnd_ensure_dirs
+#
+# > Important globals
+# >     SGND_CORE_LIBS
+# >     SGND_FRAMEWORK_DIRS
+# >     SGND_FRAMEWORK_GLOBALS
+# >     SGND_RUNTIME_GLOBALS
+#
+# > Bootstrap options
+# >     --state
+# >     --autostate
+# >     --needroot
+# >     --cannotroot
+# >     --log
+# >     --quiet
+# >     --silent
+# >     --loglevel
+#
+# -- 3. Framework Directory and Global Model -----------------------------------------
+#
+# > Purpose
+# >     Standardize framework paths, application paths, user paths,
+# >     configuration locations, state locations, documentation locations,
+# >     style locations, and log locations.
+#
+# > Main file
+# >     sgnd-bootstrap-env.sh
+#
+# > Important globals
+# >     SGND_FRAMEWORK_ROOT
+# >     SGND_APPLICATION_ROOT
+# >     SGND_COMMON_LIB
+# >     SGND_SYSCFG_DIR
+# >     SGND_USRCFG_DIR
+# >     SGND_STATE_DIR
+# >     SGND_STYLE_DIR
+# >     SGND_DOCS_DIR
+# >     SGND_LOG_PATH
+# >     SGND_ALTLOG_PATH
+# >     SGND_USER_HOME
+#
+# -- 4. Command-Line Argument Parsing ------------------------------------------------
+#
+# > Purpose
+# >     Provide consistent built-in and script-specific command-line argument handling.
+#
+# > Main file
+# >     sgnd-args.sh
+#
+# > Main functions
+# >     sgnd_parse_args
+# >     sgnd_builtinarg_handler
+# >     sgnd_show_help
+#
+# > Important globals
+# >     SGND_ARGS_SPEC
+# >     SGND_BUILTIN_ARGS
+# >     SGND_SCRIPT_EXAMPLES
+# >     SGND_POSITIONAL
+#
+# -- 5. Configuration Support --------------------------------------------------------
+#
+# > Purpose
+# >     Load framework and script configuration from system and user
+# >     configuration files.
+#
+# > Main files
+# >     sgnd-cfg.sh
+# >     sgnd-bootstrap-env.sh
+#
+# > Main functions
+# >     sgnd_cfg_domain_apply
+# >     sgnd_print_cfg
+#
+# > Important globals
+# >     SGND_FRAMEWORK_GLOBALS
+# >     SGND_SCRIPT_GLOBALS
+# >     SGND_FRAMEWORK_SYSCFG_FILE
+# >     SGND_FRAMEWORK_USRCFG_FILE
+# >     SGND_SYSCFG_FILE
+# >     SGND_USRCFG_FILE
+#
+# -- 6. State Support ----------------------------------------------------------------
+#
+# > Purpose
+# >     Persist selected script variables between runs.
+#
+# > Main files
+# >     sgnd-state.sh
+# >     sgnd-bootstrap.sh
+#
+# > Main functions
+# >     sgnd_state_load
+# >     sgnd_state_save_keys
+# >     sgnd_state_reset
+# >     sgnd_save_state
+#
+# > Important globals
+# >     SGND_STATE_VARIABLES
+# >     SGND_STATE_SAVE
+# >     SGND_STATE_FILE
+#
+# > Bootstrap options
+# >     --state
+# >     --autostate
+# >     --statereset
+#
+# -- 7. Dependency Loading -----------------------------------------------------------
+#
+# > Purpose
+# >     Load framework libraries in a predictable order and allow scripts
+# >     to declare optional framework dependencies.
+#
+# > Main files
+# >     sgnd-bootstrap.sh
+# >     sgnd-bootstrap-env.sh
+#
+# > Important globals
+# >     SGND_CORE_LIBS
+# >     SGND_USING
+# >     SGND_COMMON_LIB
+#
+# -- 8. Console Messaging and Log Levels ---------------------------------------------
+#
+# > Purpose
+# >     Provide consistent terminal output for status, information,
+# >     success, warning, failure, cancellation, debug, and trace messages.
+#
+# > Main files
+# >     ui-say.sh
+# >     sgnd-exe-common.sh
+#
+# > Main functions
+# >     say
+# >     sayinfo
+# >     saystart
+# >     sayok
+# >     saywarning
+# >     sayfail
+# >     saycancel
+# >     sayend
+# >     saydebug
+#
+# > Important globals
+# >     SGND_LOG_LEVEL
+#
+# > Log levels
+# >     silent
+# >         Show nothing.
+# >
+# >     quiet
+# >         Show warnings and failures.
+# >
+# >     normal
+# >         Show operational messages.
+# >
+# >     verbose
+# >         Show informational messages.
+# >
+# >     debug
+# >         Show debug messages.
+# >
+# >     trace
+# >         Show all messages.
+#
+# -- 9. File Logging -----------------------------------------------------------------
+#
+# > Purpose
+# >     Write persistent log records independently from console visibility.
+#
+# > Main file
+# >     ui-say.sh
+#
+# > Important globals
+# >     SGND_LOGFILE_ENABLED
+# >     SGND_LOG_PATH
+# >     SGND_ALTLOG_PATH
+# >     SGND_LOG_MAX_BYTES
+# >     SGND_LOG_KEEP
+# >     SGND_LOG_COMPRESS
+#
+# -- 10. UI Rendering, Theming, and Palettes -----------------------------------------
+#
+# > Purpose
+# >     Provide consistent visual formatting, colors, glyphs, labels,
+# >     sections, title bars, and visible-length-safe output.
+#
+# > Main files
+# >     ui.sh
+# >     ui-say.sh
+# >     ui-glyphs.sh
+# >     styles/*.sh
+#
+# > Important globals
+# >     SGND_UI_STYLE
+# >     SGND_UI_PALETTE
+# >     MSG_CLR_*
+# >     LBL_*
+# >     ICO_*
+# >     SYM_*
+# >     RESET
+#
+# -- 11. User Input and Dialogs ------------------------------------------------------
+#
+# > Purpose
+# >     Provide reusable input helpers for prompts, choices, decisions,
+# >     forms, and interruptible dialogs.
+#
+# > Main files
+# >     ui-ask.sh
+# >     ui-dlg.sh
+#
+# > Main functions
+# >     ask
+# >     ask_choose
+# >     ask_choose_immediate
+# >     ask_decision
+# >     ask_prompt_form
+# >     ask_dlg_autocontinue
+#
+# -- 12. Progress Helpers ------------------------------------------------------------
+#
+# > Purpose
+# >     Provide transient progress output without flooding the terminal.
+#
+# > Main file
+# >     ui-say.sh
+#
+# > Main functions
+# >     sayprogress_begin
+# >     sayprogress
+# >     sayprogress_done
+#
+# -- 13. Metadata and Header Parsing -------------------------------------------------
+#
+# > Purpose
+# >     Extract framework, script, module, function, variable, and
+# >     documentation metadata from structured source comments.
+#
+# > Main files
+# >     sgnd-comment-header-parser.sh
+# >     sgnd-bootstrap.sh
+#
+# > Main functions
+# >     sgnd_script_init_metadata
+# >     sgnd_module_init_metadata
+# >     sgnd_header_get_section
+# >     sgnd_section_get_field_value
+#
+# -- 14. Documentation Generation ----------------------------------------------------
+#
+# > Purpose
+# >     Generate navigable documentation from structured source comments.
+#
+# > Main tools
+# >     doc-generator.sh
+# >     doc-sample.sh
+#
+# -- 15. Datatable Helpers -----------------------------------------------------------
+#
+# > Purpose
+# >     Work with small pipe-separated table structures in Bash.
+#
+# > Main file
+# >     sgnd-datatable.sh
+#
+# -- 16. Console Host and Modules ----------------------------------------------------
+#
+# > Purpose
+# >     Provide a menu-driven host for independently maintained console modules.
+#
+# -- 17. SDK, Workspace, Deployment, and Release Tools -------------------------------
+#
+# > Purpose
+# >     Support the development lifecycle around SolidGroundUX projects.
+#
+# > Main tools
+# >     create-workspace.sh
+# >     deploy-workspace.sh
+# >     metadata-editor.sh
+# >     prepare-release.sh
+# >     install-release.sh
+# >     update-release.sh
+# >     uninstall-release.sh
