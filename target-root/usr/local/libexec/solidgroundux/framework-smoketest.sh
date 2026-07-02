@@ -4,8 +4,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2617512
-#   Checksum    : f2a25ebaaa9cc622ba3c067ceedb17eac45296e00edfa5583ca3a3dd297290d0
+#   Build       : 2618312
+#   Checksum    : b779d81ef99ba072ce90fc321367169b1a91f4b10532b0451a652e093d9067e5
 #   Source      : framework-smoketest.sh
 #   Type        : script
 #   Purpose     : Exercise and validate core SolidGroundUX framework functionality
@@ -439,6 +439,8 @@ set -uo pipefail
         # . Usage
         #   say_test
     say_test(){
+        sgnd_print_sectionheader --text "Testing say*() helpers"
+
         local original_loglevel="${SGND_LOG_LEVEL:-silent}"
         SGND_LOG_LEVEL="trace"
         sayinfo "Info message"
@@ -471,6 +473,8 @@ set -uo pipefail
         # . Usage
         #   loglevel_test
     loglevel_test() {
+
+        sgnd_print_sectionheader --text "Testing loglevel visibility"
         local original_loglevel="${SGND_LOG_LEVEL:-silent}"
         local level=""
 
@@ -503,6 +507,7 @@ set -uo pipefail
     }
 
     motd_test() {
+        sgnd_print_sectionheader --text "Testing MOTD generation"
         bash ~/dev/SolidgroundUX/target-root/etc/update-motd.d/90-solidgroundux
     }
 
@@ -532,7 +537,7 @@ set -uo pipefail
         local middle_total=250
         local inner_total=275
 
-        printf '\n'
+        sgnd_print_sectionheader --text "Testing sayprogress() helpers"
         saystart "Progress test 1/3: single level"
 
         sayprogress_begin --slots 1
@@ -572,7 +577,7 @@ set -uo pipefail
                 --type 7 \
                 --padleft 2
 
-            (( outer % 5 == 0 )) && sleep 0.01
+            (( outer % 5 == 0 )) && sleep 0.1
         done
         sayprogress_done
         sayok "Progress test 2/3 complete"
@@ -608,7 +613,7 @@ set -uo pipefail
                 --type 7 \
                 --padleft 4
 
-            (( outer % 5 == 0 )) && sleep 0.01
+            (( outer % 5 == 0 )) && sleep 0.1
         done
         sayprogress_done
         sayok "Progress test 3/3 complete"
@@ -662,17 +667,18 @@ set -uo pipefail
 
             while true; do
                 printf "\n"
-                printf "=========================================\n"
-                printf " SolidGroundUX — Framework Unit Test Menu\n"
-                printf "=========================================\n"
+                sgnd_print_sectionheader --text "SolidGroundUX — Framework Unit Test Menu\n"
+                
                 printf " 1) Ask tests\n"
                 printf " 2) Input test\n"
                 printf " 3) Say test\n"
                 printf " 4) Log level visibility test\n"
                 printf " 5) Call motd\n"
                 printf " 6) Progress dialogue test\n"
+                sgnd_print
+                printf " A) Run all tests\n"
                 printf " q) Quit\n"
-                printf '%s\n' '-----------------------------------------'
+                sgnd_print_sectionheader --maxwidth 25
                 printf "Select option: "
 
                 choice=""
@@ -709,6 +715,14 @@ set -uo pipefail
                         motd_test
                         ;;
                     6)
+                        sayprogress_test
+                        ;;
+                    a)
+                        ask_test
+                        input_test
+                        say_test
+                        loglevel_test
+                        motd_test
                         sayprogress_test
                         ;;
                     q)
