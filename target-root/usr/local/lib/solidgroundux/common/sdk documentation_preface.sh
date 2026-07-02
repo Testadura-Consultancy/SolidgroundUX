@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2617512
-#   Checksum    : 70b0cb552daa93a71a50fe036dd34cbe107c23ea01079001a1b01bc28d3fe39d
+#   Build       : 2618308
+#   Checksum    : ce0737b77c9a7222ec15cc735e21f9b7af9d7b1c1855e47b29310136bedeb581
 #   Source      : sdk documentation_preface.sh
 #   Type        : documentation
 #   Group       : SDK Documentation

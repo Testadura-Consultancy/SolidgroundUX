@@ -22,11 +22,11 @@
 <tr><td>SAY_DATE_DEFAULT</td><td>user</td><td>Default timestamp visibility</td><td>0</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
 <tr><td>SAY_DATE_FORMAT</td><td>user</td><td>Default date/time format for console output</td><td>%Y-%m-%d %H:%M:%S</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
 <tr><td>SAY_SHOW_DEFAULT</td><td>user</td><td>Default console message visibility</td><td>label</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
-<tr><td>SGND_ALTLOG_PATH</td><td>both</td><td>Alternate log path override</td><td>/home/sysadmin/.log/solidgroundux/solidgroundux.log</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
+<tr><td>SGND_ALTLOG_PATH</td><td>both</td><td>Alternate log path override</td><td>/home/sysadmin/.log/solidgroundux.log</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
 <tr><td>SGND_DOCS_DIR</td><td>system</td><td>Framework-wide documentation directory</td><td>/home/sysadmin/dev/SolidGroundUX/target-root/usr/local/share/doc/solidgroundux</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
 <tr><td>SGND_LOG_COMPRESS</td><td>system</td><td>Compress rotated log files</td><td>1</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
 <tr><td>SGND_LOG_KEEP</td><td>system</td><td>Number of rotated log files to retain</td><td>20</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
-<tr><td>SGND_LOG_LEVEL</td><td>both</td><td>Console output level (off, quiet, normal, debug)</td><td>normal</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
+<tr><td>SGND_LOG_LEVEL</td><td>both</td><td>Controls console message visibility. Supported values are silent, quiet, normal, verbose, debug, and trace.</td><td>silent</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
 <tr><td>SGND_LOG_MAX_BYTES</td><td>system</td><td>Maximum log file size before rotation</td><td>26214400</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
 <tr><td>SGND_LOG_PATH</td><td>system</td><td>Primary log file or directory path</td><td>/home/sysadmin/dev/SolidGroundUX/target-root/var/log/solidgroundux.log</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
 <tr><td>SGND_LOGFILE_ENABLED</td><td>system</td><td>Enable or disable logfile output</td><td>0</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
@@ -47,7 +47,7 @@
 <tr><td>SAY_DATE_DEFAULT</td><td>both</td><td>Default setting controlling whether say output includes a timestamp.</td><td>0</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
 <tr><td>SAY_DATE_FORMAT</td><td>both</td><td>Date format used when say output includes timestamps.</td><td>%Y-%m-%d %H:%M:%S</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
 <tr><td>SAY_SHOW_DEFAULT</td><td>both</td><td>Default say output prefix mode, such as label, icon, symbol, or combinations.</td><td>label</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
-<tr><td>SGND_ALTLOG_PATH</td><td>user</td><td>Fallback user-level logfile path for framework or application logging.</td><td>/home/sysadmin/.log/solidgroundux/solidgroundux.log</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
+<tr><td>SGND_ALTLOG_PATH</td><td>user</td><td>Fallback user-level logfile path for framework or application logging.</td><td>/home/sysadmin/.log/solidgroundux.log</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
 <tr><td>SGND_APPLICATION_ROOT</td><td>both</td><td>Root path used as the base for application filesystem locations.</td><td>/home/sysadmin/dev/SolidgroundUX/target-root</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
 <tr><td>SGND_COMMON_LIB</td><td>both</td><td>Directory containing common SolidGroundUX library files.</td><td>/home/sysadmin/dev/SolidgroundUX/target-root/usr/local/lib/solidgroundux/common</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
 <tr><td>SGND_DOCS_DIR</td><td>system</td><td>Directory containing SolidGroundUX documentation files.</td><td>/home/sysadmin/dev/SolidGroundUX/target-root/usr/local/share/doc/solidgroundux</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
@@ -55,7 +55,7 @@
 <tr><td>SGND_FRAMEWORK_ROOT</td><td>both</td><td>Root path used as the base for framework filesystem locations.</td><td>/home/sysadmin/dev/SolidgroundUX/target-root</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
 <tr><td>SGND_LOG_COMPRESS</td><td>both</td><td>Controls whether rotated logfiles are compressed.</td><td>1</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
 <tr><td>SGND_LOG_KEEP</td><td>both</td><td>Number of rotated logfile copies to retain.</td><td>20</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
-<tr><td>SGND_LOG_LEVEL</td><td>both</td><td>Controls console message visibility. Supported values are off, quiet, normal, and debug.</td><td>normal</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
+<tr><td>SGND_LOG_LEVEL</td><td>both</td><td>Controls console message visibility. Supported values are silent, quiet, normal, verbose, debug, and trace.</td><td>silent</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
 <tr><td>SGND_LOG_MAX_BYTES</td><td>both</td><td>Maximum logfile size before log rotation is attempted.</td><td>26214400</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
 <tr><td>SGND_LOG_PATH</td><td>system</td><td>Primary logfile path for framework or application logging.</td><td>/home/sysadmin/dev/SolidGroundUX/target-root/var/log/solidgroundux.log</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>
 <tr><td>SGND_LOGFILE_ENABLED</td><td>both</td><td>Controls whether best-effort logfile output is enabled.</td><td>0</td><td>sgnd-bootstrap-env.sh</td><td>Bootstrap</td><td></td></tr>

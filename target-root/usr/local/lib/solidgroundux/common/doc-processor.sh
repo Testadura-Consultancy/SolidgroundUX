@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2615900
-#   Checksum    : 69ef74cdc6a079263d36533efdfdcbddbd55bd57f9657e84364c698e8a992453
+#   Build       : 2618308
+#   Checksum    : 8ed87f4a9d3d22fa02907b5016426de8a39675572af2556fbbc7de914a2f2794
 #   Source      : doc-processor.sh
 #   Type        : library
 #   Group       : SDK Documentation
@@ -1323,12 +1323,16 @@ set -uo pipefail
             ((src_linenr++))
             src_line="$line"
 
-            sayprogress \
-                --slot 1 \
-                --current "$src_linenr" \
-                --total "$total_lines" \
-                --label "Parsing $(basename "$src_file")" \
-                --type 5
+            if declare -F _doc_progress_line >/dev/null; then
+                _doc_progress_line "$src_linenr" "$total_lines" "$(basename "$src_file")"
+            else
+                sayprogress \
+                    --slot 0 \
+                    --current "$src_linenr" \
+                    --total "$total_lines" \
+                    --label "Parsing $(basename "$src_file")" \
+                    --type 5
+            fi
 
             src_haltlineprocessing=0
             

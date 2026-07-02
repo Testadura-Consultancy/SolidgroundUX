@@ -439,6 +439,8 @@ set -uo pipefail
         # . Usage
         #   say_test
     say_test(){
+        local original_loglevel="${SGND_LOG_LEVEL:-silent}"
+        SGND_LOG_LEVEL="trace"
         sayinfo "Info message"
         saystart "Start message"
         saywarning "Warning message"
@@ -448,6 +450,7 @@ set -uo pipefail
         sayend "Ended gracefully"
         saydebug "Debug message"
         justsay "Just saying"
+        SGND_LOG_LEVEL="$original_loglevel"
     }
 
     # fn: loglevel_test - Run console message visibility tests for every log level
@@ -489,6 +492,8 @@ set -uo pipefail
             sayend "END message at loglevel=$SGND_LOG_LEVEL"
             saydebug "DEBUG message at loglevel=$SGND_LOG_LEVEL"
             say EMPTY "EMPTY message at loglevel=$SGND_LOG_LEVEL"
+
+            justsay "Just saying at loglevel=$SGND_LOG_LEVEL"
         done
 
         SGND_LOG_LEVEL="$original_loglevel"
@@ -499,6 +504,114 @@ set -uo pipefail
 
     motd_test() {
         bash ~/dev/SolidgroundUX/target-root/etc/update-motd.d/90-solidgroundux
+    }
+
+
+    # fn: sayprogress_test - Run transient progress line tests
+        # . Purpose
+        #   Exercise sayprogress with one, two, and three reserved progress slots.
+        #
+        # . Behavior
+        #   - Runs three visual progress scenarios after each other.
+        #   - Stage 1 uses one progress level: 1..500.
+        #   - Stage 2 uses two progress levels: outer 1..500, inner 1..150.
+        #   - Stage 3 uses three progress levels: outer 1..500, middle 1..150,
+        #     inner 1..80.
+        #   - Uses explicit slots so stacked progress rendering can be inspected.
+        #
+        # . Returns
+        #   0 when the visual test sequence completes.
+        #
+        # . Usage
+        #   sayprogress_test
+    sayprogress_test() {
+        local outer=0
+        local middle=0
+        local inner=0
+        local outer_total=1000
+        local middle_total=250
+        local inner_total=275
+
+        printf '\n'
+        saystart "Progress test 1/3: single level"
+
+        sayprogress_begin --slots 1
+        for (( outer = 1; outer <= outer_total; outer++ )); do
+            sayprogress \
+                --slot 0 \
+                --current "$outer" \
+                --total "$outer_total" \
+                --label "Stage 1: single level $outer/$outer_total" \
+                --type 7 \
+                --padleft 0
+
+            (( outer % 5 == 0 )) && sleep 0.01
+        done
+        sayprogress_done
+        sayok "Progress test 1/3 complete"
+
+        printf '\n'
+        saystart "Progress test 2/3: double level"
+
+        sayprogress_begin --slots 2
+        for (( outer = 1; outer <= outer_total; outer++ )); do
+            sayprogress \
+                --slot 0 \
+                --current "$outer" \
+                --total "$outer_total" \
+                --label "Stage 2 outer: $outer/$outer_total" \
+                --type 7 \
+                --padleft 0
+
+            middle=$(( ((outer - 1) % middle_total) + 1 ))
+            sayprogress \
+                --slot 1 \
+                --current "$middle" \
+                --total "$middle_total" \
+                --label "Stage 2 inner: $middle/$middle_total" \
+                --type 7 \
+                --padleft 2
+
+            (( outer % 5 == 0 )) && sleep 0.01
+        done
+        sayprogress_done
+        sayok "Progress test 2/3 complete"
+
+        printf '\n'
+        saystart "Progress test 3/3: triple level"
+
+        sayprogress_begin --slots 3
+        for (( outer = 1; outer <= outer_total; outer++ )); do
+            sayprogress \
+                --slot 0 \
+                --current "$outer" \
+                --total "$outer_total" \
+                --label "Stage 3 outer: $outer/$outer_total" \
+                --type 7 \
+                --padleft 0
+
+            middle=$(( ((outer - 1) % middle_total) + 1 ))
+            sayprogress \
+                --slot 1 \
+                --current "$middle" \
+                --total "$middle_total" \
+                --label "Stage 3 middle: $middle/$middle_total" \
+                --type 7 \
+                --padleft 2
+
+            inner=$(( ((outer - 1) % inner_total) + 1 ))
+            sayprogress \
+                --slot 2 \
+                --current "$inner" \
+                --total "$inner_total" \
+                --label "Stage 3 inner: $inner/$inner_total" \
+                --type 7 \
+                --padleft 4
+
+            (( outer % 5 == 0 )) && sleep 0.01
+        done
+        sayprogress_done
+        sayok "Progress test 3/3 complete"
     }
 # --- Main -------------------------------------------------------------------------
     # main MUST BE LAST function in script
@@ -557,6 +670,7 @@ set -uo pipefail
                 printf " 3) Say test\n"
                 printf " 4) Log level visibility test\n"
                 printf " 5) Call motd\n"
+                printf " 6) Progress dialogue test\n"
                 printf " q) Quit\n"
                 printf '%s\n' '-----------------------------------------'
                 printf "Select option: "
@@ -593,6 +707,9 @@ set -uo pipefail
                         ;;
                     5)
                         motd_test
+                        ;;
+                    6)
+                        sayprogress_test
                         ;;
                     q)
                         printf "Exiting...\n"

@@ -476,18 +476,18 @@ set -uo pipefail
             slot=$(( SGND_PROGRESS_RESERVED - 1 ))
         fi
 
-        printf '\033[s' >&2
+        printf '\033[u' >&2
 
         if (( slot > 0 )); then
             printf '\033[%dB' "$slot" >&2
         fi
 
-        printf '\r\033[K%-140s' "$text" >&2
-
+        printf '\r\033[2K%-140s' "$text" >&2
         printf '\033[u' >&2
 
         SGND_LINEBREAK_PENDING=1
     }
+
     # fn: _sgnd_ensure_linebreak - Ensure linebreak
         # . Purpose
         #   Ensure the next message starts on a clean line after progress output.
@@ -860,6 +860,7 @@ set -uo pipefail
         done
 
         printf '\033[%dA' "$slots" >&2
+        printf '\033[s' >&2
 
         SGND_PROGRESS_RESERVED="$slots"
         SGND_LINEBREAK_PENDING=1
@@ -1053,24 +1054,20 @@ set -uo pipefail
         # . Usage
         #   sayprogress_done
     sayprogress_done() {
-        local slots="${SGND_PROGRESS_RESERVED:-1}"
+        local slots="${SGND_PROGRESS_RESERVED:-0}"
         local i
 
-        (( slots > 0 )) || slots=1
+        (( slots > 0 )) || return 0
 
-        printf '\033[s' >&2
+        printf '\033[u' >&2
 
         for (( i=0; i<slots; i++ )); do
-            if (( i > 0 )); then
-                printf '\033[1B' >&2
-            fi
-
-            printf '\r\033[K' >&2
+            (( i > 0 )) && printf '\033[1B' >&2
+            printf '\r\033[2K' >&2
         done
 
         printf '\033[u' >&2
         printf '\033[%dB' "$slots" >&2
-        printf '\n' >&2
 
         SGND_PROGRESS_RESERVED=0
         SGND_LINEBREAK_PENDING=0

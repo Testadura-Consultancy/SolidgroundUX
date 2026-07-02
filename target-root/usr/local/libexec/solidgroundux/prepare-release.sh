@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2617512
-#   Checksum    : c2da74c7c5972390a25b5a478165589a7ec196f3672fb56c4c6fae1aba2b06b4
+#   Build       : 2618309
+#   Checksum    : 2d7bd4df88787568d78d1ce6bd4bf86c040120e6d782033582be2dc70533d25e
 #   Source      : prepare-release.sh
 #   Type        : script
 #   Group       : SDK Tools
@@ -797,6 +797,40 @@ set -uo pipefail
         return 0
     }
 
+    # fn: _cleanup_staging - Remove gathered staging data
+        # . Purpose
+        #   Remove the release-specific staging directory if cleanup is enabled.
+        #
+        # . Behavior
+        #   - Checks FLAG_CLEANUP to determine whether to remove the staging directory.
+        #   - If FLAG_CLEANUP is 1, deletes the directory at STAGING_ROOT/RELEASE.
+        #   - If FLAG_CLEANUP is 0, logs that cleanup is skipped.
+        #
+        # Inputs (globals):
+        #   STAGING_ROOT
+        #   RELEASE
+        #   FLAG_CLEANUP
+        #
+        # . Side effects
+        #   - Deletes files and directories under STAGING_ROOT/RELEASE when cleanup is enabled.
+        #
+        # . Returns
+        #   0 on success (or if cleanup is skipped)
+        #   1 if deletion fails
+        #
+        # . Usage
+        #   _cleanup_staging
+    _cleanup_staging() {
+        if [[ "$FLAG_CLEANUP" -eq 1 ]]; then
+            sayinfo "Cleaning up staging files in $STAGING_ROOT"
+            rm -rf "${STAGING_ROOT%/}/$RELEASE" || {
+                saywarning "Failed to remove staging directory: ${STAGING_ROOT%/}/$RELEASE"
+            }
+        else
+            sayinfo "Skipping cleanup of staging files (--nocleanup)"
+        fi
+    }
+
     # fn: _apply_version_bump - Apply release version bump metadata
         # . Purpose
         #   Apply header checksum/build refresh and optional version bumping to source files.
@@ -903,6 +937,7 @@ set -uo pipefail
         _get_parameters
         _apply_version_bump || exit $?
         _create_tar
+        _cleanup_staging
     }
 
     # Run main with positional args only (not the options)

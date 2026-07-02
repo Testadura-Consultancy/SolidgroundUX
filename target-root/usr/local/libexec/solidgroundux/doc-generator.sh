@@ -565,71 +565,156 @@ set -uo pipefail
         #
         # . Usage
         #   _iterate_files "./src" "*.sh" 1 sgnd_doc_process_file
+    # fn: _doc_progress_line - Update active-module line progress
+        # . Purpose
+        #   Update progress slot 1 for the line currently being parsed inside the
+        #   active module.
+        #
+        # . Behavior
+        #   - Intended to be called by the parser while it walks the current file.
+        #   - Uses globals prepared by _iterate_files.
+        #   - Does nothing when documentation progress is not active.
+        #
+        # . Arguments
+        #   $1  CURRENT_LINE
+        #   $2  TOTAL_LINES     optional; defaults to SGND_DOC_PROGRESS_LINE_TOTAL
+        #   $3  LABEL           optional; defaults to SGND_DOC_PROGRESS_MODULE_NAME
+        #
+        # . Usage
+        #   _doc_progress_line "$line_no" "$line_total" "$module_name"
+    _doc_progress_line() {
+        (( ${SGND_DOC_PROGRESS_ACTIVE:-0} )) || return 0
+
+        local current="${1:-0}"
+        local total="${SGND_DOC_PROGRESS_LINE_TOTAL:-${2:-1}}"
+        local label="${SGND_DOC_PROGRESS_MODULE_NAME:-${3:-}}"
+
+        (( total > 0 )) || total=1
+        (( current < 0 )) && current=0
+        (( current > total )) && current="$total"
+
+        sayprogress \
+            --slot 1 \
+            --current "$current" \
+            --total "$total" \
+            --label "Lines: ${label}" \
+            --type 5 \
+            --padleft 0
+    }
+
+    # fn: _doc_count_lines - Count physical lines in a file
+        # . Purpose
+        #   Return the number of lines in a regular file.
+        #
+        # . Arguments
+        #   $1  FILE
+        #
+        # . Outputs
+        #   Prints the line count to stdout.
+    _doc_count_lines() {
+        local file="$1"
+        local count=0
+
+        [[ -f "$file" ]] || { printf '%s\n' 0; return 0; }
+
+        count="$(wc -l < "$file")"
+        count="${count//[[:space:]]/}"
+        printf '%s\n' "${count:-0}"
+    }
+
+    # fn: _iterate_files - Iterate source files and collect documentation data
+        # . Purpose
+        #   Iterate over files in a directory using a file mask,
+        #   optionally recursing into subdirectories.
+        #
+        # . Behavior
+        #   - Expands file_spec within source_dir.
+        #   - Supports recursive and non-recursive modes.
+        #   - Shows two-level progress:
+        #       slot 0 = module/file progress
+        #       slot 1 = line progress inside the active module
+        #   - Calls a callback function for each matched file.
+        #   - Skips non-regular files.
+        #
+        # . Arguments
+        #   $1  SOURCE_DIR
+        #   $2  FILE_SPEC
+        #   $3  FLAG_RECURSIVE   (0 = no recursion, 1 = recursive)
+        #   $4  CALLBACK_FUNC
+        #
+        # . Returns
+        #   0 on success
+        #   1 on invalid input
+        #
+        # . Usage
+        #   _iterate_files "./src" "*.sh" 1 _parse_module_file
     _iterate_files() {
         local source_dir="$1"
         local file_spec="$2"
         local recursive="$3"
         local callback="$4"
 
-        # Validate input
         [[ -z "$source_dir" || -z "$file_spec" || -z "$callback" ]] && return 1
         [[ ! -d "$source_dir" ]] && return 1
         declare -F "$callback" >/dev/null || return 1
 
+        local -a files=()
+        local -a line_totals=()
+        local file=""
+        local name=""
         local files_ttl=0
         local files_proc=0
-        # Non-recursive        
+        local line_total=0
+
         if [[ "$recursive" -eq 0 ]]; then
-            local file
             shopt -s nullglob
-
-            # Count files first for progress tracking
             for file in "$source_dir"/$file_spec; do
-                ((files_ttl++))
-            done
-
-            for file in "$source_dir"/$file_spec; do
-                ((files_proc++))
-                name="${file##*/}"
-
-                sayprogress \
-                --current "$files_proc" \
-                --total "$files_ttl" \
-                --label "Processing file: $name, through : $callback" \
-                --type 5 \
-                --padleft 0
-
                 [[ -f "$file" ]] || continue
-                "$callback" "$file" || saywarning "Callback $callback failed for file: $file"
+                files+=("$file")
             done
-
             shopt -u nullglob
-
-            sayprogress_done
-            return 0
+        else
+            while IFS= read -r -d '' file; do
+                [[ -f "$file" ]] || continue
+                files+=("$file")
+            done < <(find "$source_dir" -type f -name "$file_spec" -print0)
         fi
 
-        # Recursive
-        # Count files first for progress tracking
-        while IFS= read -r -d '' file; do
-            ((files_ttl++))
-        done < <(find "$source_dir" -type f -name "$file_spec" -print0)
+        files_ttl="${#files[@]}"
+        (( files_ttl > 0 )) || return 0
 
-        while IFS= read -r -d '' file; do
+        for file in "${files[@]}"; do
+            line_totals+=("$(_doc_count_lines "$file")")
+        done
 
+        sayprogress_begin --slots 2
+
+        for file in "${files[@]}"; do
             ((files_proc++))
             name="${file##*/}"
-            
+            line_total="${line_totals[$(( files_proc - 1 ))]}"
+            (( line_total > 0 )) || line_total=1
+
+            SGND_DOC_PROGRESS_ACTIVE=1
+            SGND_DOC_PROGRESS_MODULE_NAME="$name"
+            SGND_DOC_PROGRESS_LINE_TOTAL="$line_total"
+
             sayprogress \
+                --slot 0 \
                 --current "$files_proc" \
                 --total "$files_ttl" \
-                --label "Processing file: $name, through : $callback" \
+                --label "Module: $name" \
                 --type 5 \
                 --padleft 0
 
             "$callback" "$file" || saywarning "Callback $callback failed for file: $file"
-            
-        done < <(find "$source_dir" -type f -name "$file_spec" -print0)
+
+            _doc_progress_line "$line_total"
+        done
+
+        SGND_DOC_PROGRESS_ACTIVE=0
+        SGND_DOC_PROGRESS_MODULE_NAME=""
+        SGND_DOC_PROGRESS_LINE_TOTAL=0
 
         sayprogress_done
         return 0
