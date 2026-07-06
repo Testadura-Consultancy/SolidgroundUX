@@ -508,7 +508,7 @@ set -uo pipefail
 
     motd_test() {
         sgnd_print_sectionheader --text "Testing MOTD generation"
-        bash ~/dev/SolidgroundUX/target-root/etc/update-motd.d/90-solidgroundux
+        bash /etc/update-motd.d/90-solidgroundux
     }
 
 
