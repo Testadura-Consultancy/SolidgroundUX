@@ -714,7 +714,7 @@ set -uo pipefail
         # . Usage
         #   sgnd_check_license
     sgnd_check_license() {
-        local license_file="$SGND_LOCAL_DOC/$SGND_LICENSE_FILE"
+        local license_file="$$SGND_DOCS_DIR/$SGND_LICENSE_FILE"
         local accepted_file="$SGND_STATE_DIR/$SGND_LICENSE_FILE.accepted"
         local isaccepted=0
         local wasaccepted=0

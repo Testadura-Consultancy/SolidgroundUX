@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2617512
-#   Checksum    : 7b65e3642b25113fbaa6473449c28e6f1d26d4c813156a971d1d53fd0c7cab02
+#   Build       : -
+#   Checksum    : -
 #   Source      : sgnd-exe-common.sh
 #   Type        : library
 #   Group       : Executable Runtime
