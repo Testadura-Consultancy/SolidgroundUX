@@ -4,13 +4,14 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.6
-#   Build       : 2619012
+#   Build       : 2619013
 #   Checksum    : 6f99c4cb18e1a37aa148ac40e0b5164cd9a01f5877fd364ea103ca38a5c54bb2
 #   Source      : bootstrap_preface.sh
 #   Type        : documentation
 #   Group       : Bootstrap
 #   Purpose     : Group preface
 #
+#   Checksum : 6f99c4cb18e1a37aa148ac40e0b5164cd9a01f5877fd364ea103ca38a5c54bb2
 #   Checksum : 6f99c4cb18e1a37aa148ac40e0b5164cd9a01f5877fd364ea103ca38a5c54bb2
 #   Checksum : 6f99c4cb18e1a37aa148ac40e0b5164cd9a01f5877fd364ea103ca38a5c54bb2
 #   Checksum : 6f99c4cb18e1a37aa148ac40e0b5164cd9a01f5877fd364ea103ca38a5c54bb2
