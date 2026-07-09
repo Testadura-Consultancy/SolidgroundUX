@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2618812
-#   Checksum    : eca30f38a83228163c446cc7bacd15efd4cbca282f0e9b7a4460d9f1bede41de
+#   Build       : 2619012
+#   Checksum    : fef9e82c487e814c08210da1a9cd65dc57eb5f84e663ef76ced4a19534f2ca50
 #   Source      : sgnd-bootstrap.sh
 #   Type        : library
 #   Group       : Bootstrap

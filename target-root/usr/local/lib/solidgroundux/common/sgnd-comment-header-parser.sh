@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2615900
-#   Checksum    : c9b7f9f04dd874015e5dc0d75e129e80de7901893a3e41fa4e351db4c8a51ff6
+#   Build       : 2619012
+#   Checksum    : b8b562ca032141c0bcde729593a845ab6b69b7bc837aba0413dda7ca0d0baa05
 #   Source      : sgnd-comment-header-parser.sh
 #   Type        : library
 #   Group       : Common Core

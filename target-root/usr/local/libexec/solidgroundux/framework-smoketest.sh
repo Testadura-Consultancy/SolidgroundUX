@@ -4,8 +4,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2618712
-#   Checksum    : dd15fe1cee73de1a39207c77947af01272b9f211e4d0b3b43ee64079c0568e8b
+#   Build       : 2619012
+#   Checksum    : 741e028bb77eab903c85a785fd5968c780dcebd17c1f544a6c94c218f274a959
 #   Source      : framework-smoketest.sh
 #   Type        : script
 #   Purpose     : Exercise and validate core SolidGroundUX framework functionality

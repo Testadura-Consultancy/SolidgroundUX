@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2618309
-#   Checksum    : 2d7bd4df88787568d78d1ce6bd4bf86c040120e6d782033582be2dc70533d25e
+#   Build       : 2619012
+#   Checksum    : 756624bb7a65f7c9ef171f3b260eb52b47c96340872f6f8e89e22f56927caec1
 #   Source      : prepare-release.sh
 #   Type        : script
 #   Group       : SDK Tools
