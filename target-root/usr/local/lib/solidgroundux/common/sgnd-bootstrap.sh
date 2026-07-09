@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2617512
-#   Checksum    : 295924a6fa6fd41e758d0703cbdf2125d285cfb38f84d828e35cc3d53e7e41ba
+#   Build       : 2618812
+#   Checksum    : eca30f38a83228163c446cc7bacd15efd4cbca282f0e9b7a4460d9f1bede41de
 #   Source      : sgnd-bootstrap.sh
 #   Type        : library
 #   Group       : Bootstrap
@@ -714,54 +714,66 @@ set -uo pipefail
         # . Usage
         #   sgnd_check_license
     sgnd_check_license() {
-        local license_file="$$SGND_DOCS_DIR/$SGND_LICENSE_FILE"
-        local accepted_file="$SGND_STATE_DIR/$SGND_LICENSE_FILE.accepted"
+        local license_file="$SGND_LICENSE_FILE"
+        local license_name="${SGND_LICENSE_FILE##*/}"
+        local accepted_file="$SGND_STATE_DIR/$license_name.accepted"
         local isaccepted=0
         local wasaccepted=0
         local current_hash
 
+        saydebug "license_file: %s\n" "$license_file"
+        saydebug "accepted_file: %s\n" "$accepted_file"
+
+        saydebug "Checking license acceptance state for: $license_file"
         if ! current_hash="$(sgnd_hash_sha256_file "$license_file")"; then
             saywarning "sgnd_check_license: could not compute hash"
             current_hash=""
         fi
 
-        if [[ -r "$accepted_file" ]]; then
-
-            local stored_hash
-            stored_hash="$(cat "$accepted_file" 2>/dev/null)"
-            wasaccepted=1
-
-            if [[ "$stored_hash" == "$current_hash" ]]; then
-                sayinfo "sgnd_check_license: accepted state matches current license hash"
-                isaccepted=1
-            else
-                sayinfo "sgnd_check_license: accepted state hash does NOT match current license hash"
-            fi
+        if [[ -z "$current_hash" ]]; then
+            saywarning "sgnd_check_license: license hash is empty; license cannot be accepted"
+            isaccepted=0
         else
-            sayinfo "sgnd_check_license: no accepted state file found at: $accepted_file"
+            if [[ -r "$accepted_file" ]]; then
+
+                local stored_hash
+                stored_hash="$(cat "$accepted_file" 2>/dev/null)"
+                wasaccepted=1
+
+                if [[ "$stored_hash" == "$current_hash" ]]; then
+                    sayinfo "sgnd_check_license: accepted state matches current license hash"
+                    isaccepted=1
+                else
+                    sayinfo "sgnd_check_license: accepted state hash does NOT match current license hash"
+                fi
+            else
+                sayinfo "sgnd_check_license: no accepted state file found at: $accepted_file"
+            fi
         fi
 
         if (( isaccepted == 0 )); then
             local question_text
+            
             if (( ${wasaccepted:-0} == 1 )); then
                 question_text="The license has been updated since you last accepted it. Do you accept the new license terms?"
             else
                 question_text="Do you accept these license terms? \n (You must accept to use this software.)"
             fi
 
-            sgnd_print_license 
-            
+            printf "Should print license here"
+
+            sgnd_print_license
+
             local accepted="Y"
-            ask --label "$question_text" --var accepted --default "$accepted" --colorize both --labelclr "${CYAN}" 
+            ask --label "$question_text" --var accepted --default "$accepted" --colorize both --labelclr "${CYAN}"
+           
             case $? in
                 0)
+                    mkdir -p "$SGND_STATE_DIR"
                     echo "$current_hash" > "$accepted_file"
+                    isaccepted=1
                     ;;
-                1)
-                    saywarning "Cancelled by user."
-                    return 2
-                    ;;
-                2)
+                1|2)
                     saywarning "Cancelled by user."
                     return 2
                     ;;
@@ -899,6 +911,11 @@ set -uo pipefail
             sgnd_parse_args --stop-at-unknown "${_sgnd_script_args[@]}" || { local rc=$?; _boot_fail "Error parsing builtins" "$rc"; return "$rc"; }
             
             _sgnd_after_builtins=( "${SGND_POSITIONAL[@]}" )
+        
+        # If provided CLI log level, should override framework configuration.
+            if [[ -n "${ARG_LOGLEVEL:-}" ]]; then
+                SGND_LOG_LEVEL="$ARG_LOGLEVEL"
+            fi
 
         # Final basic settings
             saydebug "Finalizing initial settings"

@@ -876,6 +876,8 @@ set -uo pipefail
         #   - Writes the rendered line into the selected progress slot.
         #   - Automatically reserves a progress region when none exists yet.
         #   - Clamps invalid progress values to safe ranges.
+        #   - Throttles redraws for slot 1 and deeper to reduce terminal I/O.
+        #   - Always redraws the first item and the final 10 items.
         #
         # . options
         #   --current VALUE
@@ -900,6 +902,11 @@ set -uo pipefail
         #   --indicatorcolor VALUE
         #       Color token used for numeric progress indicators.
         #
+        #   --interval COUNT
+        #       Redraw interval for throttled progress slots. Applies only to slot 1
+        #       and deeper. When omitted, the interval defaults to total / 100,
+        #       with a minimum of 1.
+        #
         #   --padleft COUNT
         #       Number of spaces to prefix before the progress text.
         #
@@ -919,10 +926,12 @@ set -uo pipefail
         # . Usage
         #   sayprogress --current 25 --total 100 --label "Processing"
         #   sayprogress --slot 1 --current "$done" --total "$total" --type 3
+        #   sayprogress --slot 1 --current "$line" --total "$lines" --interval 25
     sayprogress() {
         local current=0
         local slot=0
         local total=1
+        local interval=""
         local label=""
         local progress_type=7
         local bar_color="${PROG_BAR_CLR:-CYAN}"
@@ -950,6 +959,7 @@ set -uo pipefail
                 --barcolor)       bar_color="${2-}"; shift 2 ;;
                 --labelcolor)     label_color="${2-}"; shift 2 ;;
                 --indicatorcolor) indicator_color="${2-}"; shift 2 ;;
+                --interval)       interval="${2:?missing value for --interval}"; shift 2 ;;
                 --padleft)        padleft="${2:?missing value for --padleft}"; shift 2 ;;
                 --slot)           slot="${2:?missing value for --slot}"; shift 2 ;;
                 --width)          width="${2:?missing value for --width}"; shift 2 ;;
@@ -964,6 +974,32 @@ set -uo pipefail
         (( progress_type > 0 )) || progress_type=1
         (( width > 0 )) || width=30
         (( padleft >= 0 )) || padleft=0
+
+        # Progress throttling.
+        # Slot 0 always redraws.
+        # Slot 1 and deeper are throttled by --interval or, when omitted,
+        # by a default interval derived from total.
+        if (( slot >= 1 )); then
+            if [[ -z "$interval" ]]; then
+                if (( total > 1000 )); then
+                    interval=$(( total / 250 ))
+                elif (( total > 500 )); then
+                    interval=$(( total / 100 ))
+                elif (( total > 100 )); then
+                    interval=$(( total / 20 ))
+                else
+                    interval=$(( total / 5 ))
+                fi
+            fi
+
+            (( interval > 0 )) || interval=1
+
+            # Always update first item and last 10 items.
+            # Otherwise only update every interval.
+            if (( current > 1 && current < total - 9 && current % interval != 0 )); then
+                return 0
+            fi
+        fi
 
         percent=$(( current * 100 / total ))
         filled=$(( current * width / total ))

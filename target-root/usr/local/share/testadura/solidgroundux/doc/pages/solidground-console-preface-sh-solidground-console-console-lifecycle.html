@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Console Lifecycle</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Console Lifecycle</div>
+  <div class="doc-breadcrumb">solidground console_preface.sh::SolidGround Console:Console Lifecycle:</div>
+</header>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Once initialized, the console follows a simple lifecycle.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">    Console Host</div>
+<div class="ct-L2Sectionbody">         ↓</div>
+<div class="ct-L2Sectionbody">    Loads Modules</div>
+<div class="ct-L2Sectionbody">         ↓</div>
+<div class="ct-L2Sectionbody">    Modules Register Groups</div>
+<div class="ct-L2Sectionbody">         ↓</div>
+<div class="ct-L2Sectionbody">    Groups Register Items</div>
+<div class="ct-L2Sectionbody">         ↓</div>
+<div class="ct-L2Sectionbody">    Menu Rendered</div>
+<div class="ct-L2Sectionbody">         ↓</div>
+<div class="ct-L2Sectionbody">    User Selects Action</div>
+<div class="ct-L2Sectionbody">         ↓</div>
+<div class="ct-L2Sectionbody">    Registered Function Executes</div>
+<div class="ct-L2Sectionbody">         ↓</div>
+<div class="ct-L2Sectionbody">    Menu Rendered Again</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">The console itself contains very little application-specific functionality.</div>
+<div class="ct-L2Sectionbody">Instead, it acts as a host for modules that contribute menu groups and menu</div>
+<div class="ct-L2Sectionbody">items.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">During startup, each loaded module registers its functionality with the host.</div>
+<div class="ct-L2Sectionbody">Once registration is complete, the menu is rendered and user interaction begins.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Selecting a menu item causes the associated function to execute. When the</div>
+<div class="ct-L2Sectionbody">action completes, control returns to the console and the menu is rendered</div>
+<div class="ct-L2Sectionbody">again.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">This cycle continues until the user exits the console.</div>
+<div class="ct-L2Sectionbody"> </div>
+</main>
+</body>
+</html>

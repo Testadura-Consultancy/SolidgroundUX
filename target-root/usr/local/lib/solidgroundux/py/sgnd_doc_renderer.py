@@ -41,6 +41,8 @@ ATTRIBUTION_PREFIX = "appendix:attribution:"
 GLOSSARY_PREFIX = "appendix:glossary:"
 INTEGRITY_PREFIX = "appendix:integrity:"
 GLOBALS_PREFIX = "appendix:globals:"
+LICENSE_PREFIX = "appendix:license:"
+ENUMS_PREFIX = "appendix:enums:"
 
 
 def read_psv(path: Path, *, required: bool = True) -> List[Row]:
@@ -131,6 +133,14 @@ def globals_ref(product_name: str) -> str:
     return f"{GLOBALS_PREFIX}{product_name}"
 
 
+def license_ref(product_name: str) -> str:
+    return f"{LICENSE_PREFIX}{product_name}"
+
+
+def enums_ref(product_name: str) -> str:
+    return f"{ENUMS_PREFIX}{product_name}"
+
+
 def page_href_from_contentref(ref: str) -> str:
     return f"pages/{slugify(ref)}.html"
 
@@ -176,6 +186,8 @@ class DocRenderer:
         self.mod_items: List[Row] = []
         self.mod_attribution: List[Row] = []
         self.mod_globals: List[Row] = []
+        self.doc_license_lines: List[Row] = []
+        self.doc_enums: List[Row] = []
         self.doc_content_lines: List[Row] = []
         self.config: Dict[str, str] = {}
 
@@ -204,6 +216,8 @@ class DocRenderer:
         self.mod_items = read_psv(self.input_dir / "mod_items.psv")
         self.mod_attribution = read_psv(self.input_dir / "mod_attribution.psv", required=False)
         self.mod_globals = read_psv(self.input_dir / "mod_globals.psv", required=False)
+        self.doc_license_lines = read_psv(self.input_dir / "doc_license_lines.psv", required=False)
+        self.doc_enums = read_psv(self.input_dir / "doc_enums.psv", required=False)
         self.doc_content_lines = read_psv(self.input_dir / "doc_content_lines.psv")
         self.config = read_config(self.input_dir / "render_config.psv")
 
@@ -412,6 +426,19 @@ class DocRenderer:
                     hierarchy_level=2,
                     docindex=f"{appendices_docindex}.4",
                     contentref=globals_ref(product_name),
+                )
+            )
+
+            self.nav.append(
+                NavNode(
+                    nodeid=f"appendix:{product_name}:license",
+                    parentnodeid=appendices_node_id,
+                    nodetype="appendix",
+                    node_name="Appendix E: License",
+                    node_title="Appendix E: License",
+                    hierarchy_level=2,
+                    docindex=f"{appendices_docindex}.5",
+                    contentref=license_ref(product_name),
                 )
             )
 
@@ -921,6 +948,13 @@ class DocRenderer:
             "    font-weight: bold;",
             "}",
             "",
+            ".doc-license-text {",
+            "    white-space: pre-wrap;",
+            "    padding: 1rem;",
+            "    border: 1px solid #d0d0d0;",
+            "    border-radius: 6px;",
+            "}",
+            "",
             ".doc-attribution-meta dd {",
             "    margin: 0;",
             "}",
@@ -1382,8 +1416,16 @@ body {
         index_file.write_text("\n".join(html_lines), encoding="utf-8")
 
     def has_renderable_page(self, ref: str) -> bool:
-        return ref.startswith(ATTRIBUTION_PREFIX) or ref.startswith(GLOSSARY_PREFIX) or ref.startswith(INTEGRITY_PREFIX) or ref.startswith(GLOBALS_PREFIX) or ref in self.content_by_ref
-
+        return (
+            ref.startswith(ATTRIBUTION_PREFIX)
+            or ref.startswith(GLOSSARY_PREFIX)
+            or ref.startswith(INTEGRITY_PREFIX)
+            or ref.startswith(GLOBALS_PREFIX)
+            or ref.startswith(LICENSE_PREFIX)
+            or ref.startswith(ENUMS_PREFIX)
+            or ref in self.content_by_ref
+        )
+    
     def render_navigation(self) -> str:
         lines: List[str] = []
         open_detail_levels: List[int] = []
@@ -1452,7 +1494,7 @@ body {
                 return page_href_from_contentref(node.contentref)
 
         for node in self.nav:
-            if node.contentref and (node.contentref.startswith(ATTRIBUTION_PREFIX) or node.contentref.startswith(GLOSSARY_PREFIX) or node.contentref.startswith(INTEGRITY_PREFIX) or node.contentref.startswith(GLOBALS_PREFIX)):
+            if node.contentref and (node.contentref.startswith(ATTRIBUTION_PREFIX) or node.contentref.startswith(GLOSSARY_PREFIX) or node.contentref.startswith(INTEGRITY_PREFIX) or node.contentref.startswith(GLOBALS_PREFIX) or node.contentref.startswith(LICENSE_PREFIX) or node.contentref.startswith(ENUMS_PREFIX)):
                 return page_href_from_contentref(node.contentref)
 
         return "about:blank"
@@ -1467,11 +1509,13 @@ body {
             self.render_glossary_page(product_name)
             self.render_integrity_page(product_name)
             self.render_globals_page(product_name)
+            self.render_license_page(product_name)
+            self.render_enums_page(product_name)
 
         for node in self.nav:
             if not node.contentref:
                 continue
-            if node.contentref.startswith(ATTRIBUTION_PREFIX) or node.contentref.startswith(GLOSSARY_PREFIX) or node.contentref.startswith(INTEGRITY_PREFIX) or node.contentref.startswith(GLOBALS_PREFIX):
+            if node.contentref.startswith(ATTRIBUTION_PREFIX) or node.contentref.startswith(GLOSSARY_PREFIX) or node.contentref.startswith(INTEGRITY_PREFIX) or node.contentref.startswith(GLOBALS_PREFIX) or node.contentref.startswith(LICENSE_PREFIX) or node.contentref.startswith(ENUMS_PREFIX):
                 continue
             if node.contentref not in self.content_by_ref and not self.is_module_level_special_page(node):
                 continue
@@ -1836,6 +1880,126 @@ body {
             '</tbody>',
             '</table>',
         ])
+
+        return "\n".join(lines)
+
+    def render_license_page(self, product_name: str) -> None:
+        ref = license_ref(product_name)
+        href = page_href_from_contentref(ref)
+        output_file = self.output_dir / href
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+
+        body = self.render_license_body()
+
+        html_lines = [
+            "<!doctype html>",
+            "<html>",
+            "<head>",
+            '  <meta charset="utf-8">',
+            "  <title>Appendix E: License</title>",
+            '  <link rel="stylesheet" href="../assets/doc.css">',
+            '  <link rel="stylesheet" href="../assets/theme.css">',
+            "</head>",
+            "<body>",
+            '<main class="doc-page">',
+            '<header class="doc-page-header">',
+            '  <div class="doc-title">Appendix E: License</div>',
+            f'  <div class="doc-breadcrumb">{esc(product_name)} / Appendices / Appendix E: License</div>',
+            "</header>",
+            body,
+            "</main>",
+            "</body>",
+            "</html>",
+        ]
+
+        output_file.write_text("\n".join(html_lines), encoding="utf-8")
+
+    def render_license_body(self) -> str:
+        lines: List[str] = [
+            '<div class="ct-documentbody">This appendix contains the active SolidGroundUX license text exported by the Bash renderer hand-off.</div>',
+        ]
+
+        if not self.doc_license_lines:
+            lines.append('<div class="ct-documentbody">No license text was exported.</div>')
+            return "\n".join(lines)
+
+        lines.append('<pre class="doc-license-text">')
+        for row in sorted(self.doc_license_lines, key=lambda value: int(value.get("linenr", "0") or "0")):
+            lines.append(esc(row.get("content", "")))
+        lines.append('</pre>')
+        return "\n".join(lines)
+
+    def render_enums_page(self, product_name: str) -> None:
+        ref = enums_ref(product_name)
+        href = page_href_from_contentref(ref)
+        output_file = self.output_dir / href
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+
+        body = self.render_enums_body()
+
+        html_lines = [
+            "<!doctype html>",
+            "<html>",
+            "<head>",
+            '  <meta charset="utf-8">',
+            "  <title>Appendix F: Framework Value Sets</title>",
+            '  <link rel="stylesheet" href="../assets/doc.css">',
+            '  <link rel="stylesheet" href="../assets/theme.css">',
+            "</head>",
+            "<body>",
+            '<main class="doc-page">',
+            '<header class="doc-page-header">',
+            '  <div class="doc-title">Appendix F: Framework Value Sets</div>',
+            f'  <div class="doc-breadcrumb">{esc(product_name)} / Appendices / Appendix F: Framework Value Sets</div>',
+            "</header>",
+            body,
+            "</main>",
+            "</body>",
+            "</html>",
+        ]
+
+        output_file.write_text("\n".join(html_lines), encoding="utf-8")
+
+    def render_enums_body(self) -> str:
+        grouped: Dict[str, List[Row]] = defaultdict(list)
+
+        for row in self.doc_enums:
+            grouped[row.get("category", "Other") or "Other"].append(row)
+
+        lines: List[str] = [
+            '<div class="ct-documentbody">This appendix lists framework value sets whose possible values behave like enums, even when they are not all defined in one source line.</div>',
+        ]
+
+        if not grouped:
+            lines.append('<div class="ct-documentbody">No framework value sets were exported.</div>')
+            return "\n".join(lines)
+
+        for category in sorted(grouped.keys(), key=str.casefold):
+            rows = sorted(
+                grouped[category],
+                key=lambda row: (
+                    row.get("name", "").casefold(),
+                    row.get("value", "").casefold(),
+                ),
+            )
+            lines.extend([
+                '<section class="doc-enums-block">',
+                f'<h2 class="ct-L2Sectionheader">{esc(category)}</h2>',
+                '<table class="doc-data-table">',
+                '<thead><tr><th>Name</th><th>Value</th><th>Aliases</th><th>Description</th><th>Source</th></tr></thead>',
+                '<tbody>',
+            ])
+            for row in rows:
+                lines.append(
+                    "<tr>"
+                    f'<td>{esc(row.get("name", ""))}</td>'
+                    f'<td>{esc(row.get("value", ""))}</td>'
+                    f'<td>{esc(row.get("aliases", ""))}</td>'
+                    f'<td>{esc(row.get("description", ""))}</td>'
+                    f'<td>{esc(row.get("source", ""))}</td>'
+                    "</tr>"
+                )
+            lines.extend(['</tbody>', '</table>', '</section>'])
 
         return "\n".join(lines)
 

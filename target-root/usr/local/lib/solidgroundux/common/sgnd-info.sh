@@ -386,8 +386,9 @@ set -uo pipefail
         # . Usage
         #   sgnd_print_license
     sgnd_print_license() {
-        local license_file="$SGND_DOCS_DIR/$SGND_LICENSE_FILE"
-        local status_text="${TUI_INVALID}NOT ACCEPTED${RESET}"
+        local license_file="${SGND_LICENSE_FILE}"
+        
+        local status_text="${TUI_INVALID}NOT ACCEPTED${RESET}" 
 
         if (( SGND_LICENSE_ACCEPTED )); then
             status_text="${TUI_VALID}[ACCEPTED]${RESET}"
@@ -395,6 +396,15 @@ set -uo pipefail
 
         saydebug "sgnd_print_license: license status is: $status_text"
         saydebug "sgnd_print_license: looking for license file at: $license_file"
+
+        saydebug "License status text: ${status_text}\n"
+        saydebug 'SGND_DOCS_DIR=%s\n' "$SGND_DOCS_DIR"
+        saydebug 'SGND_LICENSE_FILE=%s\n' "$SGND_LICENSE_FILE"
+
+        local filestatus=""
+        [[ -e "$license_file" ]] && filestatus="exists" || filestatus="missing"
+        [[ -r "$license_file" ]] && filestatus="$filestatus, readable" || filestatus="$filestatus, not readable"
+        saydebug "License file status: $filestatus"
 
         if [[ -r "$license_file" ]]; then
             saydebug "sgnd_print_license: found license file, printing"

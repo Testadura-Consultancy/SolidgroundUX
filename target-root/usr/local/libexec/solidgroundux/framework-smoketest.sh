@@ -286,6 +286,7 @@ set -uo pipefail
         # . Usage
         #   input_test
     input_test() {
+        sgnd_print
         ask_prompt_form --autoalign "${SGND_STATE_VARIABLES[@]}" 
     }
 
@@ -303,6 +304,7 @@ set -uo pipefail
         # . Usage
         #   ask_test
     ask_test(){
+        sgnd_print
         # -----------------------------------------------------------------------------
         # 1. ask
         # -----------------------------------------------------------------------------
@@ -439,6 +441,7 @@ set -uo pipefail
         # . Usage
         #   say_test
     say_test(){
+        sgnd_print
         sgnd_print_sectionheader --text "Testing say*() helpers"
 
         local original_loglevel="${SGND_LOG_LEVEL:-silent}"
@@ -473,7 +476,7 @@ set -uo pipefail
         # . Usage
         #   loglevel_test
     loglevel_test() {
-
+        sgnd_print
         sgnd_print_sectionheader --text "Testing loglevel visibility"
         local original_loglevel="${SGND_LOG_LEVEL:-silent}"
         local level=""
@@ -507,8 +510,16 @@ set -uo pipefail
     }
 
     motd_test() {
+        local motd_file="$SGND_FRAMEWORK_ROOT/etc/update-motd.d/90-solidgroundux"
+
+        sgnd_print
         sgnd_print_sectionheader --text "Testing MOTD generation"
-        bash /etc/update-motd.d/90-solidgroundux
+
+        if [[ -r "$motd_file" ]]; then
+            bash "$motd_file"
+        else
+            sayerror "MOTD file not readable: $motd_file"
+        fi
     }
 
 
@@ -537,6 +548,7 @@ set -uo pipefail
         local middle_total=250
         local inner_total=275
 
+        sgnd_print
         sgnd_print_sectionheader --text "Testing sayprogress() helpers"
         saystart "Progress test 1/3: single level"
 
@@ -675,6 +687,7 @@ set -uo pipefail
                 printf " 4) Log level visibility test\n"
                 printf " 5) Call motd\n"
                 printf " 6) Progress dialogue test\n"
+                printf " 7) Show license\n"
                 sgnd_print
                 printf " A) Run all tests\n"
                 printf " q) Quit\n"
@@ -716,6 +729,10 @@ set -uo pipefail
                         ;;
                     6)
                         sayprogress_test
+                        ;;
+                    7) 
+                        printf "$SGND_DOCS_DIR/$SGND_LICENSE_FILE"
+                        sgnd_print_license
                         ;;
                     a)
                         ask_test

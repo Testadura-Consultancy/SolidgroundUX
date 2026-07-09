@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SolidGroundUX - Developer Tools Console Module</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">SolidGroundUX - Developer Tools Console Module</div>
+  <div class="doc-breadcrumb">SolidgroundUX / console-devtools.sh</div>
+</header>
+<div class="ct-modulebody sh-label">Description</div>
+<div class="ct-modulebody">  Provides a console module that registers developer-oriented actions in</div>
+<div class="ct-modulebody">  sgnd-console, allowing common tooling scripts to be launched from the</div>
+<div class="ct-modulebody">  interactive console host.</div>
+<div class="ct-modulebody"></div>
+<div class="ct-modulebody sh-label">The module currently exposes actions for</div>
+<div class="ct-modulebody">    - creating a new workspace</div>
+<div class="ct-modulebody">    - deploying a workspace</div>
+<div class="ct-modulebody">    - preparing a release archive</div>
+<div class="ct-modulebody"></div>
+<div class="ct-modulebody sh-label">Design principles</div>
+<div class="ct-modulebody">  - Console modules are source-only plugin libraries</div>
+<div class="ct-modulebody">  - Functions are defined first, then registered explicitly</div>
+<div class="ct-modulebody">  - Registration is the only intended load-time side effect</div>
+<div class="ct-modulebody">  - Module actions delegate execution to the shared sgnd-console runtime</div>
+<div class="ct-modulebody"></div>
+<div class="ct-modulebody sh-label">Role in framework</div>
+<div class="ct-modulebody">  - Extends sgnd-console with developer workflow actions</div>
+<div class="ct-modulebody">  - Acts as a lightweight plugin layer on top of the console host</div>
+<div class="ct-modulebody">  - Uses _sgnd_run_script to execute related tooling scripts consistently</div>
+<div class="ct-modulebody"></div>
+<div class="ct-modulebody sh-label">Assumptions</div>
+<div class="ct-modulebody">  - Loaded by sgnd-console after framework bootstrap is complete</div>
+<div class="ct-modulebody">  - sgnd_console_register_group and sgnd_console_register_item are available</div>
+<div class="ct-modulebody">  - _sgnd_run_script is available in the host environment</div>
+<div class="ct-modulebody"></div>
+<div class="ct-modulebody sh-label">Non-goals</div>
+<div class="ct-modulebody">  - Standalone execution</div>
+<div class="ct-modulebody">  - Framework bootstrap or path resolution</div>
+<div class="ct-modulebody">  - Direct implementation of workspace/deploy/release logic</div>
+<div class="ct-modulebody"></div>
+</main>
+</body>
+</html>

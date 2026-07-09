@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Checksums and Integrity</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Checksums and Integrity</div>
+  <div class="doc-breadcrumb">deployment_preface.sh::Uninstallation:Checksums and Integrity:</div>
+</header>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Release packages may contain checksums and other metadata describing the</div>
+<div class="ct-L2Sectionbody">expected contents of the package.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">During installation, the installer can use this information to validate the</div>
+<div class="ct-L2Sectionbody">integrity of the release before files are deployed.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">This helps detect damaged downloads, incomplete transfers, accidental</div>
+<div class="ct-L2Sectionbody">modification of release files, or packaging errors introduced during release</div>
+<div class="ct-L2Sectionbody">preparation.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">The installer and release tooling exchange integrity information through the</div>
+<div class="ct-L2Sectionbody">release metadata generated during the prepare-release process.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Conceptually, the workflow is:</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">    Prepare release</div>
+<div class="ct-L2Sectionbody">        ↓</div>
+<div class="ct-L2Sectionbody">    Generate checksums and metadata</div>
+<div class="ct-L2Sectionbody">        ↓</div>
+<div class="ct-L2Sectionbody">    Package release archive</div>
+<div class="ct-L2Sectionbody">        ↓</div>
+<div class="ct-L2Sectionbody">    Transfer release archive</div>
+<div class="ct-L2Sectionbody">        ↓</div>
+<div class="ct-L2Sectionbody">    Installer validates package integrity</div>
+<div class="ct-L2Sectionbody">        ↓</div>
+<div class="ct-L2Sectionbody">    Installation proceeds</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Integrity validation is intended to confirm that the package being installed is</div>
+<div class="ct-L2Sectionbody">the same package that was originally prepared.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Checksum validation is not a substitute for code signing or cryptographic trust</div>
+<div class="ct-L2Sectionbody">chains. Its primary purpose is to detect accidental corruption and ensure release</div>
+<div class="ct-L2Sectionbody">consistency.</div>
+</main>
+</body>
+</html>

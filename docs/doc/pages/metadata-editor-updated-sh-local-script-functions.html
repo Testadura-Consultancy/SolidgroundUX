@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Local script functions</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Local script functions</div>
+  <div class="doc-breadcrumb">SolidgroundUX / metadata-editor-updated.sh / Local script functions</div>
+</header>
+<div class="ct-L3Sectionbody">_field_is_selected</div>
+<div class="ct-L3Sectionbody sh-highlight">Purpose</div>
+<div class="ct-L3Sectionbody">  Test whether a field is included in the interactive prompt selection.</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody sh-highlight">Behavior</div>
+<div class="ct-L3Sectionbody">  - When VAL_PROMPTFOR is empty, all fields are considered selected.</div>
+<div class="ct-L3Sectionbody">  - When VAL_PROMPTFOR is set, splits the comma-separated list.</div>
+<div class="ct-L3Sectionbody">  - Trims surrounding whitespace from each list item.</div>
+<div class="ct-L3Sectionbody">  - Matches the requested field name exactly.</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody sh-highlight">Arguments</div>
+<div class="ct-L3Sectionbody">  $1  FIELD</div>
+<div class="ct-L3Sectionbody">      Field name to test.</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody">Inputs (globals):</div>
+<div class="ct-L3Sectionbody">  VAL_PROMPTFOR</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody sh-highlight">Returns</div>
+<div class="ct-L3Sectionbody">  0  field is selected</div>
+<div class="ct-L3Sectionbody">  1  field is not selected</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody sh-highlight">Usage</div>
+<div class="ct-L3Sectionbody">  _field_is_selected &quot;Version&quot;</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody">Examples:</div>
+<div class="ct-L3Sectionbody">  if _field_is_selected &quot;$field&quot;; then</div>
+<div class="ct-L3Sectionbody">      :</div>
+<div class="ct-L3Sectionbody">  fi</div>
+</main>
+</body>
+</html>

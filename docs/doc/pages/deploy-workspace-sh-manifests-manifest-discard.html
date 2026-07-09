@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Discard the temporary deployment manifest</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Discard the temporary deployment manifest</div>
+  <div class="doc-breadcrumb">SolidgroundUX / deploy-workspace.sh / Manifests / _manifest_discard</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Remove the temporary manifest after an interrupted or failed deployment run.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Deletes MANIFEST_TMP if it exists</div>
+<div class="ct-functionbody">  - Does nothing in dry-run mode</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Inputs (globals):</div>
+<div class="ct-functionbody">  MANIFEST_TMP</div>
+<div class="ct-functionbody">  FLAG_DRYRUN</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 always</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  _manifest_discard</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Notes:</div>
+<div class="ct-functionbody">  - Safe to call multiple times</div>
+</main>
+</body>
+</html>

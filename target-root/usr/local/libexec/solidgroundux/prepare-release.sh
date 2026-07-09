@@ -477,7 +477,7 @@ set -uo pipefail
             sgnd_print_sectionheader "Release identification" --padend 0
             ask --label "Product" --var PRODUCT --default "$PRODUCT" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
             ask --label "Version" --var VERSION --default "$VERSION" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
-            sgnd_print_labeledvalue --label "Build" --value "$BUILD" --coloriz both --lableclr "$(sgnd_sgr "$SILVER" "" "$FX_ITALIC")" --valueclr "$(sgnd_sgr "$SILVER" "" "$FX_ITALIC")" --pad "$lp" --labelwidth "$lw"
+            sgnd_print_labeledvalue --label "Build" --value "$BUILD" --colorize both --lableclr "$(sgnd_sgr "$SILVER" "" "$FX_ITALIC")" --valueclr "$(sgnd_sgr "$SILVER" "" "$FX_ITALIC")" --pad "$lp" --labelwidth "$lw"
 
             sgnd_print
             RELEASE="${RELEASE:-"$PRODUCT-$VERSION.$BUILD"}"
@@ -900,6 +900,20 @@ set -uo pipefail
                 saywarning "Skipping unmanaged file (no valid header): $file"
             fi
         done < <(find "$SOURCE_DIR" -type f -name '*.sh' -not -path '*/releases/*' -print0)
+
+        local bootstrap_env_file
+        bootstrap_env_file="$SOURCE_DIR/usr/local/lib/solidgroundux/common/sgnd-bootstrap-env.sh"
+
+        if [[ -f "$bootstrap_env_file" ]]; then
+            if (( ${FLAG_DRYRUN:-0} )); then
+                sayinfo "[DRYRUN] Would have updated framework version identity in $bootstrap_env_file"
+            else
+                sgnd_framework_set_version "$bootstrap_env_file" "$VERSION" "$BUILD" \
+                    || { sayfail "Failed to update framework version identity"; return 1; }
+            fi
+        else
+            saydebug "No sgnd-bootstrap-env.sh in source tree; skipping framework version identity update."
+        fi
 
         return "$failed"
     }

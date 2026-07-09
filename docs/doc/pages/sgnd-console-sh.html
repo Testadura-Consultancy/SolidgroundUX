@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SolidGroundUX - Console Host</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">SolidGroundUX - Console Host</div>
+  <div class="doc-breadcrumb">SolidgroundUX / sgnd-console.sh</div>
+</header>
+<div class="ct-modulebody sh-label">Description</div>
+<div class="ct-modulebody">  Provides a generic, modular console host that dynamically loads modules</div>
+<div class="ct-modulebody">  and presents their functionality through a structured menu interface.</div>
+<div class="ct-modulebody"></div>
+<div class="ct-modulebody sh-label">The script</div>
+<div class="ct-modulebody">    - Loads console modules from a configured module directory</div>
+<div class="ct-modulebody">    - Allows modules to register menu items dynamically</div>
+<div class="ct-modulebody">    - Builds and renders interactive menus</div>
+<div class="ct-modulebody">    - Handles user input and dispatches actions</div>
+<div class="ct-modulebody">    - Supports navigation, paging, and toggle controls</div>
+<div class="ct-modulebody">    - Persists runtime flags such as debug, verbose, and dry-run</div>
+<div class="ct-modulebody"></div>
+<div class="ct-modulebody sh-label">Design principles</div>
+<div class="ct-modulebody">  - Modular architecture with clear separation of host and modules</div>
+<div class="ct-modulebody">  - Convention-based module registration</div>
+<div class="ct-modulebody">  - Minimal assumptions about module implementation</div>
+<div class="ct-modulebody">  - Consistent user interaction patterns across all tools</div>
+<div class="ct-modulebody"></div>
+<div class="ct-modulebody sh-label">Role in framework</div>
+<div class="ct-modulebody">  - Central entry point for interactive SolidGroundUX tooling</div>
+<div class="ct-modulebody">  - Hosts and orchestrates functionality provided by console modules</div>
+<div class="ct-modulebody"></div>
+<div class="ct-modulebody sh-label">Non-goals</div>
+<div class="ct-modulebody">  - Implementing business logic directly in the console host</div>
+<div class="ct-modulebody">  - Managing module-specific state beyond registration and dispatch</div>
+<div class="ct-modulebody">  - Providing a full TUI framework beyond structured menu interaction</div>
+<div class="ct-modulebody"></div>
+</main>
+</body>
+</html>

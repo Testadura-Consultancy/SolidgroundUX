@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Update the last deployment information file</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Update the last deployment information file</div>
+  <div class="doc-breadcrumb">SolidgroundUX / deploy-workspace.sh / Main sequence / _update_lastdeployinfo</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Persist metadata of the last deployment run for reuse (e.g. auto mode).</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Stores timestamp, source, and target in state for later reuse</div>
+<div class="ct-functionbody">  - Skips writes when FLAG_DRYRUN is enabled</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Writes:</div>
+<div class="ct-functionbody">  last_deploy_run</div>
+<div class="ct-functionbody">  last_deploy_source</div>
+<div class="ct-functionbody">  last_deploy_target</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Inputs (globals):</div>
+<div class="ct-functionbody">  SRC_ROOT</div>
+<div class="ct-functionbody">  DEST_ROOT</div>
+<div class="ct-functionbody">  FLAG_DRYRUN</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 on success</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  _update_lastdeployinfo</div>
+</main>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Console dispatch</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Console dispatch</div>
+  <div class="doc-breadcrumb">SolidgroundUX / sgnd-console-menu.sh / Library guard / _sgnd_console_dispatch</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Handle console menu dispatch behavior.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Supports the module implementation; not intended as a public framework API.</div>
+<div class="ct-functionbody">  - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.</div>
+<div class="ct-functionbody">  - Uses SolidGroundUX datatable rows and schemas for structured state.</div>
+<div class="ct-functionbody">  - Uses framework UI/output conventions for terminal or dialog interaction.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Arguments</div>
+<div class="ct-functionbody">  $1  CHOICE - Positional value used by this function.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Outputs (globals):</div>
+<div class="ct-functionbody">  May update SGND_* globals shown in the function body.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Side effects</div>
+<div class="ct-functionbody">  May update files, directories, runtime state, or process state required by the workflow.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 on success.</div>
+<div class="ct-functionbody">  Non-zero when validation, resolution, user cancellation, or execution fails.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  _sgnd_console_dispatch &quot;${CHOICE}&quot;</div>
+</main>
+</body>
+</html>

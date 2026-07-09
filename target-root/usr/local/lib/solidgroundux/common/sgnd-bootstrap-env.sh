@@ -90,15 +90,12 @@ set -uo pipefail
         #   framework metadata, informational output, and license checks.
     SGND_PRODUCT="SolidGroundUX"
     SGND_VERSION="1.5"
-    SGND_VERSION_DATE="2026-01-08"
+    SGND_BUILD="2618900"
     SGND_COMPANY="Testadura Consultancy"
     SGND_COPYRIGHT="© 2025 - 2026 Testadura Consultancy"
     SGND_LICENSE="Testadura Non-Commercial License (TD-NC) v1.1."
-    SGND_LICENSE_FILE="LICENSE"
     SGND_LICENSE_ACCEPTED=0
-    SGND_README_FILE="README.md"
-    SGND_RELEASE_URL="https://github.com/Testadura-Mark/SolidGroundUX/releases"
-    SGND_LOCAL_DOC="/home/sysadmin/dev/SolidgroundUX/target-root/usr/local/share/doc/solidgroundux/index.html"
+    SGND_RELEASE_URL="https://github.com/Testadura-Mark/SolidGroundUX/releases"    
     SGND_ONLINE_DOC="https://testadura-consultancy.github.io/SolidGroundUX/"
     
 # --- Framework metadata --------------------------------------------------------------
@@ -331,7 +328,12 @@ set -uo pipefail
         SGND_USRCFG_DIR="$SGND_USER_HOME/.config/$product"
         SGND_STATE_DIR="$SGND_USER_HOME/.state/$product"
         SGND_STYLE_DIR="$SGND_FRAMEWORK_ROOT/usr/local/lib/$product/styles"
-        SGND_DOCS_DIR="$SGND_FRAMEWORK_ROOT/usr/local/share/doc/$product"   # May be absent in dev/minimal installs
+
+        SGND_DOCS_DIR="$SGND_FRAMEWORK_ROOT/usr/local/share/testadura/$product/doc"   # May be absent in dev/minimal installs
+        SGND_LOCAL_DOC="$SGND_DOCS_DIR/$product/index.html"
+        SGND_LICENSE_FILE="$SGND_FRAMEWORK_ROOT/usr/local/share/testadura/$product/LICENSE"   # May be absent in dev/minimal installs
+        SGND_README_FILE="$SGND_FRAMEWORK_ROOT/usr/local/share/testadura/$product/README.md"
+
         SGND_PYTHON_DIR="$SGND_FRAMEWORK_ROOT/usr/local/lib/$product/py"   # May be absent in dev/minimal installs
 
         # logs (paths only)

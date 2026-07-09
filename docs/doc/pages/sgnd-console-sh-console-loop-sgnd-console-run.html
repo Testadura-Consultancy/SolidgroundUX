@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Run the console interaction loop</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Run the console interaction loop</div>
+  <div class="doc-breadcrumb">SolidgroundUX / sgnd-console.sh / Console loop / _sgnd_console_run</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Run the interactive console event loop.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Renders the menu.</div>
+<div class="ct-functionbody">  - Builds the valid choice list for the current menu state.</div>
+<div class="ct-functionbody">  - Reads a choice via ask_choose_immediate.</div>
+<div class="ct-functionbody">  - Dispatches the selected handler.</div>
+<div class="ct-functionbody">  - Exits when a handler returns sentinel value 200.</div>
+<div class="ct-functionbody">  - Optionally pauses after actions according to SGND_LAST_WAITSECS.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 on normal console exit</div>
+<div class="ct-functionbody">  1 on input or dispatch failure</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  _sgnd_console_run</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  _sgnd_console_run</div>
+</main>
+</body>
+</html>

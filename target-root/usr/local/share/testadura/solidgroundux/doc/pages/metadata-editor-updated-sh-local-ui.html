@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Local UI</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Local UI</div>
+  <div class="doc-breadcrumb">SolidgroundUX / metadata-editor-updated.sh / Local UI</div>
+</header>
+<div class="ct-L3Sectionbody">_print_section_labeledvalues</div>
+<div class="ct-L3Sectionbody sh-highlight">Purpose</div>
+<div class="ct-L3Sectionbody">  Print all rows from one metadata section as labeled values.</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody sh-highlight">Behavior</div>
+<div class="ct-L3Sectionbody">  - Reads rows from the supplied sgnd-datatable.</div>
+<div class="ct-L3Sectionbody">  - Filters rows by the requested section name.</div>
+<div class="ct-L3Sectionbody">  - Prints each matching field/value pair using sgnd_print_labeledvalue().</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody sh-highlight">Arguments</div>
+<div class="ct-L3Sectionbody">  $1  SCHEMA</div>
+<div class="ct-L3Sectionbody">      Datatable schema string.</div>
+<div class="ct-L3Sectionbody">  $2  TABLE_NAME</div>
+<div class="ct-L3Sectionbody">      Name of the datatable array variable.</div>
+<div class="ct-L3Sectionbody">  $3  WANTED_SECTION</div>
+<div class="ct-L3Sectionbody">      Section name to render (for example: Metadata, Attribution).</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody sh-highlight">Returns</div>
+<div class="ct-L3Sectionbody">  0  success</div>
+<div class="ct-L3Sectionbody">  1  failed to read datatable contents</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody sh-highlight">Usage</div>
+<div class="ct-L3Sectionbody">  _print_section_labeledvalues &quot;$META_SCHEMA&quot; META_ROWS &quot;Metadata&quot;</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody">Examples:</div>
+<div class="ct-L3Sectionbody">  _print_section_labeledvalues &quot;$META_SCHEMA&quot; META_ROWS &quot;Attribution&quot;</div>
+</main>
+</body>
+</html>

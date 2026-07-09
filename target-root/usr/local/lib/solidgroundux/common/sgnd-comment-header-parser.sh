@@ -1051,6 +1051,59 @@ set -uo pipefail
         return 2
     }
     
+    # fn: sgnd_framework_set_version - Update framework version identity
+        # . Purpose
+        #   Update the framework version identity stored in sgnd-bootstrap-env.sh.
+        #
+        # . Behavior
+        #   - Updates SGND_VERSION with the supplied framework version.
+        #   - Updates SGND_BUILD with the supplied framework build number.
+        #   - Preserves all other file contents and formatting.
+        #   - Performs in-place replacement of existing assignments only.
+        #
+        # . Arguments
+        #   $1  FILE
+        #       Path to sgnd-bootstrap-env.sh.
+        #   $2  VERSION
+        #       Framework version (for example 1.6).
+        #   $3  BUILD
+        #       Framework build number (for example 2618912).
+        #
+        # . Returns
+        #   0 when the framework version information was updated.
+        #   1 when arguments are invalid, the file is unreadable, or an update fails.
+        #
+        # . Usage
+        #   sgnd_framework_set_version "$file" "$version" "$build"
+        #
+        # Examples:
+        #   sgnd_framework_set_version \
+        #       "/usr/local/lib/solidgroundux/common/sgnd-bootstrap-env.sh" \
+        #       "1.7" \
+        #       "2619110"
+        #
+        # Notes:
+        #   - Intended for use by prepare-release.sh.
+        #   - Unlike sgnd_header_bump_version(), this function updates framework
+        #     runtime identity rather than script header metadata.
+    sgnd_framework_set_version() {
+        local file="${1:-}"
+        local version="${2:-}"
+        local build="${3:-}"
+
+        [[ -n "$file" ]]    || return 1
+        [[ -n "$version" ]] || return 1
+        [[ -n "$build" ]]   || return 1
+        [[ -f "$file" ]]    || return 1
+        [[ -w "$file" ]]    || return 1
+
+        sed -Ei \
+            -e "s|^([[:space:]]*SGND_VERSION=).*|\1\"$version\"|" \
+            -e "s|^([[:space:]]*SGND_BUILD=).*|\1\"$build\"|" \
+            "$file" || return 1
+
+        return 0
+    }
 
 
 

@@ -115,6 +115,9 @@ set -uo pipefail
         DOC_FUNCTION_INDEX_SCHEMA="product|group|modulename|itemvisibility|functionname|purpose|anchor"
         DOC_FUNCTION_INDEX=()
 
+        DOC_LICENSE_LINES_SCHEMA="linenr|content"
+        DOC_LICENSE_LINES=()
+
     # -- Arguments ------------------------------------------------------------------
         # doc: render_options - Documentation output selection and ordering defaults
             # . Purpose
@@ -250,6 +253,55 @@ set -uo pipefail
             } > "$config_file"
         }
 
+        # fn: _collect_license_lines - Collect active license text for appendix rendering
+            # . Purpose
+            #   Load the active framework license file into the renderer license table.
+            #
+            # . Behavior
+            #   - Uses SGND_LICENSE_FILE as the active license source.
+            #   - Skips gracefully when the license path is empty, missing, or unreadable.
+            #   - Stores one row per source line with the original line order.
+            #   - Replaces pipe characters because renderer hand-off tables are PSV based.
+            #
+            # Inputs (globals):
+            #   SGND_LICENSE_FILE
+            #
+            # Outputs (globals):
+            #   DOC_LICENSE_LINES
+            #
+            # . Returns
+            #   0 always; missing license text is represented as an empty export table.
+            #
+            # . Usage
+            #   _collect_license_lines
+        _collect_license_lines() {
+            local license_file="${SGND_LICENSE_FILE:-}"
+            local line=""
+            local safe_line=""
+            local line_nr=0
+
+            DOC_LICENSE_LINES=()
+
+            [[ -n "$license_file" ]] || {
+                saydebug "No SGND_LICENSE_FILE configured; license appendix will be empty"
+                return 0
+            }
+
+            [[ -r "$license_file" ]] || {
+                saydebug "License file not readable; license appendix will be empty: $license_file"
+                return 0
+            }
+
+            while IFS= read -r line || [[ -n "$line" ]]; do
+                (( line_nr++ ))
+                safe_line="${line//|/¦}"
+                DOC_LICENSE_LINES+=("$line_nr|$safe_line")
+            done < "$license_file"
+
+            saydebug "Exported $line_nr license lines from: $license_file"
+            return 0
+        }
+
         # fn: _export_render_tables - Export parser tables for the Python renderer
             # . Purpose
             #   Persist normalized documentation tables into a temporary render hand-off directory.
@@ -311,6 +363,14 @@ set -uo pipefail
                 "$DOC_CONTENT_LINES_SCHEMA" \
                 DOC_CONTENT_LINES \
                 "$export_dir/doc_content_lines.psv" \
+                || return 1
+
+            _collect_license_lines
+
+            sgnd_dt_export_psv \
+                "$DOC_LICENSE_LINES_SCHEMA" \
+                DOC_LICENSE_LINES \
+                "$export_dir/doc_license_lines.psv" \
                 || return 1
 
             _export_render_config \

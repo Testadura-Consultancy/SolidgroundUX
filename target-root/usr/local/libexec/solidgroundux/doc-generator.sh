@@ -735,14 +735,25 @@ set -uo pipefail
         local item_count
         sgnd_print
         sgnd_print_sectionheader "Documentation Summary" --padend 1
+        sgnd_print
         sgnd_print  "  Modules processed: ${#MOD_TABLE[@]}"
         sgnd_print  "  Sections processed: ${#MOD_SECTIONS[@]}"
         sgnd_print  "  Items documented: ${#MOD_ITEMS[@]}"
         sgnd_print  "  Comments extracted: ${#DOC_CONTENT_LINES[@]}"
-
+        sgnd_print
         sgnd_print "  Source directory: $VAL_SRCDIR"
         sgnd_print "  Output directory: $VAL_OUTDIR"
-
+        sgnd_print
+        sgnd_print "  Starttime: $(date -d "@$main_start" '+%H:%M:%S')"
+        sgnd_print "  Endtime:   $(date -d "@$end_time" '+%H:%M:%S')"
+        local duration=$(( end_time - main_start ))
+        local duration_text
+        printf -v duration_text '%02d:%02d:%02d' \
+            $(( duration / 3600 )) \
+            $(( (duration % 3600) / 60 )) \
+            $(( duration % 60 ))
+        sgnd_print "  Duration:  $duration_text"
+        sgnd_print
         sgnd_print_sectionheader "" --padend 1
         sgnd_print
 
@@ -786,7 +797,6 @@ set -uo pipefail
         
         # Initialize parameters with defaults where not set by arguments or state
         _init_parameters
-
 
         # Prompt for user input if not auto-running  
         if (( !FLAG_AUTO_RUN )); then      
