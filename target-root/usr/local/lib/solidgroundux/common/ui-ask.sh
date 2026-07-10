@@ -845,7 +845,7 @@ set -uo pipefail
         [[ "$seconds" =~ ^[0-9]+$ ]] || seconds=5
         [[ -r "$tty" && -w "$tty" ]] || return 0
 
-        clr="$(sgnd_sgr "$WHITE" "" "$FX_ITALIC")"
+        clr="$(sgnd_sgr "$TUI_TEXT" "" "$FX_ITALIC")"
 
         [[ -n "$message" ]] && (( line_count++ ))
         (( ! hide_legend )) && (( line_count++ ))
@@ -1099,8 +1099,8 @@ set -uo pipefail
 
         local labelwidth=""
         local pad=""
-        local labelclr=""
-        local inputclr=""
+        local labelclr="${TUI_LABEL:-${TUI_TEXT:-}}"
+        local inputclr="${TUI_INPUT:-${TUI_TEXT:-}}"
         local colorize="both"
 
         local _rsp=""
@@ -1245,8 +1245,8 @@ set -uo pipefail
         local autoalign=0
         local colorize="both"
         local pad=0
-        local labelclr=""
-        local inputclr=""
+        local labelclr="${TUI_LABEL:-${TUI_TEXT:-}}"
+        local inputclr="${TUI_INPUT:-${TUI_TEXT:-}}"
 
         while [[ $# -gt 0 ]]; do
             case "$1" in

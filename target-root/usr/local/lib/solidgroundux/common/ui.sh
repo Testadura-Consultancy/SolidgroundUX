@@ -906,10 +906,10 @@ set -uo pipefail
 
         local left="${SGND_SCRIPT_TITLE:-$SGND_SCRIPT_BASE}"
         local right="${RUN_MODE:-}"
-        local leftclr="$(sgnd_sgr "$WHITE" "" "$FX_BOLD")"
+        local leftclr="$(sgnd_sgr "$TUI_TEXT" "" "$FX_BOLD")"
         local rightclr=""                 # let sgnd_print_fill inherit
         local sub="${SGND_SCRIPT_DESC:-""}"
-        local subclr="$(sgnd_sgr "$WHITE" "" "$FX_ITALIC")"
+        local subclr="$(sgnd_sgr "$TUI_TEXT" "" "$FX_ITALIC")"
         local subjust="C"
         local border="$DL_H"
         local borderclr="${TUI_BORDER}"
@@ -1000,7 +1000,7 @@ set -uo pipefail
         #   sgnd_print_sectionheader --text "..." --textclr --border --borderclr
     sgnd_print_sectionheader() {
         local text=""
-        local textclr="$(sgnd_sgr "$WHITE" "" "$FX_BOLD")"
+        local textclr="$(sgnd_sgr "$TUI_TEXT" "" "$FX_BOLD")"
         local border="$LN_H"
         local borderclr="${TUI_BORDER}"
         local padleft=4

@@ -308,7 +308,7 @@ set -uo pipefail
         # -----------------------------------------------------------------------------
         # 1. ask
         # -----------------------------------------------------------------------------
-        printf "%s1. Testing ask()%s\n" "$CYAN" "$RESET"
+        sgnd_print " 1. Testing ask()"
 
         TEST_NAME=""
         ask \
@@ -318,15 +318,14 @@ set -uo pipefail
             --var TEST_NAME \
             --labelwidth 28 \
             --pad 2 \
-            --labelclr "$CYAN" \
             --colorize both
 
-        printf "Result: TEST_NAME='%s'\n\n" "$TEST_NAME"
+        sgnd_print "Result: TEST_NAME=$TEST_NAME"
 
         # -----------------------------------------------------------------------------
         # 2. ask_decision
         # -----------------------------------------------------------------------------
-        printf "%s2. Testing ask_decision()%s\n" "$CYAN" "$RESET"
+        sgnd_print " 2. Testing ask_decision()"
 
         TEST_DECISION=""
         ask_decision \
@@ -335,16 +334,15 @@ set -uo pipefail
             --default "YES" \
             --var TEST_DECISION \
             --labelwidth 28 \
-            --pad 2 \
-            --labelclr "$CYAN"
+            --pad 2 
 
-        printf "Result: TEST_DECISION='%s'\n\n" "$TEST_DECISION"
+        sgnd_print "Result: TEST_DECISION='$TEST_DECISION'"
 
         # -----------------------------------------------------------------------------
         # 3. ask_dlg_autocontinue
         # -----------------------------------------------------------------------------
-        printf "%s3. Testing ask_dlg_autocontinue()%s\n" "$CYAN" "$RESET"
-        printf "Try Enter, R, C, P/Space, or do nothing and let it time out.\n\n"
+        sgnd_print " 3. Testing ask_dlg_autocontinue()"
+        sgnd_print "Try Enter, R, C, P/Space, or do nothing and let it time out.\n"
 
         ask_dlg_autocontinue \
             --seconds 8 \
@@ -356,17 +354,17 @@ set -uo pipefail
         TEST_RC=$?
 
         case "$TEST_RC" in
-            0) printf "Result: continue\n\n" ;;
-            1) printf "Result: timeout / auto-continue\n\n" ;;
-            2) printf "Result: cancel\n\n" ;;
-            3) printf "Result: redo\n\n" ;;
-            *) printf "Result: unexpected rc=%s\n\n" "$TEST_RC" ;;
+            0) sgnd_print "Result: continue\n\n" ;;
+            1) sgnd_print "Result: timeout / auto-continue\n\n" ;;
+            2) sgnd_print "Result: cancel\n\n" ;;
+            3) sgnd_print "Result: redo\n\n" ;;
+            *) sgnd_print "Result: unexpected rc=%s\n\n" "$TEST_RC" ;;
         esac
 
         # -----------------------------------------------------------------------------
         # 4. ask_choose
         # -----------------------------------------------------------------------------
-        printf "%s4. Testing ask_choose()%s\n" "$CYAN" "$RESET"
+        sgnd_print " 4. Testing ask_choose()"
 
         TEST_ENV=""
         ask_choose \
@@ -374,16 +372,15 @@ set -uo pipefail
             --choices "dev,acc,prod" \
             --var TEST_ENV \
             --labelwidth 28 \
-            --pad 2 \
-            --labelclr "$CYAN"
+            --pad 2 
 
-        printf "Result: TEST_ENV='%s'\n\n" "$TEST_ENV"
+        sgnd_print "Result: TEST_ENV='$TEST_ENV'"
 
         # -----------------------------------------------------------------------------
         # 5. ask_choose_immediate
         # -----------------------------------------------------------------------------
-        printf "%s5. Testing ask_choose_immediate()%s\n" "$CYAN" "$RESET"
-        printf "Instant choices: B,D,Q. Other values require Enter.\n\n"
+        sgnd_print " 5. Testing ask_choose_immediate()"
+        sgnd_print "Instant choices: B,D,Q. Other values require Enter.\n"
 
         TEST_ACTION=""
         ask_choose_immediate \
@@ -392,7 +389,7 @@ set -uo pipefail
             --instantchoices "B,D,Q" \
             --var TEST_ACTION
 
-        printf "Result: TEST_ACTION='%s'\n\n" "$TEST_ACTION"
+        sgnd_print "Result: TEST_ACTION='$TEST_ACTION'"
 
         # -----------------------------------------------------------------------------
         # Optional: ask_prompt_form
@@ -413,18 +410,18 @@ set -uo pipefail
         #     [[ "${1-}" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]
         # }
         #
-        # printf "%s6. Testing ask_prompt_form()%s\n" "$CYAN" "$RESET"
+        # sgnd_print " 6. Testing ask_prompt_form()"
         #
         HOSTNAME=""
         PORT=""
         
-        ask_prompt_form --autoalign --pad 2 --labelclr "$CYAN" -- \
+        ask_prompt_form --autoalign --pad 2 -- \
              "HOSTNAME|Host name|localhost|sgnd_validate_text" \
              "PORT|Port|8080|sgnd_validate_text"
         #
-        printf "Result: HOSTNAME='%s', PORT='%s'\n\n" "$HOSTNAME" "$PORT"
+        sgnd_print "Result: HOSTNAME='$HOSTNAME', PORT='$PORT'\n"
 
-        printf "%sDone.%s\n" "$CYAN" "$RESET"
+        sgnd_print "Done.\n"
     }
         # -- Sample/demo renderers
     # fn: say_test - Run console message helper tests
@@ -778,28 +775,31 @@ set -uo pipefail
             local choice
 
             while true; do
-                printf "\n"
+                sgnd_print
                 sgnd_print_sectionheader --text "SolidGroundUX — Framework Unit Test Menu\n"
                 
-                printf " 1) Ask tests\n"
-                printf " 2) Input test\n"
-                printf " 3) Say test\n"
-                printf " 4) Log level visibility test\n"
-                printf " 5) Call motd\n"
-                printf " 6) Progress dialogue test\n"
-                printf " 7) Show license\n"
-                printf " 8) Show color chart\n"
-                printf " 9) Show theme\n"
+                sgnd_print " 1) Ask tests"
+                sgnd_print " 2) Input test"
+                sgnd_print " 3) Say test"
+                sgnd_print " 4) Log level visibility test"
+                sgnd_print " 5) Call motd"
+                sgnd_print " 6) Progress dialogue test"
+                sgnd_print " 7) Show license"
+                sgnd_print " 8) Show color chart"
+                sgnd_print " 9) Show theme"
                 sgnd_print
-                printf " A) Run all tests\n"
-                printf " q) Quit\n"
+                sgnd_print " A) Run all tests"
+                sgnd_print " q) Quit"
                 sgnd_print_sectionheader --maxwidth 25
                 printf "Select option: "
 
                 choice=""
 
                 for seconds_left in {30..1}; do
-                    printf "\rSelect option (auto-exit in %2ss): " "$seconds_left"
+                    printf '\r\033[K%bSelect option (auto-exit in %2ss): %b' \
+                        "${TUI_TEXT:-}" \
+                        "$seconds_left" \
+                        "${RESET:-}" >/dev/tty
 
                     if read -r -s -n1 -t 1 choice; then
                         break
@@ -809,7 +809,7 @@ set -uo pipefail
                 printf "\n"
 
                 if [[ -z "$choice" ]]; then
-                    printf "No selection made. Exiting...\n"
+                    sgnd_print "No selection made. Exiting..."
                     break
                 fi
 
@@ -851,7 +851,7 @@ set -uo pipefail
                         sayprogress_test
                         ;;
                     q)
-                        printf "Exiting...\n"
+                        sgnd_print "Exiting..."
                         break
                         ;;
                     *)
