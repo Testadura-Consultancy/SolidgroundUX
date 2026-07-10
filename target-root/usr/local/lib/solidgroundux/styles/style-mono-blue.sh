@@ -1,9 +1,9 @@
 # =====================================================================================
-# SolidGroundUX - Monochrome Amber UI Style
+# SolidGroundUX - Monochrome Blue UI Style
 # -------------------------------------------------------------------------------------
 # Type    : library
 # Group   : Styles
-# Purpose : Amber-on-dark semantic UI style mapping
+# Purpose : Blue-on-dark semantic UI style mapping
 # =====================================================================================
 
 # --- say() global defaults -----------------------------------------------------------
@@ -58,18 +58,29 @@ PROG_BAR_CLR=$BRIGHT_GOLD
 PROG_IND_CLR=$BRIGHT_ORANGE
 PROG_TEXT_CLR=$GOLD
 
-SGND_UI_BORDER=$DARK_ORANGE
-SGND_UI_LABEL=$GOLD
-SGND_UI_VALUE=$BRIGHT_GOLD
-SGND_UI_COMMIT=$BRIGHT_ORANGE
-SGND_UI_DRYRUN=$DARK_GOLD
-SGND_UI_ENABLED=$BRIGHT_GOLD
-SGND_UI_DISABLED=$DARK_BROWN
-SGND_UI_INPUT=$BRIGHT_GOLD
-SGND_UI_PROMPT=$BRIGHT_ORANGE
-SGND_UI_INVALID=$BRIGHT_RED
-SGND_UI_VALID=$BRIGHT_GOLD
-SGND_UI_SUCCESS=$BRIGHT_GOLD
-SGND_UI_ERROR=$BRIGHT_RED
-SGND_UI_TEXT=$GOLD
-SGND_UI_DEFAULT=$DARK_BROWN
+SGND_UI_BORDER=$BLUE
+
+SGND_UI_LABEL=$BRIGHT_BLUE
+SGND_UI_VALUE=$BRIGHT_BLUE
+
+SGND_UI_COMMIT=$BRIGHT_BLUE
+SGND_UI_DRYRUN=$BLUE
+
+SGND_UI_ENABLED=$BRIGHT_BLUE
+SGND_UI_DISABLED=$DARK_BLUE
+
+SGND_UI_INPUT=$BRIGHT_BLUE
+SGND_UI_PROMPT=$BRIGHT_BLUE
+
+SGND_UI_INVALID=$BRIGHT_BLUE
+SGND_UI_VALID=$BRIGHT_BLUE
+
+SGND_UI_SUCCESS=$BRIGHT_BLUE
+SGND_UI_ERROR=$BRIGHT_BLUE
+
+SGND_UI_TEXT=$BLUE
+SGND_UI_DEFAULT=$DARK_BLUE
+
+PROG_TEXT_CLR=$BLUE
+PROG_IND_CLR=$BRIGHT_BLUE
+PROG_BAR_CLR=$BRIGHT_BLUE

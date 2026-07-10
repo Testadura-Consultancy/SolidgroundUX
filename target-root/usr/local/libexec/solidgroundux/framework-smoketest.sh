@@ -797,7 +797,7 @@ set -uo pipefail
 
                 for seconds_left in {30..1}; do
                     printf '\r\033[K%bSelect option (auto-exit in %2ss): %b' \
-                        "${TUI_TEXT:-}" \
+                        "${SGND_UI_TEXT:-}" \
                         "$seconds_left" \
                         "${RESET:-}" >/dev/tty
 

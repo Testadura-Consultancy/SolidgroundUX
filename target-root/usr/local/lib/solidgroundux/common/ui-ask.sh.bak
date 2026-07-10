@@ -194,7 +194,7 @@ set -uo pipefail
         #   0 when the prompt string was written.
         #
         # . Usage
-        #   prompt="$(_ask_build_prompt "User name" 25 2 "$SGND_UI_LABEL" "$SGND_UI_INPUT" both)"
+        #   prompt="$(_ask_build_prompt "User name" 25 2 "$TUI_LABEL" "$TUI_INPUT" both)"
     _ask_build_prompt() {
         local label="$1"
         local labelwidth="$2"
@@ -567,8 +567,8 @@ set -uo pipefail
         local echo_input=0
         local labelwidth=25
         local pad=0
-        local labelclr="${SGND_UI_LABEL}"
-        local inputclr="${SGND_UI_INPUT}"
+        local labelclr="${TUI_LABEL}"
+        local inputclr="${TUI_INPUT}"
 
         local -a _orig_args=( "$@" )
 
@@ -600,7 +600,7 @@ set -uo pipefail
         prompt="$(_ask_build_prompt "$label" "$labelwidth" "$pad" "$labelclr" "$inputclr" "$colorize")"
 
         exec {tty_fd}</dev/tty || {
-            printf "%bNo TTY available%b\n" "$SGND_UI_INVALID" "$RESET"
+            printf "%bNo TTY available%b\n" "$TUI_INVALID" "$RESET"
             return 2
         }
 
@@ -624,16 +624,16 @@ set -uo pipefail
             if (( ok )); then
                 printf "  %b%s%b %b✓%b\n" \
                     "$inputclr" "$value" "$RESET" \
-                    "$SGND_UI_VALID" "$RESET" >/dev/tty
+                    "$TUI_VALID" "$RESET" >/dev/tty
             else
                 printf "  %b%s%b %b✗%b\n" \
                     "$inputclr" "$value" "$RESET" \
-                    "$SGND_UI_INVALID" "$RESET" >/dev/tty
+                    "$TUI_INVALID" "$RESET" >/dev/tty
             fi
         fi
 
         if (( ! ok )); then
-            printf "%bInvalid value. Please try again.%b\n" "$SGND_UI_INVALID" "$RESET" >/dev/tty
+            printf "%bInvalid value. Please try again.%b\n" "$TUI_INVALID" "$RESET" >/dev/tty
             ask "${_orig_args[@]}"
             return
         fi
@@ -698,8 +698,8 @@ set -uo pipefail
         local seconds=0
         local displaychoices=1
         local colorize="both"
-        local labelclr="${SGND_UI_LABEL}"
-        local inputclr="${SGND_UI_INPUT}"
+        local labelclr="${TUI_LABEL}"
+        local inputclr="${TUI_INPUT}"
         local labelwidth=25
         local pad=0
 
@@ -845,7 +845,7 @@ set -uo pipefail
         [[ "$seconds" =~ ^[0-9]+$ ]] || seconds=5
         [[ -r "$tty" && -w "$tty" ]] || return 0
 
-        clr="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_ITALIC")"
+        clr="$(sgnd_sgr "$TUI_TEXT" "" "$FX_ITALIC")"
 
         [[ -n "$message" ]] && (( line_count++ ))
         (( ! hide_legend )) && (( line_count++ ))
@@ -869,10 +869,10 @@ set -uo pipefail
             legend="${legend%; }"
 
             if [[ -n "$message" ]]; then
-                printf '\r\033[K%s%s%s\n' "$SGND_UI_TEXT" "$message" "$RESET" >"$tty"
+                printf '\r\033[K%s%s%s\n' "$TUI_TEXT" "$message" "$RESET" >"$tty"
             fi
             if (( ! hide_legend )); then
-                printf '\r\033[K%s%s%s\n' "$SGND_UI_TEXT" "$legend" "$RESET" >"$tty"
+                printf '\r\033[K%s%s%s\n' "$TUI_TEXT" "$legend" "$RESET" >"$tty"
             fi
             if (( paused )); then
                 printf '\r\033[K%sPaused...%s' "$clr" "$RESET" >"$tty"
@@ -1099,8 +1099,8 @@ set -uo pipefail
 
         local labelwidth=""
         local pad=""
-        local labelclr="${SGND_UI_LABEL:-${SGND_UI_TEXT:-}}"
-        local inputclr="${SGND_UI_INPUT:-${SGND_UI_TEXT:-}}"
+        local labelclr="${TUI_LABEL:-${TUI_TEXT:-}}"
+        local inputclr="${TUI_INPUT:-${TUI_TEXT:-}}"
         local colorize="both"
 
         local _rsp=""
@@ -1245,8 +1245,8 @@ set -uo pipefail
         local autoalign=0
         local colorize="both"
         local pad=0
-        local labelclr="${SGND_UI_LABEL:-${SGND_UI_TEXT:-}}"
-        local inputclr="${SGND_UI_INPUT:-${SGND_UI_TEXT:-}}"
+        local labelclr="${TUI_LABEL:-${TUI_TEXT:-}}"
+        local inputclr="${TUI_INPUT:-${TUI_TEXT:-}}"
 
         while [[ $# -gt 0 ]]; do
             case "$1" in

@@ -1,16 +1,18 @@
 # =====================================================================================
-# SolidGroundUX - Fantasy UI Style
+# SolidGroundUX - Steel Blue UI Style
 # -------------------------------------------------------------------------------------
 # Type    : library
 # Group   : Styles
-# Purpose : Purple, gold, and cyan semantic UI style mapping
+# Purpose : Steel Blue-on-dark semantic UI style mapping
 # =====================================================================================
 
+# --- say() global defaults -----------------------------------------------------------
 SAY_DATE_DEFAULT=0
 SAY_SHOW_DEFAULT="label"
 SAY_COLORIZE_DEFAULT="label"
 SAY_DATE_FORMAT="%Y-%m-%d %H:%M:%S"
 
+# --- Say prefixes --------------------------------------------------------------------
 LBL_CNCL="CANCEL"
 LBL_EMPTY="     "
 LBL_END="END"
@@ -41,32 +43,44 @@ SYM_STRT=">>>"
 SYM_WARN="(!)"
 SYM_DEBUG="(~)"
 
-MSG_CLR_INFO=$BRIGHT_CYAN
-MSG_CLR_STRT=$BRIGHT_PURPLE
+# --- Semantic colors -----------------------------------------------------------------
+MSG_CLR_INFO=$GOLD
+MSG_CLR_STRT=$BRIGHT_GOLD
 MSG_CLR_OK=$BRIGHT_GOLD
 MSG_CLR_WARN=$BRIGHT_ORANGE
-MSG_CLR_FAIL=$BRIGHT_PINK
-MSG_CLR_CNCL=$DARK_PURPLE
+MSG_CLR_FAIL=$BRIGHT_RED
+MSG_CLR_CNCL=$DARK_GOLD
 MSG_CLR_END=$BRIGHT_GOLD
-MSG_CLR_EMPTY=$DARK_SILVER
-MSG_CLR_DEBUG=$BRIGHT_MAGENTA
+MSG_CLR_EMPTY=$DARK_BROWN
+MSG_CLR_DEBUG=$DARK_ORANGE
 
-PROG_BAR_CLR=$BRIGHT_PURPLE
-PROG_IND_CLR=$BRIGHT_GOLD
-PROG_TEXT_CLR=$BRIGHT_CYAN
+PROG_BAR_CLR=$BRIGHT_GOLD
+PROG_IND_CLR=$BRIGHT_ORANGE
+PROG_TEXT_CLR=$GOLD
 
-SGND_UI_BORDER=$BRIGHT_PURPLE
+SGND_UI_BORDER=$BRIGHT_BLUE
+
 SGND_UI_LABEL=$BRIGHT_CYAN
-SGND_UI_VALUE=$BRIGHT_GOLD
-SGND_UI_COMMIT=$BRIGHT_ORANGE
-SGND_UI_DRYRUN=$TEAL
+SGND_UI_VALUE=$BRIGHT_WHITE
+
+SGND_UI_COMMIT=$BRIGHT_GREEN
+SGND_UI_DRYRUN=$CYAN
+
 SGND_UI_ENABLED=$BRIGHT_WHITE
-SGND_UI_DISABLED=$DARK_PURPLE
-SGND_UI_INPUT=$BRIGHT_GOLD
-SGND_UI_PROMPT=$BRIGHT_PURPLE
-SGND_UI_INVALID=$BRIGHT_PINK
-SGND_UI_VALID=$BRIGHT_GOLD
-SGND_UI_SUCCESS=$BRIGHT_GOLD
-SGND_UI_ERROR=$BRIGHT_PINK
+SGND_UI_DISABLED=$DARK_WHITE
+
+SGND_UI_INPUT=$BRIGHT_WHITE
+SGND_UI_PROMPT=$BRIGHT_CYAN
+
+SGND_UI_INVALID=$BRIGHT_RED
+SGND_UI_VALID=$BRIGHT_GREEN
+
+SGND_UI_SUCCESS=$BRIGHT_GREEN
+SGND_UI_ERROR=$BRIGHT_RED
+
 SGND_UI_TEXT=$SILVER
 SGND_UI_DEFAULT=$DARK_SILVER
+
+PROG_TEXT_CLR=$SILVER
+PROG_IND_CLR=$BRIGHT_CYAN
+PROG_BAR_CLR=$BRIGHT_BLUE

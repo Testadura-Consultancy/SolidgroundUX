@@ -788,8 +788,8 @@ set -uo pipefail
 
         sayinfo "License acceptance status: $(
             [[ $isaccepted -eq 1 ]] \
-            && echo "${TUI_VALID}ACCEPTED${RESET}" \
-            || echo "${TUI_INVALID}NOT ACCEPTED${RESET}"
+            && echo "${SGND_UI_VALID}ACCEPTED${RESET}" \
+            || echo "${SGND_UI_INVALID}NOT ACCEPTED${RESET}"
         )"
 
         SGND_LICENSE_ACCEPTED=$isaccepted
@@ -853,10 +853,10 @@ set -uo pipefail
         #   sgnd_bootstrap
     sgnd_bootstrap() {
         # Definitions
-            : "${TUI_COMMIT:=$(printf '\e[38;5;214m')}"
-            : "${TUI_DRYRUN:=$(printf '\e[38;5;214m')}"
+            : "${SGND_UI_COMMIT:=$(printf '\e[38;5;214m')}"
+            : "${SGND_UI_DRYRUN:=$(printf '\e[38;5;214m')}"
             : "${RESET:=$(printf '\e[0m')}"
-            : "${RUN_MODE:="${TUI_COMMIT}COMMIT${RESET}"}"
+            : "${RUN_MODE:="${SGND_UI_COMMIT}COMMIT${RESET}"}"
             : "${FLAG_DRYRUN:=0}"
             : "${FLAG_STATERESET:=0}"
             : "${FLAG_INIT_CONFIG:=0}"

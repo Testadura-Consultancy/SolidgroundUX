@@ -152,29 +152,29 @@
     PROG_TEXT_CLR=$SILVER
 
   # CLI colors
-    TUI_BORDER=$BRIGHT_CYAN
+    SGND_UI_BORDER=$BRIGHT_CYAN
 
-    TUI_LABEL=$SILVER
-    TUI_VALUE=$YELLOW  
+    SGND_UI_LABEL=$SILVER
+    SGND_UI_VALUE=$YELLOW  
 
-    TUI_COMMIT=$ORANGE
-    TUI_DRYRUN=$GREEN
+    SGND_UI_COMMIT=$ORANGE
+    SGND_UI_DRYRUN=$GREEN
 
-    TUI_ENABLED=$BRIGHT_WHITE
-    TUI_DISABLED=$DARK_WHITE
+    SGND_UI_ENABLED=$BRIGHT_WHITE
+    SGND_UI_DISABLED=$DARK_WHITE
 
-    TUI_INPUT=$YELLOW
-    TUI_PROMPT=$BRIGHT_CYAN
+    SGND_UI_INPUT=$YELLOW
+    SGND_UI_PROMPT=$BRIGHT_CYAN
 
-    TUI_INVALID=$ORANGE
-    TUI_VALID=$GREEN
+    SGND_UI_INVALID=$ORANGE
+    SGND_UI_VALID=$GREEN
 
-    TUI_SUCCESS=$BRIGHT_GREEN
-    TUI_ERROR=$BRIGHT_RED
+    SGND_UI_SUCCESS=$BRIGHT_GREEN
+    SGND_UI_ERROR=$BRIGHT_RED
 
-    TUI_TEXT=$SILVER
+    SGND_UI_TEXT=$SILVER
 
-    TUI_DEFAULT=$DARK_SILVER
+    SGND_UI_DEFAULT=$DARK_SILVER
 
     # var: style_colors - Colors
         # . Purpose
@@ -193,21 +193,21 @@
         #   PROG_BAR_CLR = $BRIGHT_CYAN
         #   PROG_IND_CLR = $BRIGHT_CYAN
         #   PROG_TEXT_CLR = $SILVER
-        #   TUI_BORDER = $BRIGHT_CYAN
-        #   TUI_LABEL = $SILVER
-        #   TUI_VALUE = $YELLOW
-        #   TUI_COMMIT = $ORANGE
-        #   TUI_DRYRUN = $GREEN
-        #   TUI_ENABLED = $BRIGHT_WHITE
-        #   TUI_DISABLED = $DARK_WHITE
-        #   TUI_INPUT = $YELLOW
-        #   TUI_PROMPT = $BRIGHT_CYAN
-        #   TUI_INVALID = $ORANGE
-        #   TUI_VALID = $GREEN
-        #   TUI_SUCCESS = $BRIGHT_GREEN
-        #   TUI_ERROR = $BRIGHT_RED
-        #   TUI_TEXT = $SILVER
-        #   TUI_DEFAULT = $DARK_SILVER
+        #   SGND_UI_BORDER = $BRIGHT_CYAN
+        #   SGND_UI_LABEL = $SILVER
+        #   SGND_UI_VALUE = $YELLOW
+        #   SGND_UI_COMMIT = $ORANGE
+        #   SGND_UI_DRYRUN = $GREEN
+        #   SGND_UI_ENABLED = $BRIGHT_WHITE
+        #   SGND_UI_DISABLED = $DARK_WHITE
+        #   SGND_UI_INPUT = $YELLOW
+        #   SGND_UI_PROMPT = $BRIGHT_CYAN
+        #   SGND_UI_INVALID = $ORANGE
+        #   SGND_UI_VALID = $GREEN
+        #   SGND_UI_SUCCESS = $BRIGHT_GREEN
+        #   SGND_UI_ERROR = $BRIGHT_RED
+        #   SGND_UI_TEXT = $SILVER
+        #   SGND_UI_DEFAULT = $DARK_SILVER
         #
         # Notes:
         #   Values are shown as assigned by this file. Referenced palette variables

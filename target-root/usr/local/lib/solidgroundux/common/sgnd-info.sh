@@ -388,10 +388,10 @@ set -uo pipefail
     sgnd_print_license() {
         local license_file="${SGND_LICENSE_FILE}"
         
-        local status_text="${TUI_INVALID}NOT ACCEPTED${RESET}" 
+        local status_text="${SGND_UI_INVALID}NOT ACCEPTED${RESET}" 
 
         if (( SGND_LICENSE_ACCEPTED )); then
-            status_text="${TUI_VALID}[ACCEPTED]${RESET}"
+            status_text="${SGND_UI_VALID}[ACCEPTED]${RESET}"
         fi
 
         saydebug "sgnd_print_license: license status is: $status_text"

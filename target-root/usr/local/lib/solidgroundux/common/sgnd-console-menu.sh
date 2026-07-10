@@ -211,7 +211,7 @@ set -uo pipefail
         #   _sgnd_console_label_dryrun
     _sgnd_console_label_dryrun() {
         : "${FLAG_DRYRUN:=0}"
-        printf 'Dry-run: %s' "$(_sgnd_console_onoff "$FLAG_DRYRUN" "$TUI_DRYRUN" "$TUI_COMMIT")"
+        printf 'Dry-run: %s' "$(_sgnd_console_onoff "$FLAG_DRYRUN" "$SGND_UI_DRYRUN" "$SGND_UI_COMMIT")"
     }
     # fn: _sgnd_console_label_debug - Build debug label
         # . Purpose
@@ -1469,7 +1469,7 @@ set -uo pipefail
         render_width="$(sgnd_terminal_width)"
 
         debug_text="$(_sgnd_console_toggleword "DEBUG"   "B" "${FLAG_DEBUG:-0}")"
-        dryrun_text="$(_sgnd_console_toggleword "DRYRUN" "D" "${FLAG_DRYRUN:-0}" "${TUI_DRYRUN}" "${TUI_COMMIT}")"
+        dryrun_text="$(_sgnd_console_toggleword "DRYRUN" "D" "${FLAG_DRYRUN:-0}" "${SGND_UI_DRYRUN}" "${SGND_UI_COMMIT}")"
         logfile_text="$(_sgnd_console_toggleword "LOG"   "L" "${SGND_LOGFILE_ENABLED:-0}")"
         verbose_text="$(_sgnd_console_toggleword "VERBOSE" "V" "${FLAG_VERBOSE:-0}")"
         clearscr_text="$(_sgnd_console_toggleword "CLRSCR" "C" "${SGND_CLEAR_ONRENDER:-0}")"

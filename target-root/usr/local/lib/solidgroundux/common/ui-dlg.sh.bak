@@ -455,12 +455,12 @@ set -uo pipefail
 
             # Message line (optional)
             if [[ -n "$msg" ]]; then
-                printf '\r\e[K%s\n' "${SGND_UI_TEXT}${msg}${RESET}" >"$tty"
+                printf '\r\e[K%s\n' "${TUI_TEXT}${msg}${RESET}" >"$tty"
             fi
 
             # Keymap line
             if (( ! hide_keymap )); then
-                printf '\r\e[K%s\n' "${SGND_UI_TEXT}${line_keymap}${RESET}" >"$tty"
+                printf '\r\e[K%s\n' "${TUI_TEXT}${line_keymap}${RESET}" >"$tty"
             fi
 
             if (( paused )); then
@@ -547,7 +547,7 @@ set -uo pipefail
                 ((seconds--))
                 if (( seconds < 0 )); then
                     printf '\r\e[%dB\n' "$((lines-1))" >"$tty"
-                    saydebug '%s\n' "${SGND_UI_TEXT}Auto-continued.${RESET}" >"$tty"
+                    saydebug '%s\n' "${TUI_TEXT}Auto-continued.${RESET}" >"$tty"
                     return 1
                 fi
             fi
@@ -702,8 +702,8 @@ set -uo pipefail
         local dlgchoices="ERCPQTH"
         local displaychoices=1
         local colorize="both"
-        local labelclr="${SGND_UI_LABEL}"
-        local inputclr="${SGND_UI_INPUT}"
+        local labelclr="${TUI_LABEL}"
+        local inputclr="${TUI_INPUT}"
         local labelwidth=25
         local pad=0
 

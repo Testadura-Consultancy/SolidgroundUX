@@ -684,7 +684,7 @@ set -uo pipefail
         # . Usage
         #   sgnd_runmode_color "$value"
     sgnd_runmode_color() {
-        (( FLAG_DRYRUN )) && printf '%s' "$SGND_UI_DRYRUN" || printf '%s' "$SGND_UI_COMMIT"
+        (( FLAG_DRYRUN )) && printf '%s' "$TUI_DRYRUN" || printf '%s' "$TUI_COMMIT"
     }
 
  # -- Rendering primitives --------------------------------------------------------
@@ -721,8 +721,8 @@ set -uo pipefail
         local sep=":"
         local labelwidth=25
         local pad=0
-        local labelclr="${SGND_UI_LABEL}"
-        local valueclr="${SGND_UI_VALUE}"
+        local labelclr="${TUI_LABEL}"
+        local valueclr="${TUI_VALUE}"
 
         # --- Parse options
         while [[ $# -gt 0 ]]; do
@@ -815,7 +815,7 @@ set -uo pipefail
         local left="" right=""
         local padleft=2 padright=1 maxwidth=80
         local fillchar=" "
-        local leftclr="${SGND_UI_TEXT}"
+        local leftclr="${TUI_TEXT}"
         local rightclr=""
 
         # --- Parse options (with positional fallback)
@@ -906,13 +906,13 @@ set -uo pipefail
 
         local left="${SGND_SCRIPT_TITLE:-$SGND_SCRIPT_BASE}"
         local right="${RUN_MODE:-}"
-        local leftclr="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")"
+        local leftclr="$(sgnd_sgr "$TUI_TEXT" "" "$FX_BOLD")"
         local rightclr=""                 # let sgnd_print_fill inherit
         local sub="${SGND_SCRIPT_DESC:-""}"
-        local subclr="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_ITALIC")"
+        local subclr="$(sgnd_sgr "$TUI_TEXT" "" "$FX_ITALIC")"
         local subjust="C"
         local border="$DL_H"
-        local borderclr="${SGND_UI_BORDER}"
+        local borderclr="${TUI_BORDER}"
         local padleft=4
         local maxwidth=80
 
@@ -1000,9 +1000,9 @@ set -uo pipefail
         #   sgnd_print_sectionheader --text "..." --textclr --border --borderclr
     sgnd_print_sectionheader() {
         local text=""
-        local textclr="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")"
+        local textclr="$(sgnd_sgr "$TUI_TEXT" "" "$FX_BOLD")"
         local border="$LN_H"
-        local borderclr="${SGND_UI_BORDER}"
+        local borderclr="${TUI_BORDER}"
         local padleft=4
         local padend=1
         local maxwidth=80
@@ -1104,7 +1104,7 @@ set -uo pipefail
         #   sgnd_print --text "..." --textclr --justify --wrap
     sgnd_print() {
         local text=""
-        local textclr="${SGND_UI_TEXT:-}"
+        local textclr="${TUI_TEXT:-}"
         local wrap=0
         local wrap_explicit=0
         local pad=0
@@ -1199,7 +1199,7 @@ set -uo pipefail
         #   sgnd_print_single --text "..." --textclr --justify --pad
     sgnd_print_single() {
         local text=""
-        local textclr="${SGND_UI_TEXT:-}"
+        local textclr="${TUI_TEXT:-}"
         local pad=0
         local justify="L"
         local maxwidth=80
@@ -1640,52 +1640,52 @@ set -uo pipefail
         sgnd_print_sectionheader --text "General UI elements"
 
         sgnd_print_labeledvalue \
-            --label "SGND_UI_LABEL" \
-            --value "SGND_UI_VALUE"
+            --label "TUI_LABEL" \
+            --value "TUI_VALUE"
 
         printf '%s%s%s\n' \
-            "$SGND_UI_TEXT" \
-            "SGND_UI_TEXT - normal themed interface text" \
+            "$TUI_TEXT" \
+            "TUI_TEXT - normal themed interface text" \
             "$RESET"
 
         printf '%s%s%s\n' \
-            "$SGND_UI_DEFAULT" \
-            "SGND_UI_DEFAULT - default or secondary value" \
+            "$TUI_DEFAULT" \
+            "TUI_DEFAULT - default or secondary value" \
             "$RESET"
 
         # Run modes
         sgnd_print_sectionheader --text "Run modes"
 
         printf '  %sCOMMIT%s    %sDRY-RUN%s\n' \
-            "$SGND_UI_COMMIT" "$RESET" \
-            "$SGND_UI_DRYRUN" "$RESET"
+            "$TUI_COMMIT" "$RESET" \
+            "$TUI_DRYRUN" "$RESET"
 
         # State and validation styles
         sgnd_print_sectionheader --text "States and validation"
 
         printf '  %sENABLED%s   %sDISABLED%s\n' \
-            "$SGND_UI_ENABLED" "$RESET" \
-            "$SGND_UI_DISABLED" "$RESET"
+            "$TUI_ENABLED" "$RESET" \
+            "$TUI_DISABLED" "$RESET"
 
         printf '  %sVALID%s     %sINVALID%s\n' \
-            "$SGND_UI_VALID" "$RESET" \
-            "$SGND_UI_INVALID" "$RESET"
+            "$TUI_VALID" "$RESET" \
+            "$TUI_INVALID" "$RESET"
 
         printf '  %sSUCCESS%s   %sERROR%s\n' \
-            "$SGND_UI_SUCCESS" "$RESET" \
-            "$SGND_UI_ERROR" "$RESET"
+            "$TUI_SUCCESS" "$RESET" \
+            "$TUI_ERROR" "$RESET"
 
         # Prompt/input styles
         sgnd_print_sectionheader --text "Prompt and input"
 
         printf '  %sTheme name%s : %sfantasy%s\n' \
-            "$SGND_UI_PROMPT" "$RESET" \
-            "$SGND_UI_INPUT" "$RESET"
+            "$TUI_PROMPT" "$RESET" \
+            "$TUI_INPUT" "$RESET"
 
         # Border style
         sgnd_print_sectionheader \
-            --text "SGND_UI_BORDER" \
-            --borderclr "$SGND_UI_BORDER"
+            --text "TUI_BORDER" \
+            --borderclr "$TUI_BORDER"
 
         # Progress styles
         sgnd_print_sectionheader --text "Progress display"
@@ -1706,7 +1706,7 @@ set -uo pipefail
 
         sgnd_print_sectionheader \
             --text "End of theme showcase" \
-            --borderclr "$SGND_UI_BORDER"
+            --borderclr "$TUI_BORDER"
 
         return 0
     }

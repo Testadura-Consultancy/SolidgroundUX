@@ -106,7 +106,7 @@ set -uo pipefail
 
     # var$ Minimal terminal colors
         # Additional ANSI constants used by template/fallback output helpers.
-    TUI_COMMIT=$'\e[2;37m'
+    SGND_UI_COMMIT=$'\e[2;37m'
     RESET=$'\e[0m'
 
     # fn: _sgnd_minimal_say_normalize_log_level - Normalize a minimal bootstrap log level
