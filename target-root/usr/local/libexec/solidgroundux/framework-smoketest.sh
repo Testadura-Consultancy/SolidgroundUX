@@ -522,7 +522,6 @@ set -uo pipefail
         fi
     }
 
-
     # fn: sayprogress_test - Run transient progress line tests
         # . Purpose
         #   Exercise sayprogress with one, two, and three reserved progress slots.
@@ -630,6 +629,107 @@ set -uo pipefail
         sayprogress_done
         sayok "Progress test 3/3 complete"
     }
+
+    show_colorchart(){
+        sgnd_color_samples
+    }
+
+    # fn: show_theme - Browse and preview installed UI themes
+        # . Purpose
+        #   Cycle through installed SolidGroundUX themes and preview each one.
+        #
+        # . Behavior
+        #   - Discovers default-ui-style.sh and style-*.sh in SGND_STYLE_DIR.
+        #   - Starts at the currently active theme when possible.
+        #   - Uses Left/Right arrows to switch the runtime theme without saving it.
+        #   - Displays sgnd_style_samples after every successful switch.
+        #   - Q returns to the smoke-test menu and leaves the selected theme active.
+        #
+        # . Returns
+        #   0 after leaving the theme browser.
+        #   1 when no readable themes are found.
+        #
+        # . Usage
+        #   show_theme
+    show_theme() {
+        local -a theme_files=()
+        local -a theme_names=()
+        local theme_file=""
+        local theme_name=""
+        local current_file="${SGND_UI_STYLE##*/}"
+        local key=""
+        local key_tail=""
+        local index=0
+        local i=0
+
+        while IFS= read -r -d '' theme_file; do
+            theme_files+=("$(basename -- "$theme_file")")
+        done < <(
+            find "$SGND_STYLE_DIR" -maxdepth 1 -type f \
+                \( -name 'default-ui-style.sh' -o -name 'style-*.sh' \) \
+                -print0 | sort -z
+        )
+
+        if (( ${#theme_files[@]} == 0 )); then
+            saywarning "No themes found in $SGND_STYLE_DIR"
+            return 1
+        fi
+
+        for theme_file in "${theme_files[@]}"; do
+            theme_name="${theme_file%.sh}"
+            theme_name="${theme_name#style-}"
+            [[ "$theme_file" == "default-ui-style.sh" ]] && theme_name="default"
+            theme_names+=("$theme_name")
+        done
+
+        for i in "${!theme_files[@]}"; do
+            if [[ "${theme_files[$i]}" == "$current_file" ]]; then
+                index=$i
+                break
+            fi
+        done
+
+        while true; do
+            theme_name="${theme_names[$index]}"
+
+            sgnd_theme "$theme_name" || return $?
+
+            printf '\033[2J\033[H'
+            printf 'Theme %d/%d: %s\n' \
+                "$((index + 1))" \
+                "${#theme_names[@]}" \
+                "$theme_name"
+            printf 'Use Left/Right arrows to browse; Q returns to the menu.\n\n'
+
+            sgnd_style_samples
+
+            IFS= read -r -s -n1 key
+
+            case "$key" in
+                $'\e')
+                    key_tail=""
+                    IFS= read -r -s -n2 -t 0.1 key_tail || true
+
+                    case "$key_tail" in
+                        '[D')
+                            index=$(( (index - 1 + ${#theme_names[@]}) % ${#theme_names[@]} ))
+                            ;;
+                        '[C')
+                            index=$(( (index + 1) % ${#theme_names[@]} ))
+                            ;;
+                    esac
+                    ;;
+                q|Q)
+                    break
+                    ;;
+                '')
+                    continue
+                    ;;
+            esac
+        done
+
+        return 0
+    }
 # --- Main -------------------------------------------------------------------------
     # main MUST BE LAST function in script
         # Main entry point for the executable script.
@@ -688,6 +788,8 @@ set -uo pipefail
                 printf " 5) Call motd\n"
                 printf " 6) Progress dialogue test\n"
                 printf " 7) Show license\n"
+                printf " 8) Show color chart\n"
+                printf " 9) Show theme\n"
                 sgnd_print
                 printf " A) Run all tests\n"
                 printf " q) Quit\n"
@@ -733,6 +835,12 @@ set -uo pipefail
                     7) 
                         printf "$SGND_DOCS_DIR/$SGND_LICENSE_FILE"
                         sgnd_print_license
+                        ;;
+                    8)
+                        show_colorchart
+                        ;;
+                    9)
+                        show_theme
                         ;;
                     a)
                         ask_test

@@ -398,6 +398,137 @@ set -uo pipefail
         return 0
     }
 
+    # fn: sgnd_theme - Display or switch the active UI theme
+        # . Purpose
+        #   Display the current theme or switch the semantic UI style used by the
+        #   current SolidGroundUX session.
+        #
+        # . Behavior
+        #   - With no theme argument, displays the currently configured theme.
+        #   - Resolves a short theme name such as "dark" to "style-dark.sh".
+        #   - Accepts an explicit style filename such as "style-dark.sh".
+        #   - Loads the selected style immediately through sgnd_load_ui_style.
+        #   - With --save, stores SGND_UI_STYLE in the user framework cfg after the
+        #     theme has loaded successfully.
+        #   - Leaves the active theme unchanged when validation or loading fails.
+        #
+        # . Arguments
+        #   THEME
+        #       Optional theme name or style filename.
+        #
+        # . Options
+        #   --save
+        #       Save the selected theme in the user framework configuration.
+        #
+        #   -h, --help
+        #       Display usage information.
+        #
+        # Outputs (globals):
+        #   SGND_UI_STYLE
+        #
+        # . Output
+        #   Displays the current theme when no theme is supplied.
+        #   Reports validation, loading, or persistence failures to stderr.
+        #
+        # . Returns
+        #   0 when the current theme is displayed or the requested theme is loaded.
+        #   1 when the theme cannot be found, loaded, or saved.
+        #   2 when invalid arguments are supplied.
+        #
+        # . Usage
+        #   sgnd_theme
+        #   sgnd_theme dark
+        #   sgnd_theme fantasy --save
+    sgnd_theme() {
+        local theme=""
+        local save=0
+        local style_file=""
+        local previous_style="${SGND_UI_STYLE:-default-ui-style.sh}"
+
+        while (($#)); do
+            case "$1" in
+                --save)
+                    save=1
+                    shift
+                    ;;
+                -h|--help)
+                    printf '%s\n' \
+                        "Usage: sgnd_theme [THEME] [--save]" \
+                        "       sgnd_theme"
+                    return 0
+                    ;;
+                --*)
+                    printf 'sgnd_theme: unknown option: %s\n' "$1" >&2
+                    return 2
+                    ;;
+                *)
+                    if [[ -n "$theme" ]]; then
+                        printf 'sgnd_theme: unexpected argument: %s\n' "$1" >&2
+                        return 2
+                    fi
+                    theme="$1"
+                    shift
+                    ;;
+            esac
+        done
+
+        if [[ -z "$theme" ]]; then
+            theme="${SGND_UI_STYLE:-default-ui-style.sh}"
+            theme="${theme##*/}"
+            theme="${theme%.sh}"
+            theme="${theme#style-}"
+            [[ "$theme" == "default-ui-style" ]] && theme="default"
+            printf 'Current theme: %s\n' "$theme"
+            return 0
+        fi
+
+        case "$theme" in
+            default|default-ui-style|default-ui-style.sh)
+                style_file="default-ui-style.sh"
+                ;;
+            *.sh)
+                style_file="${theme##*/}"
+                ;;
+            style-*)
+                style_file="${theme}.sh"
+                ;;
+            *)
+                style_file="style-${theme}.sh"
+                ;;
+        esac
+
+        if [[ ! -r "${SGND_STYLE_DIR%/}/$style_file" ]]; then
+            printf 'sgnd_theme: theme not found: %s\n' "${SGND_STYLE_DIR%/}/$style_file" >&2
+            return 1
+        fi
+
+        SGND_UI_STYLE="$style_file"
+        if ! sgnd_load_ui_style; then
+            SGND_UI_STYLE="$previous_style"
+            sgnd_load_ui_style >/dev/null 2>&1 || true
+            printf 'sgnd_theme: failed to load theme: %s\n' "$theme" >&2
+            return 1
+        fi
+
+        if (( save )); then
+            if [[ -z "${SGND_FRAMEWORK_USRCFG_FILE:-}" ]] || ! declare -F _sgnd_kv_set >/dev/null; then
+                SGND_UI_STYLE="$previous_style"
+                sgnd_load_ui_style >/dev/null 2>&1 || true
+                printf 'sgnd_theme: framework user configuration is unavailable\n' >&2
+                return 1
+            fi
+
+            if ! _sgnd_kv_set "$SGND_FRAMEWORK_USRCFG_FILE" "SGND_UI_STYLE" "$style_file"; then
+                SGND_UI_STYLE="$previous_style"
+                sgnd_load_ui_style >/dev/null 2>&1 || true
+                printf 'sgnd_theme: failed to save theme in: %s\n' "$SGND_FRAMEWORK_USRCFG_FILE" >&2
+                return 1
+            fi
+        fi
+
+        return 0
+    }
+
     # fn: sgnd_ui_set_default_theme - Ui set default theme
         # . Purpose
         #   Load the default SolidGroundUX UI palette and style.
@@ -1461,57 +1592,123 @@ set -uo pipefail
         printf "\n"
     }
 
-    # fn: sgnd_style_samples - Style samples
+    # fn: sgnd_style_samples - Display the active UI theme
         # . Purpose
-        #   Print sample output for the currently loaded UI style.
+        #   Demonstrate every semantic color defined by the active SolidGroundUX theme.
         #
         # . Behavior
-        #   - Preserves the existing SolidGroundUX console/UI behavior.
-        #   - Uses current palette, style, runtime, or logging globals where applicable.
-        #
-        # . Arguments
-        #   $@ - Values consumed by the helper. See usage for the expected call shape.
+        #   - Shows the current theme name.
+        #   - Exercises the message colors through the public say* functions.
+        #   - Exercises title bars, section headers, labeled values, run modes,
+        #     prompts, status values, and progress colors.
+        #   - Prints every semantic style variable at least once.
         #
         # . Output
-        #   Writes formatted text or computed values to stdout unless the function targets /dev/tty.
+        #   Writes a visual theme showcase to the terminal.
         #
         # . Returns
         #   0 on success.
-        #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # . Usage
-        #   sgnd_style_samples "$value"
-    sgnd_style_samples(){
-        printf '\n%s\n\n' "---- Message colors (Say) ----"
-       
-        printf '%s\n' "${MSG_CLR_INFO}MSG_CLR_INFO${RESET}"
-        printf '%s\n' "${MSG_CLR_STRT}MSG_CLR_STRT${RESET}"
-        printf '%s\n' "${MSG_CLR_OK}MSG_CLR_OK${RESET}"
-        printf '%s\n' "${MSG_CLR_WARN}MSG_CLR_WARN${RESET}"
-        printf '%s\n' "${MSG_CLR_FAIL}MSG_CLR_FAIL${RESET}"
-        printf '%s\n' "${MSG_CLR_CNCL}MSG_CLR_CNCL${RESET}"
-        printf '%s\n' "${MSG_CLR_END}MSG_CLR_END${RESET}"
-        printf '%s\n' "${MSG_CLR_EMPTY}MSG_CLR_EMPTY${RESET}"
-        printf '%s\n' "${MSG_CLR_DEBUG}MSG_CLR_DEBUG${RESET}"
+        #   sgnd_style_samples
+    sgnd_style_samples() {
+        local current_theme="${SGND_UI_STYLE##*/}"
 
-        printf '\n%s\n\n' "---- Ui element color ----"
-        printf '%s\n' "${TUI_BORDER}TUI_BORDER${RESET}"
+        current_theme="${current_theme#style-}"
+        current_theme="${current_theme%.sh}"
 
-        printf '%s\n' "${TUI_LABEL}TUI_LABEL${RESET} : ${TUI_VALUE}TUI_VALUE${RESET}"
+        sgnd_print_titlebar \
+            --left "SolidGroundUX Theme Showcase" \
+            --right "$current_theme" \
+            --sub "Semantic UI colors and framework components"
 
-        printf '%s\n' "${TUI_COMMIT}TUI_COMMIT${RESET}/${TUI_DRYRUN}TUI_DRYRUN${RESET}"
-        printf '%s\n' "${TUI_ENABLED}TUI_ENABLED${RESET}/${TUI_DISABLED}TUI_DISABLED${RESET}"
-        printf '%s\n' "${TUI_PROMPT}TUI_PROMPT${RESET} : ${TUI_INPUT}TUI_INPUT${RESET}"
+        # Message styles
+        sgnd_print_sectionheader --text "Message output"
 
-        printf '%s\n' "${TUI_INVALID}TUI_INVALID${RESET}/${TUI_VALID}TUI_VALID${RESET}"
-        
-        printf '%s\n' "${TUI_SUCCESS}TUI_SUCCESS${RESET}"
-        printf '%s\n' "${TUI_ERROR}TUI_ERROR${RESET}"
+        saystart   "MSG_CLR_STRT - starting an operation"
+        sayinfo    "MSG_CLR_INFO - informational message"
+        sayok      "MSG_CLR_OK - operation completed successfully"
+        saywarning "MSG_CLR_WARN - warning message"
+        sayfail    "MSG_CLR_FAIL - failure message"
+        saycancel  "MSG_CLR_CNCL - operation cancelled"
+        sayend     "MSG_CLR_END - operation finished"
+        saydebug   "MSG_CLR_DEBUG - diagnostic message"
 
-        printf '%s\n' "${TUI_TEXT}TUI_TEXT${RESET}"
+        printf '%s\n' "${MSG_CLR_EMPTY}MSG_CLR_EMPTY - neutral or empty message style${RESET}"
 
-        printf '%s\n' "${TUI_DEFAULT}TUI_DEFAULT${RESET}"
+        # General TUI styles
+        sgnd_print_sectionheader --text "General UI elements"
 
+        sgnd_print_labeledvalue \
+            --label "TUI_LABEL" \
+            --value "TUI_VALUE"
+
+        printf '%s%s%s\n' \
+            "$TUI_TEXT" \
+            "TUI_TEXT - normal themed interface text" \
+            "$RESET"
+
+        printf '%s%s%s\n' \
+            "$TUI_DEFAULT" \
+            "TUI_DEFAULT - default or secondary value" \
+            "$RESET"
+
+        # Run modes
+        sgnd_print_sectionheader --text "Run modes"
+
+        printf '  %sCOMMIT%s    %sDRY-RUN%s\n' \
+            "$TUI_COMMIT" "$RESET" \
+            "$TUI_DRYRUN" "$RESET"
+
+        # State and validation styles
+        sgnd_print_sectionheader --text "States and validation"
+
+        printf '  %sENABLED%s   %sDISABLED%s\n' \
+            "$TUI_ENABLED" "$RESET" \
+            "$TUI_DISABLED" "$RESET"
+
+        printf '  %sVALID%s     %sINVALID%s\n' \
+            "$TUI_VALID" "$RESET" \
+            "$TUI_INVALID" "$RESET"
+
+        printf '  %sSUCCESS%s   %sERROR%s\n' \
+            "$TUI_SUCCESS" "$RESET" \
+            "$TUI_ERROR" "$RESET"
+
+        # Prompt/input styles
+        sgnd_print_sectionheader --text "Prompt and input"
+
+        printf '  %sTheme name%s : %sfantasy%s\n' \
+            "$TUI_PROMPT" "$RESET" \
+            "$TUI_INPUT" "$RESET"
+
+        # Border style
+        sgnd_print_sectionheader \
+            --text "TUI_BORDER" \
+            --borderclr "$TUI_BORDER"
+
+        # Progress styles
+        sgnd_print_sectionheader --text "Progress display"
+
+        sayprogress_begin --slots 1
+
+        sayprogress \
+            --current 65 \
+            --total 100 \
+            --label "PROG_TEXT_CLR / PROG_IND_CLR / PROG_BAR_CLR" \
+            --type 7 \
+            --barcolor "$PROG_BAR_CLR" \
+            --labelcolor "$PROG_TEXT_CLR" \
+            --indicatorcolor "$PROG_IND_CLR"
+
+        sleep 1
+        sayprogress_done
+
+        sgnd_print_sectionheader \
+            --text "End of theme showcase" \
+            --borderclr "$TUI_BORDER"
+
+        return 0
     }
 
 

@@ -892,15 +892,13 @@ set -uo pipefail
             fi
 
             _source_usinglibs || { local rc=$?; _boot_fail "Failed to load optional libraries" "$rc"; return "$rc"; }
-
-            sayinfo "Loading UI style"
-            sgnd_load_ui_style || { local rc=$?; _boot_fail "Failed to load UI style" "$rc"; return "$rc"; }
-
         # Load Framework globals
             sayinfo "Loading framework globals"
             sgnd_cfg_domain_apply "Framework" "$SGND_FRAMEWORK_SYSCFG_FILE" "$SGND_FRAMEWORK_USRCFG_FILE" "SGND_FRAMEWORK_GLOBALS" "framework" \
                 || { local rc=$?; _boot_fail "Framework cfg load failed" "$rc"; return "$rc"; }
-
+        # Load UI style
+            sayinfo "Loading UI style"
+            sgnd_load_ui_style || { local rc=$?; _boot_fail "Failed to load UI style" "$rc"; return "$rc"; }
         # Parse builtin arguments early
             saydebug "Processing builtin arguments."
             local -a _sgnd_script_args

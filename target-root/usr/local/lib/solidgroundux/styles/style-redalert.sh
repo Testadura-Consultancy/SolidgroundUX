@@ -1,0 +1,72 @@
+# =====================================================================================
+# SolidGroundUX - RedAlert UI Style
+# -------------------------------------------------------------------------------------
+# Type    : library
+# Group   : Styles
+# Purpose : High-contrast red operational alert semantic UI style mapping
+# =====================================================================================
+
+SAY_DATE_DEFAULT=0
+SAY_SHOW_DEFAULT="label"
+SAY_COLORIZE_DEFAULT="label"
+SAY_DATE_FORMAT="%Y-%m-%d %H:%M:%S"
+
+LBL_CNCL="CANCEL"
+LBL_EMPTY="     "
+LBL_END="END"
+LBL_FAIL="ERROR"
+LBL_INFO="INFO"
+LBL_OK="SUCCESS"
+LBL_STRT="START"
+LBL_WARN="WARNING"
+LBL_DEBUG="DEBUG"
+
+ICO_CNCL=$'[STOP]'
+ICO_EMPTY=$''
+ICO_END=$'[END]'
+ICO_FAIL=$'[ERR]'
+ICO_INFO=$'[INF]'
+ICO_OK=$'[OK]'
+ICO_STRT=$'[RUN]'
+ICO_WARN=$'[WRN]'
+ICO_DEBUG=$'[DBG]'
+
+SYM_CNCL="(-)"
+SYM_EMPTY=""
+SYM_END="<<<"
+SYM_FAIL="(X)"
+SYM_INFO="(+)"
+SYM_OK="(+)"
+SYM_STRT=">>>"
+SYM_WARN="(!)"
+SYM_DEBUG="(~)"
+
+MSG_CLR_INFO=$SILVER
+MSG_CLR_STRT=$BRIGHT_RED
+MSG_CLR_OK=$BRIGHT_WHITE
+MSG_CLR_WARN=$BRIGHT_YELLOW
+MSG_CLR_FAIL=$BRIGHT_RED
+MSG_CLR_CNCL=$DARK_RED
+MSG_CLR_END=$BRIGHT_RED
+MSG_CLR_EMPTY=$DARK_GRAY
+MSG_CLR_DEBUG=$ORANGE
+
+PROG_BAR_CLR=$BRIGHT_RED
+PROG_IND_CLR=$BRIGHT_YELLOW
+PROG_TEXT_CLR=$SILVER
+
+TUI_BORDER=$BRIGHT_RED
+TUI_LABEL=$SILVER
+TUI_VALUE=$BRIGHT_WHITE
+TUI_COMMIT=$BRIGHT_RED
+TUI_DRYRUN=$DARK_RED
+TUI_ENABLED=$BRIGHT_WHITE
+TUI_DISABLED=$DARK_GRAY
+TUI_INPUT=$BRIGHT_YELLOW
+TUI_PROMPT=$BRIGHT_RED
+TUI_INVALID=$BRIGHT_YELLOW
+TUI_VALID=$BRIGHT_WHITE
+TUI_SUCCESS=$BRIGHT_WHITE
+TUI_ERROR=$BRIGHT_RED
+TUI_TEXT=$SILVER
+TUI_DEFAULT=$DARK_GRAY

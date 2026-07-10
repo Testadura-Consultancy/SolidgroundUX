@@ -294,6 +294,7 @@ set -uo pipefail
         "loglevel||enum|ARG_LOGLEVEL|Set console output level||silent,quiet,normal,verbose,debug,trace"
         "show||enum|ARG_SHOW|Show internal information and exit||args,cfg,state,meta,license,readme,env"
         "statereset|R|flag|FLAG_STATERESET|Reset the state file|"
+        "theme|T|value|ARG_THEME|Select a UI theme||"
     )
 
     # var: SGND_BUILTIN_EXAMPLES - Builtin help examples
@@ -638,6 +639,7 @@ set -uo pipefail
     sgnd_builtinarg_handler(){
         local show_target="${ARG_SHOW:-}"
         local loglevel="${ARG_LOGLEVEL:-}"
+        local theme="${ARG_THEME:-}"
 
         if (( ${FLAG_LOG:-0} )); then
             SGND_LOGFILE_ENABLED=1
@@ -649,6 +651,12 @@ set -uo pipefail
                 SGND_LOG_LEVEL="$loglevel"
                 ;;
         esac
+
+        # Apply an explicit CLI theme without resetting a bootstrap/script default.
+        if [[ -n "$theme" ]]; then
+            sgnd_theme "$theme" || return $?
+            saydebug "Selected theme: $(basename "$SGND_UI_STYLE")"
+        fi
 
         # Info-only builtins: perform action and EXIT.
         if (( FLAG_HELP )); then

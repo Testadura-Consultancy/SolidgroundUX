@@ -1,0 +1,72 @@
+# =====================================================================================
+# SolidGroundUX - Monochrome Green UI Style
+# -------------------------------------------------------------------------------------
+# Type    : library
+# Group   : Styles
+# Purpose : Green terminal semantic UI style mapping
+# =====================================================================================
+
+SAY_DATE_DEFAULT=0
+SAY_SHOW_DEFAULT="label"
+SAY_COLORIZE_DEFAULT="label"
+SAY_DATE_FORMAT="%Y-%m-%d %H:%M:%S"
+
+LBL_CNCL="CANCEL"
+LBL_EMPTY="     "
+LBL_END="END"
+LBL_FAIL="ERROR"
+LBL_INFO="INFO"
+LBL_OK="SUCCESS"
+LBL_STRT="START"
+LBL_WARN="WARNING"
+LBL_DEBUG="DEBUG"
+
+ICO_CNCL=$'[STOP]'
+ICO_EMPTY=$''
+ICO_END=$'[END]'
+ICO_FAIL=$'[ERR]'
+ICO_INFO=$'[INF]'
+ICO_OK=$'[OK]'
+ICO_STRT=$'[RUN]'
+ICO_WARN=$'[WRN]'
+ICO_DEBUG=$'[DBG]'
+
+SYM_CNCL="(-)"
+SYM_EMPTY=""
+SYM_END="<<<"
+SYM_FAIL="(X)"
+SYM_INFO="(+)"
+SYM_OK="(+)"
+SYM_STRT=">>>"
+SYM_WARN="(!)"
+SYM_DEBUG="(~)"
+
+MSG_CLR_INFO=$GREEN
+MSG_CLR_STRT=$BRIGHT_GREEN
+MSG_CLR_OK=$BRIGHT_GREEN
+MSG_CLR_WARN=$YELLOW
+MSG_CLR_FAIL=$BRIGHT_RED
+MSG_CLR_CNCL=$DARK_GREEN
+MSG_CLR_END=$BRIGHT_GREEN
+MSG_CLR_EMPTY=$DARK_GREEN
+MSG_CLR_DEBUG=$TEAL
+
+PROG_BAR_CLR=$BRIGHT_GREEN
+PROG_IND_CLR=$GREEN
+PROG_TEXT_CLR=$GREEN
+
+TUI_BORDER=$GREEN
+TUI_LABEL=$GREEN
+TUI_VALUE=$BRIGHT_GREEN
+TUI_COMMIT=$BRIGHT_GREEN
+TUI_DRYRUN=$DARK_GREEN
+TUI_ENABLED=$BRIGHT_GREEN
+TUI_DISABLED=$DARK_GREEN
+TUI_INPUT=$BRIGHT_GREEN
+TUI_PROMPT=$GREEN
+TUI_INVALID=$YELLOW
+TUI_VALID=$BRIGHT_GREEN
+TUI_SUCCESS=$BRIGHT_GREEN
+TUI_ERROR=$BRIGHT_RED
+TUI_TEXT=$GREEN
+TUI_DEFAULT=$DARK_GREEN

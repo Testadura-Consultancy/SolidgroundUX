@@ -1,0 +1,72 @@
+# =====================================================================================
+# SolidGroundUX - Dark UI Style
+# -------------------------------------------------------------------------------------
+# Type    : library
+# Group   : Styles
+# Purpose : Balanced dark terminal semantic UI style mapping
+# =====================================================================================
+
+SAY_DATE_DEFAULT=0
+SAY_SHOW_DEFAULT="label"
+SAY_COLORIZE_DEFAULT="label"
+SAY_DATE_FORMAT="%Y-%m-%d %H:%M:%S"
+
+LBL_CNCL="CANCEL"
+LBL_EMPTY="     "
+LBL_END="END"
+LBL_FAIL="ERROR"
+LBL_INFO="INFO"
+LBL_OK="SUCCESS"
+LBL_STRT="START"
+LBL_WARN="WARNING"
+LBL_DEBUG="DEBUG"
+
+ICO_CNCL=$'[STOP]'
+ICO_EMPTY=$''
+ICO_END=$'[END]'
+ICO_FAIL=$'[ERR]'
+ICO_INFO=$'[INF]'
+ICO_OK=$'[OK]'
+ICO_STRT=$'[RUN]'
+ICO_WARN=$'[WRN]'
+ICO_DEBUG=$'[DBG]'
+
+SYM_CNCL="(-)"
+SYM_EMPTY=""
+SYM_END="<<<"
+SYM_FAIL="(X)"
+SYM_INFO="(+)"
+SYM_OK="(+)"
+SYM_STRT=">>>"
+SYM_WARN="(!)"
+SYM_DEBUG="(~)"
+
+MSG_CLR_INFO=$SILVER
+MSG_CLR_STRT=$BRIGHT_CYAN
+MSG_CLR_OK=$BRIGHT_GREEN
+MSG_CLR_WARN=$BRIGHT_ORANGE
+MSG_CLR_FAIL=$BRIGHT_RED
+MSG_CLR_CNCL=$YELLOW
+MSG_CLR_END=$BRIGHT_CYAN
+MSG_CLR_EMPTY=$DARK_SILVER
+MSG_CLR_DEBUG=$BRIGHT_MAGENTA
+
+PROG_BAR_CLR=$BRIGHT_CYAN
+PROG_IND_CLR=$BRIGHT_BLUE
+PROG_TEXT_CLR=$SILVER
+
+TUI_BORDER=$DARK_CYAN
+TUI_LABEL=$SILVER
+TUI_VALUE=$BRIGHT_WHITE
+TUI_COMMIT=$BRIGHT_ORANGE
+TUI_DRYRUN=$GREEN
+TUI_ENABLED=$BRIGHT_WHITE
+TUI_DISABLED=$DARK_GRAY
+TUI_INPUT=$BRIGHT_YELLOW
+TUI_PROMPT=$BRIGHT_CYAN
+TUI_INVALID=$BRIGHT_ORANGE
+TUI_VALID=$BRIGHT_GREEN
+TUI_SUCCESS=$BRIGHT_GREEN
+TUI_ERROR=$BRIGHT_RED
+TUI_TEXT=$SILVER
+TUI_DEFAULT=$DARK_SILVER
