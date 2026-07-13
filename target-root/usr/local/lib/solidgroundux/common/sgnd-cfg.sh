@@ -83,6 +83,8 @@ set -uo pipefail
     unset -f _sgnd_lib_guard
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
+
+# --- Internal helpers ----------------------------------------------------------------
     # fn: _sgnd_is_ident - Is ident
         # . Purpose
         #   Internal helper for is ident.
@@ -381,6 +383,7 @@ set -uo pipefail
             printf '%s|%s\n' "$key" "$val"
         done < "$file"
     }
+# --- Public API (CFG) ----------------------------------------------------------------   
     # fn: sgnd_cfg_load - Cfg load
         # . Purpose
         #   Load a configuration domain into shell variables.
@@ -665,8 +668,7 @@ set -uo pipefail
             } > "$file"
 
             return 0
-    }
-    
+    }    
     # fn: _sgnd_cfg_write_template_header - Cfg write template header
         # . Purpose
         #   Internal helper for cfg write template header.
@@ -860,230 +862,629 @@ set -uo pipefail
 
         return 0
     }
-    # fn: sgnd_state_load - State load
-        # . Purpose
-        #   Load the current script state domain.
+
+# --- Public API (STATE) -----------------------------------------------------------------
+    # sgnd_state_load
+        # Purpose:
+        #   Load a state domain into the current shell.
         #
-        # . Behavior
-        #   - Provides a public SolidGroundUX helper or command entry point.
-        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
-        #   - Uses framework UI/output conventions for terminal or dialog interaction.
+        # Behavior:
+        #   - Loads all valid key/value pairs from the selected state file.
+        #   - Uses SGND_STATE_FILE when no explicit filename is supplied.
         #
-        # . Returns
-        #   0 on success unless the called command returns a different status.
+        # Options:
+        #   --file FILE
+        #       State file to load. Defaults to SGND_STATE_FILE.
         #
-        # . Usage
-        #   sgnd_state_load
+        # Side effects:
+        #   Updates shell variables defined in the selected state file.
+        #
+        # Returns:
+        #   0 on success unless the underlying loader returns a different status.
+        #   1 when no state filename can be resolved.
+        #
+        # Usage:
+        #   sgnd_state_load [--file FILE]
     sgnd_state_load() {
-        saydebug "Loading state from file ${SGND_STATE_FILE}"
-        _sgnd_kv_load_file "$SGND_STATE_FILE"
+        local state_file="${SGND_STATE_FILE:-}"
+
+        while (( $# )); do
+            case "$1" in
+                --file)
+                    [[ $# -ge 2 ]] || {
+                        saywarning "Missing value for --file"
+                        return 1
+                    }
+                    state_file="$2"
+                    shift 2
+                    ;;
+                *)
+                    saywarning "Unknown sgnd_state_load option: '$1'"
+                    return 1
+                    ;;
+            esac
+        done
+
+        [[ -n "$state_file" ]] || {
+            saywarning "No state file specified"
+            return 1
+        }
+
+        saydebug "Loading state from file $state_file"
+        _sgnd_kv_load_file "$state_file"
     }
-    # fn: sgnd_state_set - State set
-        # . Purpose
-        #   Store a key in the current script state domain.
+
+    # sgnd_state_set
+        # Purpose:
+        #   Store a key/value pair in a state domain and update the matching shell variable.
         #
-        # . Behavior
-        #   - Provides a public SolidGroundUX helper or command entry point.
-        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
-        #   - Uses framework UI/output conventions for terminal or dialog interaction.
+        # Behavior:
+        #   - Validates the key as a shell identifier.
+        #   - Writes the value to the selected state file.
+        #   - Uses SGND_STATE_FILE when no explicit filename is supplied.
+        #   - Updates the shell variable named by KEY after a successful write.
         #
-        # . Arguments
-        #   $1  KEY - Unique key or identifier.
-        #   $2  ARG2 - Positional value used by this function.
+        # Options:
+        #   --file FILE
+        #       State file to update. Defaults to SGND_STATE_FILE.
         #
-        # . Output
-        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
+        # Arguments:
+        #   KEY
+        #       Shell variable name to store.
+        #   VALUE
+        #       Value to store.
         #
-        # . Returns
+        # Outputs (globals):
+        #   Updates the shell variable named by KEY.
+        #
+        # Side effects:
+        #   Creates or updates the selected state file.
+        #
+        # Returns:
         #   0 on success.
-        #   Non-zero when validation, resolution, user cancellation, or execution fails.
+        #   1 when the filename, key, or arguments are invalid, or the write fails.
         #
-        # . Usage
-        #   sgnd_state_set "${KEY}" "${ARG2}"
+        # Usage:
+        #   sgnd_state_set [--file FILE] KEY VALUE
     sgnd_state_set() {
-        local key="$1" val="$2"
+        local state_file="${SGND_STATE_FILE:-}"
+
+        while (( $# )); do
+            case "$1" in
+                --file)
+                    [[ $# -ge 2 ]] || {
+                        saywarning "Missing value for --file"
+                        return 1
+                    }
+                    state_file="$2"
+                    shift 2
+                    ;;
+                --)
+                    shift
+                    break
+                    ;;
+                *)
+                    break
+                    ;;
+            esac
+        done
+
+        [[ -n "$state_file" ]] || {
+            saywarning "No state file specified"
+            return 1
+        }
+
+        [[ $# -ge 2 ]] || {
+            saywarning "sgnd_state_set requires KEY and VALUE"
+            return 1
+        }
+
+        local key="$1"
+        local val="$2"
+
         _sgnd_is_ident "$key" || {
             saywarning "Skipping invalid state key: '$key'"
             return 1
-        }   
+        }
 
-        saydebug "Setting state key '$key' to '$val' in file ${SGND_STATE_FILE}"
+        saydebug "Setting state key '$key' to '$val' in file $state_file"
 
-        _sgnd_kv_set "$SGND_STATE_FILE" "$key" "$val"
+        _sgnd_kv_set "$state_file" "$key" "$val" || return $?
         printf -v "$key" '%s' "$val"
     }
-    # fn: sgnd_state_unset - State unset
-        # . Purpose
-        #   Remove a key from the current script state domain.
+
+    # sgnd_state_unset
+        # Purpose:
+        #   Remove a key from a state domain and unset the matching shell variable.
         #
-        # . Behavior
-        #   - Provides a public SolidGroundUX helper or command entry point.
-        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
-        #   - Uses framework UI/output conventions for terminal or dialog interaction.
+        # Behavior:
+        #   - Validates the key as a shell identifier.
+        #   - Removes the key from the selected state file.
+        #   - Uses SGND_STATE_FILE when no explicit filename is supplied.
+        #   - Unsets the shell variable named by KEY after a successful update.
         #
-        # . Arguments
-        #   $1  KEY - Unique key or identifier.
+        # Options:
+        #   --file FILE
+        #       State file to update. Defaults to SGND_STATE_FILE.
         #
-        # . Returns
+        # Arguments:
+        #   KEY
+        #       Shell variable name to remove.
+        #
+        # Outputs (globals):
+        #   Unsets the shell variable named by KEY.
+        #
+        # Side effects:
+        #   Updates the selected state file.
+        #
+        # Returns:
         #   0 on success.
-        #   Non-zero when validation, resolution, user cancellation, or execution fails.
+        #   1 when the filename or key is invalid, or the update fails.
         #
-        # . Usage
-        #   sgnd_state_unset "${KEY}"
+        # Usage:
+        #   sgnd_state_unset [--file FILE] KEY
     sgnd_state_unset() {
+        local state_file="${SGND_STATE_FILE:-}"
+
+        while (( $# )); do
+            case "$1" in
+                --file)
+                    [[ $# -ge 2 ]] || {
+                        saywarning "Missing value for --file"
+                        return 1
+                    }
+                    state_file="$2"
+                    shift 2
+                    ;;
+                --)
+                    shift
+                    break
+                    ;;
+                *)
+                    break
+                    ;;
+            esac
+        done
+
+        [[ -n "$state_file" ]] || {
+            saywarning "No state file specified"
+            return 1
+        }
+
+        [[ $# -ge 1 ]] || {
+            saywarning "sgnd_state_unset requires KEY"
+            return 1
+        }
+
         local key="$1"
+
         _sgnd_is_ident "$key" || {
             saywarning "Skipping invalid state key: '$key'"
             return 1
-        }   
+        }
 
-        saydebug "Unsetting state key '$key' in file ${SGND_STATE_FILE}"
+        saydebug "Unsetting state key '$key' in file $state_file"
 
-        _sgnd_kv_unset "$SGND_STATE_FILE" "$key"
+        _sgnd_kv_unset "$state_file" "$key" || return $?
         unset "$key" || true
     }
-    # fn: sgnd_state_reset - State reset
-        # . Purpose
-        #   Clear the current script state domain.
+
+    # sgnd_state_reset
+        # Purpose:
+        #   Clear a state domain.
         #
-        # . Behavior
-        #   - Provides a public SolidGroundUX helper or command entry point.
-        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
-        #   - Uses framework UI/output conventions for terminal or dialog interaction.
+        # Behavior:
+        #   - Removes the selected state file through the state backend.
+        #   - Uses SGND_STATE_FILE when no explicit filename is supplied.
+        #   - Returns successfully when no filename is available.
         #
-        # . Returns
-        #   0 on success unless the called command returns a different status.
+        # Options:
+        #   --file FILE
+        #       State file to clear. Defaults to SGND_STATE_FILE.
         #
-        # . Usage
-        #   sgnd_state_reset
+        # Side effects:
+        #   Deletes or clears the selected state file.
+        #
+        # Returns:
+        #   0 when no state file is configured or the reset succeeds.
+        #   Non-zero when the underlying reset operation fails.
+        #
+        # Usage:
+        #   sgnd_state_reset [--file FILE]
     sgnd_state_reset() {
-        [[ -n "$SGND_STATE_FILE" ]] || return 0
-        saydebug "Deleting statefile $SGND_STATE_FILE"
-        _sgnd_kv_reset_file "$SGND_STATE_FILE"
-    }
-    # fn: sgnd_state_get - State get
-        # . Purpose
-        #   Read a key from the current script state domain.
-        #
-        # . Behavior
-        #   - Provides a public SolidGroundUX helper or command entry point.
-        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
-        #   - Uses framework UI/output conventions for terminal or dialog interaction.
-        #
-        # . Arguments
-        #   $1  KEY - Unique key or identifier.
-        #
-        # . Returns
-        #   0 on success.
-        #   Non-zero when validation, resolution, user cancellation, or execution fails.
-        #
-        # . Usage
-        #   sgnd_state_get "${KEY}"
-    sgnd_state_get() {
-        local key="$1"
-        _sgnd_is_ident "$key" || {
-                saywarning "Skipping invalid state key: '$key'"
-                return 1
-        }
-        _sgnd_kv_get "$SGND_STATE_FILE" "$key"
-    }
-    # fn: sgnd_state_has - State has
-        # . Purpose
-        #   Check whether a key exists in the current script state domain.
-        #
-        # . Behavior
-        #   - Provides a public SolidGroundUX helper or command entry point.
-        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
-        #   - Uses framework UI/output conventions for terminal or dialog interaction.
-        #
-        # . Arguments
-        #   $1  KEY - Unique key or identifier.
-        #
-        # . Returns
-        #   0 on success.
-        #   Non-zero when validation, resolution, user cancellation, or execution fails.
-        #
-        # . Usage
-        #   sgnd_state_has "${KEY}"
-    sgnd_state_has() {
-        local key="$1"
-        _sgnd_is_ident "$key" || {
-                saywarning "Skipping invalid state key: '$key'"
-                return 1
-        }
-        
-        _sgnd_kv_has "$SGND_STATE_FILE" "$key"
-    }
-    # fn: sgnd_state_save_keys - State save keys
-        # . Purpose
-        #   Save selected shell variables to the current script state domain.
-        #
-        # . Behavior
-        #   - Provides a public SolidGroundUX helper or command entry point.
-        #   - Uses framework UI/output conventions for terminal or dialog interaction.
-        #
-        # . Returns
-        #   0 on success unless the called command returns a different status.
-        #
-        # . Usage
-        #   sgnd_state_save_keys
-    sgnd_state_save_keys() {
-        local key val
-        for key in "$@"; do
-            _sgnd_is_ident "$key" || { saywarning "Skipping invalid state key: '$key'"; continue; }
+        local state_file="${SGND_STATE_FILE:-}"
 
-            # Safe under set -u
-            val="${!key-}"
-
-            # Optional: skip unset keys instead of saving empty
-            # [[ -z "${!key+x}" ]] && continue
-
-            sgnd_state_set "$key" "$val"
+        while (( $# )); do
+            case "$1" in
+                --file)
+                    [[ $# -ge 2 ]] || {
+                        saywarning "Missing value for --file"
+                        return 1
+                    }
+                    state_file="$2"
+                    shift 2
+                    ;;
+                *)
+                    saywarning "Unknown sgnd_state_reset option: '$1'"
+                    return 1
+                    ;;
+            esac
         done
+
+        [[ -n "$state_file" ]] || return 0
+
+        saydebug "Deleting state file $state_file"
+        _sgnd_kv_reset_file "$state_file"
     }
-    # fn: sgnd_state_load_keys - State load keys
-        # . Purpose
-        #   Load selected state keys back into shell variables.
+
+    # sgnd_state_get
+        # Purpose:
+        #   Read a key from a state domain.
         #
-        # . Behavior
-        #   - Provides a public SolidGroundUX helper or command entry point.
-        #   - Uses framework UI/output conventions for terminal or dialog interaction.
+        # Behavior:
+        #   - Validates the key as a shell identifier.
+        #   - Reads from the selected state file.
+        #   - Uses SGND_STATE_FILE when no explicit filename is supplied.
         #
-        # . Output
-        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
+        # Options:
+        #   --file FILE
+        #       State file to read. Defaults to SGND_STATE_FILE.
         #
-        # . Returns
-        #   0 on success unless the called command returns a different status.
+        # Arguments:
+        #   KEY
+        #       Key to read.
         #
-        # . Usage
-        #   sgnd_state_load_keys
-    sgnd_state_load_keys() {
+        # Output:
+        #   Writes the stored value to stdout when the key exists.
+        #
+        # Returns:
+        #   0 when the key exists and is read successfully.
+        #   1 when the filename or key is invalid, or the key does not exist.
+        #
+        # Usage:
+        #   sgnd_state_get [--file FILE] KEY
+    sgnd_state_get() {
+        local state_file="${SGND_STATE_FILE:-}"
+
+        while (( $# )); do
+            case "$1" in
+                --file)
+                    [[ $# -ge 2 ]] || {
+                        saywarning "Missing value for --file"
+                        return 1
+                    }
+                    state_file="$2"
+                    shift 2
+                    ;;
+                --)
+                    shift
+                    break
+                    ;;
+                *)
+                    break
+                    ;;
+            esac
+        done
+
+        [[ -n "$state_file" ]] || {
+            saywarning "No state file specified"
+            return 1
+        }
+
+        [[ $# -ge 1 ]] || {
+            saywarning "sgnd_state_get requires KEY"
+            return 1
+        }
+
+        local key="$1"
+
+        _sgnd_is_ident "$key" || {
+            saywarning "Skipping invalid state key: '$key'"
+            return 1
+        }
+
+        _sgnd_kv_get "$state_file" "$key"
+    }
+
+    # sgnd_state_has
+        # Purpose:
+        #   Check whether a key exists in a state domain.
+        #
+        # Behavior:
+        #   - Validates the key as a shell identifier.
+        #   - Checks the selected state file.
+        #   - Uses SGND_STATE_FILE when no explicit filename is supplied.
+        #
+        # Options:
+        #   --file FILE
+        #       State file to inspect. Defaults to SGND_STATE_FILE.
+        #
+        # Arguments:
+        #   KEY
+        #       Key to check.
+        #
+        # Returns:
+        #   0 when the key exists.
+        #   1 when the filename or key is invalid, or the key does not exist.
+        #
+        # Usage:
+        #   sgnd_state_has [--file FILE] KEY
+    sgnd_state_has() {
+        local state_file="${SGND_STATE_FILE:-}"
+
+        while (( $# )); do
+            case "$1" in
+                --file)
+                    [[ $# -ge 2 ]] || {
+                        saywarning "Missing value for --file"
+                        return 1
+                    }
+                    state_file="$2"
+                    shift 2
+                    ;;
+                --)
+                    shift
+                    break
+                    ;;
+                *)
+                    break
+                    ;;
+            esac
+        done
+
+        [[ -n "$state_file" ]] || {
+            saywarning "No state file specified"
+            return 1
+        }
+
+        [[ $# -ge 1 ]] || {
+            saywarning "sgnd_state_has requires KEY"
+            return 1
+        }
+
+        local key="$1"
+
+        _sgnd_is_ident "$key" || {
+            saywarning "Skipping invalid state key: '$key'"
+            return 1
+        }
+
+        _sgnd_kv_has "$state_file" "$key"
+    }
+
+    # sgnd_state_save_keys
+        # Purpose:
+        #   Save selected shell variables to a state domain.
+        #
+        # Behavior:
+        #   - Accepts keys directly and/or through a named indexed array.
+        #   - Validates every key as a shell identifier.
+        #   - Saves unset variables as empty values, preserving existing behavior.
+        #   - Uses SGND_STATE_FILE when no explicit filename is supplied.
+        #
+        # Options:
+        #   --file FILE
+        #       State file to update. Defaults to SGND_STATE_FILE.
+        #   --array ARRAY_NAME
+        #       Named indexed array containing additional keys to save.
+        #
+        # Arguments:
+        #   KEY...
+        #       Optional additional shell variable names to save.
+        #
+        # Side effects:
+        #   Creates or updates the selected state file.
+        #
+        # Returns:
+        #   0 when all valid keys are saved successfully.
+        #   1 when the filename, array name, or an underlying write is invalid.
+        #
+        # Usage:
+        #   sgnd_state_save_keys [--file FILE] [--array ARRAY_NAME] [KEY...]
+        #
+        # Examples:
+        #   sgnd_state_save_keys SGND_CONSOLE_LOG_LEVEL SGND_UI_STYLE
+        #   sgnd_state_save_keys --file "$SGND_FRAMEWORK_STATE_FILE" --array SGND_FRAMEWORK_STATE
+    sgnd_state_save_keys() {
+        local state_file="${SGND_STATE_FILE:-}"
+        local array_name=""
         local key val
-        for key in "$@"; do
-             _sgnd_is_ident "$key" || {
+        local -a keys=()
+
+        while (( $# )); do
+            case "$1" in
+                --file)
+                    [[ $# -ge 2 ]] || {
+                        saywarning "Missing value for --file"
+                        return 1
+                    }
+                    state_file="$2"
+                    shift 2
+                    ;;
+                --array)
+                    [[ $# -ge 2 ]] || {
+                        saywarning "Missing value for --array"
+                        return 1
+                    }
+                    array_name="$2"
+                    shift 2
+                    ;;
+                --)
+                    shift
+                    keys+=("$@")
+                    break
+                    ;;
+                *)
+                    keys+=("$1")
+                    shift
+                    ;;
+            esac
+        done
+
+        [[ -n "$state_file" ]] || {
+            saywarning "No state file specified"
+            return 1
+        }
+
+        if [[ -n "$array_name" ]]; then
+            _sgnd_is_ident "$array_name" || {
+                saywarning "Invalid state key array name: '$array_name'"
+                return 1
+            }
+
+            local -n state_keys="$array_name"
+            keys+=("${state_keys[@]}")
+        fi
+
+        for key in "${keys[@]}"; do
+            _sgnd_is_ident "$key" || {
                 saywarning "Skipping invalid state key: '$key'"
                 continue
             }
 
-            if val="$(sgnd_state_get "$key")"; then
+            val="${!key-}"
+            sgnd_state_set --file "$state_file" "$key" "$val" || return $?
+        done
+    }
+
+    # sgnd_state_load_keys
+        # Purpose:
+        #   Load selected state keys into shell variables.
+        #
+        # Behavior:
+        #   - Accepts keys directly and/or through a named indexed array.
+        #   - Validates every key as a shell identifier.
+        #   - Leaves variables unchanged when their keys do not exist.
+        #   - Uses SGND_STATE_FILE when no explicit filename is supplied.
+        #
+        # Options:
+        #   --file FILE
+        #       State file to read. Defaults to SGND_STATE_FILE.
+        #   --array ARRAY_NAME
+        #       Named indexed array containing additional keys to load.
+        #
+        # Arguments:
+        #   KEY...
+        #       Optional additional state keys to load.
+        #
+        # Outputs (globals):
+        #   Updates shell variables matching keys found in the selected state file.
+        #
+        # Returns:
+        #   0 after processing all valid keys.
+        #   1 when the filename or array name is invalid.
+        #
+        # Usage:
+        #   sgnd_state_load_keys [--file FILE] [--array ARRAY_NAME] [KEY...]
+        #
+        # Examples:
+        #   sgnd_state_load_keys SGND_CONSOLE_LOG_LEVEL SGND_UI_STYLE
+        #   sgnd_state_load_keys --file "$SGND_FRAMEWORK_STATE_FILE" --array SGND_FRAMEWORK_STATE
+    sgnd_state_load_keys() {
+        local state_file="${SGND_STATE_FILE:-}"
+        local array_name=""
+        local key val
+        local -a keys=()
+
+        while (( $# )); do
+            case "$1" in
+                --file)
+                    [[ $# -ge 2 ]] || {
+                        saywarning "Missing value for --file"
+                        return 1
+                    }
+                    state_file="$2"
+                    shift 2
+                    ;;
+                --array)
+                    [[ $# -ge 2 ]] || {
+                        saywarning "Missing value for --array"
+                        return 1
+                    }
+                    array_name="$2"
+                    shift 2
+                    ;;
+                --)
+                    shift
+                    keys+=("$@")
+                    break
+                    ;;
+                *)
+                    keys+=("$1")
+                    shift
+                    ;;
+            esac
+        done
+
+        [[ -n "$state_file" ]] || {
+            saywarning "No state file specified"
+            return 1
+        }
+
+        if [[ -n "$array_name" ]]; then
+            _sgnd_is_ident "$array_name" || {
+                saywarning "Invalid state key array name: '$array_name'"
+                return 1
+            }
+
+            local -n state_keys="$array_name"
+            keys+=("${state_keys[@]}")
+        fi
+
+        for key in "${keys[@]}"; do
+            _sgnd_is_ident "$key" || {
+                saywarning "Skipping invalid state key: '$key'"
+                continue
+            }
+
+            if val="$(sgnd_state_get --file "$state_file" "$key")"; then
                 printf -v "$key" '%s' "$val"
             fi
         done
     }
-    # fn: sgnd_state_list_keys - State list keys
-        # . Purpose
-        #   Print all keys stored in the current script state domain.
+
+    # sgnd_state_list_keys
+        # Purpose:
+        #   Print all keys stored in a state domain.
         #
-        # . Behavior
-        #   - Provides a public SolidGroundUX helper or command entry point.
-        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        # Behavior:
+        #   - Reads keys from the selected state file.
+        #   - Uses SGND_STATE_FILE when no explicit filename is supplied.
+        #   - Produces no output when the selected file is absent or unreadable.
         #
-        # . Returns
-        #   0 on success unless the called command returns a different status.
+        # Options:
+        #   --file FILE
+        #       State file to inspect. Defaults to SGND_STATE_FILE.
         #
-        # . Usage
-        #   sgnd_state_list_keys
+        # Output:
+        #   Writes one stored key per line to stdout.
+        #
+        # Returns:
+        #   0 when the file is absent, unreadable, or listed successfully.
+        #   1 when an option is invalid.
+        #
+        # Usage:
+        #   sgnd_state_list_keys [--file FILE]
     sgnd_state_list_keys() {
-        [[ -r "${SGND_STATE_FILE:-}" ]] || return 0
-        _sgnd_kv_list_keys "$SGND_STATE_FILE"
+        local state_file="${SGND_STATE_FILE:-}"
+
+        while (( $# )); do
+            case "$1" in
+                --file)
+                    [[ $# -ge 2 ]] || {
+                        saywarning "Missing value for --file"
+                        return 1
+                    }
+                    state_file="$2"
+                    shift 2
+                    ;;
+                *)
+                    saywarning "Unknown sgnd_state_list_keys option: '$1'"
+                    return 1
+                    ;;
+            esac
+        done
+
+        [[ -r "$state_file" ]] || return 0
+        _sgnd_kv_list_keys "$state_file"
     }

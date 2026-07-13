@@ -1,4 +1,3 @@
-
 # ==================================================================================
 # SolidGroundUX - Bootstrap Sequence
 # ----------------------------------------------------------------------------------
@@ -11,16 +10,6 @@
 #   Group       : Bootstrap
 #   Purpose     : Group preface
 #
-#   Checksum : 6f99c4cb18e1a37aa148ac40e0b5164cd9a01f5877fd364ea103ca38a5c54bb2
-#   Checksum : 6f99c4cb18e1a37aa148ac40e0b5164cd9a01f5877fd364ea103ca38a5c54bb2
-#   Checksum : 6f99c4cb18e1a37aa148ac40e0b5164cd9a01f5877fd364ea103ca38a5c54bb2
-#   Checksum : 6f99c4cb18e1a37aa148ac40e0b5164cd9a01f5877fd364ea103ca38a5c54bb2
-#   Checksum : 6f99c4cb18e1a37aa148ac40e0b5164cd9a01f5877fd364ea103ca38a5c54bb2
-#   Checksum : 6f99c4cb18e1a37aa148ac40e0b5164cd9a01f5877fd364ea103ca38a5c54bb2
-#   Checksum : 6f99c4cb18e1a37aa148ac40e0b5164cd9a01f5877fd364ea103ca38a5c54bb2
-#   Checksum : 6f99c4cb18e1a37aa148ac40e0b5164cd9a01f5877fd364ea103ca38a5c54bb2
-#   Checksum : 6f99c4cb18e1a37aa148ac40e0b5164cd9a01f5877fd364ea103ca38a5c54bb2
-#   Checksum : 6f99c4cb18e1a37aa148ac40e0b5164cd9a01f5877fd364ea103ca38a5c54bb2
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
@@ -70,6 +59,12 @@
 # >     Command-line arguments are parsed
 #          ↓
 # >     Configuration values are loaded and applied
+#          ↓
+# >     User framework state is loaded or created
+#          ↓
+# >     The active UI palette and style are loaded
+#          ↓
+# >     Command-line overrides are applied
 #          ↓
 # >     Application code runs
 #   
@@ -136,6 +131,64 @@
 #   
 # > The result is a consistent configuration model across scripts without requiring
 # > every executable to implement its own configuration parser.
+#
+#
+# -- Transferable Framework State ---------------------------------------------------
+#
+# > Every executable bootstraps its own SolidGroundUX framework instance. Ordinary
+# > shell globals therefore remain local to that process and are not automatically
+# > shared with executables started from it.
+#   
+# > SolidGroundUX preserves selected user-level runtime choices through a transferable
+# > framework state file. The file is identified by `SGND_FRAMEWORK_STATEFILE` and is
+# > normally resolved as:
+#   
+# >     $SGND_USRCFG_DIR/framework.state
+#   
+# > After the normal framework configuration has been loaded, bootstrap recalculates
+# > this filename from the effective user configuration directory. If the file exists,
+# > the variables listed in `SGND_FRAMEWORK_STATE` are loaded from it. If it does not
+# > exist, bootstrap creates it from the current effective values.
+#   
+# > The framework state is applied before the UI palette and style are loaded. This
+# > allows a theme or logging choice changed by one SolidGroundUX executable to be used
+# > by subsequently started executables, even though each executable creates its own
+# > framework instance.
+#   
+# > Only explicitly listed variables are transferable. Process-specific values such as
+# > script metadata, progress state, start times, and application-local state remain
+# > private to the current executable. The framework state file is therefore a small
+# > runtime overlay, not a dump of all framework globals and not a replacement for the
+# > normal system and user configuration files.
+#   
+# > The current transferable set is maintained in `SGND_FRAMEWORK_STATE` and includes
+# > the active console and file log levels, UI style and palette, and the date format
+# > used by `say()` output. Runtime functions that change one of these settings should
+# > update the framework state file when the change must remain visible to later
+# > framework instances.
+#
+# -- Console and File Log Levels ----------------------------------------------------
+#
+# > Console output and logfile output are controlled independently.
+#   
+# > `SGND_CONSOLE_LOG_LEVEL` controls which `say()` messages are rendered to the
+# > terminal. `SGND_FILE_LOG_LEVEL` controls which messages are appended to the
+# > resolved logfile. Both settings support the levels:
+#   
+# >     silent, quiet, normal, verbose, debug, trace
+#   
+# > A message can therefore be suppressed on screen while still being recorded in the
+# > logfile, or displayed on screen while file logging is effectively disabled. Setting
+# > `SGND_FILE_LOG_LEVEL` to `silent` disables logfile output without requiring a
+# > separate enable flag.
+#   
+# > `say()` evaluates the console and file thresholds separately. Matching logfile
+# > entries are always written with a date/time prefix using `SAY_DATE_FORMAT`,
+# > regardless of whether timestamps are currently shown on the console.
+#   
+# > The active log levels are part of `SGND_FRAMEWORK_STATE`, so changes saved during
+# > one framework instance become the starting values for later SolidGroundUX
+# > executables run by the same user.
 #
 # -- Built-in Arguments -------------------------------------------------------------
 #

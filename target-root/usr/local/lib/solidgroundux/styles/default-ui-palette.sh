@@ -344,4 +344,54 @@
   BG_BRIGHT_GOLD=$'\e[48;5;226m'
   BG_BRIGHT_BROWN=$'\e[48;5;172m'
 
+    # var: palette_testadura_brand - Testadura brand colors
+        # . Purpose
+        #   Define the official Testadura corporate brand colors.
+        #
+        # Variables:
+        #   TD_MAROON = $'\e[38;5;88m'
+        #   TD_GOLD   = $'\e[38;5;178m'
+        #   TD_SILVER = $'\e[38;5;250m'
+        #   TD_WHITE  = $'\e[38;5;15m'
+        #
+        # Notes:
+        #   These colors represent the Testadura visual identity and are intended
+        #   for use by Testadura themes and branding.
+
+    TD_MAROON=$'\e[38;5;88m'
+    TD_DARK_MAROON=$'\e[38;5;52m'
+
+    TD_GOLD=$'\e[38;5;178m'
+    TD_DARK_GOLD=$'\e[38;5;136m'
+
+    TD_SILVER=$'\e[38;5;250m'
+    TD_DARK_SILVER=$'\e[38;5;244m'
+
+    TD_WHITE=$'\e[38;5;15m'
+
+    # var: palette_solidground_brand - SolidGround brand colors
+        # . Purpose
+        #   Define the SolidGround product brand colors.
+        #
+        # Variables:
+        #   SGND_BLUE   = $'\e[38;5;19m'
+        #   SGND_GREEN  = $'\e[38;5;34m'
+        #   SGND_RED    = $'\e[38;5;124m'
+        #   SGND_GOLD   = $'\e[38;5;178m'
+        #
+        # Notes:
+        #   These colors are sampled from the official SolidGround logo and may
+        #   be used by themes, documentation and marketing materials.
+
+    SGND_BLUE=$'\e[38;5;19m'
+    SGND_DARK_BLUE=$'\e[38;5;18m'
+
+    SGND_GREEN=$'\e[38;5;34m'
+    SGND_DARK_GREEN=$'\e[38;5;22m'
+
+    SGND_RED=$'\e[38;5;124m'
+    SGND_DARK_RED=$'\e[38;5;88m'
+
+    SGND_GOLD=$'\e[38;5;178m'
+    SGND_DARK_GOLD=$'\e[38;5;136m'
 

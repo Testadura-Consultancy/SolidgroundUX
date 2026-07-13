@@ -11,7 +11,13 @@
 			"path": "../../.config/solidgroundux"
 		},
 		{
-			"path": "../../.state/solidgroundux"
+			"path": "../../.config"
+		},
+		{
+			"path": "../../.state"
+		},
+		{
+			"path": "../../.log"
 		}
 	],
 	"settings": {

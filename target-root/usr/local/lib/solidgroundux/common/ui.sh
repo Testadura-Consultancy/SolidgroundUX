@@ -510,6 +510,15 @@ set -uo pipefail
             return 1
         fi
 
+        if [[ -n "${SGND_FRAMEWORK_STATEFILE:-}" ]] && declare -F sgnd_state_set >/dev/null; then
+            if ! sgnd_state_set --file "$SGND_FRAMEWORK_STATEFILE" SGND_UI_STYLE "$style_file"; then
+                SGND_UI_STYLE="$previous_style"
+                sgnd_load_ui_style >/dev/null 2>&1 || true
+                printf 'sgnd_theme: failed to update framework state: %s\n' "$SGND_FRAMEWORK_STATEFILE" >&2
+                return 1
+            fi
+        fi
+
         if (( save )); then
             if [[ -z "${SGND_FRAMEWORK_USRCFG_FILE:-}" ]] || ! declare -F _sgnd_kv_set >/dev/null; then
                 SGND_UI_STYLE="$previous_style"
@@ -1678,9 +1687,9 @@ set -uo pipefail
         # Prompt/input styles
         sgnd_print_sectionheader --text "Prompt and input"
 
-        printf '  %sTheme name%s : %sfantasy%s\n' \
+        printf '  %sTheme name%s : %s%s%s\n' \
             "$SGND_UI_PROMPT" "$RESET" \
-            "$SGND_UI_INPUT" "$RESET"
+            "$SGND_UI_INPUT" "$SGND_UI_STYLE" "$RESET"
 
         # Border style
         sgnd_print_sectionheader \

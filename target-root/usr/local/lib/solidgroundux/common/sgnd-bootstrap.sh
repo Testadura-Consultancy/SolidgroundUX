@@ -135,7 +135,7 @@ set -uo pipefail
         #   $@  Raw script arguments passed to sgnd_bootstrap.
         #
         # Outputs (globals):
-        #   exe_state, exe_root, SGND_LOGFILE_ENABLED, SGND_LOG_LEVEL, SGND_BOOTSTRAP_REST
+        #   exe_state, exe_root, SGND_CONSOLE_LOG_LEVEL, SGND_BOOTSTRAP_REST
         #
         # . Returns
         #   0 always.
@@ -158,35 +158,33 @@ set -uo pipefail
                     exe_root=1; shift ;;
                 --cannotroot)
                     exe_root=2; shift ;;
-                --log)
-                    SGND_LOGFILE_ENABLED=1; shift ;;
                 --quiet)
-                    SGND_LOG_LEVEL="quiet"
+                    SGND_CONSOLE_LOG_LEVEL="quiet"
                     shift ;;
                 --silent)
-                    SGND_LOG_LEVEL="silent"
+                    SGND_CONSOLE_LOG_LEVEL="silent"
                     shift ;;
                 --loglevel)
                     shift
                     case "${1:-}" in
-                        off|none|silent) SGND_LOG_LEVEL="silent" ;;
-                        warn|quiet)      SGND_LOG_LEVEL="quiet" ;;
-                        normal)          SGND_LOG_LEVEL="normal" ;;
-                        verbose)         SGND_LOG_LEVEL="verbose" ;;
-                        debug)           SGND_LOG_LEVEL="debug" ;;
-                        trace|all)       SGND_LOG_LEVEL="trace" ;;
-                        *)               SGND_LOG_LEVEL="silent" ;;
+                        off|none|silent) SGND_CONSOLE_LOG_LEVEL="silent" ;;
+                        warn|quiet)      SGND_CONSOLE_LOG_LEVEL="quiet" ;;
+                        normal)          SGND_CONSOLE_LOG_LEVEL="normal" ;;
+                        verbose)         SGND_CONSOLE_LOG_LEVEL="verbose" ;;
+                        debug)           SGND_CONSOLE_LOG_LEVEL="debug" ;;
+                        trace|all)       SGND_CONSOLE_LOG_LEVEL="trace" ;;
+                        *)               SGND_CONSOLE_LOG_LEVEL="silent" ;;
                     esac
                     [[ $# -gt 0 ]] && shift ;;
                 --loglevel=*)
                     case "${1#--loglevel=}" in
-                        off|none|silent) SGND_LOG_LEVEL="silent" ;;
-                        warn|quiet)      SGND_LOG_LEVEL="quiet" ;;
-                        normal)          SGND_LOG_LEVEL="normal" ;;
-                        verbose)         SGND_LOG_LEVEL="verbose" ;;
-                        debug)           SGND_LOG_LEVEL="debug" ;;
-                        trace|all)       SGND_LOG_LEVEL="trace" ;;
-                        *)               SGND_LOG_LEVEL="silent" ;;
+                        off|none|silent) SGND_CONSOLE_LOG_LEVEL="silent" ;;
+                        warn|quiet)      SGND_CONSOLE_LOG_LEVEL="quiet" ;;
+                        normal)          SGND_CONSOLE_LOG_LEVEL="normal" ;;
+                        verbose)         SGND_CONSOLE_LOG_LEVEL="verbose" ;;
+                        debug)           SGND_CONSOLE_LOG_LEVEL="debug" ;;
+                        trace|all)       SGND_CONSOLE_LOG_LEVEL="trace" ;;
+                        *)               SGND_CONSOLE_LOG_LEVEL="silent" ;;
                     esac
                     shift ;;
                 --) 
@@ -861,7 +859,6 @@ set -uo pipefail
             : "${FLAG_STATERESET:=0}"
             : "${FLAG_INIT_CONFIG:=0}"
             : "${FLAG_HELP:=0}"
-            : "${FLAG_LOG:=0}"
             : "${ARG_SHOW:=}"
             : "${ARG_LOGLEVEL:=}"
 
@@ -896,6 +893,21 @@ set -uo pipefail
             sayinfo "Loading framework globals"
             sgnd_cfg_domain_apply "Framework" "$SGND_FRAMEWORK_SYSCFG_FILE" "$SGND_FRAMEWORK_USRCFG_FILE" "SGND_FRAMEWORK_GLOBALS" "framework" \
                 || { local rc=$?; _boot_fail "Framework cfg load failed" "$rc"; return "$rc"; }
+        # Load shared framework state
+            SGND_FRAMEWORK_STATEFILE="$SGND_USRCFG_DIR/framework.state"
+            sayinfo "Loading framework state"
+            if [[ -f "$SGND_FRAMEWORK_STATEFILE" ]]; then
+                sgnd_state_load_keys \
+                    --file "$SGND_FRAMEWORK_STATEFILE" \
+                    --array SGND_FRAMEWORK_STATE \
+                    || { local rc=$?; _boot_fail "Framework state load failed" "$rc"; return "$rc"; }
+            else
+                sgnd_state_save_keys \
+                    --file "$SGND_FRAMEWORK_STATEFILE" \
+                    --array SGND_FRAMEWORK_STATE \
+                    || { local rc=$?; _boot_fail "Framework state creation failed" "$rc"; return "$rc"; }
+            fi
+
         # Load UI style
             sayinfo "Loading UI style"
             sgnd_load_ui_style || { local rc=$?; _boot_fail "Failed to load UI style" "$rc"; return "$rc"; }
@@ -912,7 +924,7 @@ set -uo pipefail
         
         # If provided CLI log level, should override framework configuration.
             if [[ -n "${ARG_LOGLEVEL:-}" ]]; then
-                SGND_LOG_LEVEL="$ARG_LOGLEVEL"
+                SGND_CONSOLE_LOG_LEVEL="$ARG_LOGLEVEL"
             fi
 
         # Final basic settings

@@ -148,7 +148,7 @@ set -uo pipefail
             return 126
         fi
 
-        case "${SGND_LOG_LEVEL:-silent}" in
+        case "${SGND_CONSOLE_LOG_LEVEL:-silent}" in
             silent|quiet)
                 ;;
             *)
@@ -179,7 +179,7 @@ set -uo pipefail
     SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
     SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
     SGND_SCRIPT_DESC="Canonical executable template for Testadura scripts"
-    SGND_LOG_LEVEL="${SGND_LOG_LEVEL:-silent}"
+    SGND_CONSOLE_LOG_LEVEL="${SGND_CONSOLE_LOG_LEVEL:-silent}"
     : "${SGND_SCRIPT_DESC:=Canonical executable template for Testadura scripts}"
     : "${SGND_SCRIPT_VERSION:=1.0}"
     : "${SGND_SCRIPT_BUILD:=20250110}"
@@ -213,6 +213,7 @@ set -uo pipefail
         "load|l|flag|FLAG_LOAD|Random argument for testing|"
         "unload|u|flag|FLAG_UNLOAD|Random argument for testing|"
         "exit|x|flag|FLAG_EXIT|Random argument for testing|"
+        "view-log||flag|FLAG_VIEW_LOG|Display the active SolidGroundUX logfile and exit|"
     )
 
     SGND_SCRIPT_EXAMPLES=(
@@ -441,8 +442,8 @@ set -uo pipefail
         sgnd_print
         sgnd_print_sectionheader --text "Testing say*() helpers"
 
-        local original_loglevel="${SGND_LOG_LEVEL:-silent}"
-        SGND_LOG_LEVEL="trace"
+        local original_loglevel="${SGND_CONSOLE_LOG_LEVEL:-silent}"
+        SGND_CONSOLE_LOG_LEVEL="trace"
         sayinfo "Info message"
         saystart "Start message"
         saywarning "Warning message"
@@ -452,20 +453,20 @@ set -uo pipefail
         sayend "Ended gracefully"
         saydebug "Debug message"
         justsay "Just saying"
-        SGND_LOG_LEVEL="$original_loglevel"
+        SGND_CONSOLE_LOG_LEVEL="$original_loglevel"
     }
 
     # fn: loglevel_test - Run console message visibility tests for every log level
         # . Purpose
-        #   Cycle through all supported SGND_LOG_LEVEL values and emit one test message
+        #   Cycle through all supported SGND_CONSOLE_LOG_LEVEL values and emit one test message
         #   for each message type.
         #
         # . Behavior
         #   - Public smoke-test entry point.
-        #   - Temporarily sets SGND_LOG_LEVEL to off, quiet, normal, and debug.
+        #   - Temporarily sets SGND_CONSOLE_LOG_LEVEL to off, quiet, normal, and debug.
         #   - Emits INFO, STRT, WARN, FAIL, CNCL, OK, END, DEBUG, and EMPTY messages
         #     for each level so console filtering can be inspected visually.
-        #   - Restores the original SGND_LOG_LEVEL before returning.
+        #   - Restores the original SGND_CONSOLE_LOG_LEVEL before returning.
         #
         # . Returns
         #   0 when the test sequence completes.
@@ -475,35 +476,155 @@ set -uo pipefail
     loglevel_test() {
         sgnd_print
         sgnd_print_sectionheader --text "Testing loglevel visibility"
-        local original_loglevel="${SGND_LOG_LEVEL:-silent}"
+        local original_loglevel="${SGND_CONSOLE_LOG_LEVEL:-silent}"
         local level=""
 
         for level in silent quiet normal verbose debug trace; do
-            SGND_LOG_LEVEL="$level"
+            SGND_CONSOLE_LOG_LEVEL="$level"
 
             printf '\n'
             printf '%s\n' '-----------------------------------------'
-            printf 'SGND_LOG_LEVEL=%s\n' "$SGND_LOG_LEVEL"
+            printf 'SGND_CONSOLE_LOG_LEVEL=%s\n' "$SGND_CONSOLE_LOG_LEVEL"
             printf '%s\n' 'Expected visible message types depend on _say_should_print_console.'
             printf '%s\n' '-----------------------------------------'
 
-            sayinfo "INFO message at loglevel=$SGND_LOG_LEVEL"
-            saystart "STRT message at loglevel=$SGND_LOG_LEVEL"
-            saywarning "WARN message at loglevel=$SGND_LOG_LEVEL"
-            sayfail "FAIL message at loglevel=$SGND_LOG_LEVEL"
-            saycancel "CNCL message at loglevel=$SGND_LOG_LEVEL"
-            sayok "OK message at loglevel=$SGND_LOG_LEVEL"
-            sayend "END message at loglevel=$SGND_LOG_LEVEL"
-            saydebug "DEBUG message at loglevel=$SGND_LOG_LEVEL"
-            say EMPTY "EMPTY message at loglevel=$SGND_LOG_LEVEL"
+            sayinfo "INFO message at loglevel=$SGND_CONSOLE_LOG_LEVEL"
+            saystart "STRT message at loglevel=$SGND_CONSOLE_LOG_LEVEL"
+            saywarning "WARN message at loglevel=$SGND_CONSOLE_LOG_LEVEL"
+            sayfail "FAIL message at loglevel=$SGND_CONSOLE_LOG_LEVEL"
+            saycancel "CNCL message at loglevel=$SGND_CONSOLE_LOG_LEVEL"
+            sayok "OK message at loglevel=$SGND_CONSOLE_LOG_LEVEL"
+            sayend "END message at loglevel=$SGND_CONSOLE_LOG_LEVEL"
+            saydebug "DEBUG message at loglevel=$SGND_CONSOLE_LOG_LEVEL"
+            say EMPTY "EMPTY message at loglevel=$SGND_CONSOLE_LOG_LEVEL"
 
-            justsay "Just saying at loglevel=$SGND_LOG_LEVEL"
+            justsay "Just saying at loglevel=$SGND_CONSOLE_LOG_LEVEL"
         done
 
-        SGND_LOG_LEVEL="$original_loglevel"
+        SGND_CONSOLE_LOG_LEVEL="$original_loglevel"
 
         printf '\n'
-        printf 'Restored SGND_LOG_LEVEL=%s\n' "$SGND_LOG_LEVEL"
+        printf 'Restored SGND_CONSOLE_LOG_LEVEL=%s\n' "$SGND_CONSOLE_LOG_LEVEL"
+    }
+
+    # fn: file_loglevel_test - Run file logging tests for every log level
+        # . Purpose
+        #   Verify file logging and file-level filtering independently from console output.
+        #
+        # . Behavior
+        #   - Resolves and displays the active logfile path.
+        #   - Cycles through every supported SGND_FILE_LOG_LEVEL value.
+        #   - Writes representative messages for each level so filtering can be inspected.
+        #   - Finishes with SGND_FILE_LOG_LEVEL set to silent.
+        #   - Saves the final silent setting in the framework state file when available.
+        #
+        # Outputs (globals):
+        #   SGND_FILE_LOG_LEVEL
+        #
+        # Side effects:
+        #   Appends test records to the active SolidGroundUX logfile.
+        #   Updates SGND_FRAMEWORK_STATEFILE when framework state is available.
+        #
+        # . Returns
+        #   0 when the test sequence completes.
+        #   1 when no logfile can be resolved or the final state cannot be saved.
+        #
+        # . Usage
+        #   file_loglevel_test
+    file_loglevel_test() {
+        local logfile=""
+        local level=""
+
+        logfile="$(_sgnd_logfile)" || {
+            saywarning "Unable to resolve the active logfile"
+            return 1
+        }
+
+        [[ -n "$logfile" ]] || {
+            saywarning "No active logfile is available"
+            return 1
+        }
+
+        sgnd_print
+        sgnd_print_sectionheader --text "Testing file log levels"
+        sgnd_print_labeledvalue --label "Logfile" --value "$logfile"
+
+        for level in silent quiet normal verbose debug trace; do
+            SGND_FILE_LOG_LEVEL="$level"
+            printf 'Testing SGND_FILE_LOG_LEVEL=%s\n' "$level"
+
+            case "$level" in
+                silent)
+                    sayfail "FILELOG silent: this line must not be written"
+                    ;;
+                quiet)
+                    saywarning "FILELOG quiet: warning should be written"
+                    sayinfo "FILELOG quiet: info must not be written"
+                    ;;
+                normal)
+                    saystart "FILELOG normal: start should be written"
+                    sayinfo "FILELOG normal: info must not be written"
+                    ;;
+                verbose)
+                    sayinfo "FILELOG verbose: info should be written"
+                    saydebug "FILELOG verbose: debug must not be written"
+                    ;;
+                debug)
+                    saydebug "FILELOG debug: debug should be written"
+                    say --type TRACE "FILELOG debug: trace must not be written"
+                    ;;
+                trace)
+                    say --type TRACE "FILELOG trace: trace should be written"
+                    ;;
+            esac
+        done
+
+        SGND_FILE_LOG_LEVEL="silent"
+
+        if [[ -n "${SGND_FRAMEWORK_STATEFILE:-}" ]]; then
+            sgnd_state_set \
+                --file "$SGND_FRAMEWORK_STATEFILE" \
+                SGND_FILE_LOG_LEVEL \
+                "$SGND_FILE_LOG_LEVEL" || return 1
+        fi
+
+        printf 'Finished with SGND_FILE_LOG_LEVEL=%s\n' "$SGND_FILE_LOG_LEVEL"
+        return 0
+    }
+
+    # fn: view_log - Display the active SolidGroundUX logfile
+        # . Purpose
+        #   Display the logfile selected by the current SolidGroundUX logging configuration.
+        #
+        # . Behavior
+        #   - Uses the same logfile resolver as say().
+        #   - Displays the resolved path before showing the file contents.
+        #   - Reports an empty or unavailable logfile without failing unexpectedly.
+        #
+        # . Returns
+        #   0 when the logfile is displayed.
+        #   1 when no readable logfile can be resolved.
+        #
+        # . Usage
+        #   view_log
+    view_log() {
+        local logfile=""
+
+        logfile="$(_sgnd_logfile)" || {
+            saywarning "Unable to resolve the active logfile"
+            return 1
+        }
+
+        [[ -n "$logfile" && -r "$logfile" ]] || {
+            saywarning "Logfile is not readable: ${logfile:-<unresolved>}"
+            return 1
+        }
+
+        sgnd_print
+        sgnd_print_sectionheader --text "SolidGroundUX logfile"
+        sgnd_print_labeledvalue --label "Logfile" --value "$logfile"
+        sgnd_print
+        sgnd_print_file "$logfile"
     }
 
     motd_test() {
@@ -746,7 +867,6 @@ set -uo pipefail
         #   --state        Enable persistent state loading/saving.
         #   --needroot     Require execution as root.
         #   --cannotroot   Require execution as non-root.
-        #   --log          Enable logging to file.
         #   --console      Enable logging to console output.
         #   --             End of bootstrap options; remaining args are script arguments.
         # Notes:
@@ -771,6 +891,11 @@ set -uo pipefail
             _framework_locator || exit $?
             sgnd_exe_start -- "$@"
 
+            if (( ${FLAG_VIEW_LOG:-0} )); then
+                view_log
+                return $?
+            fi
+
         # -- Main script logic
             local choice
 
@@ -787,6 +912,8 @@ set -uo pipefail
                 sgnd_print " 7) Show license"
                 sgnd_print " 8) Show color chart"
                 sgnd_print " 9) Show theme"
+                sgnd_print " L) File log level test"
+                sgnd_print " V) View logfile"
                 sgnd_print
                 sgnd_print " A) Run all tests"
                 sgnd_print " q) Quit"
@@ -833,7 +960,7 @@ set -uo pipefail
                         sayprogress_test
                         ;;
                     7) 
-                        printf "$SGND_DOCS_DIR/$SGND_LICENSE_FILE"
+                        saydebug "$SGND_DOCS_DIR/$SGND_LICENSE_FILE"
                         sgnd_print_license
                         ;;
                     8)
@@ -842,11 +969,18 @@ set -uo pipefail
                     9)
                         show_theme
                         ;;
+                    l)
+                        file_loglevel_test
+                        ;;
+                    v)
+                        view_log
+                        ;;
                     a)
                         ask_test
                         input_test
                         say_test
                         loglevel_test
+                        file_loglevel_test
                         motd_test
                         sayprogress_test
                         ;;

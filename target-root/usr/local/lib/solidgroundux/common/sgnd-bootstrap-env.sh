@@ -115,8 +115,8 @@ set -uo pipefail
     SGND_FRAMEWORK_GLOBALS=(
         "system|SGND_SYSCFG_DIR|Framework-wide system configuration directory|"
         "system|SGND_DOCS_DIR|Framework-wide documentation directory|"
-        "system|SGND_LOGFILE_ENABLED|Enable or disable logfile output|"
-        "both|SGND_LOG_LEVEL|Controls console message visibility. Supported values are silent, quiet, normal, verbose, debug, and trace.|"
+        "both|SGND_CONSOLE_LOG_LEVEL|Controls console message visibility. Supported values are silent, quiet, normal, verbose, debug, and trace.|"
+        "both|SGND_FILE_LOG_LEVEL|Controls file message visibility. Supported values are silent, quiet, normal, verbose, debug, and trace.|"
         "system|SGND_LOG_PATH|Primary log file or directory path|"
         "both|SGND_ALTLOG_PATH|Alternate log path override|"                    # <- both
         "system|SGND_LOG_MAX_BYTES|Maximum log file size before rotation|"
@@ -179,8 +179,8 @@ set -uo pipefail
         "both|SGND_LOG_MAX_BYTES|Maximum logfile size before log rotation is attempted.|"
         "both|SGND_LOG_KEEP|Number of rotated logfile copies to retain.|"
         "both|SGND_LOG_COMPRESS|Controls whether rotated logfiles are compressed.|"
-        "both|SGND_LOGFILE_ENABLED|Controls whether best-effort logfile output is enabled.|"
-        "both|SGND_LOG_LEVEL|Controls console message visibility. Supported values are silent, quiet, normal, verbose, debug, and trace.|"
+        "both|SGND_CONSOLE_LOG_LEVEL|Controls console message visibility. Supported values are silent, quiet, normal, verbose, debug, and trace.|"
+        "both|SGND_FILE_LOG_LEVEL|Controls file message visibility. Supported values are silent, quiet, normal, verbose, debug, and trace.|"
 
         "user|SGND_USER_HOME|Effective user home directory, honoring SUDO_USER when present.|"
 
@@ -193,7 +193,17 @@ set -uo pipefail
         "both|SAY_DATE_FORMAT|Date format used when say output includes timestamps.|"
 
         "both|SGND_FRAMEWORK_CFG_BASENAME|Basename of the framework globals configuration file.|"
+        "user|SGND_FRAMEWORK_STATEFILE|User-specific framework runtime state file.|"
     )
+
+    SGND_FRAMEWORK_STATE=(
+        SGND_CONSOLE_LOG_LEVEL
+        SGND_FILE_LOG_LEVEL
+        SGND_UI_STYLE
+        SGND_UI_PALETTE
+        SAY_DATE_FORMAT
+    )
+    
 # --- Helpers -------------------------------------------------------------------------
     # fn: _build_framework_dirs - Build framework directory specifications
         # . Purpose
@@ -252,8 +262,8 @@ set -uo pipefail
         : "${SGND_LOG_KEEP:=20}"
         : "${SGND_LOG_COMPRESS:=1}"
 
-        : "${SGND_LOGFILE_ENABLED:=0}"
-        : "${SGND_LOG_LEVEL:=silent}"
+        : "${SGND_CONSOLE_LOG_LEVEL:=silent}"
+        : "${SGND_FILE_LOG_LEVEL:=verbose}"
 
         if [[ -n "${SUDO_USER:-}" ]]; then
             SGND_USER_HOME="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
@@ -327,6 +337,7 @@ set -uo pipefail
         SGND_SYSCFG_DIR="$SGND_APPLICATION_ROOT/etc/$product"
         SGND_USRCFG_DIR="$SGND_USER_HOME/.config/$product"
         SGND_STATE_DIR="$SGND_USER_HOME/.state/$product"
+        SGND_FRAMEWORK_STATEFILE="$SGND_USRCFG_DIR/framework.state"
         SGND_STYLE_DIR="$SGND_FRAMEWORK_ROOT/usr/local/lib/$product/styles"
 
         SGND_DOCS_DIR="$SGND_FRAMEWORK_ROOT/usr/local/share/testadura/$product/doc"   # May be absent in dev/minimal installs

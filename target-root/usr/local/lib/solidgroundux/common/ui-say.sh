@@ -37,7 +37,7 @@
 #   - Replacement for dedicated logging systems
 #
 # Notes:
-#   - Console output is governed by SGND_LOG_LEVEL (off, quiet, normal, debug).
+#   - Console output is governed by SGND_CONSOLE_LOG_LEVEL; file output is governed by SGND_FILE_LOG_LEVEL.
 #   - File logging is optional and best-effort; failures do not affect execution.
 #   - Logfile writing is independent from console visibility.
 #
@@ -163,12 +163,12 @@ set -uo pipefail
         #   $1 Message type (START, INFO, WARN, FAIL, DEBUG, TRACE, ...)
         #
         # . Behavior
-        #   - Evaluates SGND_LOG_LEVEL.
+        #   - Evaluates SGND_CONSOLE_LOG_LEVEL.
         #   - Applies the SolidGroundUX log-level visibility rules.
         #   - Returns success when the message should be displayed.
         #
         # . Globals (read)
-        #   SGND_LOG_LEVEL
+        #   SGND_CONSOLE_LOG_LEVEL
         #
         # . Returns
         #   0 if the message should be displayed.
@@ -178,7 +178,7 @@ set -uo pipefail
         local type="${1^^}"
         local level
 
-        level="$(_say_normalize_log_level "${SGND_LOG_LEVEL:-silent}")"
+        level="$(_say_normalize_log_level "${SGND_CONSOLE_LOG_LEVEL:-silent}")"
 
         case "$level" in
 
@@ -237,6 +237,44 @@ set -uo pipefail
         esac
 
         return 1
+    }
+
+    # fn: _say_should_write_log - Determine whether a message should be written to the logfile
+        # . Purpose
+        #   Apply the file log level independently from console visibility.
+        #
+        # . Arguments
+        #   $1  TYPE - Message type.
+        #
+        # Inputs (globals):
+        #   SGND_FILE_LOG_LEVEL
+        #
+        # . Returns
+        #   0 when the message should be logged.
+        #   1 when the message should be suppressed.
+    _say_should_write_log() {
+        local type="${1^^}"
+        local level
+
+        level="$(_say_normalize_log_level "${SGND_FILE_LOG_LEVEL:-verbose}")"
+
+        case "$level" in
+            silent) return 1 ;;
+            quiet)
+                [[ "$type" =~ ^(WARN|WARNING|FAIL|ERROR)$ ]]
+                ;;
+            normal)
+                [[ "$type" =~ ^(START|STRT|OK|WARN|WARNING|FAIL|ERROR|CANCEL|CNCL|END)$ ]]
+                ;;
+            verbose)
+                [[ "$type" != DEBUG && "$type" != TRACE ]]
+                ;;
+            debug)
+                [[ "$type" != TRACE ]]
+                ;;
+            trace) return 0 ;;
+            *) return 1 ;;
+        esac
     }
 
     # fn: _say_caller - Say caller
@@ -306,13 +344,11 @@ set -uo pipefail
         local msg="$2"
         local date_str="$3"
 
-        : "${SGND_LOGFILE_ENABLED:=0}"
         : "${SGND_LOG_MAX_BYTES:=$((25 * 1024 * 1024))}"
         : "${SGND_LOG_KEEP:=5}"
         : "${SGND_LOG_COMPRESS:=0}"
 
-        # Looks backwards at first glance: logging OFF → exit successfully (=no-op)
-        (( SGND_LOGFILE_ENABLED )) || return 0
+        _say_should_write_log "$type" || return 0
 
         local logfile
         logfile="$(_sgnd_logfile)" || return 0
@@ -432,9 +468,9 @@ set -uo pipefail
             return 0
         fi
 
-        # 2. SGND_ALT_LOGPATH if set and usable
-        if [[ -n "${SGND_ALT_LOGPATH:-}" ]] && sgnd_can_append "$SGND_ALT_LOGPATH"; then
-            printf '%s' "$SGND_ALT_LOGPATH"
+        # 2. SGND_ALTLOG_PATH if set and usable
+        if [[ -n "${SGND_ALTLOG_PATH:-}" ]] && sgnd_can_append "$SGND_ALTLOG_PATH"; then
+            printf '%s' "$SGND_ALTLOG_PATH"
             return 0
         fi
 
@@ -533,8 +569,8 @@ set -uo pipefail
         #     active style configuration.
         #   - Applies optional colorization to the label, message, date, or all visible
         #     message parts.
-        #   - Respects SGND_LOG_LEVEL for console visibility.
-        #   - Writes to the logfile when logfile output is enabled, even when console
+        #   - Respects SGND_CONSOLE_LOG_LEVEL for console visibility.
+        #   - Applies SGND_FILE_LOG_LEVEL independently and writes matching messages, even when console
         #     output is suppressed by the current log level.
         #   - Ensures pending progress output is followed by a clean line break before
         #     printing a normal message.
@@ -563,12 +599,12 @@ set -uo pipefail
         #
         # Inputs (globals):
         #   SAY_DATE_DEFAULT, SAY_SHOW_DEFAULT, SAY_COLORIZE_DEFAULT, SAY_DATE_FORMAT
-        #   SGND_LOG_LEVEL, SGND_LOGFILE_ENABLED, SGND_LINEBREAK_PENDING
+        #   SGND_CONSOLE_LOG_LEVEL, SGND_FILE_LOG_LEVEL, SGND_LINEBREAK_PENDING
         #   LBL_*, ICO_*, SYM_*, MSG_CLR_*, RESET
         #
         # . Outputs
-        #   Prints the rendered message to stdout when allowed by SGND_LOG_LEVEL.
-        #   Appends a best-effort logfile record when logfile output is enabled.
+        #   Prints the rendered message to stdout when allowed by SGND_CONSOLE_LOG_LEVEL.
+        #   Appends a timestamped best-effort logfile record when allowed by SGND_FILE_LOG_LEVEL.
         #
         # . Returns
         #   0 always. Unknown message types are normalized to EMPTY.

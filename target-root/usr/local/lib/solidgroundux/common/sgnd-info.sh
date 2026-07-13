@@ -277,7 +277,7 @@ set -uo pipefail
         sgnd_print_sectionheader --text "Framework metadata" --padleft "$_section_indent"
         sgnd_print_labeledvalue "Product"      "$SGND_PRODUCT" --pad "$_items_indent"
         sgnd_print_labeledvalue "Version"      "$SGND_VERSION" --pad "$_items_indent"
-        sgnd_print_labeledvalue "Release date" "$SGND_VERSION_DATE" --pad "$_items_indent"
+        sgnd_print_labeledvalue "Buildnr"      "$SGND_BUILD" --pad "$_items_indent"
         sgnd_print_labeledvalue "Company"      "$SGND_COMPANY" --pad "$_items_indent"
         sgnd_print_labeledvalue "Copyright"    "$SGND_COPYRIGHT" --pad "$_items_indent"
         sgnd_print_labeledvalue "License"      "$SGND_LICENSE" --pad "$_items_indent"
