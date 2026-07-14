@@ -29,6 +29,9 @@ https://testadura-consultancy.github.io/SolidgroundUX/
 Installation Guide:
 https://github.com/Testadura-Mark/SolidGroundUX/blob/main/INSTALL.md
 
+Changelog:
+https://github.com/Testadura-Mark/SolidGroundUX/blob/main/CHANGELOG.md
+
 ---
 
 # Why SolidGroundUX?
