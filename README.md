@@ -1,8 +1,9 @@
 # SolidGroundUX
 
-![SolidGroundUX](docs/images/Presenting%20SolidGroundUX%20medium.png)
+<img width="256" height="256" alt="SolidGround" src="https://github.com/user-attachments/assets/9bc87806-6639-4ea8-939a-5703a27a29bc" />
 
-*A framework for building structured Bash applications.*
+
+*A modular Bash application framework for building structured, maintainable command-line applications.*
 
 SolidGroundUX is a collection of libraries, tools, templates, and conventions designed to reduce boilerplate when developing Bash applications.
 
@@ -184,3 +185,28 @@ SolidGroundUX is not trying to replace Bash.
 It is an attempt to provide the kind of reusable foundation commonly found in larger development ecosystems while remaining entirely within the shell environment.
 
 The framework favors convention, consistency, and practical engineering over minimalism for its own sake.
+
+# SolidGroundUX Architecture
+
+```mermaid
+flowchart TD
+
+    APP[Applications]
+
+    APP --> BOOT[Bootstrap Runtime]
+
+    BOOT --> CFG[Configuration]
+    BOOT --> CORE[Common Core]
+    BOOT --> EXT[Common Extensions]
+    BOOT --> RT[Executable Runtime]
+
+    CORE --> UI[UI & Theming]
+    CORE --> LOG[Logging]
+    CORE --> STATE[Persistent State]
+    CORE --> DLG[Dialogs & Input]
+
+    RT --> CONSOLE[SolidGround Console]
+    RT --> SDK[SDK Tools]
+    RT --> DEPLOY[Deployment]
+    RT --> DOCS[Documentation Generator]
+```
