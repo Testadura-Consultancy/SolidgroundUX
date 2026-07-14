@@ -27,10 +27,10 @@ Documentation:
 https://testadura-consultancy.github.io/SolidgroundUX/
 
 Installation Guide:
-https://github.com/Testadura-Mark/SolidGroundUX/blob/main/INSTALL.md
+https://github.com/testadura-consultancy/SolidGroundUX/blob/main/INSTALL.md
 
 Changelog:
-https://github.com/Testadura-Mark/SolidGroundUX/blob/main/CHANGELOG.md
+https://github.com/testadura-consultancy/SolidGroundUX/blob/main/CHANGELOG.md
 
 ---
 
