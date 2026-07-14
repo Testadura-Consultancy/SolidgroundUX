@@ -1,6 +1,6 @@
 # SolidGroundUX
 
-<img width="256" height="256" alt="SolidGround" src="https://github.com/user-attachments/assets/9bc87806-6639-4ea8-939a-5703a27a29bc" />
+<img width="128" height="128" alt="SolidGround" src="https://github.com/user-attachments/assets/9bc87806-6639-4ea8-939a-5703a27a29bc" />
 
 
 *A modular Bash application framework for building structured, maintainable command-line applications.*
