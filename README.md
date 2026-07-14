@@ -25,6 +25,7 @@ The result is less repetitive code, more predictable behavior, and easier mainte
 
 Documentation:
 https://testadura-consultancy.github.io/SolidgroundUX/
+
 Installation Guide:
 https://github.com/Testadura-Mark/SolidGroundUX/blob/main/INSTALL.md
 
