@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.6
-#   Build       : 2619402
-#   Checksum    : pending
+#   Build       : 2619513
+#   Checksum    : 88b6ae3b450efc06eb0d1b6f47e409b799f593d33948006912b64610febdc33b
 #   Source      : console-devtools.sh
 #   Type        : module
 #   Group       : SolidGround Console

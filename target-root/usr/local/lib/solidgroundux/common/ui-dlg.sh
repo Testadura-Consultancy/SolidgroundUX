@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2615900
-#   Checksum    : 2fc14bdecc4c6399485221e63f0ba3ffa8b050a55e9fe2934cad46d372c91c0b
+#   Build       : 2619513
+#   Checksum    : 28702983d5b64c9e27fb62fada47d2aec88094e2199e055349a742802ea9d28e
 #   Source      : ui-dlg.sh
 #   Type        : library
 #   Group       : UI

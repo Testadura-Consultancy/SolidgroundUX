@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2615900
-#   Checksum    : 4dd33b014dc92c7d15554912f7455944a33943ab098c7fa116d99fa0a0dd3798
+#   Build       : 2619513
+#   Checksum    : 4e5880cd9cf9d6864936bc61f566633d1f067b81d52a2d17b3b321ca5422ab79
 #   Source      : sgnd-console-menu.sh
 #   Group       : SolidGround Console
 #   Type        : library
@@ -376,35 +376,171 @@ set -uo pipefail
             sayinfo "Verbose enabled"
         fi
     }
-    # fn: _sgnd_console_toggle_logfile - Toggle logfile
+
+    # fn: _sgnd_console_set_file_loglevel - Set file log level
         # . Purpose
-        #   Handle console menu toggle logfile behavior.
+        #   Prompt for and apply the active SolidGroundUX file log level.
         #
         # . Behavior
-        #   - Supports the module implementation; not intended as a public framework API.
-        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
-        #   - Uses framework UI/output conventions for terminal or dialog interaction.
+        #   - Uses the current SGND_FILE_LOG_LEVEL value as the default.
+        #   - Prompts the user to choose one supported file log level.
+        #   - Updates SGND_FILE_LOG_LEVEL in the current console instance.
+        #   - Persists the selected value to SGND_FRAMEWORK_STATEFILE when available.
+        #
+        # Inputs (globals):
+        #   SGND_FILE_LOG_LEVEL
+        #   SGND_FRAMEWORK_STATEFILE
         #
         # Outputs (globals):
-        #   May update SGND_* globals shown in the function body.
+        #   SGND_FILE_LOG_LEVEL
+        #
+        # Side effects:
+        #   May update SGND_FRAMEWORK_STATEFILE.
         #
         # . Returns
-        #   0 on success unless the called command returns a different status.
+        #   0 when the log level is selected and applied successfully.
+        #   Non-zero when the prompt is cancelled or the state value cannot be saved.
         #
         # . Usage
-        #   _sgnd_console_toggle_logfile
-    _sgnd_console_toggle_logfile() {
-        : "${SGND_LOGFILE_ENABLED:=0}"
+        #   _sgnd_console_set_file_loglevel
+    _sgnd_console_set_file_loglevel() {
+        local level="${SGND_FILE_LOG_LEVEL:-silent}"
 
-        if (( SGND_LOGFILE_ENABLED )); then
-            SGND_LOGFILE_ENABLED=0
-            sayinfo "Logfile disabled"
-        else
-            SGND_LOGFILE_ENABLED=1
-            sayinfo "Logfile enabled"
+        ask_choose \
+            --label "File log level" \
+            --choices "silent,quiet,normal,verbose,debug,trace" \
+            --default "$level" \
+            --var level || return $?
+
+        SGND_FILE_LOG_LEVEL="$level"
+
+        if [[ -n "${SGND_FRAMEWORK_STATEFILE:-}" ]]; then
+            sgnd_state_set \
+                --file "$SGND_FRAMEWORK_STATEFILE" \
+                SGND_FILE_LOG_LEVEL \
+                "$SGND_FILE_LOG_LEVEL" || return 1
         fi
+
+        sayinfo "File log level set to $SGND_FILE_LOG_LEVEL"
     }
 # --- Session actions ----------------------------------------------------------------
+    # fn: _sgnd_console_set_theme - Set console theme
+        # . Purpose
+        #   Prompt for and apply the active SolidGroundUX UI theme.
+        #
+        # . Behavior
+        #   - Enumerates the installed themes.
+        #   - Uses the currently active theme as the default.
+        #   - Prompts the user to select a theme.
+        #   - Applies the selected theme immediately.
+        #   - Persists the selected theme to the framework state when available.
+        #
+        # Inputs (globals):
+        #   SGND_UI_STYLE
+        #   SGND_STYLE_DIR
+        #   SGND_FRAMEWORK_STATEFILE
+        #
+        # Outputs (globals):
+        #   SGND_UI_STYLE
+        #
+        # Side effects:
+        #   May reload the active UI style.
+        #   May update SGND_FRAMEWORK_STATEFILE.
+        #
+        # . Returns
+        #   0 when the theme is selected and applied successfully.
+        #   Non-zero when the prompt is cancelled, no themes are available, or the selected theme cannot be applied.
+        #
+        # . Usage
+        #   _sgnd_console_set_theme
+    _sgnd_console_set_theme() {
+        local current_theme=""
+        local theme=""
+        local choices=""
+
+        current_theme="${SGND_UI_STYLE##*/}"
+        current_theme="${current_theme%.sh}"
+        current_theme="${current_theme#style-}"
+
+        [[ "${SGND_UI_STYLE##*/}" == "default-ui-style.sh" ]] && current_theme="default"
+
+        while IFS= read -r theme; do
+            [[ -n "$choices" ]] && choices+=","
+            choices+="$theme"
+        done < <(
+            find "$SGND_STYLE_DIR" -maxdepth 1 -type f \
+                \( -name 'default-ui-style.sh' -o -name 'style-*.sh' \) \
+                | sort \
+                | while IFS= read -r file; do
+                    theme="${file##*/}"
+                    theme="${theme%.sh}"
+                    theme="${theme#style-}"
+                    [[ "$theme" == "default-ui-style" ]] && theme="default"
+                    printf '%s\n' "$theme"
+                done
+        )
+
+        [[ -n "$choices" ]] || {
+            saywarning "No themes found in $SGND_STYLE_DIR"
+            return 1
+        }
+
+        ask_choose \
+            --label "Theme" \
+            --choices "$choices" \
+            --default "$current_theme" \
+            --var theme || return $?
+
+        sgnd_theme "$theme" || return $?
+
+        if [[ -n "${SGND_FRAMEWORK_STATEFILE:-}" ]]; then
+            sgnd_state_set \
+                --file "$SGND_FRAMEWORK_STATEFILE" \
+                SGND_UI_STYLE \
+                "$SGND_UI_STYLE" || return 1
+        fi
+
+        sayinfo "Theme set to $theme"
+    }
+    # fn: _sgnd_console_set_lines_per_page - Set menu lines per page
+        # . Purpose
+        #   Set the maximum number of rendered menu lines per page.
+        #
+        # . Behavior
+        #   - Prompts for a new page height using the current value as the default.
+        #   - Requires a whole number of at least 5.
+        #   - Resets paging to the first page after a successful change.
+        #
+        # Outputs (globals):
+        #   SGND_PAGE_MAX_ROWS
+        #   SGND_PAGE_INDEX
+        #
+        # . Returns
+        #   0 when the page height is updated.
+        #   1 when the entered value is invalid.
+        #   Non-zero when input is cancelled or fails.
+        #
+        # . Usage
+        #   _sgnd_console_set_lines_per_page
+    _sgnd_console_set_lines_per_page() {
+        local lines="${SGND_PAGE_MAX_ROWS:-15}"
+
+        ask \
+            --label "Lines per page" \
+            --default "$lines" \
+            --var lines || return $?
+
+        if [[ ! "$lines" =~ ^[0-9]+$ ]] || (( lines < 5 )); then
+            saywarning "Lines per page must be a whole number of at least 5"
+            return 1
+        fi
+
+        SGND_PAGE_MAX_ROWS="$lines"
+        SGND_PAGE_INDEX=0
+        sayinfo "Menu lines per page set to $SGND_PAGE_MAX_ROWS"
+
+        sgnd_state_set SGND_PAGE_MAX_ROWS "$SGND_PAGE_MAX_ROWS"
+    }
     # fn: _sgnd_console_redraw - Console redraw
         # . Purpose
         #   Handle console menu redraw behavior.
@@ -1478,7 +1614,7 @@ set -uo pipefail
 
         debug_text="$(_sgnd_console_toggleword "DEBUG"   "B" "${FLAG_DEBUG:-0}")"
         dryrun_text="$(_sgnd_console_toggleword "DRYRUN" "D" "${FLAG_DRYRUN:-0}" "${SGND_UI_DRYRUN}" "${SGND_UI_COMMIT}")"
-        logfile_text="$(_sgnd_console_toggleword "LOG"   "L" "${SGND_LOGFILE_ENABLED:-0}")"
+        logfile_text="$(_sgnd_console_toggleword "LOG"   "G" "${SGND_LOGFILE_ENABLED:-0}")"
         verbose_text="$(_sgnd_console_toggleword "VERBOSE" "V" "${FLAG_VERBOSE:-0}")"
         clearscr_text="$(_sgnd_console_toggleword "CLRSCR" "C" "${SGND_CLEAR_ONRENDER:-0}")"
 

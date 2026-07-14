@@ -4,13 +4,15 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2619013
+#   Build       : 2619513
 #   Checksum    : acc5ab844845ed904134ec4dcc7794a6b45d2cddabe7db1be7eaa6503a04445d
 #   Source      : solidground console_preface.sh
 #   Type        : documentation
 #   Group       : SolidGround Console
 #   Purpose     : Group preface
 #
+#   Checksum : acc5ab844845ed904134ec4dcc7794a6b45d2cddabe7db1be7eaa6503a04445d
+#   Checksum : acc5ab844845ed904134ec4dcc7794a6b45d2cddabe7db1be7eaa6503a04445d
 #   Checksum : acc5ab844845ed904134ec4dcc7794a6b45d2cddabe7db1be7eaa6503a04445d
 #   Checksum : acc5ab844845ed904134ec4dcc7794a6b45d2cddabe7db1be7eaa6503a04445d
 #   Checksum : acc5ab844845ed904134ec4dcc7794a6b45d2cddabe7db1be7eaa6503a04445d

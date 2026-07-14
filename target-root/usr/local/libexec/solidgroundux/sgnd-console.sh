@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2617512
-#   Checksum    : 68212cfab6cde6deee86061b6a9244bc52d79950730f3293fdd46c48e5096a17
+#   Build       : 2619513
+#   Checksum    : f0494d13ea125fab47e6b4661b3ca0818e2fcabcf3aa3eb8449e7fb7cc96a05d
 #   Source      : sgnd-console.sh
 #   Type        : script
 #   Group       : SolidGround Console
@@ -227,7 +227,7 @@ set -uo pipefail
         #   - After parsing you can use: FLAG_VERBOSE, VAL_CONFIG, ENUM_MODE, ...
     SGND_ARGS_SPEC=(
         "appcfg||value|VAL_APPCFG|Path to console app config file|"
-        "maxrows||value|VAL_MAXROWS|Maximum menu rows per page|10|"
+        "maxrows||value|VAL_MAXROWS|Maximum menu rows per page||"
     )
 
     # SGND_SCRIPT_EXAMPLES
@@ -292,6 +292,7 @@ set -uo pipefail
         # Leave empty if:
         #   - The script does not use persistent state.
     SGND_STATE_VARIABLES=(
+        SGND_PAGE_MAX_ROWS
     )
 
     # SGND_ON_EXIT_HANDLERS
@@ -324,7 +325,7 @@ set -uo pipefail
         # Scripts that want persistent state must:
         #   1) set SGND_STATE_SAVE=1
         #   2) call sgnd_bootstrap --state
-    SGND_STATE_SAVE=0
+    SGND_STATE_SAVE=1
 
 # --- Local scripts and definitions ---------------------------------------------------
     # --- Console state
@@ -417,36 +418,6 @@ set -uo pipefail
         : "${SGND_CONSOLE_DESC:=${SGND_SCRIPT_DESC}}"
         : "${SGND_CONSOLE_MODULE_DIR:=./console-modules}"
         : "${SGND_PAGE_MAX_ROWS:=15}"
-
-        if [[ -n "${VAL_MAXROWS:-}" ]]; then
-            SGND_PAGE_MAX_ROWS="$VAL_MAXROWS"
-        fi
-
-        if [[ -n "$cfg" ]]; then
-            if [[ ! -e "$cfg" ]]; then
-                _sgnd_console_create_appcfg "$cfg" || return $?
-            fi
-
-            [[ -r "$cfg" ]] || {
-                sayfail "Cannot read appcfg: $cfg"
-                return 126
-            }
-
-            cfg="$(readlink -f -- "$cfg")"
-            cfg_dir="$(dirname -- "$cfg")"
-
-            # shellcheck source=/dev/null
-            source "$cfg"
-
-            : "${SGND_CONSOLE_TITLE:=${SGND_SCRIPT_TITLE}}"
-            : "${SGND_CONSOLE_DESC:=${SGND_SCRIPT_DESC}}"
-            : "${SGND_CONSOLE_MODULE_DIR:=./console-modules}"
-
-            case "$SGND_CONSOLE_MODULE_DIR" in
-                /*) ;;
-                *) SGND_CONSOLE_MODULE_DIR="${cfg_dir}/${SGND_CONSOLE_MODULE_DIR}" ;;
-            esac
-        fi
 
         SGND_CONSOLE_MODULE_DIR="$(readlink -f -- "$SGND_CONSOLE_MODULE_DIR")"
 
@@ -569,10 +540,12 @@ set -uo pipefail
 
         sgnd_console_register_item "B" "$SGND_GROUP_RUNTIME" "$(_sgnd_console_label_debug)" "_sgnd_console_toggle_debug" "Toggle debug output" 1 0 0
         sgnd_console_register_item "D" "$SGND_GROUP_RUNTIME" "$(_sgnd_console_label_dryrun)" "_sgnd_console_toggle_dryrun" "Toggle dry-run mode" 1 0 0
-        sgnd_console_register_item "L" "$SGND_GROUP_RUNTIME" "$(_sgnd_console_label_logfile)" "_sgnd_console_toggle_logfile" "Toggle logfile output" 1 0 0
+        sgnd_console_register_item "G" "$SGND_GROUP_RUNTIME" "$(_sgnd_console_label_logfile)" "_sgnd_console_set_file_loglevel" "Set file log level" 1 0 0
         sgnd_console_register_item "V" "$SGND_GROUP_RUNTIME" "$(_sgnd_console_label_verbose)" "_sgnd_console_toggle_verbose" "Toggle verbose output" 1 0 1
 
         sgnd_console_register_item "C" "$SGND_GROUP_SESSION" "$(_sgnd_console_label_clearonrender)" "_sgnd_console_toggle_clearonrender" "Toggle clear screen before rendering" 1 0 0
+        sgnd_console_register_item "L" "$SGND_GROUP_SESSION" "Set lines per page" "_sgnd_console_set_lines_per_page" "Set the maximum number of menu lines per page" 1 0 1
+        sgnd_console_register_item "T" "$SGND_GROUP_SESSION" "Set theme" "_sgnd_console_set_theme" "Set the UI theme" 1 0 1
         sgnd_console_register_item "<" "$SGND_GROUP_SESSION" "Previous page" "_sgnd_console_prevpage" "Show previous menu page" 1 0 0
         sgnd_console_register_item ">" "$SGND_GROUP_SESSION" "Next page" "_sgnd_console_nextpage" "Show next menu page" 1 0 0
         sgnd_console_register_item "R" "$SGND_GROUP_SESSION" "Redraw menu" "_sgnd_console_redraw" "Refresh console display" 1 0 1
@@ -877,22 +850,22 @@ set -uo pipefail
             ask_choose_immediate \
                 --label "Select option" \
                 --choices "$valid_choices" \
-                --instantchoices "B,D,L,V,C,<,>" \
+                --instantchoices "B,D,G,V,C,L,T,<,>" \
                 --displaychoices 0 \
                 --keepasking 1 \
                 --var choice
 
             _sgnd_console_dispatch "$choice"
             rc=$?
-
             if (( rc == 200 )); then
                 sayinfo "Exiting console"
                 return 0
             fi
+
             saydebug "Calling ask_continue with $SGND_LAST_WAITSECS ?"
             if (( ${SGND_LAST_WAITSECS:-0} > 0 )); then
                 saydebug "Calling ask_continue with $SGND_LAST_WAITSECS"
-                ask_continue "" "${SGND_LAST_WAITSECS}"
+                ask_dlg_autocontinue --seconds "$SGND_LAST_WAITSECS" --message "" --cancel --pause
             fi
         done
     }
@@ -1092,7 +1065,7 @@ set -uo pipefail
     main() {
         # -- Startup
             _framework_locator || exit $?
-            sgnd_exe_start -- "$@"
+            sgnd_exe_start --state -- "$@"
 
         # -- Main script logic
 
@@ -1100,7 +1073,17 @@ set -uo pipefail
             sayfail "sgnd-datatable.sh did not load correctly"
             exit 126
         }
+
         _sgnd_console_load_config || exit $?
+
+        # Script state has already been restored by sgnd_exe_start --state.
+        # An explicitly supplied command-line value has the highest precedence.
+        if [[ -n "${VAL_MAXROWS:-}" ]]; then
+            SGND_PAGE_MAX_ROWS="$VAL_MAXROWS"
+        fi
+
+        SGND_PAGE_INDEX=0
+
         _sgnd_console_register_builtin_items || exit $?
         _sgnd_console_load_modules || exit $?
 
