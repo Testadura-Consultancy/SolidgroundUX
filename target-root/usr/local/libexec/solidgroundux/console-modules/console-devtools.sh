@@ -12,7 +12,7 @@
 #
 # Description:
 #   Registers developer workflow scripts and in-process framework smoke tests with
-#   sgnd-console. Smoke tests run inside the console's existing framework instance.
+#   sgnd-console. Smoketests run inside the console's existing framework instance.
 #
 # Attribution:
 #   Developers    : Mark Fieten
