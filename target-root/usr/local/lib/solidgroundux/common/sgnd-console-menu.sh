@@ -82,6 +82,7 @@ set -uo pipefail
     unset -f _sgnd_lib_guard
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
+# --- Toggle formatting --------------------------------------------------------------
     # fn: _sgnd_console_toggleword - Render toggle word
         # . Purpose
         #   Render a toggle label while emphasizing its hotkey character.
@@ -174,6 +175,7 @@ set -uo pipefail
             printf '%sOff%s' "$(sgnd_sgr "$offclr")" "$RESET"
         fi
     }
+# --- Toggle labels ------------------------------------------------------------------
     # fn: _sgnd_console_label_clearonrender - Build clear-on-render label
         # . Purpose
         #   Build the current menu label for the clear-on-render toggle.
@@ -271,6 +273,7 @@ set -uo pipefail
         : "${SGND_LOGFILE_ENABLED:=0}"
         printf 'Logfile: %s' "$(_sgnd_console_onoff "$SGND_LOGFILE_ENABLED")"
     }
+# --- Toggle actions -----------------------------------------------------------------
     # fn: _sgnd_console_toggle_clearonrender - Toggle clear-on-render
         # . Purpose
         #   Render the console toggle clearonrender portion of the current workflow.
@@ -401,6 +404,7 @@ set -uo pipefail
             sayinfo "Logfile enabled"
         fi
     }
+# --- Session actions ----------------------------------------------------------------
     # fn: _sgnd_console_redraw - Console redraw
         # . Purpose
         #   Handle console menu redraw behavior.
@@ -482,9 +486,10 @@ set -uo pipefail
 
         return 0
     }
-    # fn: _sgnd_console_build_pages - Console build pages
+# --- Menu model indexes -------------------------------------------------------------
+    # fn: _sgnd_console_collect_group_render_indexes - Console collect group render indexes
         # . Purpose
-        #   Handle console menu build pages behavior.
+        #   Render the console collect group indexes portion of the current workflow.
         #
         # . Behavior
         #   - Supports the module implementation; not intended as a public framework API.
@@ -494,65 +499,256 @@ set -uo pipefail
         # Outputs (globals):
         #   May update SGND_* globals shown in the function body.
         #
-        # . Side effects
-        #   May update files, directories, runtime state, or process state required by the workflow.
+        # . Output
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
         #
         # . Returns
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   _sgnd_console_build_pages
-    _sgnd_console_build_pages() {
-        local body_height=0
-        local used_lines=0
-        local visible_count=0
-        local visible_i=0
-        local row_index=0
-        local group_key=""
-        local current_group=""
-        local item_lines=0
-        local header_lines=0
-        local needed_lines=0
+        #   _sgnd_console_collect_group_render_indexes
+    _sgnd_console_collect_group_render_indexes() {
+        local i
+        local row_count=0
+        local builtin="0"
+        local ord="1000"
 
-        SGND_PAGE_STARTS=()
+        local -a sortable_rows=()
+        local -a sorted_rows=()
 
-        _sgnd_console_collect_group_render_indexes
-        _sgnd_console_collect_visible_item_indexes
+        SGND_GROUP_RENDER_INDEXES=()
 
-        visible_count="${#SGND_VISIBLE_ITEM_INDEXES[@]}"
-        body_height="$(_sgnd_console_body_height)"
+        row_count="$(sgnd_dt_row_count SGND_GROUP_ROWS)"
 
-        (( visible_count == 0 )) && return 0
+        for (( i=0; i<row_count; i++ )); do
+            builtin="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$i" builtin)"
+            ord="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$i" ord)"
+            : "${ord:=1000}"
 
-        SGND_PAGE_STARTS+=(0)
+            # sort key = builtin bucket | ord | original row index
+            # non-builtin first, builtin last
+            sortable_rows+=("$(printf '%d|%08d|%08d' "$builtin" "$ord" "$i")")
+        done
 
-        for (( visible_i=0; visible_i<visible_count; visible_i++ )); do
-            row_index="${SGND_VISIBLE_ITEM_INDEXES[$visible_i]}"
-            group_key="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" group)"
-            item_lines="$(_sgnd_console_measure_item_lines "$row_index")"
+        if (( ${#sortable_rows[@]} == 0 )); then
+            return 0
+        fi
 
-            needed_lines="$item_lines"
+        mapfile -t sorted_rows < <(printf '%s\n' "${sortable_rows[@]}" | sort -t '|' -k1,1n -k2,2n -k3,3n)
 
-            if [[ "$group_key" != "$current_group" ]]; then
-                header_lines="$(_sgnd_console_measure_group_header_lines)"
-                needed_lines=$(( needed_lines + header_lines ))
-            fi
-
-            if (( used_lines + needed_lines > body_height )); then
-                SGND_PAGE_STARTS+=("$visible_i")
-                used_lines=0
-                current_group=""
-            fi
-
-            if [[ "$group_key" != "$current_group" ]]; then
-                header_lines="$(_sgnd_console_measure_group_header_lines)"
-                used_lines=$(( used_lines + header_lines ))
-                current_group="$group_key"
-            fi
-
-            used_lines=$(( used_lines + item_lines ))
+        for i in "${!sorted_rows[@]}"; do
+            SGND_GROUP_RENDER_INDEXES+=("${sorted_rows[$i]##*|}")
         done
     }
+    # fn: _sgnd_console_collect_visible_item_indexes - Console collect visible item indexes
+        # . Purpose
+        #   Handle console menu collect visible item indexes behavior.
+        #
+        # . Behavior
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #   - Uses SolidGroundUX datatable rows and schemas for structured state.
+        #
+        # Outputs (globals):
+        #   May update SGND_* globals shown in the function body.
+        #
+        # . Returns
+        #   0 on success unless the called command returns a different status.
+        #
+        # . Usage
+        #   _sgnd_console_collect_visible_item_indexes
+    _sgnd_console_collect_visible_item_indexes() {
+        local gi
+        local ii
+        local item_row_count=0
+        local group_key=""
+        local group_builtin="0"
+        local item_group=""
+        local item_builtin="0"
+        local item_state="1"
+
+        SGND_VISIBLE_ITEM_INDEXES=()
+
+        _sgnd_console_collect_group_render_indexes
+        item_row_count="$(sgnd_dt_row_count SGND_ITEM_ROWS)"
+
+        for gi in "${SGND_GROUP_RENDER_INDEXES[@]}"; do
+            group_builtin="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$gi" builtin)"
+            (( group_builtin )) && continue
+
+            group_key="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$gi" key)"
+
+            for (( ii=0; ii<item_row_count; ii++ )); do
+                item_group="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" group)"
+                [[ "$item_group" == "$group_key" ]] || continue
+
+                item_builtin="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" builtin)"
+                (( item_builtin )) && continue
+
+                item_state="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" visible)"
+                case "$item_state" in
+                    1|2)
+                        SGND_VISIBLE_ITEM_INDEXES+=("$ii")
+                        ;;
+                esac
+            done
+        done
+    }
+    # fn: _sgnd_console_visible_item_count - Console visible item count
+        # . Purpose
+        #   Handle console menu visible item count behavior.
+        #
+        # . Behavior
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #
+        # . Output
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
+        #
+        # . Returns
+        #   0 on success unless the called command returns a different status.
+        #
+        # . Usage
+        #   _sgnd_console_visible_item_count
+    _sgnd_console_visible_item_count() {
+        printf '%s\n' "${#SGND_VISIBLE_ITEM_INDEXES[@]}"
+    }
+    # fn: _sgnd_console_get_visible_row_index - Console get visible row index
+        # . Purpose
+        #   Handle console menu get visible row index behavior.
+        #
+        # . Behavior
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #
+        # . Arguments
+        #   $1  VISIBLE_INDEX - Zero-based index.
+        #
+        # . Output
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
+        #
+        # . Side effects
+        #   May update files, directories, runtime state, or process state required by the workflow.
+        #
+        # . Returns
+        #   0 on success.
+        #   Non-zero when validation, resolution, user cancellation, or execution fails.
+        #
+        # . Usage
+        #   _sgnd_console_get_visible_row_index "${VISIBLE_INDEX}"
+    _sgnd_console_get_visible_row_index() {
+        local visible_index="${1:?missing visible index}"
+
+        if (( visible_index < 0 || visible_index >= ${#SGND_VISIBLE_ITEM_INDEXES[@]} )); then
+            return 1
+        fi
+
+        printf '%s\n' "${SGND_VISIBLE_ITEM_INDEXES[$visible_index]}"
+    }
+    # fn: _sgnd_console_get_visible_display_number - Console get visible display number
+        # . Purpose
+        #   Handle console menu get visible display number behavior.
+        #
+        # . Behavior
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #
+        # . Arguments
+        #   $1  ROW_INDEX - Zero-based datatable row index.
+        #
+        # . Output
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
+        #
+        # . Returns
+        #   0 on success.
+        #   Non-zero when validation, resolution, user cancellation, or execution fails.
+        #
+        # . Usage
+        #   _sgnd_console_get_visible_display_number "${ROW_INDEX}"
+    _sgnd_console_get_visible_display_number() {
+        local row_index="${1:?missing row index}"
+        local i
+
+        for (( i=0; i<${#SGND_VISIBLE_ITEM_INDEXES[@]}; i++ )); do
+            if [[ "${SGND_VISIBLE_ITEM_INDEXES[$i]}" == "$row_index" ]]; then
+                printf '%s\n' "$((i + 1))"
+                return 0
+            fi
+        done
+
+        return 1
+    }
+    # fn: _sgnd_console_find_visible_pos_for_row - Console find visible pos for row
+        # . Purpose
+        #   Handle console menu find visible pos for row behavior.
+        #
+        # . Behavior
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #
+        # . Arguments
+        #   $1  ROW_INDEX - Zero-based datatable row index.
+        #
+        # . Output
+        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
+        #
+        # . Returns
+        #   0 on success.
+        #   Non-zero when validation, resolution, user cancellation, or execution fails.
+        #
+        # . Usage
+        #   _sgnd_console_find_visible_pos_for_row "${ROW_INDEX}"
+    _sgnd_console_find_visible_pos_for_row() {
+        local row_index="${1:?missing row index}"
+        local i
+
+        for (( i=0; i<${#SGND_VISIBLE_ITEM_INDEXES[@]}; i++ )); do
+            if [[ "${SGND_VISIBLE_ITEM_INDEXES[$i]}" == "$row_index" ]]; then
+                printf '%s\n' "$i"
+                return 0
+            fi
+        done
+
+        return 1
+    }
+    # fn: _sgnd_console_group_continues_after_visible_pos - Console group continues after visible pos
+        # . Purpose
+        #   Handle console menu group continues after visible pos behavior.
+        #
+        # . Behavior
+        #   - Supports the module implementation; not intended as a public framework API.
+        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
+        #   - Uses SolidGroundUX datatable rows and schemas for structured state.
+        #
+        # . Arguments
+        #   $1  GROUP_KEY - Unique key or identifier.
+        #   $2  LAST_VISIBLE_POS - Positional value used by this function.
+        #
+        # . Returns
+        #   0 on success.
+        #   Non-zero when validation, resolution, user cancellation, or execution fails.
+        #
+        # . Usage
+        #   _sgnd_console_group_continues_after_visible_pos "${GROUP_KEY}" "${LAST_VISIBLE_POS}"
+    _sgnd_console_group_continues_after_visible_pos() {
+        local group_key="${1:?missing group key}"
+        local last_visible_pos="${2:?missing visible position}"
+        local i
+        local row_index=0
+        local item_group=""
+
+        for (( i=last_visible_pos + 1; i<${#SGND_VISIBLE_ITEM_INDEXES[@]}; i++ )); do
+            row_index="${SGND_VISIBLE_ITEM_INDEXES[$i]}"
+            item_group="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" group)"
+
+            if [[ "$item_group" == "$group_key" ]]; then
+                return 0
+            fi
+        done
+
+        return 1
+    }
+# --- Menu layout measurement --------------------------------------------------------
     # fn: _sgnd_console_body_height - Console body height
         # . Purpose
         #   Handle console menu body height behavior.
@@ -643,111 +839,6 @@ set -uo pipefail
         # group label + underline
         printf '2\n'
     }
-    # fn: _sgnd_console_visible_item_count - Console visible item count
-        # . Purpose
-        #   Handle console menu visible item count behavior.
-        #
-        # . Behavior
-        #   - Supports the module implementation; not intended as a public framework API.
-        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
-        #
-        # . Output
-        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
-        #
-        # . Returns
-        #   0 on success unless the called command returns a different status.
-        #
-        # . Usage
-        #   _sgnd_console_visible_item_count
-    _sgnd_console_visible_item_count() {
-        printf '%s\n' "${#SGND_VISIBLE_ITEM_INDEXES[@]}"
-    }
-    # fn: _sgnd_console_get_visible_row_index - Console get visible row index
-        # . Purpose
-        #   Handle console menu get visible row index behavior.
-        #
-        # . Behavior
-        #   - Supports the module implementation; not intended as a public framework API.
-        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
-        #
-        # . Arguments
-        #   $1  VISIBLE_INDEX - Zero-based index.
-        #
-        # . Output
-        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
-        #
-        # . Side effects
-        #   May update files, directories, runtime state, or process state required by the workflow.
-        #
-        # . Returns
-        #   0 on success.
-        #   Non-zero when validation, resolution, user cancellation, or execution fails.
-        #
-        # . Usage
-        #   _sgnd_console_get_visible_row_index "${VISIBLE_INDEX}"
-    _sgnd_console_get_visible_row_index() {
-        local visible_index="${1:?missing visible index}"
-
-        if (( visible_index < 0 || visible_index >= ${#SGND_VISIBLE_ITEM_INDEXES[@]} )); then
-            return 1
-        fi
-
-        printf '%s\n' "${SGND_VISIBLE_ITEM_INDEXES[$visible_index]}"
-    }
-    # fn: _sgnd_console_collect_visible_item_indexes - Console collect visible item indexes
-        # . Purpose
-        #   Handle console menu collect visible item indexes behavior.
-        #
-        # . Behavior
-        #   - Supports the module implementation; not intended as a public framework API.
-        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
-        #   - Uses SolidGroundUX datatable rows and schemas for structured state.
-        #
-        # Outputs (globals):
-        #   May update SGND_* globals shown in the function body.
-        #
-        # . Returns
-        #   0 on success unless the called command returns a different status.
-        #
-        # . Usage
-        #   _sgnd_console_collect_visible_item_indexes
-    _sgnd_console_collect_visible_item_indexes() {
-        local gi
-        local ii
-        local item_row_count=0
-        local group_key=""
-        local group_builtin="0"
-        local item_group=""
-        local item_builtin="0"
-        local item_state="1"
-
-        SGND_VISIBLE_ITEM_INDEXES=()
-
-        _sgnd_console_collect_group_render_indexes
-        item_row_count="$(sgnd_dt_row_count SGND_ITEM_ROWS)"
-
-        for gi in "${SGND_GROUP_RENDER_INDEXES[@]}"; do
-            group_builtin="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$gi" builtin)"
-            (( group_builtin )) && continue
-
-            group_key="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$gi" key)"
-
-            for (( ii=0; ii<item_row_count; ii++ )); do
-                item_group="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" group)"
-                [[ "$item_group" == "$group_key" ]] || continue
-
-                item_builtin="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" builtin)"
-                (( item_builtin )) && continue
-
-                item_state="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" visible)"
-                case "$item_state" in
-                    1|2)
-                        SGND_VISIBLE_ITEM_INDEXES+=("$ii")
-                        ;;
-                esac
-            done
-        done
-    }
     # fn: _sgnd_console_calc_label_width - Console calc label width
         # . Purpose
         #   Handle console menu calc label width behavior.
@@ -799,112 +890,10 @@ set -uo pipefail
         (( max_width > 35 )) && max_width=35
         printf '%s\n' "$max_width"
     }
-    # fn: _sgnd_console_find_visible_pos_for_row - Console find visible pos for row
+# --- Menu pagination ----------------------------------------------------------------
+    # fn: _sgnd_console_build_pages - Console build pages
         # . Purpose
-        #   Handle console menu find visible pos for row behavior.
-        #
-        # . Behavior
-        #   - Supports the module implementation; not intended as a public framework API.
-        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
-        #
-        # . Arguments
-        #   $1  ROW_INDEX - Zero-based datatable row index.
-        #
-        # . Output
-        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
-        #
-        # . Returns
-        #   0 on success.
-        #   Non-zero when validation, resolution, user cancellation, or execution fails.
-        #
-        # . Usage
-        #   _sgnd_console_find_visible_pos_for_row "${ROW_INDEX}"
-    _sgnd_console_find_visible_pos_for_row() {
-        local row_index="${1:?missing row index}"
-        local i
-
-        for (( i=0; i<${#SGND_VISIBLE_ITEM_INDEXES[@]}; i++ )); do
-            if [[ "${SGND_VISIBLE_ITEM_INDEXES[$i]}" == "$row_index" ]]; then
-                printf '%s\n' "$i"
-                return 0
-            fi
-        done
-
-        return 1
-    }
-    # fn: _sgnd_console_group_continues_after_visible_pos - Console group continues after visible pos
-        # . Purpose
-        #   Handle console menu group continues after visible pos behavior.
-        #
-        # . Behavior
-        #   - Supports the module implementation; not intended as a public framework API.
-        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
-        #   - Uses SolidGroundUX datatable rows and schemas for structured state.
-        #
-        # . Arguments
-        #   $1  GROUP_KEY - Unique key or identifier.
-        #   $2  LAST_VISIBLE_POS - Positional value used by this function.
-        #
-        # . Returns
-        #   0 on success.
-        #   Non-zero when validation, resolution, user cancellation, or execution fails.
-        #
-        # . Usage
-        #   _sgnd_console_group_continues_after_visible_pos "${GROUP_KEY}" "${LAST_VISIBLE_POS}"
-    _sgnd_console_group_continues_after_visible_pos() {
-        local group_key="${1:?missing group key}"
-        local last_visible_pos="${2:?missing visible position}"
-        local i
-        local row_index=0
-        local item_group=""
-
-        for (( i=last_visible_pos + 1; i<${#SGND_VISIBLE_ITEM_INDEXES[@]}; i++ )); do
-            row_index="${SGND_VISIBLE_ITEM_INDEXES[$i]}"
-            item_group="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" group)"
-
-            if [[ "$item_group" == "$group_key" ]]; then
-                return 0
-            fi
-        done
-
-        return 1
-    }
-    # fn: _sgnd_console_get_visible_display_number - Console get visible display number
-        # . Purpose
-        #   Handle console menu get visible display number behavior.
-        #
-        # . Behavior
-        #   - Supports the module implementation; not intended as a public framework API.
-        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
-        #
-        # . Arguments
-        #   $1  ROW_INDEX - Zero-based datatable row index.
-        #
-        # . Output
-        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
-        #
-        # . Returns
-        #   0 on success.
-        #   Non-zero when validation, resolution, user cancellation, or execution fails.
-        #
-        # . Usage
-        #   _sgnd_console_get_visible_display_number "${ROW_INDEX}"
-    _sgnd_console_get_visible_display_number() {
-        local row_index="${1:?missing row index}"
-        local i
-
-        for (( i=0; i<${#SGND_VISIBLE_ITEM_INDEXES[@]}; i++ )); do
-            if [[ "${SGND_VISIBLE_ITEM_INDEXES[$i]}" == "$row_index" ]]; then
-                printf '%s\n' "$((i + 1))"
-                return 0
-            fi
-        done
-
-        return 1
-    }
-    # fn: _sgnd_console_collect_group_render_indexes - Console collect group render indexes
-        # . Purpose
-        #   Render the console collect group indexes portion of the current workflow.
+        #   Handle console menu build pages behavior.
         #
         # . Behavior
         #   - Supports the module implementation; not intended as a public framework API.
@@ -914,47 +903,66 @@ set -uo pipefail
         # Outputs (globals):
         #   May update SGND_* globals shown in the function body.
         #
-        # . Output
-        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
+        # . Side effects
+        #   May update files, directories, runtime state, or process state required by the workflow.
         #
         # . Returns
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   _sgnd_console_collect_group_render_indexes
-    _sgnd_console_collect_group_render_indexes() {
-        local i
-        local row_count=0
-        local builtin="0"
-        local ord="1000"
+        #   _sgnd_console_build_pages
+    _sgnd_console_build_pages() {
+        local body_height=0
+        local used_lines=0
+        local visible_count=0
+        local visible_i=0
+        local row_index=0
+        local group_key=""
+        local current_group=""
+        local item_lines=0
+        local header_lines=0
+        local needed_lines=0
 
-        local -a sortable_rows=()
-        local -a sorted_rows=()
+        SGND_PAGE_STARTS=()
 
-        SGND_GROUP_RENDER_INDEXES=()
+        _sgnd_console_collect_group_render_indexes
+        _sgnd_console_collect_visible_item_indexes
 
-        row_count="$(sgnd_dt_row_count SGND_GROUP_ROWS)"
+        visible_count="${#SGND_VISIBLE_ITEM_INDEXES[@]}"
+        body_height="$(_sgnd_console_body_height)"
 
-        for (( i=0; i<row_count; i++ )); do
-            builtin="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$i" builtin)"
-            ord="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$i" ord)"
-            : "${ord:=1000}"
+        (( visible_count == 0 )) && return 0
 
-            # sort key = builtin bucket | ord | original row index
-            # non-builtin first, builtin last
-            sortable_rows+=("$(printf '%d|%08d|%08d' "$builtin" "$ord" "$i")")
-        done
+        SGND_PAGE_STARTS+=(0)
 
-        if (( ${#sortable_rows[@]} == 0 )); then
-            return 0
-        fi
+        for (( visible_i=0; visible_i<visible_count; visible_i++ )); do
+            row_index="${SGND_VISIBLE_ITEM_INDEXES[$visible_i]}"
+            group_key="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" group)"
+            item_lines="$(_sgnd_console_measure_item_lines "$row_index")"
 
-        mapfile -t sorted_rows < <(printf '%s\n' "${sortable_rows[@]}" | sort -t '|' -k1,1n -k2,2n -k3,3n)
+            needed_lines="$item_lines"
 
-        for i in "${!sorted_rows[@]}"; do
-            SGND_GROUP_RENDER_INDEXES+=("${sorted_rows[$i]##*|}")
+            if [[ "$group_key" != "$current_group" ]]; then
+                header_lines="$(_sgnd_console_measure_group_header_lines)"
+                needed_lines=$(( needed_lines + header_lines ))
+            fi
+
+            if (( used_lines + needed_lines > body_height )); then
+                SGND_PAGE_STARTS+=("$visible_i")
+                used_lines=0
+                current_group=""
+            fi
+
+            if [[ "$group_key" != "$current_group" ]]; then
+                header_lines="$(_sgnd_console_measure_group_header_lines)"
+                used_lines=$(( used_lines + header_lines ))
+                current_group="$group_key"
+            fi
+
+            used_lines=$(( used_lines + item_lines ))
         done
     }
+# --- Menu rendering -----------------------------------------------------------------
     # fn: _sgnd_console_render_menu - Console render menu
         # . Purpose
         #   Render the console menu portion of the current workflow.
@@ -977,7 +985,7 @@ set -uo pipefail
         local group_key=""
         local builtin="0"
 
-        _sgnd_console_refresh_builtin_labels
+        #_sgnd_console_refresh_builtin_labels
         _sgnd_console_collect_group_render_indexes
         _sgnd_console_collect_visible_item_indexes
         SGND_RENDER_LABEL_WIDTH="$(_sgnd_console_calc_label_width)"
@@ -1523,6 +1531,7 @@ set -uo pipefail
         sgnd_print_sectionheader --border "$DL_H" --maxwidth "$render_width"
         printf '%*s%s\n' "$left_pad" "" "$bar_text"
     }
+# --- Menu input and dispatch --------------------------------------------------------
     # fn: _sgnd_console_valid_choices_csv - Console valid choices csv
         # . Purpose
         #   Handle console menu valid choices csv behavior.

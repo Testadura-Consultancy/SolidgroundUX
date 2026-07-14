@@ -356,141 +356,7 @@ set -uo pipefail
         SGND_PAGE_HAS_NEXT=0
         SGND_PAGE_MAX_ROWS=15
             
-    # --- Module loading and registration 
-    # _sgnd_console_register_builtin_items
-        # . Purpose
-        #   Register the console's builtin groups and builtin menu actions.
-        #
-        # . Behavior
-        #   - Defines the builtin runtime and session group keys.
-        #   - Registers builtin console groups.
-        #   - Registers builtin menu items for runtime toggles and session actions.
-        #   - Some builtin items may be hidden from the menu body while still
-        #     remaining dispatchable by key.
-        #
-        # Outputs (globals):
-        #   SGND_GROUP_RUNTIME
-        #   SGND_GROUP_SESSION
-        #
-        # . Returns
-        #   0 on success
-        #   Non-zero if group or item registration fails
-        #
-        # . Usage
-        #   _sgnd_console_register_builtin_items
-        #
-        # Examples:
-        #   _sgnd_console_register_builtin_items || exit 1
-        #   non-zero if group/item registration fails
-    # fn: _sgnd_console_register_builtin_items - Register built-in console menu items
-        # . Purpose
-        #   Register built-in console menu items.
-        #
-        # . Behavior
-        #   - Internal helper.
-        #   - Preserves existing script runtime behavior.
-        #
-        # . Returns
-        #   Returns the underlying command or workflow status.
-        #
-        # . Usage
-        #   _sgnd_console_register_builtin_items
-    _sgnd_console_register_builtin_items() {
-        SGND_GROUP_RUNTIME="runtime"
-        SGND_GROUP_SESSION="session"
-
-        sgnd_console_register_group "$SGND_GROUP_RUNTIME" "Runtime toggles" "" 1 0 980
-        sgnd_console_register_group "$SGND_GROUP_SESSION" "Console Session" "" 1 1 990
-
-        sgnd_console_register_item "B" "$SGND_GROUP_RUNTIME" "$(_sgnd_console_label_debug)" "_sgnd_console_toggle_debug" "Toggle debug output" 1 0 0
-        sgnd_console_register_item "D" "$SGND_GROUP_RUNTIME" "$(_sgnd_console_label_dryrun)" "_sgnd_console_toggle_dryrun" "Toggle dry-run mode" 1 0 0
-        sgnd_console_register_item "L" "$SGND_GROUP_RUNTIME" "$(_sgnd_console_label_logfile)" "_sgnd_console_toggle_logfile" "Toggle logfile output" 1 0 0
-        sgnd_console_register_item "V" "$SGND_GROUP_RUNTIME" "$(_sgnd_console_label_verbose)" "_sgnd_console_toggle_verbose" "Toggle verbose output" 1 0 1
-
-        sgnd_console_register_item "C" "$SGND_GROUP_SESSION" "$(_sgnd_console_label_clearonrender)" "_sgnd_console_toggle_clearonrender" "Toggle clear screen before rendering" 1 0 0
-        sgnd_console_register_item "<" "$SGND_GROUP_SESSION" "Previous page" "_sgnd_console_prevpage" "Show previous menu page" 1 0 0
-        sgnd_console_register_item ">" "$SGND_GROUP_SESSION" "Next page" "_sgnd_console_nextpage" "Show next menu page" 1 0 0
-        sgnd_console_register_item "R" "$SGND_GROUP_SESSION" "Redraw menu" "_sgnd_console_redraw" "Refresh console display" 1 0 1
-        sgnd_console_register_item "Q" "$SGND_GROUP_SESSION" "Quit" "_sgnd_console_quit" "Exit console" 1 0 1
-    }
-
-    # fn: _sgnd_console_register_fallback_group - Register fallback console group
-        # . Purpose
-        #   Register a fallback group for an item that references an unknown group key.
-        #
-        # . Behavior
-        #   - Uses "Other" as the default fallback label.
-        #   - For keys of the form "module:<id>", attempts to resolve the module
-        #     name from SGND_MODULE_ROWS and uses that as the group label.
-        #   - Registers the derived group as a non-builtin visible group.
-        #
-        # . Arguments
-        #   $1  GROUP_KEY
-        #       Missing group key to register.
-        #
-        # . Returns
-        #   0 on success
-        #   Non-zero if registration fails
-        #
-        # . Usage
-        #   _sgnd_console_register_fallback_group "$group_key"
-        #
-        # Examples:
-        #   _sgnd_console_register_fallback_group "module:devtools"
-    _sgnd_console_register_fallback_group() {
-        local key="${1:?missing group key}"
-        local label="Other"
-        local module_id=""
-        local module_name=""
-        local i
-        local row_count=0
-
-        case "$key" in
-            module:*)
-                module_id="${key#module:}"
-                row_count="$(sgnd_dt_row_count SGND_MODULE_ROWS)"
-
-                for (( i=0; i<row_count; i++ )); do
-                    if [[ "$(sgnd_dt_get "$SGND_MODULE_SCHEMA" SGND_MODULE_ROWS "$i" id)" == "$module_id" ]]; then
-                        module_name="$(sgnd_dt_get "$SGND_MODULE_SCHEMA" SGND_MODULE_ROWS "$i" name)"
-                        break
-                    fi
-                done
-
-                if [[ -n "${module_name//[[:space:]]/}" ]]; then
-                    label="$module_name"
-                else
-                    label="$module_id"
-                fi
-                ;;
-        esac
-
-        sgnd_console_register_group "$key" "$label" "" 0 1 800
-    }
-
-    # fn: _sgnd_console_group_exists - Test whether a console group exists
-        # . Purpose
-        #   Test whether a group key already exists in the console group model.
-        #
-        # . Arguments
-        #   $1  GROUP_KEY
-        #       Group key to test.
-        #
-        # . Returns
-        #   0 if the group exists
-        #   1 if the group does not exist
-        #
-        # . Usage
-        #   if _sgnd_console_group_exists "$group"; then ...
-        #
-        # Examples:
-        #   _sgnd_console_group_exists "runtime"
-    _sgnd_console_group_exists() {
-        local key="${1:?missing group key}"
-
-        sgnd_dt_has_row "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS key "$key"
-    }
-
+    # --- Console configuration -------------------------------------------------------
     # _sgnd_console_load_config
         # . Purpose
         #   Load console-specific configuration and resolve the module directory.
@@ -655,6 +521,142 @@ set -uo pipefail
         sayok "Created appcfg: $cfg"
     }
 
+    # --- Built-in menu registration -------------------------------------------------
+    # _sgnd_console_register_builtin_items
+        # . Purpose
+        #   Register the console's builtin groups and builtin menu actions.
+        #
+        # . Behavior
+        #   - Defines the builtin runtime and session group keys.
+        #   - Registers builtin console groups.
+        #   - Registers builtin menu items for runtime toggles and session actions.
+        #   - Some builtin items may be hidden from the menu body while still
+        #     remaining dispatchable by key.
+        #
+        # Outputs (globals):
+        #   SGND_GROUP_RUNTIME
+        #   SGND_GROUP_SESSION
+        #
+        # . Returns
+        #   0 on success
+        #   Non-zero if group or item registration fails
+        #
+        # . Usage
+        #   _sgnd_console_register_builtin_items
+        #
+        # Examples:
+        #   _sgnd_console_register_builtin_items || exit 1
+        #   non-zero if group/item registration fails
+    # fn: _sgnd_console_register_builtin_items - Register built-in console menu items
+        # . Purpose
+        #   Register built-in console menu items.
+        #
+        # . Behavior
+        #   - Internal helper.
+        #   - Preserves existing script runtime behavior.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _sgnd_console_register_builtin_items
+    _sgnd_console_register_builtin_items() {
+        SGND_GROUP_RUNTIME="runtime"
+        SGND_GROUP_SESSION="session"
+
+        sgnd_console_register_group "$SGND_GROUP_RUNTIME" "Runtime toggles" "" 1 0 980
+        sgnd_console_register_group "$SGND_GROUP_SESSION" "Console Session" "" 1 1 990
+
+        sgnd_console_register_item "B" "$SGND_GROUP_RUNTIME" "$(_sgnd_console_label_debug)" "_sgnd_console_toggle_debug" "Toggle debug output" 1 0 0
+        sgnd_console_register_item "D" "$SGND_GROUP_RUNTIME" "$(_sgnd_console_label_dryrun)" "_sgnd_console_toggle_dryrun" "Toggle dry-run mode" 1 0 0
+        sgnd_console_register_item "L" "$SGND_GROUP_RUNTIME" "$(_sgnd_console_label_logfile)" "_sgnd_console_toggle_logfile" "Toggle logfile output" 1 0 0
+        sgnd_console_register_item "V" "$SGND_GROUP_RUNTIME" "$(_sgnd_console_label_verbose)" "_sgnd_console_toggle_verbose" "Toggle verbose output" 1 0 1
+
+        sgnd_console_register_item "C" "$SGND_GROUP_SESSION" "$(_sgnd_console_label_clearonrender)" "_sgnd_console_toggle_clearonrender" "Toggle clear screen before rendering" 1 0 0
+        sgnd_console_register_item "<" "$SGND_GROUP_SESSION" "Previous page" "_sgnd_console_prevpage" "Show previous menu page" 1 0 0
+        sgnd_console_register_item ">" "$SGND_GROUP_SESSION" "Next page" "_sgnd_console_nextpage" "Show next menu page" 1 0 0
+        sgnd_console_register_item "R" "$SGND_GROUP_SESSION" "Redraw menu" "_sgnd_console_redraw" "Refresh console display" 1 0 1
+        sgnd_console_register_item "Q" "$SGND_GROUP_SESSION" "Quit" "_sgnd_console_quit" "Exit console" 1 0 1
+    }
+
+    # fn: _sgnd_console_register_fallback_group - Register fallback console group
+        # . Purpose
+        #   Register a fallback group for an item that references an unknown group key.
+        #
+        # . Behavior
+        #   - Uses "Other" as the default fallback label.
+        #   - For keys of the form "module:<id>", attempts to resolve the module
+        #     name from SGND_MODULE_ROWS and uses that as the group label.
+        #   - Registers the derived group as a non-builtin visible group.
+        #
+        # . Arguments
+        #   $1  GROUP_KEY
+        #       Missing group key to register.
+        #
+        # . Returns
+        #   0 on success
+        #   Non-zero if registration fails
+        #
+        # . Usage
+        #   _sgnd_console_register_fallback_group "$group_key"
+        #
+        # Examples:
+        #   _sgnd_console_register_fallback_group "module:devtools"
+    _sgnd_console_register_fallback_group() {
+        local key="${1:?missing group key}"
+        local label="Other"
+        local module_id=""
+        local module_name=""
+        local i
+        local row_count=0
+
+        case "$key" in
+            module:*)
+                module_id="${key#module:}"
+                row_count="$(sgnd_dt_row_count SGND_MODULE_ROWS)"
+
+                for (( i=0; i<row_count; i++ )); do
+                    if [[ "$(sgnd_dt_get "$SGND_MODULE_SCHEMA" SGND_MODULE_ROWS "$i" id)" == "$module_id" ]]; then
+                        module_name="$(sgnd_dt_get "$SGND_MODULE_SCHEMA" SGND_MODULE_ROWS "$i" name)"
+                        break
+                    fi
+                done
+
+                if [[ -n "${module_name//[[:space:]]/}" ]]; then
+                    label="$module_name"
+                else
+                    label="$module_id"
+                fi
+                ;;
+        esac
+
+        sgnd_console_register_group "$key" "$label" "" 0 1 800
+    }
+
+    # fn: _sgnd_console_group_exists - Test whether a console group exists
+        # . Purpose
+        #   Test whether a group key already exists in the console group model.
+        #
+        # . Arguments
+        #   $1  GROUP_KEY
+        #       Group key to test.
+        #
+        # . Returns
+        #   0 if the group exists
+        #   1 if the group does not exist
+        #
+        # . Usage
+        #   if _sgnd_console_group_exists "$group"; then ...
+        #
+        # Examples:
+        #   _sgnd_console_group_exists "runtime"
+    _sgnd_console_group_exists() {
+        local key="${1:?missing group key}"
+
+        sgnd_dt_has_row "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS key "$key"
+    }
+
+    # --- Module loading -------------------------------------------------------------
     # _sgnd_console_load_modules
         # . Purpose
         #   Source all console module scripts from the configured module directory.
