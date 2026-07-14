@@ -2,11 +2,9 @@
 
 <img width="128" height="128" alt="SolidGround" src="https://github.com/user-attachments/assets/9bc87806-6639-4ea8-939a-5703a27a29bc" />
 
-
 *A modular Bash application framework for building structured, maintainable command-line applications.*
 
 SolidGroundUX is a collection of libraries, tools, templates, and conventions designed to reduce boilerplate when developing Bash applications.
-
 The framework provides reusable solutions for common application concerns such as:
 
 - Command-line argument processing
@@ -21,14 +19,12 @@ The framework provides reusable solutions for common application concerns such a
 - Modular console applications
 
 Rather than treating every script as a standalone program, SolidGroundUX encourages a consistent application structure built around a shared bootstrap process and reusable framework services.
-
 The result is less repetitive code, more predictable behavior, and easier maintenance.
 
 ## Documentation and Installation
 
 Documentation:
 https://testadura-consultancy.github.io/SolidgroundUX/
-
 Installation Guide:
 https://github.com/Testadura-Mark/SolidGroundUX/blob/main/INSTALL.md
 
@@ -52,9 +48,7 @@ A few months later they contain:
 ...all implemented slightly differently every time.
 
 SolidGroundUX attempts to solve that problem by providing a common foundation that can be reused across projects.
-
-The framework does not attempt to hide Bash.
-
+The framework does not attempt to hide Bash. 
 Instead, it provides practical building blocks that allow developers to focus on application behavior rather than infrastructure code.
 
 ---
