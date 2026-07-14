@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Main</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Main</div>
+  <div class="doc-breadcrumb">SolidgroundUX / framework-smoketest.sh / Sample/demo renderers / Main</div>
+</header>
+<div class="ct-L3Sectionbody">main MUST BE LAST function in script</div>
+<div class="ct-L3Sectionbody">Main entry point for the executable script.</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody">Execution flow:</div>
+<div class="ct-L3Sectionbody">  1) Invoke sgnd_bootstrap to initialize the framework environment, parse</div>
+<div class="ct-L3Sectionbody">     framework-level arguments, and optionally load UI, state, and config.</div>
+<div class="ct-L3Sectionbody">  2) Abort immediately if bootstrap reports an error condition.</div>
+<div class="ct-L3Sectionbody">  3) Enact framework builtin arguments (help, showargs, state reset, etc.).</div>
+<div class="ct-L3Sectionbody">     Info-only builtins terminate execution; mutating builtins may continue.</div>
+<div class="ct-L3Sectionbody">  4) Continue with script-specific logic.</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody">Bootstrap options:</div>
+<div class="ct-L3Sectionbody">  The script author explicitly selects which framework features to enable.</div>
+<div class="ct-L3Sectionbody">  None are required; include only what this script needs.</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody">  --state        Enable persistent state loading/saving.</div>
+<div class="ct-L3Sectionbody">  --needroot     Require execution as root.</div>
+<div class="ct-L3Sectionbody">  --cannotroot   Require execution as non-root.</div>
+<div class="ct-L3Sectionbody">  --console      Enable logging to console output.</div>
+<div class="ct-L3Sectionbody">  --             End of bootstrap options; remaining args are script arguments.</div>
+<div class="ct-L3Sectionbody">Notes:</div>
+<div class="ct-L3Sectionbody">  - Builtin argument handling is centralized in sgnd_builtinarg_handler.</div>
+<div class="ct-L3Sectionbody">  - Scripts may override builtin handling, but doing so transfers</div>
+<div class="ct-L3Sectionbody">    responsibility for correct behavior to the script author.</div>
+</main>
+</body>
+</html>

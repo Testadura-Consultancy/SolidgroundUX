@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Console configuration</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Console configuration</div>
+  <div class="doc-breadcrumb">SolidgroundUX / sgnd-console.sh / Console configuration</div>
+</header>
+<div class="ct-L3Sectionbody">_sgnd_console_load_config</div>
+<div class="ct-L3Sectionbody sh-highlight">Purpose</div>
+<div class="ct-L3Sectionbody">  Load console-specific configuration and resolve the module directory.</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody sh-highlight">Behavior</div>
+<div class="ct-L3Sectionbody">  - Applies built-in defaults for title, description, module directory,</div>
+<div class="ct-L3Sectionbody">    and page size.</div>
+<div class="ct-L3Sectionbody">  - Applies --maxrows when provided.</div>
+<div class="ct-L3Sectionbody">  - If --appcfg was provided and the file does not exist, creates it.</div>
+<div class="ct-L3Sectionbody">  - Sources the appcfg when present.</div>
+<div class="ct-L3Sectionbody">  - Resolves a relative module directory against the appcfg directory.</div>
+<div class="ct-L3Sectionbody">  - Normalizes SGND_CONSOLE_MODULE_DIR to an absolute path.</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody">Configuration variables:</div>
+<div class="ct-L3Sectionbody">  SGND_CONSOLE_TITLE</div>
+<div class="ct-L3Sectionbody">  SGND_CONSOLE_DESC</div>
+<div class="ct-L3Sectionbody">  SGND_CONSOLE_MODULE_DIR</div>
+<div class="ct-L3Sectionbody">  SGND_PAGE_MAX_ROWS</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody">Inputs (globals):</div>
+<div class="ct-L3Sectionbody">  VAL_APPCFG</div>
+<div class="ct-L3Sectionbody">  VAL_MAXROWS</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody">Outputs (globals):</div>
+<div class="ct-L3Sectionbody">  SGND_CONSOLE_TITLE</div>
+<div class="ct-L3Sectionbody">  SGND_CONSOLE_DESC</div>
+<div class="ct-L3Sectionbody">  SGND_CONSOLE_MODULE_DIR</div>
+<div class="ct-L3Sectionbody">  SGND_PAGE_MAX_ROWS</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody sh-highlight">Returns</div>
+<div class="ct-L3Sectionbody">  0   success</div>
+<div class="ct-L3Sectionbody">  126 unreadable config</div>
+<div class="ct-L3Sectionbody">  127 config could not be created or written</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody sh-highlight">Usage</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody">Examples:</div>
+<div class="ct-L3Sectionbody">  _sgnd_console_load_config</div>
+</main>
+</body>
+</html>

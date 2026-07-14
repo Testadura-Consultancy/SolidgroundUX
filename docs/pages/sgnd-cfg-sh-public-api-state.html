@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Public API (STATE)</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Public API (STATE)</div>
+  <div class="doc-breadcrumb">SolidgroundUX / sgnd-cfg.sh / Public API (STATE)</div>
+</header>
+<div class="ct-L3Sectionbody">sgnd_state_load</div>
+<div class="ct-L3Sectionbody">Purpose:</div>
+<div class="ct-L3Sectionbody">  Load a state domain into the current shell.</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody">Behavior:</div>
+<div class="ct-L3Sectionbody">  - Loads all valid key/value pairs from the selected state file.</div>
+<div class="ct-L3Sectionbody">  - Uses SGND_STATE_FILE when no explicit filename is supplied.</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody">Options:</div>
+<div class="ct-L3Sectionbody">  --file FILE</div>
+<div class="ct-L3Sectionbody">      State file to load. Defaults to SGND_STATE_FILE.</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody">Side effects:</div>
+<div class="ct-L3Sectionbody">  Updates shell variables defined in the selected state file.</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody">Returns:</div>
+<div class="ct-L3Sectionbody">  0 on success unless the underlying loader returns a different status.</div>
+<div class="ct-L3Sectionbody">  1 when no state filename can be resolved.</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody">Usage:</div>
+<div class="ct-L3Sectionbody">  sgnd_state_load [--file FILE]</div>
+</main>
+</body>
+</html>

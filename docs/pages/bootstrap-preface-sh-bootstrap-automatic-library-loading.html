@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Automatic Library Loading</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Automatic Library Loading</div>
+  <div class="doc-breadcrumb">bootstrap_preface.sh::Bootstrap:Automatic Library Loading:</div>
+</header>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">SolidGroundUX uses a dependency declaration mechanism to determine which</div>
+<div class="ct-L2Sectionbody">libraries should be available to a script.</div>
+<div class="ct-L2Sectionbody">  </div>
+<div class="ct-L2Sectionbody">Scripts can populate `SGND_USING` to declare framework libraries they depend on.</div>
+<div class="ct-L2Sectionbody">During bootstrap, the framework resolves these entries and sources the required</div>
+<div class="ct-L2Sectionbody">files automatically.</div>
+<div class="ct-L2Sectionbody">  </div>
+<div class="ct-L2Sectionbody">This keeps executable scripts smaller and makes dependencies explicit near the</div>
+<div class="ct-L2Sectionbody">top of the file. Instead of scattering `source` statements throughout the script,</div>
+<div class="ct-L2Sectionbody">the script declares what it needs and lets the bootstrap layer perform the actual</div>
+<div class="ct-L2Sectionbody">loading.</div>
+<div class="ct-L2Sectionbody">  </div>
+<div class="ct-L2Sectionbody">Core libraries needed by the bootstrap process itself are loaded automatically.</div>
+<div class="ct-L2Sectionbody">Additional libraries are loaded based on the script&#x27;s declared requirements.</div>
+<div class="ct-L2Sectionbody"></div>
+</main>
+</body>
+</html>

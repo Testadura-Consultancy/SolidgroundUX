@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Set menu lines per page</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Set menu lines per page</div>
+  <div class="doc-breadcrumb">SolidgroundUX / sgnd-console-menu.sh / Session actions / _sgnd_console_set_lines_per_page</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Set the maximum number of rendered menu lines per page.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Prompts for a new page height using the current value as the default.</div>
+<div class="ct-functionbody">  - Requires a whole number of at least 5.</div>
+<div class="ct-functionbody">  - Resets paging to the first page after a successful change.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Outputs (globals):</div>
+<div class="ct-functionbody">  SGND_PAGE_MAX_ROWS</div>
+<div class="ct-functionbody">  SGND_PAGE_INDEX</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 when the page height is updated.</div>
+<div class="ct-functionbody">  1 when the entered value is invalid.</div>
+<div class="ct-functionbody">  Non-zero when input is cancelled or fails.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  _sgnd_console_set_lines_per_page</div>
+</main>
+</body>
+</html>

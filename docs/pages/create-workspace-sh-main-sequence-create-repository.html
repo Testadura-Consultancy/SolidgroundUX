@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Create the repository directory structure</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Create the repository directory structure</div>
+  <div class="doc-breadcrumb">SolidgroundUX / create-workspace.sh / Main sequence / _create_repository</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Create the project repository structure and copy template files.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Creates the project root folder when needed.</div>
+<div class="ct-functionbody">  - Builds the directory structure based on selected project components.</div>
+<div class="ct-functionbody">  - Copies only the applicable template file(s).</div>
+<div class="ct-functionbody">  - Honors dry-run mode by reporting intended actions without modifying the filesystem.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Inputs (globals):</div>
+<div class="ct-functionbody">  PROJECT_FOLDER</div>
+<div class="ct-functionbody">  PROJECT_NAME</div>
+<div class="ct-functionbody">  FLAG_EXE</div>
+<div class="ct-functionbody">  FLAG_LIB</div>
+<div class="ct-functionbody">  FLAG_MOD</div>
+<div class="ct-functionbody">  SGND_COMMON_LIB</div>
+<div class="ct-functionbody">  FLAG_DRYRUN</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 on success</div>
+<div class="ct-functionbody">  Non-zero if required filesystem operations fail</div>
+</main>
+</body>
+</html>

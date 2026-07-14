@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Set console theme</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Set console theme</div>
+  <div class="doc-breadcrumb">SolidgroundUX / sgnd-console-menu.sh / Session actions / _sgnd_console_set_theme</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Prompt for and apply the active SolidGroundUX UI theme.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Enumerates the installed themes.</div>
+<div class="ct-functionbody">  - Uses the currently active theme as the default.</div>
+<div class="ct-functionbody">  - Prompts the user to select a theme.</div>
+<div class="ct-functionbody">  - Applies the selected theme immediately.</div>
+<div class="ct-functionbody">  - Persists the selected theme to the framework state when available.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Inputs (globals):</div>
+<div class="ct-functionbody">  SGND_UI_STYLE</div>
+<div class="ct-functionbody">  SGND_STYLE_DIR</div>
+<div class="ct-functionbody">  SGND_FRAMEWORK_STATEFILE</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Outputs (globals):</div>
+<div class="ct-functionbody">  SGND_UI_STYLE</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Side effects:</div>
+<div class="ct-functionbody">  May reload the active UI style.</div>
+<div class="ct-functionbody">  May update SGND_FRAMEWORK_STATEFILE.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 when the theme is selected and applied successfully.</div>
+<div class="ct-functionbody">  Non-zero when the prompt is cancelled, no themes are available, or the selected theme cannot be applied.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  _sgnd_console_set_theme</div>
+</main>
+</body>
+</html>

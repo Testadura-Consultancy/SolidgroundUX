@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Development Conventions</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Development Conventions</div>
+  <div class="doc-breadcrumb">sdk tools_preface.sh::SDK Tools:Development Conventions:</div>
+</header>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">SolidGroundUX relies heavily on conventions to keep projects consistent.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Public framework functions should use the sgnd_ prefix.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Internal helper functions should use a leading underscore. Bash, of course,</div>
+<div class="ct-L2Sectionbody">does not enforce access restrictions, but the convention indicates intent.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Executable scripts should be based on the executable template.</div>
+<div class="ct-L2Sectionbody">User-facing executables should normally be exposed through lightweight wrappers</div>
+<div class="ct-L2Sectionbody">in bin or sbin. The actual implementation script should live in the appropriate</div>
+<div class="ct-L2Sectionbody">product subfolder, usually below libexec, and be invoked by the wrapper.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">This keeps the command path clean while allowing implementation scripts,</div>
+<div class="ct-L2Sectionbody">supporting files, and internal helpers to remain grouped by product.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Reusable libraries should be based on the library template.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Libraries should generally not perform actions merely because they are sourced.</div>
+<div class="ct-L2Sectionbody">With the exception of library guards, metadata registration, dependency</div>
+<div class="ct-L2Sectionbody">registration, and similar initialization tasks, sourcing a library should not</div>
+<div class="ct-L2Sectionbody">execute business logic, modify user data, create files, or perform external</div>
+<div class="ct-L2Sectionbody">operations.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Libraries are expected to provide functionality through public functions. The</div>
+<div class="ct-L2Sectionbody">caller decides when that functionality is executed.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Modules intended for menu-driven applications should use the module template.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Metadata headers should be maintained in all framework-managed files.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Documentation should be maintained close to the source code using the framework</div>
+<div class="ct-L2Sectionbody">documentation conventions.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Development-only artifacts should be kept out of the deployed target layout</div>
+<div class="ct-L2Sectionbody">unless they are intentionally part of the product being released.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Developers are free to deviate from these conventions when appropriate, but</div>
+<div class="ct-L2Sectionbody">following them generally results in more maintainable projects and more useful</div>
+<div class="ct-L2Sectionbody">generated documentation.</div>
+</main>
+</body>
+</html>

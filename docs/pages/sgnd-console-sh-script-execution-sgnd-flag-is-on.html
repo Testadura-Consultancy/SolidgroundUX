@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Interpret a console flag value</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Interpret a console flag value</div>
+  <div class="doc-breadcrumb">SolidgroundUX / sgnd-console.sh / Script execution / _sgnd_flag_is_on</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Evaluate whether a value represents a logical &quot;true&quot;.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Accepted values:</div>
+<div class="ct-functionbody">  1, true, TRUE, yes, YES, on, ON</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Arguments</div>
+<div class="ct-functionbody">  $1  VALUE</div>
+<div class="ct-functionbody">      Value to evaluate.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 if VALUE is considered on</div>
+<div class="ct-functionbody">  1 otherwise</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  if _sgnd_flag_is_on &quot;${FLAG_DEBUG:-0}&quot;; then ...</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Examples:</div>
+<div class="ct-functionbody">  _sgnd_flag_is_on &quot;${SGND_LOGFILE_ENABLED:-0}&quot;</div>
+</main>
+</body>
+</html>

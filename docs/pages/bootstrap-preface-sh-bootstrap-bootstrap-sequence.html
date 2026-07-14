@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Bootstrap Sequence</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Bootstrap Sequence</div>
+  <div class="doc-breadcrumb">bootstrap_preface.sh::Bootstrap:Bootstrap Sequence:</div>
+</header>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">A typical executable script using SolidGroundUX starts with a small bootstrap</div>
+<div class="ct-L2Sectionbody">block. That block sources the framework bootstrap library and then hands control</div>
+<div class="ct-L2Sectionbody">to the framework initializer.</div>
+<div class="ct-L2Sectionbody">  </div>
+<div class="ct-L2Sectionbody">Conceptually, the startup sequence is:</div>
+<div class="ct-L2Sectionbody">  </div>
+<div class="ct-L2Sectionbody">    Script starts</div>
+<div class="ct-L2Sectionbody">        ↓</div>
+<div class="ct-L2Sectionbody">    Bootstrap file is located</div>
+<div class="ct-L2Sectionbody">       ↓</div>
+<div class="ct-L2Sectionbody">    Bootstrap environment is initialized</div>
+<div class="ct-L2Sectionbody">       ↓</div>
+<div class="ct-L2Sectionbody">    Standard SolidGroundUX globals are prepared</div>
+<div class="ct-L2Sectionbody">         ↓</div>
+<div class="ct-L2Sectionbody">    Built-in command-line arguments are registered</div>
+<div class="ct-L2Sectionbody">        ↓</div>
+<div class="ct-L2Sectionbody">    Script-declared dependencies are resolved</div>
+<div class="ct-L2Sectionbody">         ↓</div>
+<div class="ct-L2Sectionbody">    Core and requested libraries are sourced</div>
+<div class="ct-L2Sectionbody">         ↓</div>
+<div class="ct-L2Sectionbody">    Configuration definitions are processed</div>
+<div class="ct-L2Sectionbody">         ↓</div>
+<div class="ct-L2Sectionbody">    Command-line arguments are parsed</div>
+<div class="ct-L2Sectionbody">         ↓</div>
+<div class="ct-L2Sectionbody">    Configuration values are loaded and applied</div>
+<div class="ct-L2Sectionbody">         ↓</div>
+<div class="ct-L2Sectionbody">    User framework state is loaded or created</div>
+<div class="ct-L2Sectionbody">         ↓</div>
+<div class="ct-L2Sectionbody">    The active UI palette and style are loaded</div>
+<div class="ct-L2Sectionbody">         ↓</div>
+<div class="ct-L2Sectionbody">    Command-line overrides are applied</div>
+<div class="ct-L2Sectionbody">         ↓</div>
+<div class="ct-L2Sectionbody">    Application code runs</div>
+<div class="ct-L2Sectionbody">  </div>
+<div class="ct-L2Sectionbody">The exact implementation is intentionally hidden behind the bootstrap API. The</div>
+<div class="ct-L2Sectionbody">important point is that every bootstrapped script enters its main logic with the</div>
+<div class="ct-L2Sectionbody">same basic runtime assumptions.</div>
+<div class="ct-L2Sectionbody"></div>
+</main>
+</body>
+</html>

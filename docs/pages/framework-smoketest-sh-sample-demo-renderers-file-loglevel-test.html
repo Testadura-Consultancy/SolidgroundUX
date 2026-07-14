@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Run file logging tests for every log level</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Run file logging tests for every log level</div>
+  <div class="doc-breadcrumb">SolidgroundUX / framework-smoketest.sh / Sample/demo renderers / file_loglevel_test</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Verify file logging and file-level filtering independently from console output.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Resolves and displays the active logfile path.</div>
+<div class="ct-functionbody">  - Cycles through every supported SGND_FILE_LOG_LEVEL value.</div>
+<div class="ct-functionbody">  - Writes representative messages for each level so filtering can be inspected.</div>
+<div class="ct-functionbody">  - Finishes with SGND_FILE_LOG_LEVEL set to silent.</div>
+<div class="ct-functionbody">  - Saves the final silent setting in the framework state file when available.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Outputs (globals):</div>
+<div class="ct-functionbody">  SGND_FILE_LOG_LEVEL</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Side effects:</div>
+<div class="ct-functionbody">  Appends test records to the active SolidGroundUX logfile.</div>
+<div class="ct-functionbody">  Updates SGND_FRAMEWORK_STATEFILE when framework state is available.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 when the test sequence completes.</div>
+<div class="ct-functionbody">  1 when no logfile can be resolved or the final state cannot be saved.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  file_loglevel_test</div>
+</main>
+</body>
+</html>

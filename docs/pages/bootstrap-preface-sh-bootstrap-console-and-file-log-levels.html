@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Console and File Log Levels</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Console and File Log Levels</div>
+  <div class="doc-breadcrumb">bootstrap_preface.sh::Bootstrap:Console and File Log Levels:</div>
+</header>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Console output and logfile output are controlled independently.</div>
+<div class="ct-L2Sectionbody">  </div>
+<div class="ct-L2Sectionbody">`SGND_CONSOLE_LOG_LEVEL` controls which `say()` messages are rendered to the</div>
+<div class="ct-L2Sectionbody">terminal. `SGND_FILE_LOG_LEVEL` controls which messages are appended to the</div>
+<div class="ct-L2Sectionbody">resolved logfile. Both settings support the levels:</div>
+<div class="ct-L2Sectionbody">  </div>
+<div class="ct-L2Sectionbody">    silent, quiet, normal, verbose, debug, trace</div>
+<div class="ct-L2Sectionbody">  </div>
+<div class="ct-L2Sectionbody">A message can therefore be suppressed on screen while still being recorded in the</div>
+<div class="ct-L2Sectionbody">logfile, or displayed on screen while file logging is effectively disabled. Setting</div>
+<div class="ct-L2Sectionbody">`SGND_FILE_LOG_LEVEL` to `silent` disables logfile output without requiring a</div>
+<div class="ct-L2Sectionbody">separate enable flag.</div>
+<div class="ct-L2Sectionbody">  </div>
+<div class="ct-L2Sectionbody">`say()` evaluates the console and file thresholds separately. Matching logfile</div>
+<div class="ct-L2Sectionbody">entries are always written with a date/time prefix using `SAY_DATE_FORMAT`,</div>
+<div class="ct-L2Sectionbody">regardless of whether timestamps are currently shown on the console.</div>
+<div class="ct-L2Sectionbody">  </div>
+<div class="ct-L2Sectionbody">The active log levels are part of `SGND_FRAMEWORK_STATE`, so changes saved during</div>
+<div class="ct-L2Sectionbody">one framework instance become the starting values for later SolidGroundUX</div>
+<div class="ct-L2Sectionbody">executables run by the same user.</div>
+<div class="ct-L2Sectionbody"></div>
+</main>
+</body>
+</html>

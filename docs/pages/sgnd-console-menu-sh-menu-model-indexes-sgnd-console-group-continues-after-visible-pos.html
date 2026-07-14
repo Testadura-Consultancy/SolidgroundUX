@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Console group continues after visible pos</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Console group continues after visible pos</div>
+  <div class="doc-breadcrumb">SolidgroundUX / sgnd-console-menu.sh / Menu model indexes / _sgnd_console_group_continues_after_visible_pos</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Handle console menu group continues after visible pos behavior.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Supports the module implementation; not intended as a public framework API.</div>
+<div class="ct-functionbody">  - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.</div>
+<div class="ct-functionbody">  - Uses SolidGroundUX datatable rows and schemas for structured state.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Arguments</div>
+<div class="ct-functionbody">  $1  GROUP_KEY - Unique key or identifier.</div>
+<div class="ct-functionbody">  $2  LAST_VISIBLE_POS - Positional value used by this function.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 on success.</div>
+<div class="ct-functionbody">  Non-zero when validation, resolution, user cancellation, or execution fails.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  _sgnd_console_group_continues_after_visible_pos &quot;${GROUP_KEY}&quot; &quot;${LAST_VISIBLE_POS}&quot;</div>
+</main>
+</body>
+</html>

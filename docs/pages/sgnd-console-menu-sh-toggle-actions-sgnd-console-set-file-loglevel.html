@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Set file log level</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Set file log level</div>
+  <div class="doc-breadcrumb">SolidgroundUX / sgnd-console-menu.sh / Toggle actions / _sgnd_console_set_file_loglevel</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Prompt for and apply the active SolidGroundUX file log level.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Uses the current SGND_FILE_LOG_LEVEL value as the default.</div>
+<div class="ct-functionbody">  - Prompts the user to choose one supported file log level.</div>
+<div class="ct-functionbody">  - Updates SGND_FILE_LOG_LEVEL in the current console instance.</div>
+<div class="ct-functionbody">  - Persists the selected value to SGND_FRAMEWORK_STATEFILE when available.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Inputs (globals):</div>
+<div class="ct-functionbody">  SGND_FILE_LOG_LEVEL</div>
+<div class="ct-functionbody">  SGND_FRAMEWORK_STATEFILE</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Outputs (globals):</div>
+<div class="ct-functionbody">  SGND_FILE_LOG_LEVEL</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Side effects:</div>
+<div class="ct-functionbody">  May update SGND_FRAMEWORK_STATEFILE.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 when the log level is selected and applied successfully.</div>
+<div class="ct-functionbody">  Non-zero when the prompt is cancelled or the state value cannot be saved.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  _sgnd_console_set_file_loglevel</div>
+</main>
+</body>
+</html>

@@ -1,0 +1,547 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Appendix B: Glossary</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Appendix B: Glossary</div>
+  <div class="doc-breadcrumb">SolidGroundUX / Appendices / Appendix B: Glossary</div>
+</header>
+<div class="ct-documentbody">This appendix lists documented functions and variables, sorted alphabetically by name.</div>
+<section class="doc-glossary-block">
+<h2 class="ct-L2Sectionheader">Functions</h2>
+<table class="doc-data-table">
+<thead><tr><th>Function</th><th>Title</th><th>Purpose</th><th>Module</th></tr></thead>
+<tbody>
+<tr><td>_action_headerend</td><td>Emit module-level header data</td><td>Store collected file header metadata in module-level data tables.</td><td>doc-processor.sh</td></tr>
+<tr><td>_apply_value_buffer_to_file</td><td>Apply buffered metadata values to a file</td><td>Apply buffered metadata values to a file.</td><td>metadata-editor.sh</td></tr>
+<tr><td>_apply_version_bump</td><td>Apply release version bump metadata</td><td>Apply header checksum/build refresh and optional version bumping to source files.</td><td>prepare-release.sh</td></tr>
+<tr><td>_ask_build_prompt</td><td>Build a readline-safe ask prompt</td><td>Build the colored prompt string used by ask-style input functions.</td><td>ui-ask.sh</td></tr>
+<tr><td>_ask_bump_mode</td><td>Ask which version bump mode to use</td><td>Ask which version bump mode to use.</td><td>metadata-editor.sh</td></tr>
+<tr><td>_ask_choice_is_valid</td><td></td><td>Validate a single choice against a ask_choose-style choices list.</td><td>ui-ask.sh</td></tr>
+<tr><td>_ask_decision_display</td><td></td><td>Build a compact display string from a decision specification.</td><td>ui-ask.sh</td></tr>
+<tr><td>_ask_decision_expand_choices</td><td>Expand decision aliases</td><td>Expand a decision choice specification into canonical/alias pairs.</td><td>ui-ask.sh</td></tr>
+<tr><td>_ask_decision_map_dlg_rc</td><td>Map autocontinue return codes to decisions</td><td>Convert ask_dlg_autocontinue return codes into canonical decision values.</td><td>ui-ask.sh</td></tr>
+<tr><td>_ask_decision_normalize</td><td>Normalize a typed decision</td><td>Convert a typed decision or alias into its canonical decision value.</td><td>ui-ask.sh</td></tr>
+<tr><td>_ask_expand_choices</td><td>Expand compact choice specifications</td><td>Expand a comma-separated choice specification into one choice per line.</td><td>ui-ask.sh</td></tr>
+<tr><td>_ask_interactive_action</td><td>Ask which metadata action to perform</td><td>Ask which metadata action to perform.</td><td>metadata-editor.sh</td></tr>
+<tr><td>_ask_is_ident</td><td></td><td>Test whether a value is a valid shell variable identifier.</td><td>ui-ask.sh</td></tr>
+<tr><td>_ask_parse_fieldspec</td><td>Parse an ask_prompt_form field specification</td><td>Split a form field specification into the temporary parser globals used by ask_prompt_form.</td><td>ui-ask.sh</td></tr>
+<tr><td>_ask_validate</td><td></td><td>Run a validation callback when provided.</td><td>ui-ask.sh</td></tr>
+<tr><td>_auto_update_files</td><td>Apply automatic metadata updates</td><td>Apply one direct field update to all resolved target files.</td><td>metadata-editor.sh</td></tr>
+<tr><td>_boot_fail</td><td>Report a bootstrap failure</td><td>Emit a bootstrap failure message with caller context and return a code.</td><td>sgnd-bootstrap.sh</td></tr>
+<tr><td>_build_content_ref</td><td>Build a stable documentation content reference</td><td>Create the canonical reference key used to link content to a module, section, and item context.</td><td>doc-processor.sh</td></tr>
+<tr><td>_build_framework_dirs</td><td>Build framework directory specifications</td><td>Rebuild the directory specification list used by sgnd_ensure_dirs.</td><td>sgnd-bootstrap-env.sh</td></tr>
+<tr><td>_build_value_buffer_from_meta</td><td>Build editable metadata value buffers</td><td>Build editable metadata value buffers.</td><td>metadata-editor.sh</td></tr>
+<tr><td>_bump_one_file</td><td>Apply a version bump to one file</td><td>Apply a version bump to one file, respecting dry-run.</td><td>metadata-editor.sh</td></tr>
+<tr><td>_bump_version_files</td><td>Apply version bumps to selected files</td><td>Apply the resolved version metadata update mode to all target files.</td><td>metadata-editor.sh</td></tr>
+<tr><td>_cleanup_old_render_exports</td><td>Clean old renderer export folders</td><td>Remove stale temporary documentation renderer export folders from /tmp.</td><td>doc-renderer.sh</td></tr>
+<tr><td>_cleanup_staging</td><td>Remove gathered staging data</td><td>Remove the release-specific staging directory if cleanup is enabled.</td><td>prepare-release.sh</td></tr>
+<tr><td>_collect_changed_fields</td><td>Collect changed metadata fields</td><td>Collect the names of fields whose pending values differ from current metadata.</td><td>metadata-editor.sh</td></tr>
+<tr><td>_collect_license_lines</td><td>Collect active license text for appendix rendering</td><td>Load the active framework license file into the renderer license table.</td><td>doc-renderer.sh</td></tr>
+<tr><td>_copy_project_templates</td><td>Copy project templates into the workspace</td><td>Copy the appropriate template file(s) for the selected project components.</td><td>create-workspace.sh</td></tr>
+<tr><td>_copy_template_file</td><td>Copy one template file into the workspace</td><td>Copy a single template file to a target location.</td><td>create-workspace.sh</td></tr>
+<tr><td>_create_gitignore_file</td><td>Create the workspace .gitignore file</td><td>Create the workspace .gitignore file.</td><td>create-workspace.sh</td></tr>
+<tr><td>_create_mod_appcfg</td><td>Create the module application configuration file</td><td>Create a console-module application configuration file.</td><td>create-workspace.sh</td></tr>
+<tr><td>_create_repository</td><td>Create the repository directory structure</td><td>Create the project repository structure and copy template files.</td><td>create-workspace.sh</td></tr>
+<tr><td>_create_tar</td><td>Create the release tar archive</td><td>Create the release tar archive.</td><td>prepare-release.sh</td></tr>
+<tr><td>_create_workspace_file</td><td>Create the VS Code workspace file</td><td>Create the VS Code workspace file.</td><td>create-workspace.sh</td></tr>
+<tr><td>_deploy</td><td>Deploy workspace files to the target root</td><td>Deploy workspace files from SRC_ROOT into DEST_ROOT.</td><td>deploy-workspace.sh</td></tr>
+<tr><td>_detect_commentseparator</td><td>Ignore visual comment separators</td><td>Detect separator-only comment lines and prevent them from becoming content.</td><td>doc-processor.sh</td></tr>
+<tr><td>_detect_default</td><td>Detect default</td><td>Internal helper for detect default.</td><td>doc-processor.sh</td></tr>
+<tr><td>_detect_global_array_entry</td><td>Detect global declaration array entries</td><td>Parse entries inside SGND_FRAMEWORK_GLOBALS, SGND_RUNTIME_GLOBALS, and SGND_SCRIPT_GLOBALS.</td><td>doc-processor.sh</td></tr>
+<tr><td>_detect_global_array_start</td><td>Detect framework/runtime/script globals array declarations</td><td>Detect SGND_FRAMEWORK_GLOBALS, SGND_RUNTIME_GLOBALS, and SGND_SCRIPT_GLOBALS array blocks.</td><td>doc-processor.sh</td></tr>
+<tr><td>_detect_headerfields</td><td>Detect metadata and attribution fields</td><td>Extract named header fields and map them to mod_* variables.</td><td>doc-processor.sh</td></tr>
+<tr><td>_detect_headermarker</td><td>Detect module header boundary lines</td><td>Detect the opening and closing marker of the file-level documentation header.</td><td>doc-processor.sh</td></tr>
+<tr><td>_detect_headersectionheader</td><td>Detect named header sections</td><td>Detect named sections inside the module header, such as Metadata and Attribution, without emitting render content.</td><td>doc-processor.sh</td></tr>
+<tr><td>_detect_items</td><td>Detect documented items</td><td>Detect structured item markers such as functions, variables, and general documentation blocks.</td><td>doc-processor.sh</td></tr>
+<tr><td>_detect_moduletitle</td><td>Detect the module title line</td><td>Extract product and title information from the first title line in the file header.</td><td>doc-processor.sh</td></tr>
+<tr><td>_detect_noncommentline</td><td>Detect non-comment source lines</td><td>Stop documentation parsing for source lines that are not structured comments.</td><td>doc-processor.sh</td></tr>
+<tr><td>_detect_section</td><td>Detect documentation section headers</td><td>Detect structured level 1, 2, and 3 documentation section headers.</td><td>doc-processor.sh</td></tr>
+<tr><td>_dlg_keymap</td><td>Dlg keymap</td><td>Return the dialog key/action mapping used by custom dialog controls.</td><td>ui-dlg.sh</td></tr>
+<tr><td>_doc_count_lines</td><td>Count physical lines in a file</td><td>Return the number of lines in a regular file.</td><td>doc-generator.sh</td></tr>
+<tr><td>_doc_progress_line</td><td>Update active-module line progress</td><td>Update progress slot 1 for the line currently being parsed inside the active module.</td><td>doc-generator.sh</td></tr>
+<tr><td>_dt_build_sortkey</td><td>Dt build sortkey</td><td>Internal helper for dt build sortkey.</td><td>sgnd-datatable.sh</td></tr>
+<tr><td>_emit_contentline</td><td>Append a normalized documentation content line</td><td>Emit the current normalized content state into DOC_CONTENT_LINES.</td><td>doc-processor.sh</td></tr>
+<tr><td>_emit_globalrecord</td><td>Append a framework/runtime/script global declaration record</td><td>Store a detected global variable declaration in the module globals table.</td><td>doc-processor.sh</td></tr>
+<tr><td>_emit_itemrecord</td><td>Append a documented item record</td><td>Store the current documented item in the module item index.</td><td>doc-processor.sh</td></tr>
+<tr><td>_emit_sectionrecord</td><td>Append a documentation section record</td><td>Store the current section context in the module section index.</td><td>doc-processor.sh</td></tr>
+<tr><td>_exe_createworkspace</td><td></td><td></td><td>console-devtools.sh</td></tr>
+<tr><td>_exe_deployworkspace</td><td></td><td></td><td>console-devtools.sh</td></tr>
+<tr><td>_exe_metadata_editor</td><td></td><td></td><td>console-devtools.sh</td></tr>
+<tr><td>_exe_preparerelease</td><td></td><td></td><td>console-devtools.sh</td></tr>
+<tr><td>_export_render_config</td><td>Export renderer configuration to a PSV file</td><td>Write document-level render settings in the same table format used by exported parser data.</td><td>doc-renderer.sh</td></tr>
+<tr><td>_export_render_tables</td><td>Export parser tables for the Python renderer</td><td>Persist normalized documentation tables into a temporary render hand-off directory.</td><td>doc-renderer.sh</td></tr>
+<tr><td>_field_is_selected</td><td>Test whether a metadata field is selected</td><td>Test whether a metadata field is selected.</td><td>metadata-editor.sh</td></tr>
+<tr><td>_framework_locator</td><td>Locate and load the SolidGroundUX executable bootstrap context</td><td>Locate, create, and load the SolidGroundUX bootstrap configuration, then load the executable runtime support library.</td><td>create-workspace.sh</td></tr>
+<tr><td>_framework_locator</td><td>Locate and load the SolidGroundUX executable bootstrap context</td><td>Locate, create, and load the SolidGroundUX bootstrap configuration, then load the executable runtime support library.</td><td>deploy-workspace.sh</td></tr>
+<tr><td>_framework_locator</td><td>Locate and load the SolidGroundUX executable bootstrap context</td><td>Locate, create, and load the SolidGroundUX bootstrap configuration, then load the executable runtime support library.</td><td>doc-generator.sh</td></tr>
+<tr><td>_framework_locator</td><td>Locate and load the SolidGroundUX executable bootstrap context</td><td>Locate, create, and load the SolidGroundUX bootstrap configuration, then load the executable runtime support library.</td><td>framework-smoketest.sh</td></tr>
+<tr><td>_framework_locator</td><td>Locate and load the SolidGroundUX executable bootstrap context</td><td>Locate, create, and load the SolidGroundUX bootstrap configuration, then load the executable runtime support library.</td><td>metadata-editor.sh</td></tr>
+<tr><td>_framework_locator</td><td>Locate and load the SolidGroundUX executable bootstrap context</td><td>Locate, create, and load the SolidGroundUX bootstrap configuration, then load the executable runtime support library.</td><td>prepare-release.sh</td></tr>
+<tr><td>_framework_locator</td><td>Locate and load the SolidGroundUX executable bootstrap context</td><td>Locate, create, and load the SolidGroundUX bootstrap configuration, then load the executable runtime support library.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_framework_state_apply_ui</td><td></td><td>Reload the active palette and style after framework state changes.</td><td>console-framework-state.sh</td></tr>
+<tr><td>_framework_state_validate</td><td></td><td>Verify that the transferable framework-state contract is available.</td><td>console-framework-state.sh</td></tr>
+<tr><td>_get_metadata</td><td>Read metadata from the current source file</td><td></td><td>metadata-editor.sh</td></tr>
+<tr><td>_get_parameters</td><td>Collect prepare-release parameters</td><td>Collect prepare-release parameters.</td><td>prepare-release.sh</td></tr>
+<tr><td>_get_project_directories</td><td>Resolve project directory layout</td><td>Build the directory list required for the selected project components.</td><td>create-workspace.sh</td></tr>
+<tr><td>_get_section_comments</td><td>Get section comments</td><td>Internal helper for get section comments.</td><td>doc-processor.sh</td></tr>
+<tr><td>_get_template_filenames</td><td>Resolve template filenames for workspace creation</td><td>Determine output filenames for selected template types.</td><td>create-workspace.sh</td></tr>
+<tr><td>_get_userinput</td><td>Collect documentation generator input</td><td>Interactively collect and confirm documentation generator parameters.</td><td>doc-generator.sh</td></tr>
+<tr><td>_getparameters</td><td>Collect deployment parameters</td><td>Collect deployment parameters (source and target roots).</td><td>deploy-workspace.sh</td></tr>
+<tr><td>_guess_nextcontenttype</td><td>Advance content type after emitted headers</td><td>Prepare the parser for body content following a recognized header line.</td><td>doc-processor.sh</td></tr>
+<tr><td>_init_bootstrap</td><td>Initialize bootstrap environment</td><td>Prepare the minimum framework environment required before core libraries load.</td><td>sgnd-bootstrap.sh</td></tr>
+<tr><td>_init_localvars</td><td>Initialize parser state variables</td><td>Reset source, module, item, section, and emission state before parsing a file.</td><td>doc-processor.sh</td></tr>
+<tr><td>_init_metadata</td><td>Initialize document-level render metadata</td><td>Populate renderer metadata from document configuration values.</td><td>doc-renderer.sh</td></tr>
+<tr><td>_init_parameters</td><td>Initialize documentation generator parameters</td><td>Initialize parameter variables from defaults when still unset.</td><td>doc-generator.sh</td></tr>
+<tr><td>_interactive_bump_files</td><td>Run interactive version bump workflow</td><td>Run interactive version bump workflow.</td><td>metadata-editor.sh</td></tr>
+<tr><td>_interactive_edit_current_file</td><td>Edit metadata for the current file interactively</td><td>Edit metadata for the current file interactively.</td><td>metadata-editor.sh</td></tr>
+<tr><td>_interactive_edit_current_file_with_buffer</td><td>Edit current file using a prepared value buffer</td><td>Edit current file using a prepared value buffer.</td><td>metadata-editor.sh</td></tr>
+<tr><td>_interactive_edit_files</td><td>Run interactive metadata editing workflow</td><td>Interactive entry flow for target files.</td><td>metadata-editor.sh</td></tr>
+<tr><td>_iterate_files</td><td>Iterate source files and collect documentation data</td><td>Iterate over files in a directory using a file mask, optionally recursing into subdirectories.</td><td>doc-generator.sh</td></tr>
+<tr><td>_iterate_files</td><td>Iterate source files and collect documentation data</td><td>Iterate over files in a directory using a file mask, optionally recursing into subdirectories.</td><td>doc-generator.sh</td></tr>
+<tr><td>_load_bootstrapper</td><td>Load the SolidGroundUX bootstrap library</td><td>Resolve and source the main SolidGroundUX bootstrap library.</td><td>sgnd-exe-common.sh</td></tr>
+<tr><td>_manifest_add_dir</td><td>Add a deployed directory to the manifest buffer</td><td>Add a deployed directory to the manifest buffer.</td><td>deploy-workspace.sh</td></tr>
+<tr><td>_manifest_add_file</td><td>Add a deployed file to the manifest buffer</td><td>Add a deployed file to the manifest buffer.</td><td>deploy-workspace.sh</td></tr>
+<tr><td>_manifest_commit</td><td>Write the deployment manifest to disk</td><td>Finalize the current manifest after a successful deployment run.</td><td>deploy-workspace.sh</td></tr>
+<tr><td>_manifest_discard</td><td>Discard the temporary deployment manifest</td><td>Remove the temporary manifest after an interrupted or failed deployment run.</td><td>deploy-workspace.sh</td></tr>
+<tr><td>_manifest_init</td><td>Initialize the workspace creation manifest</td><td>Initialize the workspace creation manifest.</td><td>create-workspace.sh</td></tr>
+<tr><td>_manifest_init</td><td>Initialize the workspace creation manifest</td><td>Initialize the workspace creation manifest.</td><td>deploy-workspace.sh</td></tr>
+<tr><td>_manifest_list</td><td>List available deployment manifests</td><td>List available manifests for the current source root.</td><td>deploy-workspace.sh</td></tr>
+<tr><td>_manifest_record_dir</td><td>Record a created directory in the manifest</td><td>Append a directory entry to the workspace manifest.</td><td>create-workspace.sh</td></tr>
+<tr><td>_manifest_record_file</td><td>Record a created file in the manifest</td><td>Append a file entry to the workspace manifest.</td><td>create-workspace.sh</td></tr>
+<tr><td>_manifest_resolve_for_undeploy</td><td>Resolve the manifest used for undeploy</td><td>Resolve the manifest used for undeploy.</td><td>deploy-workspace.sh</td></tr>
+<tr><td>_manifest_source_dir</td><td>Resolve the deployment manifest source directory</td><td>Resolve the manifest directory for the current SRC_ROOT.</td><td>deploy-workspace.sh</td></tr>
+<tr><td>_manifest_source_id</td><td>Build a stable deployment source identifier</td><td>Derive a stable manifest namespace identifier from SRC_ROOT.</td><td>deploy-workspace.sh</td></tr>
+<tr><td>_manifest_verify_target</td><td>Verify manifest target compatibility</td><td>Verify that the resolved manifest belongs to the current DEST_ROOT.</td><td>deploy-workspace.sh</td></tr>
+<tr><td>_normalize_project_flags</td><td>Normalize create-workspace option flags</td><td>Normalize project selection flags into a coherent default state.</td><td>create-workspace.sh</td></tr>
+<tr><td>_parse_bootstrap_args</td><td>Parse early bootstrap options</td><td>Extract bootstrap-only options before the full argument parser is available.</td><td>sgnd-bootstrap.sh</td></tr>
+<tr><td>_parse_module_file</td><td>Parse one module source file</td><td>Parse a source file and collect normalized documentation tables.</td><td>doc-processor.sh</td></tr>
+<tr><td>_perm_resolve</td><td>Resolve permission policy for a path</td><td>Resolve the effective permission mode for a given path based on PERMISSION_RULES.</td><td>deploy-workspace.sh</td></tr>
+<tr><td>_prepare_output_directory</td><td>Create and optionally clean the documentation output directory</td><td>Ensure the configured output directory exists and is ready for rendering.</td><td>doc-renderer.sh</td></tr>
+<tr><td>_print_section_labeledvalues</td><td>Print labeled values for one metadata section</td><td>Print labeled values for one metadata section.</td><td>metadata-editor.sh</td></tr>
+<tr><td>_prompt_value_buffer</td><td>Prompt for metadata field values</td><td>Prompt for metadata field values.</td><td>metadata-editor.sh</td></tr>
+<tr><td>_render_site</td><td>Render collected documentation data</td><td>Provide the renderer hand-off point for collected documentation tables.</td><td>doc-renderer.sh</td></tr>
+<tr><td>_resolve_bump_mode</td><td>Resolve requested version bump mode</td><td>Resolve requested version bump mode.</td><td>metadata-editor.sh</td></tr>
+<tr><td>_resolve_project_settings</td><td>Resolve project creation settings</td><td>Resolve project creation settings.</td><td>create-workspace.sh</td></tr>
+<tr><td>_resolve_source</td><td>Resolve metadata editor source files</td><td>Resolve metadata editor source files.</td><td>metadata-editor.sh</td></tr>
+<tr><td>_resolve_source_input</td><td>Prompt for source selection input</td><td>Prompt for source selection input.</td><td>metadata-editor.sh</td></tr>
+<tr><td>_sample_internal_function</td><td>Internal function documentation</td><td>Demonstrate an internal function.</td><td>doc-sample.sh</td></tr>
+<tr><td>_save_parameters</td><td>Persist prepare-release parameters</td><td>Persist prepare-release parameters.</td><td>prepare-release.sh</td></tr>
+<tr><td>_say_caller</td><td>Say caller</td><td>Determine the script or function context that emitted a say message.</td><td>ui-say.sh</td></tr>
+<tr><td>_say_normalize_log_level</td><td>Normalize a log level name</td><td>Convert aliases and legacy log-level names into a canonical SolidGroundUX log-level value.</td><td>ui-say.sh</td></tr>
+<tr><td>_say_should_print_console</td><td>Determine whether a message should be written to the console</td><td>Determine whether a message of the specified type should be written to the console based on the current log level.</td><td>ui-say.sh</td></tr>
+<tr><td>_say_should_write_log</td><td>Determine whether a message should be written to the logfile</td><td>Apply the file log level independently from console visibility.</td><td>ui-say.sh</td></tr>
+<tr><td>_say_write_log</td><td>Say write log</td><td>Append a formatted say message to the active SolidGroundUX log file.</td><td>ui-say.sh</td></tr>
+<tr><td>_sayprogress_write_slot</td><td>Sayprogress write slot</td><td>Render one progress slot in the active sayprogress line.</td><td>ui-say.sh</td></tr>
+<tr><td>_sgnd_arg_find_spec</td><td>Find an argument specification</td><td>Locate the effective argument specification for a long or short option.</td><td>sgnd-args.sh</td></tr>
+<tr><td>_sgnd_arg_init_defaults</td><td>Initialize argument defaults</td><td>Initialize argument target variables from builtin and/or script argument specs.</td><td>sgnd-args.sh</td></tr>
+<tr><td>_sgnd_arg_split</td><td>Split one argument specification</td><td>Parse a pipe-separated argument specification into parser fields.</td><td>sgnd-args.sh</td></tr>
+<tr><td>_sgnd_arg_validate_enum</td><td>Validate an enum argument value</td><td>Test whether a supplied value is present in a comma-separated choice list.</td><td>sgnd-args.sh</td></tr>
+<tr><td>_sgnd_cfg_write_template_header</td><td>Cfg write template header</td><td>Internal helper for cfg write template header.</td><td>sgnd-cfg.sh</td></tr>
+<tr><td>_sgnd_console_body_height</td><td>Console body height</td><td>Handle console menu body height behavior.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_build_pages</td><td>Console build pages</td><td>Handle console menu build pages behavior.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_calc_label_width</td><td>Console calc label width</td><td>Handle console menu calc label width behavior.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_collect_group_render_indexes</td><td>Console collect group render indexes</td><td>Render the console collect group indexes portion of the current workflow.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_collect_visible_item_indexes</td><td>Console collect visible item indexes</td><td>Handle console menu collect visible item indexes behavior.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_create_appcfg</td><td>Create console application configuration</td><td>Create a new console app configuration file with sensible defaults.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_console_dispatch</td><td>Console dispatch</td><td>Handle console menu dispatch behavior.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_find_visible_pos_for_row</td><td>Console find visible pos for row</td><td>Handle console menu find visible pos for row behavior.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_get_visible_display_number</td><td>Console get visible display number</td><td>Handle console menu get visible display number behavior.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_get_visible_row_index</td><td>Console get visible row index</td><td>Handle console menu get visible row index behavior.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_group_continues_after_visible_pos</td><td>Console group continues after visible pos</td><td>Handle console menu group continues after visible pos behavior.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_group_exists</td><td>Test whether a console group exists</td><td>Test whether a group key already exists in the console group model.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_console_label_clearonrender</td><td>Build clear-on-render label</td><td>Build the current menu label for the clear-on-render toggle.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_label_debug</td><td>Build debug label</td><td>Build the current menu label for the debug toggle.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_label_dryrun</td><td>Build dry-run label</td><td>Build the current menu label for the dry-run/commit toggle.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_label_logfile</td><td>Build logfile label</td><td>Build the current menu label for the logfile toggle.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_label_verbose</td><td>Build verbose label</td><td>Build the current menu label for the verbose toggle.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_load_config</td><td>Load console configuration</td><td>Load console configuration.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_console_load_modules</td><td>Load console modules</td><td>Load console modules.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_console_measure_group_header_lines</td><td>Console measure group header lines</td><td>Handle console menu measure group header lines behavior.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_measure_item_lines</td><td>Console measure item lines</td><td>Handle console menu measure item lines behavior.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_nextpage</td><td>Console nextpage</td><td>Handle console menu nextpage behavior.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_onoff</td><td>Render on/off state</td><td>Render a colored On/Off fragment for a boolean state.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_prevpage</td><td>Console prevpage</td><td>Handle console menu prevpage behavior.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_quit</td><td>Console quit</td><td>Handle console menu quit behavior.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_redraw</td><td>Console redraw</td><td>Handle console menu redraw behavior.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_register_builtin_items</td><td>Register built-in console menu items</td><td>Register built-in console menu items.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_console_register_fallback_group</td><td>Register fallback console group</td><td>Register a fallback group for an item that references an unknown group key.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_console_render_group</td><td>Console render group</td><td>Render the console group portion of the current workflow.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_render_menu</td><td>Console render menu</td><td>Render the console menu portion of the current workflow.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_render_menu_body_paged</td><td>Console render menu body paged</td><td>Render the console menu body paged portion of the current workflow.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_render_menu_title</td><td>Console render menu title</td><td>Render the console menu title portion of the current workflow.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_render_page_rows</td><td>Console render page rows</td><td>Render the console page rows portion of the current workflow.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_render_togglebar</td><td>Console render togglebar</td><td>Render the console togglebar portion of the current workflow.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_run</td><td>Run the console interaction loop</td><td>Run the interactive console event loop.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_console_set_file_loglevel</td><td>Set file log level</td><td>Prompt for and apply the active SolidGroundUX file log level.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_set_lines_per_page</td><td>Set menu lines per page</td><td>Set the maximum number of rendered menu lines per page.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_set_theme</td><td>Set console theme</td><td>Prompt for and apply the active SolidGroundUX UI theme.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_toggle_clearonrender</td><td>Toggle clear-on-render</td><td>Render the console toggle clearonrender portion of the current workflow.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_toggle_debug</td><td>Toggle debug</td><td>Handle console menu toggle debug behavior.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_toggle_dryrun</td><td>Toggle dry-run</td><td>Handle console menu toggle dryrun behavior.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_toggle_verbose</td><td>Toggle verbose</td><td>Handle console menu toggle verbose behavior.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_toggleword</td><td>Render toggle word</td><td>Render a toggle label while emphasizing its hotkey character.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_valid_choices_csv</td><td>Console valid choices csv</td><td>Handle console menu valid choices csv behavior.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_visible_item_count</td><td>Console visible item count</td><td>Handle console menu visible item count behavior.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_doc_is_valid_stylehint</td><td>Validate documentation style hint</td><td>Check whether a style hint is part of the supported documentation style registry.</td><td>doc-processor.sh</td></tr>
+<tr><td>_sgnd_doc_list_contains</td><td>Test whether a value exists in a named array</td><td>Provide a small membership helper for semantic registries.</td><td>doc-processor.sh</td></tr>
+<tr><td>_sgnd_ensure_linebreak</td><td>Ensure linebreak</td><td>Ensure the next message starts on a clean line after progress output.</td><td>ui-say.sh</td></tr>
+<tr><td>_sgnd_flag_is_on</td><td>Interpret a console flag value</td><td>Evaluate whether a value represents a logical &quot;true&quot;.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_is_ident</td><td>Is ident</td><td>Internal helper for is ident.</td><td>sgnd-cfg.sh</td></tr>
+<tr><td>_sgnd_kv_get</td><td>Kv get</td><td>Internal helper for kv get.</td><td>sgnd-cfg.sh</td></tr>
+<tr><td>_sgnd_kv_has</td><td></td><td>Test whether a KEY exists in a KEY=VALUE file (even if empty).</td><td>sgnd-cfg.sh</td></tr>
+<tr><td>_sgnd_kv_list_keys</td><td>Kv list keys</td><td>Internal helper for kv list keys.</td><td>sgnd-cfg.sh</td></tr>
+<tr><td>_sgnd_kv_load_file</td><td>Kv load file</td><td>Load kv file into the current shell context.</td><td>sgnd-cfg.sh</td></tr>
+<tr><td>_sgnd_kv_reset_file</td><td></td><td>Hard-delete a KEY=VALUE file.</td><td>sgnd-cfg.sh</td></tr>
+<tr><td>_sgnd_kv_set</td><td>Kv set</td><td>Internal helper for kv set.</td><td>sgnd-cfg.sh</td></tr>
+<tr><td>_sgnd_kv_unset</td><td>Kv unset</td><td>Internal helper for kv unset.</td><td>sgnd-cfg.sh</td></tr>
+<tr><td>_sgnd_logfile</td><td>Logfile</td><td>Resolve the active SolidGroundUX log file path.</td><td>ui-say.sh</td></tr>
+<tr><td>_sgnd_minimal_say_normalize_log_level</td><td>Normalize a minimal bootstrap log level</td><td>Convert aliases and legacy log-level names into a canonical SolidGroundUX log-level value before the full UI layer is available.</td><td>sgnd-exe-common.sh</td></tr>
+<tr><td>_sgnd_minimal_say_should_print_console</td><td>Determine minimal bootstrap console visibility</td><td>Determine whether a bootstrap message should be written before the full SolidGroundUX UI layer is loaded.</td><td>sgnd-exe-common.sh</td></tr>
+<tr><td>_sgnd_on_exit_run</td><td>Run registered exit handlers</td><td>Dispatch registered framework cleanup handlers when the shell exits.</td><td>sgnd-bootstrap.sh</td></tr>
+<tr><td>_sgnd_print_arg_spec_entry</td><td>Print arg spec entry</td><td>Internal helper for print arg spec entry.</td><td>sgnd-info.sh</td></tr>
+<tr><td>_sgnd_print_arg_spec_list</td><td>Print arg spec list</td><td>Internal helper for print arg spec list.</td><td>sgnd-info.sh</td></tr>
+<tr><td>_sgnd_print_cfg_pass</td><td>Print cfg pass</td><td>Internal helper for print cfg pass.</td><td>sgnd-info.sh</td></tr>
+<tr><td>_sgnd_rotate_logs</td><td>Rotate logs</td><td>Rotate log files when log retention settings require it.</td><td>ui-say.sh</td></tr>
+<tr><td>_sgnd_run_script</td><td>Run a tool script from the console</td><td>Run a tool script from the console.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_save_state_dispatch</td><td>Save state on clean exit</td><td>Conditionally persist framework state from the exit-handler stack.</td><td>sgnd-bootstrap.sh</td></tr>
+<tr><td>_sgnd_ui_resolve_theme_file</td><td>Ui resolve theme file</td><td>Resolve a palette or style name to a readable theme file path.</td><td>ui.sh</td></tr>
+<tr><td>_sh_err</td><td>Sh err</td><td>Write an error message through say when available, otherwise stderr.</td><td>ui.sh</td></tr>
+<tr><td>_show_current_metadata</td><td>Display current metadata for the selected file</td><td>Render the currently loaded metadata for the active script.</td><td>metadata-editor.sh</td></tr>
+<tr><td>_show_pending_value_buffer</td><td>Display pending metadata values</td><td>Display pending metadata values.</td><td>metadata-editor.sh</td></tr>
+<tr><td>_source_corelibs</td><td>Source required core libraries</td><td>Load the fixed set of framework core libraries in bootstrap order.</td><td>sgnd-bootstrap.sh</td></tr>
+<tr><td>_source_usinglibs</td><td>Source declared optional libraries</td><td>Load script-declared framework libraries listed in SGND_USING.</td><td>sgnd-bootstrap.sh</td></tr>
+<tr><td>_summary</td><td>Print documentation generation summary</td><td>Generate a summary of the documentation data collected.</td><td>doc-generator.sh</td></tr>
+<tr><td>_uncreate_from_manifest</td><td>Remove artifacts recorded in the create manifest</td><td>Remove files and directories listed in a workspace manifest.</td><td>create-workspace.sh</td></tr>
+<tr><td>_undeploy</td><td>Remove deployed files recorded in a manifest</td><td>Remove previously deployed files and directories using a manifest.</td><td>deploy-workspace.sh</td></tr>
+<tr><td>_update_lastdeployinfo</td><td>Update the last deployment information file</td><td>Persist metadata of the last deployment run for reuse (e.g. auto mode).</td><td>deploy-workspace.sh</td></tr>
+<tr><td>_validate_auto_args</td><td>Validate non-interactive metadata editor arguments</td><td>Validate non-interactive metadata editor arguments.</td><td>metadata-editor.sh</td></tr>
+<tr><td>_validate_bump_args</td><td>Validate version bump arguments</td><td>Validate version bump arguments.</td><td>metadata-editor.sh</td></tr>
+<tr><td>archive_uninstall_records</td><td>Archive uninstall records</td><td>Moves install records for the uninstalled release into uninstall history.</td><td>sgnd-uninstall.sh</td></tr>
+<tr><td>ask</td><td>Ask for a single typed value</td><td>Prompt the user for one text value through the SolidGroundUX console UI.</td><td>ui-ask.sh</td></tr>
+<tr><td>ask_choose</td><td>Ask for a value from a choice list</td><td>Prompt the user for a choice and store the entered value in a named variable.</td><td>ui-ask.sh</td></tr>
+<tr><td>ask_choose_immediate</td><td>Ask for a choice with instant single-key acceptance</td><td>Prompt for a choice while allowing configured single-key choices to be accepted immediately.</td><td>ui-ask.sh</td></tr>
+<tr><td>ask_decision</td><td>Ask for a canonical symbolic decision</td><td>Prompt the user for a constrained decision and store the canonical result.</td><td>ui-ask.sh</td></tr>
+<tr><td>ask_dlg_autocontinue</td><td>Show an interruptible auto-continue countdown</td><td>Display a short countdown prompt that continues automatically unless the user intervenes.</td><td>ui-ask.sh</td></tr>
+<tr><td>ask_prompt_form</td><td>Prompt for multiple named fields</td><td>Prompt the user for a list of field specifications and assign each response to its target variable.</td><td>ui-ask.sh</td></tr>
+<tr><td>ask_test</td><td>Run interactive ask helper tests</td><td>Run interactive ask helper tests.</td><td>framework-smoketest.sh</td></tr>
+<tr><td>backup_affected_paths</td><td>Back up affected target paths</td><td>Creates a timestamped backup of target paths affected by the selected manifest.</td><td>sgnd-install.sh</td></tr>
+<tr><td>build_package_table</td><td>Build package selection table</td><td>Builds sortable package table rows from candidate release archives.</td><td>sgnd-install.sh</td></tr>
+<tr><td>confirm</td><td>Confirm</td><td>Ask the user for a yes/no confirmation and return success for yes.</td><td>ui.sh</td></tr>
+<tr><td>devtools_ask_test</td><td></td><td>Run the interactive ask helper smoke tests.</td><td>console-devtools.sh</td></tr>
+<tr><td>devtools_file_loglevel_test</td><td></td><td>Exercise file filtering at every supported log level.</td><td>console-devtools.sh</td></tr>
+<tr><td>devtools_input_test</td><td></td><td>Run a simple prompt-form input test.</td><td>console-devtools.sh</td></tr>
+<tr><td>devtools_loglevel_test</td><td></td><td>Exercise console filtering at every supported log level.</td><td>console-devtools.sh</td></tr>
+<tr><td>devtools_motd_test</td><td></td><td>Run the installed SolidGroundUX MOTD renderer.</td><td>console-devtools.sh</td></tr>
+<tr><td>devtools_say_test</td><td></td><td>Emit the standard say message types.</td><td>console-devtools.sh</td></tr>
+<tr><td>devtools_sayprogress_test</td><td></td><td>Run single-, double-, and triple-level progress tests.</td><td>console-devtools.sh</td></tr>
+<tr><td>devtools_show_colorchart</td><td></td><td>Display the active UI palette color chart.</td><td>console-devtools.sh</td></tr>
+<tr><td>devtools_show_theme</td><td></td><td>Browse and preview installed SolidGroundUX themes.</td><td>console-devtools.sh</td></tr>
+<tr><td>devtools_view_log</td><td></td><td>Display the resolved SolidGroundUX logfile.</td><td>console-devtools.sh</td></tr>
+<tr><td>extract_release_archive</td><td>Extract release archive</td><td>Extracts the selected release archive into the configured target root.</td><td>sgnd-install.sh</td></tr>
+<tr><td>file_loglevel_test</td><td>Run file logging tests for every log level</td><td>Verify file logging and file-level filtering independently from console output.</td><td>framework-smoketest.sh</td></tr>
+<tr><td>find_candidate_archives</td><td>Find candidate release archives</td><td>Lists candidate .tar.gz release archives from the configured releases directory.</td><td>sgnd-install.sh</td></tr>
+<tr><td>framework_state_edit</td><td></td><td>Edit and save all transferable framework-state variables.</td><td>console-framework-state.sh</td></tr>
+<tr><td>framework_state_reload</td><td></td><td>Reload transferable framework state from disk into the console instance.</td><td>console-framework-state.sh</td></tr>
+<tr><td>framework_state_save</td><td></td><td>Save current transferable framework-state values.</td><td>console-framework-state.sh</td></tr>
+<tr><td>framework_state_show</td><td></td><td>Display all transferable framework-state variables and their values.</td><td>console-framework-state.sh</td></tr>
+<tr><td>init_paths</td><td>Initialize installer paths</td><td>Initializes default releases, backup, and state paths below the selected target root.</td><td>sgnd-install.sh</td></tr>
+<tr><td>init_paths</td><td>Initialize uninstaller paths</td><td>Initializes the default installer state path below the selected target root.</td><td>sgnd-uninstall.sh</td></tr>
+<tr><td>input_test</td><td>Run simple shell input tests</td><td>Run simple shell input tests.</td><td>framework-smoketest.sh</td></tr>
+<tr><td>justsay</td><td>Write plain message text</td><td>Write message text without applying a semantic say-state such as ok, fail, or warning.</td><td>ui-say.sh</td></tr>
+<tr><td>list_installed_releases</td><td>List installed releases</td><td>Lists installed release records from the installer state directory.</td><td>sgnd-uninstall.sh</td></tr>
+<tr><td>load_release_meta</td><td>Load installed release metadata</td><td>Loads uninstall-relevant metadata for the selected installed release.</td><td>sgnd-uninstall.sh</td></tr>
+<tr><td>loglevel_test</td><td>Run console message visibility tests for every log level</td><td>Cycle through all supported SGND_CONSOLE_LOG_LEVEL values and emit one test message for each message type.</td><td>framework-smoketest.sh</td></tr>
+<tr><td>main</td><td>Run the executable main sequence</td><td>Run the executable main sequence.</td><td>create-workspace.sh</td></tr>
+<tr><td>main</td><td>Run the executable main sequence - Run the executable main sequence</td><td>Execute the workspace deployment workflow.</td><td>deploy-workspace.sh</td></tr>
+<tr><td>main</td><td>Run the executable main sequence - Run the executable main sequence</td><td>Provide the canonical executable entry point for the documentation generator.</td><td>doc-generator.sh</td></tr>
+<tr><td>main</td><td>Run the executable main sequence</td><td>Run the executable main sequence.</td><td>framework-smoketest.sh</td></tr>
+<tr><td>main</td><td>Run the executable main sequence - Run the executable main sequence</td><td>Bootstrap the framework, validate arguments, and run metadata-editor mode logic.</td><td>metadata-editor.sh</td></tr>
+<tr><td>main</td><td>Run the executable main sequence - Run the executable main sequence</td><td>Execute the release preparation workflow.</td><td>prepare-release.sh</td></tr>
+<tr><td>main</td><td>Run the executable main sequence</td><td>Run the executable main sequence.</td><td>sgnd-console.sh</td></tr>
+<tr><td>main</td><td>Run installer</td><td>Runs installer validation, package selection, verification, backup, extraction, and state recording.</td><td>sgnd-install.sh</td></tr>
+<tr><td>main</td><td>Run uninstaller</td><td>Runs uninstaller validation, release selection, metadata loading, removal, optional restore, and record archiving.</td><td>sgnd-uninstall.sh</td></tr>
+<tr><td>manifest_paths</td><td>Read normalized manifest paths</td><td>Reads normalized installable or removable paths from a manifest file.</td><td>sgnd-install.sh</td></tr>
+<tr><td>manifest_paths</td><td>Read normalized manifest paths</td><td>Reads normalized installable or removable paths from a manifest file.</td><td>sgnd-uninstall.sh</td></tr>
+<tr><td>normalize_rooted_path</td><td>Normalize a path below a target root</td><td>Combines a target root and relative path into a normalized absolute target path.</td><td>sgnd-install.sh</td></tr>
+<tr><td>normalize_rooted_path</td><td>Normalize a path below a target root</td><td>Combines a target root and relative path into a normalized absolute target path.</td><td>sgnd-uninstall.sh</td></tr>
+<tr><td>parse_args</td><td>Parse installer arguments</td><td>Parses installer command-line options into global flags and value variables.</td><td>sgnd-install.sh</td></tr>
+<tr><td>parse_args</td><td>Parse uninstaller arguments</td><td>Parses uninstaller command-line options into global flags and value variables.</td><td>sgnd-uninstall.sh</td></tr>
+<tr><td>print_usage</td><td>Print installer usage</td><td>Prints installer usage, options, default paths, and package selection rules.</td><td>sgnd-install.sh</td></tr>
+<tr><td>print_usage</td><td>Print uninstaller usage</td><td>Prints uninstaller usage, options, default paths, and release selection rules.</td><td>sgnd-uninstall.sh</td></tr>
+<tr><td>release_base_from_archive</td><td>Derive release base from archive</td><td>Derives the release base name from a .tar.gz archive path.</td><td>sgnd-install.sh</td></tr>
+<tr><td>release_build_from_base</td><td>Extract release build number</td><td>Extracts the numeric build component from a release base name.</td><td>sgnd-install.sh</td></tr>
+<tr><td>release_product_from_base</td><td>Extract release product name</td><td>Extracts the product name from a release base name.</td><td>sgnd-install.sh</td></tr>
+<tr><td>remove_installed_paths</td><td>Remove installed paths</td><td>Removes files and empty directories listed in the install manifest from the target root.</td><td>sgnd-uninstall.sh</td></tr>
+<tr><td>require_command</td><td>Require an external command</td><td>Verifies that a required external command is available on PATH.</td><td>sgnd-install.sh</td></tr>
+<tr><td>require_command</td><td>Require an external command</td><td>Verifies that a required external command is available on PATH.</td><td>sgnd-uninstall.sh</td></tr>
+<tr><td>resolve_release_base</td><td>Resolve release to uninstall</td><td>Resolves the installed release to uninstall from explicit, manual, or CURRENT state.</td><td>sgnd-uninstall.sh</td></tr>
+<tr><td>resolve_selected_archive</td><td>Resolve selected release archive</td><td>Resolves the package archive to install from explicit, manual, or automatic selection.</td><td>sgnd-install.sh</td></tr>
+<tr><td>restore_backup</td><td>Restore recorded backup</td><td>Restores files from the recorded backup directory when one is available.</td><td>sgnd-uninstall.sh</td></tr>
+<tr><td>run_cmd</td><td>Run a command with dry-run support</td><td>Executes a command, or prints the command when dry-run mode is enabled.</td><td>sgnd-install.sh</td></tr>
+<tr><td>run_cmd</td><td>Run a command with dry-run support</td><td>Executes a command, or prints the command when dry-run mode is enabled.</td><td>sgnd-uninstall.sh</td></tr>
+<tr><td>sample_function_with_arguments</td><td>Sample function with arguments</td><td>Demonstrate how function arguments are documented.</td><td>doc-sample.sh</td></tr>
+<tr><td>sample_public_function</td><td>Sample public function</td><td>Sample public function.</td><td>doc-sample.sh</td></tr>
+<tr><td>say</td><td>Emit a minimal bootstrap message</td><td>Emit a status message before the full SolidGroundUX UI layer is loaded.</td><td>sgnd-exe-common.sh</td></tr>
+<tr><td>say</td><td>Say</td><td>Emit a standardized SolidGroundUX console message.</td><td>ui-say.sh</td></tr>
+<tr><td>say_test</td><td>Run console message helper tests</td><td>Run console message helper tests.</td><td>framework-smoketest.sh</td></tr>
+<tr><td>saycancel</td><td>Write a cancellation message</td><td>Report a cancelled operation through the SolidGroundUX message layer.</td><td>ui-say.sh</td></tr>
+<tr><td>saydebug</td><td>Write a debug message</td><td>Writes a debug message to stderr when debug logging is enabled.</td><td>sgnd-install.sh</td></tr>
+<tr><td>saydebug</td><td>Write a debug message</td><td>Writes a debug message to stderr when debug logging is enabled.</td><td>sgnd-uninstall.sh</td></tr>
+<tr><td>saydebug</td><td>Write a debug message</td><td>Write diagnostic output when debug messaging is enabled by the runtime configuration.</td><td>ui-say.sh</td></tr>
+<tr><td>sayend</td><td>Write an operation-complete message</td><td>Mark the end of an operation through the SolidGroundUX message layer.</td><td>ui-say.sh</td></tr>
+<tr><td>sayfail</td><td>Write a failure message</td><td>Writes a failure message to stderr.</td><td>sgnd-install.sh</td></tr>
+<tr><td>sayfail</td><td>Write a failure message</td><td>Writes a failure message to stderr.</td><td>sgnd-uninstall.sh</td></tr>
+<tr><td>sayfail</td><td>Write a failure message</td><td>Report a failed operation through the SolidGroundUX message layer.</td><td>ui-say.sh</td></tr>
+<tr><td>sayinfo</td><td>Write an informational message</td><td>Writes an informational message to stderr when verbose logging is enabled.</td><td>sgnd-install.sh</td></tr>
+<tr><td>sayinfo</td><td>Write an informational message</td><td>Writes an informational message to stderr when verbose logging is enabled.</td><td>sgnd-uninstall.sh</td></tr>
+<tr><td>sayinfo</td><td>Write an informational message</td><td>Write a normal informational message through the SolidGroundUX message layer.</td><td>ui-say.sh</td></tr>
+<tr><td>sayok</td><td>Write a success message</td><td>Writes a success message to stderr.</td><td>sgnd-install.sh</td></tr>
+<tr><td>sayok</td><td>Write a success message</td><td>Writes a success message to stderr.</td><td>sgnd-uninstall.sh</td></tr>
+<tr><td>sayok</td><td>Write a success message</td><td>Report a successful operation through the SolidGroundUX message layer.</td><td>ui-say.sh</td></tr>
+<tr><td>sayprogress</td><td>Sayprogress</td><td>Render or update a transient progress line.</td><td>ui-say.sh</td></tr>
+<tr><td>sayprogress_begin</td><td>Sayprogress Begin</td><td>Reserve one or more console lines for transient progress output.</td><td>ui-say.sh</td></tr>
+<tr><td>sayprogress_done</td><td>Sayprogress Done</td><td>Clear the reserved progress region and return output to normal flow.</td><td>ui-say.sh</td></tr>
+<tr><td>sayprogress_test</td><td>Run transient progress line tests</td><td>Exercise sayprogress with one, two, and three reserved progress slots.</td><td>framework-smoketest.sh</td></tr>
+<tr><td>saystart</td><td>Write a start/progress message</td><td>Announce the start of an operation through the SolidGroundUX message layer.</td><td>ui-say.sh</td></tr>
+<tr><td>saywarning</td><td>Write a warning message</td><td>Writes a warning message to stderr.</td><td>sgnd-install.sh</td></tr>
+<tr><td>saywarning</td><td>Write a warning message</td><td>Writes a warning message to stderr.</td><td>sgnd-uninstall.sh</td></tr>
+<tr><td>saywarning</td><td></td><td>Emit a WARN message.</td><td>ui-say.sh</td></tr>
+<tr><td>select_latest_archive</td><td>Select newest release archive</td><td>Selects the newest available package by highest parsed build number.</td><td>sgnd-install.sh</td></tr>
+<tr><td>select_manual_archive</td><td>Select release archive manually</td><td>Prompts for manual selection from available release packages.</td><td>sgnd-install.sh</td></tr>
+<tr><td>select_manual_release</td><td>Select installed release manually</td><td>Prompts for manual selection from installed release records.</td><td>sgnd-uninstall.sh</td></tr>
+<tr><td>sgnd_abs_path</td><td>Abs path</td><td>Resolve a path to an absolute path.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_apply_defaults</td><td>Apply defaults</td><td>Apply default framework path, metadata, runtime, UI, and logging globals when they are not already set.</td><td>sgnd-bootstrap-env.sh</td></tr>
+<tr><td>sgnd_array_has_items</td><td>Array has items</td><td>Check whether an indexed array contains at least one item.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_array_union</td><td>Array union</td><td>Build the union of two shell arrays.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_ask_decision</td><td>Ask decision</td><td>Ask a constrained symbolic decision using the dialog helpers when available.</td><td>ui-dlg.sh</td></tr>
+<tr><td>sgnd_bootstrap</td><td>Bootstrap</td><td>Bootstrap the SolidGroundUX framework for an executable script.</td><td>sgnd-bootstrap.sh</td></tr>
+<tr><td>sgnd_builtinarg_handler</td><td>Builtinarg handler</td><td>Handle built-in framework options such as help, debug, verbose, dry-run, logfile, and UI mode.</td><td>sgnd-args.sh</td></tr>
+<tr><td>sgnd_caller_id</td><td>Caller id</td><td>Return the calling script/function identity for diagnostics.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_can_append</td><td>Can append</td><td>Check whether a file can be appended to, creating its parent path if needed.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_cannot_root</td><td>Cannot root</td><td>Reject execution as root.</td><td>sgnd-system.sh</td></tr>
+<tr><td>sgnd_cfg_create_missing_domain_files</td><td>Cfg create missing domain files</td><td>Create missing configuration files for configured domains.</td><td>sgnd-cfg.sh</td></tr>
+<tr><td>sgnd_cfg_domain_apply</td><td>Cfg domain apply</td><td>Apply default, system, user, and script configuration domains in precedence order.</td><td>sgnd-cfg.sh</td></tr>
+<tr><td>sgnd_cfg_get</td><td>Cfg get</td><td>Read a key from a configuration domain.</td><td>sgnd-cfg.sh</td></tr>
+<tr><td>sgnd_cfg_has</td><td>Cfg has</td><td>Check whether a key exists in a configuration domain.</td><td>sgnd-cfg.sh</td></tr>
+<tr><td>sgnd_cfg_has_audience</td><td>Cfg has audience</td><td>Check whether the active script or framework metadata matches a configuration audience.</td><td>sgnd-cfg.sh</td></tr>
+<tr><td>sgnd_cfg_load</td><td>Cfg load</td><td>Load a configuration domain into shell variables.</td><td>sgnd-cfg.sh</td></tr>
+<tr><td>sgnd_cfg_load_file</td><td>Cfg load file</td><td>Load a SolidGroundUX key/value configuration file into shell variables.</td><td>sgnd-cfg.sh</td></tr>
+<tr><td>sgnd_cfg_reset</td><td>Cfg reset</td><td>Clear all keys from a configuration domain.</td><td>sgnd-cfg.sh</td></tr>
+<tr><td>sgnd_cfg_set</td><td>Cfg set</td><td>Set a key in a configuration domain.</td><td>sgnd-cfg.sh</td></tr>
+<tr><td>sgnd_cfg_show_keys</td><td>Cfg show keys</td><td>Print all keys stored in a configuration domain.</td><td>sgnd-cfg.sh</td></tr>
+<tr><td>sgnd_cfg_unset</td><td>Cfg unset</td><td>Remove a key from a configuration domain.</td><td>sgnd-cfg.sh</td></tr>
+<tr><td>sgnd_cfg_write_skeleton_filtered</td><td></td><td>Write an auto-generated cfg skeleton filtered by audience.</td><td>sgnd-cfg.sh</td></tr>
+<tr><td>sgnd_check_license</td><td>Check license</td><td>Validate the current SolidGroundUX license state when licensing is enabled.</td><td>sgnd-bootstrap.sh</td></tr>
+<tr><td>sgnd_color_samples</td><td>Color samples</td><td>Print sample output for the currently loaded color palette.</td><td>ui.sh</td></tr>
+<tr><td>sgnd_console_register_group</td><td>Register a console menu group</td><td>Register a console menu group.</td><td>sgnd-console.sh</td></tr>
+<tr><td>sgnd_console_register_item</td><td>Register a console menu item</td><td>Register a console menu item.</td><td>sgnd-console.sh</td></tr>
+<tr><td>sgnd_decision_display_choices</td><td>Decision display choices</td><td>Build a compact display string from a decision choice specification.</td><td>ui-dlg.sh</td></tr>
+<tr><td>sgnd_decision_expand_choices</td><td>Decision expand choices</td><td>Expand decision aliases into canonical/alias records.</td><td>ui-dlg.sh</td></tr>
+<tr><td>sgnd_decision_from_dialog_rc</td><td>Decision from dialog rc</td><td>Map a dialog return code to a canonical decision value.</td><td>ui-dlg.sh</td></tr>
+<tr><td>sgnd_decision_normalize</td><td>Decision normalize</td><td>Normalize a typed decision alias to its canonical value.</td><td>ui-dlg.sh</td></tr>
+<tr><td>sgnd_default</td><td>Default</td><td>Assign a default value to a shell variable when it is unset or empty.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_defaults_reset</td><td>Defaults reset</td><td>Reset default framework environment values so they can be rebuilt from the current root.</td><td>sgnd-bootstrap-env.sh</td></tr>
+<tr><td>sgnd_die</td><td>Die</td><td>Print a failure message and terminate the current script.</td><td>sgnd-system.sh</td></tr>
+<tr><td>sgnd_disable_save_state</td><td>Disable save state</td><td>Disable automatic save-state handling for the current shell.</td><td>sgnd-bootstrap.sh</td></tr>
+<tr><td>sgnd_dlg_autocontinue</td><td>Dlg autocontinue</td><td>Show an interruptible dialog-based auto-continue prompt.</td><td>ui-dlg.sh</td></tr>
+<tr><td>sgnd_dlg_custom_rc_for_key</td><td>Dlg custom rc for key</td><td>Return the dialog return code associated with a configured key.</td><td>ui-dlg.sh</td></tr>
+<tr><td>sgnd_dt_append</td><td>Dt append</td><td>Append a complete row to a datatable.</td><td>sgnd-datatable.sh</td></tr>
+<tr><td>sgnd_dt_array_length</td><td>Dt array length</td><td>Return the number of items in an indexed Bash array.</td><td>sgnd-datatable.sh</td></tr>
+<tr><td>sgnd_dt_column_count</td><td>Dt column count</td><td>Return the number of columns in a schema.</td><td>sgnd-datatable.sh</td></tr>
+<tr><td>sgnd_dt_column_index</td><td>Dt column index</td><td>Return the zero-based index for a schema column.</td><td>sgnd-datatable.sh</td></tr>
+<tr><td>sgnd_dt_delete</td><td>Dt delete</td><td>Delete a datatable row by index.</td><td>sgnd-datatable.sh</td></tr>
+<tr><td>sgnd_dt_export_psv</td><td>Dt export psv</td><td>Print a datatable as pipe-separated values.</td><td>sgnd-datatable.sh</td></tr>
+<tr><td>sgnd_dt_find_first</td><td>Dt find first</td><td>Find the first datatable row where a column matches a value.</td><td>sgnd-datatable.sh</td></tr>
+<tr><td>sgnd_dt_get</td><td>Dt get</td><td>Read one field from a datatable row.</td><td>sgnd-datatable.sh</td></tr>
+<tr><td>sgnd_dt_get_sorted_rows</td><td>Dt get sorted rows</td><td>Return datatable row indexes sorted by a column.</td><td>sgnd-datatable.sh</td></tr>
+<tr><td>sgnd_dt_has_row</td><td>Dt has row</td><td>Check whether a datatable row index exists.</td><td>sgnd-datatable.sh</td></tr>
+<tr><td>sgnd_dt_insert</td><td>Dt insert</td><td>Insert or append a datatable row.</td><td>sgnd-datatable.sh</td></tr>
+<tr><td>sgnd_dt_make_row</td><td>Dt make row</td><td>Build a pipe-separated datatable row from field values.</td><td>sgnd-datatable.sh</td></tr>
+<tr><td>sgnd_dt_print_table</td><td>Dt print table</td><td>Render a datatable as an aligned table.</td><td>sgnd-datatable.sh</td></tr>
+<tr><td>sgnd_dt_row2var</td><td>Dt row2var</td><td>Export one datatable row to shell variables.</td><td>sgnd-datatable.sh</td></tr>
+<tr><td>sgnd_dt_row_count</td><td>Dt row count</td><td>Return the number of rows in a datatable.</td><td>sgnd-datatable.sh</td></tr>
+<tr><td>sgnd_dt_row_get</td><td>Dt row get</td><td>Read a whole datatable row by index.</td><td>sgnd-datatable.sh</td></tr>
+<tr><td>sgnd_dt_row_set</td><td>Dt row set</td><td>Replace a whole datatable row by index.</td><td>sgnd-datatable.sh</td></tr>
+<tr><td>sgnd_dt_set</td><td>Dt set</td><td>Set one field in a datatable row.</td><td>sgnd-datatable.sh</td></tr>
+<tr><td>sgnd_dt_split_row</td><td>Dt split row</td><td>Split a pipe-separated datatable row into fields.</td><td>sgnd-datatable.sh</td></tr>
+<tr><td>sgnd_dt_split_schema</td><td>Dt split schema</td><td>Split a datatable schema string into column names.</td><td>sgnd-datatable.sh</td></tr>
+<tr><td>sgnd_dt_validate_schema</td><td>Dt validate schema</td><td>Validate a datatable schema definition.</td><td>sgnd-datatable.sh</td></tr>
+<tr><td>sgnd_dt_validate_value</td><td>Dt validate value</td><td>Validate a datatable value before it is stored in a PSV row.</td><td>sgnd-datatable.sh</td></tr>
+<tr><td>sgnd_enable_save_state</td><td>Enable save state</td><td>Enable automatic persistence of selected runtime values on shell exit.</td><td>sgnd-bootstrap.sh</td></tr>
+<tr><td>sgnd_ensure_dir</td><td>Ensure dir</td><td>Create a directory when it does not already exist.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_ensure_dirs</td><td>Ensure dirs</td><td>Create the standard SolidGroundUX runtime, cache, log, state, and configuration directories.</td><td>sgnd-bootstrap-env.sh</td></tr>
+<tr><td>sgnd_ensure_writable_dir</td><td>Ensure writable dir</td><td>Create a directory and verify that it is writable.</td><td>sgnd-system.sh</td></tr>
+<tr><td>sgnd_exe_start</td><td>Start a SolidGroundUX executable script</td><td>Run the standard SolidGroundUX executable startup sequence.</td><td>sgnd-exe-common.sh</td></tr>
+<tr><td>sgnd_fg</td><td>Fg</td><td>Build a foreground-color SGR sequence.</td><td>ui.sh</td></tr>
+<tr><td>sgnd_fill_center</td><td>Fill center</td><td>Center text in a target width.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_fill_left</td><td>Fill left</td><td>Pad text on the left to a target width.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_fill_right</td><td>Fill right</td><td>Pad text on the right to a target width.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_fix_ownership</td><td>Fix ownership</td><td>Apply recursive ownership to a path.</td><td>sgnd-system.sh</td></tr>
+<tr><td>sgnd_fix_permissions</td><td>Fix permissions</td><td>Apply recursive permissions to a path.</td><td>sgnd-system.sh</td></tr>
+<tr><td>sgnd_framework_set_version</td><td>Update framework version identity</td><td>Update the framework version identity stored in sgnd-bootstrap-env.sh.</td><td>sgnd-comment-header-parser.sh</td></tr>
+<tr><td>sgnd_get_ip</td><td>Get ip</td><td>Print the first local IP address reported by hostname.</td><td>sgnd-system.sh</td></tr>
+<tr><td>sgnd_get_os</td><td>Get os</td><td>Print the operating system ID from /etc/os-release.</td><td>sgnd-system.sh</td></tr>
+<tr><td>sgnd_get_os_version</td><td>Get os version</td><td>Print the operating system version ID from /etc/os-release.</td><td>sgnd-system.sh</td></tr>
+<tr><td>sgnd_get_primary_nic</td><td>Get primary nic</td><td>Print the network interface used for the default route.</td><td>sgnd-system.sh</td></tr>
+<tr><td>sgnd_has_tty</td><td>Has tty</td><td>Check whether /dev/tty can be read and written.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_hash_sha256_file</td><td>Hash sha256 file</td><td>Calculate the SHA-256 hash of a file.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_have</td><td>Have</td><td>Check whether a command is available on PATH.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_header_add_field</td><td>Header add field</td><td>Add a metadata field to a named header section.</td><td>sgnd-comment-header-parser.sh</td></tr>
+<tr><td>sgnd_header_buffer_get_section</td><td>Header buffer get section</td><td>Extract a section from the reusable header buffer.</td><td>sgnd-comment-header-parser.sh</td></tr>
+<tr><td>sgnd_header_buffer_load</td><td>Header buffer load</td><td>Load a file header into the reusable header buffer.</td><td>sgnd-comment-header-parser.sh</td></tr>
+<tr><td>sgnd_header_bump_version</td><td>Header bump version</td><td>Bump a semantic version string according to a requested bump mode.</td><td>sgnd-comment-header-parser.sh</td></tr>
+<tr><td>sgnd_header_calc_checksum</td><td>Header calc checksum</td><td>Calculate the managed-body checksum for a script file.</td><td>sgnd-comment-header-parser.sh</td></tr>
+<tr><td>sgnd_header_get_banner_parts</td><td>Header get banner parts</td><td>Read banner name, version, and release fields from a script file.</td><td>sgnd-comment-header-parser.sh</td></tr>
+<tr><td>sgnd_header_get_banner_parts_from_text</td><td>Header get banner parts from text</td><td>Parse banner name, version, and release fields from supplied header text.</td><td>sgnd-comment-header-parser.sh</td></tr>
+<tr><td>sgnd_header_get_field</td><td>Header get field</td><td>Read a named metadata field from a script file.</td><td>sgnd-comment-header-parser.sh</td></tr>
+<tr><td>sgnd_header_get_field_value</td><td>Header get field value</td><td>Read the value part of a named metadata field from a script file.</td><td>sgnd-comment-header-parser.sh</td></tr>
+<tr><td>sgnd_header_get_section</td><td>Header get section</td><td>Read a named header section from a script file.</td><td>sgnd-comment-header-parser.sh</td></tr>
+<tr><td>sgnd_header_get_section_from_text</td><td>Header get section from text</td><td>Extract a named header section from supplied header text.</td><td>sgnd-comment-header-parser.sh</td></tr>
+<tr><td>sgnd_header_is_section_header</td><td>Header is section header</td><td>Check whether a line starts a named header section.</td><td>sgnd-comment-header-parser.sh</td></tr>
+<tr><td>sgnd_header_load_section_to_dt</td><td>Header load section to dt</td><td>Load a named header section into a SolidGroundUX datatable.</td><td>sgnd-comment-header-parser.sh</td></tr>
+<tr><td>sgnd_header_parse_banner_line</td><td>Header parse banner line</td><td>Parse one SolidGroundUX banner line into structured fields.</td><td>sgnd-comment-header-parser.sh</td></tr>
+<tr><td>sgnd_header_read</td><td>Header read</td><td>Read a SolidGroundUX script header from a file.</td><td>sgnd-comment-header-parser.sh</td></tr>
+<tr><td>sgnd_header_set_field</td><td>Header set field</td><td>Set an existing metadata field in a named header section.</td><td>sgnd-comment-header-parser.sh</td></tr>
+<tr><td>sgnd_header_upsert_field</td><td>Header upsert field</td><td>Add or replace a metadata field in a named header section.</td><td>sgnd-comment-header-parser.sh</td></tr>
+<tr><td>sgnd_internal_call_guard</td><td>Internal call guard</td><td>Reject calls to internal functions from outside allowed framework contexts.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_is_active</td><td>Is active</td><td>Check whether a systemd service is active.</td><td>sgnd-system.sh</td></tr>
+<tr><td>sgnd_is_desktop_mode</td><td>Is desktop mode</td><td>Check whether the framework is running in a desktop-capable UI mode.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_is_number</td><td>Is number</td><td>Check whether a value contains only digits.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_is_set</td><td>Is set</td><td>Check whether a shell variable is set.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_is_true</td><td>Is true</td><td>Interpret common true/false text values as a shell boolean.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_is_ui_mode</td><td>Is ui mode</td><td>Check whether the current UI mode matches the supplied value.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_join</td><td>Join</td><td>Join arguments using a delimiter.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_kill_if_running</td><td>Kill if running</td><td>Terminate processes that match the supplied executable name.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_load_ui_style</td><td>Load ui style</td><td>Load the configured SolidGroundUX UI palette and style files.</td><td>sgnd-bootstrap.sh</td></tr>
+<tr><td>sgnd_mktemp_dir</td><td>Mktemp dir</td><td>Create and print a temporary directory path.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_mktemp_file</td><td>Mktemp file</td><td>Create and print a temporary file path.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_module_init_metadata</td><td>Module init metadata</td><td>Initialize module metadata globals from a sourced library or module comment header.</td><td>sgnd-bootstrap.sh</td></tr>
+<tr><td>sgnd_module_show_metadata</td><td>Module show metadata</td><td>Print the metadata registered for the current module or script.</td><td>ui.sh</td></tr>
+<tr><td>sgnd_must</td><td>Must</td><td>Run a command and terminate with a contextual failure message if it fails.</td><td>sgnd-system.sh</td></tr>
+<tr><td>sgnd_need_bash</td><td>Need bash</td><td>Require a minimum Bash major version.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_need_cmd</td><td>Need cmd</td><td>Require a command to exist or terminate the current script.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_need_root</td><td>Need root</td><td>Require the current process to run as root.</td><td>sgnd-system.sh</td></tr>
+<tr><td>sgnd_need_systemd</td><td>Need systemd</td><td>Require systemd/systemctl availability.</td><td>sgnd-system.sh</td></tr>
+<tr><td>sgnd_need_tty</td><td>Need tty</td><td>Require stdout to be attached to a terminal.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_need_writable</td><td>Need writable</td><td>Require a writable filesystem path.</td><td>sgnd-system.sh</td></tr>
+<tr><td>sgnd_on_exit_add</td><td>On exit add</td><td>Register a function or command to run through the SolidGroundUX exit dispatcher.</td><td>sgnd-bootstrap.sh</td></tr>
+<tr><td>sgnd_on_exit_install</td><td>On exit install</td><td>Install the SolidGroundUX exit trap dispatcher once for the current shell.</td><td>sgnd-bootstrap.sh</td></tr>
+<tr><td>sgnd_padded_visible</td><td>Padded visible</td><td>Pad styled text based on visible width rather than byte length.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_parse_args</td><td>Parse args</td><td>Parse command-line options according to SGND_ARG_SPEC and dispatch built-in argument handlers.</td><td>sgnd-args.sh</td></tr>
+<tr><td>sgnd_parse_statespec</td><td>Parse statespec</td><td>Parse a save-state specification into source variable and state key parts.</td><td>sgnd-bootstrap.sh</td></tr>
+<tr><td>sgnd_ping_ok</td><td>Ping ok</td><td>Check whether a host responds to one ping probe.</td><td>sgnd-system.sh</td></tr>
+<tr><td>sgnd_port_open</td><td>Port open</td><td>Check whether a TCP port is reachable.</td><td>sgnd-system.sh</td></tr>
+<tr><td>sgnd_print</td><td>Print</td><td>Print styled, optionally padded, wrapped, or justified text.</td><td>ui.sh</td></tr>
+<tr><td>sgnd_print_args</td><td>Print args</td><td>Print parsed argument values.</td><td>sgnd-info.sh</td></tr>
+<tr><td>sgnd_print_cell</td><td>Print cell</td><td>Print a fixed-width styled cell without a trailing newline.</td><td>ui.sh</td></tr>
+<tr><td>sgnd_print_cfg</td><td>Print cfg</td><td>Print effective configuration values for diagnostics.</td><td>sgnd-info.sh</td></tr>
+<tr><td>sgnd_print_file</td><td>Print file</td><td>Print the contents of a file using sgnd_print formatting.</td><td>ui.sh</td></tr>
+<tr><td>sgnd_print_fill</td><td>Print fill</td><td>Print a left/right line filled to a target width.</td><td>ui.sh</td></tr>
+<tr><td>sgnd_print_framework_metadata</td><td>Print framework metadata</td><td>Print framework metadata values.</td><td>sgnd-info.sh</td></tr>
+<tr><td>sgnd_print_labeledvalue</td><td>Print labeledvalue</td><td>Print a formatted label/value row.</td><td>ui.sh</td></tr>
+<tr><td>sgnd_print_license</td><td>Print license</td><td>Print active license information.</td><td>sgnd-info.sh</td></tr>
+<tr><td>sgnd_print_metadata</td><td>Print metadata</td><td>Print active script or module metadata.</td><td>sgnd-info.sh</td></tr>
+<tr><td>sgnd_print_readme</td><td>Print readme</td><td>Print the active script README section.</td><td>sgnd-info.sh</td></tr>
+<tr><td>sgnd_print_sectionheader</td><td>Print sectionheader</td><td>Print a section header or horizontal border line.</td><td>ui.sh</td></tr>
+<tr><td>sgnd_print_single</td><td>Print single</td><td>Print a single styled line without wrapping.</td><td>ui.sh</td></tr>
+<tr><td>sgnd_print_state</td><td>Print state</td><td>Print current state-domain values.</td><td>sgnd-info.sh</td></tr>
+<tr><td>sgnd_print_titlebar</td><td>Print titlebar</td><td>Print the standard SolidGroundUX title bar.</td><td>ui.sh</td></tr>
+<tr><td>sgnd_proc_exists</td><td>Proc exists</td><td>Check whether a process with the given executable name is running.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_prompt_fromlist</td><td>Prompt fromlist</td><td>Prompt the user to select one value from a list.</td><td>ui-dlg.sh</td></tr>
+<tr><td>sgnd_real_home</td><td>Real home</td><td>Print the home directory for the real user.</td><td>sgnd-system.sh</td></tr>
+<tr><td>sgnd_real_user</td><td>Real user</td><td>Print the non-root user behind sudo, or the current user.</td><td>sgnd-system.sh</td></tr>
+<tr><td>sgnd_rebase_directories</td><td>Rebase directories</td><td>Recalculate framework directory globals from the current SGND_FRAMEWORK_ROOT.</td><td>sgnd-bootstrap-env.sh</td></tr>
+<tr><td>sgnd_rebase_framework_cfg_paths</td><td>Rebase framework cfg paths</td><td>Recalculate framework configuration file paths from the configured etc directory.</td><td>sgnd-bootstrap-env.sh</td></tr>
+<tr><td>sgnd_release_write_checksum</td><td>Write release checksum metadata for a file</td><td>Write release checksum metadata for a file.</td><td>prepare-release.sh</td></tr>
+<tr><td>sgnd_require</td><td>Require</td><td>Require a command to succeed, terminating on failure.</td><td>sgnd-system.sh</td></tr>
+<tr><td>sgnd_retry</td><td>Retry</td><td>Retry a command until it succeeds or the retry count is exhausted.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_run_as_real_user</td><td>Run as real user</td><td>Run a command as the real non-root user when invoked through sudo.</td><td>sgnd-system.sh</td></tr>
+<tr><td>sgnd_runmode_color</td><td>Runmode color</td><td>Return the UI color associated with the current or supplied run mode.</td><td>ui.sh</td></tr>
+<tr><td>sgnd_safe_replace_file</td><td>Safe replace file</td><td>Atomically replace a target file with a prepared temporary file.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_sample_row</td><td>Sample row</td><td>Print one sample row for the style sample output.</td><td>ui.sh</td></tr>
+<tr><td>sgnd_save_state</td><td>Save state</td><td>Persist configured runtime state values to the active state domain.</td><td>sgnd-bootstrap.sh</td></tr>
+<tr><td>sgnd_script_init_metadata</td><td>Script init metadata</td><td>Initialize script metadata globals from a script comment header.</td><td>sgnd-bootstrap.sh</td></tr>
+<tr><td>sgnd_section_get_field_value</td><td>Section get field value</td><td>Read the value of a field from an already extracted section.</td><td>sgnd-comment-header-parser.sh</td></tr>
+<tr><td>sgnd_sgr</td><td>Sgr</td><td>Build an ANSI SGR escape sequence from numeric codes or existing SGR fragments.</td><td>ui.sh</td></tr>
+<tr><td>sgnd_show_help</td><td>Show help</td><td>Print usage information generated from a SolidGroundUX argument specification.</td><td>sgnd-args.sh</td></tr>
+<tr><td>sgnd_show_vars_by_prefix</td><td>Show vars by prefix</td><td>Print variables whose names start with a supplied prefix.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_showenvironment</td><td>Showenvironment</td><td>Print a combined SolidGroundUX environment overview.</td><td>sgnd-info.sh</td></tr>
+<tr><td>sgnd_slugify</td><td>Slugify</td><td>Convert text to a lowercase filesystem-friendly slug.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_stack_trace</td><td>Stack trace</td><td>Print a Bash call stack for diagnostics.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_string_repeat</td><td>String repeat</td><td>Repeat a string a fixed number of times.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_strip_ansi</td><td>Strip ansi</td><td>Remove ANSI escape sequences from text.</td><td>ui.sh</td></tr>
+<tr><td>sgnd_style_samples</td><td>Display the active UI theme</td><td>Demonstrate every semantic color defined by the active SolidGroundUX theme.</td><td>ui.sh</td></tr>
+<tr><td>sgnd_terminal_width</td><td>Terminal width</td><td>Return the active terminal width or a configured fallback.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_theme</td><td>Display or switch the active UI theme</td><td>Display the current theme or switch the semantic UI style used by the current SolidGroundUX session.</td><td>ui.sh</td></tr>
+<tr><td>sgnd_timestamp</td><td>Timestamp</td><td>Print the current timestamp in SolidGroundUX log format.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_trim</td><td>Trim</td><td>Trim leading and trailing whitespace from text.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_ui_set_default_theme</td><td>Ui set default theme</td><td>Load the default SolidGroundUX UI palette and style.</td><td>ui.sh</td></tr>
+<tr><td>sgnd_ui_set_theme</td><td>Ui set theme</td><td>Load a SolidGroundUX UI palette and style into the current shell session.</td><td>ui.sh</td></tr>
+<tr><td>sgnd_validate_bool</td><td>Validate bool</td><td>Validate a common boolean value.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_validate_cidr</td><td>Validate cidr</td><td>Validate a CIDR prefix length.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_validate_date</td><td>Validate date</td><td>Validate a date string in YYYY-MM-DD form.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_validate_dir_exists</td><td>Validate dir exists</td><td>Validate that a directory exists.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_validate_executable</td><td>Validate executable</td><td>Validate that a path exists and is executable.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_validate_file_exists</td><td>Validate file exists</td><td>Validate that a file exists.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_validate_file_not_exists</td><td>Validate file not exists</td><td>Validate that a file does not already exist.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_validate_fs_name</td><td>Validate fs name</td><td>Validate a conservative filesystem name.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_validate_int</td><td>Validate int</td><td>Validate a signed integer.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_validate_ipv4</td><td>Validate ipv4</td><td>Validate an IPv4 address.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_validate_numeric</td><td>Validate numeric</td><td>Validate a signed integer or decimal number.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_validate_path_exists</td><td>Validate path exists</td><td>Validate that a filesystem path exists.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_validate_slug</td><td>Validate slug</td><td>Validate a lowercase slug suitable for identifiers or paths.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_validate_text</td><td>Validate text</td><td>Validate that text is not empty.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_validate_yesno</td><td>Validate yesno</td><td>Validate a single-character yes/no response.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_version_ge</td><td>Version ge</td><td>Compare two version strings and return success when the first is greater or equal.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_visible_len</td><td>Visible len</td><td>Return the visible character length of text after ANSI escape sequences are removed.</td><td>ui.sh</td></tr>
+<tr><td>sgnd_visible_length</td><td>Visible length</td><td>Return visible text length after stripping ANSI escape sequences.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_wait_for_exit</td><td>Wait for exit</td><td>Wait for a named process to stop running.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_wrap_words</td><td>Wrap words</td><td>Wrap text to a target visible width.</td><td>sgnd-core.sh</td></tr>
+<tr><td>show_theme</td><td>Browse and preview installed UI themes</td><td>Cycle through installed SolidGroundUX themes and preview each one.</td><td>framework-smoketest.sh</td></tr>
+<tr><td>verify_release_set</td><td>Verify release artifact set</td><td>Verifies the selected archive and matching manifest using their checksum files.</td><td>sgnd-install.sh</td></tr>
+<tr><td>verify_sha256_file</td><td>Verify a file checksum</td><td>Verifies one file using its checksum file.</td><td>sgnd-install.sh</td></tr>
+<tr><td>view_log</td><td>Display the active SolidGroundUX logfile</td><td>Display the logfile selected by the current SolidGroundUX logging configuration.</td><td>framework-smoketest.sh</td></tr>
+<tr><td>write_install_records</td><td>Write install records</td><td>Stores the install manifest, install metadata, and current-install marker files.</td><td>sgnd-install.sh</td></tr>
+</tbody>
+</table>
+</section>
+<section class="doc-glossary-block">
+<h2 class="ct-L2Sectionheader">Variables</h2>
+<table class="doc-data-table">
+<thead><tr><th>Variable</th><th>Title</th><th>Purpose</th><th>Module</th></tr></thead>
+<tbody>
+<tr><td>_SAMPLE_INTERNAL_VARIABLE</td><td>Internal variable documentation</td><td>Demonstrate an internal variable.</td><td>doc-sample.sh</td></tr>
+<tr><td>Datamodel</td><td>Content tables for parsed documentation data</td><td>Define the parser-owned documentation tables.</td><td>doc-processor.sh</td></tr>
+<tr><td>DOC_RENDER_CACHE_DIR</td><td>Optional renderer cache directory</td><td>Reserve a shared variable for renderer cache location configuration.</td><td>doc-renderer.sh</td></tr>
+<tr><td>palette_solidground_brand</td><td>SolidGround brand colors</td><td>Define the SolidGround product brand colors.</td><td>default-ui-palette.sh</td></tr>
+<tr><td>palette_testadura_brand</td><td>Testadura brand colors</td><td>Define the official Testadura corporate brand colors.</td><td>default-ui-palette.sh</td></tr>
+<tr><td>SAMPLE_PUBLIC_VARIABLE</td><td>Public variable documentation</td><td>Demonstrate a normal documented variable.</td><td>doc-sample.sh</td></tr>
+<tr><td>SGND_BUILTIN_ARGS</td><td>Builtin framework argument specifications</td><td>Define standard command-line options available to framework-enabled scripts.</td><td>sgnd-args.sh</td></tr>
+<tr><td>SGND_BUILTIN_EXAMPLES</td><td>Builtin help examples</td><td>Provide reusable help examples for standard framework options.</td><td>sgnd-args.sh</td></tr>
+<tr><td>SGND_CORE_LIBS</td><td>Ordered core library list</td><td>Define the core libraries that sgnd-bootstrap loads in fixed order.</td><td>sgnd-bootstrap-env.sh</td></tr>
+<tr><td>SGND_FRAMEWORK_DIRS</td><td>Framework directory specifications</td><td>Hold the rebuilt path specification list consumed by sgnd_ensure_dirs.</td><td>sgnd-bootstrap-env.sh</td></tr>
+<tr><td>SGND_FRAMEWORK_GLOBALS</td><td>Framework configuration variable registry</td><td>Declare framework variables that may be managed through system and/or user configuration files.</td><td>sgnd-bootstrap-env.sh</td></tr>
+<tr><td>style_background_bright</td><td>Background: Bright</td><td>Document the variables assigned in this style section.</td><td>default-ui-palette.sh</td></tr>
+<tr><td>style_background_dark_muted</td><td>Background: Dark / muted</td><td>Document the variables assigned in this style section.</td><td>default-ui-palette.sh</td></tr>
+<tr><td>style_background_normal</td><td>Background: Normal</td><td>Document the variables assigned in this style section.</td><td>default-ui-palette.sh</td></tr>
+<tr><td>style_color_codes</td><td>Color codes</td><td>Document the variables assigned in this style section.</td><td>default-ui-palette.sh</td></tr>
+<tr><td>style_colors</td><td>Colors</td><td>Document the variables assigned in this style section.</td><td>default-ui-style.sh</td></tr>
+<tr><td>style_foreground_bright</td><td>Foreground: Bright</td><td>Document the variables assigned in this style section.</td><td>default-ui-palette.sh</td></tr>
+<tr><td>style_foreground_dark_muted</td><td>Foreground: Dark / muted</td><td></td><td>default-ui-palette.sh</td></tr>
+<tr><td>style_foreground_normal</td><td>Foreground: Normal</td><td></td><td>default-ui-palette.sh</td></tr>
+<tr><td>style_say_global_defaults</td><td>say() global defaults</td><td>Document the variables assigned in this style section.</td><td>default-ui-style.sh</td></tr>
+<tr><td>style_say_prefixes</td><td>Say prefixes</td><td>Document the variables assigned in this style section.</td><td>default-ui-style.sh</td></tr>
+<tr><td>style_text_attributes_sgr</td><td>Text attributes (SGR)</td><td>Document the variables assigned in this style section.</td><td>default-ui-palette.sh</td></tr>
+</tbody>
+</table>
+</section>
+</main>
+</body>
+</html>

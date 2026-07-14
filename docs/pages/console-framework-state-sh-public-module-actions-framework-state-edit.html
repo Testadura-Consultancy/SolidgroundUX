@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>framework_state_edit</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">framework_state_edit</div>
+  <div class="doc-breadcrumb">SolidgroundUX / console-framework-state.sh / Public module actions / framework_state_edit</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Edit and save all transferable framework-state variables.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Builds an input form from SGND_FRAMEWORK_STATE.</div>
+<div class="ct-functionbody">  - Uses the current runtime values as defaults.</div>
+<div class="ct-functionbody">  - Saves the edited values to SGND_FRAMEWORK_STATEFILE.</div>
+<div class="ct-functionbody">  - Reloads the active UI style after a successful save.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Outputs (globals):</div>
+<div class="ct-functionbody">  Variables listed in SGND_FRAMEWORK_STATE.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Side effects:</div>
+<div class="ct-functionbody">  Updates SGND_FRAMEWORK_STATEFILE.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 on success.</div>
+<div class="ct-functionbody">  Non-zero when editing, saving, or UI reloading fails.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  framework_state_edit</div>
+</main>
+</body>
+</html>

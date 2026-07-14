@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Console get visible row index</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Console get visible row index</div>
+  <div class="doc-breadcrumb">SolidgroundUX / sgnd-console-menu.sh / Menu model indexes / _sgnd_console_get_visible_row_index</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Handle console menu get visible row index behavior.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Supports the module implementation; not intended as a public framework API.</div>
+<div class="ct-functionbody">  - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Arguments</div>
+<div class="ct-functionbody">  $1  VISIBLE_INDEX - Zero-based index.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Output</div>
+<div class="ct-functionbody">  Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Side effects</div>
+<div class="ct-functionbody">  May update files, directories, runtime state, or process state required by the workflow.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 on success.</div>
+<div class="ct-functionbody">  Non-zero when validation, resolution, user cancellation, or execution fails.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  _sgnd_console_get_visible_row_index &quot;${VISIBLE_INDEX}&quot;</div>
+</main>
+</body>
+</html>

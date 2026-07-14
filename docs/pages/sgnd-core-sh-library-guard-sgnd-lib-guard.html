@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>_sgnd_lib_guard - Library guard</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">_sgnd_lib_guard - Library guard</div>
+  <div class="doc-breadcrumb">sgnd-core.sh:::Library guard:_sgnd_lib_guard</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Prevent direct execution of a source-only module and avoid repeated initialization.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Derives a module-specific guard variable from the current filename.</div>
+<div class="ct-functionbody">  - Exits with status 2 when the file is executed directly.</div>
+<div class="ct-functionbody">  - Returns immediately when the module has already been loaded.</div>
+<div class="ct-functionbody">  - Marks the module as loaded before normal initialization continues.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 when the module may continue loading or was already loaded.</div>
+<div class="ct-functionbody">  Exits with status 2 when executed directly.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  _sgnd_lib_guard</div>
+</main>
+</body>
+</html>

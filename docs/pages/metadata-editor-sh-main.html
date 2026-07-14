@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Main</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Main</div>
+  <div class="doc-breadcrumb">SolidgroundUX / metadata-editor.sh / Main</div>
+</header>
+<div class="ct-L3Sectionbody">_interactive_bump_files</div>
+<div class="ct-L3Sectionbody sh-highlight">Purpose</div>
+<div class="ct-L3Sectionbody">  Apply an interactive version metadata update to the first file or all files.</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody sh-highlight">Behavior</div>
+<div class="ct-L3Sectionbody">  - Prompts for the desired update mode.</div>
+<div class="ct-L3Sectionbody">  - Supports refresh-only, major, and minor update modes.</div>
+<div class="ct-L3Sectionbody">  - Applies the selected mode either to the first file only or to all targets.</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody sh-highlight">Arguments</div>
+<div class="ct-L3Sectionbody">  $1  APPLY_ALL</div>
+<div class="ct-L3Sectionbody">      0 = first file only</div>
+<div class="ct-L3Sectionbody">      1 = all target files</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody">Inputs (globals):</div>
+<div class="ct-L3Sectionbody">  SOURCE_FILES</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody sh-highlight">Returns</div>
+<div class="ct-L3Sectionbody">  0  success</div>
+<div class="ct-L3Sectionbody">  1  failure</div>
+<div class="ct-L3Sectionbody">  2  cancelled</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody sh-highlight">Usage</div>
+<div class="ct-L3Sectionbody">  _interactive_bump_files 0</div>
+<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody">Examples:</div>
+<div class="ct-L3Sectionbody">  _interactive_bump_files &quot;$apply_all_answers&quot;</div>
+</main>
+</body>
+</html>
