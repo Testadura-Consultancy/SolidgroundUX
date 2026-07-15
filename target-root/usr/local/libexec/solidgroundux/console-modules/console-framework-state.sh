@@ -2,9 +2,9 @@
 # SolidGroundUX - Framework State Console Module
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.6
-#   Build       : 2619513
-#   Checksum    : c99a50132d119fc7d6d9aca49a0cd2a075b04c6bba90f5ca5612ea8fd5b7a259
+#   Version     : 1.7
+#   Build       : 2619600
+#   Checksum    : 96cfbfca2943425f54b8ca7ec7731238f8113bec8166c3af031a97085adad437
 #   Source      : console-framework-state.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -28,7 +28,8 @@ set -uo pipefail
         #   Ensure the module is sourced and initialized only once.
         #
         # . Returns
-        #   0 when loading may continue or the module was already loaded.
+        #   0 when loading may continue.
+        #   1 when the module was already loaded.
         #   Exits with status 2 when executed directly.
     _sgnd_lib_guard() {
         local lib_base
@@ -43,11 +44,12 @@ set -uo pipefail
             exit 2
         }
 
-        [[ -n "${!guard-}" ]] && return 0
+        [[ -n "${!guard-}" ]] && return 1
         printf -v "$guard" '1'
+        return 0
     }
 
-    _sgnd_lib_guard
+    _sgnd_lib_guard || return 0
     unset -f _sgnd_lib_guard
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"

@@ -110,8 +110,8 @@ set -uo pipefail
         local hotkey="${2:?missing hotkey}"
         local state="${3:-0}"
 
-        local onclr="${4:-$GREEN}"
-        local offclr="${5:-$DARK_SILVER}"
+        local onclr="${4:-$SGND_UI_ON}"
+        local offclr="${5:-$SGND_UI_OFF}"
 
         local word_style=""
         local key_style=""
@@ -166,8 +166,8 @@ set -uo pipefail
         #   _sgnd_console_onoff "${VALUE}" "${ONCLR}" "${OFFCLR}"
     _sgnd_console_onoff() {
         local value="${1:-0}"
-        local onclr="${2:-$BRIGHT_GREEN}"
-        local offclr="${3:-$DARK_SILVER}"
+        local onclr="${2:-$SGND_UI_ON}"
+        local offclr="${3:-$SGND_UI_OFF}"
 
         if (( value )); then
             printf '%sOn%s' "$(sgnd_sgr "$onclr")" "$RESET"
@@ -1160,8 +1160,8 @@ set -uo pipefail
         width="$(sgnd_terminal_width)"
 
         sgnd_print_sectionheader --border "$DL_H" --maxwidth "$width"
-        sgnd_print --pad 4 "$(sgnd_sgr "$WHITE" "" "$FX_BOLD")${SGND_CONSOLE_TITLE}${RESET}"
-        sgnd_print --pad 4 "$(sgnd_sgr "$SILVER" "" "$FX_ITALIC")${SGND_CONSOLE_DESC}"
+        sgnd_print --pad 4 "$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")${SGND_CONSOLE_TITLE}${RESET}"
+        sgnd_print --pad 4 "$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_ITALIC")${SGND_CONSOLE_DESC}"
         sgnd_print_sectionheader --border "$LN_H" --maxwidth "$width"
         sgnd_print
     }
@@ -1307,10 +1307,10 @@ set -uo pipefail
 
         local label_style=""
         local value_style=""
-        local normal_label_style="$(sgnd_sgr "$SILVER")"
-        local normal_value_style="$(sgnd_sgr "$SILVER" "" "$FX_ITALIC")"
-        local disabled_label_style="$(sgnd_sgr "$DARK_SILVER" "" "$FX_FAINT")"
-        local disabled_value_style="$(sgnd_sgr "$DARK_SILVER" "" "$FX_FAINT" "$FX_ITALIC")"
+        local normal_label_style="$(sgnd_sgr "$SGND_UI_LABEL")"
+        local normal_value_style="$(sgnd_sgr "$SGND_UI_VALUE" "" "$FX_ITALIC")"
+        local disabled_label_style="$(sgnd_sgr "$SGND_UI_DISABLED")"
+        local disabled_value_style="$(sgnd_sgr "$SGND_UI_DISABLED" "" "$FX_FAINT" "$FX_ITALIC")"
 
         local wrapped_line=""
         local first_line=1
@@ -1463,10 +1463,10 @@ set -uo pipefail
 
         local label_style=""
         local value_style=""
-        local normal_label_style="$(sgnd_sgr "$SILVER")"
-        local normal_value_style="$(sgnd_sgr "$SILVER" "$FX_ITALIC")"
-        local disabled_label_style="$(sgnd_sgr "$DARK_SILVER" "$FX_FAINT")"
-        local disabled_value_style="$(sgnd_sgr "$DARK_SILVER" "$FX_FAINT" "$FX_ITALIC")"
+        local normal_label_style="$(sgnd_sgr "$SGND_UI_LABEL")"
+        local normal_value_style="$(sgnd_sgr "$SGND_UI_VALUE" "" "$FX_ITALIC")"
+        local disabled_label_style="$(sgnd_sgr "$SGND_UI_DISABLED")"
+        local disabled_value_style="$(sgnd_sgr "$SGND_UI_DISABLED" "" "$FX_FAINT" "$FX_ITALIC")"
 
         row_count="$(sgnd_dt_row_count SGND_GROUP_ROWS)"
 

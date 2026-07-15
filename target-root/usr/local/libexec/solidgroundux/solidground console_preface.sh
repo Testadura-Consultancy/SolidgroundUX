@@ -4,14 +4,15 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2619521
-#   Checksum    : acc5ab844845ed904134ec4dcc7794a6b45d2cddabe7db1be7eaa6503a04445d
+#   Build       : 2619600
+#   Checksum    : 0c6e2b7528bac5fd10c80096440bdf3b5867dffd0b46b91528c32a1c0c501b9f
 #   Source      : solidground console_preface.sh
 #   Type        : documentation
 #   Group       : SolidGround Console
 #   Purpose     : Group preface
 #
 
+#   Checksum : 0c6e2b7528bac5fd10c80096440bdf3b5867dffd0b46b91528c32a1c0c501b9f
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy

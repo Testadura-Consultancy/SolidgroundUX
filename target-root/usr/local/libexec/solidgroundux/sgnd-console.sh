@@ -3,9 +3,9 @@
 # SolidGroundUX - Console Host
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2619513
-#   Checksum    : f0494d13ea125fab47e6b4661b3ca0818e2fcabcf3aa3eb8449e7fb7cc96a05d
+#   Version     : 1.7
+#   Build       : 2619600
+#   Checksum    : 1cdbd32052d5146ebb243387da992b91416d0b5c3c37d5aa026a906ac7b74d67
 #   Source      : sgnd-console.sh
 #   Type        : script
 #   Group       : SolidGround Console
@@ -226,7 +226,7 @@ set -uo pipefail
         #   - -h / --help is built in, you don't need to define it here.
         #   - After parsing you can use: FLAG_VERBOSE, VAL_CONFIG, ENUM_MODE, ...
     SGND_ARGS_SPEC=(
-        "appcfg||value|VAL_APPCFG|Path to console app config file|"
+        "appcfg||value|VAL_APPCFG|Console module file or module directory|"
         "maxrows||value|VAL_MAXROWS|Maximum menu rows per page||"
     )
 
@@ -245,7 +245,8 @@ set -uo pipefail
     SGND_SCRIPT_EXAMPLES=(
         "Examples:"
         "  sgnd-console.sh"
-        "  sgnd-console.sh --appcfg ./my-console.cfg"
+        "  sgnd-console.sh --appcfg ./console-devtools.sh"
+        "  sgnd-console.sh --appcfg ./vm-config"
     ) 
 
     # SGND_SCRIPT_GLOBALS
@@ -342,7 +343,7 @@ set -uo pipefail
 
         SGND_CONSOLE_TITLE="Solidground Console"
         SGND_CONSOLE_DESC="Interactive scalable console module host"
-        SGND_CONSOLE_MODULE_DIR=""
+        SGND_CONSOLE_MODULE_PATH=""
         SGND_CURRENT_MODULE=""
         SGND_LAST_WAITSECS=15
 
@@ -358,138 +359,63 @@ set -uo pipefail
         SGND_PAGE_MAX_ROWS=15
             
     # --- Console configuration -------------------------------------------------------
-    # _sgnd_console_load_config
+    # fn: _sgnd_console_load_config - Resolve the console module source
         # . Purpose
-        #   Load console-specific configuration and resolve the module directory.
+        #   Resolve the module file or directory used by this console instance.
         #
         # . Behavior
-        #   - Applies built-in defaults for title, description, module directory,
-        #     and page size.
-        #   - Applies --maxrows when provided.
-        #   - If --appcfg was provided and the file does not exist, creates it.
-        #   - Sources the appcfg when present.
-        #   - Resolves a relative module directory against the appcfg directory.
-        #   - Normalizes SGND_CONSOLE_MODULE_DIR to an absolute path.
-        #
-        # Configuration variables:
-        #   SGND_CONSOLE_TITLE
-        #   SGND_CONSOLE_DESC
-        #   SGND_CONSOLE_MODULE_DIR
-        #   SGND_PAGE_MAX_ROWS
+        #   - Without --appcfg, loads the standard console-modules directory beside
+        #     sgnd-console.sh.
+        #   - With --appcfg pointing to a .sh file, loads only that module.
+        #   - With --appcfg pointing to a directory, loads every .sh file in it.
+        #   - Normalizes the selected path to an absolute path.
         #
         # Inputs (globals):
         #   VAL_APPCFG
-        #   VAL_MAXROWS
+        #   SGND_SCRIPT_DIR
         #
         # Outputs (globals):
-        #   SGND_CONSOLE_TITLE
-        #   SGND_CONSOLE_DESC
-        #   SGND_CONSOLE_MODULE_DIR
-        #   SGND_PAGE_MAX_ROWS
+        #   SGND_CONSOLE_MODULE_PATH
         #
         # . Returns
         #   0   success
-        #   126 unreadable config
-        #   127 config could not be created or written
+        #   126 module source does not exist or is not a readable .sh file/directory
         #
         # . Usage
         #   _sgnd_console_load_config || return $?
-        #
-        # Examples:
-        #   _sgnd_console_load_config
-    # fn: _sgnd_console_load_config - Load console configuration
-        # . Purpose
-        #   Load console configuration.
-        #
-        # . Behavior
-        #   - Internal helper.
-        #   - Preserves existing script runtime behavior.
-        #
-        # . Returns
-        #   Returns the underlying command or workflow status.
-        #
-        # . Usage
-        #   _sgnd_console_load_config
     _sgnd_console_load_config() {
-        local cfg="${VAL_APPCFG-}"
-        local cfg_dir
+        local module_path="${VAL_APPCFG-}"
 
         : "${SGND_CONSOLE_TITLE:=${SGND_SCRIPT_TITLE}}"
         : "${SGND_CONSOLE_DESC:=${SGND_SCRIPT_DESC}}"
-        : "${SGND_CONSOLE_MODULE_DIR:=./console-modules}"
         : "${SGND_PAGE_MAX_ROWS:=15}"
 
-        SGND_CONSOLE_MODULE_DIR="$(readlink -f -- "$SGND_CONSOLE_MODULE_DIR")"
-
-        saydebug "Console title: $SGND_CONSOLE_TITLE"
-        saydebug "Console desc : $SGND_CONSOLE_DESC"
-        saydebug "Module dir    : $SGND_CONSOLE_MODULE_DIR"
-    }
-
-    # fn: _sgnd_console_create_appcfg - Create console application configuration
-        # . Purpose
-        #   Create a new console app configuration file with sensible defaults.
-        #
-        # . Behavior
-        #   - Prompts interactively for title, description, and module directory
-        #     when running on a TTY.
-        #   - Uses defaults automatically in non-interactive mode.
-        #   - Creates the parent directory if needed.
-        #   - Writes a minimal shell-style config file.
-        #
-        # . Arguments
-        #   $1  CFG_PATH
-        #       Path of the appcfg file to create.
-        #
-        # . Returns
-        #   0   success
-        #   127 config directory or file could not be created
-        #
-        # . Usage
-        #   _sgnd_console_create_appcfg "$cfg"
-        #
-        # Examples:
-        #   _sgnd_console_create_appcfg "./my-console.cfg"
-    _sgnd_console_create_appcfg() {
-        local cfg="${1:?missing cfg path}"
-        local cfg_dir
-        local cfg_title="Solidground Console"
-        local cfg_desc="Interactive host for console modules"
-        local cfg_moddir="./console-modules"
-
-        cfg_dir="$(cd -- "$(dirname -- "$cfg")" && pwd -P 2>/dev/null || dirname -- "$cfg")"
-
-        sayinfo "Console appcfg not found; creating: $cfg"
-
-        if [[ -t 0 && -t 1 ]]; then
-            ask --label "Title" \
-                --default "$cfg_title" \
-                --var cfg_title
-
-            ask --label "Description" \
-                --default "$cfg_desc" \
-                --var cfg_desc
-
-            ask --label "Module directory" \
-                --default "$cfg_moddir" \
-                --var cfg_moddir
+        if [[ -z "$module_path" ]]; then
+            module_path="${SGND_SCRIPT_DIR%/}/console-modules"
         fi
 
-        mkdir -p -- "$(dirname -- "$cfg")" || {
-            sayfail "Cannot create config directory for: $cfg"
-            return 127
-        }
+        module_path="$(readlink -f -- "$module_path" 2>/dev/null || printf '%s' "$module_path")"
 
-        {
-            printf "SGND_CONSOLE_TITLE=%q\n" "$cfg_title"
-            printf "SGND_CONSOLE_DESC=%q\n" "$cfg_desc"
-            printf "SGND_CONSOLE_MODULE_DIR=%q\n" "$cfg_moddir"
-        } > "$cfg" || {
-            sayfail "Cannot write appcfg: $cfg"
-            return 127
-        }
+        if [[ -d "$module_path" ]]; then
+            [[ -r "$module_path" ]] || {
+                sayfail "Module directory is not readable: $module_path"
+                return 126
+            }
+        elif [[ -f "$module_path" && "$module_path" == *.sh ]]; then
+            [[ -r "$module_path" ]] || {
+                sayfail "Module file is not readable: $module_path"
+                return 126
+            }
+        else
+            sayfail "Module source must be a .sh file or directory: $module_path"
+            return 126
+        fi
 
-        sayok "Created appcfg: $cfg"
+        SGND_CONSOLE_MODULE_PATH="$module_path"
+
+        saydebug "Console title : $SGND_CONSOLE_TITLE"
+        saydebug "Console desc  : $SGND_CONSOLE_DESC"
+        saydebug "Module source : $SGND_CONSOLE_MODULE_PATH"
     }
 
     # --- Built-in menu registration -------------------------------------------------
@@ -630,73 +556,83 @@ set -uo pipefail
     }
 
     # --- Module loading -------------------------------------------------------------
-    # _sgnd_console_load_modules
-        # . Purpose
-        #   Source all console module scripts from the configured module directory.
-        #
-        # . Behavior
-        #   - Verifies that the module directory exists.
-        #   - Sources each "*.sh" module file found in that directory.
-        #   - Sets SGND_CURRENT_MODULE while loading each module so registration
-        #     APIs can attribute source ownership correctly.
-        #   - Warns when no modules are found.
-        #
-        # Inputs (globals):
-        #   SGND_CONSOLE_MODULE_DIR
+    # fn: _sgnd_console_source_module - Source one console module
+        # . Arguments
+        #   $1  MODULE_FILE
+        #       Readable .sh file to source.
         #
         # Outputs (globals):
         #   SGND_CURRENT_MODULE
+        #   SGND_CURRENT_MODULE_DIR
+        #
+        # . Returns
+        #   0 on success.
+        #   126 when the module cannot be loaded.
+        #
+        # . Usage
+        #   _sgnd_console_source_module "$module"
+    _sgnd_console_source_module() {
+        local module_file="${1:?missing module file}"
+
+        SGND_CURRENT_MODULE="$(basename "${module_file%.sh}")"
+        SGND_CURRENT_MODULE_DIR="$(dirname "$module_file")"
+        saydebug "Loading module: $module_file"
+
+        # shellcheck source=/dev/null
+        source "$module_file" || {
+            sayfail "Failed to load module: $module_file"
+            unset SGND_CURRENT_MODULE SGND_CURRENT_MODULE_DIR
+            return 126
+        }
+
+        unset SGND_CURRENT_MODULE SGND_CURRENT_MODULE_DIR
+    }
+
+    # fn: _sgnd_console_load_modules - Load configured console modules
+        # . Purpose
+        #   Load one module file or all modules in a configured directory.
+        #
+        # . Behavior
+        #   - Sources SGND_CONSOLE_MODULE_PATH directly when it is a .sh file.
+        #   - Sources every top-level .sh file when it is a directory.
+        #   - Loads directory modules in shell glob order.
+        #   - Warns when a directory contains no modules.
+        #
+        # Inputs (globals):
+        #   SGND_CONSOLE_MODULE_PATH
         #
         # . Returns
         #   0   success
-        #   126 module directory missing or module load failed
+        #   126 module source missing or module load failed
         #
         # . Usage
         #   _sgnd_console_load_modules || return $?
-        #
-        # Examples:
-        #   _sgnd_console_load_modules
-    # fn: _sgnd_console_load_modules - Load console modules
-        # . Purpose
-        #   Load console modules.
-        #
-        # . Behavior
-        #   - Internal helper.
-        #   - Preserves existing script runtime behavior.
-        #
-        # . Returns
-        #   Returns the underlying command or workflow status.
-        #
-        # . Usage
-        #   _sgnd_console_load_modules
     _sgnd_console_load_modules() {
-        local mod_dir="${SGND_CONSOLE_MODULE_DIR:?missing module dir}"
-        local mod
+        local module_path="${SGND_CONSOLE_MODULE_PATH:?missing module source}"
+        local module=""
         local found=0
 
-        [[ -d "$mod_dir" ]] || {
-            sayfail "Module directory not found: $mod_dir"
+        if [[ -f "$module_path" ]]; then
+            _sgnd_console_source_module "$module_path"
+            return $?
+        fi
+
+        [[ -d "$module_path" ]] || {
+            sayfail "Module source not found: $module_path"
             return 126
         }
 
         shopt -s nullglob
-        for mod in "$mod_dir"/*.sh; do
+        for module in "$module_path"/*.sh; do
             found=1
-            SGND_CURRENT_MODULE="$(basename "${mod%.sh}")"
-            saydebug "Loading module: $mod"
-
-            # shellcheck source=/dev/null
-            source "$mod" || {
-                sayfail "Failed to load module: $mod"
-                unset SGND_CURRENT_MODULE
+            _sgnd_console_source_module "$module" || {
                 shopt -u nullglob
                 return 126
             }
         done
         shopt -u nullglob
-        unset SGND_CURRENT_MODULE
 
-        (( found )) || saywarning "No modules found in: $mod_dir"
+        (( found )) || saywarning "No modules found in: $module_path"
     }
 
 # --- Script execution ----------------------------------------------------------------

@@ -5,6 +5,11 @@ All notable changes to SolidGroundUX are documented in this file.
 The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.
 
 ---
+# Version 1.7 (Build 2619600) - 2026-07-14
+
+## Fixed
+- sgnd-console didn't handle --appcfg well, corrected so it works as intended
+- updated style files with SGND_UI_ON and SGND_UI_OFF
 
 # Version 1.7 (Build 2619513) - 2026-07-14
 
@@ -26,6 +31,7 @@ The format is inspired by *Keep a Changelog* while remaining focused on practica
 
 - Framework settings are now correctly restored when scripts are started outside the console.
 - Restored menu page height is now applied before the first console render.
+
 
 ---
 

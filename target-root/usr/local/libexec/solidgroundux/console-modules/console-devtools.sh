@@ -2,9 +2,9 @@
 # SolidGroundUX - Developer Tools Console Module
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.6
-#   Build       : 2619521
-#   Checksum    : 7a4f03707ab15c75e8b7adad3e3b682bc956a673ea2dca1b3134cd729f507ba4
+#   Version     : 1.7
+#   Build       : 2619600
+#   Checksum    : ad54232393015332b8c6dad08bf88d00235731d8017ea57bcc803b9a9f68f159
 #   Source      : console-devtools.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -28,7 +28,8 @@ set -uo pipefail
         #   Ensure the module is sourced and initialized only once.
         #
         # . Returns
-        #   0 when loading may continue or the module was already loaded.
+        #   0 when loading may continue.
+        #   1 when the module was already loaded.
         #   Exits with status 2 when executed directly.
     _sgnd_lib_guard() {
         local lib_base
@@ -43,11 +44,12 @@ set -uo pipefail
             exit 2
         }
 
-        [[ -n "${!guard-}" ]] && return 0
+        [[ -n "${!guard-}" ]] && return 1
         printf -v "$guard" '1'
+        return 0
     }
 
-    _sgnd_lib_guard
+    _sgnd_lib_guard || return 0
     unset -f _sgnd_lib_guard
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
