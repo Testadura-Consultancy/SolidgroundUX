@@ -412,28 +412,6 @@ set -uo pipefail
         sgnd_print_file "$logfile"
     }
 
-    # fn: devtools_motd_test
-        # . Purpose
-        #   Run the installed SolidGroundUX MOTD renderer.
-        #
-        # . Returns
-        #   0 on success; non-zero when the MOTD cannot be run.
-        #
-        # . Usage
-        #   devtools_motd_test
-    devtools_motd_test() {
-        local motd_file="$SGND_FRAMEWORK_ROOT/etc/update-motd.d/90-solidgroundux"
-
-        sgnd_print
-        sgnd_print_sectionheader --text "Testing MOTD generation"
-
-        if [[ -r "$motd_file" ]]; then
-            bash "$motd_file"
-        else
-            sayfail "MOTD file not readable: $motd_file"
-        fi
-    }
-
     # fn: devtools_sayprogress_test
         # . Purpose
         #   Run single-, double-, and triple-level progress tests.
@@ -660,7 +638,6 @@ set -uo pipefail
     sgnd_console_register_item "test-consolelog" "smoketests" "Console log levels" "devtools_loglevel_test" "Test console message filtering at every level" 0 15 1
     sgnd_console_register_item "test-filelog" "smoketests" "File log levels" "devtools_file_loglevel_test" "Test file message filtering and finish at silent" 0 15 1
     sgnd_console_register_item "view-log" "smoketests" "View logfile" "devtools_view_log" "Display the resolved SolidGroundUX logfile" 0 20 1
-    sgnd_console_register_item "test-motd" "smoketests" "MOTD" "devtools_motd_test" "Run the SolidGroundUX MOTD script" 0 15 1
     sgnd_console_register_item "test-progress" "smoketests" "Progress display" "devtools_sayprogress_test" "Run single-, double-, and triple-level progress tests" 0 15 1
     sgnd_console_register_item "show-colors" "smoketests" "Color chart" "devtools_show_colorchart" "Display the active palette color chart" 0 15 1
     sgnd_console_register_item "show-themes" "smoketests" "Theme browser" "devtools_show_theme" "Browse and preview installed themes" 0 20 1

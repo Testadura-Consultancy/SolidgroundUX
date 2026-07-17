@@ -4,7 +4,7 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2619601
+#   Build       : 2619811
 #   Checksum    : 0c6e2b7528bac5fd10c80096440bdf3b5867dffd0b46b91528c32a1c0c501b9f
 #   Source      : solidground console_preface.sh
 #   Type        : documentation
@@ -12,6 +12,7 @@
 #   Purpose     : Group preface
 #
 
+#   Checksum : 0c6e2b7528bac5fd10c80096440bdf3b5867dffd0b46b91528c32a1c0c501b9f
 #   Checksum : 0c6e2b7528bac5fd10c80096440bdf3b5867dffd0b46b91528c32a1c0c501b9f
 #   Checksum : 0c6e2b7528bac5fd10c80096440bdf3b5867dffd0b46b91528c32a1c0c501b9f
 # Attribution:

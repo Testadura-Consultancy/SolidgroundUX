@@ -3,6 +3,8 @@
 All notable changes to SolidGroundUX are documented in this file.
 
 The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.
+## Removed
+- Removed motd file,  but archaic and cumbersome, and doesn't really add any functionality
 
 ---
 # Version 1.7 (Build 2619600) - 2026-07-14
