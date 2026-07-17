@@ -30,7 +30,7 @@
   Releases and development history
 </td>
 <td width="25%" align="center">
-  <a href="LICENSE.md"><strong>License</strong></a><br>
+  <a href="LICENSE"><strong>License</strong></a><br>
   Terms of use and redistribution
 </td>
 </tr>
