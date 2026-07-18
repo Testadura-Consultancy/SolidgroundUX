@@ -149,7 +149,6 @@
 <tr><td>_sgnd_console_calc_label_width</td><td>Console calc label width</td><td>Handle console menu calc label width behavior.</td><td>sgnd-console-menu.sh</td></tr>
 <tr><td>_sgnd_console_collect_group_render_indexes</td><td>Console collect group render indexes</td><td>Render the console collect group indexes portion of the current workflow.</td><td>sgnd-console-menu.sh</td></tr>
 <tr><td>_sgnd_console_collect_visible_item_indexes</td><td>Console collect visible item indexes</td><td>Handle console menu collect visible item indexes behavior.</td><td>sgnd-console-menu.sh</td></tr>
-<tr><td>_sgnd_console_create_appcfg</td><td>Create console application configuration</td><td>Create a new console app configuration file with sensible defaults.</td><td>sgnd-console.sh</td></tr>
 <tr><td>_sgnd_console_dispatch</td><td>Console dispatch</td><td>Handle console menu dispatch behavior.</td><td>sgnd-console-menu.sh</td></tr>
 <tr><td>_sgnd_console_find_visible_pos_for_row</td><td>Console find visible pos for row</td><td>Handle console menu find visible pos for row behavior.</td><td>sgnd-console-menu.sh</td></tr>
 <tr><td>_sgnd_console_get_visible_display_number</td><td>Console get visible display number</td><td>Handle console menu get visible display number behavior.</td><td>sgnd-console-menu.sh</td></tr>
@@ -161,8 +160,8 @@
 <tr><td>_sgnd_console_label_dryrun</td><td>Build dry-run label</td><td>Build the current menu label for the dry-run/commit toggle.</td><td>sgnd-console-menu.sh</td></tr>
 <tr><td>_sgnd_console_label_logfile</td><td>Build logfile label</td><td>Build the current menu label for the logfile toggle.</td><td>sgnd-console-menu.sh</td></tr>
 <tr><td>_sgnd_console_label_verbose</td><td>Build verbose label</td><td>Build the current menu label for the verbose toggle.</td><td>sgnd-console-menu.sh</td></tr>
-<tr><td>_sgnd_console_load_config</td><td>Load console configuration</td><td>Load console configuration.</td><td>sgnd-console.sh</td></tr>
-<tr><td>_sgnd_console_load_modules</td><td>Load console modules</td><td>Load console modules.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_console_load_config</td><td>Resolve the console module source</td><td>Resolve the module file or directory used by this console instance.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_console_load_modules</td><td>Load configured console modules</td><td>Load one module file or all modules in a configured directory.</td><td>sgnd-console.sh</td></tr>
 <tr><td>_sgnd_console_measure_group_header_lines</td><td>Console measure group header lines</td><td>Handle console menu measure group header lines behavior.</td><td>sgnd-console-menu.sh</td></tr>
 <tr><td>_sgnd_console_measure_item_lines</td><td>Console measure item lines</td><td>Handle console menu measure item lines behavior.</td><td>sgnd-console-menu.sh</td></tr>
 <tr><td>_sgnd_console_nextpage</td><td>Console nextpage</td><td>Handle console menu nextpage behavior.</td><td>sgnd-console-menu.sh</td></tr>
@@ -182,6 +181,7 @@
 <tr><td>_sgnd_console_set_file_loglevel</td><td>Set file log level</td><td>Prompt for and apply the active SolidGroundUX file log level.</td><td>sgnd-console-menu.sh</td></tr>
 <tr><td>_sgnd_console_set_lines_per_page</td><td>Set menu lines per page</td><td>Set the maximum number of rendered menu lines per page.</td><td>sgnd-console-menu.sh</td></tr>
 <tr><td>_sgnd_console_set_theme</td><td>Set console theme</td><td>Prompt for and apply the active SolidGroundUX UI theme.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_source_module</td><td>Source one console module</td><td></td><td>sgnd-console.sh</td></tr>
 <tr><td>_sgnd_console_toggle_clearonrender</td><td>Toggle clear-on-render</td><td>Render the console toggle clearonrender portion of the current workflow.</td><td>sgnd-console-menu.sh</td></tr>
 <tr><td>_sgnd_console_toggle_debug</td><td>Toggle debug</td><td>Handle console menu toggle debug behavior.</td><td>sgnd-console-menu.sh</td></tr>
 <tr><td>_sgnd_console_toggle_dryrun</td><td>Toggle dry-run</td><td>Handle console menu toggle dryrun behavior.</td><td>sgnd-console-menu.sh</td></tr>
@@ -238,7 +238,6 @@
 <tr><td>devtools_file_loglevel_test</td><td></td><td>Exercise file filtering at every supported log level.</td><td>console-devtools.sh</td></tr>
 <tr><td>devtools_input_test</td><td></td><td>Run a simple prompt-form input test.</td><td>console-devtools.sh</td></tr>
 <tr><td>devtools_loglevel_test</td><td></td><td>Exercise console filtering at every supported log level.</td><td>console-devtools.sh</td></tr>
-<tr><td>devtools_motd_test</td><td></td><td>Run the installed SolidGroundUX MOTD renderer.</td><td>console-devtools.sh</td></tr>
 <tr><td>devtools_say_test</td><td></td><td>Emit the standard say message types.</td><td>console-devtools.sh</td></tr>
 <tr><td>devtools_sayprogress_test</td><td></td><td>Run single-, double-, and triple-level progress tests.</td><td>console-devtools.sh</td></tr>
 <tr><td>devtools_show_colorchart</td><td></td><td>Display the active UI palette color chart.</td><td>console-devtools.sh</td></tr>

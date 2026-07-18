@@ -73,7 +73,12 @@
 <div class="ct-L1Sectionbody">At present, the documentation system supports Bash source files, but the architecture has been designed</div>
 <div class="ct-L1Sectionbody">with future support for Python and C# in mind.</div>
 <div class="ct-L1Sectionheader">Framework capabilities summary</div>
-<div class="ct-L1Sectionbody"></div>
+<div class="doc-image-group images-1">
+<figure class="doc-image">
+<img src="../assets/images/Framework-Features.png" alt="Figure 2 – SolidGroundUX capabilities." loading="lazy">
+<figcaption>Figure 2 – SolidGroundUX capabilities.</figcaption>
+</figure>
+</div>
 <div class="ct-L1Sectionbody">SolidGroundUX can be used as a small runtime framework, a documentation system,</div>
 <div class="ct-L1Sectionbody">a console application host, and a deployment toolkit. The sections below provide</div>
 <div class="ct-L1Sectionbody">a compact map of the most important capabilities before the detailed module</div>
@@ -226,7 +231,16 @@
 <div class="ct-L2Sectionheader">Layered Architecture</div>
 <div class="ct-L2Sectionbody"></div>
 <div class="ct-L2Sectionbody">The framework is organized into several logical layers.</div>
-<div class="ct-L2Sectionbody">  </div>
+<div class="doc-image-group images-1">
+<figure class="doc-image">
+<img src="../assets/images/Framework-Architecture.png" alt="Figure 1 – SolidGroundUX layered architecture." loading="lazy">
+<figcaption>Figure 1 – SolidGroundUX layered architecture.</figcaption>
+</figure>
+</div>
+<div class="ct-L2Sectionbody">The diagram provides a high-level overview of the major framework</div>
+<div class="ct-L2Sectionbody">components and their relationships. The remainder of this documentation</div>
+<div class="ct-L2Sectionbody">explores each layer and subsystem in greater detail.</div>
+<div class="ct-L2Sectionbody"></div>
 <div class="ct-L2Sectionbody">At the foundation are the core libraries. These provide reusable functionality</div>
 <div class="ct-L2Sectionbody">such as configuration management, state handling, command-line argument processing,</div>
 <div class="ct-L2Sectionbody">user interaction, metadata handling, logging, deployment support, and</div>
@@ -250,21 +264,12 @@
 <div class="ct-L2Sectionbody">  </div>
 <div class="ct-L2Sectionbody">A typical startup sequence consists of:</div>
 <div class="ct-L2Sectionbody">  </div>
-<div class="ct-L2Sectionbody">    Script startup</div>
-<div class="ct-L2Sectionbody">        ↓</div>
-<div class="ct-L2Sectionbody">    Bootstrap initialization</div>
-<div class="ct-L2Sectionbody">        ↓</div>
-<div class="ct-L2Sectionbody">    Environment discovery</div>
-<div class="ct-L2Sectionbody">        ↓</div>
-<div class="ct-L2Sectionbody">    Framework path resolution</div>
-<div class="ct-L2Sectionbody">        ↓</div>
-<div class="ct-L2Sectionbody">    Configuration initialization</div>
-<div class="ct-L2Sectionbody">        ↓</div>
-<div class="ct-L2Sectionbody">    State initialization</div>
-<div class="ct-L2Sectionbody">        ↓</div>
-<div class="ct-L2Sectionbody">    Library loading</div>
-<div class="ct-L2Sectionbody">        ↓</div>
-<div class="ct-L2Sectionbody">    Application execution</div>
+<div class="doc-image-group images-1">
+<figure class="doc-image">
+<img src="../assets/images/Bootstrap-Sequence.png" alt="Figure 3 – SolidGroundUX bootstrap sequence." loading="lazy">
+<figcaption>Figure 3 – SolidGroundUX bootstrap sequence.</figcaption>
+</figure>
+</div>
 <div class="ct-L2Sectionbody">  </div>
 <div class="ct-L2Sectionbody">By centralizing initialization logic, application scripts remain focused on their</div>
 <div class="ct-L2Sectionbody">actual purpose rather than infrastructure concerns.</div>

@@ -2,28 +2,33 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Load console modules</title>
+  <title>Load configured console modules</title>
   <link rel="stylesheet" href="../assets/doc.css">
   <link rel="stylesheet" href="../assets/theme.css">
 </head>
 <body>
 <main class="doc-page">
 <header class="doc-page-header">
-  <div class="doc-title">Load console modules</div>
+  <div class="doc-title">Load configured console modules</div>
   <div class="doc-breadcrumb">SolidgroundUX / sgnd-console.sh / Module loading / _sgnd_console_load_modules</div>
 </header>
 <div class="ct-functionbody sh-highlight">Purpose</div>
-<div class="ct-functionbody">  Load console modules.</div>
+<div class="ct-functionbody">  Load one module file or all modules in a configured directory.</div>
 <div class="ct-functionbody"></div>
 <div class="ct-functionbody sh-highlight">Behavior</div>
-<div class="ct-functionbody">  - Internal helper.</div>
-<div class="ct-functionbody">  - Preserves existing script runtime behavior.</div>
+<div class="ct-functionbody">  - Sources SGND_CONSOLE_MODULE_PATH directly when it is a .sh file.</div>
+<div class="ct-functionbody">  - Sources every top-level .sh file when it is a directory.</div>
+<div class="ct-functionbody">  - Loads directory modules in shell glob order.</div>
+<div class="ct-functionbody">  - Warns when a directory contains no modules.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody">Inputs (globals):</div>
+<div class="ct-functionbody">  SGND_CONSOLE_MODULE_PATH</div>
 <div class="ct-functionbody"></div>
 <div class="ct-functionbody sh-highlight">Returns</div>
-<div class="ct-functionbody">  Returns the underlying command or workflow status.</div>
+<div class="ct-functionbody">  0   success</div>
+<div class="ct-functionbody">  126 module source missing or module load failed</div>
 <div class="ct-functionbody"></div>
 <div class="ct-functionbody sh-highlight">Usage</div>
-<div class="ct-functionbody">  _sgnd_console_load_modules</div>
 </main>
 </body>
 </html>
