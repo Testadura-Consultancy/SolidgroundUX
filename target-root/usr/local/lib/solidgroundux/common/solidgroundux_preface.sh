@@ -80,6 +80,8 @@
 # > with future support for Python and C# in mind.
 
 # - Framework capabilities summary --------------------------------------------------
+# . Images
+#   Framework-Features.png :: Figure 2 – SolidGroundUX capabilities.  
 #
 # > SolidGroundUX can be used as a small runtime framework, a documentation system,
 # > a console application host, and a deployment toolkit. The sections below provide
@@ -233,7 +235,13 @@
 # -- Layered Architecture ------------------------------------------------------------
 #
 # > The framework is organized into several logical layers.
-#   
+# . Images
+#   Framework-Architecture.png :: Figure 1 – SolidGroundUX layered architecture.  
+#
+# > The diagram provides a high-level overview of the major framework
+# > components and their relationships. The remainder of this documentation
+# > explores each layer and subsystem in greater detail.
+#
 # > At the foundation are the core libraries. These provide reusable functionality
 # > such as configuration management, state handling, command-line argument processing,
 # > user interaction, metadata handling, logging, deployment support, and
@@ -257,21 +265,9 @@
 #   
 # > A typical startup sequence consists of:
 #   
-# >     Script startup
-# >         ↓
-# >     Bootstrap initialization
-# >         ↓
-# >     Environment discovery
-# >         ↓
-# >     Framework path resolution
-# >         ↓
-# >     Configuration initialization
-# >         ↓
-# >     State initialization
-# >         ↓
-# >     Library loading
-# >         ↓
-# >     Application execution
+# . Images
+#   Bootstrap-Sequence.png :: Figure 3 – SolidGroundUX bootstrap sequence.  
+#
 #   
 # > By centralizing initialization logic, application scripts remain focused on their
 # > actual purpose rather than infrastructure concerns.

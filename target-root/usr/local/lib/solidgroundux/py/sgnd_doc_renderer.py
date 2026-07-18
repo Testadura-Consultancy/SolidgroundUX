@@ -830,345 +830,68 @@ class DocRenderer:
 
     def render_layout_css(self) -> None:
         css_file = self.asset_dir / "doc.css"
+        css_file.write_text("""html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
 
-        css_lines = [
-            "html, body {",
-            "    margin: 0;",
-            "    padding: 0;",
-            "    height: 100%;",
-            "}",
-            "",
-            "body {",
-            "    border-top: 0;",
-            "}",
-            "",
-            ".doc-shell {",
-            "    display: grid;",
-            f"    grid-template-columns: {self.config.get('VAL_NAV_WIDTH', '320px')} 1fr;",
-            "    height: 100vh;",
-            "}",
-            "",
-            ".doc-nav {",
-            "    border-right: 1px solid #d0d0d0;",
-            "    overflow: auto;",
-            "    padding: 36px 20px 14px 20px;",
-            "}",
-            "",
-            ".doc-nav-title {",
-            "    margin: 0 0 14px 0;",
-            "    padding-bottom: 6px;",
-            "    border-bottom: 1px solid #c0c0c0;",
-            "}",
-            "",
-            ".doc-nav-node {",
-            "    margin-top: 4px;",
-            "    margin-bottom: 4px;",
-            "}",
-            "",
-            ".doc-nav-node summary {",
-            "    cursor: pointer;",
-            "    line-height: 1.25;",
-            "}",
-            "",
-            ".doc-nav-module {",
-            "    text-decoration: none;",
-            "}",
-            "",
-            ".doc-nav-module:hover {",
-            "    text-decoration: underline;",
-            "}",
-            "",
-            ".doc-nav-section {",
-            "    display: block;",
-            "    margin-top: 6px;",
-            "    margin-bottom: 2px;",
-            "    text-decoration: none;",
-            "}",
-            "",
-            "a.doc-nav-section:hover {",
-            "    text-decoration: underline;",
-            "}",
-            "",
-            ".doc-nav-item {",
-            "    display: block;",
-            "    text-decoration: none;",
-            "    line-height: 1.2;",
-            "    margin-top: 2px;",
-            "    margin-bottom: 2px;",
-            "}",
-            "",
-            ".doc-nav-item:hover {",
-            "    text-decoration: underline;",
-            "}",
-            "",
-            ".doc-nav-special,",
-            ".doc-nav-special a,",
-            ".doc-nav-special > summary,",
-            ".type-product,",
-            ".type-product a,",
-            ".type-group,",
-            ".type-group a,",
-            ".type-group > summary,",
-            ".type-appendices,",
-            ".type-appendices a,",
-            ".type-appendices > summary,",
-            ".type-appendix,",
-            ".type-appendix a,",
-            ".type-preface,"
-            ".type-preface a,",
-            ".type-epilogue,",
-            ".type-epilogue a {",
-            "    font-weight: bold;",
-            "}",
-            "",
-            ".doc-content-frame {",
-            "    width: 100%;",
-            "    height: 100vh;",
-            "    border: 0;",
-            "}",
-            "",
-            ".doc-page {",
-            "    padding: 36px 36px;",
-            "}",
-            "",
-            ".doc-page-header {",
-            "    border-bottom: 1px solid #d0d0d0;",
-            "    margin-bottom: 22px;",
-            "    padding-bottom: 12px;",
-            "}",
-            "",
-            ".doc-attribution-meta {",
-            "    display: grid;",
-            "    grid-template-columns: max-content 1fr;",
-            "    column-gap: 12px;",
-            "    row-gap: 4px;",
-            "}",
-            "",
-            ".doc-attribution-meta dt {",
-            "    font-weight: bold;",
-            "}",
-            "",
-            ".doc-license-text {",
-            "    white-space: pre-wrap;",
-            "    padding: 1rem;",
-            "    border: 1px solid #d0d0d0;",
-            "    border-radius: 6px;",
-            "}",
-            "",
-            ".doc-attribution-meta dd {",
-            "    margin: 0;",
-            "}",
-            "",
-            ".doc-data-table {",
-            "    border-collapse: collapse;",
-            "    margin-top: 10px;",
-            "    width: 100%;",
-            "}",
-            "",
-            ".doc-data-table th,",
-            ".doc-data-table td {",
-            "    border: 1px solid #d0d0d0;",
-            "    padding: 5px 7px;",
-            "    text-align: left;",
-            "    vertical-align: top;",
-            "}",
-        ]
-
-        css_file.write_text("\n".join(css_lines), encoding="utf-8")
-
-    def ensure_theme_css(self) -> None:
-        theme_file = self.asset_dir / "theme.css"
-
-        if theme_file.exists():
-            return
-
-        theme_file.write_text(self.default_theme_css(), encoding="utf-8")
-
-    def default_theme_css(self) -> str:
-        return """html, body {
-    font-family: Arial, sans-serif;
-    color: #222;
-    background: #ffffff;
+* {
+    box-sizing: border-box;
 }
 
 body {
-    font-size: 10pt;
+    border-top: 0;
+}
+
+.doc-shell {
+    display: grid;
+    grid-template-columns: """ + self.config.get("VAL_NAV_WIDTH", "320px") + """ 1fr;
+    height: 100vh;
 }
 
 .doc-nav {
-    background: #f6f6f6;
+    border-right: 1px solid var(--doc-border);
+    overflow: auto;
+    padding: 32px 20px 18px;
 }
 
 .doc-nav-title {
-    font-size: 16pt;
-    font-weight: bold;
+    margin: 0 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--doc-border);
+}
+
+.doc-nav-node {
+    margin: 4px 0;
 }
 
 .doc-nav-node summary {
-    font-weight: bold;
+    cursor: pointer;
+    line-height: 1.35;
 }
 
-.doc-nav-node.level-0 > summary {
-    font-size: 12pt;
-    font-weight: bold;
-}
-
-.doc-nav-module {
-    color: #111;
+.doc-nav-module,
+.doc-nav-section,
+.doc-nav-item {
+    text-decoration: none;
 }
 
 .doc-nav-section {
-    font-size: 10pt;
-    color: #111;
-}
-
-.doc-nav-section.level-1,
-.doc-nav-section.level-2 {
-    font-weight: 600;
-}
-
-.doc-nav-section.level-3 {
-    font-weight: 500;
+    display: block;
+    margin: 6px 0 2px;
 }
 
 .doc-nav-item {
-    color: #204a87;
-    font-size: 9.5pt;
+    display: block;
+    line-height: 1.3;
+    margin: 3px 0;
 }
 
-.doc-title {
-    font-family: Arial, sans-serif;
-    font-size: 16pt;
-    font-weight: bold;
-    font-style: normal;
-    line-height: 1.25;
-    margin: 0 0 14px 0;
-}
-
-.doc-breadcrumb {
-    font-style: italic;
-    color: #666;
-    font-size: 10pt;
-}
-
-.ct-prefaceheader,
-.ct-moduleheader {
-    font-family: Arial, sans-serif;
-    font-size: 16pt;
-    font-weight: bold;
-    font-style: normal;
-    line-height: 1.2;
-    margin: 0 0 16px 0;
-}
-
-.ct-epilogueheader,
-.ct-appendixheader {
-    font-family: Arial, sans-serif;
-    font-size: 16pt;
-    font-weight: bold;
-    font-style: normal;
-    line-height: 1.2;
-    margin: 0 0 14px 0;
-}
-
-.ct-L1Sectionheader {
-    font-family: Arial, sans-serif;
-    font-size: 14pt;
-    font-weight: bold;
-    font-style: normal;
-    line-height: 1.25;
-    margin: 24px 0 10px 0;
-}
-
-.ct-L2Sectionheader {
-    font-family: Arial, sans-serif;
-    font-size: 14pt;
-    font-weight: 600;
-    font-style: normal;
-    line-height: 1.25;
-    margin: 18px 0 8px 0;
-}
-
-.ct-L3Sectionheader {
-    font-family: Arial, sans-serif;
-    font-size: 14pt;
-    font-weight: 600;
-    font-style: normal;
-    line-height: 1.25;
-    margin: 14px 0 6px 0;
-}
-
-.ct-functionheader,
-.ct-variableheader {
-    font-family: Arial, sans-serif;
-    font-size: 12pt;
-    font-weight: bold;
-    font-style: normal;
-    line-height: 1.35;
-    margin: 12px 0 4px 0;
-}
-
-.ct-gendocheader {
-    font-family: Arial, sans-serif;
-    font-size: 12pt;
-    font-weight: bold;
-    font-style: normal;
-    line-height: 1.35;
-    margin: 12px 0 5px 0;
-}
-
-.ct-prefacebody,
-.ct-modulebody,
-.ct-epiloguebody,
-.ct-appendixbody,
-.ct-L1Sectionbody,
-.ct-L2Sectionbody,
-.ct-L3Sectionbody,
-.ct-functionbody,
-.ct-variablebody,
-.ct-gendocbody,
-.ct-documentbody {
-    font-family: Arial, sans-serif;
-    font-size: 10pt;
-    font-weight: normal;
-    font-style: normal;
-    line-height: 1.45;
-    margin: 0 0 6px 0;
-    white-space: pre-wrap;
-    tab-size: 4;
-}
-
-.sh-label {
-    font-weight: bold;
-    margin: 8px 0 3px 0;
-}
-
-.sh-highlight {
-    font-weight: 600;
-}
-
-.sh-emphasis {
-    font-weight: bold;
-}
-
-.sh-underline {
+.doc-nav-module:hover,
+.doc-nav-section:hover,
+.doc-nav-item:hover {
     text-decoration: underline;
-}
-
-.sh-quote {
-    font-style: italic;
-}
-
-.sh-listitem {
-    margin-left: 22px;
-}
-
-.sh-listitem::before {
-    content: "\\2022 ";
-}
-
-.sh-indent {
-    margin-left: 22px;
 }
 
 .doc-nav-special,
@@ -1188,62 +911,364 @@ body {
 .type-preface a,
 .type-epilogue,
 .type-epilogue a {
-    font-weight: bold;
+    font-weight: 700;
+}
+
+.doc-content-frame {
+    width: 100%;
+    height: 100vh;
+    border: 0;
+}
+
+.doc-page {
+    width: min(100%, 1080px);
+    padding: 42px 48px 64px;
+}
+
+.doc-page-header {
+    border-bottom: 1px solid var(--doc-border);
+    margin-bottom: 24px;
+    padding-bottom: 14px;
+}
+
+.doc-attribution-meta {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    column-gap: 12px;
+    row-gap: 5px;
+}
+
+.doc-attribution-meta dt {
+    font-weight: 700;
+}
+
+.doc-attribution-meta dd {
+    margin: 0;
+}
+
+.doc-license-text {
+    white-space: pre-wrap;
+    padding: 1rem;
+    border: 1px solid var(--doc-border);
+    border-radius: 8px;
+}
+
+.doc-data-table {
+    border-collapse: collapse;
+    margin-top: 12px;
+    width: 100%;
+}
+
+.doc-data-table th,
+.doc-data-table td {
+    border: 1px solid var(--doc-border);
+    padding: 7px 9px;
+    text-align: left;
+    vertical-align: top;
+}
+
+.doc-summary-tiles {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 14px;
+}
+
+.doc-summary-tile {
+    min-height: 104px;
+    padding: 18px;
+    border: 1px solid var(--doc-border);
+    border-radius: 12px;
+    background: var(--doc-panel);
+}
+
+.doc-summary-value {
+    font-size: 24pt;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.doc-summary-label {
+    margin-top: 10px;
+}
+
+.doc-image-group {
+    display: grid;
+    gap: 18px;
+    margin: 22px 0 28px;
+    align-items: start;
+}
+
+.doc-image-group.images-1 {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.doc-image-group.images-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.doc-image-group.images-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.doc-image-group.images-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.doc-image {
+    margin: 0;
+}
+
+.doc-image img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 680px;
+    object-fit: contain;
+    border: 1px solid var(--doc-border);
+    border-radius: 10px;
+    background: #fff;
+}
+
+.doc-image figcaption {
+    margin-top: 8px;
+    text-align: center;
+    color: var(--doc-muted);
+    font-size: 9.5pt;
+}
+
+@media (max-width: 900px) {
+    .doc-shell {
+        grid-template-columns: 270px 1fr;
+    }
+
+    .doc-page {
+        padding: 32px 28px 48px;
+    }
+
+    .doc-summary-tiles,
+    .doc-image-group.images-3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .doc-summary-tiles,
+    .doc-image-group.images-2,
+    .doc-image-group.images-3,
+    .doc-image-group.images-4 {
+        grid-template-columns: 1fr;
+    }
+}
+""", encoding="utf-8")
+
+    def ensure_theme_css(self) -> None:
+        theme_file = self.asset_dir / "theme.css"
+
+        if theme_file.exists():
+            return
+
+        theme_file.write_text(self.default_theme_css(), encoding="utf-8")
+
+    def default_theme_css(self) -> str:
+        return """:root {
+    --doc-text: #1f2933;
+    --doc-muted: #667085;
+    --doc-border: #d9dee7;
+    --doc-panel: #f7f9fc;
+    --doc-nav: #f3f5f8;
+    --doc-accent: #245b8f;
+    --doc-accent-soft: #eaf2f8;
+}
+
+html, body {
+    font-family: "Segoe UI", Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--doc-text);
+    background: #ffffff;
+}
+
+body {
+    font-size: 10.5pt;
+}
+
+.doc-nav {
+    background: var(--doc-nav);
+}
+
+.doc-nav-title {
+    font-size: 17pt;
+    font-weight: 700;
+}
+
+.doc-nav-node summary {
+    font-weight: 650;
+}
+
+.doc-nav-node.level-0 > summary {
+    font-size: 12pt;
+}
+
+.doc-nav-module,
+.doc-nav-section {
+    color: #18212b;
+}
+
+.doc-nav-section {
+    font-size: 10pt;
+}
+
+.doc-nav-section.level-1,
+.doc-nav-section.level-2 {
+    font-weight: 600;
+}
+
+.doc-nav-item {
+    color: var(--doc-accent);
+    font-size: 9.5pt;
+}
+
+.doc-title,
+.ct-prefaceheader,
+.ct-moduleheader,
+.ct-epilogueheader,
+.ct-appendixheader {
+    font-size: 19pt;
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 0 0 16px;
+}
+
+.doc-breadcrumb {
+    font-style: italic;
+    color: var(--doc-muted);
+    font-size: 10pt;
+}
+
+.ct-L1Sectionheader {
+    font-size: 16pt;
+    font-weight: 700;
+    line-height: 1.25;
+    margin: 30px 0 12px;
+}
+
+.ct-L2Sectionheader {
+    font-size: 13.5pt;
+    font-weight: 700;
+    line-height: 1.25;
+    margin: 24px 0 10px;
+}
+
+.ct-L3Sectionheader {
+    font-size: 12pt;
+    font-weight: 650;
+    line-height: 1.25;
+    margin: 18px 0 8px;
+}
+
+.ct-functionheader,
+.ct-variableheader,
+.ct-gendocheader {
+    font-size: 11.5pt;
+    font-weight: 700;
+    line-height: 1.35;
+    margin: 16px 0 5px;
+}
+
+.ct-prefacebody,
+.ct-modulebody,
+.ct-epiloguebody,
+.ct-appendixbody,
+.ct-L1Sectionbody,
+.ct-L2Sectionbody,
+.ct-L3Sectionbody,
+.ct-functionbody,
+.ct-variablebody,
+.ct-gendocbody,
+.ct-documentbody {
+    font-size: 10.5pt;
+    font-weight: 400;
+    line-height: 1.55;
+    margin: 0 0 7px;
+    white-space: pre-wrap;
+    tab-size: 4;
+}
+
+.sh-label,
+.sh-highlight {
+    font-weight: 700;
+    margin: 12px 0 4px;
+}
+
+.sh-emphasis {
+    font-weight: 700;
+}
+
+.sh-underline {
+    text-decoration: underline;
+}
+
+.sh-quote {
+    font-style: italic;
+    color: var(--doc-muted);
+}
+
+.sh-listitem {
+    margin-left: 22px;
+}
+
+.sh-listitem::before {
+    content: "\2022 \";
+}
+
+.sh-indent {
+    margin-left: 22px;
 }
 
 .doc-title-page {
-    max-width: 900px;
+    max-width: 1040px;
 }
 
 .doc-title-page-title {
-    font-family: Arial, sans-serif;
-    font-size: 20pt;
-    font-weight: bold;
-    line-height: 1.2;
-    margin: 0 0 16px 0;
+    font-size: 26pt;
+    font-weight: 750;
+    line-height: 1.15;
+    margin: 0 0 10px;
+    letter-spacing: -0.02em;
 }
 
 .doc-title-page-subtitle {
     font-size: 15pt;
-    font-style: italic;
-    margin: 0 0 18px 0;
+    font-style: normal;
+    color: var(--doc-muted);
+    margin: 0 0 20px;
 }
 
 .doc-title-page-meta {
-    margin-top: 28px;
+    margin-top: 20px;
+    padding: 14px 16px;
+    border-left: 4px solid var(--doc-accent);
+    background: var(--doc-accent-soft);
+    border-radius: 0 8px 8px 0;
 }
 
 .doc-title-page-summary {
-    margin-top: 36px;
+    margin-top: 32px;
 }
 
-.doc-summary-table {
-    border-collapse: collapse;
-    margin-top: 12px;
-    min-width: 420px;
+.doc-summary-tile {
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
 }
 
-.doc-summary-table th,
-.doc-summary-table td {
-    border: 1px solid #d0d0d0;
-    padding: 8px 12px;
+.doc-summary-value {
+    color: var(--doc-accent);
 }
 
-.doc-summary-table th {
-    text-align: left;
+.doc-summary-label {
+    color: var(--doc-muted);
+    font-weight: 600;
 }
-
-.doc-summary-table td:first-child {
-    text-align: left;
-}
-
-.doc-summary-table td:last-child {
-    text-align: right;
-    font-variant-numeric: tabular-nums;
-}
-
 """
-
 
     def title_from_rows(self, ref: str, fallback: str) -> str:
         for row in self.content_by_ref.get(ref, []):
@@ -1323,28 +1348,29 @@ body {
     def render_landing_summary(self) -> str:
         summary = self.collect_landing_summary()
 
-        rows = [
+        tiles = [
             ("Modules", summary["modules"]),
-            ("Lines of code", summary["lines"]),
-            ("Lines of code excluding comments", summary["code_lines"]),
             ("Functions", summary["functions"]),
+            ("Lines of code", summary["lines"]),
+            ("Code lines", summary["code_lines"]),
         ]
 
         lines = [
             '<section class="doc-title-page-summary">',
             '<h2 class="ct-L2Sectionheader">Documentation summary</h2>',
-            '<table class="doc-summary-table">',
-            '<tbody>',
+            '<div class="doc-summary-tiles">',
         ]
 
-        for label, value in rows:
-            lines.append(
-                f'<tr><td>{esc(label)}</td><td>{value:,}</td></tr>'
-            )
+        for label, value in tiles:
+            lines.extend([
+                '<div class="doc-summary-tile">',
+                f'<div class="doc-summary-value">{value:,}</div>',
+                f'<div class="doc-summary-label">{esc(label)}</div>',
+                '</div>',
+            ])
 
         lines.extend([
-            '</tbody>',
-            '</table>',
+            '</div>',
             '</section>',
         ])
 
@@ -2248,17 +2274,92 @@ body {
 
         return self.render_rows(rows, skip_first_header=skip_first_header)
 
+    def is_images_marker(self, row: Row) -> bool:
+        if (row.get("content", "") or "").strip().casefold() not in {"image", "images"}:
+            return False
+        return (row.get("stylehint", "normal") or "normal") in {"label", "highlight"}
+
+    def parse_image_entry(self, value: str) -> tuple[str, str]:
+        text = (value or "").strip()
+
+        if "::" in text:
+            source, caption = text.split("::", 1)
+            return source.strip(), caption.strip()
+
+        return text, ""
+
+    def image_source(self, source: str) -> str:
+        clean_source = source.strip().replace("\\", "/")
+        if re.match(r"^(?:https?:|data:|/)" , clean_source, flags=re.IGNORECASE):
+            return clean_source
+        if clean_source.startswith("assets/"):
+            return f"../{clean_source}"
+        return f"../assets/images/{clean_source}"
+
+    def render_image_group(self, entries: Sequence[tuple[str, str]]) -> str:
+        valid_entries = [(source, caption) for source, caption in entries if source]
+        if not valid_entries:
+            return ""
+
+        count_class = f"images-{min(len(valid_entries), 4)}"
+        lines = [f'<div class="doc-image-group {count_class}">']
+
+        for source, caption in valid_entries:
+            alt_text = caption or Path(source).stem.replace("-", " ").replace("_", " ")
+            lines.append('<figure class="doc-image">')
+            lines.append(
+                f'<img src="{esc(self.image_source(source))}" alt="{esc(alt_text)}" loading="lazy">'
+            )
+            if caption:
+                lines.append(f'<figcaption>{esc(caption)}</figcaption>')
+            lines.append('</figure>')
+
+        lines.append('</div>')
+        return "\n".join(lines)
+
     def render_rows(self, rows: Sequence[Row], skip_first_header: bool = False) -> str:
         lines: List[str] = []
         skipped_first_header = False
+        index = 0
 
-        for row in rows:
+        while index < len(rows):
+            row = rows[index]
+
             if row.get("suppress", "0") == "1":
+                index += 1
                 continue
 
             content_type = row.get("contenttype", "documentbody") or "documentbody"
             if skip_first_header and not skipped_first_header and content_type.endswith("header"):
                 skipped_first_header = True
+                index += 1
+                continue
+
+            if self.is_images_marker(row):
+                entries: List[tuple[str, str]] = []
+                index += 1
+
+                while index < len(rows):
+                    image_row = rows[index]
+                    if image_row.get("suppress", "0") == "1":
+                        index += 1
+                        continue
+
+                    image_content = image_row.get("content", "") or ""
+                    image_style = image_row.get("stylehint", "normal") or "normal"
+
+                    if not image_content.strip():
+                        index += 1
+                        break
+                    if image_style != "normal" or image_row.get("contenttype", "") != content_type:
+                        break
+
+                    entries.append(self.parse_image_entry(image_content))
+                    index += 1
+
+                image_html = self.render_image_group(entries)
+                if image_html:
+                    lines.append(image_html)
                 continue
 
             style_hint = row.get("stylehint", "normal") or "normal"
@@ -2270,6 +2371,7 @@ body {
 
             css_class = " ".join(classes)
             lines.append(f'<div class="{esc(css_class)}">{esc(content)}</div>')
+            index += 1
 
         return "\n".join(lines)
 

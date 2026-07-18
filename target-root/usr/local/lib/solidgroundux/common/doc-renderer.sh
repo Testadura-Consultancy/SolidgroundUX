@@ -200,9 +200,16 @@ set -uo pipefail
                 sayinfo "Cleaning output directory: $VAL_OUTDIR"
 
                 local preserved_theme=""
+                local preserved_images=""
+
                 if [[ -f "$VAL_OUTDIR/assets/theme.css" ]]; then
                     preserved_theme="$(mktemp /tmp/sgnd-doc-theme.XXXXXX.css)" || return 1
                     cp "$VAL_OUTDIR/assets/theme.css" "$preserved_theme" || return 1
+                fi
+
+                if [[ -d "$VAL_OUTDIR/assets/images" ]]; then
+                    preserved_images="$(mktemp -d /tmp/sgnd-doc-images.XXXXXX)" || return 1
+                    cp -a "$VAL_OUTDIR/assets/images/." "$preserved_images/" || return 1
                 fi
 
                 rm -rf "${VAL_OUTDIR:?}/"* && sayinfo "Cleaned output directory: $VAL_OUTDIR" || {
@@ -216,6 +223,30 @@ set -uo pipefail
                     rm -f "$preserved_theme"
                     sayinfo "Preserved existing theme.css"
                 fi
+
+                if [[ -n "$preserved_images" && -d "$preserved_images" ]]; then
+                    mkdir -p "$VAL_OUTDIR/assets/images" || return 1
+                    cp -a "$preserved_images/." "$VAL_OUTDIR/assets/images/" || return 1
+                    rm -rf "$preserved_images"
+                    sayinfo "Preserved documentation images"
+                fi
+            fi
+
+            local image_source_dir="${VAL_SRCDIR}/usr/local/lib/solidgroundux/assets"
+            local image_target_dir="${VAL_OUTDIR}/assets/images"
+            
+            if [[ -d "$image_source_dir" ]]; then
+                mkdir -p "$image_target_dir" || {
+                    sayerror "Failed to create documentation image directory: $image_target_dir"
+                    return 1
+                }
+
+                cp -a "$image_source_dir/." "$image_target_dir/" || {
+                    sayerror "Failed to copy documentation images from: $image_source_dir"
+                    return 1
+                }
+
+                sayinfo "Copied documentation images from: $image_source_dir"
             fi
         }
 
