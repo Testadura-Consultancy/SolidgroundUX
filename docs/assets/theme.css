@@ -1,38 +1,47 @@
+:root {
+    --doc-text: #1f2933;
+    --doc-muted: #667085;
+    --doc-border: #d9dee7;
+    --doc-panel: #f7f9fc;
+    --doc-nav: #f3f5f8;
+    --doc-accent: #245b8f;
+    --doc-accent-soft: #eaf2f8;
+}
+
 html, body {
-    font-family: Arial, sans-serif;
-    color: #222;
+    font-family: "Segoe UI", Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--doc-text);
     background: #ffffff;
 }
 
 body {
-    font-size: 10pt;
+    font-size: 10.5pt;
 }
 
 .doc-nav {
-    background: #f6f6f6;
+    background: var(--doc-nav);
 }
 
 .doc-nav-title {
-    font-size: 16pt;
-    font-weight: bold;
+    font-size: 17pt;
+    font-weight: 700;
 }
 
 .doc-nav-node summary {
-    font-weight: bold;
+    font-weight: 650;
 }
 
 .doc-nav-node.level-0 > summary {
     font-size: 12pt;
-    font-weight: bold;
 }
 
-.doc-nav-module {
-    color: #111;
+.doc-nav-module,
+.doc-nav-section {
+    color: #18212b;
 }
 
 .doc-nav-section {
     font-size: 10pt;
-    color: #111;
 }
 
 .doc-nav-section.level-1,
@@ -40,94 +49,56 @@ body {
     font-weight: 600;
 }
 
-.doc-nav-section.level-3 {
-    font-weight: 500;
-}
-
 .doc-nav-item {
-    color: #204a87;
+    color: var(--doc-accent);
     font-size: 9.5pt;
 }
 
-.doc-title {
-    font-family: Arial, sans-serif;
-    font-size: 16pt;
-    font-weight: bold;
-    font-style: normal;
-    line-height: 1.25;
-    margin: 0 0 14px 0;
+.doc-title,
+.ct-prefaceheader,
+.ct-moduleheader,
+.ct-epilogueheader,
+.ct-appendixheader {
+    font-size: 19pt;
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 0 0 16px;
 }
 
 .doc-breadcrumb {
     font-style: italic;
-    color: #666;
+    color: var(--doc-muted);
     font-size: 10pt;
 }
 
-.ct-prefaceheader,
-.ct-moduleheader {
-    font-family: Arial, sans-serif;
-    font-size: 16pt;
-    font-weight: bold;
-    font-style: normal;
-    line-height: 1.2;
-    margin: 0 0 16px 0;
-}
-
-.ct-epilogueheader,
-.ct-appendixheader {
-    font-family: Arial, sans-serif;
-    font-size: 16pt;
-    font-weight: bold;
-    font-style: normal;
-    line-height: 1.2;
-    margin: 0 0 14px 0;
-}
-
 .ct-L1Sectionheader {
-    font-family: Arial, sans-serif;
-    font-size: 14pt;
-    font-weight: bold;
-    font-style: normal;
+    font-size: 16pt;
+    font-weight: 700;
     line-height: 1.25;
-    margin: 24px 0 10px 0;
+    margin: 30px 0 12px;
 }
 
 .ct-L2Sectionheader {
-    font-family: Arial, sans-serif;
-    font-size: 14pt;
-    font-weight: 600;
-    font-style: normal;
+    font-size: 13.5pt;
+    font-weight: 700;
     line-height: 1.25;
-    margin: 18px 0 8px 0;
+    margin: 24px 0 10px;
 }
 
 .ct-L3Sectionheader {
-    font-family: Arial, sans-serif;
-    font-size: 14pt;
-    font-weight: 600;
-    font-style: normal;
+    font-size: 12pt;
+    font-weight: 650;
     line-height: 1.25;
-    margin: 14px 0 6px 0;
+    margin: 18px 0 8px;
 }
 
 .ct-functionheader,
-.ct-variableheader {
-    font-family: Arial, sans-serif;
-    font-size: 12pt;
-    font-weight: bold;
-    font-style: normal;
-    line-height: 1.35;
-    margin: 12px 0 4px 0;
-}
-
+.ct-variableheader,
 .ct-gendocheader {
-    font-family: Arial, sans-serif;
-    font-size: 12pt;
-    font-weight: bold;
-    font-style: normal;
+    font-size: 11.5pt;
+    font-weight: 700;
     line-height: 1.35;
-    margin: 12px 0 5px 0;
+    margin: 16px 0 5px;
 }
 
 .ct-prefacebody,
@@ -141,27 +112,22 @@ body {
 .ct-variablebody,
 .ct-gendocbody,
 .ct-documentbody {
-    font-family: Arial, sans-serif;
-    font-size: 10pt;
-    font-weight: normal;
-    font-style: normal;
-    line-height: 1.45;
-    margin: 0 0 6px 0;
+    font-size: 10.5pt;
+    font-weight: 400;
+    line-height: 1.55;
+    margin: 0 0 7px;
     white-space: pre-wrap;
     tab-size: 4;
 }
 
-.sh-label {
-    font-weight: bold;
-    margin: 8px 0 3px 0;
-}
-
+.sh-label,
 .sh-highlight {
-    font-weight: 600;
+    font-weight: 700;
+    margin: 12px 0 4px;
 }
 
 .sh-emphasis {
-    font-weight: bold;
+    font-weight: 700;
 }
 
 .sh-underline {
@@ -170,6 +136,7 @@ body {
 
 .sh-quote {
     font-style: italic;
+    color: var(--doc-muted);
 }
 
 .sh-listitem {
@@ -177,81 +144,81 @@ body {
 }
 
 .sh-listitem::before {
-    content: "\2022 ";
+    content: "2 ";
 }
 
 .sh-indent {
     margin-left: 22px;
 }
 
-.doc-nav-special,
-.doc-nav-special a,
-.doc-nav-special > summary,
-.type-product,
-.type-product a,
-.type-group,
-.type-group a,
-.type-group > summary,
-.type-appendices,
-.type-appendices a,
-.type-appendices > summary,
-.type-appendix,
-.type-appendix a,
-.type-preface,
-.type-preface a,
-.type-epilogue,
-.type-epilogue a {
-    font-weight: bold;
-}
-
 .doc-title-page {
-    max-width: 900px;
+    max-width: 1040px;
 }
 
 .doc-title-page-title {
-    font-family: Arial, sans-serif;
-    font-size: 20pt;
-    font-weight: bold;
-    line-height: 1.2;
-    margin: 0 0 16px 0;
+    font-size: 26pt;
+    font-weight: 750;
+    line-height: 1.15;
+    margin: 0 0 10px;
+    letter-spacing: -0.02em;
 }
 
 .doc-title-page-subtitle {
-    font-size: 15pt;
-    font-style: italic;
-    margin: 0 0 18px 0;
+    font-size: 17pt;
+    font-style: normal;
+    color: var(--doc-muted);
+    margin: 0 0 24px;
+}
+
+.doc-title-page-hero {
+    margin: 26px 0 30px;
+}
+
+.doc-title-page-hero img {
+    display: block;
+    width: 100%;
+    max-width: 1280px;
+    height: auto;
+    margin: 0 auto;
+    border: 1px solid var(--doc-border);
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(16, 24, 40, 0.12);
 }
 
 .doc-title-page-meta {
-    margin-top: 28px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    margin-top: 22px;
+    color: var(--doc-muted);
+    font-size: 10.5pt;
 }
 
 .doc-title-page-summary {
-    margin-top: 36px;
+    margin-top: 30px;
 }
 
-.doc-summary-table {
-    border-collapse: collapse;
-    margin-top: 12px;
-    min-width: 420px;
+.doc-title-page-note {
+    margin: 28px 0 0;
+    padding: 16px 18px;
+    border-left: 4px solid var(--doc-accent);
+    background: var(--doc-accent-soft);
+    border-radius: 0 8px 8px 0;
+    font-size: 12pt;
+    font-style: italic;
 }
 
-.doc-summary-table th,
-.doc-summary-table td {
-    border: 1px solid #d0d0d0;
-    padding: 8px 12px;
+.doc-summary-tile {
+    border-top: 4px solid var(--doc-accent);
+    background: linear-gradient(145deg, var(--doc-accent-soft), var(--doc-panel));
+    box-shadow: 0 3px 10px rgba(16, 24, 40, 0.08);
 }
 
-.doc-summary-table th {
-    text-align: left;
+.doc-summary-value {
+    color: var(--doc-accent);
 }
 
-.doc-summary-table td:first-child {
-    text-align: left;
+.doc-summary-label {
+    color: var(--doc-muted);
+    font-weight: 600;
 }
-
-.doc-summary-table td:last-child {
-    text-align: right;
-    font-variant-numeric: tabular-nums;
-}
-

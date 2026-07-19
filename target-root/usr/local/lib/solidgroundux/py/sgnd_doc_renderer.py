@@ -1238,26 +1238,54 @@ body {
 }
 
 .doc-title-page-subtitle {
-    font-size: 15pt;
+    font-size: 17pt;
     font-style: normal;
     color: var(--doc-muted);
-    margin: 0 0 20px;
+    margin: 0 0 24px;
+}
+
+.doc-title-page-hero {
+    margin: 26px 0 30px;
+}
+
+.doc-title-page-hero img {
+    display: block;
+    width: 100%;
+    max-width: 1280px;
+    height: auto;
+    margin: 0 auto;
+    border: 1px solid var(--doc-border);
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(16, 24, 40, 0.12);
 }
 
 .doc-title-page-meta {
-    margin-top: 20px;
-    padding: 14px 16px;
-    border-left: 4px solid var(--doc-accent);
-    background: var(--doc-accent-soft);
-    border-radius: 0 8px 8px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    margin-top: 22px;
+    color: var(--doc-muted);
+    font-size: 10.5pt;
 }
 
 .doc-title-page-summary {
-    margin-top: 32px;
+    margin-top: 30px;
+}
+
+.doc-title-page-note {
+    margin: 28px 0 0;
+    padding: 16px 18px;
+    border-left: 4px solid var(--doc-accent);
+    background: var(--doc-accent-soft);
+    border-radius: 0 8px 8px 0;
+    font-size: 12pt;
+    font-style: italic;
 }
 
 .doc-summary-tile {
-    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+    border-top: 4px solid var(--doc-accent);
+    background: linear-gradient(145deg, var(--doc-accent-soft), var(--doc-panel));
+    box-shadow: 0 3px 10px rgba(16, 24, 40, 0.08);
 }
 
 .doc-summary-value {
@@ -1351,13 +1379,12 @@ body {
         tiles = [
             ("Modules", summary["modules"]),
             ("Functions", summary["functions"]),
-            ("Lines of code", summary["lines"]),
+            ("Source lines", summary["lines"]),
             ("Code lines", summary["code_lines"]),
         ]
 
         lines = [
             '<section class="doc-title-page-summary">',
-            '<h2 class="ct-L2Sectionheader">Documentation summary</h2>',
             '<div class="doc-summary-tiles">',
         ]
 
@@ -1380,13 +1407,23 @@ body {
         output_file = self.page_dir / "title.html"
         output_file.parent.mkdir(parents=True, exist_ok=True)
 
-        product = self.doc_product or "Documentation"
-        subtitle = self.doc_subtitle or "Full Development Documentation"
+        product = self.doc_product or "SolidGroundUX"
+        brand = "SolidGroundUX" if product.lower() == "solidgroundux" else product
+        subtitle = "Professional Bash Framework"
+        release_image = self.output_dir / "assets" / "images" / "release.png"
 
         meta_lines = []
         if self.doc_version:
-            meta_lines.append(f'<div class="ct-documentbody"><strong>Version:</strong> {esc(self.doc_version)}</div>')
-        meta_lines.append(f'<div class="ct-documentbody"><strong>Generated:</strong> {esc(self.doc_render_date)}</div>')
+            meta_lines.append(f'<div><strong>Version:</strong> {esc(self.doc_version)}</div>')
+        meta_lines.append(f'<div><strong>Generated:</strong> {esc(self.doc_render_date)}</div>')
+
+        hero_html = ""
+        if release_image.is_file():
+            hero_html = "\n".join([
+                '<figure class="doc-title-page-hero">',
+                f'<img src="../assets/images/release.png" alt="{esc(brand)} release overview">',
+                '</figure>',
+            ])
 
         summary_html = self.render_landing_summary()
 
@@ -1401,19 +1438,20 @@ body {
             "</head>",
             "<body>",
             '<main class="doc-page doc-title-page">',
-            f'<h1 class="doc-title-page-title">{esc(self.doc_title)}</h1>',
+            f'<h1 class="doc-title-page-title">{esc(brand)}</h1>',
             f'<div class="doc-title-page-subtitle">{esc(subtitle)}</div>',
-            f'<div class="ct-documentbody">{esc(product)}</div>',
+            hero_html,
+            summary_html,
+            '<p class="doc-title-page-note">This documentation is generated directly from the framework source.</p>',
             '<div class="doc-title-page-meta">',
             *meta_lines,
             '</div>',
-            summary_html,
             "</main>",
             "</body>",
             "</html>",
         ]
 
-        output_file.write_text("\n".join(html_lines), encoding="utf-8")
+        output_file.write_text("\n".join(line for line in html_lines if line), encoding="utf-8")
 
     def render_index_page(self) -> None:
         first_page = "pages/title.html"
