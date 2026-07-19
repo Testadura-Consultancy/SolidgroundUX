@@ -90,7 +90,7 @@ set -uo pipefail
         #   framework metadata, informational output, and license checks.
     SGND_PRODUCT="SolidGroundUX"
     SGND_VERSION="1.7"
-    SGND_BUILD="2619601"
+    SGND_BUILD="2620012"
     SGND_COMPANY="Testadura Consultancy"
     SGND_COPYRIGHT="© 2025 - 2026 Testadura Consultancy"
     SGND_LICENSE="Testadura Non-Commercial License (TD-NC) v1.1."

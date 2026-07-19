@@ -3,8 +3,13 @@
 All notable changes to SolidGroundUX are documented in this file.
 
 The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.
+# Unreleased
+
+# Version 1.7 (Build 2620012) 2026-07-19
+
 ## Removed
 - Removed motd file,  but archaic and cumbersome, and doesn't really add any functionality
+- Added images to documentation, do-generator now supports image tag in comments
 
 ---
 # Version 1.7 (Build 2619600) - 2026-07-14
