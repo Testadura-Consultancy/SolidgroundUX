@@ -87,6 +87,7 @@ set -uo pipefail
     #   executable and does not depend on the SolidGroundUX runtime.
 
 FLAG_MANUAL=0
+FLAG_UPDATE=0
 FLAG_FORCE=0
 FLAG_NO_BACKUP=0
 FLAG_VERBOSE=0
@@ -97,6 +98,7 @@ VAL_PRODUCT=""
 VAL_RELEASES_DIR=""
 VAL_TARGET_ROOT="/"
 VAL_BACKUP_ROOT=""
+VAL_ARCHIVE_ROOT=""
 VAL_STATE_ROOT=""
 VAL_SELECTED_PACKAGE=""
 
@@ -212,10 +214,12 @@ print_usage() {
         'Options:' \
         '  --product NAME         Limit candidate packages to the given product' \
         '  --manual               Select a package manually from a list' \
+        '  --update               Install only when the selected build is newer' \
         '  --package FILE         Install a specific package archive' \
         '  --releases-dir PATH    Releases directory to scan' \
         '  --target-root PATH     Target root to install into (default: /)' \
         '  --backup-root PATH     Backup root directory' \
+        '  --archive-root PATH    Installed release archive directory' \
         '  --state-root PATH      Installer state root directory' \
         '  --no-backup            Skip backup creation' \
         '  --force                Accepted for future reinstall or downgrade handling; currently reserved' \
@@ -227,6 +231,7 @@ print_usage() {
         'Default locations:' \
         '  releases-dir : <target-root>/var/lib/solidgroundux/releases' \
         '  backup-root  : <target-root>/var/lib/solidgroundux/backups' \
+        '  archive-root : <target-root>/var/lib/solidgroundux/archive' \
         '  state-root   : <target-root>/var/lib/solidgroundux' \
         '' \
         'Selection rules:' \
@@ -302,6 +307,9 @@ parse_args() {
             --manual)
                 FLAG_MANUAL=1
                 ;;
+            --update)
+                FLAG_UPDATE=1
+                ;;
             --package)
                 shift
                 VAL_SELECTED_PACKAGE="${1:-}"
@@ -321,6 +329,11 @@ parse_args() {
                 shift
                 VAL_BACKUP_ROOT="${1:-}"
                 [[ -n "$VAL_BACKUP_ROOT" ]] || { sayfail "--backup-root requires a value"; return 1; }
+                ;;
+            --archive-root)
+                shift
+                VAL_ARCHIVE_ROOT="${1:-}"
+                [[ -n "$VAL_ARCHIVE_ROOT" ]] || { sayfail "--archive-root requires a value"; return 1; }
                 ;;
             --state-root)
                 shift
@@ -403,6 +416,10 @@ init_paths() {
 
     if [[ -z "$VAL_BACKUP_ROOT" ]]; then
         VAL_BACKUP_ROOT="$(normalize_rooted_path "$VAL_TARGET_ROOT" "/var/lib/solidgroundux/backups")"
+    fi
+
+    if [[ -z "$VAL_ARCHIVE_ROOT" ]]; then
+        VAL_ARCHIVE_ROOT="$(normalize_rooted_path "$VAL_TARGET_ROOT" "/var/lib/solidgroundux/archive")"
     fi
 
     if [[ -z "$VAL_STATE_ROOT" ]]; then
@@ -738,6 +755,136 @@ manifest_paths() {
     done < "$manifest"
 }
 
+
+# installed_build - Read the currently installed build number
+    # Returns:
+    #   Prints the installed build number, or returns non-zero when unavailable.
+    #
+    # Usage:
+    #   installed_build
+installed_build() {
+    local current_file="${VAL_STATE_ROOT%/}/CURRENT"
+    local current_base=""
+
+    [[ -r "$current_file" ]] || return 1
+    IFS= read -r current_base < "$current_file"
+    [[ -n "$current_base" ]] || return 1
+    release_build_from_base "$current_base"
+}
+
+# update_required - Determine whether the selected package is newer
+    # Purpose:
+    #   Compares the selected package build with the recorded installed build.
+    #
+    # Arguments:
+    #   $1  Selected release archive.
+    #
+    # Returns:
+    #   0 when installation should proceed; 1 when the installed build is current or newer.
+    #
+    # Usage:
+    #   update_required "$archive"
+update_required() {
+    local archive="${1:?missing archive}"
+    local selected_base=""
+    local selected_build=""
+    local current_build=""
+
+    (( FLAG_UPDATE )) || return 0
+    (( FLAG_FORCE )) && return 0
+
+    selected_base="$(release_base_from_archive "$archive")"
+    selected_build="$(release_build_from_base "$selected_base")" || {
+        sayfail "Cannot determine selected package build: $selected_base"
+        return 1
+    }
+
+    current_build="$(installed_build 2>/dev/null || true)"
+    if [[ -z "$current_build" ]]; then
+        sayinfo "No installed build recorded; installation is required"
+        return 0
+    fi
+
+    if (( 10#$selected_build > 10#$current_build )); then
+        sayinfo "Update available: build $current_build -> $selected_build"
+        return 0
+    fi
+
+    sayok "Already up to date: installed build $current_build, selected build $selected_build"
+    return 1
+}
+
+# archive_release_set - Archive successfully installed release artifacts
+    # Purpose:
+    #   Moves the installed archive, manifest, and checksum files out of the pending releases directory.
+    #
+    # Arguments:
+    #   $1  Installed release archive path.
+    #
+    # Output:
+    #   Prints the release archive directory on success.
+    #
+    # Returns:
+    #   0 when all present release artifacts are archived; non-zero otherwise.
+    #
+    # Usage:
+    #   archive_release_set "$archive"
+archive_release_set() {
+    local archive="${1:?missing archive}"
+    local base=""
+    local source_dir=""
+    local destination_dir=""
+    local artifact=""
+    local artifacts=()
+
+    base="$(release_base_from_archive "$archive")"
+    source_dir="$(dirname -- "$archive")"
+    destination_dir="${VAL_ARCHIVE_ROOT%/}/${base}"
+    artifacts=(
+        "${base}.tar.gz"
+        "${base}.tar.gz.sha256"
+        "${base}.manifest"
+        "${base}.manifest.sha256"
+    )
+
+    run_cmd mkdir -p "$destination_dir" || return 1
+
+    for artifact in "${artifacts[@]}"; do
+        [[ -e "${source_dir%/}/${artifact}" ]] || continue
+        run_cmd mv -f -- "${source_dir%/}/${artifact}" "$destination_dir/" || return 1
+    done
+
+    printf '%s\n' "$destination_dir"
+}
+
+# update_archived_install_records - Point current-install records at archived artifacts
+    # Purpose:
+    #   Updates current package markers after the release set has been archived.
+    #
+    # Arguments:
+    #   $1  Release base name.
+    #   $2  Release archive directory.
+    #
+    # Returns:
+    #   0 when marker files are updated.
+    #
+    # Usage:
+    #   update_archived_install_records "$base" "$archive_dir"
+update_archived_install_records() {
+    local base="${1:?missing release base}"
+    local archive_dir="${2:?missing archive directory}"
+    local package_path="${archive_dir%/}/${base}.tar.gz"
+    local manifest_path="${archive_dir%/}/${base}.manifest"
+
+    if (( FLAG_DRYRUN )); then
+        printf '[DRYRUN] update archived package markers under: %s\n' "$VAL_STATE_ROOT"
+        return 0
+    fi
+
+    printf '%s\n' "$package_path" > "${VAL_STATE_ROOT%/}/CURRENT.package"
+    printf '%s\n' "$manifest_path" > "${VAL_STATE_ROOT%/}/CURRENT.package_manifest"
+}
+
 # fn: backup_affected_paths - Back up affected target paths
     # . Purpose
     #   Creates a timestamped backup of target paths affected by the selected manifest.
@@ -912,6 +1059,7 @@ main() {
     local manifest=""
     local base=""
     local backup_dir=""
+    local archive_dir=""
 
     require_command find || return 1
     require_command tar || return 1
@@ -919,6 +1067,7 @@ main() {
     require_command cp || return 1
     require_command dirname || return 1
     require_command readlink || return 1
+    require_command mv || return 1
 
     parse_args "$@" || return 1
     init_paths
@@ -926,6 +1075,7 @@ main() {
     saydebug "Target root   : $VAL_TARGET_ROOT"
     saydebug "Releases dir  : $VAL_RELEASES_DIR"
     saydebug "Backup root   : $VAL_BACKUP_ROOT"
+    saydebug "Archive root  : $VAL_ARCHIVE_ROOT"
     saydebug "State root    : $VAL_STATE_ROOT"
     saydebug "Product filter: ${VAL_PRODUCT:-<none>}"
 
@@ -940,6 +1090,18 @@ main() {
     manifest="$(verify_release_set "$archive")" || return 1
     sayok "Using manifest: $(basename -- "$manifest")"
 
+    if ! update_required "$archive"; then
+        if (( FLAG_UPDATE )) && (( ! FLAG_FORCE )); then
+            archive_dir="$(archive_release_set "$archive")" || {
+                saywarning "No update required, but release artifacts could not be archived"
+                return 0
+            }
+            sayok "Release archived: $archive_dir"
+            return 0
+        fi
+        return 1
+    fi
+
     if (( ! FLAG_NO_BACKUP )); then
         backup_dir="$(backup_affected_paths "$manifest" "$base")" || return 1
         sayok "Backup created: $backup_dir"
@@ -950,6 +1112,15 @@ main() {
     extract_release_archive "$archive" || return 1
     write_install_records "$archive" "$manifest" "$backup_dir" || return 1
 
+    archive_dir="$(archive_release_set "$archive")" || {
+        saywarning "Installation completed, but release artifacts could not be archived"
+        return 0
+    }
+    update_archived_install_records "$base" "$archive_dir" || {
+        saywarning "Release archived, but current package markers could not be updated"
+        return 0
+    }
+    sayok "Release archived: $archive_dir"
     sayok "Installation completed"
 }
 
