@@ -4,6 +4,11 @@ All notable changes to SolidGroundUX are documented in this file.
 
 The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.
 
+## Added
+- Added sgnd-update.sh to download the latest version of SolidGroundUX from Git-hub
+- Bin wrappers for the install, uninstall and update scripts
+
+
 # Version 1.7 (Build 2620012) 2026-07-19
 
 ## Removed
