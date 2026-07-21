@@ -54,6 +54,16 @@ set -uo pipefail
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
+    SGND_FRAMEWORK_STATE_MODULE_ID="framework-state"
+    SGND_FRAMEWORK_STATE_MODULE_NAME="Framework State"
+    SGND_FRAMEWORK_STATE_MODULE_VERSION="1.0.0"
+    SGND_FRAMEWORK_STATE_MODULE_DESC="Inspect and edit transferable SolidGroundUX framework runtime settings"
+
+    SGND_MODULE_ID="$SGND_FRAMEWORK_STATE_MODULE_ID"
+    SGND_MODULE_NAME="$SGND_FRAMEWORK_STATE_MODULE_NAME"
+    SGND_MODULE_VERSION="$SGND_FRAMEWORK_STATE_MODULE_VERSION"
+    SGND_MODULE_DESC="$SGND_FRAMEWORK_STATE_MODULE_DESC"
+
 # --- Internal helpers -------------------------------------------------------------
     # fn: _framework_state_validate
         # . Purpose
@@ -214,12 +224,12 @@ set -uo pipefail
 
 # --- Console registration ---------------------------------------------------------
     sgnd_console_register_group \
-        "framework-state" \
-        "Framework state" \
-        "Inspect and edit transferable framework runtime settings" \
+        "$SGND_FRAMEWORK_STATE_MODULE_ID" \
+        "$SGND_FRAMEWORK_STATE_MODULE_NAME ($SGND_FRAMEWORK_STATE_MODULE_VERSION)" \
+        "$SGND_FRAMEWORK_STATE_MODULE_DESC" \
         0 1 820
 
-    sgnd_console_register_item "state-show" "framework-state" "Show state" "framework_state_show" "Display current transferable framework-state values" 0 30 1
-    sgnd_console_register_item "state-edit" "framework-state" "Edit state" "framework_state_edit" "Edit and save transferable framework-state values" 0 30 1
-    sgnd_console_register_item "state-save" "framework-state" "Save state" "framework_state_save" "Save current transferable values to the state file" 0 30 1
-    sgnd_console_register_item "state-reload" "framework-state" "Reload state" "framework_state_reload" "Reload transferable values from the state file" 0 30 1
+    sgnd_console_register_item "state-show" "$SGND_FRAMEWORK_STATE_MODULE_ID" "Show state" "framework_state_show" "Display current transferable framework-state values" 0 30 1
+    sgnd_console_register_item "state-edit" "$SGND_FRAMEWORK_STATE_MODULE_ID" "Edit state" "framework_state_edit" "Edit and save transferable framework-state values" 0 30 1
+    sgnd_console_register_item "state-save" "$SGND_FRAMEWORK_STATE_MODULE_ID" "Save state" "framework_state_save" "Save current transferable values to the state file" 0 30 1
+    sgnd_console_register_item "state-reload" "$SGND_FRAMEWORK_STATE_MODULE_ID" "Reload state" "framework_state_reload" "Reload transferable values from the state file" 0 30 1

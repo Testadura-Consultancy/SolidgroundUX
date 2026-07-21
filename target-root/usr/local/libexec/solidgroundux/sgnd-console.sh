@@ -185,8 +185,8 @@ set -uo pipefail
     SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"
     SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
     SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
-    SGND_SCRIPT_TITLE="Solidground Console"
-    : "${SGND_SCRIPT_DESC:=Interactive console module host}"
+    SGND_SCRIPT_TITLE="SolidGroundUX Management Studio"
+    : "${SGND_SCRIPT_DESC:=Manage SolidGroundUX, development tools, and system configuration}"
     : "${SGND_SCRIPT_VERSION:=1.0}"
     : "${SGND_SCRIPT_BUILD:=20260312}"
     : "${SGND_SCRIPT_DEVELOPERS:=Mark Fieten}"
@@ -336,13 +336,17 @@ set -uo pipefail
         SGND_ITEM_SCHEMA="key|group|label|handler|desc|source|builtin|waitsecs|visible"
         declare -ag SGND_ITEM_ROWS=()
 
-        SGND_MODULE_SCHEMA="id|name|desc|source"
+        SGND_MODULE_SCHEMA="id|name|version|desc|source"
         declare -ag SGND_MODULE_ROWS=()
 
 
 
-        SGND_CONSOLE_TITLE="Solidground Console"
-        SGND_CONSOLE_DESC="Interactive scalable console module host"
+        SGND_CONSOLE_TITLE="SolidGroundUX Management Studio"
+        SGND_CONSOLE_DESC="Manage SolidGroundUX, development tools, and system configuration"
+        SGND_CONSOLE_BIN_DIRECTORY=""
+        SGND_CONSOLE_SBIN_DIRECTORY=""
+        SGND_CONSOLE_LIBEXEC_DIRECTORY=""
+        SGND_CONSOLE_DEFAULT_MODULE_DIRECTORY=""
         SGND_CONSOLE_MODULE_PATH=""
         SGND_CURRENT_MODULE=""
         SGND_LAST_WAITSECS=15
@@ -358,6 +362,28 @@ set -uo pipefail
         SGND_PAGE_HAS_NEXT=0
         SGND_PAGE_MAX_ROWS=15
             
+    # --- Console paths ---------------------------------------------------------------
+    # _sgnd_console_init_paths
+        # . Purpose
+        #   Derive Management Studio paths from SGND_APPLICATION_ROOT.
+        #
+        # . Returns
+        #   0 on success; 1 when SGND_APPLICATION_ROOT is unavailable.
+        #
+        # . Usage
+        #   _sgnd_console_init_paths || return $?
+    _sgnd_console_init_paths() {
+        [[ -n "${SGND_APPLICATION_ROOT:-}" ]] || {
+            sayfail "SGND_APPLICATION_ROOT is not initialized"
+            return 1
+        }
+
+        SGND_CONSOLE_BIN_DIRECTORY="${SGND_APPLICATION_ROOT%/}/usr/local/bin"
+        SGND_CONSOLE_SBIN_DIRECTORY="${SGND_APPLICATION_ROOT%/}/usr/local/sbin"
+        SGND_CONSOLE_LIBEXEC_DIRECTORY="${SGND_APPLICATION_ROOT%/}/usr/local/libexec/solidgroundux"
+        SGND_CONSOLE_DEFAULT_MODULE_DIRECTORY="${SGND_CONSOLE_LIBEXEC_DIRECTORY%/}/console-modules"
+    }
+
     # --- Console configuration -------------------------------------------------------
     # fn: _sgnd_console_load_config - Resolve the console module source
         # . Purpose
@@ -391,7 +417,7 @@ set -uo pipefail
         : "${SGND_PAGE_MAX_ROWS:=15}"
 
         if [[ -z "$module_path" ]]; then
-            module_path="${SGND_SCRIPT_DIR%/}/console-modules"
+            module_path="$SGND_CONSOLE_DEFAULT_MODULE_DIRECTORY"
         fi
 
         module_path="$(readlink -f -- "$module_path" 2>/dev/null || printf '%s' "$module_path")"
@@ -464,14 +490,13 @@ set -uo pipefail
         sgnd_console_register_group "$SGND_GROUP_RUNTIME" "Runtime toggles" "" 1 0 980
         sgnd_console_register_group "$SGND_GROUP_SESSION" "Console Session" "" 1 1 990
 
-        sgnd_console_register_item "B" "$SGND_GROUP_RUNTIME" "$(_sgnd_console_label_debug)" "_sgnd_console_toggle_debug" "Toggle debug output" 1 0 0
-        sgnd_console_register_item "D" "$SGND_GROUP_RUNTIME" "$(_sgnd_console_label_dryrun)" "_sgnd_console_toggle_dryrun" "Toggle dry-run mode" 1 0 0
-        sgnd_console_register_item "G" "$SGND_GROUP_RUNTIME" "$(_sgnd_console_label_logfile)" "_sgnd_console_set_file_loglevel" "Set file log level" 1 0 0
-        sgnd_console_register_item "V" "$SGND_GROUP_RUNTIME" "$(_sgnd_console_label_verbose)" "_sgnd_console_toggle_verbose" "Toggle verbose output" 1 0 1
+        sgnd_console_register_item "D" "$SGND_GROUP_RUNTIME" "Dry-run / Commit" "_sgnd_console_toggle_dryrun" "Toggle dry-run mode" 1 0 0
+        sgnd_console_register_item "C" "$SGND_GROUP_RUNTIME" "Console log level" "_sgnd_console_cycle_console_loglevel" "Cycle console log level" 1 0 0
+        sgnd_console_register_item "F" "$SGND_GROUP_RUNTIME" "File log level" "_sgnd_console_cycle_file_loglevel" "Cycle file log level" 1 0 0
+        sgnd_console_register_item "T" "$SGND_GROUP_RUNTIME" "Theme" "_sgnd_console_cycle_theme" "Cycle installed themes" 1 0 0
+        sgnd_console_register_item "S" "$SGND_GROUP_RUNTIME" "Clear screen" "_sgnd_console_toggle_clearonrender" "Toggle clear screen before rendering" 1 0 0
 
-        sgnd_console_register_item "C" "$SGND_GROUP_SESSION" "$(_sgnd_console_label_clearonrender)" "_sgnd_console_toggle_clearonrender" "Toggle clear screen before rendering" 1 0 0
         sgnd_console_register_item "L" "$SGND_GROUP_SESSION" "Set lines per page" "_sgnd_console_set_lines_per_page" "Set the maximum number of menu lines per page" 1 0 1
-        sgnd_console_register_item "T" "$SGND_GROUP_SESSION" "Set theme" "_sgnd_console_set_theme" "Set the UI theme" 1 0 1
         sgnd_console_register_item "<" "$SGND_GROUP_SESSION" "Previous page" "_sgnd_console_prevpage" "Show previous menu page" 1 0 0
         sgnd_console_register_item ">" "$SGND_GROUP_SESSION" "Next page" "_sgnd_console_nextpage" "Show next menu page" 1 0 0
         sgnd_console_register_item "R" "$SGND_GROUP_SESSION" "Redraw menu" "_sgnd_console_redraw" "Refresh console display" 1 0 1
@@ -573,7 +598,12 @@ set -uo pipefail
         #   _sgnd_console_source_module "$module"
     _sgnd_console_source_module() {
         local module_file="${1:?missing module file}"
+        local module_id=""
+        local module_name=""
+        local module_version=""
+        local module_desc=""
 
+        unset SGND_MODULE_ID SGND_MODULE_NAME SGND_MODULE_VERSION SGND_MODULE_DESC
         SGND_CURRENT_MODULE="$(basename "${module_file%.sh}")"
         SGND_CURRENT_MODULE_DIR="$(dirname "$module_file")"
         saydebug "Loading module: $module_file"
@@ -582,10 +612,39 @@ set -uo pipefail
         source "$module_file" || {
             sayfail "Failed to load module: $module_file"
             unset SGND_CURRENT_MODULE SGND_CURRENT_MODULE_DIR
+            unset SGND_MODULE_ID SGND_MODULE_NAME SGND_MODULE_VERSION SGND_MODULE_DESC
+            return 126
+        }
+
+        module_id="${SGND_MODULE_ID:-}"
+        module_name="${SGND_MODULE_NAME:-}"
+        module_version="${SGND_MODULE_VERSION:-}"
+        module_desc="${SGND_MODULE_DESC:-}"
+
+        if [[ -z "$module_id" || -z "$module_name" || -z "$module_version" || -z "$module_desc" ]]; then
+            sayfail "Module metadata is incomplete: $module_file"
+            unset SGND_CURRENT_MODULE SGND_CURRENT_MODULE_DIR
+            unset SGND_MODULE_ID SGND_MODULE_NAME SGND_MODULE_VERSION SGND_MODULE_DESC
+            return 126
+        fi
+
+        if sgnd_dt_has_row "$SGND_MODULE_SCHEMA" SGND_MODULE_ROWS id "$module_id"; then
+            sayfail "Duplicate module ID rejected: $module_id"
+            unset SGND_CURRENT_MODULE SGND_CURRENT_MODULE_DIR
+            unset SGND_MODULE_ID SGND_MODULE_NAME SGND_MODULE_VERSION SGND_MODULE_DESC
+            return 126
+        fi
+
+        sgnd_dt_append "$SGND_MODULE_SCHEMA" SGND_MODULE_ROWS \
+            "$module_id" "$module_name" "$module_version" "$module_desc" "$module_file" || {
+            sayfail "Failed to record module metadata: $module_id"
+            unset SGND_CURRENT_MODULE SGND_CURRENT_MODULE_DIR
+            unset SGND_MODULE_ID SGND_MODULE_NAME SGND_MODULE_VERSION SGND_MODULE_DESC
             return 126
         }
 
         unset SGND_CURRENT_MODULE SGND_CURRENT_MODULE_DIR
+        unset SGND_MODULE_ID SGND_MODULE_NAME SGND_MODULE_VERSION SGND_MODULE_DESC
     }
 
     # fn: _sgnd_console_load_modules - Load configured console modules
@@ -636,92 +695,64 @@ set -uo pipefail
     }
 
 # --- Script execution ----------------------------------------------------------------
-    # _sgnd_run_script
-        # . Purpose
-        #   Resolve and execute a script within the sgnd-console environment.
-        #
-        # . Behavior
-        #   - Resolves relative script paths against SGND_SCRIPT_DIR.
-        #   - Normalizes the resolved path when readlink is available.
-        #   - Verifies that the script exists and is executable.
-        #   - Forwards active framework flags to the target script.
-        #   - Executes the script with all original remaining arguments preserved.
-        #
-        # . Arguments
-        #   $1  SCRIPT
-        #       Script path, absolute or relative to SGND_SCRIPT_DIR.
-        #   $@  ARGS
-        #       Additional arguments passed to the target script.
-        #
-        # Forwarded flags:
-        #   FLAG_DRYRUN         -> --dryrun
-        #   FLAG_VERBOSE        -> --verbose
-        #   FLAG_DEBUG          -> --debug
-        #   SGND_LOGFILE_ENABLED  -> --logfile <file>
-        #
+    # _sgnd_build_command_args
         # . Returns
-        #   Exit code of the executed script
-        #   1 if validation fails
+        #   0 after populating the requested argument array.
         #
         # . Usage
-        #   _sgnd_run_script "jobs/import.sh" --customer 42
-        #
-        # Examples:
-        #   _sgnd_run_script "./tools/build.sh" --release
-        #
-        # Notes:
-        #   - Uses argument arrays to preserve proper quoting.
-    # fn: _sgnd_run_script - Run a tool script from the console
-        # . Purpose
-        #   Run a tool script from the console.
-        #
-        # . Behavior
-        #   - Internal helper.
-        #   - Preserves existing script runtime behavior.
-        #
-        # . Returns
-        #   Returns the underlying command or workflow status.
-        #
-        # . Usage
-        #   _sgnd_run_script
-    _sgnd_run_script() {
-        local script="${1:?missing script}"
+        #   _sgnd_build_command_args command_args "$@"
+    _sgnd_build_command_args() {
+        local -n result_ref="${1:?missing result array}"
+        shift
+
+        result_ref=()
+        _sgnd_flag_is_on "${FLAG_DRYRUN:-0}" && result_ref+=("--dryrun")
+        result_ref+=("$@")
+    }
+
+    _sgnd_run_public_command() {
+        local command_name="${1:?missing command name}"
         shift || true
+        local resolved=""
+        local -a command_args=()
 
-        local resolved="$script"
-        local -a script_args=()
-
-        case "$script" in
-            /*) ;;
-            *)
-                resolved="${SGND_SCRIPT_DIR%/}/$script"
-                ;;
-        esac
-
-        if command -v readlink >/dev/null 2>&1; then
-            resolved="$(readlink -f -- "$resolved" 2>/dev/null || printf '%s' "$resolved")"
+        if [[ -x "${SGND_CONSOLE_BIN_DIRECTORY%/}/$command_name" ]]; then
+            resolved="${SGND_CONSOLE_BIN_DIRECTORY%/}/$command_name"
+        elif [[ -x "${SGND_CONSOLE_SBIN_DIRECTORY%/}/$command_name" ]]; then
+            resolved="${SGND_CONSOLE_SBIN_DIRECTORY%/}/$command_name"
+        else
+            resolved="$(command -v -- "$command_name" 2>/dev/null || true)"
         fi
 
-        [[ -f "$resolved" ]] || {
-            sayfail "Script not found: $resolved"
+        [[ -n "$resolved" && -x "$resolved" ]] || {
+            sayfail "Public command not found or not executable: $command_name"
             return 1
         }
 
-        [[ -x "$resolved" ]] || {
-            sayfail "Script not executable: $resolved"
+        _sgnd_build_command_args command_args "$@"
+        saydebug "Executing public command: $resolved ${command_args[*]}"
+        "$resolved" "${command_args[@]}"
+    }
+
+    _sgnd_run_module_script() {
+        local module_id="${1:?missing module ID}"
+        local script_name="${2:?missing script name}"
+        shift 2
+        local resolved="${SGND_CONSOLE_DEFAULT_MODULE_DIRECTORY%/}/${module_id}/${script_name}"
+        local -a command_args=()
+
+        [[ "$script_name" != */* ]] || {
+            sayfail "Module script must be a filename: $script_name"
+            return 1
+        }
+        [[ -f "$resolved" && -x "$resolved" ]] || {
+            sayfail "Module script not found or not executable: $resolved"
             return 1
         }
 
-        _sgnd_flag_is_on "${FLAG_DRYRUN:-0}"        && script_args+=("--dryrun")
-        _sgnd_flag_is_on "${FLAG_VERBOSE:-0}"       && script_args+=("--verbose")
-        _sgnd_flag_is_on "${FLAG_DEBUG:-0}"         && script_args+=("--debug")
-        _sgnd_flag_is_on "${SGND_LOGFILE_ENABLED:-0}" && [[ -n "${LOG_FILE:-}" ]] && script_args+=("--logfile" "$LOG_FILE")
-
-        script_args+=("$@")
-
-        saydebug "Executing script: $resolved ${script_args[*]}"
-
-        "$resolved" "${script_args[@]}"
+        _sgnd_build_command_args command_args "$@"
+        saydebug "Executing module script: $resolved ${command_args[*]}"
+        "$resolved" "${command_args[@]}"
     }
 
     # fn: _sgnd_flag_is_on - Interpret a console flag value
@@ -1002,6 +1033,7 @@ set -uo pipefail
         # -- Startup
             _framework_locator || exit $?
             sgnd_exe_start --state -- "$@"
+            _sgnd_console_init_paths || exit $?
 
         # -- Main script logic
 

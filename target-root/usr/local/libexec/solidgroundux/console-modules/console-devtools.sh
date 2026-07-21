@@ -54,6 +54,16 @@ set -uo pipefail
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
+    SGND_DEVTOOLS_MODULE_ID="devtools"
+    SGND_DEVTOOLS_MODULE_NAME="Developer Tools"
+    SGND_DEVTOOLS_MODULE_VERSION="1.0.0"
+    SGND_DEVTOOLS_MODULE_DESC="Workspace, deployment, release, documentation, and framework smoke-test tools"
+
+    SGND_MODULE_ID="$SGND_DEVTOOLS_MODULE_ID"
+    SGND_MODULE_NAME="$SGND_DEVTOOLS_MODULE_NAME"
+    SGND_MODULE_VERSION="$SGND_DEVTOOLS_MODULE_VERSION"
+    SGND_MODULE_DESC="$SGND_DEVTOOLS_MODULE_DESC"
+
 # --- Developer tool actions -------------------------------------------------------
     # fn: _exe_createworkspace
         # . Returns
@@ -61,7 +71,7 @@ set -uo pipefail
         # . Usage
         #   _exe_createworkspace
     _exe_createworkspace() {
-        _sgnd_run_script "create-workspace.sh"
+        _sgnd_run_public_command "sgnd-create-workspace"
     }
 
     # fn: _exe_deployworkspace
@@ -70,7 +80,7 @@ set -uo pipefail
         # . Usage
         #   _exe_deployworkspace
     _exe_deployworkspace() {
-        _sgnd_run_script "deploy-workspace.sh"
+        _sgnd_run_public_command "sgnd-deploy-workspace"
     }
 
     # fn: _exe_preparerelease
@@ -79,7 +89,7 @@ set -uo pipefail
         # . Usage
         #   _exe_preparerelease
     _exe_preparerelease() {
-        _sgnd_run_script "prepare-release.sh"
+        _sgnd_run_public_command "sgnd-prepare-release"
     }
 
     # fn: _exe_metadata_editor
@@ -88,7 +98,17 @@ set -uo pipefail
         # . Usage
         #   _exe_metadata_editor
     _exe_metadata_editor() {
-        _sgnd_run_script "metadata-editor.sh"
+        _sgnd_run_public_command "sgnd-metadata-editor"
+    }
+
+    # _exe_generate_docs
+        # . Returns
+        #   Exit status of sgnd-generate-docs.
+        #
+        # . Usage
+        #   _exe_generate_docs
+    _exe_generate_docs() {
+        _sgnd_run_public_command "sgnd-generate-docs"
     }
 
 # --- Framework smoke-test actions ------------------------------------------------
@@ -616,15 +636,16 @@ set -uo pipefail
 
 # --- Console registration --------------------------------------------------------
     sgnd_console_register_group \
-        "devtools" \
-        "Developer tools" \
-        "Workspace, deployment, release, and metadata tools" \
+        "$SGND_DEVTOOLS_MODULE_ID" \
+        "$SGND_DEVTOOLS_MODULE_NAME ($SGND_DEVTOOLS_MODULE_VERSION)" \
+        "$SGND_DEVTOOLS_MODULE_DESC" \
         0 1 800
 
-    sgnd_console_register_item "createws" "devtools" "Create workspace" "_exe_createworkspace" "Create a template workspace with target-root structure" 0 15 1
-    sgnd_console_register_item "deployws" "devtools" "Deploy workspace" "_exe_deployworkspace" "Deploy a target-root structure from workspace to root" 0 15 1
-    sgnd_console_register_item "preprel" "devtools" "Prepare release" "_exe_preparerelease" "Create a release archive with checksums and manifests" 0 15 1
-    sgnd_console_register_item "metaedt" "devtools" "Metadata editor" "_exe_metadata_editor" "Edit metadata fields in script header comments" 0 15 1
+    sgnd_console_register_item "createws" "$SGND_DEVTOOLS_MODULE_ID" "Create workspace" "_exe_createworkspace" "Create a template workspace with target-root structure" 0 15 1
+    sgnd_console_register_item "deployws" "$SGND_DEVTOOLS_MODULE_ID" "Deploy workspace" "_exe_deployworkspace" "Deploy a target-root structure from workspace to root" 0 15 1
+    sgnd_console_register_item "preprel" "$SGND_DEVTOOLS_MODULE_ID" "Prepare release" "_exe_preparerelease" "Create a release archive with checksums and manifests" 0 15 1
+    sgnd_console_register_item "metaedt" "$SGND_DEVTOOLS_MODULE_ID" "Metadata editor" "_exe_metadata_editor" "Edit metadata fields in script header comments" 0 15 1
+    sgnd_console_register_item "gendocs" "$SGND_DEVTOOLS_MODULE_ID" "Generate documentation" "_exe_generate_docs" "Generate SolidGroundUX source documentation" 0 15 1
 
     sgnd_console_register_group \
         "smoketests" \

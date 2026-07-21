@@ -325,7 +325,7 @@ set -uo pipefail
             FLAG_DRYRUN=1
             sayinfo "Dry-run enabled"
         fi
-        
+        SGND_LAST_WAITSECS=0
     }
     # fn: _sgnd_console_toggle_debug - Toggle debug
         # . Purpose
@@ -403,76 +403,58 @@ set -uo pipefail
         #
         # . Usage
         #   _sgnd_console_set_file_loglevel
-    _sgnd_console_set_file_loglevel() {
-        local level="${SGND_FILE_LOG_LEVEL:-silent}"
-
-        ask_choose \
-            --label "File log level" \
-            --choices "silent,quiet,normal,verbose,debug,trace" \
-            --default "$level" \
-            --var level || return $?
-
-        SGND_FILE_LOG_LEVEL="$level"
-
-        if [[ -n "${SGND_FRAMEWORK_STATEFILE:-}" ]]; then
-            sgnd_state_set \
-                --file "$SGND_FRAMEWORK_STATEFILE" \
-                SGND_FILE_LOG_LEVEL \
-                "$SGND_FILE_LOG_LEVEL" || return 1
-        fi
-
-        sayinfo "File log level set to $SGND_FILE_LOG_LEVEL"
+    _sgnd_console_next_loglevel() {
+        case "${1:-silent}" in
+            silent) printf '%s' quiet ;;
+            quiet) printf '%s' normal ;;
+            normal) printf '%s' verbose ;;
+            verbose) printf '%s' debug ;;
+            debug) printf '%s' trace ;;
+            *) printf '%s' silent ;;
+        esac
     }
-# --- Session actions ----------------------------------------------------------------
-    # fn: _sgnd_console_set_theme - Set console theme
-        # . Purpose
-        #   Prompt for and apply the active SolidGroundUX UI theme.
-        #
-        # . Behavior
-        #   - Enumerates the installed themes.
-        #   - Uses the currently active theme as the default.
-        #   - Prompts the user to select a theme.
-        #   - Applies the selected theme immediately.
-        #   - Persists the selected theme to the framework state when available.
-        #
-        # Inputs (globals):
-        #   SGND_UI_STYLE
-        #   SGND_STYLE_DIR
-        #   SGND_FRAMEWORK_STATEFILE
-        #
-        # Outputs (globals):
-        #   SGND_UI_STYLE
-        #
-        # Side effects:
-        #   May reload the active UI style.
-        #   May update SGND_FRAMEWORK_STATEFILE.
-        #
-        # . Returns
-        #   0 when the theme is selected and applied successfully.
-        #   Non-zero when the prompt is cancelled, no themes are available, or the selected theme cannot be applied.
-        #
-        # . Usage
-        #   _sgnd_console_set_theme
-    _sgnd_console_set_theme() {
-        local current_theme=""
+
+    _sgnd_console_persist_framework_value() {
+        local key="${1:?missing key}"
+        local value="${2-}"
+
+        [[ -n "${SGND_FRAMEWORK_STATEFILE:-}" ]] || return 0
+        sgnd_state_set --file "$SGND_FRAMEWORK_STATEFILE" "$key" "$value"
+    }
+
+    _sgnd_console_cycle_console_loglevel() {
+        SGND_CONSOLE_LOG_LEVEL="$(_sgnd_console_next_loglevel "${SGND_CONSOLE_LOG_LEVEL:-silent}")"
+        _sgnd_console_persist_framework_value SGND_CONSOLE_LOG_LEVEL "$SGND_CONSOLE_LOG_LEVEL"
+        SGND_LAST_WAITSECS=0
+    }
+
+    _sgnd_console_cycle_file_loglevel() {
+        SGND_FILE_LOG_LEVEL="$(_sgnd_console_next_loglevel "${SGND_FILE_LOG_LEVEL:-silent}")"
+        _sgnd_console_persist_framework_value SGND_FILE_LOG_LEVEL "$SGND_FILE_LOG_LEVEL"
+        SGND_LAST_WAITSECS=0
+    }
+
+    _sgnd_console_theme_name() {
+        local style="${SGND_UI_STYLE##*/}"
+        style="${style%.sh}"
+        style="${style#style-}"
+        [[ "$style" == "default-ui-style" ]] && style="default"
+        printf '%s' "$style"
+    }
+
+    _sgnd_console_cycle_theme() {
+        local current="$(_sgnd_console_theme_name)"
         local theme=""
-        local choices=""
-
-        current_theme="${SGND_UI_STYLE##*/}"
-        current_theme="${current_theme%.sh}"
-        current_theme="${current_theme#style-}"
-
-        [[ "${SGND_UI_STYLE##*/}" == "default-ui-style.sh" ]] && current_theme="default"
+        local i=0
+        local current_index=-1
+        local -a themes=()
 
         while IFS= read -r theme; do
-            [[ -n "$choices" ]] && choices+=","
-            choices+="$theme"
+            themes+=("$theme")
         done < <(
             find "$SGND_STYLE_DIR" -maxdepth 1 -type f \
                 \( -name 'default-ui-style.sh' -o -name 'style-*.sh' \) \
-                | sort \
-                | while IFS= read -r file; do
-                    theme="${file##*/}"
+                -printf '%f\n' | sort | while IFS= read -r theme; do
                     theme="${theme%.sh}"
                     theme="${theme#style-}"
                     [[ "$theme" == "default-ui-style" ]] && theme="default"
@@ -480,45 +462,22 @@ set -uo pipefail
                 done
         )
 
-        [[ -n "$choices" ]] || {
-            saywarning "No themes found in $SGND_STYLE_DIR"
-            return 1
-        }
-
-        ask_choose \
-            --label "Theme" \
-            --choices "$choices" \
-            --default "$current_theme" \
-            --var theme || return $?
-
-        sgnd_theme "$theme" || return $?
-
-        if [[ -n "${SGND_FRAMEWORK_STATEFILE:-}" ]]; then
-            sgnd_state_set \
-                --file "$SGND_FRAMEWORK_STATEFILE" \
-                SGND_UI_STYLE \
-                "$SGND_UI_STYLE" || return 1
-        fi
-
-        sayinfo "Theme set to $theme"
+        (( ${#themes[@]} > 0 )) || return 1
+        for i in "${!themes[@]}"; do
+            [[ "${themes[$i]}" == "$current" ]] && current_index="$i"
+        done
+        i=$(( (current_index + 1) % ${#themes[@]} ))
+        sgnd_theme "${themes[$i]}" || return $?
+        SGND_LAST_WAITSECS=0
     }
-    # fn: _sgnd_console_set_lines_per_page - Set menu lines per page
+
+# --- Session actions ----------------------------------------------------------------
+    # fn: _sgnd_console_set_lines_per_page - Set lines per page
         # . Purpose
-        #   Set the maximum number of rendered menu lines per page.
-        #
-        # . Behavior
-        #   - Prompts for a new page height using the current value as the default.
-        #   - Requires a whole number of at least 5.
-        #   - Resets paging to the first page after a successful change.
-        #
-        # Outputs (globals):
-        #   SGND_PAGE_MAX_ROWS
-        #   SGND_PAGE_INDEX
+        #   Prompt for and apply the number of menu lines available per page.
         #
         # . Returns
-        #   0 when the page height is updated.
-        #   1 when the entered value is invalid.
-        #   Non-zero when input is cancelled or fails.
+        #   0 on success; non-zero on cancellation or invalid input.
         #
         # . Usage
         #   _sgnd_console_set_lines_per_page
@@ -673,7 +632,7 @@ set -uo pipefail
         mapfile -t sorted_rows < <(printf '%s\n' "${sortable_rows[@]}" | sort -t '|' -k1,1n -k2,2n -k3,3n)
 
         for i in "${!sorted_rows[@]}"; do
-            SGND_GROUP_RENDER_INDEXES+=("${sorted_rows[$i]##*|}")
+            SGND_GROUP_RENDER_INDEXES+=("$((10#${sorted_rows[$i]##*|}))")
         done
     }
     # fn: _sgnd_console_collect_visible_item_indexes - Console collect visible item indexes
@@ -1594,72 +1553,46 @@ set -uo pipefail
         local render_width=80
         local pad=3
         local gap=3
-
-        local debug_text=""
         local dryrun_text=""
-        local logfile_text=""
-        local verbose_text=""
+        local console_text=""
+        local file_text=""
+        local theme_text=""
         local clearscr_text=""
         local prevtext=""
         local nexttext=""
-
+        local page_text=""
         local bar_text=""
         local visible_len=0
         local left_pad=0
-
         local prev_enabled=0
         local next_enabled=0
+        local page_count="${#SGND_PAGE_STARTS[@]}"
+        local seg=""
+        local -a segments=()
 
         render_width="$(sgnd_terminal_width)"
-
-        debug_text="$(_sgnd_console_toggleword "DEBUG"   "B" "${FLAG_DEBUG:-0}")"
         dryrun_text="$(_sgnd_console_toggleword "DRYRUN" "D" "${FLAG_DRYRUN:-0}" "${SGND_UI_DRYRUN}" "${SGND_UI_COMMIT}")"
-        logfile_text="$(_sgnd_console_toggleword "LOG"   "G" "${SGND_LOGFILE_ENABLED:-0}")"
-        verbose_text="$(_sgnd_console_toggleword "VERBOSE" "V" "${FLAG_VERBOSE:-0}")"
-        clearscr_text="$(_sgnd_console_toggleword "CLRSCR" "C" "${SGND_CLEAR_ONRENDER:-0}")"
+        console_text="$(_sgnd_console_toggleword "CONSOLE(${SGND_CONSOLE_LOG_LEVEL^^})" "C" 1)"
+        file_text="$(_sgnd_console_toggleword "FILE(${SGND_FILE_LOG_LEVEL^^})" "F" 1)"
+        theme_text="$(_sgnd_console_toggleword "THEME($(_sgnd_console_theme_name | tr '[:lower:]' '[:upper:]'))" "T" 1)"
+        clearscr_text="$(_sgnd_console_toggleword "CLRSCR" "S" "${SGND_CLEAR_ONRENDER:-0}")"
 
         (( SGND_PAGE_INDEX > 0 )) && prev_enabled=1
-        (( SGND_PAGE_INDEX + 1 < ${#SGND_PAGE_STARTS[@]} )) && next_enabled=1
-
+        (( SGND_PAGE_INDEX + 1 < page_count )) && next_enabled=1
         prevtext="$(_sgnd_console_toggleword "<<PREV" "<" "$prev_enabled")"
         nexttext="$(_sgnd_console_toggleword "NEXT>>" ">" "$next_enabled")"
 
-        local page_text=""
-        local page_count="${#SGND_PAGE_STARTS[@]}"
-        local -a segments=()
-
-        saydebug "Pagecount: ${page_count}"
-        saydebug "Page index: ${SGND_PAGE_INDEX}"
-
+        segments+=("$dryrun_text" "$console_text" "$file_text" "$theme_text" "$clearscr_text")
         if (( page_count > 1 )); then
-            page_text="Page $((SGND_PAGE_INDEX + 1))/$page_count"
-            page_text="$(sgnd_sgr "$SILVER" "" "$FX_ITALIC")${page_text}${RESET}"
-
-            segments+=("$prevtext")
-            segments+=("$debug_text")
-            segments+=("$dryrun_text")
-            segments+=("$page_text")
-            segments+=("$logfile_text")
-            segments+=("$verbose_text")
-            segments+=("$clearscr_text")
-            segments+=("$nexttext")
-        else
-            segments+=("$debug_text")
-            segments+=("$dryrun_text")
-            segments+=("$logfile_text")
-            segments+=("$verbose_text")
-            segments+=("$clearscr_text")
+            page_text="$(sgnd_sgr "$SILVER" "" "$FX_ITALIC")Page $((SGND_PAGE_INDEX + 1))/$page_count${RESET}"
+            segments=("$prevtext" "${segments[@]}" "$page_text" "$nexttext")
         fi
 
-        # Join with gaps
-        bar_text=""
-        local seg
         for seg in "${segments[@]}"; do
-            if [[ -n "$bar_text" ]]; then
-                bar_text+="$(sgnd_string_repeat ' ' "$gap")"
-            fi
+            [[ -z "$bar_text" ]] || bar_text+="$(sgnd_string_repeat ' ' "$gap")"
             bar_text+="$seg"
         done
+
         visible_len="$(sgnd_visible_length "$bar_text")"
         left_pad=$(( (render_width - visible_len) / 2 ))
         (( left_pad < pad )) && left_pad="$pad"
