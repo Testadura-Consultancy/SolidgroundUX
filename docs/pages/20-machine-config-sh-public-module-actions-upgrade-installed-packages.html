@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>_upgrade_installed_packages</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">_upgrade_installed_packages</div>
+  <div class="doc-breadcrumb">20-machine-config.sh:::Public module actions:_upgrade_installed_packages</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Upgrade installed Ubuntu packages to their available versions.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Refreshes the APT package index before upgrading.</div>
+<div class="ct-functionbody">  - Applies available upgrades without removing installed packages.</div>
+<div class="ct-functionbody">  - Reports the intended action without changing the system in dry-run mode.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 if installed packages were upgraded successfully, otherwise non-zero.</div>
+</main>
+</body>
+</html>

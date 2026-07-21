@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2619811
-#   Checksum    : 1b3b08d8c2d3a63b7413f34ba9a149b1f889c3c98a9fe0d3f050b1999769dd55
+#   Build       : 2620211
+#   Checksum    : d06858485019b368b2e2948ba87e8e5b2385788df5fe1e6c3f97ea6f220f66b9
 #   Source      : sgnd-bootstrap-env.sh
 #   Type        : library
 #   Group       : Bootstrap
@@ -271,7 +271,7 @@ set -uo pipefail
             SGND_USER_HOME="$HOME"
         fi
 
-        : "${SGND_UI_STYLE:=default-ui-style.sh}"
+        : "${SGND_UI_STYLE:=00-style-default.sh}"
         : "${SGND_UI_PALETTE:=default-ui-palette.sh}"
 
         : "${SAY_DATE_DEFAULT:=0}"

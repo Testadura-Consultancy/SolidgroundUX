@@ -12,41 +12,12 @@
   <div class="doc-title">Script execution</div>
   <div class="doc-breadcrumb">SolidgroundUX / sgnd-console.sh / Script execution</div>
 </header>
-<div class="ct-L3Sectionbody">_sgnd_run_script</div>
-<div class="ct-L3Sectionbody sh-highlight">Purpose</div>
-<div class="ct-L3Sectionbody">  Resolve and execute a script within the sgnd-console environment.</div>
-<div class="ct-L3Sectionbody"></div>
-<div class="ct-L3Sectionbody sh-highlight">Behavior</div>
-<div class="ct-L3Sectionbody">  - Resolves relative script paths against SGND_SCRIPT_DIR.</div>
-<div class="ct-L3Sectionbody">  - Normalizes the resolved path when readlink is available.</div>
-<div class="ct-L3Sectionbody">  - Verifies that the script exists and is executable.</div>
-<div class="ct-L3Sectionbody">  - Forwards active framework flags to the target script.</div>
-<div class="ct-L3Sectionbody">  - Executes the script with all original remaining arguments preserved.</div>
-<div class="ct-L3Sectionbody"></div>
-<div class="ct-L3Sectionbody sh-highlight">Arguments</div>
-<div class="ct-L3Sectionbody">  $1  SCRIPT</div>
-<div class="ct-L3Sectionbody">      Script path, absolute or relative to SGND_SCRIPT_DIR.</div>
-<div class="ct-L3Sectionbody">  $@  ARGS</div>
-<div class="ct-L3Sectionbody">      Additional arguments passed to the target script.</div>
-<div class="ct-L3Sectionbody"></div>
-<div class="ct-L3Sectionbody">Forwarded flags:</div>
-<div class="ct-L3Sectionbody">  FLAG_DRYRUN         -&gt; --dryrun</div>
-<div class="ct-L3Sectionbody">  FLAG_VERBOSE        -&gt; --verbose</div>
-<div class="ct-L3Sectionbody">  FLAG_DEBUG          -&gt; --debug</div>
-<div class="ct-L3Sectionbody">  SGND_LOGFILE_ENABLED  -&gt; --logfile &lt;file&gt;</div>
-<div class="ct-L3Sectionbody"></div>
+<div class="ct-L3Sectionbody">_sgnd_build_command_args</div>
 <div class="ct-L3Sectionbody sh-highlight">Returns</div>
-<div class="ct-L3Sectionbody">  Exit code of the executed script</div>
-<div class="ct-L3Sectionbody">  1 if validation fails</div>
+<div class="ct-L3Sectionbody">  0 after populating the requested argument array.</div>
 <div class="ct-L3Sectionbody"></div>
 <div class="ct-L3Sectionbody sh-highlight">Usage</div>
-<div class="ct-L3Sectionbody">  _sgnd_run_script &quot;jobs/import.sh&quot; --customer 42</div>
-<div class="ct-L3Sectionbody"></div>
-<div class="ct-L3Sectionbody">Examples:</div>
-<div class="ct-L3Sectionbody">  _sgnd_run_script &quot;./tools/build.sh&quot; --release</div>
-<div class="ct-L3Sectionbody"></div>
-<div class="ct-L3Sectionbody">Notes:</div>
-<div class="ct-L3Sectionbody">  - Uses argument arrays to preserve proper quoting.</div>
+<div class="ct-L3Sectionbody">  _sgnd_build_command_args command_args &quot;$@&quot;</div>
 </main>
 </body>
 </html>

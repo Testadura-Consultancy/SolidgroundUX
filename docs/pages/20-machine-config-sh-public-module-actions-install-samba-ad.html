@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>_install_samba_ad</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">_install_samba_ad</div>
+  <div class="doc-breadcrumb">20-machine-config.sh:::Public module actions:_install_samba_ad</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Install the packages required for a Samba Active Directory Domain Controller.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Refreshes the APT package index.</div>
+<div class="ct-functionbody">  - Installs the Samba AD/DC, Kerberos, and DNS diagnostic packages.</div>
+<div class="ct-functionbody">  - Disables the standalone Samba services used by file-server roles.</div>
+<div class="ct-functionbody">  - Enables the dedicated Samba AD/DC service without starting it.</div>
+<div class="ct-functionbody">  - Leaves domain provisioning to a separate configuration step.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 if the role packages were installed successfully, otherwise non-zero.</div>
+</main>
+</body>
+</html>

@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2619513
-#   Checksum    : cd2296525b26b8d49bc1675cc1d07b45be28b62aadfbc987bf7020d1ceaef8a2
+#   Build       : 2620211
+#   Checksum    : f1e755287b853f5b1b44e15cc299fb3d26508204a04d606f325a2b8eed1ec73a
 #   Source      : ui.sh
 #   Type        : library
 #   Group       : UI
@@ -353,7 +353,7 @@ set -uo pipefail
 
         if (( use_default )); then
             palette_spec="default-ui-palette"
-            style_spec="default-ui-style"
+            style_spec="00-style-default"
         fi
 
         # Theme root (where palettes/ and styles/ live)
@@ -405,8 +405,8 @@ set -uo pipefail
         #
         # . Behavior
         #   - With no theme argument, displays the currently configured theme.
-        #   - Resolves a short theme name such as "dark" to "style-dark.sh".
-        #   - Accepts an explicit style filename such as "style-dark.sh".
+        #   - Resolves a short theme name such as "dark" to its numbered style file.
+        #   - Accepts an explicit numbered style filename such as "10-style-dark.sh".
         #   - Loads the selected style immediately through sgnd_load_ui_style.
         #   - With --save, stores SGND_UI_STYLE in the user framework cfg after the
         #     theme has loaded successfully.
@@ -443,7 +443,8 @@ set -uo pipefail
         local theme=""
         local save=0
         local style_file=""
-        local previous_style="${SGND_UI_STYLE:-default-ui-style.sh}"
+        local candidate=""
+        local previous_style="${SGND_UI_STYLE:-00-style-default.sh}"
 
         while (($#)); do
             case "$1" in
@@ -473,32 +474,43 @@ set -uo pipefail
         done
 
         if [[ -z "$theme" ]]; then
-            theme="${SGND_UI_STYLE:-default-ui-style.sh}"
+            theme="${SGND_UI_STYLE:-00-style-default.sh}"
             theme="${theme##*/}"
             theme="${theme%.sh}"
-            theme="${theme#style-}"
-            [[ "$theme" == "default-ui-style" ]] && theme="default"
+            if [[ "$theme" =~ ^[0-9][0-9]-style-(.+)$ ]]; then
+                theme="${BASH_REMATCH[1]}"
+            else
+                theme="${theme#style-}"
+                [[ "$theme" == "default-ui-style" ]] && theme="default"
+            fi
             printf 'Current theme: %s\n' "$theme"
             return 0
         fi
 
-        case "$theme" in
-            default|default-ui-style|default-ui-style.sh)
-                style_file="default-ui-style.sh"
-                ;;
-            *.sh)
-                style_file="${theme##*/}"
-                ;;
-            style-*)
-                style_file="${theme}.sh"
-                ;;
-            *)
-                style_file="style-${theme}.sh"
-                ;;
-        esac
+        if [[ "$theme" == */* ]]; then
+            candidate="$theme"
+            [[ "$candidate" == *.sh ]] || candidate="${candidate}.sh"
+            [[ -r "$candidate" ]] && style_file="$candidate"
+        elif [[ "$theme" =~ ^[0-9][0-9]-style-.+\.sh$ ]]; then
+            candidate="${SGND_STYLE_DIR%/}/${theme##*/}"
+            [[ -r "$candidate" ]] && style_file="${theme##*/}"
+        else
+            theme="${theme##*/}"
+            theme="${theme%.sh}"
+            theme="${theme#style-}"
+            [[ "$theme" == "default-ui-style" ]] && theme="default"
+            while IFS= read -r candidate; do
+                style_file="$candidate"
+                break
+            done < <(
+                find "$SGND_STYLE_DIR" -maxdepth 1 -type f \
+                    -name "[0-9][0-9]-style-${theme}.sh" \
+                    -printf '%f\n' | LC_ALL=C sort
+            )
+        fi
 
-        if [[ ! -r "${SGND_STYLE_DIR%/}/$style_file" ]]; then
-            printf 'sgnd_theme: theme not found: %s\n' "${SGND_STYLE_DIR%/}/$style_file" >&2
+        if [[ -z "$style_file" ]]; then
+            printf 'sgnd_theme: theme not found: %s\n' "$theme" >&2
             return 1
         fi
 

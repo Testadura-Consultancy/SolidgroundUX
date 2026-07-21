@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Host and Application Identity</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Host and Application Identity</div>
+  <div class="doc-breadcrumb">solidground console_preface.sh::SolidGround Console:Host and Application Identity:</div>
+</header>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">The executable defaults to the neutral identity `sgnd-console`. A module may</div>
+<div class="ct-L2Sectionbody">optionally define `SGND_CONSOLE_TITLE_OVERRIDE` and</div>
+<div class="ct-L2Sectionbody">`SGND_CONSOLE_DESC_OVERRIDE` while it is being sourced.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Only the first successfully loaded module may apply these values. Module files</div>
+<div class="ct-L2Sectionbody">are loaded in sorted filename order, so numeric filename prefixes provide an</div>
+<div class="ct-L2Sectionbody">explicit and visible application startup order:</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">    10-sgnd-config.sh</div>
+<div class="ct-L2Sectionbody">    20-machine-config.sh</div>
+<div class="ct-L2Sectionbody">    30-customer-extension.sh</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">The filename controls load order only. The stable module identity remains the</div>
+<div class="ct-L2Sectionbody">value declared through `SGND_MODULE_ID`.</div>
+<div class="ct-L2Sectionbody"></div>
+</main>
+</body>
+</html>

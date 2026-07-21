@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2619601
-#   Checksum    : 683b61101dda203d94fe2b4ffd7346e6a992161c1641df16292c763077117861
+#   Build       : 2620211
+#   Checksum    : 0f49d715dac4779611a5e283ffe1e21f1ae5d1a8c30a69ca0983ec63fae420fe
 #   Source      : sgnd-console-menu.sh
 #   Group       : SolidGround Console
 #   Type        : library
@@ -403,15 +403,22 @@ set -uo pipefail
         #
         # . Usage
         #   _sgnd_console_set_file_loglevel
-    _sgnd_console_next_loglevel() {
-        case "${1:-silent}" in
-            silent) printf '%s' quiet ;;
-            quiet) printf '%s' normal ;;
-            normal) printf '%s' verbose ;;
-            verbose) printf '%s' debug ;;
-            debug) printf '%s' trace ;;
-            *) printf '%s' silent ;;
-        esac
+    _sgnd_console_cycle_loglevel_value() {
+        local current="${1:-silent}"
+        local direction="${2:-1}"
+        local i=0
+        local current_index=0
+        local -a levels=(silent quiet normal verbose debug trace)
+
+        for i in "${!levels[@]}"; do
+            if [[ "${levels[$i]}" == "$current" ]]; then
+                current_index="$i"
+                break
+            fi
+        done
+
+        i=$(( (current_index + direction + ${#levels[@]}) % ${#levels[@]} ))
+        printf '%s' "${levels[$i]}"
     }
 
     _sgnd_console_persist_framework_value() {
@@ -423,51 +430,92 @@ set -uo pipefail
     }
 
     _sgnd_console_cycle_console_loglevel() {
-        SGND_CONSOLE_LOG_LEVEL="$(_sgnd_console_next_loglevel "${SGND_CONSOLE_LOG_LEVEL:-silent}")"
+        local direction="${1:-1}"
+
+        SGND_CONSOLE_LOG_LEVEL="$(_sgnd_console_cycle_loglevel_value             "${SGND_CONSOLE_LOG_LEVEL:-silent}"             "$direction")"
         _sgnd_console_persist_framework_value SGND_CONSOLE_LOG_LEVEL "$SGND_CONSOLE_LOG_LEVEL"
         SGND_LAST_WAITSECS=0
     }
 
     _sgnd_console_cycle_file_loglevel() {
-        SGND_FILE_LOG_LEVEL="$(_sgnd_console_next_loglevel "${SGND_FILE_LOG_LEVEL:-silent}")"
+        local direction="${1:-1}"
+
+        SGND_FILE_LOG_LEVEL="$(_sgnd_console_cycle_loglevel_value             "${SGND_FILE_LOG_LEVEL:-silent}"             "$direction")"
         _sgnd_console_persist_framework_value SGND_FILE_LOG_LEVEL "$SGND_FILE_LOG_LEVEL"
         SGND_LAST_WAITSECS=0
     }
 
     _sgnd_console_theme_name() {
         local style="${SGND_UI_STYLE##*/}"
+
         style="${style%.sh}"
-        style="${style#style-}"
-        [[ "$style" == "default-ui-style" ]] && style="default"
+        if [[ "$style" =~ ^[0-9][0-9]-style-(.+)$ ]]; then
+            style="${BASH_REMATCH[1]}"
+        else
+            style="${style#style-}"
+            [[ "$style" == "default-ui-style" ]] && style="default"
+        fi
+
         printf '%s' "$style"
     }
 
     _sgnd_console_cycle_theme() {
-        local current="$(_sgnd_console_theme_name)"
-        local theme=""
+        local direction="${1:-1}"
+        local current_file="${SGND_UI_STYLE##*/}"
+        local candidate=""
+        local theme_file=""
         local i=0
         local current_index=-1
-        local -a themes=()
+        local next_index=0
+        local -a theme_paths=()
+        local -a theme_files=()
 
-        while IFS= read -r theme; do
-            themes+=("$theme")
-        done < <(
-            find "$SGND_STYLE_DIR" -maxdepth 1 -type f \
-                \( -name 'default-ui-style.sh' -o -name 'style-*.sh' \) \
-                -printf '%f\n' | sort | while IFS= read -r theme; do
-                    theme="${theme%.sh}"
-                    theme="${theme#style-}"
-                    [[ "$theme" == "default-ui-style" ]] && theme="default"
-                    printf '%s\n' "$theme"
-                done
+        shopt -s nullglob
+        theme_paths=("${SGND_STYLE_DIR%/}"/[0-9][0-9]-style-*.sh)
+        shopt -u nullglob
+
+        (( ${#theme_paths[@]} > 0 )) || return 1
+
+        mapfile -t theme_paths < <(
+            printf '%s\n' "${theme_paths[@]}" | LC_ALL=C sort
         )
 
-        (( ${#themes[@]} > 0 )) || return 1
-        for i in "${!themes[@]}"; do
-            [[ "${themes[$i]}" == "$current" ]] && current_index="$i"
+        for candidate in "${theme_paths[@]}"; do
+            theme_files+=("${candidate##*/}")
         done
-        i=$(( (current_index + 1) % ${#themes[@]} ))
-        sgnd_theme "${themes[$i]}" || return $?
+
+        if [[ ! "$current_file" =~ ^[0-9][0-9]-style-.+\.sh$ ]]; then
+            current_file="${current_file%.sh}"
+            current_file="${current_file#style-}"
+            [[ "$current_file" == "default-ui-style" ]] && current_file="default"
+
+            for candidate in "${theme_files[@]}"; do
+                if [[ "$candidate" == [0-9][0-9]-style-"${current_file}".sh ]]; then
+                    current_file="$candidate"
+                    break
+                fi
+            done
+        fi
+
+        for i in "${!theme_files[@]}"; do
+            if [[ "${theme_files[$i]}" == "$current_file" ]]; then
+                current_index="$i"
+                break
+            fi
+        done
+
+        if (( current_index < 0 )); then
+            if (( direction < 0 )); then
+                current_index=0
+            else
+                current_index=-1
+            fi
+        fi
+
+        next_index=$(( (current_index + direction + ${#theme_files[@]}) % ${#theme_files[@]} ))
+        theme_file="${theme_files[$next_index]}"
+
+        sgnd_theme "$theme_file" || return $?
         SGND_LAST_WAITSECS=0
     }
 
@@ -581,6 +629,90 @@ set -uo pipefail
 
         return 0
     }
+# --- Menu model cache ---------------------------------------------------------------
+    # _sgnd_console_refresh_model_cache
+        # Purpose:
+        #   Materialize the group and item datatables into direct-index arrays.
+        #
+        # Behavior:
+        #   - Rebuilds only when the number of registered groups or items changes.
+        #   - Splits every datatable row once per rebuild.
+        #   - Provides direct array access during menu building and rendering.
+        #
+        # Returns:
+        #   0 on success.
+        #
+        # Usage:
+        #   _sgnd_console_refresh_model_cache
+    _sgnd_console_refresh_model_cache() {
+        local group_count="${#SGND_GROUP_ROWS[@]}"
+        local item_count="${#SGND_ITEM_ROWS[@]}"
+        local i
+        local row=""
+        local key=""
+        local label=""
+        local desc=""
+        local source=""
+        local builtin="0"
+        local visible="1"
+        local ord="1000"
+        local group=""
+        local handler=""
+        local waitsecs="15"
+
+        if (( SGND_CONSOLE_MODEL_CACHE_GROUP_COUNT == group_count &&
+              SGND_CONSOLE_MODEL_CACHE_ITEM_COUNT == item_count )); then
+            return 0
+        fi
+
+        SGND_GROUP_CACHE_KEY=()
+        SGND_GROUP_CACHE_LABEL=()
+        SGND_GROUP_CACHE_BUILTIN=()
+        SGND_GROUP_CACHE_VISIBLE=()
+        SGND_GROUP_CACHE_ORD=()
+        SGND_GROUP_CACHE_INDEX_BY_KEY=()
+
+        for (( i=0; i<group_count; i++ )); do
+            row="${SGND_GROUP_ROWS[$i]}"
+            IFS='|' read -r key label desc source builtin visible ord <<< "$row"
+
+            SGND_GROUP_CACHE_KEY[$i]="$key"
+            SGND_GROUP_CACHE_LABEL[$i]="$label"
+            SGND_GROUP_CACHE_BUILTIN[$i]="${builtin:-0}"
+            SGND_GROUP_CACHE_VISIBLE[$i]="${visible:-1}"
+            SGND_GROUP_CACHE_ORD[$i]="${ord:-1000}"
+            SGND_GROUP_CACHE_INDEX_BY_KEY["$key"]="$i"
+        done
+
+        SGND_ITEM_CACHE_KEY=()
+        SGND_ITEM_CACHE_GROUP=()
+        SGND_ITEM_CACHE_LABEL=()
+        SGND_ITEM_CACHE_HANDLER=()
+        SGND_ITEM_CACHE_DESC=()
+        SGND_ITEM_CACHE_BUILTIN=()
+        SGND_ITEM_CACHE_WAITSECS=()
+        SGND_ITEM_CACHE_VISIBLE=()
+
+        for (( i=0; i<item_count; i++ )); do
+            row="${SGND_ITEM_ROWS[$i]}"
+            IFS='|' read -r key group label handler desc source builtin waitsecs visible <<< "$row"
+
+            SGND_ITEM_CACHE_KEY[$i]="$key"
+            SGND_ITEM_CACHE_GROUP[$i]="$group"
+            SGND_ITEM_CACHE_LABEL[$i]="$label"
+            SGND_ITEM_CACHE_HANDLER[$i]="$handler"
+            SGND_ITEM_CACHE_DESC[$i]="$desc"
+            SGND_ITEM_CACHE_BUILTIN[$i]="${builtin:-0}"
+            SGND_ITEM_CACHE_WAITSECS[$i]="${waitsecs:-15}"
+            SGND_ITEM_CACHE_VISIBLE[$i]="${visible:-1}"
+        done
+
+        SGND_CONSOLE_MODEL_CACHE_GROUP_COUNT="$group_count"
+        SGND_CONSOLE_MODEL_CACHE_ITEM_COUNT="$item_count"
+        SGND_CONSOLE_MODEL_CACHE_GENERATION=$(( SGND_CONSOLE_MODEL_CACHE_GENERATION + 1 ))
+        return 0
+    }
+
 # --- Menu model indexes -------------------------------------------------------------
     # fn: _sgnd_console_collect_group_render_indexes - Console collect group render indexes
         # . Purpose
@@ -603,6 +735,12 @@ set -uo pipefail
         # . Usage
         #   _sgnd_console_collect_group_render_indexes
     _sgnd_console_collect_group_render_indexes() {
+        _sgnd_console_refresh_model_cache
+
+        if (( SGND_CONSOLE_GROUP_INDEX_CACHE_GENERATION == SGND_CONSOLE_MODEL_CACHE_GENERATION )); then
+            return 0
+        fi
+
         local i
         local row_count=0
         local builtin="0"
@@ -613,11 +751,11 @@ set -uo pipefail
 
         SGND_GROUP_RENDER_INDEXES=()
 
-        row_count="$(sgnd_dt_row_count SGND_GROUP_ROWS)"
+        row_count="${#SGND_GROUP_ROWS[@]}"
 
         for (( i=0; i<row_count; i++ )); do
-            builtin="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$i" builtin)"
-            ord="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$i" ord)"
+            builtin="${SGND_GROUP_CACHE_BUILTIN[$i]}"
+            ord="${SGND_GROUP_CACHE_ORD[$i]}"
             : "${ord:=1000}"
 
             # sort key = builtin bucket | ord | original row index
@@ -634,6 +772,8 @@ set -uo pipefail
         for i in "${!sorted_rows[@]}"; do
             SGND_GROUP_RENDER_INDEXES+=("$((10#${sorted_rows[$i]##*|}))")
         done
+
+        SGND_CONSOLE_GROUP_INDEX_CACHE_GENERATION="$SGND_CONSOLE_MODEL_CACHE_GENERATION"
     }
     # fn: _sgnd_console_collect_visible_item_indexes - Console collect visible item indexes
         # . Purpose
@@ -653,6 +793,12 @@ set -uo pipefail
         # . Usage
         #   _sgnd_console_collect_visible_item_indexes
     _sgnd_console_collect_visible_item_indexes() {
+        _sgnd_console_refresh_model_cache
+
+        if (( SGND_CONSOLE_VISIBLE_INDEX_CACHE_GENERATION == SGND_CONSOLE_MODEL_CACHE_GENERATION )); then
+            return 0
+        fi
+
         local gi
         local ii
         local item_row_count=0
@@ -665,22 +811,22 @@ set -uo pipefail
         SGND_VISIBLE_ITEM_INDEXES=()
 
         _sgnd_console_collect_group_render_indexes
-        item_row_count="$(sgnd_dt_row_count SGND_ITEM_ROWS)"
+        item_row_count="${#SGND_ITEM_ROWS[@]}"
 
         for gi in "${SGND_GROUP_RENDER_INDEXES[@]}"; do
-            group_builtin="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$gi" builtin)"
+            group_builtin="${SGND_GROUP_CACHE_BUILTIN[$gi]}"
             (( group_builtin )) && continue
 
-            group_key="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$gi" key)"
+            group_key="${SGND_GROUP_CACHE_KEY[$gi]}"
 
             for (( ii=0; ii<item_row_count; ii++ )); do
-                item_group="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" group)"
+                item_group="${SGND_ITEM_CACHE_GROUP[$ii]}"
                 [[ "$item_group" == "$group_key" ]] || continue
 
-                item_builtin="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" builtin)"
+                item_builtin="${SGND_ITEM_CACHE_BUILTIN[$ii]}"
                 (( item_builtin )) && continue
 
-                item_state="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" visible)"
+                item_state="${SGND_ITEM_CACHE_VISIBLE[$ii]}"
                 case "$item_state" in
                     1|2)
                         SGND_VISIBLE_ITEM_INDEXES+=("$ii")
@@ -688,6 +834,8 @@ set -uo pipefail
                 esac
             done
         done
+
+        SGND_CONSOLE_VISIBLE_INDEX_CACHE_GENERATION="$SGND_CONSOLE_MODEL_CACHE_GENERATION"
     }
     # fn: _sgnd_console_visible_item_count - Console visible item count
         # . Purpose
@@ -834,7 +982,7 @@ set -uo pipefail
 
         for (( i=last_visible_pos + 1; i<${#SGND_VISIBLE_ITEM_INDEXES[@]}; i++ )); do
             row_index="${SGND_VISIBLE_ITEM_INDEXES[$i]}"
-            item_group="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" group)"
+            item_group="${SGND_ITEM_CACHE_GROUP[$row_index]}"
 
             if [[ "$item_group" == "$group_key" ]]; then
                 return 0
@@ -897,7 +1045,7 @@ set -uo pipefail
         local wrapped_count=0
         local line=""
 
-        desc="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" desc)"
+        desc="${SGND_ITEM_CACHE_DESC[$row_index]}"
 
         if [[ -z "$desc" ]]; then
             printf '1\n'
@@ -955,6 +1103,13 @@ set -uo pipefail
         # . Usage
         #   _sgnd_console_calc_label_width
     _sgnd_console_calc_label_width() {
+        _sgnd_console_collect_visible_item_indexes
+
+        if (( SGND_CONSOLE_LABEL_WIDTH_CACHE_GENERATION == SGND_CONSOLE_MODEL_CACHE_GENERATION )); then
+            printf '%s\n' "$SGND_CONSOLE_LABEL_WIDTH_CACHE_VALUE"
+            return 0
+        fi
+
         local i
         local row_count=0
         local builtin="0"
@@ -964,18 +1119,18 @@ set -uo pipefail
         local width=0
         local max_width=0
 
-        row_count="$(sgnd_dt_row_count SGND_ITEM_ROWS)"
+        row_count="${#SGND_ITEM_ROWS[@]}"
 
         for (( i=0; i<row_count; i++ )); do
-            builtin="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" builtin)"
+            builtin="${SGND_ITEM_CACHE_BUILTIN[$i]}"
 
             if (( builtin )); then
-                display_key="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" key)"
+                display_key="${SGND_ITEM_CACHE_KEY[$i]}"
             else
                 display_key="$(_sgnd_console_get_visible_display_number "$i" 2>/dev/null)" || continue
             fi
 
-            label="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" label)"
+            label="${SGND_ITEM_CACHE_LABEL[$i]}"
             left_text="${display_key}) ${label}"
             width="$(sgnd_visible_length "$left_text")"
 
@@ -983,6 +1138,8 @@ set -uo pipefail
         done
 
         (( max_width > 35 )) && max_width=35
+        SGND_CONSOLE_LABEL_WIDTH_CACHE_VALUE="$max_width"
+        SGND_CONSOLE_LABEL_WIDTH_CACHE_GENERATION="$SGND_CONSOLE_MODEL_CACHE_GENERATION"
         printf '%s\n' "$max_width"
     }
 # --- Menu pagination ----------------------------------------------------------------
@@ -1008,6 +1165,9 @@ set -uo pipefail
         #   _sgnd_console_build_pages
     _sgnd_console_build_pages() {
         local body_height=0
+        local term_width=80
+        local label_width=28
+        local layout_cache_key=""
         local used_lines=0
         local visible_count=0
         local visible_i=0
@@ -1017,24 +1177,44 @@ set -uo pipefail
         local item_lines=0
         local header_lines=0
         local needed_lines=0
-
-        SGND_PAGE_STARTS=()
+        local page_index=0
+        local page_row_offset=0
+        local page_group_offset=0
 
         _sgnd_console_collect_group_render_indexes
         _sgnd_console_collect_visible_item_indexes
 
         visible_count="${#SGND_VISIBLE_ITEM_INDEXES[@]}"
         body_height="$(_sgnd_console_body_height)"
+        term_width="$(sgnd_terminal_width)"
+        label_width="${SGND_RENDER_LABEL_WIDTH:-28}"
+        layout_cache_key="${SGND_CONSOLE_MODEL_CACHE_GENERATION}|${SGND_CONSOLE_VISIBLE_INDEX_CACHE_GENERATION}|${body_height}|${term_width}|${label_width}"
 
-        (( visible_count == 0 )) && return 0
+        if [[ "$SGND_CONSOLE_LAYOUT_CACHE_KEY" == "$layout_cache_key" ]]; then
+            return 0
+        fi
+
+        SGND_PAGE_STARTS=()
+        SGND_PAGE_ROW_OFFSETS=()
+        SGND_PAGE_ROW_COUNTS=()
+        SGND_PAGE_ROWS=()
+        SGND_PAGE_GROUP_OFFSETS=()
+        SGND_PAGE_GROUP_COUNTS=()
+        SGND_PAGE_GROUPS=()
+
+        if (( visible_count == 0 )); then
+            SGND_CONSOLE_LAYOUT_CACHE_KEY="$layout_cache_key"
+            return 0
+        fi
 
         SGND_PAGE_STARTS+=(0)
+        SGND_PAGE_ROW_OFFSETS+=(0)
+        SGND_PAGE_GROUP_OFFSETS+=(0)
 
         for (( visible_i=0; visible_i<visible_count; visible_i++ )); do
             row_index="${SGND_VISIBLE_ITEM_INDEXES[$visible_i]}"
-            group_key="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" group)"
+            group_key="${SGND_ITEM_CACHE_GROUP[$row_index]}"
             item_lines="$(_sgnd_console_measure_item_lines "$row_index")"
-
             needed_lines="$item_lines"
 
             if [[ "$group_key" != "$current_group" ]]; then
@@ -1042,20 +1222,34 @@ set -uo pipefail
                 needed_lines=$(( needed_lines + header_lines ))
             fi
 
-            if (( used_lines + needed_lines > body_height )); then
+            if (( used_lines + needed_lines > body_height && used_lines > 0 )); then
+                SGND_PAGE_ROW_COUNTS+=("$(( ${#SGND_PAGE_ROWS[@]} - page_row_offset ))")
+                SGND_PAGE_GROUP_COUNTS+=("$(( ${#SGND_PAGE_GROUPS[@]} - page_group_offset ))")
+
+                page_index=$(( page_index + 1 ))
+                page_row_offset="${#SGND_PAGE_ROWS[@]}"
+                page_group_offset="${#SGND_PAGE_GROUPS[@]}"
                 SGND_PAGE_STARTS+=("$visible_i")
+                SGND_PAGE_ROW_OFFSETS+=("$page_row_offset")
+                SGND_PAGE_GROUP_OFFSETS+=("$page_group_offset")
                 used_lines=0
                 current_group=""
             fi
 
             if [[ "$group_key" != "$current_group" ]]; then
                 header_lines="$(_sgnd_console_measure_group_header_lines)"
+                SGND_PAGE_GROUPS+=("$group_key")
                 used_lines=$(( used_lines + header_lines ))
                 current_group="$group_key"
             fi
 
+            SGND_PAGE_ROWS+=("$row_index")
             used_lines=$(( used_lines + item_lines ))
         done
+
+        SGND_PAGE_ROW_COUNTS+=("$(( ${#SGND_PAGE_ROWS[@]} - page_row_offset ))")
+        SGND_PAGE_GROUP_COUNTS+=("$(( ${#SGND_PAGE_GROUPS[@]} - page_group_offset ))")
+        SGND_CONSOLE_LAYOUT_CACHE_KEY="$layout_cache_key"
     }
 # --- Menu rendering -----------------------------------------------------------------
     # fn: _sgnd_console_render_menu - Console render menu
@@ -1076,6 +1270,7 @@ set -uo pipefail
         # . Usage
         #   _sgnd_console_render_menu
     _sgnd_console_render_menu() {
+        _sgnd_console_refresh_model_cache
         local idx=""
         local group_key=""
         local builtin="0"
@@ -1089,10 +1284,10 @@ set -uo pipefail
         _sgnd_console_render_menu_body_paged
 
         for idx in "${SGND_GROUP_RENDER_INDEXES[@]}"; do
-            builtin="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$idx" builtin)"
+            builtin="${SGND_GROUP_CACHE_BUILTIN[$idx]}"
             (( builtin )) || continue
 
-            group_key="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$idx" key)"
+            group_key="${SGND_GROUP_CACHE_KEY[$idx]}"
             _sgnd_console_render_group "$group_key"
         done
 
@@ -1145,19 +1340,13 @@ set -uo pipefail
         # . Usage
         #   _sgnd_console_render_menu_body_paged
     _sgnd_console_render_menu_body_paged() {
-        local body_height=0
-        local used_lines=0
-
         local visible_count=0
-        local visible_i=0
-        local row_index=0
-        local group_key=""
-        local current_group=""
-        local item_lines=0
-        local header_lines=0
-        local needed_lines=0
+        local page_row_offset=0
+        local page_row_count=0
+        local page_group_offset=0
+        local page_group_count=0
+        local i=0
 
-        local pending_group=""
         local -a page_rows=()
         local -a page_groups=()
 
@@ -1166,8 +1355,6 @@ set -uo pipefail
         _sgnd_console_build_pages
 
         visible_count="${#SGND_VISIBLE_ITEM_INDEXES[@]}"
-        body_height="$(_sgnd_console_body_height)"
-
         SGND_PAGE_HAS_PREV=0
         SGND_PAGE_HAS_NEXT=0
 
@@ -1175,46 +1362,24 @@ set -uo pipefail
             return 0
         fi
 
-        if (( SGND_PAGE_INDEX < 0 )); then
-            SGND_PAGE_INDEX=0
-        fi
-
-        if (( SGND_PAGE_INDEX >= ${#SGND_PAGE_STARTS[@]} )); then
+        if (( SGND_PAGE_INDEX < 0 || SGND_PAGE_INDEX >= ${#SGND_PAGE_STARTS[@]} )); then
             SGND_PAGE_INDEX=0
         fi
 
         (( SGND_PAGE_INDEX > 0 )) && SGND_PAGE_HAS_PREV=1
         (( SGND_PAGE_INDEX < ${#SGND_PAGE_STARTS[@]} - 1 )) && SGND_PAGE_HAS_NEXT=1
 
-        local page_start_item=0
-        local page_end_item="$visible_count"
+        page_row_offset="${SGND_PAGE_ROW_OFFSETS[$SGND_PAGE_INDEX]:-0}"
+        page_row_count="${SGND_PAGE_ROW_COUNTS[$SGND_PAGE_INDEX]:-0}"
+        page_group_offset="${SGND_PAGE_GROUP_OFFSETS[$SGND_PAGE_INDEX]:-0}"
+        page_group_count="${SGND_PAGE_GROUP_COUNTS[$SGND_PAGE_INDEX]:-0}"
 
-        page_start_item="${SGND_PAGE_STARTS[$SGND_PAGE_INDEX]}"
+        for (( i=0; i<page_row_count; i++ )); do
+            page_rows+=("${SGND_PAGE_ROWS[$((page_row_offset + i))]}")
+        done
 
-        if (( SGND_PAGE_INDEX < ${#SGND_PAGE_STARTS[@]} - 1 )); then
-            page_end_item="${SGND_PAGE_STARTS[$((SGND_PAGE_INDEX + 1))]}"
-        fi
-
-        for (( visible_i=page_start_item; visible_i<page_end_item; visible_i++ )); do
-            row_index="${SGND_VISIBLE_ITEM_INDEXES[$visible_i]}"
-            group_key="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" group)"
-            item_lines="$(_sgnd_console_measure_item_lines "$row_index")"
-
-            needed_lines="$item_lines"
-
-            if [[ "$group_key" != "$current_group" ]]; then
-                header_lines="$(_sgnd_console_measure_group_header_lines)"
-                needed_lines=$(( needed_lines + header_lines ))
-            fi
-
-            if [[ "$group_key" != "$current_group" ]]; then
-                page_groups+=("$group_key")
-                current_group="$group_key"
-                used_lines=$(( used_lines + header_lines ))
-            fi
-
-            page_rows+=("$row_index")
-            used_lines=$(( used_lines + item_lines ))
+        for (( i=0; i<page_group_count; i++ )); do
+            page_groups+=("${SGND_PAGE_GROUPS[$((page_group_offset + i))]}")
         done
 
         _sgnd_console_render_page_rows page_groups page_rows
@@ -1289,17 +1454,15 @@ set -uo pipefail
             group_last_row_index=-1
             group_last_visible_pos=-1
 
-            for (( gi=0; gi<$(sgnd_dt_row_count SGND_GROUP_ROWS); gi++ )); do
-                if [[ "$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$gi" key)" == "$group_key" ]]; then
-                    group_label="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$gi" label)"
-                    break
-                fi
-            done
+            gi="${SGND_GROUP_CACHE_INDEX_BY_KEY[$group_key]:--1}"
+            if (( gi >= 0 )); then
+                group_label="${SGND_GROUP_CACHE_LABEL[$gi]}"
+            fi
 
             [[ -n "$group_label" ]] || continue
 
             for row_index in "${_page_rows[@]}"; do
-                item_group="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" group)"
+                item_group="${SGND_ITEM_CACHE_GROUP[$row_index]}"
                 [[ "$item_group" == "$group_key" ]] || continue
                 group_last_row_index="$row_index"
             done
@@ -1321,10 +1484,10 @@ set -uo pipefail
             sgnd_print_sectionheader --border "$LN_H" --maxwidth "$left_width"
 
             for row_index in "${_page_rows[@]}"; do
-                item_group="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" group)"
+                item_group="${SGND_ITEM_CACHE_GROUP[$row_index]}"
                 [[ "$item_group" == "$group_key" ]] || continue
 
-                item_state="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" visible)"
+                item_state="${SGND_ITEM_CACHE_VISIBLE[$row_index]}"
                 case "$item_state" in
                     1|2) ;;
                     *) continue ;;
@@ -1340,8 +1503,8 @@ set -uo pipefail
                     value_style="$normal_value_style"
                 fi
 
-                label="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" label)"
-                desc="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" desc)"
+                label="${SGND_ITEM_CACHE_LABEL[$row_index]}"
+                desc="${SGND_ITEM_CACHE_DESC[$row_index]}"
                 left_text="${display_key}) ${label}"
 
                 if [[ -z "$desc" ]]; then
@@ -1427,12 +1590,12 @@ set -uo pipefail
         local disabled_label_style="$(sgnd_sgr "$SGND_UI_DISABLED")"
         local disabled_value_style="$(sgnd_sgr "$SGND_UI_DISABLED" "" "$FX_FAINT" "$FX_ITALIC")"
 
-        row_count="$(sgnd_dt_row_count SGND_GROUP_ROWS)"
+        row_count="${#SGND_GROUP_ROWS[@]}"
 
         for (( gi=0; gi<row_count; gi++ )); do
-            if [[ "$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$gi" key)" == "$group_key" ]]; then
-                group_label="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$gi" label)"
-                group_state="$(sgnd_dt_get "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS "$gi" visible)"
+            if [[ "${SGND_GROUP_CACHE_KEY[$gi]}" == "$group_key" ]]; then
+                group_label="${SGND_GROUP_CACHE_LABEL[$gi]}"
+                group_state="${SGND_GROUP_CACHE_VISIBLE[$gi]}"
                 found_group=1
                 break
             fi
@@ -1441,13 +1604,13 @@ set -uo pipefail
         (( found_group )) || return 0
         (( group_state != 0 )) || return 0
 
-        row_count="$(sgnd_dt_row_count SGND_ITEM_ROWS)"
+        row_count="${#SGND_ITEM_ROWS[@]}"
 
         for (( ii=0; ii<row_count; ii++ )); do
-            item_group="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" group)"
+            item_group="${SGND_ITEM_CACHE_GROUP[$ii]}"
             [[ "$item_group" == "$group_key" ]] || continue
 
-            item_state="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" visible)"
+            item_state="${SGND_ITEM_CACHE_VISIBLE[$ii]}"
             case "$item_state" in
                 1|2)
                     has_renderable_items=1
@@ -1466,22 +1629,22 @@ set -uo pipefail
         left_width="$(sgnd_visible_length "$group_label")"
         sgnd_print_sectionheader --border "$LN_H" --maxwidth "$left_width"
 
-        row_count="$(sgnd_dt_row_count SGND_ITEM_ROWS)"
+        row_count="${#SGND_ITEM_ROWS[@]}"
 
         for (( ii=0; ii<row_count; ii++ )); do
-            item_group="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" group)"
+            item_group="${SGND_ITEM_CACHE_GROUP[$ii]}"
             [[ "$item_group" == "$group_key" ]] || continue
 
-            item_state="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" visible)"
+            item_state="${SGND_ITEM_CACHE_VISIBLE[$ii]}"
             case "$item_state" in
                 1|2) ;;
                 *) continue ;;
             esac
 
-            builtin="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" builtin)"
+            builtin="${SGND_ITEM_CACHE_BUILTIN[$ii]}"
 
             if (( builtin )); then
-                display_key="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" key)"
+                display_key="${SGND_ITEM_CACHE_KEY[$ii]}"
             else
                 display_key="$(_sgnd_console_get_visible_display_number "$ii")" || continue
             fi
@@ -1494,8 +1657,8 @@ set -uo pipefail
                 value_style="$normal_value_style"
             fi
 
-            label="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" label)"
-            desc="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$ii" desc)"
+            label="${SGND_ITEM_CACHE_LABEL[$ii]}"
+            desc="${SGND_ITEM_CACHE_DESC[$ii]}"
             left_text="${display_key}) ${label}"
 
             if [[ -z "$desc" ]]; then
@@ -1572,17 +1735,31 @@ set -uo pipefail
 
         render_width="$(sgnd_terminal_width)"
         dryrun_text="$(_sgnd_console_toggleword "DRYRUN" "D" "${FLAG_DRYRUN:-0}" "${SGND_UI_DRYRUN}" "${SGND_UI_COMMIT}")"
-        console_text="$(_sgnd_console_toggleword "CONSOLE(${SGND_CONSOLE_LOG_LEVEL^^})" "C" 1)"
-        file_text="$(_sgnd_console_toggleword "FILE(${SGND_FILE_LOG_LEVEL^^})" "F" 1)"
-        theme_text="$(_sgnd_console_toggleword "THEME($(_sgnd_console_theme_name | tr '[:lower:]' '[:upper:]'))" "T" 1)"
-        clearscr_text="$(_sgnd_console_toggleword "CLRSCR" "S" "${SGND_CLEAR_ONRENDER:-0}")"
+        console_text="$(_sgnd_console_toggleword \
+            "CONSOLE(${SGND_CONSOLE_LOG_LEVEL^^})" \
+            "C" \
+            "$([[ "${SGND_CONSOLE_LOG_LEVEL:-silent}" != "silent" ]] && printf 1 || printf 0)" \
+            "$GREEN" \
+            "$DARK_GRAY")"
+        file_text="$(_sgnd_console_toggleword \
+            "FILE(${SGND_FILE_LOG_LEVEL^^})" \
+            "F" \
+            "$([[ "${SGND_FILE_LOG_LEVEL:-silent}" != "silent" ]] && printf 1 || printf 0)" \
+            "$GREEN" \
+            "$DARK_GRAY")"
+        theme_text="$(_sgnd_console_toggleword \
+            "THEME($(_sgnd_console_theme_name | tr '[:lower:]' '[:upper:]'))" \
+            "T" \
+            0 \
+            "$SGND_UI_TEXT" \
+            "$SGND_UI_TEXT")"
 
         (( SGND_PAGE_INDEX > 0 )) && prev_enabled=1
         (( SGND_PAGE_INDEX + 1 < page_count )) && next_enabled=1
         prevtext="$(_sgnd_console_toggleword "<<PREV" "<" "$prev_enabled")"
         nexttext="$(_sgnd_console_toggleword "NEXT>>" ">" "$next_enabled")"
 
-        segments+=("$dryrun_text" "$console_text" "$file_text" "$theme_text" "$clearscr_text")
+        segments+=("$dryrun_text" "$console_text" "$file_text" "$theme_text")
         if (( page_count > 1 )); then
             page_text="$(sgnd_sgr "$SILVER" "" "$FX_ITALIC")Page $((SGND_PAGE_INDEX + 1))/$page_count${RESET}"
             segments=("$prevtext" "${segments[@]}" "$page_text" "$nexttext")
@@ -1632,13 +1809,13 @@ set -uo pipefail
             out+="$i"
         done
 
-        row_count="$(sgnd_dt_row_count SGND_ITEM_ROWS)"
+        row_count="${#SGND_ITEM_ROWS[@]}"
 
         for (( i=0; i<row_count; i++ )); do
-            builtin="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" builtin)"
+            builtin="${SGND_ITEM_CACHE_BUILTIN[$i]}"
             (( builtin )) || continue
 
-            key="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" key)"
+            key="${SGND_ITEM_CACHE_KEY[$i]}"
             [[ -n "$out" ]] && out+=","
             out+="$key"
         done
@@ -1671,6 +1848,8 @@ set -uo pipefail
         # . Usage
         #   _sgnd_console_dispatch "${CHOICE}"
     _sgnd_console_dispatch() {
+        _sgnd_console_refresh_model_cache
+
         local choice="${1:?missing choice}"
         local handler=""
         local label=""
@@ -1679,6 +1858,33 @@ set -uo pipefail
         local i
         local row_count=0
         local key=""
+
+        case "$choice" in
+            c)
+                _sgnd_console_cycle_console_loglevel 1
+                return $?
+                ;;
+            C)
+                _sgnd_console_cycle_console_loglevel -1
+                return $?
+                ;;
+            f)
+                _sgnd_console_cycle_file_loglevel 1
+                return $?
+                ;;
+            F)
+                _sgnd_console_cycle_file_loglevel -1
+                return $?
+                ;;
+            t)
+                _sgnd_console_cycle_theme 1
+                return $?
+                ;;
+            T)
+                _sgnd_console_cycle_theme -1
+                return $?
+                ;;
+        esac
 
         if [[ "$choice" =~ ^[0-9]+$ ]]; then
             _sgnd_console_collect_visible_item_indexes
@@ -1689,36 +1895,36 @@ set -uo pipefail
             fi
 
             row_index="${SGND_VISIBLE_ITEM_INDEXES[$((choice - 1))]}"
-            label="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" label)"
-            state="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" visible)"
+            label="${SGND_ITEM_CACHE_LABEL[$row_index]}"
+            state="${SGND_ITEM_CACHE_VISIBLE[$row_index]}"
 
             if (( state == 2 )); then
                 saywarning "Option disabled: $label"
                 return 1
             fi
 
-            handler="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" handler)"
-            SGND_LAST_WAITSECS="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$row_index" waitsecs)"
+            handler="${SGND_ITEM_CACHE_HANDLER[$row_index]}"
+            SGND_LAST_WAITSECS="${SGND_ITEM_CACHE_WAITSECS[$row_index]}"
             "$handler"
             return $?
         fi
 
-        row_count="$(sgnd_dt_row_count SGND_ITEM_ROWS)"
+        row_count="${#SGND_ITEM_ROWS[@]}"
 
         for (( i=0; i<row_count; i++ )); do
-            key="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" key)"
+            key="${SGND_ITEM_CACHE_KEY[$i]}"
 
             if [[ "${choice^^}" == "${key^^}" ]]; then
-                state="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" visible)"
-                label="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" label)"
+                state="${SGND_ITEM_CACHE_VISIBLE[$i]}"
+                label="${SGND_ITEM_CACHE_LABEL[$i]}"
 
                 if (( state == 2 )); then
                     saywarning "Option disabled: $label"
                     return 1
                 fi
 
-                handler="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" handler)"
-                SGND_LAST_WAITSECS="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" waitsecs)"
+                handler="${SGND_ITEM_CACHE_HANDLER[$i]}"
+                SGND_LAST_WAITSECS="${SGND_ITEM_CACHE_WAITSECS[$i]}"
                 "$handler"
                 return $?
             fi

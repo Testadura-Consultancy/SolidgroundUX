@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2619513
-#   Checksum    : 3cb153f96790ccd346a482d92c6a3b55ef2e180f3f79b54bcb46530d71fd0bdf
+#   Build       : 2620211
+#   Checksum    : 5064cb784a722142bf8d87c0efa254d367e3af7ffdb727b2ce0ca151f76401a3
 #   Source      : ui-ask.sh
 #   Type        : library
 #   Group       : UI
@@ -958,6 +958,8 @@ set -uo pipefail
         #       Controls whether choices are appended to the label.
         #   --keepasking 0|1
         #       Controls whether invalid choices are re-prompted. Defaults to 1.
+        #   --preservecase 0|1
+        #       Preserves the exact case of instant single-key choices. Defaults to 0.
         #   --labelwidth WIDTH
         #       Visible width used to align the prompt label.
         #   --pad COUNT
@@ -983,6 +985,7 @@ set -uo pipefail
         local colorize="both"
         local displaychoices=1
         local keepasking=1
+        local preserve_case=0
         local varname="choice"
         local labelwidth=""
         local pad=""
@@ -1069,6 +1072,8 @@ set -uo pipefail
         #       Controls whether choices are appended to the label.
         #   --keepasking 0|1
         #       Controls whether invalid choices are re-prompted. Defaults to 1.
+        #   --preservecase 0|1
+        #       Preserves the exact case of instant single-key choices. Defaults to 0.
         #   --labelwidth WIDTH
         #       Visible width used to align the prompt label.
         #   --pad COUNT
@@ -1095,6 +1100,7 @@ set -uo pipefail
         local instantchoices=""
         local displaychoices=1
         local keepasking=1
+        local preserve_case=0
         local varname="choice"
 
         local labelwidth=""
@@ -1113,6 +1119,7 @@ set -uo pipefail
                 --instantchoices) instantchoices="$2"; shift 2 ;;
                 --displaychoices) displaychoices="$2"; shift 2 ;;
                 --keepasking)     keepasking="$2"; shift 2 ;;
+                --preservecase)   preserve_case="$2"; shift 2 ;;
                 --labelwidth)     labelwidth="$2"; shift 2 ;;
                 --pad)            pad="$2"; shift 2 ;;
                 --labelclr)       labelclr="$2"; shift 2 ;;
@@ -1167,7 +1174,11 @@ set -uo pipefail
                         ;;
 
                     *)
-                        candidate="${key^^}"
+                        if (( preserve_case )); then
+                            candidate="$key"
+                        else
+                            candidate="${key^^}"
+                        fi
 
                         # --- Instant choice handling -----------------------------
                         if [[ -n "$instantchoices" ]] && _ask_choice_is_valid "$candidate" "$instantchoices"; then

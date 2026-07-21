@@ -13,29 +13,31 @@
   <div class="doc-breadcrumb">solidground console_preface.sh::SolidGround Console:Main Components:</div>
 </header>
 <div class="ct-L2Sectionbody"></div>
-<div class="ct-L2Sectionbody">The console group consists of several related components.</div>
-<div class="ct-L2Sectionbody"></div>
 <div class="ct-L2Sectionbody">    sgnd-console</div>
-<div class="ct-L2Sectionbody">        User-facing launcher installed in the executable path.</div>
+<div class="ct-L2Sectionbody">        Public launcher installed in `/usr/local/bin`.</div>
 <div class="ct-L2Sectionbody"></div>
 <div class="ct-L2Sectionbody">    sgnd-console.sh</div>
-<div class="ct-L2Sectionbody">        Console host. Handles bootstrap, configuration, module loading,</div>
-<div class="ct-L2Sectionbody">        built-in menu items, dispatch, and the main interaction loop.</div>
+<div class="ct-L2Sectionbody">        Generic executable host. Resolves framework and application roots,</div>
+<div class="ct-L2Sectionbody">        discovers modules, records module metadata, registers built-in session</div>
+<div class="ct-L2Sectionbody">        actions, and runs the interaction loop.</div>
 <div class="ct-L2Sectionbody"></div>
 <div class="ct-L2Sectionbody">    sgnd-console-menu.sh</div>
-<div class="ct-L2Sectionbody">        Console menu library. Provides menu registration, layout, rendering,</div>
-<div class="ct-L2Sectionbody">        paging, toggle labels, and dispatch support.</div>
+<div class="ct-L2Sectionbody">        Menu engine. Stores registrations in datatables, builds cached menu and</div>
+<div class="ct-L2Sectionbody">        page models, renders the current page, maintains the bottom toggle bar,</div>
+<div class="ct-L2Sectionbody">        and dispatches menu and runtime hotkeys.</div>
 <div class="ct-L2Sectionbody"></div>
-<div class="ct-L2Sectionbody">    console-devtools.sh</div>
-<div class="ct-L2Sectionbody">        Default developer tools module. Registers common development actions</div>
-<div class="ct-L2Sectionbody">        such as workspace creation, workspace deployment, release preparation,</div>
-<div class="ct-L2Sectionbody">        and metadata editing.</div>
+<div class="ct-L2Sectionbody">    10-sgnd-config.sh</div>
+<div class="ct-L2Sectionbody">        First standard module. Supplies the Management Console identity and</div>
+<div class="ct-L2Sectionbody">        provides developer tools, SolidGroundUX installation, framework</div>
+<div class="ct-L2Sectionbody">        configuration, state, logging, and diagnostics.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">    20-machine-config.sh</div>
+<div class="ct-L2Sectionbody">        Standard machine-management module. Provides machine identity, template</div>
+<div class="ct-L2Sectionbody">        preparation, package housekeeping, and optional server-role installation.</div>
 <div class="ct-L2Sectionbody"></div>
 <div class="ct-L2Sectionbody">    mod-template.sh</div>
-<div class="ct-L2Sectionbody">        Template module for console environments. It contains the boilerplate</div>
-<div class="ct-L2Sectionbody">        required for framework bootstrap, module registration, and interaction</div>
-<div class="ct-L2Sectionbody">        with the SolidGround Console host.</div>
-<div class="ct-L2Sectionbody"> </div>
+<div class="ct-L2Sectionbody">        Source-only module template for creating additional console modules.</div>
+<div class="ct-L2Sectionbody"></div>
 </main>
 </body>
 </html>

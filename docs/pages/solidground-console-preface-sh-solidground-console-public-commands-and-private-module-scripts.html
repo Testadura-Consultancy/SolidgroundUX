@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Public Commands and Private Module Scripts</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Public Commands and Private Module Scripts</div>
+  <div class="doc-breadcrumb">solidground console_preface.sh::SolidGround Console:Public Commands and Private Module Scripts:</div>
+</header>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">User-facing SolidGroundUX tools remain public commands under `/usr/local/bin`</div>
+<div class="ct-L2Sectionbody">or `/usr/local/sbin`. Modules invoke them through `_sgnd_run_public_command`,</div>
+<div class="ct-L2Sectionbody">which also propagates dry-run mode where supported.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Module-private helpers live below:</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">    /usr/local/libexec/solidgroundux/console-modules/&lt;module-id&gt;/</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">They are invoked through `_sgnd_run_module_script` and do not require public</div>
+<div class="ct-L2Sectionbody">wrapper commands solely for internal use.</div>
+<div class="ct-L2Sectionbody"></div>
+</main>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Paging and Rendering</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Paging and Rendering</div>
+  <div class="doc-breadcrumb">solidground console_preface.sh::SolidGround Console:Paging and Rendering:</div>
+</header>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Menu registrations are stored in datatables, but rendering does not repeatedly</div>
+<div class="ct-L2Sectionbody">traverse the datatable API. The menu engine materializes direct-index caches for</div>
+<div class="ct-L2Sectionbody">groups and items, calculates visible entries, and builds a cached page layout.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Redraws, theme changes, log-level changes, dry-run toggles, and page navigation</div>
+<div class="ct-L2Sectionbody">reuse these caches until registration data or layout constraints change.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">This keeps startup explicit while making interactive redraws effectively</div>
+<div class="ct-L2Sectionbody">immediate, even for larger module sets.</div>
+<div class="ct-L2Sectionbody"></div>
+</main>
+</body>
+</html>

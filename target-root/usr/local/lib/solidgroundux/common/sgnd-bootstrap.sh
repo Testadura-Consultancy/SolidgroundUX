@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2619513
-#   Checksum    : 02e6e9fa318885faff6c3ff049eb43d22dec1ad973b845d88cf4503e273b0b49
+#   Build       : 2620211
+#   Checksum    : 4b68541aea12b73e66fea5b09a1ffad4cfc456e7733477cee48af0012c120658
 #   Source      : sgnd-bootstrap.sh
 #   Type        : library
 #   Group       : Bootstrap
@@ -808,13 +808,31 @@ set -uo pipefail
         # . Usage
         #   sgnd_load_ui_style
     sgnd_load_ui_style() {
-        local style_path palette_path
+        local style_path="${SGND_UI_STYLE:-00-style-default.sh}"
+        local palette_path="$SGND_UI_PALETTE"
+        local style_name=""
+        local resolved_style=""
 
-        style_path="$SGND_UI_STYLE"
-        palette_path="$SGND_UI_PALETTE"
+        if [[ "$style_path" != */* ]]; then
+            if [[ -r "$SGND_STYLE_DIR/$style_path" ]]; then
+                style_path="$SGND_STYLE_DIR/$style_path"
+            else
+                style_name="${style_path%.sh}"
+                style_name="${style_name#style-}"
+                [[ "$style_name" == "default-ui-style" ]] && style_name="default"
 
-        # If values are basenames, resolve from SGND_STYLE_DIR
-        [[ "$style_path" == */* ]] || style_path="$SGND_STYLE_DIR/$style_path"
+                while IFS= read -r resolved_style; do
+                    style_path="$SGND_STYLE_DIR/$resolved_style"
+                    SGND_UI_STYLE="$resolved_style"
+                    break
+                done < <(
+                    find "$SGND_STYLE_DIR" -maxdepth 1 -type f \
+                        -name "[0-9][0-9]-style-${style_name}.sh" \
+                        -printf '%f\n' | LC_ALL=C sort
+                )
+            fi
+        fi
+
         [[ "$palette_path" == */* ]] || palette_path="$SGND_STYLE_DIR/$palette_path"
 
         [[ -r "$palette_path" ]] || { saywarning "Palette not found: $palette_path"; return 1; }

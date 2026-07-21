@@ -13,30 +13,28 @@
   <div class="doc-breadcrumb">solidground console_preface.sh::SolidGround Console:Console Startup Sequence:</div>
 </header>
 <div class="ct-L2Sectionbody"></div>
-<div class="ct-L2Sectionbody">A typical console session follows this sequence:</div>
-<div class="ct-L2Sectionbody"></div>
 <div class="ct-L2Sectionbody">    User starts sgnd-console</div>
 <div class="ct-L2Sectionbody">        ↓</div>
-<div class="ct-L2Sectionbody">    Launcher starts sgnd-console.sh</div>
+<div class="ct-L2Sectionbody">    Framework and application roots are resolved</div>
 <div class="ct-L2Sectionbody">        ↓</div>
-<div class="ct-L2Sectionbody">    Framework bootstrap is loaded</div>
+<div class="ct-L2Sectionbody">    SolidGroundUX bootstrap and executable runtime are loaded</div>
 <div class="ct-L2Sectionbody">        ↓</div>
-<div class="ct-L2Sectionbody">    Built-in framework arguments are handled</div>
+<div class="ct-L2Sectionbody">    Console paths and state are initialized</div>
 <div class="ct-L2Sectionbody">        ↓</div>
-<div class="ct-L2Sectionbody">    Console configuration is loaded or created</div>
+<div class="ct-L2Sectionbody">    Built-in Console Session actions are registered</div>
 <div class="ct-L2Sectionbody">        ↓</div>
-<div class="ct-L2Sectionbody">    Built-in console menu items are registered</div>
+<div class="ct-L2Sectionbody">    Module files are discovered and sorted by filename</div>
 <div class="ct-L2Sectionbody">        ↓</div>
-<div class="ct-L2Sectionbody">    Console modules are loaded from the configured module directory</div>
+<div class="ct-L2Sectionbody">    Each module is sourced, validated, and recorded</div>
 <div class="ct-L2Sectionbody">        ↓</div>
-<div class="ct-L2Sectionbody">    Modules register their own groups and menu items</div>
+<div class="ct-L2Sectionbody">    Modules register groups and menu items</div>
 <div class="ct-L2Sectionbody">        ↓</div>
-<div class="ct-L2Sectionbody">    The menu is rendered</div>
+<div class="ct-L2Sectionbody">    The menu model and page layout are cached</div>
 <div class="ct-L2Sectionbody">        ↓</div>
-<div class="ct-L2Sectionbody">    User selections are dispatched to registered actions</div>
+<div class="ct-L2Sectionbody">    The current page is rendered and input is dispatched</div>
 <div class="ct-L2Sectionbody"></div>
-<div class="ct-L2Sectionbody">This keeps the console host generic. The menu that appears at runtime is the</div>
-<div class="ct-L2Sectionbody">result of the loaded modules rather than a hard-coded list inside the host.</div>
+<div class="ct-L2Sectionbody">Expensive registration and layout work happens when the menu model changes.</div>
+<div class="ct-L2Sectionbody">Ordinary redraws reuse the cached model and cached page layout.</div>
 <div class="ct-L2Sectionbody"></div>
 </main>
 </body>

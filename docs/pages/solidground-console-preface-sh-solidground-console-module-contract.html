@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Module Contract</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Module Contract</div>
+  <div class="doc-breadcrumb">solidground console_preface.sh::SolidGround Console:Module Contract:</div>
+</header>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">A console module is a source-only Bash file. It defines functions first and</div>
+<div class="ct-L2Sectionbody">registers its groups and items as its only intended load-time side effect.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Every module exports temporary host metadata:</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">    SGND_MODULE_ID</div>
+<div class="ct-L2Sectionbody">    SGND_MODULE_NAME</div>
+<div class="ct-L2Sectionbody">    SGND_MODULE_VERSION</div>
+<div class="ct-L2Sectionbody">    SGND_MODULE_DESC</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">The host clears these values before sourcing a module, validates them afterwards,</div>
+<div class="ct-L2Sectionbody">rejects duplicate module IDs, records the metadata, and clears the temporary</div>
+<div class="ct-L2Sectionbody">values before continuing with the next module.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Modules may keep their own permanent constants for use by their action functions.</div>
+<div class="ct-L2Sectionbody">The temporary `SGND_MODULE_*` values exist only for the loading contract.</div>
+<div class="ct-L2Sectionbody"></div>
+</main>
+</body>
+</html>

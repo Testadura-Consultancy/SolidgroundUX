@@ -4,8 +4,8 @@
 # ------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2619012
-#   Checksum    : 2de498a7789197eea7ec07779237bdcdb582c6830eb057246464811a07716c3f
+#   Build       : 2620212
+#   Checksum    : 9b7a5a387c1ca0a3a42471acca86c492df9496c06a1d0b59963b6c2380404493
 #   Source      : doc-generator.sh
 #   Type        : script
 #   Group       : SDK Documentation
@@ -586,18 +586,20 @@ set -uo pipefail
         (( ${SGND_DOC_PROGRESS_ACTIVE:-0} )) || return 0
 
         local current="${1:-0}"
-        local total="${SGND_DOC_PROGRESS_LINE_TOTAL:-${2:-1}}"
-        local label="${SGND_DOC_PROGRESS_MODULE_NAME:-${3:-}}"
+        local total="${2:-${SGND_DOC_PROGRESS_LINE_TOTAL:-1}}"
+        local name="${3:-${SGND_DOC_PROGRESS_MODULE_NAME:-}}"
+        local module_current="${SGND_DOC_PROGRESS_MODULE_CURRENT:-0}"
+        local module_total="${SGND_DOC_PROGRESS_MODULE_TOTAL:-0}"
 
         (( total > 0 )) || total=1
         (( current < 0 )) && current=0
         (( current > total )) && current="$total"
 
         sayprogress \
-            --slot 1 \
+            --slot 0 \
             --current "$current" \
             --total "$total" \
-            --label "Lines: ${label}" \
+            --label "Module ${module_current}/${module_total}: $name" \
             --type 5 \
             --padleft 0
     }
@@ -655,64 +657,67 @@ set -uo pipefail
         local callback="$4"
 
         [[ -z "$source_dir" || -z "$file_spec" || -z "$callback" ]] && return 1
-        [[ ! -d "$source_dir" ]] && return 1
+        [[ -d "$source_dir" ]] || return 1
         declare -F "$callback" >/dev/null || return 1
 
         local -a files=()
-        local -a line_totals=()
         local file=""
         local name=""
         local files_ttl=0
         local files_proc=0
         local line_total=0
 
-        if [[ "$recursive" -eq 0 ]]; then
+        if (( recursive == 0 )); then
             shopt -s nullglob
+
             for file in "$source_dir"/$file_spec; do
                 [[ -f "$file" ]] || continue
                 files+=("$file")
             done
+
             shopt -u nullglob
         else
             while IFS= read -r -d '' file; do
                 [[ -f "$file" ]] || continue
                 files+=("$file")
-            done < <(find "$source_dir" -type f -name "$file_spec" -print0)
+            done < <(
+                find "$source_dir" -type f -name "$file_spec" -print0
+            )
         fi
 
         files_ttl="${#files[@]}"
         (( files_ttl > 0 )) || return 0
 
-        for file in "${files[@]}"; do
-            line_totals+=("$(_doc_count_lines "$file")")
-        done
+        sgnd_print
+        sayprogress_begin --slots 1
 
-        sayprogress_begin --slots 2
+        SGND_DOC_PROGRESS_ACTIVE=1
+        SGND_DOC_PROGRESS_MODULE_TOTAL="$files_ttl"
 
         for file in "${files[@]}"; do
             ((files_proc++))
+
             name="${file##*/}"
-            line_total="${line_totals[$(( files_proc - 1 ))]}"
+            line_total="$(_doc_count_lines "$file")"
             (( line_total > 0 )) || line_total=1
 
-            SGND_DOC_PROGRESS_ACTIVE=1
+            SGND_DOC_PROGRESS_MODULE_CURRENT="$files_proc"
             SGND_DOC_PROGRESS_MODULE_NAME="$name"
             SGND_DOC_PROGRESS_LINE_TOTAL="$line_total"
 
-            sayprogress \
-                --slot 0 \
-                --current "$files_proc" \
-                --total "$files_ttl" \
-                --label "Module: $name" \
-                --type 5 \
-                --padleft 0
+            # Initialize the bar for the new module.
+            _doc_progress_line 0 "$line_total" "$name"
 
-            "$callback" "$file" || saywarning "Callback $callback failed for file: $file"
+            "$callback" "$file" ||
+                saywarning "Callback $callback failed for file: $file"
 
-            _doc_progress_line "$line_total"
+            # Ensure that the module ends visibly at 100%.
+            _doc_progress_line "$line_total" "$line_total" "$name"
         done
 
         SGND_DOC_PROGRESS_ACTIVE=0
+        SGND_DOC_PROGRESS_MODULE_CURRENT=0
+        SGND_DOC_PROGRESS_MODULE_TOTAL=0
         SGND_DOC_PROGRESS_MODULE_NAME=""
         SGND_DOC_PROGRESS_LINE_TOTAL=0
 

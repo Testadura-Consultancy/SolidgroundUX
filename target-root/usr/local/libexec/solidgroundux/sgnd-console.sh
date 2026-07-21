@@ -3,9 +3,9 @@
 # SolidGroundUX - Console Host
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.7
-#   Build       : 2619600
-#   Checksum    : 1cdbd32052d5146ebb243387da992b91416d0b5c3c37d5aa026a906ac7b74d67
+#   Version     : 1.8
+#   Build       : 2620212
+#   Checksum    : 7a9ec72bc79b2c95c7be02296f0399ba053aefcd14ea0cff8f9aadd31d01398c
 #   Source      : sgnd-console.sh
 #   Type        : script
 #   Group       : SolidGround Console
@@ -21,7 +21,7 @@
 #     - Builds and renders interactive menus
 #     - Handles user input and dispatches actions
 #     - Supports navigation, paging, and toggle controls
-#     - Persists runtime flags such as debug, verbose, and dry-run
+#     - Persists console layout and framework UI/logging state
 #
 # Design principles:
 #   - Modular architecture with clear separation of host and modules
@@ -30,13 +30,13 @@
 #   - Consistent user interaction patterns across all tools
 #
 # Role in framework:
-#   - Central entry point for interactive SolidGroundUX tooling
-#   - Hosts and orchestrates functionality provided by console modules
+#   - Generic console engine for module-defined interactive applications
+#   - Hosts and orchestrates functionality provided by ordered console modules
 #
 # Non-goals:
 #   - Implementing business logic directly in the console host
 #   - Managing module-specific state beyond registration and dispatch
-#   - Providing a full TUI framework beyond structured menu interaction
+#   - Providing a widget-based or cursor-addressed full-screen TUI
 #
 # Attribution:
 #   Developers  : Mark Fieten
@@ -354,10 +354,39 @@ set -uo pipefail
         declare -ag SGND_VISIBLE_ITEM_INDEXES=()
         declare -ag SGND_GROUP_RENDER_INDEXES=()
 
+        SGND_CONSOLE_MODEL_CACHE_GROUP_COUNT=-1
+        SGND_CONSOLE_MODEL_CACHE_ITEM_COUNT=-1
+        SGND_CONSOLE_MODEL_CACHE_GENERATION=0
+        SGND_CONSOLE_GROUP_INDEX_CACHE_GENERATION=-1
+        SGND_CONSOLE_VISIBLE_INDEX_CACHE_GENERATION=-1
+        SGND_CONSOLE_LABEL_WIDTH_CACHE_GENERATION=-1
+        SGND_CONSOLE_LABEL_WIDTH_CACHE_VALUE=0
+        declare -ag SGND_GROUP_CACHE_KEY=()
+        declare -ag SGND_GROUP_CACHE_LABEL=()
+        declare -ag SGND_GROUP_CACHE_BUILTIN=()
+        declare -ag SGND_GROUP_CACHE_VISIBLE=()
+        declare -ag SGND_GROUP_CACHE_ORD=()
+        declare -Ag SGND_GROUP_CACHE_INDEX_BY_KEY=()
+        declare -ag SGND_ITEM_CACHE_KEY=()
+        declare -ag SGND_ITEM_CACHE_GROUP=()
+        declare -ag SGND_ITEM_CACHE_LABEL=()
+        declare -ag SGND_ITEM_CACHE_HANDLER=()
+        declare -ag SGND_ITEM_CACHE_DESC=()
+        declare -ag SGND_ITEM_CACHE_BUILTIN=()
+        declare -ag SGND_ITEM_CACHE_WAITSECS=()
+        declare -ag SGND_ITEM_CACHE_VISIBLE=()
+
         SGND_CLEAR_ONRENDER=1
 
         SGND_PAGE_INDEX=0
         declare -ag SGND_PAGE_STARTS=()
+        declare -ag SGND_PAGE_ROW_OFFSETS=()
+        declare -ag SGND_PAGE_ROW_COUNTS=()
+        declare -ag SGND_PAGE_ROWS=()
+        declare -ag SGND_PAGE_GROUP_OFFSETS=()
+        declare -ag SGND_PAGE_GROUP_COUNTS=()
+        declare -ag SGND_PAGE_GROUPS=()
+        SGND_CONSOLE_LAYOUT_CACHE_KEY=""
         SGND_PAGE_HAS_PREV=0
         SGND_PAGE_HAS_NEXT=0
         SGND_PAGE_MAX_ROWS=15
@@ -365,7 +394,7 @@ set -uo pipefail
     # --- Console paths ---------------------------------------------------------------
     # _sgnd_console_init_paths
         # . Purpose
-        #   Derive Management Studio paths from SGND_APPLICATION_ROOT.
+        #   Derive console host paths from SGND_APPLICATION_ROOT.
         #
         # . Returns
         #   0 on success; 1 when SGND_APPLICATION_ROOT is unavailable.
@@ -491,10 +520,9 @@ set -uo pipefail
         sgnd_console_register_group "$SGND_GROUP_SESSION" "Console Session" "" 1 1 990
 
         sgnd_console_register_item "D" "$SGND_GROUP_RUNTIME" "Dry-run / Commit" "_sgnd_console_toggle_dryrun" "Toggle dry-run mode" 1 0 0
-        sgnd_console_register_item "C" "$SGND_GROUP_RUNTIME" "Console log level" "_sgnd_console_cycle_console_loglevel" "Cycle console log level" 1 0 0
-        sgnd_console_register_item "F" "$SGND_GROUP_RUNTIME" "File log level" "_sgnd_console_cycle_file_loglevel" "Cycle file log level" 1 0 0
-        sgnd_console_register_item "T" "$SGND_GROUP_RUNTIME" "Theme" "_sgnd_console_cycle_theme" "Cycle installed themes" 1 0 0
-        sgnd_console_register_item "S" "$SGND_GROUP_RUNTIME" "Clear screen" "_sgnd_console_toggle_clearonrender" "Toggle clear screen before rendering" 1 0 0
+        sgnd_console_register_item "c" "$SGND_GROUP_RUNTIME" "Console log level" "_sgnd_console_cycle_console_loglevel" "Cycle console log level" 1 0 0
+        sgnd_console_register_item "f" "$SGND_GROUP_RUNTIME" "File log level" "_sgnd_console_cycle_file_loglevel" "Cycle file log level" 1 0 0
+        sgnd_console_register_item "t" "$SGND_GROUP_RUNTIME" "Theme" "_sgnd_console_cycle_theme" "Cycle installed themes" 1 0 0
 
         sgnd_console_register_item "L" "$SGND_GROUP_SESSION" "Set lines per page" "_sgnd_console_set_lines_per_page" "Set the maximum number of menu lines per page" 1 0 1
         sgnd_console_register_item "<" "$SGND_GROUP_SESSION" "Previous page" "_sgnd_console_prevpage" "Show previous menu page" 1 0 0
@@ -835,9 +863,10 @@ set -uo pipefail
             ask_choose_immediate \
                 --label "Select option" \
                 --choices "$valid_choices" \
-                --instantchoices "B,D,G,V,C,L,T,<,>" \
+                --instantchoices "C,D,F,T,L,R,Q,<,>" \
                 --displaychoices 0 \
                 --keepasking 1 \
+                --preservecase 1 \
                 --var choice
 
             _sgnd_console_dispatch "$choice"

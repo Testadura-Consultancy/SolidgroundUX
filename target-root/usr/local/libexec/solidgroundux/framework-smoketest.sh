@@ -4,8 +4,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2619513
-#   Checksum    : 2fecf015ddfd1e2700b8d98220ede6dae19dd98ebb3ee99b187303902255a6ca
+#   Build       : 2620211
+#   Checksum    : 106d28f7b6ac7c117b4751e5a979df83147fd7b487ac3e02e18d91330c8e450b
 #   Source      : framework-smoketest.sh
 #   Type        : script
 #   Purpose     : Exercise and validate core SolidGroundUX framework functionality
@@ -757,7 +757,7 @@ set -uo pipefail
         #   Cycle through installed SolidGroundUX themes and preview each one.
         #
         # . Behavior
-        #   - Discovers default-ui-style.sh and style-*.sh in SGND_STYLE_DIR.
+        #   - Discovers numbered NN-style-*.sh files in SGND_STYLE_DIR.
         #   - Starts at the currently active theme when possible.
         #   - Uses Left/Right arrows to switch the runtime theme without saving it.
         #   - Displays sgnd_style_samples after every successful switch.
@@ -784,8 +784,8 @@ set -uo pipefail
             theme_files+=("$(basename -- "$theme_file")")
         done < <(
             find "$SGND_STYLE_DIR" -maxdepth 1 -type f \
-                \( -name 'default-ui-style.sh' -o -name 'style-*.sh' \) \
-                -print0 | sort -z
+                -name '[0-9][0-9]-style-*.sh' \
+                -print0 | LC_ALL=C sort -z
         )
 
         if (( ${#theme_files[@]} == 0 )); then
@@ -795,8 +795,7 @@ set -uo pipefail
 
         for theme_file in "${theme_files[@]}"; do
             theme_name="${theme_file%.sh}"
-            theme_name="${theme_name#style-}"
-            [[ "$theme_file" == "default-ui-style.sh" ]] && theme_name="default"
+            theme_name="${theme_name#??-style-}"
             theme_names+=("$theme_name")
         done
 

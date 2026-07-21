@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>_install_docker</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">_install_docker</div>
+  <div class="doc-breadcrumb">20-machine-config.sh:::Public module actions:_install_docker</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Install Docker Engine from Docker&#x27;s official Ubuntu repository.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Refreshes the APT package index and installs repository prerequisites.</div>
+<div class="ct-functionbody">  - Installs Docker&#x27;s official signing key and deb822 repository definition.</div>
+<div class="ct-functionbody">  - Installs Docker Engine, containerd, Buildx, and the Compose plugin.</div>
+<div class="ct-functionbody">  - Enables and starts the Docker service.</div>
+<div class="ct-functionbody">  - Does not add users to the privileged docker group.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 if Docker was installed and enabled successfully, otherwise non-zero.</div>
+</main>
+</body>
+</html>

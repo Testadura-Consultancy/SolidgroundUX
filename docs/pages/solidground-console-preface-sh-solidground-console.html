@@ -12,15 +12,26 @@
   <div class="doc-title">SolidGround Console</div>
   <div class="doc-breadcrumb">solidground console_preface.sh:::SolidGround Console:</div>
 </header>
+<div class="doc-image-group images-1">
+<figure class="doc-image">
+<img src="../assets/images/smc.png" alt="Figure 1 – SolidGround Management Console." loading="lazy">
+<figcaption>Figure 1 – SolidGround Management Console.</figcaption>
+</figure>
+</div>
+<div class="ct-L1Sectionbody">The SolidGround Console is a generic, module-driven application host for</div>
+<div class="ct-L1Sectionbody">interactive Bash tooling. It provides the menu engine, runtime controls, module</div>
+<div class="ct-L1Sectionbody">lifecycle, paging, rendering, and action dispatch used by console applications.</div>
 <div class="ct-L1Sectionbody"></div>
-<div class="ct-L1Sectionbody">The SolidGround Console group contains the interactive console host used by</div>
-<div class="ct-L1Sectionbody">SolidGroundUX and the menu system that supports it.</div>
+<div class="ct-L1Sectionbody">The host deliberately has no fixed application identity. Without modules it is</div>
+<div class="ct-L1Sectionbody">simply `sgnd-console`. The first successfully loaded module may supply a title</div>
+<div class="ct-L1Sectionbody">and description, turning the host into a specific console application.</div>
 <div class="ct-L1Sectionbody"></div>
-<div class="ct-L1Sectionbody">The console provides a structured, menu-driven way to expose framework tools,</div>
-<div class="ct-L1Sectionbody">developer utilities, and project-specific actions without turning every action</div>
-<div class="ct-L1Sectionbody">into a separate command that must be remembered and typed manually.</div>
+<div class="ct-L1Sectionbody">The standard SolidGroundUX module set presents the host as the:</div>
 <div class="ct-L1Sectionbody"></div>
-<div class="ct-L1Sectionbody">In short, it is a lightweight application host for Bash-based tooling.</div>
+<div class="ct-L1Sectionbody">    SolidGroundUX Management Console</div>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody">This separation makes the console the reusable engine and the loaded modules the</div>
+<div class="ct-L1Sectionbody">application implementation.</div>
 <div class="ct-L1Sectionbody"></div>
 </main>
 </body>

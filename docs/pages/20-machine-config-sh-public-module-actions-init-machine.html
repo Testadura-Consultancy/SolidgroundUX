@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>_init_machine</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">_init_machine</div>
+  <div class="doc-breadcrumb">20-machine-config.sh:::Public module actions:_init_machine</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Generate a new machine-id for the VM.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Calls systemd-machine-id-setup to generate a new machine-id.</div>
+<div class="ct-functionbody">  - Verifies that /etc/machine-id is non-empty after generation.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 if successful, 1 if failed to generate machine-id.</div>
+</main>
+</body>
+</html>

@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0.0
-#   Build       : -
-#   Checksum    : -
+#   Build       : 2620211
+#   Checksum    : 4d337428682d307e2e380579b818e0a7e7a0f77f5cce74537ba021f7c90ad4c0
 #   Source      : 20-machine-config.sh
 #   Type        : module
 #   Group       : Machine Configuration
@@ -509,7 +509,7 @@ set -uo pipefail
         #       15
     sgnd_console_register_group \
         "$SGND_MACHINE_CONFIG_MODULE_ID" \
-        "$SGND_MACHINE_CONFIG_MODULE_NAME ($SGND_MACHINE_CONFIG_MODULE_VERSION)" \
+        "$SGND_MACHINE_CONFIG_MODULE_NAME" \
         "$SGND_MACHINE_CONFIG_MODULE_DESC" \
         0 1 800
     

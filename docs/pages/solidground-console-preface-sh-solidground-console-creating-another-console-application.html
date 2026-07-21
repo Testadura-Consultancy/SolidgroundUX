@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Creating Another Console Application</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Creating Another Console Application</div>
+  <div class="doc-breadcrumb">solidground console_preface.sh::SolidGround Console:Creating Another Console Application:</div>
+</header>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">A separate application can reuse the same host by supplying another module</div>
+<div class="ct-L2Sectionbody">directory through `--appcfg`. The first module supplies the application identity;</div>
+<div class="ct-L2Sectionbody">subsequent modules contribute functionality.</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">Conceptually:</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">    Create a module directory</div>
+<div class="ct-L2Sectionbody">        ↓</div>
+<div class="ct-L2Sectionbody">    Add numerically ordered source-only modules</div>
+<div class="ct-L2Sectionbody">        ↓</div>
+<div class="ct-L2Sectionbody">    Let the first module define the title and description</div>
+<div class="ct-L2Sectionbody">        ↓</div>
+<div class="ct-L2Sectionbody">    Register groups and actions through the public API</div>
+<div class="ct-L2Sectionbody">        ↓</div>
+<div class="ct-L2Sectionbody">    Start sgnd-console with that module source</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">This makes `sgnd-console` a reusable console engine rather than a hard-coded</div>
+<div class="ct-L2Sectionbody">SolidGroundUX administration script.</div>
+<div class="ct-L2Sectionbody"></div>
+</main>
+</body>
+</html>

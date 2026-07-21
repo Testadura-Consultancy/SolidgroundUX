@@ -71,10 +71,10 @@
 <tr><td>_emit_globalrecord</td><td>Append a framework/runtime/script global declaration record</td><td>Store a detected global variable declaration in the module globals table.</td><td>doc-processor.sh</td></tr>
 <tr><td>_emit_itemrecord</td><td>Append a documented item record</td><td>Store the current documented item in the module item index.</td><td>doc-processor.sh</td></tr>
 <tr><td>_emit_sectionrecord</td><td>Append a documentation section record</td><td>Store the current section context in the module section index.</td><td>doc-processor.sh</td></tr>
-<tr><td>_exe_createworkspace</td><td></td><td></td><td>console-devtools.sh</td></tr>
-<tr><td>_exe_deployworkspace</td><td></td><td></td><td>console-devtools.sh</td></tr>
-<tr><td>_exe_metadata_editor</td><td></td><td></td><td>console-devtools.sh</td></tr>
-<tr><td>_exe_preparerelease</td><td></td><td></td><td>console-devtools.sh</td></tr>
+<tr><td>_exe_createworkspace</td><td></td><td></td><td>10-sgnd-config.sh</td></tr>
+<tr><td>_exe_deployworkspace</td><td></td><td></td><td>10-sgnd-config.sh</td></tr>
+<tr><td>_exe_metadata_editor</td><td></td><td></td><td>10-sgnd-config.sh</td></tr>
+<tr><td>_exe_preparerelease</td><td></td><td></td><td>10-sgnd-config.sh</td></tr>
 <tr><td>_export_render_config</td><td>Export renderer configuration to a PSV file</td><td>Write document-level render settings in the same table format used by exported parser data.</td><td>doc-renderer.sh</td></tr>
 <tr><td>_export_render_tables</td><td>Export parser tables for the Python renderer</td><td>Persist normalized documentation tables into a temporary render hand-off directory.</td><td>doc-renderer.sh</td></tr>
 <tr><td>_field_is_selected</td><td>Test whether a metadata field is selected</td><td>Test whether a metadata field is selected.</td><td>metadata-editor.sh</td></tr>
@@ -85,8 +85,8 @@
 <tr><td>_framework_locator</td><td>Locate and load the SolidGroundUX executable bootstrap context</td><td>Locate, create, and load the SolidGroundUX bootstrap configuration, then load the executable runtime support library.</td><td>metadata-editor.sh</td></tr>
 <tr><td>_framework_locator</td><td>Locate and load the SolidGroundUX executable bootstrap context</td><td>Locate, create, and load the SolidGroundUX bootstrap configuration, then load the executable runtime support library.</td><td>prepare-release.sh</td></tr>
 <tr><td>_framework_locator</td><td>Locate and load the SolidGroundUX executable bootstrap context</td><td>Locate, create, and load the SolidGroundUX bootstrap configuration, then load the executable runtime support library.</td><td>sgnd-console.sh</td></tr>
-<tr><td>_framework_state_apply_ui</td><td></td><td>Reload the active palette and style after framework state changes.</td><td>console-framework-state.sh</td></tr>
-<tr><td>_framework_state_validate</td><td></td><td>Verify that the transferable framework-state contract is available.</td><td>console-framework-state.sh</td></tr>
+<tr><td>_framework_state_apply_ui</td><td></td><td>Reload the active palette and style after framework state changes.</td><td>10-sgnd-config.sh</td></tr>
+<tr><td>_framework_state_validate</td><td></td><td>Verify that the transferable framework-state contract is available.</td><td>10-sgnd-config.sh</td></tr>
 <tr><td>_get_metadata</td><td>Read metadata from the current source file</td><td></td><td>metadata-editor.sh</td></tr>
 <tr><td>_get_parameters</td><td>Collect prepare-release parameters</td><td>Collect prepare-release parameters.</td><td>prepare-release.sh</td></tr>
 <tr><td>_get_project_directories</td><td>Resolve project directory layout</td><td>Build the directory list required for the selected project components.</td><td>create-workspace.sh</td></tr>
@@ -179,8 +179,7 @@
 <tr><td>_sgnd_console_render_togglebar</td><td>Console render togglebar</td><td>Render the console togglebar portion of the current workflow.</td><td>sgnd-console-menu.sh</td></tr>
 <tr><td>_sgnd_console_run</td><td>Run the console interaction loop</td><td>Run the interactive console event loop.</td><td>sgnd-console.sh</td></tr>
 <tr><td>_sgnd_console_set_file_loglevel</td><td>Set file log level</td><td>Prompt for and apply the active SolidGroundUX file log level.</td><td>sgnd-console-menu.sh</td></tr>
-<tr><td>_sgnd_console_set_lines_per_page</td><td>Set menu lines per page</td><td>Set the maximum number of rendered menu lines per page.</td><td>sgnd-console-menu.sh</td></tr>
-<tr><td>_sgnd_console_set_theme</td><td>Set console theme</td><td>Prompt for and apply the active SolidGroundUX UI theme.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_set_lines_per_page</td><td>Set lines per page</td><td>Prompt for and apply the number of menu lines available per page.</td><td>sgnd-console-menu.sh</td></tr>
 <tr><td>_sgnd_console_source_module</td><td>Source one console module</td><td></td><td>sgnd-console.sh</td></tr>
 <tr><td>_sgnd_console_toggle_clearonrender</td><td>Toggle clear-on-render</td><td>Render the console toggle clearonrender portion of the current workflow.</td><td>sgnd-console-menu.sh</td></tr>
 <tr><td>_sgnd_console_toggle_debug</td><td>Toggle debug</td><td>Handle console menu toggle debug behavior.</td><td>sgnd-console-menu.sh</td></tr>
@@ -209,7 +208,6 @@
 <tr><td>_sgnd_print_arg_spec_list</td><td>Print arg spec list</td><td>Internal helper for print arg spec list.</td><td>sgnd-info.sh</td></tr>
 <tr><td>_sgnd_print_cfg_pass</td><td>Print cfg pass</td><td>Internal helper for print cfg pass.</td><td>sgnd-info.sh</td></tr>
 <tr><td>_sgnd_rotate_logs</td><td>Rotate logs</td><td>Rotate log files when log retention settings require it.</td><td>ui-say.sh</td></tr>
-<tr><td>_sgnd_run_script</td><td>Run a tool script from the console</td><td>Run a tool script from the console.</td><td>sgnd-console.sh</td></tr>
 <tr><td>_sgnd_save_state_dispatch</td><td>Save state on clean exit</td><td>Conditionally persist framework state from the exit-handler stack.</td><td>sgnd-bootstrap.sh</td></tr>
 <tr><td>_sgnd_ui_resolve_theme_file</td><td>Ui resolve theme file</td><td>Resolve a palette or style name to a readable theme file path.</td><td>ui.sh</td></tr>
 <tr><td>_sh_err</td><td>Sh err</td><td>Write an error message through say when available, otherwise stderr.</td><td>ui.sh</td></tr>
@@ -234,22 +232,13 @@
 <tr><td>backup_affected_paths</td><td>Back up affected target paths</td><td>Creates a timestamped backup of target paths affected by the selected manifest.</td><td>sgnd-install.sh</td></tr>
 <tr><td>build_package_table</td><td>Build package selection table</td><td>Builds sortable package table rows from candidate release archives.</td><td>sgnd-install.sh</td></tr>
 <tr><td>confirm</td><td>Confirm</td><td>Ask the user for a yes/no confirmation and return success for yes.</td><td>ui.sh</td></tr>
-<tr><td>devtools_ask_test</td><td></td><td>Run the interactive ask helper smoke tests.</td><td>console-devtools.sh</td></tr>
-<tr><td>devtools_file_loglevel_test</td><td></td><td>Exercise file filtering at every supported log level.</td><td>console-devtools.sh</td></tr>
-<tr><td>devtools_input_test</td><td></td><td>Run a simple prompt-form input test.</td><td>console-devtools.sh</td></tr>
-<tr><td>devtools_loglevel_test</td><td></td><td>Exercise console filtering at every supported log level.</td><td>console-devtools.sh</td></tr>
-<tr><td>devtools_say_test</td><td></td><td>Emit the standard say message types.</td><td>console-devtools.sh</td></tr>
-<tr><td>devtools_sayprogress_test</td><td></td><td>Run single-, double-, and triple-level progress tests.</td><td>console-devtools.sh</td></tr>
-<tr><td>devtools_show_colorchart</td><td></td><td>Display the active UI palette color chart.</td><td>console-devtools.sh</td></tr>
-<tr><td>devtools_show_theme</td><td></td><td>Browse and preview installed SolidGroundUX themes.</td><td>console-devtools.sh</td></tr>
-<tr><td>devtools_view_log</td><td></td><td>Display the resolved SolidGroundUX logfile.</td><td>console-devtools.sh</td></tr>
 <tr><td>extract_release_archive</td><td>Extract release archive</td><td>Extracts the selected release archive into the configured target root.</td><td>sgnd-install.sh</td></tr>
 <tr><td>file_loglevel_test</td><td>Run file logging tests for every log level</td><td>Verify file logging and file-level filtering independently from console output.</td><td>framework-smoketest.sh</td></tr>
 <tr><td>find_candidate_archives</td><td>Find candidate release archives</td><td>Lists candidate .tar.gz release archives from the configured releases directory.</td><td>sgnd-install.sh</td></tr>
-<tr><td>framework_state_edit</td><td></td><td>Edit and save all transferable framework-state variables.</td><td>console-framework-state.sh</td></tr>
-<tr><td>framework_state_reload</td><td></td><td>Reload transferable framework state from disk into the console instance.</td><td>console-framework-state.sh</td></tr>
-<tr><td>framework_state_save</td><td></td><td>Save current transferable framework-state values.</td><td>console-framework-state.sh</td></tr>
-<tr><td>framework_state_show</td><td></td><td>Display all transferable framework-state variables and their values.</td><td>console-framework-state.sh</td></tr>
+<tr><td>framework_state_edit</td><td></td><td>Edit and save all transferable framework-state variables.</td><td>10-sgnd-config.sh</td></tr>
+<tr><td>framework_state_reload</td><td></td><td>Reload transferable framework state from disk into the console instance.</td><td>10-sgnd-config.sh</td></tr>
+<tr><td>framework_state_save</td><td></td><td>Save current transferable framework-state values.</td><td>10-sgnd-config.sh</td></tr>
+<tr><td>framework_state_show</td><td></td><td>Display all transferable framework-state variables and their values.</td><td>10-sgnd-config.sh</td></tr>
 <tr><td>init_paths</td><td>Initialize installer paths</td><td>Initializes default releases, backup, and state paths below the selected target root.</td><td>sgnd-install.sh</td></tr>
 <tr><td>init_paths</td><td>Initialize uninstaller paths</td><td>Initializes the default installer state path below the selected target root.</td><td>sgnd-uninstall.sh</td></tr>
 <tr><td>input_test</td><td>Run simple shell input tests</td><td>Run simple shell input tests.</td><td>framework-smoketest.sh</td></tr>
@@ -531,12 +520,12 @@
 <tr><td>style_background_dark_muted</td><td>Background: Dark / muted</td><td>Document the variables assigned in this style section.</td><td>default-ui-palette.sh</td></tr>
 <tr><td>style_background_normal</td><td>Background: Normal</td><td>Document the variables assigned in this style section.</td><td>default-ui-palette.sh</td></tr>
 <tr><td>style_color_codes</td><td>Color codes</td><td>Document the variables assigned in this style section.</td><td>default-ui-palette.sh</td></tr>
-<tr><td>style_colors</td><td>Colors</td><td>Document the variables assigned in this style section.</td><td>default-ui-style.sh</td></tr>
+<tr><td>style_colors</td><td>Colors</td><td>Document the variables assigned in this style section.</td><td>00-style-default.sh</td></tr>
 <tr><td>style_foreground_bright</td><td>Foreground: Bright</td><td>Document the variables assigned in this style section.</td><td>default-ui-palette.sh</td></tr>
 <tr><td>style_foreground_dark_muted</td><td>Foreground: Dark / muted</td><td></td><td>default-ui-palette.sh</td></tr>
 <tr><td>style_foreground_normal</td><td>Foreground: Normal</td><td></td><td>default-ui-palette.sh</td></tr>
-<tr><td>style_say_global_defaults</td><td>say() global defaults</td><td>Document the variables assigned in this style section.</td><td>default-ui-style.sh</td></tr>
-<tr><td>style_say_prefixes</td><td>Say prefixes</td><td>Document the variables assigned in this style section.</td><td>default-ui-style.sh</td></tr>
+<tr><td>style_say_global_defaults</td><td>say() global defaults</td><td>Document the variables assigned in this style section.</td><td>00-style-default.sh</td></tr>
+<tr><td>style_say_prefixes</td><td>Say prefixes</td><td>Document the variables assigned in this style section.</td><td>00-style-default.sh</td></tr>
 <tr><td>style_text_attributes_sgr</td><td>Text attributes (SGR)</td><td>Document the variables assigned in this style section.</td><td>default-ui-palette.sh</td></tr>
 </tbody>
 </table>

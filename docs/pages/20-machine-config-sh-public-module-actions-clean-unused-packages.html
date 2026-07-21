@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>_clean_unused_packages</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">_clean_unused_packages</div>
+  <div class="doc-breadcrumb">20-machine-config.sh:::Public module actions:_clean_unused_packages</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Remove unused package dependencies and cached package data.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Removes packages that were installed automatically and are no longer needed.</div>
+<div class="ct-functionbody">  - Removes obsolete package files from the local APT cache.</div>
+<div class="ct-functionbody">  - Reports the intended action without changing the system in dry-run mode.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 if package cleanup completed successfully, otherwise non-zero.</div>
+</main>
+</body>
+</html>

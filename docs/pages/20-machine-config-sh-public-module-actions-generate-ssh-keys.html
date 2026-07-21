@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>_generate_ssh_keys</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">_generate_ssh_keys</div>
+  <div class="doc-breadcrumb">20-machine-config.sh:::Public module actions:_generate_ssh_keys</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Generate SSH host keys for the VM.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Calls ssh-keygen to generate new SSH host keys.</div>
+<div class="ct-functionbody">  - Restarts the SSH service after key generation.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 if successful, 1 if failed to generate SSH host keys.</div>
+</main>
+</body>
+</html>
