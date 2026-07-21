@@ -5,10 +5,10 @@
 #   Version     : 1.0.0
 #   Build       : -
 #   Checksum    : -
-#   Source      : vm-config.sh
+#   Source      : 20-machine-config.sh
 #   Type        : module
-#   Group       : VM Configuration
-#   Purpose     : Configure VM identity, packages, roles, and template state
+#   Group       : Machine Configuration
+#   Purpose     : Configure machine identity, packages, roles, and template state
 #
 # Description:
 #   Provides the VM configuration menu for freshly installed or cloned Ubuntu
@@ -96,15 +96,15 @@ set -uo pipefail
         #   _sample_format_status() { :; }
 
 # --- Module metadata -------------------------------------------------------------
-    SGND_VM_CONFIG_MODULE_ID="vm-config"
-    SGND_VM_CONFIG_MODULE_NAME="VM Configuration"
-    SGND_VM_CONFIG_MODULE_VERSION="1.0.0"
-    SGND_VM_CONFIG_MODULE_DESC="Configure VM identity, packages, roles, and template state"
+    SGND_MACHINE_CONFIG_MODULE_ID="machine-config"
+    SGND_MACHINE_CONFIG_MODULE_NAME="Machine Configuration"
+    SGND_MACHINE_CONFIG_MODULE_VERSION="1.0.0"
+    SGND_MACHINE_CONFIG_MODULE_DESC="Configure machine identity, packages, roles, and template state"
 
-    SGND_MODULE_ID="$SGND_VM_CONFIG_MODULE_ID"
-    SGND_MODULE_NAME="$SGND_VM_CONFIG_MODULE_NAME"
-    SGND_MODULE_VERSION="$SGND_VM_CONFIG_MODULE_VERSION"
-    SGND_MODULE_DESC="$SGND_VM_CONFIG_MODULE_DESC"
+    SGND_MODULE_ID="$SGND_MACHINE_CONFIG_MODULE_ID"
+    SGND_MODULE_NAME="$SGND_MACHINE_CONFIG_MODULE_NAME"
+    SGND_MODULE_VERSION="$SGND_MACHINE_CONFIG_MODULE_VERSION"
+    SGND_MODULE_DESC="$SGND_MACHINE_CONFIG_MODULE_DESC"
 
 # --- Public module actions --------------------------------------------------------
     # doc$ Public module action naming
@@ -171,28 +171,16 @@ set -uo pipefail
 
     _set_identity() {
         _sgnd_run_module_script \
-            "$SGND_VM_CONFIG_MODULE_ID" \
+            "$SGND_MACHINE_CONFIG_MODULE_ID" \
             "set-identity.sh" \
             "$@"
     }
 
     _prep_template() {
         _sgnd_run_module_script \
-            "$SGND_VM_CONFIG_MODULE_ID" \
+            "$SGND_MACHINE_CONFIG_MODULE_ID" \
             "prepare-template.sh" \
             "$@"
-    }
-
-    _install_solidgroundux() {
-        _sgnd_run_public_command "sgnd-install" "$@"
-    }
-
-    _update_solidgroundux() {
-        _sgnd_run_public_command "sgnd-update" "$@"
-    }
-
-    _uninstall_solidgroundux() {
-        _sgnd_run_public_command "sgnd-uninstall" "$@"
     }
 
     # fn$ _install_basepackages
@@ -520,25 +508,15 @@ set -uo pipefail
         #       0 \
         #       15
     sgnd_console_register_group \
-        "$SGND_VM_CONFIG_MODULE_ID" \
-        "$SGND_VM_CONFIG_MODULE_NAME ($SGND_VM_CONFIG_MODULE_VERSION)" \
-        "$SGND_VM_CONFIG_MODULE_DESC" \
+        "$SGND_MACHINE_CONFIG_MODULE_ID" \
+        "$SGND_MACHINE_CONFIG_MODULE_NAME ($SGND_MACHINE_CONFIG_MODULE_VERSION)" \
+        "$SGND_MACHINE_CONFIG_MODULE_DESC" \
         0 1 800
     
-    sgnd_console_register_item "machid" "$SGND_VM_CONFIG_MODULE_ID" "Generate Machine ID" "_init_machine" "Set up a new machine ID" 0 5 1
-    sgnd_console_register_item "sshkeys" "$SGND_VM_CONFIG_MODULE_ID" "Generate SSH Keys" "_generate_ssh_keys" "Generate SSH host keys" 0 5 1
-    sgnd_console_register_item "setnetid" "$SGND_VM_CONFIG_MODULE_ID" "Set network ID" "_set_identity" "Configure hostname and network ID" 0 5 1
-    sgnd_console_register_item "prepclone" "$SGND_VM_CONFIG_MODULE_ID" "Prepare for cloning" "_prep_template" "Prepare this VM to be used as a Template" 0 5 1
-
-    sgnd_console_register_group \
-        "sgndinst" \
-        "SolidGroundUX Installation" \
-        "Install, update and manage SolidGroundUX" \
-        0 1 800
-
-    sgnd_console_register_item "install" "sgndinst" "Install SolidGroundUX" "_install_solidgroundux" "Install SolidGroundUX release package" 0 5 1
-    sgnd_console_register_item "update" "sgndinst" "Update SolidGroundUX" "_update_solidgroundux" "Update SolidGroundUX" 0 5 1
-    sgnd_console_register_item "uninstall" "sgndinst" "Uninstall SolidGroundUX" "_uninstall_solidgroundux" "Uninstall SolidGroundUX release package" 0 5 1
+    sgnd_console_register_item "machid" "$SGND_MACHINE_CONFIG_MODULE_ID" "Generate Machine ID" "_init_machine" "Set up a new machine ID" 0 5 1
+    sgnd_console_register_item "sshkeys" "$SGND_MACHINE_CONFIG_MODULE_ID" "Generate SSH Keys" "_generate_ssh_keys" "Generate SSH host keys" 0 5 1
+    sgnd_console_register_item "setnetid" "$SGND_MACHINE_CONFIG_MODULE_ID" "Set network ID" "_set_identity" "Configure hostname and network ID" 0 5 1
+    sgnd_console_register_item "prepclone" "$SGND_MACHINE_CONFIG_MODULE_ID" "Prepare for cloning" "_prep_template" "Prepare this VM to be used as a Template" 0 5 1
 
     sgnd_console_register_group \
         "pkghouse" \

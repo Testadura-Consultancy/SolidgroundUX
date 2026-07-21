@@ -1,18 +1,18 @@
 # ==================================================================================
-# SolidGroundUX - Framework State Console Module
+# SolidGroundUX - SolidGroundUX Configuration Console Module
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.7
-#   Build       : 2619600
-#   Checksum    : 96cfbfca2943425f54b8ca7ec7731238f8113bec8166c3af031a97085adad437
-#   Source      : console-framework-state.sh
+#   Build       : 2620012
+#   Checksum    : af15721358953e4878d692fbf343caf0cd6668b60fb6b8c3f6efa9f259f6b999
+#   Source      : 10-sgnd-config.sh
 #   Type        : module
 #   Group       : SolidGround Console
-#   Purpose     : Inspect and edit transferable SolidGroundUX framework state
+#   Purpose     : Manage SolidGroundUX development, installation, state, and diagnostics
 #
 # Description:
-#   Provides sgnd-console actions for viewing, editing, saving, and reloading the
-#   variables listed in SGND_FRAMEWORK_STATE.
+#   Registers SolidGroundUX development, installation, framework-state, and
+#   diagnostic actions with sgnd-console.
 #
 # Attribution:
 #   Developers    : Mark Fieten
@@ -54,15 +54,87 @@ set -uo pipefail
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
-    SGND_FRAMEWORK_STATE_MODULE_ID="framework-state"
-    SGND_FRAMEWORK_STATE_MODULE_NAME="Framework State"
-    SGND_FRAMEWORK_STATE_MODULE_VERSION="1.0.0"
-    SGND_FRAMEWORK_STATE_MODULE_DESC="Inspect and edit transferable SolidGroundUX framework runtime settings"
+    SGND_CONFIG_MODULE_ID="sgnd-config"
+    SGND_CONFIG_MODULE_NAME="SolidGroundUX Configuration"
+    SGND_CONFIG_MODULE_VERSION="1.0.0"
+    SGND_CONFIG_MODULE_DESC="Manage SolidGroundUX development, installation, state, and diagnostics"
 
-    SGND_MODULE_ID="$SGND_FRAMEWORK_STATE_MODULE_ID"
-    SGND_MODULE_NAME="$SGND_FRAMEWORK_STATE_MODULE_NAME"
-    SGND_MODULE_VERSION="$SGND_FRAMEWORK_STATE_MODULE_VERSION"
-    SGND_MODULE_DESC="$SGND_FRAMEWORK_STATE_MODULE_DESC"
+    SGND_MODULE_ID="$SGND_CONFIG_MODULE_ID"
+    SGND_MODULE_NAME="$SGND_CONFIG_MODULE_NAME"
+    SGND_MODULE_VERSION="$SGND_CONFIG_MODULE_VERSION"
+    SGND_MODULE_DESC="$SGND_CONFIG_MODULE_DESC"
+
+    SGND_CONSOLE_TITLE_OVERRIDE="SolidGroundUX Management Studio"
+    SGND_CONSOLE_DESC_OVERRIDE="Manage SolidGroundUX, development tools, and system configuration"
+
+# --- Developer tool actions -------------------------------------------------------
+    # fn: _exe_createworkspace
+        # . Returns
+        #   Exit status of create-workspace.sh.
+        # . Usage
+        #   _exe_createworkspace
+    _exe_createworkspace() {
+        _sgnd_run_public_command "sgnd-create-workspace"
+    }
+
+    # fn: _exe_deployworkspace
+        # . Returns
+        #   Exit status of deploy-workspace.sh.
+        # . Usage
+        #   _exe_deployworkspace
+    _exe_deployworkspace() {
+        _sgnd_run_public_command "sgnd-deploy-workspace"
+    }
+
+    # fn: _exe_preparerelease
+        # . Returns
+        #   Exit status of prepare-release.sh.
+        # . Usage
+        #   _exe_preparerelease
+    _exe_preparerelease() {
+        _sgnd_run_public_command "sgnd-prepare-release"
+    }
+
+    # fn: _exe_metadata_editor
+        # . Returns
+        #   Exit status of metadata-editor.sh.
+        # . Usage
+        #   _exe_metadata_editor
+    _exe_metadata_editor() {
+        _sgnd_run_public_command "sgnd-metadata-editor"
+    }
+
+    # _exe_generate_docs
+        # . Returns
+        #   Exit status of sgnd-generate-docs.
+        #
+        # . Usage
+        #   _exe_generate_docs
+    _exe_generate_docs() {
+        _sgnd_run_public_command "sgnd-generate-docs"
+    }
+
+# --- SolidGroundUX installation actions -------------------------------------------
+    _install_solidgroundux() {
+        _sgnd_run_public_command "sgnd-install" "$@"
+    }
+
+    _update_solidgroundux() {
+        _sgnd_run_public_command "sgnd-update" "$@"
+    }
+
+    _uninstall_solidgroundux() {
+        _sgnd_run_public_command "sgnd-uninstall" "$@"
+    }
+
+# --- Framework diagnostic actions -------------------------------------------------
+    _framework_smoketest() {
+        _sgnd_run_public_command "sgnd-framework-smoketest"
+    }
+
+    _framework_show_environment() {
+        _sgnd_run_public_command "sgnd-framework-smoketest" --show env
+    }
 
 # --- Internal helpers -------------------------------------------------------------
     # fn: _framework_state_validate
@@ -224,12 +296,28 @@ set -uo pipefail
 
 # --- Console registration ---------------------------------------------------------
     sgnd_console_register_group \
-        "$SGND_FRAMEWORK_STATE_MODULE_ID" \
-        "$SGND_FRAMEWORK_STATE_MODULE_NAME ($SGND_FRAMEWORK_STATE_MODULE_VERSION)" \
-        "$SGND_FRAMEWORK_STATE_MODULE_DESC" \
-        0 1 820
+        "$SGND_CONFIG_MODULE_ID" \
+        "Developer Tools ($SGND_CONFIG_MODULE_VERSION)" \
+        "Workspace, deployment, release, metadata, and documentation tools" \
+        0 1 800
 
-    sgnd_console_register_item "state-show" "$SGND_FRAMEWORK_STATE_MODULE_ID" "Show state" "framework_state_show" "Display current transferable framework-state values" 0 30 1
-    sgnd_console_register_item "state-edit" "$SGND_FRAMEWORK_STATE_MODULE_ID" "Edit state" "framework_state_edit" "Edit and save transferable framework-state values" 0 30 1
-    sgnd_console_register_item "state-save" "$SGND_FRAMEWORK_STATE_MODULE_ID" "Save state" "framework_state_save" "Save current transferable values to the state file" 0 30 1
-    sgnd_console_register_item "state-reload" "$SGND_FRAMEWORK_STATE_MODULE_ID" "Reload state" "framework_state_reload" "Reload transferable values from the state file" 0 30 1
+    sgnd_console_register_item "createws" "$SGND_CONFIG_MODULE_ID" "Create workspace" "_exe_createworkspace" "Create a template workspace with target-root structure" 0 15 1
+    sgnd_console_register_item "deployws" "$SGND_CONFIG_MODULE_ID" "Deploy workspace" "_exe_deployworkspace" "Deploy a target-root structure from workspace to root" 0 15 1
+    sgnd_console_register_item "preprel" "$SGND_CONFIG_MODULE_ID" "Prepare release" "_exe_preparerelease" "Create a release archive with checksums and manifests" 0 15 1
+    sgnd_console_register_item "metaedt" "$SGND_CONFIG_MODULE_ID" "Metadata editor" "_exe_metadata_editor" "Edit metadata fields in script header comments" 0 15 1
+    sgnd_console_register_item "gendocs" "$SGND_CONFIG_MODULE_ID" "Generate documentation" "_exe_generate_docs" "Generate SolidGroundUX source documentation" 0 15 1
+
+    sgnd_console_register_group "sgndinst" "SolidGroundUX Installation" "Install, update, or uninstall SolidGroundUX" 0 1 810
+    sgnd_console_register_item "install" "sgndinst" "Install SolidGroundUX" "_install_solidgroundux" "Install SolidGroundUX release package" 0 5 1
+    sgnd_console_register_item "update" "sgndinst" "Update SolidGroundUX" "_update_solidgroundux" "Update SolidGroundUX" 0 5 1
+    sgnd_console_register_item "uninstall" "sgndinst" "Uninstall SolidGroundUX" "_uninstall_solidgroundux" "Uninstall SolidGroundUX release package" 0 5 1
+
+    sgnd_console_register_group "framework-state" "Framework State" "Inspect and edit transferable SolidGroundUX framework runtime settings" 0 1 820
+    sgnd_console_register_item "state-show" "framework-state" "Show state" "framework_state_show" "Display current transferable framework-state values" 0 30 1
+    sgnd_console_register_item "state-edit" "framework-state" "Edit state" "framework_state_edit" "Edit and save transferable framework-state values" 0 30 1
+    sgnd_console_register_item "state-save" "framework-state" "Save state" "framework_state_save" "Save current transferable values to the state file" 0 30 1
+    sgnd_console_register_item "state-reload" "framework-state" "Reload state" "framework_state_reload" "Reload transferable values from the state file" 0 30 1
+
+    sgnd_console_register_group "diagnostics" "Framework Diagnostics" "Run the framework smoke test or show the resolved environment" 0 1 830
+    sgnd_console_register_item "smoketest" "diagnostics" "Framework smoke test" "_framework_smoketest" "Run the complete SolidGroundUX framework smoke test" 0 30 1
+    sgnd_console_register_item "show-env" "diagnostics" "Show environment" "_framework_show_environment" "Show the resolved SolidGroundUX framework environment" 0 30 1

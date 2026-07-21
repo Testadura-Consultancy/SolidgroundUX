@@ -185,8 +185,8 @@ set -uo pipefail
     SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"
     SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
     SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
-    SGND_SCRIPT_TITLE="SolidGroundUX Management Studio"
-    : "${SGND_SCRIPT_DESC:=Manage SolidGroundUX, development tools, and system configuration}"
+    SGND_SCRIPT_TITLE="sgnd-console"
+    : "${SGND_SCRIPT_DESC:=Generic SolidGroundUX console host}"
     : "${SGND_SCRIPT_VERSION:=1.0}"
     : "${SGND_SCRIPT_BUILD:=20260312}"
     : "${SGND_SCRIPT_DEVELOPERS:=Mark Fieten}"
@@ -245,8 +245,8 @@ set -uo pipefail
     SGND_SCRIPT_EXAMPLES=(
         "Examples:"
         "  sgnd-console.sh"
-        "  sgnd-console.sh --appcfg ./console-devtools.sh"
-        "  sgnd-console.sh --appcfg ./vm-config"
+        "  sgnd-console.sh --appcfg ./10-sgnd-config.sh"
+        "  sgnd-console.sh --appcfg ./20-machine-config.sh"
     ) 
 
     # SGND_SCRIPT_GLOBALS
@@ -341,8 +341,8 @@ set -uo pipefail
 
 
 
-        SGND_CONSOLE_TITLE="SolidGroundUX Management Studio"
-        SGND_CONSOLE_DESC="Manage SolidGroundUX, development tools, and system configuration"
+        SGND_CONSOLE_TITLE="$SGND_SCRIPT_TITLE"
+        SGND_CONSOLE_DESC="$SGND_SCRIPT_DESC"
         SGND_CONSOLE_BIN_DIRECTORY=""
         SGND_CONSOLE_SBIN_DIRECTORY=""
         SGND_CONSOLE_LIBEXEC_DIRECTORY=""
@@ -602,8 +602,10 @@ set -uo pipefail
         local module_name=""
         local module_version=""
         local module_desc=""
+        local module_count=0
 
         unset SGND_MODULE_ID SGND_MODULE_NAME SGND_MODULE_VERSION SGND_MODULE_DESC
+        unset SGND_CONSOLE_TITLE_OVERRIDE SGND_CONSOLE_DESC_OVERRIDE
         SGND_CURRENT_MODULE="$(basename "${module_file%.sh}")"
         SGND_CURRENT_MODULE_DIR="$(dirname "$module_file")"
         saydebug "Loading module: $module_file"
@@ -613,6 +615,7 @@ set -uo pipefail
             sayfail "Failed to load module: $module_file"
             unset SGND_CURRENT_MODULE SGND_CURRENT_MODULE_DIR
             unset SGND_MODULE_ID SGND_MODULE_NAME SGND_MODULE_VERSION SGND_MODULE_DESC
+            unset SGND_CONSOLE_TITLE_OVERRIDE SGND_CONSOLE_DESC_OVERRIDE
             return 126
         }
 
@@ -625,6 +628,7 @@ set -uo pipefail
             sayfail "Module metadata is incomplete: $module_file"
             unset SGND_CURRENT_MODULE SGND_CURRENT_MODULE_DIR
             unset SGND_MODULE_ID SGND_MODULE_NAME SGND_MODULE_VERSION SGND_MODULE_DESC
+            unset SGND_CONSOLE_TITLE_OVERRIDE SGND_CONSOLE_DESC_OVERRIDE
             return 126
         fi
 
@@ -632,7 +636,14 @@ set -uo pipefail
             sayfail "Duplicate module ID rejected: $module_id"
             unset SGND_CURRENT_MODULE SGND_CURRENT_MODULE_DIR
             unset SGND_MODULE_ID SGND_MODULE_NAME SGND_MODULE_VERSION SGND_MODULE_DESC
+            unset SGND_CONSOLE_TITLE_OVERRIDE SGND_CONSOLE_DESC_OVERRIDE
             return 126
+        fi
+
+        module_count="$(sgnd_dt_row_count SGND_MODULE_ROWS)"
+        if (( module_count == 0 )); then
+            [[ -n "${SGND_CONSOLE_TITLE_OVERRIDE:-}" ]] && SGND_CONSOLE_TITLE="$SGND_CONSOLE_TITLE_OVERRIDE"
+            [[ -n "${SGND_CONSOLE_DESC_OVERRIDE:-}" ]] && SGND_CONSOLE_DESC="$SGND_CONSOLE_DESC_OVERRIDE"
         fi
 
         sgnd_dt_append "$SGND_MODULE_SCHEMA" SGND_MODULE_ROWS \
@@ -640,11 +651,13 @@ set -uo pipefail
             sayfail "Failed to record module metadata: $module_id"
             unset SGND_CURRENT_MODULE SGND_CURRENT_MODULE_DIR
             unset SGND_MODULE_ID SGND_MODULE_NAME SGND_MODULE_VERSION SGND_MODULE_DESC
+            unset SGND_CONSOLE_TITLE_OVERRIDE SGND_CONSOLE_DESC_OVERRIDE
             return 126
         }
 
         unset SGND_CURRENT_MODULE SGND_CURRENT_MODULE_DIR
         unset SGND_MODULE_ID SGND_MODULE_NAME SGND_MODULE_VERSION SGND_MODULE_DESC
+        unset SGND_CONSOLE_TITLE_OVERRIDE SGND_CONSOLE_DESC_OVERRIDE
     }
 
     # fn: _sgnd_console_load_modules - Load configured console modules
@@ -654,7 +667,7 @@ set -uo pipefail
         # . Behavior
         #   - Sources SGND_CONSOLE_MODULE_PATH directly when it is a .sh file.
         #   - Sources every top-level .sh file when it is a directory.
-        #   - Loads directory modules in shell glob order.
+        #   - Loads directory modules in sorted filename order.
         #   - Warns when a directory contains no modules.
         #
         # Inputs (globals):
@@ -669,7 +682,7 @@ set -uo pipefail
     _sgnd_console_load_modules() {
         local module_path="${SGND_CONSOLE_MODULE_PATH:?missing module source}"
         local module=""
-        local found=0
+        local -a module_files=()
 
         if [[ -f "$module_path" ]]; then
             _sgnd_console_source_module "$module_path"
@@ -681,17 +694,22 @@ set -uo pipefail
             return 126
         }
 
-        shopt -s nullglob
-        for module in "$module_path"/*.sh; do
-            found=1
-            _sgnd_console_source_module "$module" || {
-                shopt -u nullglob
-                return 126
-            }
-        done
-        shopt -u nullglob
+        mapfile -t module_files < <(
+            find "$module_path" -maxdepth 1 -type f -name '*.sh' -print0 |
+                sort -z |
+                while IFS= read -r -d '' module; do
+                    printf '%s\n' "$module"
+                done
+        )
 
-        (( found )) || saywarning "No modules found in: $module_path"
+        if (( ${#module_files[@]} == 0 )); then
+            saywarning "No modules found in: $module_path"
+            return 0
+        fi
+
+        for module in "${module_files[@]}"; do
+            _sgnd_console_source_module "$module" || return 126
+        done
     }
 
 # --- Script execution ----------------------------------------------------------------
