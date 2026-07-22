@@ -602,6 +602,7 @@ set -uo pipefail
             --label "Module ${module_current}/${module_total}: $name" \
             --type 5 \
             --padleft 0
+            
     }
 
     # fn: _doc_count_lines - Count physical lines in a file
