@@ -252,6 +252,7 @@
 <tr><td>main</td><td>Run the executable main sequence</td><td>Run the executable main sequence.</td><td>framework-smoketest.sh</td></tr>
 <tr><td>main</td><td>Run the executable main sequence - Run the executable main sequence</td><td>Bootstrap the framework, validate arguments, and run metadata-editor mode logic.</td><td>metadata-editor.sh</td></tr>
 <tr><td>main</td><td>Run the executable main sequence - Run the executable main sequence</td><td>Execute the release preparation workflow.</td><td>prepare-release.sh</td></tr>
+<tr><td>main</td><td>Run the executable main sequence</td><td>Run the standard executable startup sequence and then execute script-specific logic.</td><td>set-identity.sh</td></tr>
 <tr><td>main</td><td>Run the executable main sequence</td><td>Run the executable main sequence.</td><td>sgnd-console.sh</td></tr>
 <tr><td>main</td><td>Run installer</td><td>Runs installer validation, package selection, verification, backup, extraction, and state recording.</td><td>sgnd-install.sh</td></tr>
 <tr><td>main</td><td>Run uninstaller</td><td>Runs uninstaller validation, release selection, metadata loading, removal, optional restore, and record archiving.</td><td>sgnd-uninstall.sh</td></tr>
@@ -511,11 +512,21 @@
 <tr><td>palette_solidground_brand</td><td>SolidGround brand colors</td><td>Define the SolidGround product brand colors.</td><td>default-ui-palette.sh</td></tr>
 <tr><td>palette_testadura_brand</td><td>Testadura brand colors</td><td>Define the official Testadura corporate brand colors.</td><td>default-ui-palette.sh</td></tr>
 <tr><td>SAMPLE_PUBLIC_VARIABLE</td><td>Public variable documentation</td><td>Demonstrate a normal documented variable.</td><td>doc-sample.sh</td></tr>
+<tr><td>SGND_ARGS_SPEC</td><td>Script-specific command-line argument specification</td><td></td><td>set-identity.sh</td></tr>
 <tr><td>SGND_BUILTIN_ARGS</td><td>Builtin framework argument specifications</td><td>Define standard command-line options available to framework-enabled scripts.</td><td>sgnd-args.sh</td></tr>
 <tr><td>SGND_BUILTIN_EXAMPLES</td><td>Builtin help examples</td><td>Provide reusable help examples for standard framework options.</td><td>sgnd-args.sh</td></tr>
 <tr><td>SGND_CORE_LIBS</td><td>Ordered core library list</td><td>Define the core libraries that sgnd-bootstrap loads in fixed order.</td><td>sgnd-bootstrap-env.sh</td></tr>
 <tr><td>SGND_FRAMEWORK_DIRS</td><td>Framework directory specifications</td><td>Hold the rebuilt path specification list consumed by sgnd_ensure_dirs.</td><td>sgnd-bootstrap-env.sh</td></tr>
 <tr><td>SGND_FRAMEWORK_GLOBALS</td><td>Framework configuration variable registry</td><td>Declare framework variables that may be managed through system and/or user configuration files.</td><td>sgnd-bootstrap-env.sh</td></tr>
+<tr><td>SGND_ON_EXIT_HANDLERS</td><td>Script-specific exit handler list</td><td>- Allows scripts to register cleanup or finalization hooks.</td><td>set-identity.sh</td></tr>
+<tr><td>SGND_SCRIPT_BASE</td><td>Filename of the currently executing script</td><td></td><td>set-identity.sh</td></tr>
+<tr><td>SGND_SCRIPT_DIR</td><td>Directory containing the currently executing script</td><td></td><td>set-identity.sh</td></tr>
+<tr><td>SGND_SCRIPT_EXAMPLES</td><td>Optional help examples for this script</td><td></td><td>set-identity.sh</td></tr>
+<tr><td>SGND_SCRIPT_FILE</td><td>Absolute path to the currently executing script</td><td></td><td>set-identity.sh</td></tr>
+<tr><td>SGND_SCRIPT_GLOBALS</td><td>Script globals participating in configuration loading# var: SGND_SCRIPT_GLOBALS - Script globals participating in configuration loading</td><td>- Declares which globals are part of the script’s public/config contract. - Enables optional configuration loading when non-empty.</td><td>set-identity.sh</td></tr>
+<tr><td>SGND_SCRIPT_NAME</td><td>Script basename without the .sh extension</td><td></td><td>set-identity.sh</td></tr>
+<tr><td>SGND_STATE_VARIABLES</td><td>Script variables participating in persistent state</td><td>- Declares which variables should be saved/restored when state is enabled.</td><td>set-identity.sh</td></tr>
+<tr><td>SGND_USING</td><td>Optional framework libraries to source after core bootstrap</td><td></td><td>set-identity.sh</td></tr>
 <tr><td>style_background_bright</td><td>Background: Bright</td><td>Document the variables assigned in this style section.</td><td>default-ui-palette.sh</td></tr>
 <tr><td>style_background_dark_muted</td><td>Background: Dark / muted</td><td>Document the variables assigned in this style section.</td><td>default-ui-palette.sh</td></tr>
 <tr><td>style_background_normal</td><td>Background: Normal</td><td>Document the variables assigned in this style section.</td><td>default-ui-palette.sh</td></tr>
