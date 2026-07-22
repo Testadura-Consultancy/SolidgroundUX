@@ -4,8 +4,8 @@
 # ------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : -
-#   Checksum    : -
+#   Build       : 2620301
+#   Checksum    : 89b7b6c6335ce4d1cdeac7f7e68ea5ed6bc10888fac9afda3cc693f2e896126d
 #   Source      : prepare-template.sh
 #   Type        : script
 #   Group       : Templates

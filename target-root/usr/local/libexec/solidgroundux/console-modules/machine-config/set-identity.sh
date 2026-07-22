@@ -4,8 +4,8 @@
 # ------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : -
-#   Checksum    : -
+#   Build       : 2620301
+#   Checksum    : f9631e1212bca5adc45169c26695df6e5abc4eb6f0040778f7b809d70fd04dbc
 #   Source      : set-identity.sh
 #   Type        : script
 #   Group       : VMConfig
