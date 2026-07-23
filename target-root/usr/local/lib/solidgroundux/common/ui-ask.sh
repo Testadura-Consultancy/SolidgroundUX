@@ -202,14 +202,20 @@ set -uo pipefail
         local labelclr="$4"
         local inputclr="$5"
         local colorize="$6"
+        local readline_safe="${7:-1}"
 
-        local rl_start=$'\001'
-        local rl_end=$'\002'
+        local rl_start=""
+        local rl_end=""
         local label_color="$labelclr"
         local input_color="$inputclr"
         local padded_label=""
         local padleft=""
         local prompt=""
+
+        if (( readline_safe )); then
+            rl_start=$'\001'
+            rl_end=$'\002'
+        fi
 
         case "$colorize" in
             none)
@@ -1150,7 +1156,8 @@ set -uo pipefail
                 "$pad" \
                 "$labelclr" \
                 "$inputclr" \
-                "$colorize")"
+                "$colorize" \
+                0)"
 
             printf '%s' "$prompt" >/dev/tty
 

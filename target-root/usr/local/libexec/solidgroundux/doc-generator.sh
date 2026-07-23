@@ -4,8 +4,8 @@
 # ------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2620212
-#   Checksum    : 9b7a5a387c1ca0a3a42471acca86c492df9496c06a1d0b59963b6c2380404493
+#   Build       : 2620309
+#   Checksum    : eedf72bf4022604507835dbf90dd62abd32f86ff9857981c48a15cefadccb320
 #   Source      : doc-generator.sh
 #   Type        : script
 #   Group       : SDK Documentation
