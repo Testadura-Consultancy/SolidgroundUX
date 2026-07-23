@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2619012
-#   Checksum    : 756624bb7a65f7c9ef171f3b260eb52b47c96340872f6f8e89e22f56927caec1
+#   Build       : 2620423
+#   Checksum    : e3a47d55e1fa08be1e21f912490018d34874d36d1df268f1e015a9693bc71c8b
 #   Source      : prepare-release.sh
 #   Type        : script
 #   Group       : SDK Tools
@@ -753,7 +753,11 @@ set -uo pipefail
         else
 
             # --- Create uncompressed tar -----------------------------------------------
-            tar -C "$stage_path" -cpf "$tar_path_tar" . || { sayfail "tar failed."; return 1; }
+            tar -C "$stage_path" \
+                --owner=0 \
+                --group=0 \
+                --numeric-owner \
+                -cpf "$tar_path_tar" . || { sayfail "tar failed."; return 1; }
 
             # --- Write uninstall manifest (external) ------------------------------------
             tar -tf "$tar_path_tar" \
@@ -762,7 +766,11 @@ set -uo pipefail
                 > "$manifest_path" || { sayfail "Failed to write manifest."; return 1; }
 
             # --- Embed manifest into tar ------------------------------------------------
-            tar -C "$STAGING_ROOT" -rf "$tar_path_tar" "${RELEASE}.manifest" \
+            tar -C "$STAGING_ROOT" \
+                --owner=0 \
+                --group=0 \
+                --numeric-owner \
+                -rf "$tar_path_tar" "${RELEASE}.manifest" \
                 || { sayfail "Failed to embed manifest into tar."; return 1; }
 
             # --- Compress to tar.gz -----------------------------------------------------

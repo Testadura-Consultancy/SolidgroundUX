@@ -4,8 +4,8 @@
 # ------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 2620301
-#   Checksum    : f9631e1212bca5adc45169c26695df6e5abc4eb6f0040778f7b809d70fd04dbc
+#   Build       : 2620423
+#   Checksum    : ff30eab4c4e15a6937b68f31f6e457ab6569240395b72c256f5257fc8774eebf
 #   Source      : set-identity.sh
 #   Type        : script
 #   Group       : VMConfig
@@ -524,7 +524,7 @@ set -uo pipefail
         _framework_locator || exit $?
         
         sgnd_exe_start  --needroot "$@"
-
+printf "UID=$(id -u) EUID=$EUID USER=$USER"
         # script logic
         _set_defaults
         _get_usr_input
@@ -533,7 +533,7 @@ set -uo pipefail
         _reset_ssh
         _set_hostname
         _network_config
-
+prinf "UID=$(id -u) EUID=$EUID USER=$USER"
 
     }
 

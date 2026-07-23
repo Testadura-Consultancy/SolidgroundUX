@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0.0
-#   Build       : 2620211
-#   Checksum    : 4d337428682d307e2e380579b818e0a7e7a0f77f5cce74537ba021f7c90ad4c0
+#   Build       : 2620423
+#   Checksum    : 7580e2ea931eb6372f0fc29d0186da772186c9704e4ddf20539c1d91122f5327
 #   Source      : 20-machine-config.sh
 #   Type        : module
 #   Group       : Machine Configuration
@@ -115,6 +115,68 @@ set -uo pipefail
         #   sample_show_message() { :; }
         #   sys_status() { :; }
 
+
+    # fn$ _show_machine_status
+        # . Purpose
+        #   Show current network, machine identity, and SSH service status.
+        #
+        # . Behavior
+        #   - Displays the current hostname and machine-id.
+        #   - Displays active network addresses, routes, and DNS configuration.
+        #   - Displays whether the SSH service is enabled and active.
+        #
+        # . Returns
+        #   0 after displaying the available status information.
+    _show_machine_status() {
+        local machine_id="Unavailable"
+        local ssh_unit="ssh.service"
+        local ssh_active="Unavailable"
+        local ssh_enabled="Unavailable"
+
+        [[ -r /etc/machine-id ]] && machine_id="$(< /etc/machine-id)"
+
+        if command -v systemctl >/dev/null 2>&1; then
+            if ! systemctl cat "$ssh_unit" >/dev/null 2>&1; then
+                ssh_unit="sshd.service"
+            fi
+
+            ssh_active="$(systemctl is-active "$ssh_unit" 2>/dev/null || true)"
+            ssh_enabled="$(systemctl is-enabled "$ssh_unit" 2>/dev/null || true)"
+            [[ -n "$ssh_active" ]] || ssh_active="inactive"
+            [[ -n "$ssh_enabled" ]] || ssh_enabled="disabled"
+        fi
+
+        sgnd_print_sectionheader "Machine identity"
+        sgnd_print_labeledvalue --label "Hostname" --value "$(hostname)" --labelwidth 20
+        sgnd_print_labeledvalue --label "Machine ID" --value "$machine_id" --labelwidth 20
+
+        sgnd_print
+        sgnd_print_sectionheader "Network configuration"
+        if command -v ip >/dev/null 2>&1; then
+            printf '%s\n' 'Addresses:'
+            ip -brief address
+            printf '\n%s\n' 'Routes:'
+            ip route
+        else
+            saywarning "The ip command is unavailable"
+        fi
+
+        if command -v resolvectl >/dev/null 2>&1; then
+            printf '\n%s\n' 'DNS:'
+            resolvectl status --no-pager 2>/dev/null || saywarning "DNS status is unavailable"
+        elif [[ -r /etc/resolv.conf ]]; then
+            printf '\n%s\n' 'DNS (/etc/resolv.conf):'
+            sed -n '/^[[:space:]]*\(nameserver\|search\|domain\)[[:space:]]/p' /etc/resolv.conf
+        fi
+
+        sgnd_print
+        sgnd_print_sectionheader "SSH service"
+        sgnd_print_labeledvalue --label "Unit" --value "$ssh_unit" --labelwidth 20
+        sgnd_print_labeledvalue --label "Active" --value "$ssh_active" --labelwidth 20
+        sgnd_print_labeledvalue --label "Enabled" --value "$ssh_enabled" --labelwidth 20
+
+        return 0
+    }
 
     # fn$ _init_machine
         # . Purpose
@@ -513,6 +575,7 @@ set -uo pipefail
         "$SGND_MACHINE_CONFIG_MODULE_DESC" \
         0 1 800
     
+    sgnd_console_register_item "machstat" "$SGND_MACHINE_CONFIG_MODULE_ID" "Show machine status" "_show_machine_status" "Show network configuration, machine ID and SSH status" 0 5 1
     sgnd_console_register_item "machid" "$SGND_MACHINE_CONFIG_MODULE_ID" "Generate Machine ID" "_init_machine" "Set up a new machine ID" 0 5 1
     sgnd_console_register_item "sshkeys" "$SGND_MACHINE_CONFIG_MODULE_ID" "Generate SSH Keys" "_generate_ssh_keys" "Generate SSH host keys" 0 5 1
     sgnd_console_register_item "setnetid" "$SGND_MACHINE_CONFIG_MODULE_ID" "Set network ID" "_set_identity" "Configure hostname and network ID" 0 5 1

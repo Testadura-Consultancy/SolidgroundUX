@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2620212
-#   Checksum    : 7a9ec72bc79b2c95c7be02296f0399ba053aefcd14ea0cff8f9aadd31d01398c
+#   Build       : 2620423
+#   Checksum    : e52eef98e71cb8f14e7f770462b5d12bb0c03d4274c87dc262f2c79299aaf94a
 #   Source      : sgnd-console.sh
 #   Type        : script
 #   Group       : SolidGround Console
@@ -350,6 +350,7 @@ set -uo pipefail
         SGND_CONSOLE_MODULE_PATH=""
         SGND_CURRENT_MODULE=""
         SGND_LAST_WAITSECS=15
+        declare -ag SGND_CONSOLE_ORIGINAL_ARGS=()
 
         declare -ag SGND_VISIBLE_ITEM_INDEXES=()
         declare -ag SGND_GROUP_RENDER_INDEXES=()
@@ -519,6 +520,7 @@ set -uo pipefail
         sgnd_console_register_group "$SGND_GROUP_RUNTIME" "Runtime toggles" "" 1 0 980
         sgnd_console_register_group "$SGND_GROUP_SESSION" "Console Session" "" 1 1 990
 
+        sgnd_console_register_item "A" "$SGND_GROUP_RUNTIME" "Access" "_sgnd_console_toggle_access" "Relaunch with root or standard access" 1 0 0
         sgnd_console_register_item "D" "$SGND_GROUP_RUNTIME" "Dry-run / Commit" "_sgnd_console_toggle_dryrun" "Toggle dry-run mode" 1 0 0
         sgnd_console_register_item "c" "$SGND_GROUP_RUNTIME" "Console log level" "_sgnd_console_cycle_console_loglevel" "Cycle console log level" 1 0 0
         sgnd_console_register_item "f" "$SGND_GROUP_RUNTIME" "File log level" "_sgnd_console_cycle_file_loglevel" "Cycle file log level" 1 0 0
@@ -828,6 +830,73 @@ set -uo pipefail
         esac
     }
 
+
+    # fn: _sgnd_console_toggle_access - Relaunch with the opposite privilege level
+        # . Purpose
+        #   Replace the current console process with a root or standard-access instance.
+        #
+        # . Behavior
+        #   - Standard sessions relaunch through sudo.
+        #   - Sessions started through sudo relaunch as the original SUDO_USER.
+        #   - Direct root logins cannot infer a standard user and remain unchanged.
+        #   - Preserves the current dry-run state and original console arguments.
+        #
+        # . Returns
+        #   Does not return after a successful relaunch; returns 1 on failure.
+        #
+        # . Usage
+        #   _sgnd_console_toggle_access
+    _sgnd_console_toggle_access() {
+        local arg=""
+        local -a relaunch_args=()
+
+        for arg in "${SGND_CONSOLE_ORIGINAL_ARGS[@]}"; do
+            case "$arg" in
+                --dryrun) ;;
+                *) relaunch_args+=("$arg") ;;
+            esac
+        done
+
+        _sgnd_flag_is_on "${FLAG_DRYRUN:-0}" && relaunch_args=("--dryrun" "${relaunch_args[@]}")
+
+        if (( EUID != 0 )); then
+            command -v sudo >/dev/null 2>&1 || {
+                sayfail "sudo is unavailable; cannot switch to root access"
+                return 1
+            }
+
+            sayinfo "Relaunching console with root access"
+            sudo -k
+            exec sudo --preserve-env=SGND_UI_STYLE,SGND_UI_PALETTE,SGND_CONSOLE_LOG_LEVEL,SGND_FILE_LOG_LEVEL \
+                -- "$SGND_SCRIPT_FILE" "${relaunch_args[@]}"
+        fi
+
+        if [[ -z "${SUDO_USER:-}" || "$SUDO_USER" == "root" ]]; then
+            saywarning "This is a direct root session; no original standard user is available"
+            return 1
+        fi
+
+        local target_user="$SUDO_USER"
+        local target_home=""
+
+        target_home="$(getent passwd "$target_user" | cut -d: -f6)"
+        [[ -n "$target_home" && -d "$target_home" ]] || {
+            sayfail "Cannot resolve home directory for standard user: $target_user"
+            return 1
+        }
+
+        sayinfo "Relaunching console with standard access as $target_user"
+        exec sudo -H -u "$target_user" -- \
+            env \
+                -u SUDO_USER \
+                -u SUDO_UID \
+                -u SUDO_GID \
+                HOME="$target_home" \
+                USER="$target_user" \
+                LOGNAME="$target_user" \
+                "$SGND_SCRIPT_FILE" "${relaunch_args[@]}"
+    }
+
 # --- Console loop --------------------------------------------------------------------
     # fn: _sgnd_console_run - Run the console interaction loop
         # . Purpose
@@ -863,7 +932,7 @@ set -uo pipefail
             ask_choose_immediate \
                 --label "Select option" \
                 --choices "$valid_choices" \
-                --instantchoices "C,D,F,T,L,R,Q,<,>" \
+                --instantchoices "A,C,D,F,T,L,R,Q,<,>" \
                 --displaychoices 0 \
                 --keepasking 1 \
                 --preservecase 1 \
@@ -1077,11 +1146,13 @@ set -uo pipefail
         # . Usage
         #   main
     main() {
+        SGND_CONSOLE_ORIGINAL_ARGS=("$@")
+
         # -- Startup
             _framework_locator || exit $?
             sgnd_exe_start --state -- "$@"
             _sgnd_console_init_paths || exit $?
-
+saydebug "UID=$(id -u) EUID=$EUID USER=$USER"
         # -- Main script logic
 
         declare -F sgnd_dt_append >/dev/null || {

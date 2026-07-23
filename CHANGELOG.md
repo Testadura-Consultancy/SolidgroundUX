@@ -6,7 +6,14 @@ The format is inspired by *Keep a Changelog* while remaining focused on practica
 
 # Unreleased
 
+# Version 1.8 (Build 2620423) 2026-07-23
 
+## Bug
+- sgnd-install overwrite the ownership of root, /etc, /usr, etcetera
+
+## Changed
+- sgnd-install.sh to never overwrite metadata of existing folders in teh target tree
+- prepare-release.sh to set ownership of repository folders to root:root
 
 # Version 1.8 (Build 2620413) 2026-07-23
 

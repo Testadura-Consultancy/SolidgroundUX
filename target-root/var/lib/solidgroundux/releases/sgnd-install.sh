@@ -963,7 +963,9 @@ extract_release_archive() {
     local archive="${1:?missing archive}"
 
     run_cmd mkdir -p "$VAL_TARGET_ROOT" || return 1
-    run_cmd tar -xzpf "$archive" -C "$VAL_TARGET_ROOT" --no-same-owner || return 1
+    run_cmd tar -xzpf "$archive" -C "$VAL_TARGET_ROOT" \
+        --no-same-owner \
+        --no-overwrite-dir || return 1
     sayok "Archive extracted into $VAL_TARGET_ROOT"
 }
 

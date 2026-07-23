@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2620211
-#   Checksum    : 0f49d715dac4779611a5e283ffe1e21f1ae5d1a8c30a69ca0983ec63fae420fe
+#   Build       : 2620423
+#   Checksum    : 61ead189527a6393b0edbbfa3ac79b354b35bfd02c766e42cd2a02698b3ddc80
 #   Source      : sgnd-console-menu.sh
 #   Group       : SolidGround Console
 #   Type        : library
@@ -1720,6 +1720,7 @@ set -uo pipefail
         local console_text=""
         local file_text=""
         local theme_text=""
+        local access_text=""
         local clearscr_text=""
         local prevtext=""
         local nexttext=""
@@ -1753,13 +1754,26 @@ set -uo pipefail
             0 \
             "$SGND_UI_TEXT" \
             "$SGND_UI_TEXT")"
+        if (( EUID == 0 )); then
+            if _sgnd_flag_is_on "${FLAG_DRYRUN:-0}"; then
+                access_text="$(_sgnd_console_toggleword "ACCESS(ROOT)" "A" 1 "$SGND_UI_COMMIT" "$SGND_UI_COMMIT")"
+            else
+                access_text="$(_sgnd_console_toggleword "ACCESS(ROOT)" "A" 1 "$RED" "$RED")"
+            fi
+        else
+            if _sgnd_flag_is_on "${FLAG_DRYRUN:-0}"; then
+                access_text="$(_sgnd_console_toggleword "ACCESS(STANDARD)" "A" 1 "$GREEN" "$GREEN")"
+            else
+                access_text="$(_sgnd_console_toggleword "ACCESS(STANDARD)" "A" 1 "$SGND_UI_COMMIT" "$SGND_UI_COMMIT")"
+            fi
+        fi
 
         (( SGND_PAGE_INDEX > 0 )) && prev_enabled=1
         (( SGND_PAGE_INDEX + 1 < page_count )) && next_enabled=1
         prevtext="$(_sgnd_console_toggleword "<<PREV" "<" "$prev_enabled")"
         nexttext="$(_sgnd_console_toggleword "NEXT>>" ">" "$next_enabled")"
 
-        segments+=("$dryrun_text" "$console_text" "$file_text" "$theme_text")
+        segments+=("$access_text" "$dryrun_text" "$console_text" "$file_text" "$theme_text")
         if (( page_count > 1 )); then
             page_text="$(sgnd_sgr "$SILVER" "" "$FX_ITALIC")Page $((SGND_PAGE_INDEX + 1))/$page_count${RESET}"
             segments=("$prevtext" "${segments[@]}" "$page_text" "$nexttext")
