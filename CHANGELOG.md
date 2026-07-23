@@ -8,7 +8,7 @@ The format is inspired by *Keep a Changelog* while remaining focused on practica
 
 
 
-# Version 1.8 (Build 2620308) 2026-07-21
+# Version 1.8 (Build 2620413) 2026-07-23
 
 ## Added
 
