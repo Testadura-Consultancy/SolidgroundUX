@@ -374,7 +374,7 @@ set -uo pipefail
             sayinfo "Clearing machine-id..."
             truncate -s 0 /etc/machine-id
             rm -f /var/lib/dbus/machine-id
-            ln -s /etc/machine-id /var/lib/dbus/machine-id
+            ln -sf /etc/machine-id /var/lib/dbus/machine-id
 
             sayinfo "Flushing filesystem buffers..."
             sync
