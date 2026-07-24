@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2620413
-#   Checksum    : 6fcfa2a39a325a294205e286749e0a0f151d83b0472a157799d7f6a97787a867
+#   Build       : 2620501
+#   Checksum    : 9e2e4e9cfed017cc6eca496faffb3be3020a267d7d9af147633578f86c00f70f
 #   Source      : ui-ask.sh
 #   Type        : library
 #   Group       : UI
@@ -1060,6 +1060,8 @@ set -uo pipefail
         #
         # . Behavior
         #   - Reads one character at a time from /dev/tty.
+        #   - Recognizes left and right arrow escape sequences.
+        #   - Maps left/right arrows to < and > when those are configured as instant choices.
         #   - Accepts instant choices without requiring Enter.
         #   - Allows longer typed values to be completed with Enter.
         #   - Supports backspace editing for the typed buffer.
@@ -1145,6 +1147,7 @@ set -uo pipefail
 
         while :; do
             local key=""
+            local key_sequence=""
             local buffer=""
             local candidate=""
             local prompt=""
@@ -1163,6 +1166,31 @@ set -uo pipefail
 
             while true; do
                 IFS= read -r -s -n 1 key </dev/tty || return 1
+
+                if [[ "$key" == $'\e' ]]; then
+                    key_sequence=""
+                    IFS= read -r -s -n 2 -t 0.05 key_sequence </dev/tty || true
+
+                    case "$key_sequence" in
+                        '[D')
+                            if _ask_choice_is_valid "<" "$instantchoices"; then
+                                key="<"
+                            else
+                                continue
+                            fi
+                            ;;
+                        '[C')
+                            if _ask_choice_is_valid ">" "$instantchoices"; then
+                                key=">"
+                            else
+                                continue
+                            fi
+                            ;;
+                        *)
+                            continue
+                            ;;
+                    esac
+                fi
 
                 case "$key" in
                     "")

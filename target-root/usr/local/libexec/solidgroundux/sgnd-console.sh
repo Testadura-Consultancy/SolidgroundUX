@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2620423
-#   Checksum    : e52eef98e71cb8f14e7f770462b5d12bb0c03d4274c87dc262f2c79299aaf94a
+#   Build       : 2620501
+#   Checksum    : 28484360a95d1a50dd0e375ca38ca3a87b2d21ccc66b31023e1ece3c20709295
 #   Source      : sgnd-console.sh
 #   Type        : script
 #   Group       : SolidGround Console
@@ -1152,7 +1152,7 @@ set -uo pipefail
             _framework_locator || exit $?
             sgnd_exe_start --state -- "$@"
             _sgnd_console_init_paths || exit $?
-saydebug "UID=$(id -u) EUID=$EUID USER=$USER"
+
         # -- Main script logic
 
         declare -F sgnd_dt_append >/dev/null || {

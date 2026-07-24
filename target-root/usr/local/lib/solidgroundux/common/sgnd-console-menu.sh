@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2620423
-#   Checksum    : 61ead189527a6393b0edbbfa3ac79b354b35bfd02c766e42cd2a02698b3ddc80
+#   Build       : 2620501
+#   Checksum    : b21af8ae6acd9b37053b01c576f6955b58350d6ab168c2f5fafc713683113b39
 #   Source      : sgnd-console-menu.sh
 #   Group       : SolidGround Console
 #   Type        : library
@@ -1314,8 +1314,8 @@ set -uo pipefail
         width="$(sgnd_terminal_width)"
 
         sgnd_print_sectionheader --border "$DL_H" --maxwidth "$width"
-        sgnd_print --pad 4 "$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")${SGND_CONSOLE_TITLE}${RESET}"
-        sgnd_print --pad 4 "$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_ITALIC")${SGND_CONSOLE_DESC}"
+        sgnd_print --pad 4 "$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")${SGND_CONSOLE_TITLE}${RESET}" --maxwidth "$width"
+        sgnd_print --pad 4 "$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_ITALIC")${SGND_CONSOLE_DESC}" --maxwidth "$width"
         sgnd_print_sectionheader --border "$LN_H" --maxwidth "$width"
         sgnd_print
     }
@@ -1874,6 +1874,14 @@ set -uo pipefail
         local key=""
 
         case "$choice" in
+            $'\e[D')
+                _sgnd_console_prevpage
+                return $?
+                ;;
+            $'\e[C')
+                _sgnd_console_nextpage
+                return $?
+                ;;
             c)
                 _sgnd_console_cycle_console_loglevel 1
                 return $?
