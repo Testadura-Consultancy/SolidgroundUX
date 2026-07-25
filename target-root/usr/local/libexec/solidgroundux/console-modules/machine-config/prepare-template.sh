@@ -4,15 +4,15 @@
 # ------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2620301
-#   Checksum    : 89b7b6c6335ce4d1cdeac7f7e68ea5ed6bc10888fac9afda3cc693f2e896126d
+#   Build       : 2620601
+#   Checksum    : 8cdd22938060f32c24929db6b259d790f85498578c0c9b799c420aff9f3aaa1c
 #   Source      : prepare-template.sh
 #   Type        : script
 #   Group       : Templates
-#   Purpose     : Canonical executable template for SolidGroundUX scripts.
+#   Purpose     : Prepares a VM for conversion to a reusable clone template.
 #
 # Description:
-#   Prepares a VM for cloning deleting machineid, clear chacke and ssh keys
+#   Prepares a VM for cloning by clearing transient state, resetting network configuration, and removing machine-specific identifiers.
 #
 # Attribution:
 #   Developers  : Mark Fieten
@@ -341,48 +341,92 @@ set -uo pipefail
         #   - Reporting
         #   - Cleanup
 
-    _prepare_template(){
+    _detect_primary_iface() {
+        local primary_iface
+
+        primary_iface="$(ip -o -4 route show to default | awk '{print $5; exit}')"
+        if [[ -z "$primary_iface" ]]; then
+            primary_iface="$(find /sys/class/net -mindepth 1 -maxdepth 1 -printf '%f\n' | grep -v '^lo$' | head -n 1)"
+        fi
+
+        if [[ -z "$primary_iface" ]]; then
+            sayerror 'No network interface found.'
+            return 1
+        fi
+
+        printf '%s\n' "$primary_iface"
+    }
+
+    _reset_network_for_template() {
+        local primary_iface
+        local netplan_file='/etc/netplan/00-installer-config.yaml'
+
+        primary_iface="$(_detect_primary_iface)" || return $?
+        sayinfo "Resetting network configuration to DHCP on $primary_iface"
+
+        rm -f /etc/netplan/*.yaml || return $?
+
+        {
+            printf '%s\n' 'network:'
+            printf '%s\n' '  version: 2'
+            printf '%s\n' '  renderer: networkd'
+            printf '%s\n' '  ethernets:'
+            printf '    %s:\n' "$primary_iface"
+            printf '%s\n' '      dhcp4: true'
+        } > "$netplan_file" || return $?
+
+        chown root:root "$netplan_file" || return $?
+        chmod 600 "$netplan_file" || return $?
+        netplan generate || return $?
+    }
+
+    _prepare_template() {
         sayinfo "Preparing VM for template conversion..."
 
-        if [[ FLAG_DRYRUN -eq 1 ]]; then
+        if (( ${FLAG_DRYRUN:-0} == 1 )); then
             sayinfo "Dry run: would have:"
-            sayinfo "- Cleaned package chache"
+            sayinfo "- Cleaned package cache"
             sayinfo "- Removed unused packages"
+            sayinfo "- Reset network configuration to DHCP"
+            sayinfo "- Removed SSH host keys"
             sayinfo "- Cleaned systemd journal"
-            sayinfo "- Cleaned tmp files"
-            sayinfo "- Reset machine-id"
-            sayinfo "- And shut down the machine" 
+            sayinfo "- Cleaned temporary files"
+            sayinfo "- Cleared machine-id"
+            sayinfo "- Shut down the machine"
         else
-
             sayinfo "Cleaning package cache..."
-            apt clean
+            apt clean || return $?
 
             sayinfo "Removing unused packages..."
-            apt autoremove -y
+            apt autoremove -y || return $?
+
+            _reset_network_for_template || return $?
 
             sayinfo "Removing SSH host keys..."
-            rm -f /etc/ssh/ssh_host_*
+            rm -f /etc/ssh/ssh_host_* || return $?
+            sayinfo "After cloning, regenerate SSH host keys from the Proxmox console before using SSH."
 
             sayinfo "Cleaning systemd journal..."
-            journalctl --rotate
-            journalctl --vacuum-time=1s
+            journalctl --rotate || return $?
+            journalctl --vacuum-time=1s || return $?
 
             sayinfo "Cleaning temporary files..."
-            rm -rf /tmp/*
-            rm -rf /var/tmp/*
+            find /tmp -mindepth 1 -delete || return $?
+            find /var/tmp -mindepth 1 -delete || return $?
 
             sayinfo "Clearing machine-id..."
-            truncate -s 0 /etc/machine-id
-            rm -f /var/lib/dbus/machine-id
-            ln -sf /etc/machine-id /var/lib/dbus/machine-id
+            truncate -s 0 /etc/machine-id || return $?
+            rm -f /var/lib/dbus/machine-id || return $?
+            ln -sf /etc/machine-id /var/lib/dbus/machine-id || return $?
 
             sayinfo "Flushing filesystem buffers..."
-            sync
+            sync || return $?
         fi
-            ask_dlg_autocontinue --seconds 10 --message "Shutting down system in " --redo --cancel --pause
-        
-        if [[ FLAG_DRYRUN -eq 0 ]]; then
-            shutdown now
+
+        ask_dlg_autocontinue --seconds 10 --message "Shutting down system in " --redo --cancel --pause
+
+        if (( ${FLAG_DRYRUN:-0} == 0 )); then
+            shutdown now || return $?
         fi
     }
 
@@ -410,7 +454,7 @@ set -uo pipefail
         _framework_locator || exit $?
         sgnd_exe_start --needroot "$@"
 
-        _prepare_template
+        _prepare_template || exit $?
     }
 
     # Entrypoint: sgnd_bootstrap will split framework args from script args.

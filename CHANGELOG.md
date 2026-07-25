@@ -4,9 +4,13 @@ All notable changes to SolidGroundUX are documented in this file.
 
 The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.
 
-# Unreleased
+# Version 1.8 (Build 2620601)
 
-# Version 1.8 (Build 2620423) 2026-07-23
+## Resolved
+- various machine configuration issues in the Management Console
+
+
+# Version 1.8 (Build 2620423) 
 
 ## Resolved
 
@@ -19,7 +23,7 @@ The format is inspired by *Keep a Changelog* while remaining focused on practica
 - added toggle button to sgnd-console to switch between root and non-root
 - added left and right arrow for page navigation in sgnd-console
 
-# Version 1.8 (Build 2620413) 2026-07-23
+# Version 1.8 (Build 2620413) 
 
 ## Added
 

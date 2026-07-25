@@ -4,12 +4,12 @@
 # ------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
-#   Build       : 2620423
-#   Checksum    : ff30eab4c4e15a6937b68f31f6e457ab6569240395b72c256f5257fc8774eebf
+#   Build       : 2620601
+#   Checksum    : f0c26e8ea202d4ee1701c09ff387c0c0725737d11222277ebc2e04bdd3ea1037
 #   Source      : set-identity.sh
 #   Type        : script
 #   Group       : VMConfig
-#   Purpose     : Sets the hostname and IP v4 address for a VM
+#   Purpose     : Sets the hostname and IPv4 network configuration for a VM
 #
 # Description:
 # 
@@ -337,75 +337,46 @@ set -uo pipefail
 
 # - Local script functions ----------------------------------------------------------
     _set_defaults() {
-        TARGET_HOSTNAME="td-ubuntuserver"
-        TARGET_IPV4="192.168.0.9X/24"
-        TARGET_GATEWAY="192.168.0.1"
-        TARGET_DNS="192.168.0.1"
-        NETPLAN_FILE="/etc/netplan/01-td-headquarters.yaml"
-
-        PRIMARY_IFACE="ens18"
+        : "${TARGET_HOSTNAME:=td-ubuntuserver}"
+        : "${TARGET_IPV4:=192.168.0.9X/24}"
+        : "${TARGET_GATEWAY:=192.168.0.1}"
+        : "${TARGET_DNS:=192.168.0.1}"
+        : "${NETPLAN_FILE:=/etc/netplan/00-installer-config.yaml}"
+        : "${PRIMARY_IFACE:=ens18}"
     }
 
     _get_usr_input() {
         local mxw=80
         local lw=35
 
-        if [[ "$FLAG_AUTO" -eq 1 && -n "$TARGET_IPV4" && -n "$TARGET_HOSTNAME" ]]; then
+        if (( ${FLAG_AUTO:-0} == 1 )) && [[ -n "$TARGET_IPV4" && -n "$TARGET_HOSTNAME" ]]; then
             return 0
         fi
-        
+
         sgnd_print_sectionheader "Enter identifying information for this host" --maxwidth "$mxw"
         ask --label "Hostname" --var TARGET_HOSTNAME --default "$TARGET_HOSTNAME" --labelwidth "$lw"
         ask --label "Ipv4 address (leave blank for DHCP)" --var TARGET_IPV4 --default "$TARGET_IPV4" --labelwidth "$lw"
         ask --label "Netplan file" --var NETPLAN_FILE --default "$NETPLAN_FILE" --labelwidth "$lw"
-        
+
         if [[ -n "$TARGET_IPV4" ]]; then
             ask --label "Gateway" --var TARGET_GATEWAY --default "$TARGET_GATEWAY" --labelwidth "$lw"
             ask --label "DNS" --var TARGET_DNS --default "$TARGET_DNS" --labelwidth "$lw"
         fi
-
-    }
-
-    _reset_machine_id() {
-        if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
-            sayinfo 'Dry-run mode: skipping machine-id reset'
-            return 0
-        fi
-
-        sayinfo 'Resetting machine-id\n'
-        rm -f /etc/machine-id
-        rm -f /var/lib/dbus/machine-id
-        systemd-machine-id-setup
-    }
-
-    _reset_ssh() {
-        if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
-            sayinfo 'Dry-run mode: skipping SSH host key regeneration'
-            return 0
-        fi
-
-        sayinfo 'Regenerating SSH host keys\n'
-        rm -f /etc/ssh/ssh_host_*key /etc/ssh/ssh_host_*key.pub
-        ssh-keygen -A
-
-        sayinfo 'Enabling SSH service\n'
-        systemctl enable ssh
-        systemctl restart ssh
     }
 
     _set_hostname() {
-        if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
+        if (( ${FLAG_DRYRUN:-0} == 1 )); then
             sayinfo "Dry-run mode: would set hostname to $TARGET_HOSTNAME"
             return 0
         fi
 
         sayinfo "Setting hostname to $TARGET_HOSTNAME"
-        hostnamectl set-hostname "$TARGET_HOSTNAME"
+        hostnamectl set-hostname "$TARGET_HOSTNAME" || return $?
 
         if grep -q '^127\.0\.1\.1' /etc/hosts; then
-            sed -i "s/^127\.0\.1\.1.*/127.0.1.1 $TARGET_HOSTNAME/" /etc/hosts
+            sed -i "s/^127\.0\.1\.1.*/127.0.1.1 $TARGET_HOSTNAME/" /etc/hosts || return $?
         else
-            printf '127.0.1.1 %s\n' "$TARGET_HOSTNAME" >> /etc/hosts
+            printf '127.0.1.1 %s\n' "$TARGET_HOSTNAME" >> /etc/hosts || return $?
         fi
     }
 
@@ -413,16 +384,27 @@ set -uo pipefail
         sayinfo 'Detecting primary network interface'
 
         PRIMARY_IFACE="$(ip -o -4 route show to default | awk '{print $5; exit}')"
-        if [[ -z "${PRIMARY_IFACE}" ]]; then
+        if [[ -z "$PRIMARY_IFACE" ]]; then
             PRIMARY_IFACE="$(find /sys/class/net -mindepth 1 -maxdepth 1 -printf '%f\n' | grep -v '^lo$' | head -n 1)"
         fi
 
-        if [[ -z "${PRIMARY_IFACE}" ]]; then
+        if [[ -z "$PRIMARY_IFACE" ]]; then
             sayfail 'No network interface found.'
             return 1
         fi
 
         sayinfo "Primary network interface: $PRIMARY_IFACE"
+    }
+
+    _remove_other_netplan_files() {
+        local file
+
+        while IFS= read -r -d '' file; do
+            if [[ "$file" != "$NETPLAN_FILE" ]]; then
+                sayinfo "Removing superseded netplan config: $file"
+                rm -f -- "$file" || return $?
+            fi
+        done < <(find /etc/netplan -maxdepth 1 -type f -name '*.yaml' -print0)
     }
 
     _network_config() {
@@ -436,38 +418,39 @@ set -uo pipefail
             _set_static_ip
         fi
     }
-        
+
     _set_static_ip() {
-        if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
-            sayinfo 'Dry-run mode: skipping static IP configuration'
+        if (( ${FLAG_DRYRUN:-0} == 1 )); then
+            sayinfo "Dry-run mode: would write static netplan configuration to $NETPLAN_FILE"
             return 0
         fi
-        
+
         sayinfo "Writing static netplan config: $NETPLAN_FILE"
 
-        mkdir -p "$(dirname "$NETPLAN_FILE")"
-        _write_netplan_static
-        chmod 600 "$NETPLAN_FILE"
-
-        netplan generate
-        netplan apply
-
+        mkdir -p "$(dirname "$NETPLAN_FILE")" || return $?
+        _remove_other_netplan_files || return $?
+        _write_netplan_static || return $?
+        chown root:root "$NETPLAN_FILE" || return $?
+        chmod 600 "$NETPLAN_FILE" || return $?
+        netplan generate || return $?
+        netplan apply || return $?
     }
 
     _set_dhcp() {
-        if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
-            sayinfo 'Dry-run mode: skipping DHCP configuration'
+        if (( ${FLAG_DRYRUN:-0} == 1 )); then
+            sayinfo "Dry-run mode: would write DHCP netplan configuration to $NETPLAN_FILE"
             return 0
         fi
 
         sayinfo "Writing DHCP netplan config: $NETPLAN_FILE"
 
-        mkdir -p "$(dirname "$NETPLAN_FILE")"
-        _write_netplan_dhcp
-        chmod 600 "$NETPLAN_FILE"
-
-        netplan generate
-        netplan apply
+        mkdir -p "$(dirname "$NETPLAN_FILE")" || return $?
+        _remove_other_netplan_files || return $?
+        _write_netplan_dhcp || return $?
+        chown root:root "$NETPLAN_FILE" || return $?
+        chmod 600 "$NETPLAN_FILE" || return $?
+        netplan generate || return $?
+        netplan apply || return $?
     }
 
     _write_netplan_static() {
@@ -520,21 +503,15 @@ set -uo pipefail
         #
         # . Usage
         #   main "$@"
-    main() {     
+    main() {
         _framework_locator || exit $?
-        
-        sgnd_exe_start  --needroot "$@"
-printf "UID=$(id -u) EUID=$EUID USER=$USER"
-        # script logic
-        _set_defaults
-        _get_usr_input
-        
-        _reset_machine_id
-        _reset_ssh
-        _set_hostname
-        _network_config
-prinf "UID=$(id -u) EUID=$EUID USER=$USER"
 
+        _set_defaults
+        sgnd_exe_start --needroot "$@"
+
+        _get_usr_input || exit $?
+        _set_hostname || exit $?
+        _network_config || exit $?
     }
 
     # Entrypoint: sgnd_bootstrap will split framework args from script args.

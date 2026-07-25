@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0.0
-#   Build       : 2620423
-#   Checksum    : 7580e2ea931eb6372f0fc29d0186da772186c9704e4ddf20539c1d91122f5327
+#   Build       : 2620601
+#   Checksum    : 7102bbe1772ada691db2d86b18571594383a6e0414cd8f3c5299d6fe681823d0
 #   Source      : 20-machine-config.sh
 #   Type        : module
 #   Group       : Machine Configuration
@@ -216,19 +216,28 @@ set -uo pipefail
         # . Returns
         #   0 if successful, 1 if failed to generate SSH host keys.
     _generate_ssh_keys() {
-        if (( ${FLAG_DRYRUN:-0} == 1 )); then
-            sayinfo "Dry run: Skipping SSH host key generation."
-            return 0
-        fi
-
         sayinfo "Generating SSH host keys..."
-        if ssh-keygen -A; then
-            sayinfo "SSH host keys generated successfully. Restarting SSH service..."
-            systemctl restart ssh
-        else
+
+        if ! sudo ssh-keygen -A; then
             sayerror "Failed to generate SSH host keys."
             return 1
         fi
+
+        sayinfo "Validating SSH configuration..."
+
+        if ! sudo sshd -t; then
+            sayerror "SSH configuration validation failed."
+            return 1
+        fi
+
+        sayinfo "Restarting SSH service..."
+
+        if ! sudo systemctl restart ssh; then
+            sayerror "Failed to restart SSH service."
+            return 1
+        fi
+
+        sayinfo "SSH host keys generated and SSH service restarted successfully."
     }
 
     _set_identity() {
