@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2620211
-#   Checksum    : 8756dc244a3f7c6fed2143fc8c9d35a97eeecb7a6bb40b467e989e49153565ca
+#   Build       : 2620701
+#   Checksum    : 30c85c997ad8f47317a11941a1c197f64912eba8fa0d42861fee4f92dfbb72dc
 #   Source      : 10-sgnd-config.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -146,6 +146,30 @@ set -uo pipefail
         #   _framework_show_environment
     _framework_show_environment() {
         _sgnd_run_public_command "sgnd-framework-smoketest" --show env
+    }
+
+    # _framework_show_about
+        # Output:
+        #   Displays Framework about info
+        # Usage:
+        #  _framework_show_about
+    _framework_show_about()
+    {
+        sgnd_print
+        sgnd_print_sectionheader --text "About SolidGroundUX" 
+        sgnd_print
+        sgnd_print_labeledvalue --label "Version"          --value "$SGND_VERSION.$SGND_BUILD" --labelwidth 20
+        sgnd_print_labeledvalue --label "Company"          --value "$SGND_COMPANY"              --labelwidth 20
+        sgnd_print_labeledvalue --label "Copyright"        --value "$SGND_COPYRIGHT"            --labelwidth 20
+        sgnd_print_labeledvalue --label "License"          --value "$SGND_LICENSE"              --labelwidth 20
+        sgnd_print_labeledvalue --label "License accepted" \
+            --value "$([[ ${SGND_LICENSE_ACCEPTED:-0} == 1 ]] && printf 'Yes' || printf 'No')"  \
+            --labelwidth 20
+        sgnd_print_labeledvalue --label "Release URL"      --value "$SGND_RELEASE_URL"           --labelwidth 20
+        sgnd_print_labeledvalue --label "Online docs"      --value "$SGND_ONLINE_DOC"            --labelwidth 20
+        sgnd_print
+        sgnd_print_sectionheader
+        sgnd_print
     }
 
 # --- Framework configuration actions ---------------------------------------------
@@ -638,6 +662,7 @@ set -uo pipefail
     sgnd_console_register_item "install" "sgndinst" "Install SolidGroundUX" "_install_solidgroundux" "Install SolidGroundUX release package" 0 5 1
     sgnd_console_register_item "update" "sgndinst" "Update SolidGroundUX" "_update_solidgroundux" "Update SolidGroundUX" 0 5 1
     sgnd_console_register_item "uninstall" "sgndinst" "Uninstall SolidGroundUX" "_uninstall_solidgroundux" "Uninstall SolidGroundUX release package" 0 5 1
+    sgnd_console_register_item "about" "sgndinst" "About SolidGroundUX" "_framework_show_about" "Show SolidGroundUX info" 0 15 1
 
     sgnd_console_register_group "framework-config" "Framework Configuration" "View and edit framework configuration files and effective settings" 0 1 820
     sgnd_console_register_item "config-env" "framework-config" "Show effective configuration" "_framework_show_environment" "Show the resolved SolidGroundUX framework environment and effective settings" 0 30 1

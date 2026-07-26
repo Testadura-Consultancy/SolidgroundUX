@@ -295,7 +295,6 @@ set -uo pipefail
             htop \
             iputils-ping \
             jq \
-            krb5-user \
             less \
             libc-bin \
             lsb-release \
