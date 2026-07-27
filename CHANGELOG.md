@@ -7,15 +7,16 @@ The format is inspired by *Keep a Changelog* while remaining focused on practica
 # Version 1.8 (Build 2620601)
 
 ## Resolved
-- various machine configuration issues in the Management Console
-- state variables weren;t being saved in prepare-release.sh
+- Fixed various machine configuration issues in the Management Console.
+- Fixed an issue where state variables were not being saved by `prepare-release.sh`.
 
 ## Added
-- Framework global SGND_CONSOLE_WIDTH Prefered console width
-- Framework global SGND_MAX_RENDER_WIDTH Upper safety limit
+- Added framework global `SGND_CONSOLE_WIDTH` to define the preferred console rendering width.
+- Added framework global `SGND_MAX_RENDER_WIDTH` to define the maximum console rendering width.
 
 ## Changed
-- Print primitivs made subject to console width settings
+- Updated all UI rendering primitives to respect the framework console width settings.
+- Changed line rendering in html documentation. Consecutive nonempty lines are now considered paragraphs
 
 # Version 1.8 (Build 2620423) 
 
