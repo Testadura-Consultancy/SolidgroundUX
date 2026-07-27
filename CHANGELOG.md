@@ -8,7 +8,14 @@ The format is inspired by *Keep a Changelog* while remaining focused on practica
 
 ## Resolved
 - various machine configuration issues in the Management Console
+- state variables weren;t being saved in prepare-release.sh
 
+## Added
+- Framework global SGND_CONSOLE_WIDTH Prefered console width
+- Framework global SGND_MAX_RENDER_WIDTH Upper safety limit
+
+## Changed
+- Print primitivs made subject to console width settings
 
 # Version 1.8 (Build 2620423) 
 

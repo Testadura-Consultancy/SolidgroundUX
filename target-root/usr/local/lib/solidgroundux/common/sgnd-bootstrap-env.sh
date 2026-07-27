@@ -133,6 +133,9 @@ set -uo pipefail
         "user|SAY_DATE_DEFAULT|Default timestamp visibility|"
         "user|SAY_SHOW_DEFAULT|Default console message visibility|"
         "user|SAY_DATE_FORMAT|Default date/time format for console output|"
+
+        "both|SGND_CONSOLE_WIDTH|Prefered standard console width|"
+        "both|SGND_MAX_RENDER_WIDTH|Render width upper limit|"
     )
 
     # var: SGND_CORE_LIBS - Ordered core library list
@@ -186,6 +189,8 @@ set -uo pipefail
 
         "both|SGND_UI_STYLE|Selected SolidGroundUX UI style file.|"
         "both|SGND_UI_PALETTE|Selected SolidGroundUX UI palette file.|"
+        "both|SGND_CONSOLE_WIDTH|Preferred standard width for console rendering primitives.|"
+        "both|SGND_MAX_RENDER_WIDTH|Upper limit applied to console rendering width.|"
 
         "both|SAY_DATE_DEFAULT|Default setting controlling whether say output includes a timestamp.|"
         "both|SAY_SHOW_DEFAULT|Default say output prefix mode, such as label, icon, symbol, or combinations.|"
@@ -280,6 +285,9 @@ set -uo pipefail
         : "${SAY_DATE_FORMAT:=%Y-%m-%d %H:%M:%S}"
 
         : "${SGND_FRAMEWORK_CFG_BASENAME:=sgnd_framework_globals.cfg}"
+
+        : "${SGND_CONSOLE_WIDTH:=80}"
+        : "${SGND_MAX_RENDER_WIDTH:=140}"
 
     }
     # fn: sgnd_defaults_reset - Defaults reset

@@ -2355,6 +2355,34 @@ body {
         lines.append('</div>')
         return "\n".join(lines)
 
+    def is_flowing_prose_row(self, row: Row) -> bool:
+        """Return True when a row may be reflowed into a logical paragraph."""
+        if row.get("suppress", "0") == "1":
+            return False
+
+        content_type = row.get("contenttype", "documentbody") or "documentbody"
+        style_hint = row.get("stylehint", "normal") or "normal"
+        content = row.get("content", "") or ""
+
+        if not content_type.endswith("body"):
+            return False
+        if style_hint != "normal":
+            return False
+        if not content.strip():
+            return False
+
+        # Leading whitespace is intentional author formatting: examples, trees,
+        # command lines, diagrams, and aligned blocks must remain line-oriented.
+        if content[:1].isspace():
+            return False
+
+        # Preserve common source-level list/code forms even when they were not
+        # explicitly marked with a style hint.
+        if re.match(r"^(?:[-*+]\s+|\d+[.)]\s+|```|~~~|[$>]\s)", content):
+            return False
+
+        return True
+
     def render_rows(self, rows: Sequence[Row], skip_first_header: bool = False) -> str:
         lines: List[str] = []
         skipped_first_header = False
@@ -2398,6 +2426,31 @@ body {
                 image_html = self.render_image_group(entries)
                 if image_html:
                     lines.append(image_html)
+                continue
+
+            if self.is_flowing_prose_row(row):
+                paragraph_parts = [(row.get("content", "") or "").strip()]
+                index += 1
+
+                while index < len(rows):
+                    next_row = rows[index]
+
+                    if next_row.get("suppress", "0") == "1":
+                        index += 1
+                        continue
+                    if self.is_images_marker(next_row):
+                        break
+                    if not self.is_flowing_prose_row(next_row):
+                        break
+                    if (next_row.get("contenttype", "documentbody") or "documentbody") != content_type:
+                        break
+
+                    paragraph_parts.append((next_row.get("content", "") or "").strip())
+                    index += 1
+
+                css_class = f"ct-{content_type}"
+                paragraph = " ".join(part for part in paragraph_parts if part)
+                lines.append(f'<p class="{esc(css_class)}">{esc(paragraph)}</p>')
                 continue
 
             style_hint = row.get("stylehint", "normal") or "normal"

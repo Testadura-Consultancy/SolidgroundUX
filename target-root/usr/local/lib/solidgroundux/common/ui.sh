@@ -709,6 +709,77 @@ set -uo pipefail
     }
 
  # -- Rendering primitives --------------------------------------------------------
+    # fn: sgnd_terminal_width - Return the current terminal width
+        # . Purpose
+        #   Return the number of columns available to console rendering.
+        #
+        # . Behavior
+        #   - Uses tput cols when stdout is attached to a terminal and tput is available.
+        #   - Falls back to the COLUMNS environment variable.
+        #   - Falls back to SGND_CONSOLE_WIDTH, then 80, when no terminal width is available.
+        #
+        # . Output
+        #   Writes one positive integer to stdout.
+        #
+        # . Returns
+        #   0 always.
+    sgnd_terminal_width() {
+        local width=""
+
+        if [[ -t 1 ]] && command -v tput >/dev/null 2>&1; then
+            width="$(tput cols 2>/dev/null || true)"
+        fi
+
+        [[ "$width" =~ ^[1-9][0-9]*$ ]] || width="${COLUMNS:-}"
+        [[ "$width" =~ ^[1-9][0-9]*$ ]] || width="${SGND_CONSOLE_WIDTH:-80}"
+        [[ "$width" =~ ^[1-9][0-9]*$ ]] || width=80
+
+        printf '%s\n' "$width"
+    }
+
+    # fn: sgnd_render_width - Resolve an effective console render width
+        # . Purpose
+        #   Resolve the width used by SolidGroundUX console rendering primitives.
+        #
+        # . Behavior
+        #   - Uses an explicit requested width when supplied.
+        #   - Otherwise uses SGND_CONSOLE_WIDTH.
+        #   - Treats a configured or requested width of 0 as the available terminal width.
+        #   - Never exceeds the current terminal width or SGND_MAX_RENDER_WIDTH.
+        #   - Enforces a minimum usable width of 10 columns.
+        #
+        # . Arguments
+        #   $1  REQUESTED_WIDTH (optional)
+        #
+        # . Output
+        #   Writes the resolved width to stdout.
+        #
+        # . Returns
+        #   0 always.
+    sgnd_render_width() {
+        local requested="${1:-${SGND_CONSOLE_WIDTH:-80}}"
+        local terminal_width
+        local max_render="${SGND_MAX_RENDER_WIDTH:-140}"
+        local width
+
+        terminal_width="$(sgnd_terminal_width)"
+
+        [[ "$requested" =~ ^[0-9]+$ ]] || requested="${SGND_CONSOLE_WIDTH:-80}"
+        [[ "$requested" =~ ^[0-9]+$ ]] || requested=80
+        [[ "$max_render" =~ ^[1-9][0-9]*$ ]] || max_render=140
+
+        if (( requested == 0 )); then
+            width="$terminal_width"
+        else
+            width="$requested"
+        fi
+
+        (( width > terminal_width )) && width="$terminal_width"
+        (( width > max_render )) && width="$max_render"
+        (( width < 10 )) && width=10
+
+        printf '%s\n' "$width"
+    }
     # fn: sgnd_print_labeledvalue - Print labeledvalue
         # . Purpose
         #   Print a formatted label/value row.
@@ -722,6 +793,7 @@ set -uo pipefail
         #   --value VALUE
         #   --sep VALUE
         #   --labelwidth VALUE
+        #   --maxwidth VALUE
         #   --pad VALUE
         #   --labelclr VALUE
         #   --valueclr VALUE
@@ -741,6 +813,7 @@ set -uo pipefail
 
         local sep=":"
         local labelwidth=25
+        local maxwidth=""
         local pad=0
         local labelclr="${SGND_UI_LABEL}"
         local valueclr="${SGND_UI_VALUE}"
@@ -762,6 +835,10 @@ set -uo pipefail
                     ;;
                 --labelwidth)
                     labelwidth="$2"
+                    shift 2
+                    ;;
+                --maxwidth)
+                    maxwidth="$2"
                     shift 2
                     ;;
                 --pad)
@@ -797,6 +874,13 @@ set -uo pipefail
         # Width / pad safety
         [[ "$labelwidth" =~ ^[0-9]+$ ]] || labelwidth=22
         [[ "$pad"   =~ ^[0-9]+$ ]] || pad=4
+        maxwidth="$(sgnd_render_width "$maxwidth")"
+
+        local valuewidth=$(( maxwidth - pad - labelwidth - ${#sep} - 2 ))
+        (( valuewidth < 0 )) && valuewidth=0
+        if (( $(sgnd_visible_len "$value") > valuewidth )); then
+            value="${value:0:valuewidth}"
+        fi
 
         printf '%*s%s %s %s\n' \
             "$pad" "" \
@@ -834,7 +918,7 @@ set -uo pipefail
         #   sgnd_print_fill --left "..." --right "..." --padleft --padright
     sgnd_print_fill() {
         local left="" right=""
-        local padleft=2 padright=1 maxwidth=80
+        local padleft=2 padright=1 maxwidth=""
         local fillchar=" "
         local leftclr="${SGND_UI_TEXT}"
         local rightclr=""
@@ -865,8 +949,7 @@ set -uo pipefail
         # --- Defaults / safety
         [[ "$padleft"  =~ ^[0-9]+$ ]] || padleft=2
         [[ "$padright" =~ ^[0-9]+$ ]] || padright=1
-        [[ "$maxwidth" =~ ^[0-9]+$ ]] || maxwidth=80
-        (( maxwidth < 10 )) && maxwidth=10
+        maxwidth="$(sgnd_render_width "$maxwidth")"
 
         # right color inherits left color
         [[ -z "$rightclr" ]] && rightclr="$leftclr"
@@ -935,7 +1018,7 @@ set -uo pipefail
         local border="$DL_H"
         local borderclr="${SGND_UI_BORDER}"
         local padleft=4
-        local maxwidth=80
+        local maxwidth=""
 
         # -- Parse options
         while [[ $# -gt 0 ]]; do
@@ -961,8 +1044,7 @@ set -uo pipefail
 
         # -- Numeric safety
         [[ "$padleft"  =~ ^[0-9]+$ ]] || padleft=4
-        [[ "$maxwidth" =~ ^[0-9]+$ ]] || maxwidth=80
-        (( maxwidth < 10 )) && maxwidth=10
+        maxwidth="$(sgnd_render_width "$maxwidth")"
         (( padleft < 0 )) && padleft=0
 
         sgnd_print
@@ -984,7 +1066,8 @@ set -uo pipefail
             --text "$sub" \
             --justify "$subjust" \
             --textclr "$subclr" \
-            --rightmargin "$(sgnd_visible_len "$right")"
+            --rightmargin "$(sgnd_visible_len "$right")" \
+            --maxwidth "$maxwidth"
         fi
 
         sgnd_print_sectionheader \
@@ -1026,7 +1109,7 @@ set -uo pipefail
         local borderclr="${SGND_UI_BORDER}"
         local padleft=4
         local padend=1
-        local maxwidth=80
+        local maxwidth=""
    
         # -- Parse options
         while [[ $# -gt 0 ]]; do
@@ -1050,8 +1133,7 @@ set -uo pipefail
         # -- Numeric safety
         [[ "$padleft"  =~ ^[0-9]+$ ]] || padleft=4
         [[ "$padend"   =~ ^(0|1)$   ]] || padend=1
-        [[ "$maxwidth" =~ ^[0-9]+$ ]] || maxwidth=80
-        (( maxwidth < 10 )) && maxwidth=10
+        maxwidth="$(sgnd_render_width "$maxwidth")"
         (( padleft < 0 )) && padleft=0
 
         # -- Assemble line (PLAIN parts first; add color last)
@@ -1131,7 +1213,7 @@ set -uo pipefail
         local pad=0
         local rightmargin=0
         local justify="L"   # L = left, C = center, R = right
-        local maxwidth=80
+        local maxwidth=""
 
         # --- Parse options --------------------------------------------------------
         while [[ $# -gt 0 ]]; do
@@ -1160,7 +1242,7 @@ set -uo pipefail
         # --- Safety defaults ------------------------------------------------------
         (( pad < 0 )) && pad=0
         (( rightmargin < 0 )) && rightmargin=0
-        (( maxwidth < 1 )) && maxwidth=80
+        maxwidth="$(sgnd_render_width "$maxwidth")"
 
         # --- Available width for auto-wrap decision -------------------------------
         local avail=$(( maxwidth - (pad * 2) - rightmargin ))
@@ -1223,7 +1305,7 @@ set -uo pipefail
         local textclr="${SGND_UI_TEXT:-}"
         local pad=0
         local justify="L"
-        local maxwidth=80
+        local maxwidth=""
 
         while [[ $# -gt 0 ]]; do
             case "$1" in
@@ -1246,7 +1328,7 @@ set -uo pipefail
         fi
 
         (( pad < 0 )) && pad=0
-        (( maxwidth < 1 )) && maxwidth=80
+        maxwidth="$(sgnd_render_width "$maxwidth")"
 
         local textlen=${#text}
 

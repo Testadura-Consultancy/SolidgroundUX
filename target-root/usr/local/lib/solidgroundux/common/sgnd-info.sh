@@ -413,7 +413,7 @@ set -uo pipefail
             sgnd_print
             sgnd_print_file "$license_file"
             sgnd_print
-            sgnd_print_sectionheader --border "-"
+            sgnd_print_sectionheader --border "$LN_H"
         else
             saydebug "sgnd_print_license: license file not found or not readable: $license_file"
         fi
@@ -467,9 +467,9 @@ set -uo pipefail
         sgnd_print_sectionheader --text "Script configuration ($SGND_SCRIPT_NAME.cfg)"
         sgnd_print_cfg SGND_SCRIPT_GLOBALS both
 
-        sgnd_print_sectionheader --border "-" --text "Framework configuration ($SGND_FRAMEWORK_CFG_BASENAME)"
+        sgnd_print_sectionheader --border "$LN_H" --text "Framework configuration ($SGND_FRAMEWORK_CFG_BASENAME)"
         sgnd_print_framework_metadata
         sgnd_print_cfg SGND_FRAMEWORK_GLOBALS both
 
-        sgnd_print_sectionheader --border "="
+        sgnd_print_sectionheader --border "$DL_H"
     }

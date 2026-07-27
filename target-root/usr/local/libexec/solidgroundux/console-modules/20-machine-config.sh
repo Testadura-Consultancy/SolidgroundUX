@@ -7,7 +7,7 @@
 #   Checksum    : be57078d4ca979b9d095a5c8c1ad7db54e5839dff4fc14dcf5a214432aecfe9e
 #   Source      : 20-machine-config.sh
 #   Type        : module
-#   Group       : Machine Configuration
+#   Group       : VMConfig
 #   Purpose     : Configure machine identity, packages, roles, and template state
 #
 # Description:

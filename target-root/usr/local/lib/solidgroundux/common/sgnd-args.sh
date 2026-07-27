@@ -681,7 +681,7 @@ set -uo pipefail
             cfg)
                 sgnd_print_sectionheader --text "Script configuration ($SGND_SCRIPT_NAME.cfg)"
                 sgnd_print_cfg SGND_SCRIPT_GLOBALS both
-                sgnd_print_sectionheader --border "-" --text "Framework configuration ($SGND_FRAMEWORK_CFG_BASENAME)"
+                sgnd_print_sectionheader --border "$LN_H" --text "Framework configuration ($SGND_FRAMEWORK_CFG_BASENAME)"
                 sgnd_print_cfg SGND_FRAMEWORK_GLOBALS both
                 sayend "Information displayed"
                 exit 0
