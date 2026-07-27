@@ -13,22 +13,18 @@
   <div class="doc-breadcrumb">solidground console_preface.sh::SolidGround Console:Module Contract:</div>
 </header>
 <div class="ct-L2Sectionbody"></div>
-<div class="ct-L2Sectionbody">A console module is a source-only Bash file. It defines functions first and</div>
-<div class="ct-L2Sectionbody">registers its groups and items as its only intended load-time side effect.</div>
+<p class="ct-L2Sectionbody">A console module is a source-only Bash file. It defines functions first and registers its groups and items as its only intended load-time side effect.</p>
 <div class="ct-L2Sectionbody"></div>
-<div class="ct-L2Sectionbody">Every module exports temporary host metadata:</div>
+<p class="ct-L2Sectionbody">Every module exports temporary host metadata:</p>
 <div class="ct-L2Sectionbody"></div>
 <div class="ct-L2Sectionbody">    SGND_MODULE_ID</div>
 <div class="ct-L2Sectionbody">    SGND_MODULE_NAME</div>
 <div class="ct-L2Sectionbody">    SGND_MODULE_VERSION</div>
 <div class="ct-L2Sectionbody">    SGND_MODULE_DESC</div>
 <div class="ct-L2Sectionbody"></div>
-<div class="ct-L2Sectionbody">The host clears these values before sourcing a module, validates them afterwards,</div>
-<div class="ct-L2Sectionbody">rejects duplicate module IDs, records the metadata, and clears the temporary</div>
-<div class="ct-L2Sectionbody">values before continuing with the next module.</div>
+<p class="ct-L2Sectionbody">The host clears these values before sourcing a module, validates them afterwards, rejects duplicate module IDs, records the metadata, and clears the temporary values before continuing with the next module.</p>
 <div class="ct-L2Sectionbody"></div>
-<div class="ct-L2Sectionbody">Modules may keep their own permanent constants for use by their action functions.</div>
-<div class="ct-L2Sectionbody">The temporary `SGND_MODULE_*` values exist only for the loading contract.</div>
+<p class="ct-L2Sectionbody">Modules may keep their own permanent constants for use by their action functions. The temporary `SGND_MODULE_*` values exist only for the loading contract.</p>
 <div class="ct-L2Sectionbody"></div>
 </main>
 </body>

@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Resolve an effective console render width</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Resolve an effective console render width</div>
+  <div class="doc-breadcrumb">SolidgroundUX / ui.sh / Rendering primitives / sgnd_render_width</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Resolve the width used by SolidGroundUX console rendering primitives.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Uses an explicit requested width when supplied.</div>
+<div class="ct-functionbody">  - Otherwise uses SGND_CONSOLE_WIDTH.</div>
+<div class="ct-functionbody">  - Treats a configured or requested width of 0 as the available terminal width.</div>
+<div class="ct-functionbody">  - Never exceeds the current terminal width or SGND_MAX_RENDER_WIDTH.</div>
+<div class="ct-functionbody">  - Enforces a minimum usable width of 10 columns.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Arguments</div>
+<div class="ct-functionbody">  $1  REQUESTED_WIDTH (optional)</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Output</div>
+<div class="ct-functionbody">  Writes the resolved width to stdout.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 always.</div>
+</main>
+</body>
+</html>

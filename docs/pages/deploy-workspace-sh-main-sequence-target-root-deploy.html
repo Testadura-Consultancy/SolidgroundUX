@@ -24,24 +24,24 @@
 <div class="ct-functionbody">      - &quot;.old&quot; files</div>
 <div class="ct-functionbody">      - hidden or &quot;_&quot; directories</div>
 <div class="ct-functionbody"></div>
-<div class="ct-functionbody">Update logic:</div>
+<p class="ct-functionbody">Update logic:</p>
 <div class="ct-functionbody">  - Installs when destination is missing or source is newer</div>
 <div class="ct-functionbody"></div>
-<div class="ct-functionbody">Manifest behavior:</div>
+<p class="ct-functionbody">Manifest behavior:</p>
 <div class="ct-functionbody">  - Initializes a new manifest at start of deployment</div>
 <div class="ct-functionbody">  - Records only files CREATED by this run</div>
 <div class="ct-functionbody">  - Records only directories CREATED by this run</div>
 <div class="ct-functionbody">  - Updated pre-existing files are not recorded</div>
 <div class="ct-functionbody">  - Finalizes manifest only after successful completion</div>
 <div class="ct-functionbody"></div>
-<div class="ct-functionbody">Permissions:</div>
+<p class="ct-functionbody">Permissions:</p>
 <div class="ct-functionbody">  - File mode via _perm_resolve(abs_rel,&quot;file&quot;)</div>
 <div class="ct-functionbody">  - Directory mode via _perm_resolve(abs_rel,&quot;dir&quot;)</div>
 <div class="ct-functionbody"></div>
-<div class="ct-functionbody">Dry run:</div>
+<p class="ct-functionbody">Dry run:</p>
 <div class="ct-functionbody">  - When FLAG_DRYRUN=1, only reports actions</div>
 <div class="ct-functionbody"></div>
-<div class="ct-functionbody">Inputs (globals):</div>
+<p class="ct-functionbody">Inputs (globals):</p>
 <div class="ct-functionbody">  SRC_ROOT</div>
 <div class="ct-functionbody">  DEST_ROOT</div>
 <div class="ct-functionbody">  FLAG_DRYRUN</div>
@@ -54,7 +54,7 @@
 <div class="ct-functionbody sh-highlight">Usage</div>
 <div class="ct-functionbody">  _deploy</div>
 <div class="ct-functionbody"></div>
-<div class="ct-functionbody">Notes:</div>
+<p class="ct-functionbody">Notes:</p>
 <div class="ct-functionbody">  - Uses install for atomic writes and permission control</div>
 <div class="ct-functionbody">  - Manifest records created artifacts only; it is not full rollback state</div>
 </main>

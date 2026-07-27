@@ -3,12 +3,12 @@
 # SolidGroundUX - Executable Script Template
 # ------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2620601
-#   Checksum    : 8cdd22938060f32c24929db6b259d790f85498578c0c9b799c420aff9f3aaa1c
+#   Version     : 1.8
+#   Build       : 2620810
+#   Checksum    : 0d7fdaf10367f644e856eebbb530c0cc8aab4fedf3e61aec7d24147bea239310
 #   Source      : prepare-template.sh
 #   Type        : script
-#   Group       : Templates
+#   Group       : SolidGround Console
 #   Purpose     : Prepares a VM for conversion to a reusable clone template.
 #
 # Description:

@@ -3,9 +3,9 @@
 # SolidGroundUX - Prepare Release
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2620800
-#   Checksum    : 71a41488a768e12521b299d93377e42e8b912ca6cb22fbabe394df1ec9f028b9
+#   Version     : 1.8
+#   Build       : 2620801
+#   Checksum    : e11ee74e86bd99dff602dcf40d20a0cd0fa9879d7931a6a22a6ed9424ac5c604
 #   Source      : prepare-release.sh
 #   Type        : script
 #   Group       : SDK Tools
@@ -220,6 +220,7 @@ set -uo pipefail
         "bumpmajor||flag|FLAG_BUMP_MAJOR|Bump major version in source headers before packaging|"
         "bumpminor||flag|FLAG_BUMP_MINOR|Bump minor version in source headers before packaging|"
         "updatebuild||flag|FLAG_UPDATEBUILD|Update source header metadata before packaging|"
+        "updateversion||flag|FLAG_UPDATEVERSION|Update version in changed source headers|"
     )
 
     # SGND_SCRIPT_EXAMPLES
@@ -294,6 +295,7 @@ set -uo pipefail
         FLAG_USEEXISTING
         FLAG_SAVEPARMS
         FLAG_UPDATEBUILD
+        FLAG_UPDATEVERSION
     )
 
     # SGND_ON_EXIT_HANDLERS
@@ -403,6 +405,7 @@ set -uo pipefail
         FLAG_USEEXISTING="${FLAG_USEEXISTING:-1}"
         FLAG_SAVEPARMS="${FLAG_SAVEPARMS:-1}"
         FLAG_UPDATEBUILD="${FLAG_UPDATEBUILD:-1}"
+        FLAG_UPDATEVERSION="${FLAG_UPDATEVERSION:-1}"
 
         sgnd_state_load_keys --array SGND_STATE_VARIABLES || return $?
         
@@ -487,6 +490,18 @@ set -uo pipefail
                 FLAG_UPDATEBUILD=1
             else
                 FLAG_UPDATEBUILD=0
+            fi
+
+            if [[ "$FLAG_UPDATEVERSION" -eq 1 ]]; then
+                updversion="Y"
+            else
+                updversion="N"
+            fi
+            ask --label "Update version in changed files (Y/N)" --var updversion --default "$updversion" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+            if [[ "$updversion" == "Y" || "$updversion" == "y" ]]; then
+                FLAG_UPDATEVERSION=1
+            else
+                FLAG_UPDATEVERSION=0
             fi
 
             ask --label "Save these settings for future use (Y/N)" --var saveparms --default "$saveparms" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
@@ -792,6 +807,20 @@ set -uo pipefail
         fi
     }
 
+
+    # fn: _set_script_header_version - Set an explicit version in a managed script header
+    _set_script_header_version() {
+        local file="${1:-}"
+        local version="${2:-}"
+
+        [[ -n "$file" && -n "$version" ]] || return 2
+        [[ -f "$file" ]] || return 1
+
+        sed -i -E \
+            "0,/^#([[:space:]]*)Version([[:space:]]*):[[:space:]]*.*/s//#\1Version\2: $version/" \
+            "$file"
+    }
+
     # fn: _apply_version_bump - Apply release version bump metadata
         # . Purpose
         #   Apply header checksum/build refresh and optional version bumping to source files.
@@ -849,13 +878,35 @@ set -uo pipefail
 
             if sgnd_header_bump_version "$file" "$mode"; then
                 if (( ${SGND_HEADER_BUMP_CHANGED:-0} )); then
+                    if [[ "$mode" == "none" ]] && (( ${FLAG_UPDATEVERSION:-0} )); then
+                        _set_script_header_version "$file" "$VERSION" || {
+                            saywarning "Could not set version $VERSION in $file"
+                            failed=1
+                            continue
+                        }
+
+                        # The version edit changes the file content, so refresh the
+                        # build/checksum once more after applying the selected version.
+                        sgnd_header_bump_version "$file" "none" || {
+                            saywarning "Could not refresh metadata after setting version in $file"
+                            failed=1
+                            continue
+                        }
+                    fi
+
                     case "$mode" in
                         major) sayok "Bumped major version in $file" ;;
                         minor) sayok "Bumped minor version in $file" ;;
-                        none)  sayok "Updated build/checksum in $file" ;;
+                        none)
+                            if (( ${FLAG_UPDATEVERSION:-0} )); then
+                                sayok "Updated version/build/checksum in $file"
+                            else
+                                sayok "Updated build/checksum in $file"
+                            fi
+                            ;;
                     esac
                 else
-                    sayinfo "$file is unchanged, no new buildnr applied."
+                    sayinfo "$file is unchanged, no metadata applied."
                 fi
             else
                 saywarning "Skipping unmanaged file (no valid header): $file"

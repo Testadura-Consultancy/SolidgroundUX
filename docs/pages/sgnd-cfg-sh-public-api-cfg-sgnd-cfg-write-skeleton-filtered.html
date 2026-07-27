@@ -12,17 +12,17 @@
   <div class="doc-title">sgnd_cfg_write_skeleton_filtered</div>
   <div class="doc-breadcrumb">SolidgroundUX / sgnd-cfg.sh / Public API (CFG) / sgnd_cfg_write_skeleton_filtered</div>
 </header>
-<div class="ct-functionbody">Purpose:</div>
+<p class="ct-functionbody">Purpose:</p>
 <div class="ct-functionbody">  Write an auto-generated cfg skeleton filtered by audience.</div>
 <div class="ct-functionbody"></div>
-<div class="ct-functionbody">Behavior:</div>
+<p class="ct-functionbody">Behavior:</p>
 <div class="ct-functionbody">  - Writes a commented KEY=VALUE config template.</div>
 <div class="ct-functionbody">  - Includes only specs matching the requested audience.</div>
 <div class="ct-functionbody">  - Includes specs marked &quot;both&quot; for either audience.</div>
 <div class="ct-functionbody">  - Uses current shell values as initial defaults where available.</div>
 <div class="ct-functionbody">  - Adds a standard auto-generated file header.</div>
 <div class="ct-functionbody"></div>
-<div class="ct-functionbody">Arguments:</div>
+<p class="ct-functionbody">Arguments:</p>
 <div class="ct-functionbody">  $1  FILE</div>
 <div class="ct-functionbody">      Target cfg file path.</div>
 <div class="ct-functionbody">  $2  AUDIENCE</div>
@@ -33,17 +33,17 @@
 <div class="ct-functionbody">      Optional logical domain name for header text.</div>
 <div class="ct-functionbody">      Default: configuration</div>
 <div class="ct-functionbody"></div>
-<div class="ct-functionbody">Side effects:</div>
+<p class="ct-functionbody">Side effects:</p>
 <div class="ct-functionbody">  - Creates or overwrites the target file.</div>
 <div class="ct-functionbody"></div>
-<div class="ct-functionbody">Returns:</div>
+<p class="ct-functionbody">Returns:</p>
 <div class="ct-functionbody">  0 on success.</div>
 <div class="ct-functionbody">  1 on invalid arguments.</div>
 <div class="ct-functionbody"></div>
-<div class="ct-functionbody">Usage:</div>
+<p class="ct-functionbody">Usage:</p>
 <div class="ct-functionbody">  sgnd_cfg_write_skeleton_filtered FILE AUDIENCE SPEC_ARRAY_NAME [DOMAIN]</div>
 <div class="ct-functionbody"></div>
-<div class="ct-functionbody">Examples:</div>
+<p class="ct-functionbody">Examples:</p>
 <div class="ct-functionbody">  sgnd_cfg_write_skeleton_filtered &quot;$SGND_USRCFG_FILE&quot; &quot;user&quot; SGND_FRAMEWORK_GLOBALS &quot;Framework&quot;</div>
 <div class="ct-functionbody"></div>
 <div class="ct-functionbody">  sgnd_cfg_write_skeleton_filtered &quot;$SGND_SYSCFG_FILE&quot; &quot;system&quot; SGND_SCRIPT_GLOBALS &quot;Script&quot;</div>

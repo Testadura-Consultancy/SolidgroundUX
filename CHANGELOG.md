@@ -4,32 +4,32 @@ All notable changes to SolidGroundUX are documented in this file.
 
 The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.
 
-# Version 1.8 (Build 2620601)
+# Version 1.8 (Build 2620810)
 
 ## Resolved
 - Fixed various machine configuration issues in the Management Console.
 - Fixed an issue where state variables were not being saved by `prepare-release.sh`.
+- Fixed documentation grouping issues caused by inconsistent script title prefixes.
 
 ## Added
 - Added framework global `SGND_CONSOLE_WIDTH` to define the preferred console rendering width.
 - Added framework global `SGND_MAX_RENDER_WIDTH` to define the maximum console rendering width.
+- Added documentation summary sections (`var:` blocks) to the framework style files.
 
 ## Changed
 - Updated all UI rendering primitives to respect the framework console width settings.
-- Changed line rendering in html documentation. Consecutive nonempty lines are now considered paragraphs
+- Changed HTML documentation rendering so consecutive non-empty lines are treated as paragraphs.
+- Updated `prepare-release.sh` to synchronize the selected version with changed script headers.
+- Improved documentation generation for style configuration variables.
 
-# Version 1.8 (Build 2620423) 
+# Version 1.8 (Build 2620423)
 
 ## Resolved
-
-- sgnd-install overwrites the ownership of root, /etc, /usr, etcetera
-  - sgnd-install.sh to never overwrite metadata of existing folders in teh target tree
-  - prepare-release.sh to set ownership of repository folders to root:root
+- Fixed an issue where `sgnd-install.sh` could overwrite ownership and permissions of existing system directories (such as `/`, `/etc`, and `/usr`) during installation.
 
 ## Changed
-
-- added toggle button to sgnd-console to switch between root and non-root
-- added left and right arrow for page navigation in sgnd-console
+- Updated `sgnd-install.sh` to preserve metadata of existing target directories.
+- Updated `prepare-release.sh` to package repository directories with `root:root` ownership.
 
 # Version 1.8 (Build 2620413) 
 

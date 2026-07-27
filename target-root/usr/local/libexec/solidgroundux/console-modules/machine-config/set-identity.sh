@@ -3,12 +3,12 @@
 # SolidGroundUX - Executable Script Template
 # ------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0
-#   Build       : 2620601
-#   Checksum    : f0c26e8ea202d4ee1701c09ff387c0c0725737d11222277ebc2e04bdd3ea1037
+#   Version     : 1.8
+#   Build       : 2620810
+#   Checksum    : 42682361148b631953b563d8467021ae3700912655afa029402fe1469c5ea4da
 #   Source      : set-identity.sh
 #   Type        : script
-#   Group       : VMConfig
+#   Group       : SolidGround Console
 #   Purpose     : Sets the hostname and IPv4 network configuration for a VM
 #
 # Description:

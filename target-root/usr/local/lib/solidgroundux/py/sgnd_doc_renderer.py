@@ -565,8 +565,9 @@ class DocRenderer:
         return (module.get("group", "") or "").casefold() == "templates"
 
     def should_render_item(self, module: Row, item: Row) -> bool:
-        if item.get("itemrole", "") == "template" and not self.is_template_group(module):
-            return False
+        # All documented items belong in the navigation and page set.
+        # The template role controls presentation/glossary behavior; it must not
+        # suppress var$, fn$, or doc$ blocks outside the Templates module group.
         return True
 
     def section_key(self, section: Row) -> tuple[str, str, str]:

@@ -132,13 +132,13 @@
 <tr><td>_resolve_source</td><td>Resolve metadata editor source files</td><td>Resolve metadata editor source files.</td><td>metadata-editor.sh</td></tr>
 <tr><td>_resolve_source_input</td><td>Prompt for source selection input</td><td>Prompt for source selection input.</td><td>metadata-editor.sh</td></tr>
 <tr><td>_sample_internal_function</td><td>Internal function documentation</td><td>Demonstrate an internal function.</td><td>doc-sample.sh</td></tr>
-<tr><td>_save_parameters</td><td>Persist prepare-release parameters</td><td>Persist prepare-release parameters.</td><td>prepare-release.sh</td></tr>
 <tr><td>_say_caller</td><td>Say caller</td><td>Determine the script or function context that emitted a say message.</td><td>ui-say.sh</td></tr>
 <tr><td>_say_normalize_log_level</td><td>Normalize a log level name</td><td>Convert aliases and legacy log-level names into a canonical SolidGroundUX log-level value.</td><td>ui-say.sh</td></tr>
 <tr><td>_say_should_print_console</td><td>Determine whether a message should be written to the console</td><td>Determine whether a message of the specified type should be written to the console based on the current log level.</td><td>ui-say.sh</td></tr>
 <tr><td>_say_should_write_log</td><td>Determine whether a message should be written to the logfile</td><td>Apply the file log level independently from console visibility.</td><td>ui-say.sh</td></tr>
 <tr><td>_say_write_log</td><td>Say write log</td><td>Append a formatted say message to the active SolidGroundUX log file.</td><td>ui-say.sh</td></tr>
 <tr><td>_sayprogress_write_slot</td><td>Sayprogress write slot</td><td>Render one progress slot in the active sayprogress line.</td><td>ui-say.sh</td></tr>
+<tr><td>_set_script_header_version</td><td>Set an explicit version in a managed script header</td><td></td><td>prepare-release.sh</td></tr>
 <tr><td>_sgnd_arg_find_spec</td><td>Find an argument specification</td><td>Locate the effective argument specification for a long or short option.</td><td>sgnd-args.sh</td></tr>
 <tr><td>_sgnd_arg_init_defaults</td><td>Initialize argument defaults</td><td>Initialize argument target variables from builtin and/or script argument specs.</td><td>sgnd-args.sh</td></tr>
 <tr><td>_sgnd_arg_split</td><td>Split one argument specification</td><td>Parse a pipe-separated argument specification into parser fields.</td><td>sgnd-args.sh</td></tr>
@@ -208,6 +208,7 @@
 <tr><td>_sgnd_print_arg_spec_entry</td><td>Print arg spec entry</td><td>Internal helper for print arg spec entry.</td><td>sgnd-info.sh</td></tr>
 <tr><td>_sgnd_print_arg_spec_list</td><td>Print arg spec list</td><td>Internal helper for print arg spec list.</td><td>sgnd-info.sh</td></tr>
 <tr><td>_sgnd_print_cfg_pass</td><td>Print cfg pass</td><td>Internal helper for print cfg pass.</td><td>sgnd-info.sh</td></tr>
+<tr><td>_sgnd_release_write_checksum</td><td>Write release checksum metadata for a file</td><td>Write release checksum metadata for a file.</td><td>prepare-release.sh</td></tr>
 <tr><td>_sgnd_rotate_logs</td><td>Rotate logs</td><td>Rotate log files when log retention settings require it.</td><td>ui-say.sh</td></tr>
 <tr><td>_sgnd_save_state_dispatch</td><td>Save state on clean exit</td><td>Conditionally persist framework state from the exit-handler stack.</td><td>sgnd-bootstrap.sh</td></tr>
 <tr><td>_sgnd_ui_resolve_theme_file</td><td>Ui resolve theme file</td><td>Resolve a palette or style name to a readable theme file path.</td><td>ui.sh</td></tr>
@@ -253,6 +254,7 @@
 <tr><td>main</td><td>Run the executable main sequence</td><td>Run the executable main sequence.</td><td>framework-smoketest.sh</td></tr>
 <tr><td>main</td><td>Run the executable main sequence - Run the executable main sequence</td><td>Bootstrap the framework, validate arguments, and run metadata-editor mode logic.</td><td>metadata-editor.sh</td></tr>
 <tr><td>main</td><td>Run the executable main sequence - Run the executable main sequence</td><td>Execute the release preparation workflow.</td><td>prepare-release.sh</td></tr>
+<tr><td>main</td><td>Run the executable main sequence</td><td>Run the standard executable startup sequence and then execute script-specific logic.</td><td>prepare-template.sh</td></tr>
 <tr><td>main</td><td>Run the executable main sequence</td><td>Run the standard executable startup sequence and then execute script-specific logic.</td><td>set-identity.sh</td></tr>
 <tr><td>main</td><td>Run the executable main sequence</td><td>Run the executable main sequence.</td><td>sgnd-console.sh</td></tr>
 <tr><td>main</td><td>Run installer</td><td>Runs installer validation, package selection, verification, backup, extraction, and state recording.</td><td>sgnd-install.sh</td></tr>
@@ -449,7 +451,7 @@
 <tr><td>sgnd_real_user</td><td>Real user</td><td>Print the non-root user behind sudo, or the current user.</td><td>sgnd-system.sh</td></tr>
 <tr><td>sgnd_rebase_directories</td><td>Rebase directories</td><td>Recalculate framework directory globals from the current SGND_FRAMEWORK_ROOT.</td><td>sgnd-bootstrap-env.sh</td></tr>
 <tr><td>sgnd_rebase_framework_cfg_paths</td><td>Rebase framework cfg paths</td><td>Recalculate framework configuration file paths from the configured etc directory.</td><td>sgnd-bootstrap-env.sh</td></tr>
-<tr><td>sgnd_release_write_checksum</td><td>Write release checksum metadata for a file</td><td>Write release checksum metadata for a file.</td><td>prepare-release.sh</td></tr>
+<tr><td>sgnd_render_width</td><td>Resolve an effective console render width</td><td>Resolve the width used by SolidGroundUX console rendering primitives.</td><td>ui.sh</td></tr>
 <tr><td>sgnd_require</td><td>Require</td><td>Require a command to succeed, terminating on failure.</td><td>sgnd-system.sh</td></tr>
 <tr><td>sgnd_retry</td><td>Retry</td><td>Retry a command until it succeeds or the retry count is exhausted.</td><td>sgnd-core.sh</td></tr>
 <tr><td>sgnd_run_as_real_user</td><td>Run as real user</td><td>Run a command as the real non-root user when invoked through sudo.</td><td>sgnd-system.sh</td></tr>
@@ -469,6 +471,7 @@
 <tr><td>sgnd_strip_ansi</td><td>Strip ansi</td><td>Remove ANSI escape sequences from text.</td><td>ui.sh</td></tr>
 <tr><td>sgnd_style_samples</td><td>Display the active UI theme</td><td>Demonstrate every semantic color defined by the active SolidGroundUX theme.</td><td>ui.sh</td></tr>
 <tr><td>sgnd_terminal_width</td><td>Terminal width</td><td>Return the active terminal width or a configured fallback.</td><td>sgnd-core.sh</td></tr>
+<tr><td>sgnd_terminal_width</td><td>Return the current terminal width</td><td>Return the number of columns available to console rendering.</td><td>ui.sh</td></tr>
 <tr><td>sgnd_theme</td><td>Display or switch the active UI theme</td><td>Display the current theme or switch the semantic UI style used by the current SolidGroundUX session.</td><td>ui.sh</td></tr>
 <tr><td>sgnd_timestamp</td><td>Timestamp</td><td>Print the current timestamp in SolidGroundUX log format.</td><td>sgnd-core.sh</td></tr>
 <tr><td>sgnd_trim</td><td>Trim</td><td>Trim leading and trailing whitespace from text.</td><td>sgnd-core.sh</td></tr>
@@ -513,31 +516,68 @@
 <tr><td>palette_solidground_brand</td><td>SolidGround brand colors</td><td>Define the SolidGround product brand colors.</td><td>default-ui-palette.sh</td></tr>
 <tr><td>palette_testadura_brand</td><td>Testadura brand colors</td><td>Define the official Testadura corporate brand colors.</td><td>default-ui-palette.sh</td></tr>
 <tr><td>SAMPLE_PUBLIC_VARIABLE</td><td>Public variable documentation</td><td>Demonstrate a normal documented variable.</td><td>doc-sample.sh</td></tr>
+<tr><td>SGND_ARGS_SPEC</td><td>Script-specific command-line argument specification</td><td></td><td>prepare-template.sh</td></tr>
 <tr><td>SGND_ARGS_SPEC</td><td>Script-specific command-line argument specification</td><td></td><td>set-identity.sh</td></tr>
 <tr><td>SGND_BUILTIN_ARGS</td><td>Builtin framework argument specifications</td><td>Define standard command-line options available to framework-enabled scripts.</td><td>sgnd-args.sh</td></tr>
 <tr><td>SGND_BUILTIN_EXAMPLES</td><td>Builtin help examples</td><td>Provide reusable help examples for standard framework options.</td><td>sgnd-args.sh</td></tr>
 <tr><td>SGND_CORE_LIBS</td><td>Ordered core library list</td><td>Define the core libraries that sgnd-bootstrap loads in fixed order.</td><td>sgnd-bootstrap-env.sh</td></tr>
 <tr><td>SGND_FRAMEWORK_DIRS</td><td>Framework directory specifications</td><td>Hold the rebuilt path specification list consumed by sgnd_ensure_dirs.</td><td>sgnd-bootstrap-env.sh</td></tr>
 <tr><td>SGND_FRAMEWORK_GLOBALS</td><td>Framework configuration variable registry</td><td>Declare framework variables that may be managed through system and/or user configuration files.</td><td>sgnd-bootstrap-env.sh</td></tr>
+<tr><td>SGND_ON_EXIT_HANDLERS</td><td>Script-specific exit handler list</td><td>- Allows scripts to register cleanup or finalization hooks.</td><td>prepare-template.sh</td></tr>
 <tr><td>SGND_ON_EXIT_HANDLERS</td><td>Script-specific exit handler list</td><td>- Allows scripts to register cleanup or finalization hooks.</td><td>set-identity.sh</td></tr>
+<tr><td>SGND_SCRIPT_BASE</td><td>Filename of the currently executing script</td><td></td><td>prepare-template.sh</td></tr>
 <tr><td>SGND_SCRIPT_BASE</td><td>Filename of the currently executing script</td><td></td><td>set-identity.sh</td></tr>
+<tr><td>SGND_SCRIPT_DIR</td><td>Directory containing the currently executing script</td><td></td><td>prepare-template.sh</td></tr>
 <tr><td>SGND_SCRIPT_DIR</td><td>Directory containing the currently executing script</td><td></td><td>set-identity.sh</td></tr>
+<tr><td>SGND_SCRIPT_EXAMPLES</td><td>Optional help examples for this script</td><td></td><td>prepare-template.sh</td></tr>
 <tr><td>SGND_SCRIPT_EXAMPLES</td><td>Optional help examples for this script</td><td></td><td>set-identity.sh</td></tr>
+<tr><td>SGND_SCRIPT_FILE</td><td>Absolute path to the currently executing script</td><td></td><td>prepare-template.sh</td></tr>
 <tr><td>SGND_SCRIPT_FILE</td><td>Absolute path to the currently executing script</td><td></td><td>set-identity.sh</td></tr>
+<tr><td>SGND_SCRIPT_GLOBALS</td><td>Script globals participating in configuration loading# var: SGND_SCRIPT_GLOBALS - Script globals participating in configuration loading</td><td>- Declares which globals are part of the script’s public/config contract. - Enables optional configuration loading when non-empty.</td><td>prepare-template.sh</td></tr>
 <tr><td>SGND_SCRIPT_GLOBALS</td><td>Script globals participating in configuration loading# var: SGND_SCRIPT_GLOBALS - Script globals participating in configuration loading</td><td>- Declares which globals are part of the script’s public/config contract. - Enables optional configuration loading when non-empty.</td><td>set-identity.sh</td></tr>
+<tr><td>SGND_SCRIPT_NAME</td><td>Script basename without the .sh extension</td><td></td><td>prepare-template.sh</td></tr>
 <tr><td>SGND_SCRIPT_NAME</td><td>Script basename without the .sh extension</td><td></td><td>set-identity.sh</td></tr>
+<tr><td>SGND_STATE_VARIABLES</td><td>Script variables participating in persistent state</td><td>- Declares which variables should be saved/restored when state is enabled.</td><td>prepare-template.sh</td></tr>
 <tr><td>SGND_STATE_VARIABLES</td><td>Script variables participating in persistent state</td><td>- Declares which variables should be saved/restored when state is enabled.</td><td>set-identity.sh</td></tr>
+<tr><td>SGND_USING</td><td>Optional framework libraries to source after core bootstrap</td><td></td><td>prepare-template.sh</td></tr>
 <tr><td>SGND_USING</td><td>Optional framework libraries to source after core bootstrap</td><td></td><td>set-identity.sh</td></tr>
 <tr><td>style_background_bright</td><td>Background: Bright</td><td>Document the variables assigned in this style section.</td><td>default-ui-palette.sh</td></tr>
 <tr><td>style_background_dark_muted</td><td>Background: Dark / muted</td><td>Document the variables assigned in this style section.</td><td>default-ui-palette.sh</td></tr>
 <tr><td>style_background_normal</td><td>Background: Normal</td><td>Document the variables assigned in this style section.</td><td>default-ui-palette.sh</td></tr>
 <tr><td>style_color_codes</td><td>Color codes</td><td>Document the variables assigned in this style section.</td><td>default-ui-palette.sh</td></tr>
 <tr><td>style_colors</td><td>Colors</td><td>Document the variables assigned in this style section.</td><td>00-style-default.sh</td></tr>
+<tr><td>style_colors</td><td>Colors</td><td>Document the variables assigned in this style file.</td><td>10-style-dark.sh</td></tr>
+<tr><td>style_colors</td><td>Colors</td><td>Document the variables assigned in this style file.</td><td>11-style-steelblue.sh</td></tr>
+<tr><td>style_colors</td><td>Colors</td><td>Document the variables assigned in this style file.</td><td>20-style-testadura.sh</td></tr>
+<tr><td>style_colors</td><td>Colors</td><td>Document the variables assigned in this style file.</td><td>21-style-fantasy.sh</td></tr>
+<tr><td>style_colors</td><td>Colors</td><td>Document the variables assigned in this style file.</td><td>22-style-redalert.sh</td></tr>
+<tr><td>style_colors</td><td>Colors</td><td>Document the variables assigned in this style file.</td><td>23-style-psychedelic.sh</td></tr>
+<tr><td>style_colors</td><td>Colors</td><td>Document the variables assigned in this style file.</td><td>30-style-mono-green.sh</td></tr>
+<tr><td>style_colors</td><td>Colors</td><td>Document the variables assigned in this style file.</td><td>31-style-mono-amber.sh</td></tr>
+<tr><td>style_colors</td><td>Colors</td><td>Document the variables assigned in this style file.</td><td>32-style-mono-blue.sh</td></tr>
 <tr><td>style_foreground_bright</td><td>Foreground: Bright</td><td>Document the variables assigned in this style section.</td><td>default-ui-palette.sh</td></tr>
 <tr><td>style_foreground_dark_muted</td><td>Foreground: Dark / muted</td><td></td><td>default-ui-palette.sh</td></tr>
 <tr><td>style_foreground_normal</td><td>Foreground: Normal</td><td></td><td>default-ui-palette.sh</td></tr>
 <tr><td>style_say_global_defaults</td><td>say() global defaults</td><td>Document the variables assigned in this style section.</td><td>00-style-default.sh</td></tr>
+<tr><td>style_say_global_defaults</td><td>say() global defaults</td><td>Document the variables assigned in this style file.</td><td>10-style-dark.sh</td></tr>
+<tr><td>style_say_global_defaults</td><td>say() global defaults</td><td>Document the variables assigned in this style file.</td><td>11-style-steelblue.sh</td></tr>
+<tr><td>style_say_global_defaults</td><td>say() global defaults</td><td>Document the variables assigned in this style file.</td><td>20-style-testadura.sh</td></tr>
+<tr><td>style_say_global_defaults</td><td>say() global defaults</td><td>Document the variables assigned in this style file.</td><td>21-style-fantasy.sh</td></tr>
+<tr><td>style_say_global_defaults</td><td>say() global defaults</td><td>Document the variables assigned in this style file.</td><td>22-style-redalert.sh</td></tr>
+<tr><td>style_say_global_defaults</td><td>say() global defaults</td><td>Document the variables assigned in this style file.</td><td>23-style-psychedelic.sh</td></tr>
+<tr><td>style_say_global_defaults</td><td>say() global defaults</td><td>Document the variables assigned in this style file.</td><td>30-style-mono-green.sh</td></tr>
+<tr><td>style_say_global_defaults</td><td>say() global defaults</td><td>Document the variables assigned in this style file.</td><td>31-style-mono-amber.sh</td></tr>
+<tr><td>style_say_global_defaults</td><td>say() global defaults</td><td>Document the variables assigned in this style file.</td><td>32-style-mono-blue.sh</td></tr>
 <tr><td>style_say_prefixes</td><td>Say prefixes</td><td>Document the variables assigned in this style section.</td><td>00-style-default.sh</td></tr>
+<tr><td>style_say_prefixes</td><td>Say prefixes</td><td>Document the variables assigned in this style file.</td><td>10-style-dark.sh</td></tr>
+<tr><td>style_say_prefixes</td><td>Say prefixes</td><td>Document the variables assigned in this style file.</td><td>11-style-steelblue.sh</td></tr>
+<tr><td>style_say_prefixes</td><td>Say prefixes</td><td>Document the variables assigned in this style file.</td><td>20-style-testadura.sh</td></tr>
+<tr><td>style_say_prefixes</td><td>Say prefixes</td><td>Document the variables assigned in this style file.</td><td>21-style-fantasy.sh</td></tr>
+<tr><td>style_say_prefixes</td><td>Say prefixes</td><td>Document the variables assigned in this style file.</td><td>22-style-redalert.sh</td></tr>
+<tr><td>style_say_prefixes</td><td>Say prefixes</td><td>Document the variables assigned in this style file.</td><td>23-style-psychedelic.sh</td></tr>
+<tr><td>style_say_prefixes</td><td>Say prefixes</td><td>Document the variables assigned in this style file.</td><td>30-style-mono-green.sh</td></tr>
+<tr><td>style_say_prefixes</td><td>Say prefixes</td><td>Document the variables assigned in this style file.</td><td>31-style-mono-amber.sh</td></tr>
+<tr><td>style_say_prefixes</td><td>Say prefixes</td><td>Document the variables assigned in this style file.</td><td>32-style-mono-blue.sh</td></tr>
 <tr><td>style_text_attributes_sgr</td><td>Text attributes (SGR)</td><td>Document the variables assigned in this style section.</td><td>default-ui-palette.sh</td></tr>
 </tbody>
 </table>

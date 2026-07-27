@@ -2,9 +2,9 @@
 # SolidGroundUX - UI Rendering
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2620211
-#   Checksum    : f1e755287b853f5b1b44e15cc299fb3d26508204a04d606f325a2b8eed1ec73a
+#   Version     : 1.8
+#   Build       : 2620801
+#   Checksum    : 27f29c6ce9f4b2ee157362b49cb053af39cad79f6774157475898255a5be51be
 #   Source      : ui.sh
 #   Type        : library
 #   Group       : UI

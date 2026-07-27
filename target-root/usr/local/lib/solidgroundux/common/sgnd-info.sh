@@ -2,9 +2,9 @@
 # SolidGroundUX - Framework Information
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2619513
-#   Checksum    : 2bfa4ec5d72bb83561536f02af13c89707c4732941dd90b20ac20b1d600d45ff
+#   Version     : 1.8
+#   Build       : 2620801
+#   Checksum    : 8e9ca9355655a715182af3499d228fe9db0cd38848e05a926a144cbfd955c9d0
 #   Source      : sgnd-info.sh
 #   Type        : library
 #   Group       : Common Core

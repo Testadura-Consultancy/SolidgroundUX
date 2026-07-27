@@ -1,13 +1,13 @@
 # ==================================================================================
-# VM Config - SolidGroundUX Console Module
+# SolidGroundUX - SolidGroundUX Console Module
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0.0
-#   Build       : 2620723
-#   Checksum    : be57078d4ca979b9d095a5c8c1ad7db54e5839dff4fc14dcf5a214432aecfe9e
+#   Version     : 1.8
+#   Build       : 2620810
+#   Checksum    : dceae6370af135ddc574d806a7fdc27b37eb228b4a9ebb21ea0cc55018d87779
 #   Source      : 20-machine-config.sh
 #   Type        : module
-#   Group       : VMConfig
+#   Group       : SolidGround Console
 #   Purpose     : Configure machine identity, packages, roles, and template state
 #
 # Description:
