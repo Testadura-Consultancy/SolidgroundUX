@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.5
-#   Build       : 2620423
-#   Checksum    : e3a47d55e1fa08be1e21f912490018d34874d36d1df268f1e015a9693bc71c8b
+#   Build       : 2620800
+#   Checksum    : 71a41488a768e12521b299d93377e42e8b912ca6cb22fbabe394df1ec9f028b9
 #   Source      : prepare-release.sh
 #   Type        : script
 #   Group       : SDK Tools
@@ -276,7 +276,7 @@ set -uo pipefail
         #
         # . Behavior
         #   - Only used when sgnd_bootstrap is invoked with --state.
-        #   - Variables listed here are serialized on exit (if SGND_STATE_SAVE=1).
+        #   - Variables listed here can be loaded and saved explicitly by the script.
         #   - On startup, previously saved values are restored before main logic runs.
         #
         # Contract:
@@ -285,7 +285,15 @@ set -uo pipefail
         #
         # Leave empty if:
         #   - The script does not use persistent state.
-    SGND_STATE_VARIABLES=(
+   SGND_STATE_VARIABLES=(
+        SOURCE_DIR
+        STAGING_ROOT
+        PRODUCT
+        VERSION
+        FLAG_CLEANUP
+        FLAG_USEEXISTING
+        FLAG_SAVEPARMS
+        FLAG_UPDATEBUILD
     )
 
     # SGND_ON_EXIT_HANDLERS
@@ -314,10 +322,8 @@ set -uo pipefail
     SGND_ON_EXIT_HANDLERS=(
     )
 
-    # State persistence is opt-in.
-        # Scripts that want persistent state must:
-        #   1) set SGND_STATE_SAVE=1
-        #   2) call sgnd_bootstrap --state
+    # Automatic state saving is disabled.
+        # State is loaded explicitly and saved only when FLAG_SAVEPARMS=1.
     SGND_STATE_SAVE=0
 
 # --- Local script Declarations -------------------------------------------------------
@@ -325,69 +331,6 @@ set -uo pipefail
     # Prefer local variables inside functions unless a value must be shared.
 
 # --- Local script functions ----------------------------------------------------------
-    # _save_parameters
-        # . Purpose
-        #   Persist the current release parameters to the framework state store.
-        #
-        # . Behavior
-        #   - Saves all resolved and confirmed release parameters for later reuse.
-        #   - Supports repeatable runs through --auto mode.
-        #   - Skips state writes when FLAG_DRYRUN is enabled.
-        #
-        # Inputs (globals):
-        #   RELEASE
-        #   SOURCE_DIR
-        #   STAGING_ROOT
-        #   TAR_FILE
-        #   FLAG_CLEANUP
-        #   FLAG_USEEXISTING
-        #   FLAG_DRYRUN
-        #
-        # . Side effects
-        #   - Writes state entries via sgnd_state_set when not in dry-run mode.
-        #
-        # . Returns
-        #   0 on success
-        #   Non-zero if state storage fails
-        #
-        # . Usage
-        #   _save_parameters
-        #
-        # Examples:
-        #   _save_parameters || return 1
-        #
-        # Notes:
-        #   - Requires sgnd_bootstrap --state so the state backend is available.
-    # fn: _save_parameters - Persist prepare-release parameters
-        # . Purpose
-        #   Persist prepare-release parameters.
-        #
-        # . Behavior
-        #   - Internal helper.
-        #   - Preserves existing script runtime behavior.
-        #
-        # . Returns
-        #   Returns the underlying command or workflow status.
-        #
-        # . Usage
-        #   _save_parameters
-    _save_parameters(){
-        if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
-            sayinfo "Would have saved state variables (manual)"
-        else
-            saydebug "Saving state variables (manual)"
-            sgnd_state_set "PRODUCT" "$PRODUCT"
-            sgnd_state_set "VERSION" "$VERSION"
-            sgnd_state_set "RELEASE" "$RELEASE"
-            sgnd_state_set "SOURCE_DIR" "$SOURCE_DIR"
-            sgnd_state_set "STAGING_ROOT" "$STAGING_ROOT"
-            sgnd_state_set "TAR_FILE" "$TAR_FILE"
-            sgnd_state_set "FLAG_CLEANUP" "$FLAG_CLEANUP"
-            sgnd_state_set "FLAG_USEEXISTING" "$FLAG_USEEXISTING"
-            sgnd_state_set "FLAG_SAVEPARMS" "$FLAG_SAVEPARMS"
-        fi
-    }
-
     # _get_parameters
         # . Purpose
         #   Resolve and collect all parameters required to prepare a release archive.
@@ -461,6 +404,8 @@ set -uo pipefail
         FLAG_SAVEPARMS="${FLAG_SAVEPARMS:-1}"
         FLAG_UPDATEBUILD="${FLAG_UPDATEBUILD:-1}"
 
+        sgnd_state_load_keys --array SGND_STATE_VARIABLES || return $?
+        
         if [[ "${FLAG_AUTO:-0}" -eq 1 ]]; then
              sayinfo "Auto mode: using last deployment or default settings."
              return 0
@@ -568,9 +513,17 @@ set -uo pipefail
             esac
 
         done
+
+        if (( FLAG_SAVEPARMS == 1 )); then
+            if (( FLAG_DRYRUN == 1 )); then
+                sayinfo "Would have saved state variables (manual)"
+            else
+                sgnd_state_save_keys --array SGND_STATE_VARIABLES || return $?
+            fi
+        fi
     }
 
-    # sgnd_release_write_checksum
+    # _sgnd_release_write_checksum
         # . Purpose
         #   Add or update a SHA256SUMS entry for a release artifact.
         #
@@ -596,15 +549,15 @@ set -uo pipefail
         #   1 if required arguments are missing or file operations fail
         #
         # . Usage
-        #   sgnd_release_write_checksum "$tar_path" "$TAR_FILE" "$STAGING_ROOT"
+        #   _sgnd_release_write_checksum "$tar_path" "$TAR_FILE" "$STAGING_ROOT"
         #
         # Examples:
-        #   sgnd_release_write_checksum "$tar_path_gz" "$TAR_FILE" "$STAGING_ROOT"
+        #   _sgnd_release_write_checksum "$tar_path_gz" "$TAR_FILE" "$STAGING_ROOT"
         #
         # Notes:
         #   - Idempotent for a given filename.
         #   - Requires sha256sum, sed, awk, and write permission to staging_root.
-    # fn: sgnd_release_write_checksum - Write release checksum metadata for a file
+    # fn: _sgnd_release_write_checksum - Write release checksum metadata for a file
         # . Purpose
         #   Write release checksum metadata for a file.
         #
@@ -616,8 +569,8 @@ set -uo pipefail
         #   Returns the underlying command or workflow status.
         #
         # . Usage
-        #   sgnd_release_write_checksum
-    sgnd_release_write_checksum() {
+        #   _sgnd_release_write_checksum
+    _sgnd_release_write_checksum() {
         local tar_path="${1:-}"
         local tar_file="${2:-}"
         local staging_root="${3:-}"
@@ -777,7 +730,7 @@ set -uo pipefail
             gzip -f "$tar_path_tar" || { sayfail "gzip failed."; return 1; }
 
             # --- Update SHA256SUMS ------------------------------------------------------
-            sgnd_release_write_checksum "$tar_path_gz" "$TAR_FILE" "$STAGING_ROOT" \
+            _sgnd_release_write_checksum "$tar_path_gz" "$TAR_FILE" "$STAGING_ROOT" \
                 || { sayfail "Failed to update SHA256SUMS."; return 1; }
 
             # Remove existing manifest entry (idempotent)
@@ -952,7 +905,7 @@ set -uo pipefail
     main() {
         # -- Startup
             _framework_locator || exit $?
-            sgnd_exe_start -- "$@"
+            sgnd_exe_start --state -- "$@"
 
         # -- Main script logic
 

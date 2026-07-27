@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0.0
-#   Build       : 2620601
-#   Checksum    : 7102bbe1772ada691db2d86b18571594383a6e0414cd8f3c5299d6fe681823d0
+#   Build       : 2620723
+#   Checksum    : be57078d4ca979b9d095a5c8c1ad7db54e5839dff4fc14dcf5a214432aecfe9e
 #   Source      : 20-machine-config.sh
 #   Type        : module
 #   Group       : Machine Configuration
@@ -584,10 +584,10 @@ set -uo pipefail
         0 1 800
     
     sgnd_console_register_item "machstat" "$SGND_MACHINE_CONFIG_MODULE_ID" "Show machine status" "_show_machine_status" "Show network configuration, machine ID and SSH status" 0 5 1
-    sgnd_console_register_item "machid" "$SGND_MACHINE_CONFIG_MODULE_ID" "Generate Machine ID" "_init_machine" "Set up a new machine ID" 0 5 1
-    sgnd_console_register_item "sshkeys" "$SGND_MACHINE_CONFIG_MODULE_ID" "Generate SSH Keys" "_generate_ssh_keys" "Generate SSH host keys" 0 5 1
-    sgnd_console_register_item "setnetid" "$SGND_MACHINE_CONFIG_MODULE_ID" "Set network ID" "_set_identity" "Configure hostname and network ID" 0 5 1
     sgnd_console_register_item "prepclone" "$SGND_MACHINE_CONFIG_MODULE_ID" "Prepare for cloning" "_prep_template" "Prepare this VM to be used as a Template" 0 5 1
+    sgnd_console_register_item "machid" "$SGND_MACHINE_CONFIG_MODULE_ID" "Generate Machine ID" "_init_machine" "Set up a new machine ID" 0 5 1
+    sgnd_console_register_item "setnetid" "$SGND_MACHINE_CONFIG_MODULE_ID" "Set network ID" "_set_identity" "Configure hostname and network ID" 0 5 1
+    sgnd_console_register_item "sshkeys" "$SGND_MACHINE_CONFIG_MODULE_ID" "Generate SSH Keys" "_generate_ssh_keys" "Generate SSH host keys" 0 5 1
 
     sgnd_console_register_group \
         "pkghouse" \
