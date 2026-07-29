@@ -4,6 +4,23 @@ All notable changes to SolidGroundUX are documented in this file.
 
 The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.
 
+# Version 1.8 (Build 2621022)
+
+## SolidGroundUX Management Studio
+
+### Added
+- Added a Machine Configuration action to enable or disable the SSH service.
+- Added a Console Session action to open a child shell.
+
+### Changed
+- Updated `set-identity.sh` to use the current machine configuration as the default prompt values.
+- Added automatic availability checks for static IPv4 addresses before applying network configuration, with user confirmation when a potential address conflict is detected.
+
+## SolidGroundUX Framework
+
+### Added
+- Added dedicated style variables for title and section rendering, allowing title text, subtitle text, border colours, and border characters to be customized independently of the base UI palette.
+
 # Version 1.8 (Build 2620810)
 
 ## Resolved

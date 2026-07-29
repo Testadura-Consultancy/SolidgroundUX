@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2620801
-#   Checksum    : 27f29c6ce9f4b2ee157362b49cb053af39cad79f6774157475898255a5be51be
+#   Build       : 2621011
+#   Checksum    : 199ee99d0d753b327752a0ff899d4821052862659c1124d5029a7fd48a8dccf7
 #   Source      : ui.sh
 #   Type        : library
 #   Group       : UI
@@ -1010,13 +1010,13 @@ set -uo pipefail
 
         local left="${SGND_SCRIPT_TITLE:-$SGND_SCRIPT_BASE}"
         local right="${RUN_MODE:-}"
-        local leftclr="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")"
-        local rightclr=""                 # let sgnd_print_fill inherit
+        local leftclr="${SGND_TITLE_TEXTCLR:-$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")}"
+        local rightclr="${SGND_TITLE_RIGHTCLR:-${SGND_TITLE_TEXTCLR:-$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")}}"
         local sub="${SGND_SCRIPT_DESC:-""}"
-        local subclr="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_ITALIC")"
+        local subclr="${SGND_TITLE_SUBTEXTCLR:-$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_ITALIC")}"
         local subjust="C"
-        local border="$DL_H"
-        local borderclr="${SGND_UI_BORDER}"
+        local border="${SGND_TITLE_BORDER:-$DL_H}"
+        local borderclr="${SGND_TITLE_BORDERCLR:-$SGND_UI_BORDER}"
         local padleft=4
         local maxwidth=""
 
@@ -1104,9 +1104,9 @@ set -uo pipefail
         #   sgnd_print_sectionheader --text "..." --textclr --border --borderclr
     sgnd_print_sectionheader() {
         local text=""
-        local textclr="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")"
-        local border="$LN_H"
-        local borderclr="${SGND_UI_BORDER}"
+        local textclr="${SGND_SECTION_TEXTCLR:-$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")}"
+        local border="${SGND_SECTION_BORDER:-$LN_H}"
+        local borderclr="${SGND_SECTION_BORDERCLR:-$SGND_UI_BORDER}"
         local padleft=4
         local padend=1
         local maxwidth=""

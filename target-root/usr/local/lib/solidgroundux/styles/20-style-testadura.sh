@@ -1,9 +1,24 @@
 # =====================================================================================
 # SolidGroundUX - Testadura UI Style
 # -------------------------------------------------------------------------------------
-# Type    : library
-# Group   : Styles
-# Purpose : Testadura and SolidGround brand-driven semantic UI style
+# Metadata:
+#   Version     : 1.8
+#   Build       : 2621011
+#   Checksum    : a868359188acde5ab0440b030310dd8648ea4ac1648565542612f914ccd1977e
+#   Source      : 20-style-testadura.sh
+#   Type        : library
+#   Group       : Styles
+#   Purpose     : Define the Testadura semantic UI theme
+#
+# Description:
+#   Provides the official Testadura Consultancy and SolidGroundUX brand-driven semantic UI theme.
+#
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      : -
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 
 SAY_DATE_DEFAULT=0
@@ -84,6 +99,19 @@ SGND_UI_SUCCESS=$BRIGHT_GREEN
 SGND_UI_ERROR=$BRIGHT_RED
 
 SGND_UI_TEXT=$TD_SILVER
+
+# Title bar
+SGND_TITLE_TEXTCLR="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")"
+SGND_TITLE_BORDER=$DL_H
+SGND_TITLE_SUBTEXTCLR="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_ITALIC")"
+SGND_TITLE_RIGHTCLR=$SGND_TITLE_TEXTCLR
+SGND_TITLE_BORDERCLR=$SGND_UI_BORDER
+
+# Section headers
+SGND_SECTION_TEXTCLR="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")"
+SGND_SECTION_BORDER=$LN_H
+SGND_SECTION_BORDERCLR=$SGND_UI_BORDER
+
 SGND_UI_DEFAULT=$TD_DARK_MAROON
 
 # --- Documentation summaries ---------------------------------------------------------
@@ -171,6 +199,14 @@ SGND_UI_DEFAULT=$TD_DARK_MAROON
         #   SGND_UI_SUCCESS = $BRIGHT_GREEN
         #   SGND_UI_ERROR = $BRIGHT_RED
         #   SGND_UI_TEXT = $TD_SILVER
+        #   SGND_TITLE_TEXTCLR = bold SGND_UI_TEXT
+        #   SGND_TITLE_BORDER = $DL_H
+        #   SGND_TITLE_SUBTEXTCLR = italic SGND_UI_TEXT
+        #   SGND_TITLE_RIGHTCLR = SGND_TITLE_TEXTCLR
+        #   SGND_TITLE_BORDERCLR = SGND_UI_BORDER
+        #   SGND_SECTION_TEXTCLR = bold SGND_UI_TEXT
+        #   SGND_SECTION_BORDER = $LN_H
+        #   SGND_SECTION_BORDERCLR = SGND_UI_BORDER
         #   SGND_UI_DEFAULT = $TD_DARK_MAROON
         #
         # Notes:

@@ -1,9 +1,24 @@
 # =====================================================================================
 # SolidGroundUX - Monochrome Green UI Style
 # -------------------------------------------------------------------------------------
-# Type    : library
-# Group   : Styles
-# Purpose : Green terminal semantic UI style mapping
+# Metadata:
+#   Version     : 1.8
+#   Build       : 2621011
+#   Checksum    : 936d73f80aa4f41fdd84707462ab53496633dde5ee5c6a1dde71fd88bd1e0a69
+#   Source      : 30-style-mono-green.sh
+#   Type        : library
+#   Group       : Styles
+#   Purpose     : Define the Monochrome Green semantic UI theme
+#
+# Description:
+#   Provides a classic monochrome green terminal theme inspired by traditional phosphor displays.
+#
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      : -
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 
 SAY_DATE_DEFAULT=0
@@ -71,6 +86,19 @@ SGND_UI_VALID=$BRIGHT_GREEN
 SGND_UI_SUCCESS=$BRIGHT_GREEN
 SGND_UI_ERROR=$BRIGHT_RED
 SGND_UI_TEXT=$GREEN
+
+# Title bar
+SGND_TITLE_TEXTCLR="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")"
+SGND_TITLE_BORDER=$DL_H
+SGND_TITLE_SUBTEXTCLR="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_ITALIC")"
+SGND_TITLE_RIGHTCLR=$SGND_TITLE_TEXTCLR
+SGND_TITLE_BORDERCLR=$SGND_UI_BORDER
+
+# Section headers
+SGND_SECTION_TEXTCLR="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")"
+SGND_SECTION_BORDER=$LN_H
+SGND_SECTION_BORDERCLR=$SGND_UI_BORDER
+
 SGND_UI_DEFAULT=$DARK_GREEN
 
 # --- Documentation summaries ---------------------------------------------------------
@@ -158,6 +186,14 @@ SGND_UI_DEFAULT=$DARK_GREEN
         #   SGND_UI_SUCCESS = $BRIGHT_GREEN
         #   SGND_UI_ERROR = $BRIGHT_RED
         #   SGND_UI_TEXT = $GREEN
+        #   SGND_TITLE_TEXTCLR = bold SGND_UI_TEXT
+        #   SGND_TITLE_BORDER = $DL_H
+        #   SGND_TITLE_SUBTEXTCLR = italic SGND_UI_TEXT
+        #   SGND_TITLE_RIGHTCLR = SGND_TITLE_TEXTCLR
+        #   SGND_TITLE_BORDERCLR = SGND_UI_BORDER
+        #   SGND_SECTION_TEXTCLR = bold SGND_UI_TEXT
+        #   SGND_SECTION_BORDER = $LN_H
+        #   SGND_SECTION_BORDERCLR = SGND_UI_BORDER
         #   SGND_UI_DEFAULT = $DARK_GREEN
         #
         # Notes:

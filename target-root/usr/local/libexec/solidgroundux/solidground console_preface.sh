@@ -3,13 +3,13 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2620212
+#   Build       : 2621011
 #   Source      : solidground console_preface.sh
 #   Type        : documentation
 #   Group       : SolidGround Console
 #   Purpose     : Describe the generic console host and its default management application
 #
-#   Checksum : b6c1ec5d4a431560a2c5774a2cdd6b7027f652edcfded1ccd9cf05c2e44d3080
+#   Checksum : ff38bbec6d2018dc0eca621d43816abd22436cba921ed6e5d2057106a37be50e
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
@@ -19,22 +19,41 @@
 # ==================================================================================
 # - SolidGround Console -------------------------------------------------------------
 # . Images
-#   smc.png :: Figure 1 – SolidGround Management Console.  
+#   smc.png :: Figure 1 – SolidGroundUX Management Studio.
 #
-# > The SolidGround Console is a generic, module-driven application host for
-# > interactive Bash tooling. It provides the menu engine, runtime controls, module
-# > lifecycle, paging, rendering, and action dispatch used by console applications.
+# > The SolidGround Console is the reusable application host that powers the
+# > SolidGroundUX Management Studio. The host provides menu management, rendering,
+# > paging, runtime controls, state management, and action dispatch, while the
+# > application itself is implemented entirely through loadable modules.
 #
-# > The host deliberately has no fixed application identity. Without modules it is
-# > simply `sgnd-console`. The first successfully loaded module may supply a title
-# > and description, turning the host into a specific console application.
+# > This separation allows the same console engine to host different applications.
+# > The standard SolidGroundUX module set simply supplies one such application:
 #
-# > The standard SolidGroundUX module set presents the host as the:
+# >     SolidGroundUX Management Studio
 #
-# >     SolidGroundUX Management Console
+# > The result is a reusable console framework whose behaviour is defined by the
+# > modules it loads rather than by the host itself.
 #
-# > This separation makes the console the reusable engine and the loaded modules the
-# > application implementation.
+# -- Architecture -------------------------------------------------------------------
+#
+# > The console is organized as a layered architecture:
+#
+# >     User
+# >         │
+# >     sgnd-console
+# >         │
+# >     Console Host
+# >         │
+# >     Menu Engine
+# >         │
+# >     Console Modules
+# >         │
+# >     Private Executables
+# >         │
+# >     SolidGroundUX Framework
+#
+# > Each layer has a clearly defined responsibility and depends only on the layer
+# > beneath it.
 #
 # -- Main Components ----------------------------------------------------------------
 #
@@ -42,212 +61,227 @@
 # >         Public launcher installed in `/usr/local/bin`.
 #
 # >     sgnd-console.sh
-# >         Generic executable host. Resolves framework and application roots,
-# >         discovers modules, records module metadata, registers built-in session
-# >         actions, and runs the interaction loop.
+# >         Generic application host. Resolves framework and application roots,
+# >         initializes runtime state, discovers modules, records module metadata,
+# >         registers built-in session actions, and runs the interaction loop.
 #
 # >     sgnd-console-menu.sh
-# >         Menu engine. Stores registrations in datatables, builds cached menu and
-# >         page models, renders the current page, maintains the bottom toggle bar,
-# >         and dispatches menu and runtime hotkeys.
+# >         Menu engine responsible for registrations, paging, rendering, cached
+# >         layouts, runtime controls, and action dispatch.
 #
-# >     10-sgnd-config.sh
-# >         First standard module. Supplies the Management Console identity and
-# >         provides developer tools, SolidGroundUX installation, framework
-# >         configuration, state, logging, and diagnostics.
+# >     Console Modules
+# >         Source-only modules that contribute application identity, menu groups,
+# >         menu items, and action registrations.
 #
-# >     20-machine-config.sh
-# >         Standard machine-management module. Provides machine identity, template
-# >         preparation, package housekeeping, and optional server-role installation.
+# >     Private Executables
+# >         Standalone scripts implementing the operational logic behind individual
+# >         menu actions.
 #
-# >     mod-template.sh
-# >         Source-only module template for creating additional console modules.
+# -- Design Philosophy --------------------------------------------------------------
+#
+# > The console host deliberately contains no business logic.
+#
+# > Its responsibilities are limited to:
+#
+# >     • loading modules
+# >     • rendering the interface
+# >     • dispatching actions
+# >     • maintaining runtime state
+#
+# > Modules define what functionality is available, while standalone executables
+# > perform the actual work. This separation keeps the host generic, modules small,
+# > and operational logic reusable outside the console itself.
 #
 # -- Host and Application Identity --------------------------------------------------
 #
-# > The executable defaults to the neutral identity `sgnd-console`. A module may
-# > optionally define `SGND_CONSOLE_TITLE_OVERRIDE` and
-# > `SGND_CONSOLE_DESC_OVERRIDE` while it is being sourced.
+# > The executable itself has the neutral identity `sgnd-console`.
 #
-# > Only the first successfully loaded module may apply these values. Module files
-# > are loaded in sorted filename order, so numeric filename prefixes provide an
-# > explicit and visible application startup order:
+# > During startup the first successfully loaded module may provide:
+#
+# >     SGND_CONSOLE_TITLE_OVERRIDE
+# >     SGND_CONSOLE_DESC_OVERRIDE
+#
+# > These values determine the application identity presented to the user.
+#
+# > Modules are loaded in filename order, making startup explicit and predictable:
 #
 # >     10-sgnd-config.sh
 # >     20-machine-config.sh
 # >     30-customer-extension.sh
 #
-# > The filename controls load order only. The stable module identity remains the
-# > value declared through `SGND_MODULE_ID`.
+# > Filename order determines initialization only. Permanent module identity is
+# > defined through `SGND_MODULE_ID`.
 #
-# -- Console Startup Sequence -------------------------------------------------------
+# -- Console Startup ----------------------------------------------------------------
 #
-# >     User starts sgnd-console
+# >     Start sgnd-console
 # >         ↓
-# >     Framework and application roots are resolved
+# >     Resolve framework and application
 # >         ↓
-# >     SolidGroundUX bootstrap and executable runtime are loaded
+# >     Initialize runtime and console state
 # >         ↓
-# >     Console paths and state are initialized
+# >     Discover and load modules
 # >         ↓
-# >     Built-in Console Session actions are registered
+# >     Modules register groups and actions
 # >         ↓
-# >     Module files are discovered and sorted by filename
+# >     Build cached menu model
 # >         ↓
-# >     Each module is sourced, validated, and recorded
-# >         ↓
-# >     Modules register groups and menu items
-# >         ↓
-# >     The menu model and page layout are cached
-# >         ↓
-# >     The current page is rendered and input is dispatched
+# >     Enter interaction loop
 #
-# > Expensive registration and layout work happens when the menu model changes.
-# > Ordinary redraws reuse the cached model and cached page layout.
+# > Registration and layout occur only when the menu model changes. Ordinary redraws
+# > reuse cached menu and page layouts for immediate responsiveness.
 #
 # -- Module Contract ----------------------------------------------------------------
 #
-# > A console module is a source-only Bash file. It defines functions first and
-# > registers its groups and items as its only intended load-time side effect.
+# > A console module is a source-only Bash file.
 #
-# > Every module exports temporary host metadata:
+# > During loading it temporarily provides:
 #
 # >     SGND_MODULE_ID
 # >     SGND_MODULE_NAME
 # >     SGND_MODULE_VERSION
 # >     SGND_MODULE_DESC
 #
-# > The host clears these values before sourcing a module, validates them afterwards,
-# > rejects duplicate module IDs, records the metadata, and clears the temporary
-# > values before continuing with the next module.
+# > The host validates these values, records the module, rejects duplicate module
+# > IDs, and clears the temporary metadata before loading the next module.
 #
-# > Modules may keep their own permanent constants for use by their action functions.
-# > The temporary `SGND_MODULE_*` values exist only for the loading contract.
+# > Modules typically follow this structure:
+#
+# >     Define helper functions
+# >         ↓
+# >     Register groups
+# >         ↓
+# >     Register menu items
+# >         ↓
+# >     Menu items invoke standalone executables
 #
 # -- Registration API ---------------------------------------------------------------
 #
-# > Modules extend the menu through two public host functions:
+# > Modules extend the application through:
 #
 # >     sgnd_console_register_group
 # >     sgnd_console_register_item
 #
-# > Groups define ordered menu sections. Items define labels, descriptions, action
-# > functions, optional hotkeys, visibility conditions, and post-action behavior.
-# > The host stores these registrations as the logical menu model.
+# > Groups define ordered sections.
 #
-# -- Public Commands and Private Module Scripts -------------------------------------
+# > Items define labels, descriptions, actions, optional hotkeys, visibility rules,
+# > and post-action behaviour.
 #
-# > User-facing SolidGroundUX tools remain public commands under `/usr/local/bin`
-# > or `/usr/local/sbin`. Modules invoke them through `_sgnd_run_public_command`,
-# > which also propagates dry-run mode where supported.
+# > The host stores these registrations as the logical menu model from which cached
+# > page layouts are constructed.
 #
-# > Module-private helpers live below:
+# -- Public Commands and Private Executables ----------------------------------------
+#
+# > Public SolidGroundUX tools remain installed beneath:
+#
+# >     /usr/local/bin
+# >     /usr/local/sbin
+#
+# > Modules invoke these through:
+#
+# >     _sgnd_run_public_command
+#
+# > Module-specific functionality is implemented as standalone executables located
+# > beneath:
 #
 # >     /usr/local/libexec/solidgroundux/console-modules/<module-id>/
 #
-# > They are invoked through `_sgnd_run_module_script` and do not require public
-# > wrapper commands solely for internal use.
+# > These executables are launched through:
+#
+# >     _sgnd_run_module_script
+#
+# > Keeping operational logic outside the menu modules provides several advantages:
+#
+# >     • modules remain small
+# >     • actions are independently executable
+# >     • functionality is reusable outside the console
+# >     • testing becomes straightforward
+# >     • documentation is generated from the implementation itself
 #
 # -- Runtime Controls ---------------------------------------------------------------
 #
-# > Frequently used runtime controls are shown continuously in the bottom bar:
+# > Runtime controls provide immediate access to frequently used console behaviour,
+# > including:
 #
-# >     COMMIT(D)   CONSOLE(NORMAL)   FILE(SILENT)   THEME(DEFAULT)   CLRSCR
+# >     • dry-run mode
+# >     • logging levels
+# >     • UI themes
+# >     • redraw behaviour
+# >     • paging
+# >     • console session actions
 #
-# > The controls provide immediate access to:
-#
-# >     d / D       Toggle dry-run and commit mode
-# >     c           Cycle console log level forward
-# >     Shift+C     Cycle console log level backward
-# >     f           Cycle file log level forward
-# >     Shift+F     Cycle file log level backward
-# >     t           Cycle themes forward
-# >     Shift+T     Cycle themes backward
-# >     s / S       Toggle clear-on-render behavior
-#
-# > Log levels and theme selections are persisted as framework state and redraw the
-# > console immediately without invoking the normal post-action pause.
+# > Changes are applied immediately and persisted where appropriate through the
+# > framework state mechanism.
 #
 # -- Paging and Rendering -----------------------------------------------------------
 #
-# > Menu registrations are stored in datatables, but rendering does not repeatedly
-# > traverse the datatable API. The menu engine materializes direct-index caches for
-# > groups and items, calculates visible entries, and builds a cached page layout.
+# > Menu registrations are stored in datatables but rendered from cached page models.
 #
-# > Redraws, theme changes, log-level changes, dry-run toggles, and page navigation
-# > reuse these caches until registration data or layout constraints change.
+# > The menu engine materializes direct-index caches for groups and items, computes
+# > visible entries, and builds page layouts only when necessary.
 #
-# > This keeps startup explicit while making interactive redraws effectively
-# > immediate, even for larger module sets.
+# > Interactive redraws therefore avoid repeated traversal of the registration data,
+# > providing consistent performance even as the number of modules grows.
 #
-# -- Standard Management Console Modules -------------------------------------------
+# -- Standard Management Studio Modules ---------------------------------------------
 #
-# > `10-sgnd-config.sh` defines the SolidGroundUX Management Console identity and
-# > supplies these groups:
+# > The standard Management Studio is currently composed of two primary modules.
 #
-# >     Developer Tools
-# >     SolidGroundUX Installation
-# >     Framework Configuration
-# >     Framework State
-# >     Framework Logging
-# >     Framework Diagnostics
+# > Framework Configuration provides:
 #
-# > `20-machine-config.sh` supplies:
+# >     • installation and upgrades
+# >     • framework configuration
+# >     • framework state
+# >     • logging
+# >     • diagnostics
+# >     • developer tools
 #
-# >     Machine Configuration
-# >     Package Housekeeping
-# >     Optional Roles and Services
+# > Machine Configuration provides:
 #
-# > The host itself adds the Console Session group for page size, redraw, and quit.
+# >     • machine identity
+# >     • network configuration
+# >     • SSH management
+# >     • template preparation
+# >     • package maintenance
+# >     • optional server roles
 #
-# -- Framework Configuration and Logging -------------------------------------------
+# > The host itself contributes the Console Session group containing runtime and
+# > navigation actions.
 #
-# > The Management Console can show the effective framework environment, inspect or
-# > edit system and user configuration files, and interactively configure supported
-# > framework-global values with current values offered as prompt defaults.
+# -- Framework State ----------------------------------------------------------------
 #
-# > Logging actions can open or follow the active logfile, show recent error-level
-# > entries, and rotate the logfile according to the configured retention settings.
+# > Framework-wide behaviour, including log levels, UI themes, palettes, and other
+# > shared settings, is stored independently from console-specific layout state.
 #
-# > Dry-run consistency for every modifying Management Console action remains part
-# > of the final release verification pass.
+# > Console state therefore contains only information specific to the user interface,
+# > such as paging preferences, while transferable framework behaviour remains part
+# > of the shared framework state.
 #
-# -- Console State and Framework State ----------------------------------------------
+# -- Creating Another Console Application -------------------------------------------
 #
-# > Framework-wide defaults such as console log level, file log level, UI style, and
-# > palette belong to `framework.state`. Console-specific layout values, such as the
-# > selected number of lines per page, remain owned by the console state file.
-#
-# > This keeps transferable framework behavior separate from host-session layout.
-#
-# -- Creating Another Console Application ------------------------------------------
-#
-# > A separate application can reuse the same host by supplying another module
-# > directory through `--appcfg`. The first module supplies the application identity;
-# > subsequent modules contribute functionality.
-#
-# > Conceptually:
+# > The console host may be reused for entirely different applications.
 #
 # >     Create a module directory
 # >         ↓
-# >     Add numerically ordered source-only modules
+# >     Add one or more console modules
 # >         ↓
-# >     Let the first module define the title and description
+# >     Register groups and actions
 # >         ↓
-# >     Register groups and actions through the public API
-# >         ↓
-# >     Start sgnd-console with that module source
+# >     Launch sgnd-console with the desired application configuration
 #
-# > This makes `sgnd-console` a reusable console engine rather than a hard-coded
-# > SolidGroundUX administration script.
+# > The host remains unchanged while modules define the application's identity and
+# > capabilities.
 #
 # -- Why the Console Matters --------------------------------------------------------
 #
-# > The console brings framework tools, administration, machine configuration, and
-# > diagnostics together without merging their implementation. Modules remain small
-# > and independently owned, while the host supplies a consistent runtime and user
-# > experience.
+# > The SolidGround Console is more than a menu system. It is the execution
+# > environment for modular administrative applications.
 #
-# > In SolidGroundUX 1.8 the console therefore moves from example application to
-# > framework subsystem: the engine on which the SolidGroundUX Management Console
-# > and future console applications are built.
+# > By separating the application host, menu modules, and operational executables,
+# > SolidGroundUX keeps user interface, registration, and implementation concerns
+# > independent. The result is a framework that is easier to extend, easier to test,
+# > easier to document, and easier to maintain.
+#
+# > The standard module set turns this reusable console engine into the
+# > SolidGroundUX Management Studio while preserving the flexibility to build
+# > entirely different console applications on the same foundation.

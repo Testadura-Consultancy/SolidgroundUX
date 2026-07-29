@@ -1,10 +1,10 @@
 # =====================================================================================
 # SolidGroundUX - Argument Parsing
 # -------------------------------------------------------------------------------------
-# Metadata: 
-#   Version     : 1.5
-#   Build       : 2615600
-#   Checksum    : -
+# Metadata:
+#   Version     : 1.8
+#   Build       : 2621011
+#   Checksum    : dbb940545908ba021155bc1ecdf92f92dc8ec88bfd8ccd5d7090f498c295a827
 #   Source      : sgnd-args.sh
 #   Type        : library
 #   Group       : Common Core

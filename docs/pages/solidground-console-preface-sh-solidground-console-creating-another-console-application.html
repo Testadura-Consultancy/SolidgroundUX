@@ -13,21 +13,17 @@
   <div class="doc-breadcrumb">solidground console_preface.sh::SolidGround Console:Creating Another Console Application:</div>
 </header>
 <div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">A separate application can reuse the same host by supplying another module directory through `--appcfg`. The first module supplies the application identity; subsequent modules contribute functionality.</p>
-<div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">Conceptually:</p>
+<p class="ct-L2Sectionbody">The console host may be reused for entirely different applications.</p>
 <div class="ct-L2Sectionbody"></div>
 <div class="ct-L2Sectionbody">    Create a module directory</div>
 <div class="ct-L2Sectionbody">        ↓</div>
-<div class="ct-L2Sectionbody">    Add numerically ordered source-only modules</div>
+<div class="ct-L2Sectionbody">    Add one or more console modules</div>
 <div class="ct-L2Sectionbody">        ↓</div>
-<div class="ct-L2Sectionbody">    Let the first module define the title and description</div>
+<div class="ct-L2Sectionbody">    Register groups and actions</div>
 <div class="ct-L2Sectionbody">        ↓</div>
-<div class="ct-L2Sectionbody">    Register groups and actions through the public API</div>
-<div class="ct-L2Sectionbody">        ↓</div>
-<div class="ct-L2Sectionbody">    Start sgnd-console with that module source</div>
+<div class="ct-L2Sectionbody">    Launch sgnd-console with the desired application configuration</div>
 <div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">This makes `sgnd-console` a reusable console engine rather than a hard-coded SolidGroundUX administration script.</p>
+<p class="ct-L2Sectionbody">The host remains unchanged while modules define the application&#x27;s identity and capabilities.</p>
 <div class="ct-L2Sectionbody"></div>
 </main>
 </body>

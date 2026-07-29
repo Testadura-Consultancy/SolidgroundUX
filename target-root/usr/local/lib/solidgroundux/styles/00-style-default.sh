@@ -2,9 +2,9 @@
 # SolidGroundUX - Default UI Style
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2619601
-#   Checksum    : 7c388a2cb9591a9e1e1e091dc2f89fd7f7e0ce44ed2278e8d1a9ab8cdefeff4d
+#   Version     : 1.8
+#   Build       : 2621011
+#   Checksum    : 7c6ccf83b455807a1453563f3dcfcb8a16d8bdd7eb66fa3478cb36510ed69ccb
 #   Source      : default-ui-style.sh
 #   Type        : library
 #   Group       : Styles
@@ -176,6 +176,19 @@
 
     SGND_UI_TEXT=$SILVER
 
+# Title bar
+SGND_TITLE_TEXTCLR="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")"
+SGND_TITLE_BORDER=$DL_H
+SGND_TITLE_SUBTEXTCLR="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_ITALIC")"
+SGND_TITLE_RIGHTCLR=$SGND_TITLE_TEXTCLR
+SGND_TITLE_BORDERCLR=$SGND_UI_BORDER
+
+# Section headers
+SGND_SECTION_TEXTCLR="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")"
+SGND_SECTION_BORDER=$LN_H
+SGND_SECTION_BORDERCLR=$SGND_UI_BORDER
+
+
     SGND_UI_DEFAULT=$DARK_SILVER
 
     # var: style_colors - Colors
@@ -209,6 +222,14 @@
         #   SGND_UI_SUCCESS = $BRIGHT_GREEN
         #   SGND_UI_ERROR = $BRIGHT_RED
         #   SGND_UI_TEXT = $SILVER
+        #   SGND_TITLE_TEXTCLR = bold SGND_UI_TEXT
+        #   SGND_TITLE_BORDER = $DL_H
+        #   SGND_TITLE_SUBTEXTCLR = italic SGND_UI_TEXT
+        #   SGND_TITLE_RIGHTCLR = SGND_TITLE_TEXTCLR
+        #   SGND_TITLE_BORDERCLR = SGND_UI_BORDER
+        #   SGND_SECTION_TEXTCLR = bold SGND_UI_TEXT
+        #   SGND_SECTION_BORDER = $LN_H
+        #   SGND_SECTION_BORDERCLR = SGND_UI_BORDER
         #   SGND_UI_DEFAULT = $DARK_SILVER
         #
         # Notes:

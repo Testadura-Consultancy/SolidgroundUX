@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2620501
-#   Checksum    : 28484360a95d1a50dd0e375ca38ca3a87b2d21ccc66b31023e1ece3c20709295
+#   Build       : 2621011
+#   Checksum    : f339b74ff47908e8b2c3114f62e664bca5ab948a6ddd79b8296995d2d96ec78d
 #   Source      : sgnd-console.sh
 #   Type        : script
 #   Group       : SolidGround Console
@@ -526,6 +526,7 @@ set -uo pipefail
         sgnd_console_register_item "f" "$SGND_GROUP_RUNTIME" "File log level" "_sgnd_console_cycle_file_loglevel" "Cycle file log level" 1 0 0
         sgnd_console_register_item "t" "$SGND_GROUP_RUNTIME" "Theme" "_sgnd_console_cycle_theme" "Cycle installed themes" 1 0 0
 
+        sgnd_console_register_item "S" "$SGND_GROUP_SESSION" "Open shell" "_sgnd_console_open_shell" "Open an interactive shell; exit returns to the console" 1 0 1
         sgnd_console_register_item "L" "$SGND_GROUP_SESSION" "Set lines per page" "_sgnd_console_set_lines_per_page" "Set the maximum number of menu lines per page" 1 0 1
         sgnd_console_register_item "<" "$SGND_GROUP_SESSION" "Previous page" "_sgnd_console_prevpage" "Show previous menu page" 1 0 0
         sgnd_console_register_item ">" "$SGND_GROUP_SESSION" "Next page" "_sgnd_console_nextpage" "Show next menu page" 1 0 0
@@ -831,6 +832,29 @@ set -uo pipefail
     }
 
 
+    # fn: _sgnd_console_open_shell - Open an interactive child shell
+        # . Purpose
+        #   Open a new interactive shell and return to the Management Console on exit.
+        #
+        # . Behavior
+        #   - Uses the current user's configured shell when available.
+        #   - Falls back to /bin/bash.
+        #   - Inherits the current console privilege level and environment.
+        #   - Does not replace the console process.
+    _sgnd_console_open_shell() {
+        local shell_path="${SHELL:-/bin/bash}"
+
+        [[ -x "$shell_path" ]] || shell_path="/bin/bash"
+        [[ -x "$shell_path" ]] || {
+            sayfail "No usable interactive shell was found."
+            return 1
+        }
+
+        sayinfo "Opening $shell_path. Type 'exit' to return to the Management Console."
+        "$shell_path" -i
+        SGND_LAST_WAITSECS=0
+    }
+
     # fn: _sgnd_console_toggle_access - Relaunch with the opposite privilege level
         # . Purpose
         #   Replace the current console process with a root or standard-access instance.
@@ -932,7 +956,7 @@ set -uo pipefail
             ask_choose_immediate \
                 --label "Select option" \
                 --choices "$valid_choices" \
-                --instantchoices "A,C,D,F,T,L,R,Q,<,>" \
+                --instantchoices "A,C,D,F,T,S,L,R,Q,<,>" \
                 --displaychoices 0 \
                 --keepasking 1 \
                 --preservecase 1 \

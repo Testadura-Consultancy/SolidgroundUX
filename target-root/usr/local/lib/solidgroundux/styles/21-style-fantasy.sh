@@ -1,9 +1,24 @@
 # =====================================================================================
 # SolidGroundUX - Fantasy UI Style
 # -------------------------------------------------------------------------------------
-# Type    : library
-# Group   : Styles
-# Purpose : Purple, gold, and cyan semantic UI style mapping
+# Metadata:
+#   Version     : 1.8
+#   Build       : 2621011
+#   Checksum    : fdb1e9ac0dc6b9b53031f6a44b9e5c56a8d80099bc4c5e241077e6a123c450e2
+#   Source      : 21-style-fantasy.sh
+#   Type        : library
+#   Group       : Styles
+#   Purpose     : Define the Fantasy semantic UI theme
+#
+# Description:
+#   Provides a fantasy-inspired semantic UI theme using purple, gold, and cyan accents.
+#
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      : -
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 
 SAY_DATE_DEFAULT=0
@@ -71,6 +86,19 @@ SGND_UI_VALID=$BRIGHT_GOLD
 SGND_UI_SUCCESS=$BRIGHT_GOLD
 SGND_UI_ERROR=$BRIGHT_PINK
 SGND_UI_TEXT=$SILVER
+
+# Title bar
+SGND_TITLE_TEXTCLR="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")"
+SGND_TITLE_BORDER=$DL_H
+SGND_TITLE_SUBTEXTCLR="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_ITALIC")"
+SGND_TITLE_RIGHTCLR=$SGND_TITLE_TEXTCLR
+SGND_TITLE_BORDERCLR=$SGND_UI_BORDER
+
+# Section headers
+SGND_SECTION_TEXTCLR="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")"
+SGND_SECTION_BORDER=$LN_H
+SGND_SECTION_BORDERCLR=$SGND_UI_BORDER
+
 SGND_UI_DEFAULT=$DARK_SILVER
 
 # --- Documentation summaries ---------------------------------------------------------
@@ -158,6 +186,14 @@ SGND_UI_DEFAULT=$DARK_SILVER
         #   SGND_UI_SUCCESS = $BRIGHT_GOLD
         #   SGND_UI_ERROR = $BRIGHT_PINK
         #   SGND_UI_TEXT = $SILVER
+        #   SGND_TITLE_TEXTCLR = bold SGND_UI_TEXT
+        #   SGND_TITLE_BORDER = $DL_H
+        #   SGND_TITLE_SUBTEXTCLR = italic SGND_UI_TEXT
+        #   SGND_TITLE_RIGHTCLR = SGND_TITLE_TEXTCLR
+        #   SGND_TITLE_BORDERCLR = SGND_UI_BORDER
+        #   SGND_SECTION_TEXTCLR = bold SGND_UI_TEXT
+        #   SGND_SECTION_BORDER = $LN_H
+        #   SGND_SECTION_BORDERCLR = SGND_UI_BORDER
         #   SGND_UI_DEFAULT = $DARK_SILVER
         #
         # Notes:

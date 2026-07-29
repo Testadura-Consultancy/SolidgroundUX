@@ -1,9 +1,24 @@
 # =====================================================================================
-# SolidGroundUX - Steel Blue UI Style
+# SolidGroundUX - Psychedelic UI Style
 # -------------------------------------------------------------------------------------
-# Type    : library
-# Group   : Styles
-# Purpose : Steel Blue-on-dark semantic UI style mapping
+# Metadata:
+#   Version     : 1.8
+#   Build       : 2621011
+#   Checksum    : c40e5dcda508c011589d7c0602c68866ba122f7b77397519519e62076763cf4e
+#   Source      : 23-style-psychedelic.sh
+#   Type        : library
+#   Group       : Styles
+#   Purpose     : Define the Psychedelic semantic UI theme
+#
+# Description:
+#   Provides a vivid multi-colour semantic UI theme emphasizing contrast and experimentation.
+#
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      : -
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 
 # --- say() global defaults -----------------------------------------------------------
@@ -78,6 +93,19 @@ SGND_UI_SUCCESS="$(sgnd_sgr "$BLACK" "$BRIGHT_GREEN" "$FX_BOLD")"
 SGND_UI_PROMPT="$(sgnd_sgr "$BRIGHT_CYAN" "$MAGENTA" "$FX_BOLD")"
 
 SGND_UI_TEXT=$BRIGHT_MAGENTA
+
+# Title bar
+SGND_TITLE_TEXTCLR="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")"
+SGND_TITLE_BORDER=$DL_H
+SGND_TITLE_SUBTEXTCLR="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_ITALIC")"
+SGND_TITLE_RIGHTCLR=$SGND_TITLE_TEXTCLR
+SGND_TITLE_BORDERCLR=$SGND_UI_BORDER
+
+# Section headers
+SGND_SECTION_TEXTCLR="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")"
+SGND_SECTION_BORDER=$LN_H
+SGND_SECTION_BORDERCLR=$SGND_UI_BORDER
+
 SGND_UI_DEFAULT=$BRIGHT_BLUE
 
 PROG_TEXT_CLR=$BRIGHT_WHITE
@@ -166,6 +194,14 @@ PROG_BAR_CLR=$BRIGHT_MAGENTA
         #   SGND_UI_ERROR = "$(sgnd_sgr "$BRIGHT_YELLOW" "$RED" "$FX_BOLD")"
         #   SGND_UI_SUCCESS = "$(sgnd_sgr "$BLACK" "$BRIGHT_GREEN" "$FX_BOLD")"
         #   SGND_UI_TEXT = $BRIGHT_MAGENTA
+        #   SGND_TITLE_TEXTCLR = bold SGND_UI_TEXT
+        #   SGND_TITLE_BORDER = $DL_H
+        #   SGND_TITLE_SUBTEXTCLR = italic SGND_UI_TEXT
+        #   SGND_TITLE_RIGHTCLR = SGND_TITLE_TEXTCLR
+        #   SGND_TITLE_BORDERCLR = SGND_UI_BORDER
+        #   SGND_SECTION_TEXTCLR = bold SGND_UI_TEXT
+        #   SGND_SECTION_BORDER = $LN_H
+        #   SGND_SECTION_BORDERCLR = SGND_UI_BORDER
         #   SGND_UI_DEFAULT = $BRIGHT_BLUE
         #   PROG_TEXT_CLR = $BRIGHT_WHITE
         #   PROG_IND_CLR = $BRIGHT_CYAN

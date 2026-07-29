@@ -13,18 +13,26 @@
   <div class="doc-breadcrumb">solidground console_preface.sh::SolidGround Console:Module Contract:</div>
 </header>
 <div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">A console module is a source-only Bash file. It defines functions first and registers its groups and items as its only intended load-time side effect.</p>
+<p class="ct-L2Sectionbody">A console module is a source-only Bash file.</p>
 <div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">Every module exports temporary host metadata:</p>
+<p class="ct-L2Sectionbody">During loading it temporarily provides:</p>
 <div class="ct-L2Sectionbody"></div>
 <div class="ct-L2Sectionbody">    SGND_MODULE_ID</div>
 <div class="ct-L2Sectionbody">    SGND_MODULE_NAME</div>
 <div class="ct-L2Sectionbody">    SGND_MODULE_VERSION</div>
 <div class="ct-L2Sectionbody">    SGND_MODULE_DESC</div>
 <div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">The host clears these values before sourcing a module, validates them afterwards, rejects duplicate module IDs, records the metadata, and clears the temporary values before continuing with the next module.</p>
+<p class="ct-L2Sectionbody">The host validates these values, records the module, rejects duplicate module IDs, and clears the temporary metadata before loading the next module.</p>
 <div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">Modules may keep their own permanent constants for use by their action functions. The temporary `SGND_MODULE_*` values exist only for the loading contract.</p>
+<p class="ct-L2Sectionbody">Modules typically follow this structure:</p>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">    Define helper functions</div>
+<div class="ct-L2Sectionbody">        ↓</div>
+<div class="ct-L2Sectionbody">    Register groups</div>
+<div class="ct-L2Sectionbody">        ↓</div>
+<div class="ct-L2Sectionbody">    Register menu items</div>
+<div class="ct-L2Sectionbody">        ↓</div>
+<div class="ct-L2Sectionbody">    Menu items invoke standalone executables</div>
 <div class="ct-L2Sectionbody"></div>
 </main>
 </body>

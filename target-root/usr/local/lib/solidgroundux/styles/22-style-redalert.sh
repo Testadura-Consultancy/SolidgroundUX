@@ -1,9 +1,24 @@
 # =====================================================================================
 # SolidGroundUX - RedAlert UI Style
 # -------------------------------------------------------------------------------------
-# Type    : library
-# Group   : Styles
-# Purpose : High-contrast red operational alert semantic UI style mapping
+# Metadata:
+#   Version     : 1.8
+#   Build       : 2621011
+#   Checksum    : 4e481caa11d6cbf0fb8af2b5c619bc76cb5bdcbb38750fcc12b1de5ebf457716
+#   Source      : 22-style-redalert.sh
+#   Type        : library
+#   Group       : Styles
+#   Purpose     : Define the RedAlert semantic UI theme
+#
+# Description:
+#   Provides a high-visibility red operational theme for alert-focused console environments.
+#
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      : -
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 
 SAY_DATE_DEFAULT=0
@@ -71,6 +86,19 @@ SGND_UI_VALID=$BRIGHT_WHITE
 SGND_UI_SUCCESS=$BRIGHT_WHITE
 SGND_UI_ERROR=$BRIGHT_RED
 SGND_UI_TEXT=$GOLD
+
+# Title bar
+SGND_TITLE_TEXTCLR="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")"
+SGND_TITLE_BORDER=$DL_H
+SGND_TITLE_SUBTEXTCLR="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_ITALIC")"
+SGND_TITLE_RIGHTCLR=$SGND_TITLE_TEXTCLR
+SGND_TITLE_BORDERCLR=$SGND_UI_BORDER
+
+# Section headers
+SGND_SECTION_TEXTCLR="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")"
+SGND_SECTION_BORDER=$LN_H
+SGND_SECTION_BORDERCLR=$SGND_UI_BORDER
+
 SGND_UI_DEFAULT=$DARK_GOLD
 
 # --- Documentation summaries ---------------------------------------------------------
@@ -158,6 +186,14 @@ SGND_UI_DEFAULT=$DARK_GOLD
         #   SGND_UI_SUCCESS = $BRIGHT_WHITE
         #   SGND_UI_ERROR = $BRIGHT_RED
         #   SGND_UI_TEXT = $GOLD
+        #   SGND_TITLE_TEXTCLR = bold SGND_UI_TEXT
+        #   SGND_TITLE_BORDER = $DL_H
+        #   SGND_TITLE_SUBTEXTCLR = italic SGND_UI_TEXT
+        #   SGND_TITLE_RIGHTCLR = SGND_TITLE_TEXTCLR
+        #   SGND_TITLE_BORDERCLR = SGND_UI_BORDER
+        #   SGND_SECTION_TEXTCLR = bold SGND_UI_TEXT
+        #   SGND_SECTION_BORDER = $LN_H
+        #   SGND_SECTION_BORDERCLR = SGND_UI_BORDER
         #   SGND_UI_DEFAULT = $DARK_GOLD
         #
         # Notes:

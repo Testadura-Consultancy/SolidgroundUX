@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Design Philosophy</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Design Philosophy</div>
+  <div class="doc-breadcrumb">solidground console_preface.sh::SolidGround Console:Design Philosophy:</div>
+</header>
+<div class="ct-L2Sectionbody"></div>
+<p class="ct-L2Sectionbody">The console host deliberately contains no business logic.</p>
+<div class="ct-L2Sectionbody"></div>
+<p class="ct-L2Sectionbody">Its responsibilities are limited to:</p>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">    • loading modules</div>
+<div class="ct-L2Sectionbody">    • rendering the interface</div>
+<div class="ct-L2Sectionbody">    • dispatching actions</div>
+<div class="ct-L2Sectionbody">    • maintaining runtime state</div>
+<div class="ct-L2Sectionbody"></div>
+<p class="ct-L2Sectionbody">Modules define what functionality is available, while standalone executables perform the actual work. This separation keeps the host generic, modules small, and operational logic reusable outside the console itself.</p>
+<div class="ct-L2Sectionbody"></div>
+</main>
+</body>
+</html>

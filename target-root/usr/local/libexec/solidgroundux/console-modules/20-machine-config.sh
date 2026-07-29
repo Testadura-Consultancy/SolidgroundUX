@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2620810
-#   Checksum    : dceae6370af135ddc574d806a7fdc27b37eb228b4a9ebb21ea0cc55018d87779
+#   Build       : 2621011
+#   Checksum    : feb6c11e73b09cbab3015181924284d2ed26c72b5655e73ab50267672e151b4d
 #   Source      : 20-machine-config.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -238,6 +238,56 @@ set -uo pipefail
         fi
 
         sayinfo "SSH host keys generated and SSH service restarted successfully."
+    }
+
+    # fn$ _configure_ssh_service
+        # . Purpose
+        #   Enable or disable the SSH service and keep its runtime state aligned.
+        #
+        # . Behavior
+        #   - Detects ssh.service or sshd.service.
+        #   - Shows the current enabled state as the prompt default.
+        #   - Enables and starts SSH, or disables and stops it.
+        #   - Honors console dry-run mode.
+    _configure_ssh_service() {
+        local ssh_unit="ssh.service"
+        local enabled="N"
+        local requested="N"
+
+        if ! systemctl cat "$ssh_unit" >/dev/null 2>&1; then
+            ssh_unit="sshd.service"
+        fi
+
+        if ! systemctl cat "$ssh_unit" >/dev/null 2>&1; then
+            sayfail "No SSH service unit was found."
+            return 1
+        fi
+
+        if systemctl is-enabled "$ssh_unit" >/dev/null 2>&1; then
+            enabled="Y"
+        fi
+        requested="$enabled"
+
+        ask --label "Enable SSH service (Y/N)" --var requested --default "$requested" --labelwidth 32
+
+        case "${requested^^}" in
+            Y|YES)
+                if (( ${FLAG_DRYRUN:-0} == 1 )); then
+                    sayinfo "Dry run: Would enable and start $ssh_unit."
+                else
+                    sudo systemctl enable --now "$ssh_unit" || return $?
+                    sayok "SSH service enabled and started."
+                fi
+                ;;
+            *)
+                if (( ${FLAG_DRYRUN:-0} == 1 )); then
+                    sayinfo "Dry run: Would disable and stop $ssh_unit."
+                else
+                    sudo systemctl disable --now "$ssh_unit" || return $?
+                    sayok "SSH service disabled and stopped."
+                fi
+                ;;
+        esac
     }
 
     _set_identity() {
@@ -587,6 +637,7 @@ set -uo pipefail
     sgnd_console_register_item "prepclone" "$SGND_MACHINE_CONFIG_MODULE_ID" "Prepare for cloning" "_prep_template" "Prepare this VM to be used as a Template" 0 5 1
     sgnd_console_register_item "machid" "$SGND_MACHINE_CONFIG_MODULE_ID" "Generate Machine ID" "_init_machine" "Set up a new machine ID" 0 5 1
     sgnd_console_register_item "setnetid" "$SGND_MACHINE_CONFIG_MODULE_ID" "Set network ID" "_set_identity" "Configure hostname and network ID" 0 5 1
+    sgnd_console_register_item "sshcfg" "$SGND_MACHINE_CONFIG_MODULE_ID" "Configure SSH service" "_configure_ssh_service" "Enable or disable the SSH service" 0 5 1
     sgnd_console_register_item "sshkeys" "$SGND_MACHINE_CONFIG_MODULE_ID" "Generate SSH Keys" "_generate_ssh_keys" "Generate SSH host keys" 0 5 1
 
     sgnd_console_register_group \
