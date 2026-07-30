@@ -4,6 +4,25 @@ All notable changes to SolidGroundUX are documented in this file.
 
 The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.
 
+# Unreleased
+
+## SolidGroundUX Framework
+
+### Resolved
+- All print primitives in ui.sh now respect SGND_CONSOLE_WIDTH
+
+### Added
+- Themed color constants SGND_UI_BOLD, SGND_UI_FAINT, SGND_UI_ITALIC
+
+## SolidGroundUX Management Studio
+
+### Added
+- Added sshd verification to 20-machine-config.sh
+- Added new module 30-role-provisioning.sh with samba ad provisoning functions
+
+### Changed
+- Warning when opening shell nows displays regardless of loglevel
+
 # Version 1.8 (Build 2621022)
 
 ## SolidGroundUX Management Studio
