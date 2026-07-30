@@ -776,7 +776,13 @@ set -uo pipefail
 
         (( width > terminal_width )) && width="$terminal_width"
         (( width > max_render )) && width="$max_render"
-        (( width < 10 )) && width=10
+
+        # Prefer at least 10 columns, but never violate the terminal or render cap.
+        if (( width < 10 )); then
+            width=10
+            (( width > terminal_width )) && width="$terminal_width"
+            (( width > max_render )) && width="$max_render"
+        fi
 
         printf '%s\n' "$width"
     }
@@ -813,7 +819,7 @@ set -uo pipefail
 
         local sep=":"
         local labelwidth=25
-        local maxwidth=""
+        local maxwidth="${SGND_CONSOLE_WIDTH:-}"
         local pad=0
         local labelclr="${SGND_UI_LABEL}"
         local valueclr="${SGND_UI_VALUE}"
@@ -918,7 +924,7 @@ set -uo pipefail
         #   sgnd_print_fill --left "..." --right "..." --padleft --padright
     sgnd_print_fill() {
         local left="" right=""
-        local padleft=2 padright=1 maxwidth=""
+        local padleft=2 padright=1 maxwidth="${SGND_CONSOLE_WIDTH:-}"
         local fillchar=" "
         local leftclr="${SGND_UI_TEXT}"
         local rightclr=""
@@ -958,7 +964,7 @@ set -uo pipefail
         [[ -n "$fillchar" ]] || fillchar=" "
         fillchar="${fillchar:0:1}"
 
-        fill=$(( maxwidth
+        local fill=$(( maxwidth
                 - padleft
                 - $(sgnd_visible_len "$left")
                 - $(sgnd_visible_len "$right")
@@ -1018,7 +1024,7 @@ set -uo pipefail
         local border="${SGND_TITLE_BORDER:-$DL_H}"
         local borderclr="${SGND_TITLE_BORDERCLR:-$SGND_UI_BORDER}"
         local padleft=4
-        local maxwidth=""
+        local maxwidth="${SGND_CONSOLE_WIDTH:-}"
 
         # -- Parse options
         while [[ $# -gt 0 ]]; do
@@ -1059,7 +1065,7 @@ set -uo pipefail
             --padleft "$padleft" \
             --maxwidth "$maxwidth" \
             --leftclr "$leftclr" \
-            ${rightclr:+--rightclr "$rightclr"}
+            --rightclr "$rightclr"
 
         if [[ "${sub}" != "" ]]; then
            sgnd_print \
@@ -1109,7 +1115,7 @@ set -uo pipefail
         local borderclr="${SGND_SECTION_BORDERCLR:-$SGND_UI_BORDER}"
         local padleft=4
         local padend=1
-        local maxwidth=""
+        local maxwidth="${SGND_CONSOLE_WIDTH:-}"
    
         # -- Parse options
         while [[ $# -gt 0 ]]; do
@@ -1213,7 +1219,7 @@ set -uo pipefail
         local pad=0
         local rightmargin=0
         local justify="L"   # L = left, C = center, R = right
-        local maxwidth=""
+        local maxwidth="${SGND_CONSOLE_WIDTH:-}"
 
         # --- Parse options --------------------------------------------------------
         while [[ $# -gt 0 ]]; do
@@ -1305,7 +1311,7 @@ set -uo pipefail
         local textclr="${SGND_UI_TEXT:-}"
         local pad=0
         local justify="L"
-        local maxwidth=""
+        local maxwidth="${SGND_CONSOLE_WIDTH:-}"
 
         while [[ $# -gt 0 ]]; do
             case "$1" in

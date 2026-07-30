@@ -96,6 +96,9 @@ SGND_UI_SUCCESS=$BRIGHT_GREEN
 SGND_UI_ERROR=$BRIGHT_RED
 
 SGND_UI_TEXT=$SILVER
+SGND_UI_BOLD="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")"
+SGND_UI_FAINT="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_FAINT")"
+SGND_UI_ITALIC="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_ITALIC")"
 
 # Title bar
 SGND_TITLE_TEXTCLR="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")"
@@ -200,6 +203,9 @@ PROG_BAR_CLR=$BRIGHT_BLUE
         #   SGND_UI_SUCCESS = $BRIGHT_GREEN
         #   SGND_UI_ERROR = $BRIGHT_RED
         #   SGND_UI_TEXT = $SILVER
+        #   SGND_UI_BOLD = bold SGND_UI_TEXT
+        #   SGND_UI_FAINT = faint SGND_UI_TEXT
+        #   SGND_UI_ITALIC = italic SGND_UI_TEXT
         #   SGND_TITLE_TEXTCLR = bold SGND_UI_TEXT
         #   SGND_TITLE_BORDER = $DL_H
         #   SGND_TITLE_SUBTEXTCLR = italic SGND_UI_TEXT

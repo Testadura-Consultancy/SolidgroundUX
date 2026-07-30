@@ -850,7 +850,7 @@ set -uo pipefail
             return 1
         }
 
-        sayinfo "Opening $shell_path. Type 'exit' to return to the Management Console."
+        sgnd_print "$SGND_UI_TEXT Opening $shell_path. Type 'exit' to return to the Management Console."
         "$shell_path" -i
         SGND_LAST_WAITSECS=0
     }

@@ -87,7 +87,7 @@ set -uo pipefail
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
     
-# --- Internal helpers -------------------------------------------------------------
+# - Internal helpers -------------------------------------------------------------
     # doc$ Internal helper naming
         # Prefix internal-only helpers with "_".
         # Keep internal helpers module-local and menu-focused.
@@ -95,7 +95,7 @@ set -uo pipefail
         # Example:
         #   _sample_format_status() { :; }
 
-# --- Module metadata -------------------------------------------------------------
+# - Module metadata -------------------------------------------------------------
     SGND_MACHINE_CONFIG_MODULE_ID="machine-config"
     SGND_MACHINE_CONFIG_MODULE_NAME="Machine Configuration"
     SGND_MACHINE_CONFIG_MODULE_VERSION="1.0.0"
@@ -106,7 +106,7 @@ set -uo pipefail
     SGND_MODULE_VERSION="$SGND_MACHINE_CONFIG_MODULE_VERSION"
     SGND_MODULE_DESC="$SGND_MACHINE_CONFIG_MODULE_DESC"
 
-# --- Public module actions --------------------------------------------------------
+# - Public module actions --------------------------------------------------------
     # doc$ Public module action naming
         # Use clear action-style names for functions registered as menu handlers.
         # Registered handlers do not need a sgnd_ prefix; they belong to the module surface.
@@ -216,24 +216,29 @@ set -uo pipefail
         # . Returns
         #   0 if successful, 1 if failed to generate SSH host keys.
     _generate_ssh_keys() {
+
+        sayinfo "Verifying sshd..."
+
+        sudo install -d -m 0755 -o root -g root /run/sshd
+
         sayinfo "Generating SSH host keys..."
 
         if ! sudo ssh-keygen -A; then
-            sayerror "Failed to generate SSH host keys."
+            sayfail "Failed to generate SSH host keys."
             return 1
         fi
 
         sayinfo "Validating SSH configuration..."
 
         if ! sudo sshd -t; then
-            sayerror "SSH configuration validation failed."
+            sayfail "SSH configuration validation failed."
             return 1
         fi
 
         sayinfo "Restarting SSH service..."
 
         if ! sudo systemctl restart ssh; then
-            sayerror "Failed to restart SSH service."
+            sayfail "Failed to restart SSH service."
             return 1
         fi
 
@@ -452,43 +457,6 @@ set -uo pipefail
         sayinfo "Package cleanup completed successfully."
     }
 
-    # fn$ _install_samba_ad
-        # . Purpose
-        #   Install the packages required for a Samba Active Directory Domain Controller.
-        #
-        # . Behavior
-        #   - Refreshes the APT package index.
-        #   - Installs the Samba AD/DC, Kerberos, and DNS diagnostic packages.
-        #   - Disables the standalone Samba services used by file-server roles.
-        #   - Enables the dedicated Samba AD/DC service without starting it.
-        #   - Leaves domain provisioning to a separate configuration step.
-        #
-        # . Returns
-        #   0 if the role packages were installed successfully, otherwise non-zero.
-    _install_samba_ad() {
-        if (( ${FLAG_DRYRUN:-0} == 1 )); then
-            sayinfo "Dry run: Would install Samba Active Directory Domain Controller packages."
-            return 0
-        fi
-
-        sayinfo "Updating Ubuntu package index."
-        sudo apt-get update || return 1
-
-        sayinfo "Installing Samba Active Directory Domain Controller packages."
-        sudo apt-get install -y \
-            bind9-dnsutils \
-            krb5-user \
-            samba-ad-dc || return 1
-
-        sayinfo "Preparing Samba services for later AD/DC provisioning."
-        sudo systemctl disable --now smbd.service nmbd.service winbind.service || return 1
-        sudo systemctl mask smbd.service nmbd.service winbind.service || return 1
-        sudo systemctl unmask samba-ad-dc.service || return 1
-        sudo systemctl enable samba-ad-dc.service || return 1
-
-        sayinfo "Samba AD/DC packages installed; domain provisioning is still required."
-    }
-
     # fn$ _install_samba_file
         # . Purpose
         #   Install the packages required for a standalone Samba file server.
@@ -611,7 +579,7 @@ set -uo pipefail
 
 
 
-# --- Console registration ---------------------------------------------------------
+# - Console registration ---------------------------------------------------------
     # doc$ Console registration
         # Allowed side effect:
         #   - On source, the module may register groups and items with sgnd-console.
@@ -657,7 +625,6 @@ set -uo pipefail
         "Install optional server roles and desktop services" \
         0 1 800
 
-    sgnd_console_register_item "sambaad" "roles" "Install Samba AD server" "_install_samba_ad" "Install Samba Active Directory Domain Controller packages" 0 5 1
     sgnd_console_register_item "sambafile" "roles" "Install Samba File Server" "_install_samba_file" "Install Samba file-server packages" 0 5 1
     sgnd_console_register_item "instxrdp" "roles" "Install XRDP" "_install_xrdp" "Install XRDP for Ubuntu Desktop" 0 5 1
     sgnd_console_register_item "instdocker" "roles" "Install Docker" "_install_docker" "Install Docker Engine" 0 5 1
