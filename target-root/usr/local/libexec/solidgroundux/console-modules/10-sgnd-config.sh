@@ -22,7 +22,7 @@
 #   License       : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # ==================================================================================
 set -uo pipefail
-# --- Library guard ----------------------------------------------------------------
+# - Library guard ----------------------------------------------------------------
     # fn$ _sgnd_lib_guard
         # . Purpose
         #   Ensure the module is sourced and initialized only once.
@@ -57,16 +57,24 @@ set -uo pipefail
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
+# - Module metadata --------------------------------------------------------------
     SGND_CONFIG_MODULE_ID="sgnd-config"
     SGND_CONFIG_MODULE_NAME="SolidGroundUX Configuration"
     SGND_CONFIG_MODULE_VERSION="1.0.0"
     SGND_CONFIG_MODULE_DESC="Manage SolidGroundUX development, installation, state, and diagnostics"
 
+    # Transient console-loader metadata contract.
+    SGND_MODULE_ID="$SGND_CONFIG_MODULE_ID"
+    SGND_MODULE_NAME="$SGND_CONFIG_MODULE_NAME"
+    SGND_MODULE_VERSION="$SGND_CONFIG_MODULE_VERSION"
+    SGND_MODULE_DESC="$SGND_CONFIG_MODULE_DESC"
+
+
 
     SGND_CONSOLE_TITLE_OVERRIDE="SolidGroundUX Management Console"
     SGND_CONSOLE_DESC_OVERRIDE="Manage SolidGroundUX, development tools, and system configuration"
 
-# --- Developer tool actions -------------------------------------------------------
+# - Developer tool actions -------------------------------------------------------
     # fn: _exe_createworkspace
         # . Returns
         #   Exit status of create-workspace.sh.
@@ -113,7 +121,7 @@ set -uo pipefail
         _sgnd_run_public_command "sgnd-generate-docs"
     }
 
-# --- SolidGroundUX installation actions -------------------------------------------
+# - SolidGroundUX installation actions -------------------------------------------
     # fn: _install_solidgroundux - Install solidgroundux
         # . Purpose
         #   Install solidgroundux.
@@ -153,7 +161,7 @@ set -uo pipefail
         _sgnd_run_public_command "sgnd-uninstall" "$@"
     }
 
-# --- Framework diagnostics ---------------------------------------------------------
+# - Framework diagnostics --------------------------------------------------------
     # _framework_smoketest
         # Returns:
         #   Exit status of sgnd-framework-smoketest.
@@ -204,7 +212,7 @@ set -uo pipefail
         sgnd_print
     }
 
-# --- Framework configuration actions ---------------------------------------------
+# - Framework configuration actions ----------------------------------------------
     # fn: _framework_config_view_file - Framework config view file
         # . Purpose
         #   Framework config view file.
@@ -508,7 +516,7 @@ set -uo pipefail
         sayok "Framework configuration saved to $cfg_file"
     }
 
-# --- Framework logging actions ----------------------------------------------------
+# - Framework logging actions ----------------------------------------------------
     # fn: _framework_log_validate - Framework log validate
         # . Purpose
         #   Framework log validate.
@@ -630,7 +638,7 @@ set -uo pipefail
         sayok "Framework logfile rotated"
     }
 
-# --- Internal helpers -------------------------------------------------------------
+# - Internal helpers -------------------------------------------------------------
     # fn: _framework_state_validate
         # . Purpose
         #   Verify that the transferable framework-state contract is available.
@@ -671,7 +679,7 @@ set -uo pipefail
         fi
     }
 
-# --- Public module actions --------------------------------------------------------
+# - Public module actions --------------------------------------------------------
     # fn: framework_state_show
         # . Purpose
         #   Display all transferable framework-state variables and their values.
@@ -788,7 +796,7 @@ set -uo pipefail
         sayok "Framework state reloaded"
     }
 
-# --- Console registration ---------------------------------------------------------
+# - Console registration ---------------------------------------------------------
     sgnd_console_register_group \
         "$SGND_CONFIG_MODULE_ID" \
         "Developer Tools" \

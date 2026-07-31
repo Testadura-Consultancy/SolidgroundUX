@@ -90,7 +90,18 @@ set -uo pipefail
     unset -f _sgnd_lib_guard
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
-    
+# - Module metadata -------------------------------------------------------------
+    # Rename these variables to a module specific name
+    SGND_MACHINE_TEMPLATE_MODULE_ID="mod-template"
+    SGND_MACHINE_TEMPLATE_MODULE_NAME="Consle module template"
+    SGND_MACHINE_TEMPLATE_MODULE_VERSION="1.0.0"
+    SGND_MACHINE_TEMPLATE_MODULE_DESC="Console module template script"
+
+    # Transient console-loader metadata contract.
+    SGND_MODULE_ID="$SGND_MACHINE_CONFIG_MODULE_ID"
+    SGND_MODULE_NAME="$SGND_MACHINE_CONFIG_MODULE_NAME"
+    SGND_MODULE_VERSION="$SGND_MACHINE_CONFIG_MODULE_VERSION"
+    SGND_MODULE_DESC="$SGND_MACHINE_CONFIG_MODULE_DESC"    
 # - Internal helpers -------------------------------------------------------------
     # doc$ Internal helper naming
         # Prefix internal-only helpers with "_".

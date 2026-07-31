@@ -76,6 +76,13 @@ set -uo pipefail
     SGND_ROLE_PROVISIONING_MODULE_VERSION="1.0.0"
     SGND_ROLE_PROVISIONING_MODULE_DESC="Provision specific roles on this server"
 
+    # Transient console-loader metadata contract.
+    SGND_MODULE_ID="$SGND_ROLE_PROVISIONING_MODULE_ID"
+    SGND_MODULE_NAME="$SGND_ROLE_PROVISIONING_MODULE_NAME"
+    SGND_MODULE_VERSION="$SGND_ROLE_PROVISIONING_MODULE_VERSION"
+    SGND_MODULE_DESC="$SGND_ROLE_PROVISIONING_MODULE_DESC"
+
+
 # - Validation helpers -------------------------------------------------------------
     # fn$ _samba_validate_realm
         # . Purpose
