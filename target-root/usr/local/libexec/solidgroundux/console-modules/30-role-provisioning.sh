@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 1.8
 #   Build       : 2621201
-#   Checksum    : a9bb88b692396d9170bf149de70ad0360a02581f6df17a0a64ff20cc8ed6530a
+#   Checksum    : bf579630cbef96313f90c3e66f80a4f604d762c4b35faf62087411eb3abc5aab
 #   Source      : 30-role-provisioning.sh
 #   Type        : module
 #   Group       : SolidGround Console
