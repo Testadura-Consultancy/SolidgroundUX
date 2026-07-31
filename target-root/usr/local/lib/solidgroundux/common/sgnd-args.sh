@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621011
-#   Checksum    : dbb940545908ba021155bc1ecdf92f92dc8ec88bfd8ccd5d7090f498c295a827
+#   Build       : 2621201
+#   Checksum    : ee6c049ad4f064be4730e13de00f6eae2de981a1e4c14e2fdaf678da94093316
 #   Source      : sgnd-args.sh
 #   Type        : library
 #   Group       : Common Core
@@ -106,7 +106,7 @@ set -uo pipefail
         #   0 always.
         #
         # . Usage
-        #   _sgnd_arg_split "$spec"
+        #   _sgnd_arg_split "example"
     _sgnd_arg_split() {
         local spec="$1"
         IFS='|' read -r _sgnd_name _sgnd_short _sgnd_type _sgnd_var _sgnd_help _sgnd_default _sgnd_choices <<< "$spec"
@@ -135,7 +135,7 @@ set -uo pipefail
         #   1 when no matching specification exists.
         #
         # . Usage
-        #   spec="$(_sgnd_arg_find_spec "$opt")"
+        #   _sgnd_arg_find_spec "example" "example-2"
     _sgnd_arg_find_spec() {
         local wanted="$1"
         local spec
@@ -169,7 +169,7 @@ set -uo pipefail
         #   1 when the value is not allowed.
         #
         # . Usage
-        #   _sgnd_arg_validate_enum "$value" "$choices_csv"
+        #   _sgnd_arg_validate_enum "dark" "2026-07-31" && printf 'Success\n' || printf 'Failed\n'
     _sgnd_arg_validate_enum() {
         local value="$1"
         local choices_csv="$2"
@@ -329,7 +329,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   sgnd_show_help "${ARG0}" "${INCLUDE_BUILTINS}"
+        #   sgnd_show_help "example-0" "example"
     sgnd_show_help() {
         local include_builtins="${1:-1}"
         local script_name="${SGND_SCRIPT_NAME:-$(basename "${SGND_SCRIPT_FILE:-$0}")}"
@@ -457,7 +457,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_parse_args "${ARG1}" "${ARG2}"
+        #   sgnd_parse_args "example"
     sgnd_parse_args() {
 
         local stop_at_unknown=0

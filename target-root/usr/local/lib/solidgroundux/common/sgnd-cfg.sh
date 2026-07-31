@@ -2,9 +2,9 @@
 # SolidGroundUX - Configuration Management
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2619513
-#   Checksum    : 165b5c33875fe8e0ad2654ec11c64caf1a1b2601770d52b7c6780607d423d068
+#   Version     : 1.8
+#   Build       : 2621201
+#   Checksum    : d785b7581eccc6442405af10d9f9fde6552c63131c7e20756e42eeb2373d1da5
 #   Source      : sgnd-cfg.sh
 #   Type        : library
 #   Group       : Common Core
@@ -99,7 +99,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   _sgnd_is_ident "${ARG1}"
+        #   _sgnd_is_ident "example" && printf 'Success\n' || printf 'Failed\n'
     _sgnd_is_ident() {
             [[ "${1:-}" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]
     }
@@ -120,7 +120,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   _sgnd_kv_load_file "${FILE}"
+        #   _sgnd_kv_load_file "/tmp/sgnd-example.txt"
     _sgnd_kv_load_file() {
         local file="$1"
         [[ -f "$file" ]] || return 0
@@ -177,7 +177,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   _sgnd_kv_set "${FILE}" "${ARG2}" "${ARG3}"
+        #   _sgnd_kv_set "/tmp/sgnd-example.txt" "example-2" "example-3"
     _sgnd_kv_set() {
         local file="$1" key="$2" val="$3"
         [[ "$key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || return 1
@@ -244,7 +244,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   _sgnd_kv_unset "${FILE}" "${ARG2}"
+        #   _sgnd_kv_unset "/tmp/sgnd-example.txt" "example-2"
     _sgnd_kv_unset() {
         local file="$1" key="$2"
         [[ "$key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || return 1
@@ -277,6 +277,9 @@ set -uo pipefail
         #
         # . Returns
         #   0 always (rm -f semantics).
+        #
+        # . Usage
+        #   _sgnd_kv_reset_file "/tmp/sgnd-example.txt" "/tmp/sgnd-example.txt"
     _sgnd_kv_reset_file() {
         local file="$1"
         rm -f "$file"
@@ -303,7 +306,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   _sgnd_kv_get "${FILE}" "${ARG2}"
+        #   _sgnd_kv_get "/tmp/sgnd-example.txt" "example-2"
     _sgnd_kv_get() {
         local file="$1" key="$2"
 
@@ -331,6 +334,9 @@ set -uo pipefail
         #   0 if present,
         #   1 if not present,
         #   2 on argument/read error.
+        #
+        # . Usage
+        #   _sgnd_kv_has "/tmp/sgnd-example.txt" "example-2" && printf 'Success\n' || printf 'Failed\n'
     _sgnd_kv_has() {
         local file="$1" key="$2"
 
@@ -358,7 +364,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   _sgnd_kv_list_keys "${FILE}"
+        #   _sgnd_kv_list_keys "/tmp/sgnd-example.txt"
     _sgnd_kv_list_keys() {
         local file="$1"
         [[ -r "$file" ]] || return 1
@@ -399,7 +405,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   sgnd_cfg_load "${FILE}"
+        #   sgnd_cfg_load "/tmp/sgnd-example.txt" "example-2"
     sgnd_cfg_load() {
         local file="${1:-$SGND_CFG_FILE}"
         _sgnd_kv_load_file "$file"
@@ -425,7 +431,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_cfg_set "${KEY}" "${ARG2}"
+        #   sgnd_cfg_set "ui.style" "example-2"
     sgnd_cfg_set() {
         local key="$1" val="$2"
         _sgnd_is_ident "$key" || { saywarning "Skipping invalid cfg key: '$key'"; return 1; }
@@ -451,7 +457,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_cfg_unset "${KEY}"
+        #   sgnd_cfg_unset "ui.style"
     sgnd_cfg_unset() {
         local key="$1"
         _sgnd_is_ident "$key" || { saywarning "Skipping invalid cfg key: '$key'"; return 1; }
@@ -472,7 +478,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   sgnd_cfg_reset
+        #   sgnd_cfg_reset "ui.style"
     sgnd_cfg_reset() {
         local file
         file="${SGND_CFG_FILE}"
@@ -495,7 +501,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_cfg_get "${KEY}"
+        #   sgnd_cfg_get "ui.style"
     sgnd_cfg_get() {
         local key="$1"
         _sgnd_is_ident "$key" || {
@@ -521,7 +527,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_cfg_has "${KEY}"
+        #   sgnd_cfg_has "ui.style" && printf 'Success\n' || printf 'Failed\n'
     sgnd_cfg_has() {
         local key="$1"
         _sgnd_is_ident "$key" || {
@@ -582,7 +588,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_cfg_has_audience "${SPEC_ARRAY_NAME}" "${WANT}"
+        #   sgnd_cfg_has_audience "example" "example-2" "example-3" && printf 'Success\n' || printf 'Failed\n'
     sgnd_cfg_has_audience() {
         local spec_array_name="${1:-}"
         local want="${2:-}"          # "system" or "user"
@@ -636,6 +642,9 @@ set -uo pipefail
         #   sgnd_cfg_write_skeleton_filtered "$SGND_USRCFG_FILE" "user" SGND_FRAMEWORK_GLOBALS "Framework"
         #
         #   sgnd_cfg_write_skeleton_filtered "$SGND_SYSCFG_FILE" "system" SGND_SCRIPT_GLOBALS "Script"
+        #
+        # . Usage
+        #   sgnd_cfg_write_skeleton_filtered "/tmp/sgnd-example.txt" "example-2" "example-3" "TESTADURA"
     sgnd_cfg_write_skeleton_filtered() {
             local file="${1:-}"
             local audience_want="${2:-}"
@@ -687,7 +696,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   _sgnd_cfg_write_template_header "${DOMAIN}" "${AUDIENCE}"
+        #   _sgnd_cfg_write_template_header "TESTADURA" "example-2"
     _sgnd_cfg_write_template_header() {
         local domain="${1:-configuration}"
         local audience="${2:-user}"
@@ -733,7 +742,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   sgnd_cfg_load_file "${FILE}"
+        #   sgnd_cfg_load_file "/tmp/sgnd-example.txt"
     sgnd_cfg_load_file() {
         local file="${1:-}"
         [[ -r "$file" ]] || return 0
@@ -786,7 +795,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_cfg_create_missing_domain_files "${DOMAIN}" "${SYSCFG}" "${USRCFG}" "${SPEC_ARRAY_NAME}" "${MODE}"
+        #   sgnd_cfg_create_missing_domain_files "TESTADURA" "/tmp/sgnd-example.txt" "/tmp/sgnd-example.txt" "/tmp/sgnd-example.txt" "normal"
     sgnd_cfg_create_missing_domain_files() {
         local domain="${1:-}"
         local syscfg="${2:-}"
@@ -840,7 +849,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_cfg_domain_apply "${DOMAIN}" "${SYSCFG}" "${USRCFG}" "${SPEC_ARRAY_NAME}" "${MODE}"
+        #   sgnd_cfg_domain_apply "TESTADURA" "example-2" "example-3" "example-4" "normal"
     sgnd_cfg_domain_apply() {
         local domain="${1:-}"
         local syscfg="${2:-}"
@@ -885,6 +894,9 @@ set -uo pipefail
         #
         # Usage:
         #   sgnd_state_load [--file FILE]
+        #
+        # . Usage
+        #   sgnd_state_load "example" "example-2"
     sgnd_state_load() {
         local state_file="${SGND_STATE_FILE:-}"
 
@@ -946,6 +958,9 @@ set -uo pipefail
         #
         # Usage:
         #   sgnd_state_set [--file FILE] KEY VALUE
+        #
+        # . Usage
+        #   sgnd_state_set "ui.style" "example-2"
     sgnd_state_set() {
         local state_file="${SGND_STATE_FILE:-}"
 
@@ -1023,6 +1038,9 @@ set -uo pipefail
         #
         # Usage:
         #   sgnd_state_unset [--file FILE] KEY
+        #
+        # . Usage
+        #   sgnd_state_unset "ui.style" "example-2"
     sgnd_state_unset() {
         local state_file="${SGND_STATE_FILE:-}"
 
@@ -1091,6 +1109,9 @@ set -uo pipefail
         #
         # Usage:
         #   sgnd_state_reset [--file FILE]
+        #
+        # . Usage
+        #   sgnd_state_reset "example" "example-2"
     sgnd_state_reset() {
         local state_file="${SGND_STATE_FILE:-}"
 
@@ -1143,6 +1164,9 @@ set -uo pipefail
         #
         # Usage:
         #   sgnd_state_get [--file FILE] KEY
+        #
+        # . Usage
+        #   sgnd_state_get "ui.style" "example-2"
     sgnd_state_get() {
         local state_file="${SGND_STATE_FILE:-}"
 
@@ -1209,6 +1233,9 @@ set -uo pipefail
         #
         # Usage:
         #   sgnd_state_has [--file FILE] KEY
+        #
+        # . Usage
+        #   sgnd_state_has "ui.style" "example-2" && printf 'Success\n' || printf 'Failed\n'
     sgnd_state_has() {
         local state_file="${SGND_STATE_FILE:-}"
 
@@ -1285,6 +1312,9 @@ set -uo pipefail
         # Examples:
         #   sgnd_state_save_keys SGND_CONSOLE_LOG_LEVEL SGND_UI_STYLE
         #   sgnd_state_save_keys --file "$SGND_FRAMEWORK_STATE_FILE" --array SGND_FRAMEWORK_STATE
+        #
+        # . Usage
+        #   sgnd_state_save_keys "example" "example-2"
     sgnd_state_save_keys() {
         local state_file="${SGND_STATE_FILE:-}"
         local array_name=""
@@ -1380,6 +1410,9 @@ set -uo pipefail
         # Examples:
         #   sgnd_state_load_keys SGND_CONSOLE_LOG_LEVEL SGND_UI_STYLE
         #   sgnd_state_load_keys --file "$SGND_FRAMEWORK_STATE_FILE" --array SGND_FRAMEWORK_STATE
+        #
+        # . Usage
+        #   sgnd_state_load_keys "example" "example-2"
     sgnd_state_load_keys() {
         local state_file="${SGND_STATE_FILE:-}"
         local array_name=""
@@ -1465,6 +1498,9 @@ set -uo pipefail
         #
         # Usage:
         #   sgnd_state_list_keys [--file FILE]
+        #
+        # . Usage
+        #   sgnd_state_list_keys "example" "example-2"
     sgnd_state_list_keys() {
         local state_file="${SGND_STATE_FILE:-}"
 

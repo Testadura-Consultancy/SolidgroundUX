@@ -3,9 +3,9 @@
 # SolidGroundUX - Documentation Generator Script
 # ------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2620309
-#   Checksum    : eedf72bf4022604507835dbf90dd62abd32f86ff9857981c48a15cefadccb320
+#   Version     : 1.8
+#   Build       : 2621201
+#   Checksum    : 8d3a8e95678fb13154c927e9a39ed4421d5ff8f9d6849724af6868b6a5a0b65e
 #   Source      : doc-generator.sh
 #   Type        : script
 #   Group       : SDK Documentation
@@ -220,6 +220,8 @@ set -uo pipefail
         "auto|a|flag|FLAG_AUTO_RUN|Automatically run with last used or default parameters|0|"
         "clean|c|flag|FLAG_CLEAN_OUTPUT|Clear output directory before writing|0|"
         "file|f|value|VAL_FILESPEC|File mask for source scanning||"
+        "mode|m|enum|VAL_UPDATE_MODE|Generation mode: full, selected, or changed|full|full,selected,changed"
+        "update-files|u|value|VAL_UPDATE_FILES|Comma-separated files for selected update mode||"
         "outdir|o|value|VAL_OUTDIR|Output directory for generated docs||"
         "recursive|r|flag|FLAG_RECURSIVE_SCAN|Recursively scan source directory|1|"
         "srcdir|s|value|VAL_SRCDIR|Source directory to scan||"
@@ -239,12 +241,16 @@ set -uo pipefail
         #
         # Leave empty if no examples are needed.
     SGND_SCRIPT_EXAMPLES=(
-        "Run in dry-run mode:"
-        "  $SGND_SCRIPT_NAME --dryrun"
+        "Full documentation rebuild:"
+        "  $SGND_SCRIPT_NAME --mode full"
         ""
-        "Show verbose logging"
-        "  $SGND_SCRIPT_NAME --verbose"
+        "Update selected source files:"
+        "  $SGND_SCRIPT_NAME --mode selected --update-files common/ui-say.sh,common/ui-ask.sh"
+        ""
+        "Update files changed in Git:"
+        "  $SGND_SCRIPT_NAME --mode changed"
     ) 
+
 
     # SGND_SCRIPT_GLOBALS
         # Explicit declaration of global variables intentionally used by this script.
@@ -292,6 +298,8 @@ set -uo pipefail
     SGND_STATE_VARIABLES=(
         "VAL_SRCDIR|Source Directory||"
         "VAL_FILESPEC|Filename mask||"
+        "VAL_UPDATE_MODE|Generation mode (full, selected, changed)||"
+        "VAL_UPDATE_FILES|Selected update files||"
         "VAL_OUTDIR|Output Directory||"
         "FLAG_RECURSIVE_SCAN|Recursive Scan||"
         "FLAG_CLEAN_OUTPUT|Clean Output Directory||"
@@ -365,6 +373,8 @@ set -uo pipefail
         FLAG_VIEW_RESULTS="${FLAG_VIEW_RESULTS:-1}"
 
         VAL_FILESPEC="${VAL_FILESPEC:-*.sh}"
+        VAL_UPDATE_MODE="${VAL_UPDATE_MODE:-full}"
+        VAL_UPDATE_FILES="${VAL_UPDATE_FILES:-}"
         VAL_OUTDIR="${VAL_OUTDIR:-$SGND_DOCS_DIR}"
         VAL_SRCDIR="${VAL_SRCDIR:-$SGND_APPLICATION_ROOT}"
 
@@ -411,6 +421,44 @@ set -uo pipefail
         local reply
     
         while true; do
+            sgnd_print
+            sgnd_print_sectionheader "Generation mode" --padend 0
+
+            local mode_reply=""
+            case "$VAL_UPDATE_MODE" in
+                full)     mode_reply="1" ;;
+                selected) mode_reply="2" ;;
+                changed)  mode_reply="3" ;;
+                *)        mode_reply="1" ;;
+            esac
+
+            while true; do
+                ask --label "Mode: 1 Full, 2 Selected, 3 Changed" \
+                    --var mode_reply \
+                    --default "$mode_reply" \
+                    --colorize both \
+                    --labelclr "${CYAN}" \
+                    --pad "$lp" \
+                    --labelwidth "$lw"
+
+                case "$mode_reply" in
+                    1) VAL_UPDATE_MODE="full"; break ;;
+                    2) VAL_UPDATE_MODE="selected"; break ;;
+                    3) VAL_UPDATE_MODE="changed"; break ;;
+                    *) saywarning "Choose generation mode 1, 2, or 3" ;;
+                esac
+            done
+
+            if [[ "$VAL_UPDATE_MODE" == "selected" ]]; then
+                ask --label "Files to update (comma-separated)" \
+                    --var VAL_UPDATE_FILES \
+                    --default "$VAL_UPDATE_FILES" \
+                    --colorize both \
+                    --labelclr "${CYAN}" \
+                    --pad "$lp" \
+                    --labelwidth "$lw"
+            fi
+
             sgnd_print
             sgnd_print_sectionheader "Source and destination" --padend 0
 
@@ -542,6 +590,324 @@ set -uo pipefail
         done
     }
 
+    # fn: _doc_load_cached_table - Load a cached PSV table into a named array
+        # . Purpose
+        #   Restore one parser table from the persistent documentation cache.
+        #
+        # . Arguments
+        #   $1  Cached PSV filename.
+        #   $2  Destination array name.
+        #
+        # . Returns
+        #   0 when the table was loaded.
+        #   1 when the cache file is missing or unreadable.
+        #
+        # . Usage
+        #   _doc_load_cached_table "$VAL_OUTDIR/.sgnd-doc-cache/mod_table.psv" MOD_TABLE
+    _doc_load_cached_table() {
+        local cache_file="${1:-}"
+        local array_name="${2:-}"
+        local line=""
+
+        [[ -r "$cache_file" && -n "$array_name" ]] || return 1
+
+        local -n table_ref="$array_name"
+        table_ref=()
+
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            [[ -n "$line" ]] && table_ref+=("$line")
+        done < <(tail -n +2 "$cache_file")
+    }
+
+    # fn: _doc_load_cache - Restore all parser tables from the previous render cache
+        # . Purpose
+        #   Initialize incremental generation from the last complete documentation dataset.
+        #
+        # . Returns
+        #   0 when every required cached table was loaded.
+        #   1 when no complete cache is available.
+        #
+        # . Usage
+        #   _doc_load_cache
+    _doc_load_cache() {
+        local cache_dir="$VAL_OUTDIR/.sgnd-doc-cache"
+
+        [[ -d "$cache_dir" ]] || {
+            sayfail "No documentation cache found: $cache_dir"
+            sayinfo "Run a full documentation rebuild before using update mode"
+            return 1
+        }
+
+        _doc_load_cached_table "$cache_dir/mod_table.psv" MOD_TABLE || return 1
+        _doc_load_cached_table "$cache_dir/mod_sections.psv" MOD_SECTIONS || return 1
+        _doc_load_cached_table "$cache_dir/mod_items.psv" MOD_ITEMS || return 1
+        _doc_load_cached_table "$cache_dir/mod_attribution.psv" MOD_ATTRIBUTION || return 1
+        _doc_load_cached_table "$cache_dir/mod_globals.psv" MOD_GLOBALS || return 1
+        _doc_load_cached_table "$cache_dir/doc_content_lines.psv" DOC_CONTENT_LINES || return 1
+
+        sayinfo "Loaded documentation cache from: $cache_dir"
+    }
+
+    # fn: _doc_remove_modules_from_table - Remove module rows from a named table
+        # . Purpose
+        #   Delete stale rows for modules that will be reparsed or were removed.
+        #
+        # . Arguments
+        #   $1  Array name.
+        #   $2  Zero-based field index containing the module name.
+        #   $@  Module names to remove.
+        #
+        # . Returns
+        #   0 after filtering the table.
+        #
+        # . Usage
+        #   _doc_remove_modules_from_table MOD_ITEMS 0 "ui-say.sh" "ui-ask.sh"
+    _doc_remove_modules_from_table() {
+        local array_name="${1:-}"
+        local field_index="${2:-0}"
+        shift 2 || return 1
+
+        local -A remove_set=()
+        local module_name=""
+        local row=""
+        local field=""
+        local -a fields=()
+        local -a retained=()
+
+        for module_name in "$@"; do
+            [[ -n "$module_name" ]] && remove_set["$module_name"]=1
+        done
+
+        local -n table_ref="$array_name"
+        for row in "${table_ref[@]}"; do
+            IFS='|' read -r -a fields <<< "$row"
+            field="${fields[$field_index]-}"
+            [[ -n "${remove_set[$field]-}" ]] || retained+=("$row")
+        done
+
+        table_ref=("${retained[@]}")
+    }
+
+    # fn: _doc_remove_modules - Remove stale rows for one or more modules
+        # . Purpose
+        #   Purge all parser-owned records associated with selected module basenames.
+        #
+        # . Arguments
+        #   $@  Module basenames to remove.
+        #
+        # . Usage
+        #   _doc_remove_modules "ui-say.sh" "ui-ask.sh"
+    _doc_remove_modules() {
+        (( $# > 0 )) || return 0
+
+        _doc_remove_modules_from_table MOD_TABLE 1 "$@"
+        _doc_remove_modules_from_table MOD_ATTRIBUTION 0 "$@"
+        _doc_remove_modules_from_table MOD_GLOBALS 0 "$@"
+        _doc_remove_modules_from_table MOD_SECTIONS 0 "$@"
+        _doc_remove_modules_from_table MOD_ITEMS 0 "$@"
+        _doc_remove_modules_from_table DOC_CONTENT_LINES 0 "$@"
+    }
+
+    # fn: _doc_path_matches_filespec - Test whether a path matches the active source mask
+        # . Arguments
+        #   $1  Source path.
+        #
+        # . Returns
+        #   0 when the basename matches VAL_FILESPEC.
+        #   1 otherwise.
+        #
+        # . Usage
+        #   _doc_path_matches_filespec "/srv/project/common/ui-say.sh"
+    _doc_path_matches_filespec() {
+        local path="${1:-}"
+        local name="${path##*/}"
+        [[ "$name" == $VAL_FILESPEC ]]
+    }
+
+    # fn: _doc_collect_selected_files - Resolve explicitly selected update files
+        # . Purpose
+        #   Convert the comma-separated selected-file argument into parse and removal lists.
+        #
+        # . Outputs (globals)
+        #   SGND_DOC_UPDATE_FILES, SGND_DOC_REMOVE_MODULES
+        #
+        # . Returns
+        #   0 when every selected file is valid.
+        #   1 when no files were supplied or a file cannot be resolved.
+        #
+        # . Usage
+        #   VAL_UPDATE_FILES="common/ui-say.sh,common/ui-ask.sh"; _doc_collect_selected_files
+    _doc_collect_selected_files() {
+        local spec="${VAL_UPDATE_FILES:-}"
+        local entry=""
+        local path=""
+        local -a entries=()
+
+        SGND_DOC_UPDATE_FILES=()
+        SGND_DOC_REMOVE_MODULES=()
+
+        [[ -n "$spec" ]] || {
+            sayfail "Selected update mode requires --update-files"
+            return 1
+        }
+
+        IFS=',' read -r -a entries <<< "$spec"
+        for entry in "${entries[@]}"; do
+            entry="${entry#"${entry%%[![:space:]]*}"}"
+            entry="${entry%"${entry##*[![:space:]]}"}"
+            [[ -n "$entry" ]] || continue
+
+            if [[ "$entry" == /* ]]; then
+                path="$entry"
+            else
+                path="${VAL_SRCDIR%/}/$entry"
+            fi
+
+            path="$(readlink -f -- "$path" 2>/dev/null)" || path=""
+            [[ -f "$path" ]] || {
+                sayfail "Selected source file does not exist: $entry"
+                return 1
+            }
+            _doc_path_matches_filespec "$path" || {
+                sayfail "Selected source file does not match $VAL_FILESPEC: $entry"
+                return 1
+            }
+
+            SGND_DOC_UPDATE_FILES+=("$path")
+            SGND_DOC_REMOVE_MODULES+=("${path##*/}")
+        done
+
+        (( ${#SGND_DOC_UPDATE_FILES[@]} > 0 ))
+    }
+
+    # fn: _doc_collect_changed_files - Collect Git additions, modifications, deletions, and renames
+        # . Purpose
+        #   Build incremental parse/removal lists from changes relative to HEAD plus untracked files.
+        #
+        # . Outputs (globals)
+        #   SGND_DOC_UPDATE_FILES, SGND_DOC_REMOVE_MODULES
+        #
+        # . Returns
+        #   0 when Git status was collected successfully, including when no matching files changed.
+        #   1 when VAL_SRCDIR is not inside a Git work tree.
+        #
+        # . Usage
+        #   _doc_collect_changed_files
+    _doc_collect_changed_files() {
+        local repo_root=""
+        local source_root=""
+        local status=""
+        local old_rel=""
+        local new_rel=""
+        local rel=""
+        local path=""
+        local module=""
+        local -A parse_seen=()
+        local -A remove_seen=()
+
+        SGND_DOC_UPDATE_FILES=()
+        SGND_DOC_REMOVE_MODULES=()
+
+        repo_root="$(git -C "$VAL_SRCDIR" rev-parse --show-toplevel 2>/dev/null)" || {
+            sayfail "Source directory is not inside a Git work tree: $VAL_SRCDIR"
+            return 1
+        }
+        source_root="$(readlink -f -- "$VAL_SRCDIR")"
+
+        while IFS= read -r -d '' status; do
+            IFS= read -r -d '' old_rel || break
+
+            if [[ "$status" == R* || "$status" == C* ]]; then
+                IFS= read -r -d '' new_rel || break
+                path="$(readlink -m -- "$repo_root/$old_rel")"
+                if [[ "$path" == "$source_root"/* ]] && _doc_path_matches_filespec "$path"; then
+                    module="${path##*/}"
+                    remove_seen["$module"]=1
+                fi
+                rel="$new_rel"
+            else
+                rel="$old_rel"
+            fi
+
+            path="$(readlink -m -- "$repo_root/$rel")"
+            [[ "$path" == "$source_root"/* ]] || continue
+            _doc_path_matches_filespec "$path" || continue
+
+            module="${path##*/}"
+            remove_seen["$module"]=1
+            if [[ -f "$path" ]]; then
+                parse_seen["$path"]=1
+            fi
+        done < <(git -C "$repo_root" diff --name-status -z HEAD --)
+
+        while IFS= read -r -d '' rel; do
+            path="$(readlink -m -- "$repo_root/$rel")"
+            [[ "$path" == "$source_root"/* ]] || continue
+            _doc_path_matches_filespec "$path" || continue
+            [[ -f "$path" ]] || continue
+
+            module="${path##*/}"
+            remove_seen["$module"]=1
+            parse_seen["$path"]=1
+        done < <(git -C "$repo_root" ls-files --others --exclude-standard -z --)
+
+        if (( ${#remove_seen[@]} > 0 )); then
+            mapfile -t SGND_DOC_REMOVE_MODULES < <(printf '%s\n' "${!remove_seen[@]}" | sort)
+        fi
+        if (( ${#parse_seen[@]} > 0 )); then
+            mapfile -t SGND_DOC_UPDATE_FILES < <(printf '%s\n' "${!parse_seen[@]}" | sort)
+        fi
+
+        sayinfo "Git update set: ${#SGND_DOC_UPDATE_FILES[@]} file(s) to parse, ${#SGND_DOC_REMOVE_MODULES[@]} module(s) to refresh/remove"
+    }
+
+    # fn: _doc_iterate_explicit_files - Parse an explicit list of source files
+        # . Arguments
+        #   $1  Callback function.
+        #   $@  Source files.
+        #
+        # . Usage
+        #   _doc_iterate_explicit_files _parse_module_file "common/ui-say.sh"
+    _doc_iterate_explicit_files() {
+        local callback="${1:-}"
+        shift || return 1
+        local file=""
+        local files_ttl="$#"
+        local files_proc=0
+        local line_total=0
+        local name=""
+
+        declare -F "$callback" >/dev/null || return 1
+        (( files_ttl > 0 )) || return 0
+
+        sgnd_print
+        sayprogress_begin --slots 1
+        SGND_DOC_PROGRESS_ACTIVE=1
+        SGND_DOC_PROGRESS_MODULE_TOTAL="$files_ttl"
+
+        for file in "$@"; do
+            [[ -f "$file" ]] || continue
+            ((files_proc++))
+            name="${file##*/}"
+            line_total="$(_doc_count_lines "$file")"
+            (( line_total > 0 )) || line_total=1
+
+            SGND_DOC_PROGRESS_MODULE_CURRENT="$files_proc"
+            SGND_DOC_PROGRESS_MODULE_NAME="$name"
+            SGND_DOC_PROGRESS_LINE_TOTAL="$line_total"
+            _doc_progress_line 0 "$line_total" "$name"
+            "$callback" "$file" || saywarning "Callback $callback failed for file: $file"
+            _doc_progress_line "$line_total" "$line_total" "$name"
+        done
+
+        SGND_DOC_PROGRESS_ACTIVE=0
+        SGND_DOC_PROGRESS_MODULE_CURRENT=0
+        SGND_DOC_PROGRESS_MODULE_TOTAL=0
+        SGND_DOC_PROGRESS_MODULE_NAME=""
+        SGND_DOC_PROGRESS_LINE_TOTAL=0
+        sayprogress_done
+    }
+
     # fn: _iterate_files - Iterate source files and collect documentation data
         # . Purpose
         #   Iterate over files in a directory using a file mask,
@@ -614,6 +980,9 @@ set -uo pipefail
         #
         # . Outputs
         #   Prints the line count to stdout.
+        #
+        # . Usage
+        #   _doc_count_lines "/tmp/sgnd-example.txt" "example-2" "example-3" "example-4"
     _doc_count_lines() {
         local file="$1"
         local count=0
@@ -747,6 +1116,7 @@ set -uo pipefail
         sgnd_print  "  Items documented: ${#MOD_ITEMS[@]}"
         sgnd_print  "  Comments extracted: ${#DOC_CONTENT_LINES[@]}"
         sgnd_print
+        sgnd_print "  Generation mode: $VAL_UPDATE_MODE"
         sgnd_print "  Source directory: $VAL_SRCDIR"
         sgnd_print "  Output directory: $VAL_OUTDIR"
         sgnd_print
@@ -817,7 +1187,29 @@ set -uo pipefail
         display_time="$(date +%H:%M:%S)"
         saystart "Documentation generation started at $display_time"
 
-        _iterate_files "$VAL_SRCDIR" "$VAL_FILESPEC" "$FLAG_RECURSIVE_SCAN" _parse_module_file
+        case "$VAL_UPDATE_MODE" in
+            full)
+                _iterate_files "$VAL_SRCDIR" "$VAL_FILESPEC" "$FLAG_RECURSIVE_SCAN" _parse_module_file
+                ;;
+            selected)
+                FLAG_CLEAN_OUTPUT=0
+                _doc_load_cache || return 1
+                _doc_collect_selected_files || return 1
+                _doc_remove_modules "${SGND_DOC_REMOVE_MODULES[@]}"
+                _doc_iterate_explicit_files _parse_module_file "${SGND_DOC_UPDATE_FILES[@]}"
+                ;;
+            changed)
+                FLAG_CLEAN_OUTPUT=0
+                _doc_load_cache || return 1
+                _doc_collect_changed_files || return 1
+                _doc_remove_modules "${SGND_DOC_REMOVE_MODULES[@]}"
+                _doc_iterate_explicit_files _parse_module_file "${SGND_DOC_UPDATE_FILES[@]}"
+                ;;
+            *)
+                sayfail "Unknown generation mode: $VAL_UPDATE_MODE"
+                return 1
+                ;;
+        esac
 
         local end_time
         end_time="$(date +%s)"

@@ -3,9 +3,9 @@
 # SolidGroundUX - Create Workspace
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2617512
-#   Checksum    : 610367d9a32efd56203b6d1efbc593f9fba28735e3db11f26f1c13b59cf696f1
+#   Version     : 1.8
+#   Build       : 2621201
+#   Checksum    : c31569322f13cebe67d95372e91893d84451b425d32eab04f7ef777c2d81aff3
 #   Source      : create-workspace.sh
 #   Type        : script
 #   Group       : SDK Tools
@@ -349,6 +349,9 @@ set -uo pipefail
         #
         # . Returns
         #   0 on success
+        #
+        # . Usage
+        #   _normalize_project_flags "example" "example-2"
     _normalize_project_flags() {
         if (( ! ${FLAG_EXE:-0} )) && (( ! ${FLAG_LIB:-0} )) && (( ! ${FLAG_MOD:-0} )); then
             FLAG_EXE=1
@@ -376,6 +379,9 @@ set -uo pipefail
         # . Returns
         #   0 on success
         #   1 on failure
+        #
+        # . Usage
+        #   _copy_template_file "/tmp/sgnd-example.txt" "/tmp/sgnd-example.txt" "/tmp/sgnd-example.txt"
     _copy_template_file() {
         local src="$1"
         local dst="$2"
@@ -411,6 +417,9 @@ set -uo pipefail
         #   $1  Name reference for exe filename
         #   $2  Name reference for lib filename
         #   $3  Name reference for mod filename
+        #
+        # . Usage
+        #   _get_template_filenames "/tmp/sgnd-example.txt" "/tmp/sgnd-example.txt" "/tmp/sgnd-example.txt"
     _get_template_filenames() {
         local -n exe_ref=$1
         local -n lib_ref=$2
@@ -452,6 +461,9 @@ set -uo pipefail
         # . Returns
         #   0 on success
         #   1 on failure
+        #
+        # . Usage
+        #   _copy_project_templates
     _copy_project_templates() {
         local template_dir=""
         local exe_file=""
@@ -514,6 +526,9 @@ set -uo pipefail
         #
         # . Returns
         #   0 on success
+        #
+        # . Usage
+        #   _get_project_directories "/tmp"
     _get_project_directories() {
         local -n out_ref=$1
         local project_slug=""
@@ -577,6 +592,9 @@ set -uo pipefail
         # . Returns
         #   0 on success
         #   Non-zero on failure
+        #
+        # . Usage
+        #   _manifest_init "example"
     _manifest_init() {
         WORKSPACE_MANIFEST="${PROJECT_FOLDER}/.create-workspace.manifest"
 
@@ -608,6 +626,9 @@ set -uo pipefail
         #
         # . Returns
         #   0 always
+        #
+        # . Usage
+        #   _manifest_record_file "/tmp/sgnd-example"
     _manifest_record_file() {
         local path="$1"
 
@@ -631,6 +652,9 @@ set -uo pipefail
         #
         # . Returns
         #   0 always
+        #
+        # . Usage
+        #   _manifest_record_dir "/tmp/sgnd-example"
     _manifest_record_dir() {
         local path="$1"
 
@@ -659,6 +683,9 @@ set -uo pipefail
         # . Returns
         #   0 on success
         #   1 when the manifest does not exist
+        #
+        # . Usage
+        #   _uncreate_from_manifest "example"
     _uncreate_from_manifest() {
         local manifest="$1"
         local line=""
@@ -746,17 +773,7 @@ set -uo pipefail
         #   1  user aborted or an unexpected response occurred
         #
         # . Usage
-        #   _resolve_project_settings || return $?
-        #
-        # Examples:
-        #   if _resolve_project_settings; then
-        #       sayinfo "Creating workspace at $PROJECT_FOLDER"
-        #   fi
-        #
-        # Notes:
-        #   - Uses ask() and ask_ok_redo_quit() for interactive input.
-        #   - Confirmation includes a short auto-continue timeout.
-    # fn: _resolve_project_settings - Resolve project creation settings
+        #   _resolve_project_settings
         # . Purpose
         #   Resolve project creation settings.
         #
@@ -915,6 +932,9 @@ set -uo pipefail
         # . Returns
         #   0 on success
         #   Non-zero if required filesystem operations fail
+        #
+        # . Usage
+        #   _create_repository
     _create_repository(){
         local d=""
         local -a dirs=()
@@ -1168,6 +1188,9 @@ set -uo pipefail
         # . Returns
         #   0 on success
         #   Non-zero on failure
+        #
+        # . Usage
+        #   _create_mod_appcfg
     _create_mod_appcfg() {
         local project_slug=""
         local appcfg_file=""

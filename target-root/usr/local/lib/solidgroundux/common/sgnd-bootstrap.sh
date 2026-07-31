@@ -2,9 +2,9 @@
 # SolidGroundUX - Bootstrap Core
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2620211
-#   Checksum    : 4b68541aea12b73e66fea5b09a1ffad4cfc456e7733477cee48af0012c120658
+#   Version     : 1.8
+#   Build       : 2621201
+#   Checksum    : 6f12e4508d97781c3f416568b1eef13ceb91817bd315a02e8a07835f02db4040
 #   Source      : sgnd-bootstrap.sh
 #   Type        : library
 #   Group       : Bootstrap
@@ -104,7 +104,7 @@ set -uo pipefail
         #   The supplied return code.
         #
         # . Usage
-        #   cmd || { local rc=$?; _boot_fail "Step failed" "$rc"; return "$rc"; }
+        #   _boot_fail "example" "example-2"
     _boot_fail() {
         local msg="${1:-Bootstrap step failed}"
         local rc="${2:-1}"
@@ -394,7 +394,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_script_init_metadata
+        #   sgnd_script_init_metadata "/usr/local/libexec/solidgroundux/sgnd-console.sh"
     sgnd_script_init_metadata() {
         local metadata=""
         local attribution=""
@@ -458,7 +458,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_module_init_metadata "${FILE}"
+        #   sgnd_module_init_metadata "/tmp/sgnd-example.txt"
     sgnd_module_init_metadata() {
         local file="${1:-${BASH_SOURCE[1]}}"
         local abs_file=""
@@ -585,7 +585,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   sgnd_parse_statespec "${SPEC}"
+        #   sgnd_parse_statespec "example"
     sgnd_parse_statespec() {
         local spec="${1-}"
         _statekey="" _statelabel="" _statedefault="" _statevalidate="" _statecolorize=""
@@ -866,7 +866,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_bootstrap
+        #   sgnd_bootstrap --state --log normal
     sgnd_bootstrap() {
         # Definitions
             : "${SGND_UI_COMMIT:=$(printf '\e[38;5;214m')}"

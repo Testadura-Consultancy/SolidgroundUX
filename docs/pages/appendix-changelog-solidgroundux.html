@@ -1,0 +1,205 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Appendix Y: Change Log</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Appendix Y: Change Log</div>
+  <div class="doc-breadcrumb">SolidGroundUX / Appendices / Appendix Y: Change Log</div>
+</header>
+<h2 class="ct-L1Sectionheader">Changelog</h2>
+<p class="ct-documentbody">All notable changes to SolidGroundUX are documented in this file.</p>
+<p class="ct-documentbody">The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.</p>
+<h2 class="ct-L1Sectionheader">Version 1.8 (Build  2621201)</h2>
+<h3 class="ct-L2Sectionheader">SolidGroundUX Framework</h3>
+<h4 class="ct-L3Sectionheader">Resolved</h4>
+<ul>
+<li>All print primitives in ui.sh now respect SGND_CONSOLE_WIDTH</li>
+</ul>
+<h4 class="ct-L3Sectionheader">Added</h4>
+<ul>
+<li>Themed color constants SGND_UI_BOLD, SGND_UI_FAINT, SGND_UI_ITALIC</li>
+<li>Increental update options for doc-generator</li>
+</ul>
+<h3 class="ct-L2Sectionheader">SolidGroundUX Management Studio</h3>
+<h4 class="ct-L3Sectionheader">Added</h4>
+<ul>
+<li>Added sshd verification to 20-machine-config.sh</li>
+<li>Added new module 30-role-provisioning.sh with samba ad provisoning functions</li>
+</ul>
+<h4 class="ct-L3Sectionheader">Changed</h4>
+<ul>
+<li>Warning when opening shell nows displays regardless of loglevel</li>
+</ul>
+<h2 class="ct-L1Sectionheader">Version 1.8 (Build 2621022)</h2>
+<h3 class="ct-L2Sectionheader">SolidGroundUX Management Studio</h3>
+<h4 class="ct-L3Sectionheader">Added</h4>
+<ul>
+<li>Added a Machine Configuration action to enable or disable the SSH service.</li>
+<li>Added a Console Session action to open a child shell.</li>
+</ul>
+<h4 class="ct-L3Sectionheader">Changed</h4>
+<ul>
+<li>Updated `set-identity.sh` to use the current machine configuration as the default prompt values.</li>
+<li>Added automatic availability checks for static IPv4 addresses before applying network configuration, with user confirmation when a potential address conflict is detected.</li>
+</ul>
+<h3 class="ct-L2Sectionheader">SolidGroundUX Framework</h3>
+<h4 class="ct-L3Sectionheader">Added</h4>
+<ul>
+<li>Added dedicated style variables for title and section rendering, allowing title text, subtitle text, border colours, and border characters to be customized independently of the base UI palette.</li>
+</ul>
+<h2 class="ct-L1Sectionheader">Version 1.8 (Build 2620810)</h2>
+<h3 class="ct-L2Sectionheader">Resolved</h3>
+<ul>
+<li>Fixed various machine configuration issues in the Management Console.</li>
+<li>Fixed an issue where state variables were not being saved by `prepare-release.sh`.</li>
+<li>Fixed documentation grouping issues caused by inconsistent script title prefixes.</li>
+</ul>
+<h3 class="ct-L2Sectionheader">Added</h3>
+<ul>
+<li>Added framework global `SGND_CONSOLE_WIDTH` to define the preferred console rendering width.</li>
+<li>Added framework global `SGND_MAX_RENDER_WIDTH` to define the maximum console rendering width.</li>
+<li>Added documentation summary sections (`var:` blocks) to the framework style files.</li>
+</ul>
+<h3 class="ct-L2Sectionheader">Changed</h3>
+<ul>
+<li>Updated all UI rendering primitives to respect the framework console width settings.</li>
+<li>Changed HTML documentation rendering so consecutive non-empty lines are treated as paragraphs.</li>
+<li>Updated `prepare-release.sh` to synchronize the selected version with changed script headers.</li>
+<li>Improved documentation generation for style configuration variables.</li>
+</ul>
+<h2 class="ct-L1Sectionheader">Version 1.8 (Build 2620423)</h2>
+<h3 class="ct-L2Sectionheader">Resolved</h3>
+<ul>
+<li>Fixed an issue where `sgnd-install.sh` could overwrite ownership and permissions of existing system directories (such as `/`, `/etc`, and `/usr`) during installation.</li>
+</ul>
+<h3 class="ct-L2Sectionheader">Changed</h3>
+<ul>
+<li>Updated `sgnd-install.sh` to preserve metadata of existing target directories.</li>
+<li>Updated `prepare-release.sh` to package repository directories with `root:root` ownership.</li>
+</ul>
+<h2 class="ct-L1Sectionheader">Version 1.8 (Build 2620413)</h2>
+<h3 class="ct-L2Sectionheader">Added</h3>
+<ul>
+<li>Introduced the **SolidGroundUX Management Console**, a module-driven administration application built on the generic `sgnd-console` engine.</li>
+<li>Added ordered console-module loading through numeric filename prefixes, allowing the first module to define the console title and description.</li>
+<li>Added the `10-sgnd-config.sh` module for:</li>
+<li>Developer tools</li>
+<li>SolidGroundUX installation and maintenance</li>
+<li>Framework configuration</li>
+<li>Framework state</li>
+<li>Framework logging</li>
+<li>Framework diagnostics</li>
+<li>Added the `20-machine-config.sh` module for machine identity, package maintenance, template preparation, and optional server roles.</li>
+<li>Added direct bottom-bar controls for:</li>
+<li>Dry-run or commit mode</li>
+<li>Console log level</li>
+<li>File log level</li>
+<li>Active theme</li>
+<li>Screen clearing</li>
+<li>Added reverse cycling for console log level, file log level, and theme using `Shift+C`, `Shift+F`, and `Shift+T`.</li>
+<li>Added framework configuration actions for viewing effective settings and editing system-wide and user-specific configuration files.</li>
+<li>Added framework logging actions for viewing, following, filtering, and rotating the active logfile.</li>
+<li>Added `sgnd-update.sh` to download the latest SolidGroundUX release from GitHub.</li>
+<li>Added public command wrappers for install, uninstall, and update operations.</li>
+<li>Added cached console menu models and cached page layouts to make redraws effectively immediate.</li>
+</ul>
+<h3 class="ct-L2Sectionheader">Changed</h3>
+<ul>
+<li>Redesigned `sgnd-console` as a reusable console engine rather than a SolidGroundUX-specific application.</li>
+<li>Moved the visible console identity from the host into the first successfully loaded module.</li>
+<li>Replaced implicit module discovery order with deterministic filename sorting.</li>
+<li>Reworked the console module contract around:</li>
+<li>`SGND_MODULE_ID`</li>
+<li>`SGND_MODULE_NAME`</li>
+<li>`SGND_MODULE_VERSION`</li>
+<li>`SGND_MODULE_DESC`</li>
+<li>Separated public commands from module-private helper scripts.</li>
+<li>Merged the former Developer Tools and Framework State modules into `10-sgnd-config.sh`.</li>
+<li>Moved SolidGroundUX installation actions into the SolidGroundUX configuration module.</li>
+<li>Renamed the `vm-config` module and helper directory to `machine-config`.</li>
+<li>Replaced the individual framework smoke-test menu entries with a single framework smoke-test command.</li>
+<li>Reused `framework-smoketest.sh --show env` as the effective framework configuration and environment overview.</li>
+<li>Updated console rendering to reuse cached datatable data instead of repeatedly querying and rebuilding menu structures.</li>
+<li>Updated console and module documentation for the new Management Console architecture.</li>
+<li>Made style sequence fixed so forward and back actually work</li>
+</ul>
+<h3 class="ct-L2Sectionheader">Removed</h3>
+<ul>
+<li>Removed the old `console-devtools.sh` module.</li>
+<li>Removed the old `console-framework-state.sh` module.</li>
+<li>Removed the old `vm-config.sh` module name and `vm-config/` helper directory.</li>
+<li>Removed the prompt-based console and file log-level selectors from the Console Session menu.</li>
+<li>Removed the prompt-based theme selector from the Console Session menu.</li>
+<li>Removed the individual in-process framework smoke-test menu actions.</li>
+</ul>
+<p class="ct-documentbody">---</p>
+<h2 class="ct-L1Sectionheader">Version 1.7 (Build 2620012) 2026-07-19</h2>
+<h3 class="ct-L2Sectionheader">Removed</h3>
+<ul>
+<li>Removed motd file,  but archaic and cumbersome, and doesn&#x27;t really add any functionality</li>
+</ul>
+<h3 class="ct-L2Sectionheader">Added</h3>
+<ul>
+<li>Added images to documentation, do-generator now supports image tag in comments</li>
+</ul>
+<p class="ct-documentbody">---</p>
+<h2 class="ct-L1Sectionheader">Version 1.7 (Build 2619600) - 2026-07-14</h2>
+<h3 class="ct-L2Sectionheader">Fixed</h3>
+<ul>
+<li>sgnd-console didn&#x27;t handle --appcfg well, corrected so it works as intended</li>
+<li>updated style files with SGND_UI_ON and SGND_UI_OFF</li>
+</ul>
+<h2 class="ct-L1Sectionheader">Version 1.7 (Build 2619513) - 2026-07-14</h2>
+<h3 class="ct-L2Sectionheader">Added</h3>
+<ul>
+<li>Added Appendix F to the generated documentation containing the framework license.</li>
+<li>Introduced persistent framework settings between sessions.</li>
+<li>Added persistent console session settings.</li>
+<li>Added interactive console customization for:</li>
+<li>Theme selection</li>
+<li>File log level</li>
+<li>Menu lines per page</li>
+</ul>
+<h3 class="ct-L2Sectionheader">Changed</h3>
+<ul>
+<li>Reorganized `sgnd-console` and `sgnd-console-menu` into logical sections for improved maintainability.</li>
+</ul>
+<h3 class="ct-L2Sectionheader">Fixed</h3>
+<ul>
+<li>Framework settings are now correctly restored when scripts are started outside the console.</li>
+<li>Restored menu page height is now applied before the first console render.</li>
+</ul>
+<p class="ct-documentbody">---</p>
+<h2 class="ct-L1Sectionheader">Version 1.6 (Build 2618912) - 2026-07-02</h2>
+<h3 class="ct-L2Sectionheader">Added</h3>
+<ul>
+<li>Introduced configurable console log levels, including the new default **Silent** mode.</li>
+<li>Added extensive smoke tests for logging and progress bars.</li>
+<li>Added a framework styled MOTD.</li>
+<li>Introduced progress update intervals to improve performance.</li>
+</ul>
+<h3 class="ct-L2Sectionheader">Changed</h3>
+<ul>
+<li>Refactored executable bootstrap architecture by introducing `sgnd-exe-common.sh`.</li>
+<li>Redesigned the first-time installation process.</li>
+<li>Updated the installation guide and generated documentation.</li>
+</ul>
+<h3 class="ct-L2Sectionheader">Fixed</h3>
+<ul>
+<li>Prevented recursive backup of `/var` during installation.</li>
+<li>Corrected progress bar cursor positioning.</li>
+<li>Fixed multi-level progress bar rendering.</li>
+<li>Improved progress bar performance for large jobs.</li>
+<li>Corrected framework license acceptance recording.</li>
+<li>Fixed precedence of command-line log level over configuration.</li>
+<li>Corrected clean installation defaults and startup sequence.</li>
+</ul>
+</main>
+</body>
+</html>

@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621011
-#   Checksum    : f339b74ff47908e8b2c3114f62e664bca5ab948a6ddd79b8296995d2d96ec78d
+#   Build       : 2621201
+#   Checksum    : cbe1de13200483cad5e37855f282fff0de5f5b5ecabf554bed44cfa161a59b4d
 #   Source      : sgnd-console.sh
 #   Type        : script
 #   Group       : SolidGround Console
@@ -553,7 +553,7 @@ set -uo pipefail
         #   Non-zero if registration fails
         #
         # . Usage
-        #   _sgnd_console_register_fallback_group "$group_key"
+        #   _sgnd_console_register_fallback_group "module:devtools"
         #
         # Examples:
         #   _sgnd_console_register_fallback_group "module:devtools"
@@ -601,7 +601,7 @@ set -uo pipefail
         #   1 if the group does not exist
         #
         # . Usage
-        #   if _sgnd_console_group_exists "$group"; then ...
+        #   _sgnd_console_group_exists "runtime" && printf 'Group exists\n'
         #
         # Examples:
         #   _sgnd_console_group_exists "runtime"
@@ -626,7 +626,7 @@ set -uo pipefail
         #   126 when the module cannot be loaded.
         #
         # . Usage
-        #   _sgnd_console_source_module "$module"
+        #   _sgnd_console_source_module "/usr/local/libexec/solidgroundux/console-modules/20-machine-config.sh"
     _sgnd_console_source_module() {
         local module_file="${1:?missing module file}"
         local module_id=""
@@ -759,6 +759,15 @@ set -uo pipefail
         result_ref+=("$@")
     }
 
+    # _sgnd_run_public_command
+        # . Purpose
+        #   Sgnd run public command.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _sgnd_run_public_command "framework-smoketest"
     _sgnd_run_public_command() {
         local command_name="${1:?missing command name}"
         shift || true
@@ -783,6 +792,15 @@ set -uo pipefail
         "$resolved" "${command_args[@]}"
     }
 
+    # _sgnd_run_module_script
+        # . Purpose
+        #   Sgnd run module script.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _sgnd_run_module_script "/usr/local/libexec/solidgroundux/console-modules/machine-config/set-identity.sh"
     _sgnd_run_module_script() {
         local module_id="${1:?missing module ID}"
         local script_name="${2:?missing script name}"
@@ -820,7 +838,7 @@ set -uo pipefail
         #   1 otherwise
         #
         # . Usage
-        #   if _sgnd_flag_is_on "${FLAG_DEBUG:-0}"; then ...
+        #   _sgnd_flag_is_on 1 && printf 'Flag is enabled\n'
         #
         # Examples:
         #   _sgnd_flag_is_on "${SGND_LOGFILE_ENABLED:-0}"
@@ -841,6 +859,9 @@ set -uo pipefail
         #   - Falls back to /bin/bash.
         #   - Inherits the current console privilege level and environment.
         #   - Does not replace the console process.
+        #
+        # . Usage
+        #   _sgnd_console_open_shell
     _sgnd_console_open_shell() {
         local shell_path="${SHELL:-/bin/bash}"
 

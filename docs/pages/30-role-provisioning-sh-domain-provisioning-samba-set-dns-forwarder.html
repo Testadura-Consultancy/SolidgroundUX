@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>_samba_set_dns_forwarder</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">_samba_set_dns_forwarder</div>
+  <div class="doc-breadcrumb">SolidgroundUX / 30-role-provisioning.sh / Domain provisioning / _samba_set_dns_forwarder</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Set or replace Samba&#x27;s DNS forwarder in the global configuration section.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Rewrites an existing dns forwarder directive when present.</div>
+<div class="ct-functionbody">  - Inserts the directive before the next section when absent.</div>
+<div class="ct-functionbody">  - Preserves the remaining Samba configuration.</div>
+<div class="ct-functionbody">  - Installs the resulting file with root ownership and mode 0644.</div>
+<div class="ct-functionbody"></div>
+<p class="ct-functionbody">Inputs:</p>
+<div class="ct-functionbody">  $1 - Upstream DNS server IPv4 address.</div>
+<div class="ct-functionbody"></div>
+<p class="ct-functionbody">Outputs (files):</p>
+<div class="ct-functionbody">  /etc/samba/smb.conf</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 when the configuration is updated successfully.</div>
+<div class="ct-functionbody">  Non-zero when temporary-file creation, rewriting, or installation fails.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  _samba_set_dns_forwarder &quot;example&quot;</div>
+</main>
+</body>
+</html>

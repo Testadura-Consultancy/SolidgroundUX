@@ -2,9 +2,9 @@
 # SolidGroundUX - Documentation Renderer
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2620012
-#   Checksum    : 9df5f8f2137af487a750daae5c7a3f61d9be369945be08961a6caa9cc9d135f7
+#   Version     : 1.8
+#   Build       : 2621201
+#   Checksum    : 744656ca45b570eead30b07f364d799ffb1d7fc5e74d6284b8caa1f0419764b7
 #   Source      : doc-renderer.sh
 #   Type        : library
 #   Group       : SDK Documentation
@@ -191,7 +191,7 @@ set -uo pipefail
                 sayinfo "Output directory already exists: $VAL_OUTDIR"
             else
                 mkdir -p "$VAL_OUTDIR" && sayinfo "Created output directory: $VAL_OUTDIR" || {
-                    sayerror "Failed to create output directory: $VAL_OUTDIR"
+                    sayfail "Failed to create output directory: $VAL_OUTDIR"
                     return 1
                 }
             fi
@@ -213,7 +213,7 @@ set -uo pipefail
                 fi
 
                 rm -rf "${VAL_OUTDIR:?}/"* && sayinfo "Cleaned output directory: $VAL_OUTDIR" || {
-                    sayerror "Failed to clean output directory: $VAL_OUTDIR"
+                    sayfail "Failed to clean output directory: $VAL_OUTDIR"
                     return 1
                 }
 
@@ -237,12 +237,12 @@ set -uo pipefail
             
             if [[ -d "$image_source_dir" ]]; then
                 mkdir -p "$image_target_dir" || {
-                    sayerror "Failed to create documentation image directory: $image_target_dir"
+                    sayfail "Failed to create documentation image directory: $image_target_dir"
                     return 1
                 }
 
                 cp -a "$image_source_dir/." "$image_target_dir/" || {
-                    sayerror "Failed to copy documentation images from: $image_source_dir"
+                    sayfail "Failed to copy documentation images from: $image_source_dir"
                     return 1
                 }
 
@@ -267,7 +267,7 @@ set -uo pipefail
             #   Non-zero when the target file cannot be written.
             #
             # . Usage
-            #   _export_render_config "$export_dir/render_config.psv"
+            #   _export_render_config "/tmp/sgnd-example.txt"
         _export_render_config() {
 
             local config_file="${1:?missing config file}"
@@ -354,7 +354,7 @@ set -uo pipefail
             #   1 when directory creation or any export step fails.
             #
             # . Usage
-            #   _export_render_tables "$export_dir"
+            #   _export_render_tables "/tmp/sgnd-example"
         _export_render_tables() {
             local export_dir="${1:?missing export dir}"
 
@@ -403,6 +403,21 @@ set -uo pipefail
                 DOC_LICENSE_LINES \
                 "$export_dir/doc_license_lines.psv" \
                 || return 1
+
+            project_root="${VAL_SRCDIR%/target-root}"
+
+            if [[ -f "$project_root/CHANGELOG.md" ]]; then
+                cp "$project_root/CHANGELOG.md" \
+                    "$export_dir/CHANGELOG.md" \
+                    || return 1
+            fi
+
+            if [[ -f "$project_root/INSTALL.md" ]]; then
+                cp "$project_root/INSTALL.md" \
+                    "$export_dir/INSTALL.md" \
+                    || return 1
+            fi
+
 
             _export_render_config \
                 "$export_dir/render_config.psv" \
@@ -462,22 +477,22 @@ set -uo pipefail
         #   1 when validation, preparation, export, rendering, or output verification fails.
         #
         # . Usage
-        #   _render_site "$VAL_OUTDIR"
+        #   _render_site "example"
     _render_site(){
         local output_folder="${1:-}"
         [[ -z "$output_folder" ]] && {
-            sayerror "No outputfolder was passed"
+            sayfail "No outputfolder was passed"
             return 1
         }
         saydebug "Rendering site to $output_folder"
 
         _prepare_output_directory || {
-            sayerror "Failed to prepare output directory"
+            sayfail "Failed to prepare output directory"
             return 1
         }
 
         _init_metadata || {
-            sayerror "Failed to initialize documentation metadata"
+            sayfail "Failed to initialize documentation metadata"
             return 1
         }
 
@@ -485,14 +500,26 @@ set -uo pipefail
 
         local export_dir=""
         export_dir="$(mktemp -d "/tmp/sgnd-doc-render.XXXXXX")" || {
-            sayerror "Failed to create temporary export directory"
+            sayfail "Failed to create temporary export directory"
             return 1
         }
 
         _export_render_tables "$export_dir" || {
-            sayerror "Failed to export render tables for Python renderer"
+            sayfail "Failed to export render tables for Python renderer"
             return 1
         }
+
+        local cache_dir="$VAL_OUTDIR/.sgnd-doc-cache"
+        mkdir -p "$cache_dir" || {
+            sayfail "Failed to create documentation cache directory: $cache_dir"
+            return 1
+        }
+
+        cp -f "$export_dir"/*.psv "$cache_dir/" || {
+            sayfail "Failed to update documentation cache: $cache_dir"
+            return 1
+        }
+        sayinfo "Documentation cache updated: $cache_dir"
 
         sayinfo "Python renderer input : $export_dir"
         sayinfo "Python renderer output: $output_folder"
@@ -508,7 +535,7 @@ set -uo pipefail
 
 
         if [[ ! -f "$output_folder/index.html" ]]; then
-            sayerror "Python renderer completed, but index.html was not created in: $output_folder"
+            sayfail "Python renderer completed, but index.html was not created in: $output_folder"
             return 1
         fi
         sayinfo "Documentation rendering complete. Output available at: $output_folder"

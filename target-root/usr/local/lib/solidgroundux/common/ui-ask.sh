@@ -2,9 +2,9 @@
 # SolidGroundUX - UI Ask
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2620501
-#   Checksum    : 9e2e4e9cfed017cc6eca496faffb3be3020a267d7d9af147633578f86c00f70f
+#   Version     : 1.8
+#   Build       : 2621201
+#   Checksum    : ed6d84b7c76fc291d09f8ad2e37a0c82782d11455ad25d606fde25e24315719e
 #   Source      : ui-ask.sh
 #   Type        : library
 #   Group       : UI
@@ -152,6 +152,9 @@ set -uo pipefail
         # . Returns
         #   0 if valid
         #   1 if invalid
+        #
+        # . Usage
+        #   _ask_choice_is_valid "yes" "yes,no,cancel" && printf 'Valid choice\n'
     _ask_choice_is_valid() {
         local value="${1-}"
         local choices="${2-}"
@@ -194,7 +197,7 @@ set -uo pipefail
         #   0 when the prompt string was written.
         #
         # . Usage
-        #   prompt="$(_ask_build_prompt "User name" 25 2 "$SGND_UI_LABEL" "$SGND_UI_INPUT" both)"
+        #   prompt="$(_ask_build_prompt "User name" 25 2 $'\e[36m' $'\e[37m' both)"; printf '%s\n' "$prompt"
     _ask_build_prompt() {
         local label="$1"
         local labelwidth="$2"
@@ -261,6 +264,9 @@ set -uo pipefail
         # . Returns
         #   0 if valid or no validator is supplied.
         #   Non-zero when the validator rejects the value.
+        #
+        # . Usage
+        #   _ask_validate "42" sgnd_validate_int && printf 'Valid integer\n'
     _ask_validate() {
         local fn="${1-}"
         local value="${2-}"
@@ -372,6 +378,9 @@ set -uo pipefail
         #
         # . Returns
         #   0 always.
+        #
+        # . Usage
+        #   _ask_decision_display "YES|Y,NO|N,CANCEL|C"
     _ask_decision_display() {
         local spec="${1-}"
         local group=""
@@ -413,7 +422,7 @@ set -uo pipefail
         #   1 when the return code cannot be mapped to the supplied choices.
         #
         # . Usage
-        #   decision="$(_ask_decision_map_dlg_rc "$dlg_rc" "YES|Y,NO|N,CANCEL|C" "YES")"
+        #   decision="$(_ask_decision_map_dlg_rc 0 "YES|Y,NO|N,CANCEL|C" "YES")"; printf '%s\n' "$decision"
     _ask_decision_map_dlg_rc() {
         local rc="${1-}"
         local choices="${2-}"
@@ -491,6 +500,9 @@ set -uo pipefail
         # . Returns
         #   0 if valid
         #   1 if invalid
+        #
+        # . Usage
+        #   _ask_is_ident "TARGET_DIR" && printf 'Valid identifier\n'
     _ask_is_ident() {
         [[ "${1-}" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]
     }
@@ -560,10 +572,7 @@ set -uo pipefail
         #   2 when /dev/tty is not available.
         #
         # . Usage
-        #   ask --label "Target directory" \
-        #       --var TARGET_DIR \
-        #       --default "$TARGET_DIR" \
-        #       --validate sgnd_validate_dir_exists
+        #   ask --label "Target directory" --var TARGET_DIR --default "/tmp" --validate sgnd_validate_dir_exists
     ask() {
         local label=""
         local var_name=""

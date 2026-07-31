@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621011
-#   Checksum    : fdb1e9ac0dc6b9b53031f6a44b9e5c56a8d80099bc4c5e241077e6a123c450e2
+#   Build       : 2621122
+#   Checksum    : b63f99ae2c0ae0eacfae42c321f8e45b12a294aa58baa5017f3f9eb4a71da5d3
 #   Source      : 21-style-fantasy.sh
 #   Type        : library
 #   Group       : Styles

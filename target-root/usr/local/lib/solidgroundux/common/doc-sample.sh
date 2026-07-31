@@ -27,9 +27,9 @@
 #   used for developer comments or module-level prose.
 #
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2616001
-#   Checksum    : 5f69fcc7a19546d5048acad6b64ebfdc7cc37ead02b37509abab8b82cfe9b615
+#   Version     : 1.8
+#   Build       : 2621201
+#   Checksum    : 4b20351c3431bd7ad30f0f87560ed9aaae45974783188942564fe821f0d78add
 #   Source      : doc-sample.sh
 #   Type        : documentation
 #   Group       : SDK Documentation
@@ -116,7 +116,7 @@ set -uo pipefail
     #   0 on success unless the called command returns a different status.
     #
     # . Usage
-    #   sample_public_function
+    #   sample_public_function "SolidGroundUX"
 sample_public_function() {
     return 0
 }
@@ -143,7 +143,7 @@ sample_public_function() {
     #   2  Required source value was missing.
     #
     # . Usage
-    #   sample_function_with_arguments "$source" "$target"
+    #   sample_function_with_arguments "/tmp/sgnd-example.txt" "/tmp/sgnd-example.txt"
 sample_function_with_arguments() {
     if [[ $# -lt 1 ]]; then
         printf 'Missing required argument: source\n' >&2
@@ -167,6 +167,9 @@ sample_function_with_arguments() {
     #
     # . Returns
     #   0 on success.
+    #
+    # . Usage
+    #   _sample_internal_function "example" "example-2"
 _sample_internal_function() {
     return 0
 }
@@ -200,8 +203,7 @@ _sample_internal_function() {
     #   1  General failure.
     #
     # . Usage
-    #   sample_template_function "$arg1" "$arg2"
-    #
+    #   sample_template_function
     # . Examples
     #   sample_template_function "source" "target"
 sample_template_function() {

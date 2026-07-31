@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>_sgnd_lib_guard</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">_sgnd_lib_guard</div>
+  <div class="doc-breadcrumb">SolidgroundUX / 30-role-provisioning.sh / Library guard / _sgnd_lib_guard</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Ensure the module is sourced as a library and initialized only once.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Derives a unique guard variable from the current filename.</div>
+<div class="ct-functionbody">  - Aborts when the module is executed directly.</div>
+<div class="ct-functionbody">  - Marks the module as loaded on first source.</div>
+<div class="ct-functionbody">  - Returns immediately when the module was already loaded.</div>
+<div class="ct-functionbody"></div>
+<p class="ct-functionbody">Inputs:</p>
+<div class="ct-functionbody">  BASH_SOURCE[0]</div>
+<div class="ct-functionbody">  $0</div>
+<div class="ct-functionbody"></div>
+<p class="ct-functionbody">Outputs (globals):</p>
+<div class="ct-functionbody">  SGND_&lt;MODULE&gt;_LOADED</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 if already loaded or successfully initialized.</div>
+<div class="ct-functionbody">  Exits with code 2 if executed instead of sourced.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  _sgnd_lib_guard &quot;example-0&quot;</div>
+</main>
+</body>
+</html>

@@ -43,6 +43,8 @@ INTEGRITY_PREFIX = "appendix:integrity:"
 GLOBALS_PREFIX = "appendix:globals:"
 LICENSE_PREFIX = "appendix:license:"
 ENUMS_PREFIX = "appendix:enums:"
+CHANGELOG_PREFIX = "appendix:changelog:"
+INSTALL_PREFIX = "appendix:install:"
 
 
 def read_psv(path: Path, *, required: bool = True) -> List[Row]:
@@ -141,6 +143,14 @@ def enums_ref(product_name: str) -> str:
     return f"{ENUMS_PREFIX}{product_name}"
 
 
+def changelog_ref(product_name: str) -> str:
+    return f"{CHANGELOG_PREFIX}{product_name}"
+
+
+def install_ref(product_name: str) -> str:
+    return f"{INSTALL_PREFIX}{product_name}"
+
+
 def page_href_from_contentref(ref: str) -> str:
     return f"pages/{slugify(ref)}.html"
 
@@ -157,6 +167,27 @@ def display_name_with_title(name: str, title: str) -> str:
         return clean_title
 
     return clean_name
+
+
+@dataclass(frozen=True)
+class AppendixSpec:
+    key: str
+    letter: str
+    title: str
+    ref_factory: object
+    renderer_name: str
+
+
+APPENDIX_SPECS: tuple[AppendixSpec, ...] = (
+    AppendixSpec("attribution", "A", "Attribution", attribution_ref, "render_attribution_page"),
+    AppendixSpec("glossary", "B", "Glossary", glossary_ref, "render_glossary_page"),
+    AppendixSpec("integrity", "C", "Integrity Information", integrity_ref, "render_integrity_page"),
+    AppendixSpec("globals", "D", "Global Variables", globals_ref, "render_globals_page"),
+    AppendixSpec("enums", "E", "Framework Value Sets", enums_ref, "render_enums_page"),
+    AppendixSpec("license", "X", "License", license_ref, "render_license_page"),
+    AppendixSpec("changelog", "Y", "Change Log", changelog_ref, "render_changelog_page"),
+    AppendixSpec("install", "Z", "First Installation", install_ref, "render_install_page"),
+)
 
 
 @dataclass
@@ -377,70 +408,20 @@ class DocRenderer:
                 )
             )
 
-            self.nav.append(
-                NavNode(
-                    nodeid=f"appendix:{product_name}:attribution",
-                    parentnodeid=appendices_node_id,
-                    nodetype="appendix",
-                    node_name="Appendix A: Attribution",
-                    node_title="Appendix A: Attribution",
-                    hierarchy_level=2,
-                    docindex=f"{appendices_docindex}.1",
-                    contentref=attribution_ref(product_name),
+            for appendix_index, appendix in enumerate(APPENDIX_SPECS, start=1):
+                appendix_label = f"Appendix {appendix.letter}: {appendix.title}"
+                self.nav.append(
+                    NavNode(
+                        nodeid=f"appendix:{product_name}:{appendix.key}",
+                        parentnodeid=appendices_node_id,
+                        nodetype="appendix",
+                        node_name=appendix_label,
+                        node_title=appendix_label,
+                        hierarchy_level=2,
+                        docindex=f"{appendices_docindex}.{appendix_index}",
+                        contentref=appendix.ref_factory(product_name),
+                    )
                 )
-            )
-
-            self.nav.append(
-                NavNode(
-                    nodeid=f"appendix:{product_name}:glossary",
-                    parentnodeid=appendices_node_id,
-                    nodetype="appendix",
-                    node_name="Appendix B: Glossary",
-                    node_title="Appendix B: Glossary",
-                    hierarchy_level=2,
-                    docindex=f"{appendices_docindex}.2",
-                    contentref=glossary_ref(product_name),
-                )
-            )
-
-            self.nav.append(
-                NavNode(
-                    nodeid=f"appendix:{product_name}:integrity",
-                    parentnodeid=appendices_node_id,
-                    nodetype="appendix",
-                    node_name="Appendix C: Integrity Information",
-                    node_title="Appendix C: Integrity Information",
-                    hierarchy_level=2,
-                    docindex=f"{appendices_docindex}.3",
-                    contentref=integrity_ref(product_name),
-                )
-            )
-
-            self.nav.append(
-                NavNode(
-                    nodeid=f"appendix:{product_name}:globals",
-                    parentnodeid=appendices_node_id,
-                    nodetype="appendix",
-                    node_name="Appendix D: Global Variables",
-                    node_title="Appendix D: Global Variables",
-                    hierarchy_level=2,
-                    docindex=f"{appendices_docindex}.4",
-                    contentref=globals_ref(product_name),
-                )
-            )
-
-            self.nav.append(
-                NavNode(
-                    nodeid=f"appendix:{product_name}:license",
-                    parentnodeid=appendices_node_id,
-                    nodetype="appendix",
-                    node_name="Appendix E: License",
-                    node_title="Appendix E: License",
-                    hierarchy_level=2,
-                    docindex=f"{appendices_docindex}.5",
-                    contentref=license_ref(product_name),
-                )
-            )
 
     def modules_by_product(self) -> Dict[str, List[Row]]:
         result: Dict[str, List[Row]] = defaultdict(list)
@@ -1480,16 +1461,20 @@ body {
 
         index_file.write_text("\n".join(html_lines), encoding="utf-8")
 
+    def is_appendix_ref(self, ref: str) -> bool:
+        return any(ref.startswith(prefix) for prefix in (
+            ATTRIBUTION_PREFIX,
+            GLOSSARY_PREFIX,
+            INTEGRITY_PREFIX,
+            GLOBALS_PREFIX,
+            ENUMS_PREFIX,
+            LICENSE_PREFIX,
+            CHANGELOG_PREFIX,
+            INSTALL_PREFIX,
+        ))
+
     def has_renderable_page(self, ref: str) -> bool:
-        return (
-            ref.startswith(ATTRIBUTION_PREFIX)
-            or ref.startswith(GLOSSARY_PREFIX)
-            or ref.startswith(INTEGRITY_PREFIX)
-            or ref.startswith(GLOBALS_PREFIX)
-            or ref.startswith(LICENSE_PREFIX)
-            or ref.startswith(ENUMS_PREFIX)
-            or ref in self.content_by_ref
-        )
+        return self.is_appendix_ref(ref) or ref in self.content_by_ref
     
     def render_navigation(self) -> str:
         lines: List[str] = []
@@ -1559,7 +1544,7 @@ body {
                 return page_href_from_contentref(node.contentref)
 
         for node in self.nav:
-            if node.contentref and (node.contentref.startswith(ATTRIBUTION_PREFIX) or node.contentref.startswith(GLOSSARY_PREFIX) or node.contentref.startswith(INTEGRITY_PREFIX) or node.contentref.startswith(GLOBALS_PREFIX) or node.contentref.startswith(LICENSE_PREFIX) or node.contentref.startswith(ENUMS_PREFIX)):
+            if node.contentref and self.is_appendix_ref(node.contentref):
                 return page_href_from_contentref(node.contentref)
 
         return "about:blank"
@@ -1570,17 +1555,14 @@ body {
         self.render_title_page()
 
         for product_name in sorted(self.modules_by_product().keys(), key=str.casefold):
-            self.render_attribution_page(product_name)
-            self.render_glossary_page(product_name)
-            self.render_integrity_page(product_name)
-            self.render_globals_page(product_name)
-            self.render_license_page(product_name)
-            self.render_enums_page(product_name)
+            for appendix in APPENDIX_SPECS:
+                renderer = getattr(self, appendix.renderer_name)
+                renderer(product_name)
 
         for node in self.nav:
             if not node.contentref:
                 continue
-            if node.contentref.startswith(ATTRIBUTION_PREFIX) or node.contentref.startswith(GLOSSARY_PREFIX) or node.contentref.startswith(INTEGRITY_PREFIX) or node.contentref.startswith(GLOBALS_PREFIX) or node.contentref.startswith(LICENSE_PREFIX) or node.contentref.startswith(ENUMS_PREFIX):
+            if self.is_appendix_ref(node.contentref):
                 continue
             if node.contentref not in self.content_by_ref and not self.is_module_level_special_page(node):
                 continue
@@ -1961,15 +1943,15 @@ body {
             "<html>",
             "<head>",
             '  <meta charset="utf-8">',
-            "  <title>Appendix E: License</title>",
+            "  <title>Appendix X: License</title>",
             '  <link rel="stylesheet" href="../assets/doc.css">',
             '  <link rel="stylesheet" href="../assets/theme.css">',
             "</head>",
             "<body>",
             '<main class="doc-page">',
             '<header class="doc-page-header">',
-            '  <div class="doc-title">Appendix E: License</div>',
-            f'  <div class="doc-breadcrumb">{esc(product_name)} / Appendices / Appendix E: License</div>',
+            '  <div class="doc-title">Appendix X: License</div>',
+            f'  <div class="doc-breadcrumb">{esc(product_name)} / Appendices / Appendix X: License</div>',
             "</header>",
             body,
             "</main>",
@@ -2007,15 +1989,15 @@ body {
             "<html>",
             "<head>",
             '  <meta charset="utf-8">',
-            "  <title>Appendix F: Framework Value Sets</title>",
+            "  <title>Appendix E: Framework Value Sets</title>",
             '  <link rel="stylesheet" href="../assets/doc.css">',
             '  <link rel="stylesheet" href="../assets/theme.css">',
             "</head>",
             "<body>",
             '<main class="doc-page">',
             '<header class="doc-page-header">',
-            '  <div class="doc-title">Appendix F: Framework Value Sets</div>',
-            f'  <div class="doc-breadcrumb">{esc(product_name)} / Appendices / Appendix F: Framework Value Sets</div>',
+            '  <div class="doc-title">Appendix E: Framework Value Sets</div>',
+            f'  <div class="doc-breadcrumb">{esc(product_name)} / Appendices / Appendix E: Framework Value Sets</div>',
             "</header>",
             body,
             "</main>",
@@ -2195,6 +2177,147 @@ body {
             '</section>',
         ])
         return "\n".join(lines)
+
+    def read_optional_project_document(self, candidates: Sequence[str]) -> tuple[str, str]:
+        for name in candidates:
+            path = self.input_dir / name
+            if path.is_file():
+                return name, path.read_text(encoding="utf-8", errors="replace")
+        return candidates[0], ""
+
+    def render_markdown_document(self, markdown_text: str) -> str:
+        if not markdown_text.strip():
+            return ""
+
+        lines: List[str] = []
+        paragraph: List[str] = []
+        list_type = ""
+        in_code = False
+        code_lines: List[str] = []
+
+        def flush_paragraph() -> None:
+            if paragraph:
+                lines.append(f'<p class="ct-documentbody">{esc(" ".join(paragraph))}</p>')
+                paragraph.clear()
+
+        def close_list() -> None:
+            nonlocal list_type
+            if list_type:
+                lines.append(f"</{list_type}>")
+                list_type = ""
+
+        for raw_line in markdown_text.splitlines():
+            stripped = raw_line.strip()
+
+            if stripped.startswith("```"):
+                flush_paragraph()
+                close_list()
+                if in_code:
+                    lines.append('<pre class="doc-license-text"><code>' + esc("\n".join(code_lines)) + '</code></pre>')
+                    code_lines.clear()
+                    in_code = False
+                else:
+                    in_code = True
+                continue
+
+            if in_code:
+                code_lines.append(raw_line)
+                continue
+
+            heading = re.match(r"^(#{1,6})\s+(.+)$", stripped)
+            if heading:
+                flush_paragraph()
+                close_list()
+                level = min(len(heading.group(1)) + 1, 6)
+                lines.append(f'<h{level} class="ct-L{min(level - 1, 3)}Sectionheader">{esc(heading.group(2))}</h{level}>')
+                continue
+
+            unordered = re.match(r"^[-*+]\s+(.+)$", stripped)
+            ordered = re.match(r"^\d+[.)]\s+(.+)$", stripped)
+            if unordered or ordered:
+                flush_paragraph()
+                wanted = "ul" if unordered else "ol"
+                if list_type != wanted:
+                    close_list()
+                    list_type = wanted
+                    lines.append(f"<{list_type}>")
+                item = (unordered or ordered).group(1)
+                lines.append(f"<li>{esc(item)}</li>")
+                continue
+
+            if not stripped:
+                flush_paragraph()
+                close_list()
+                continue
+
+            paragraph.append(stripped)
+
+        flush_paragraph()
+        close_list()
+        if in_code:
+            lines.append('<pre class="doc-license-text"><code>' + esc("\n".join(code_lines)) + '</code></pre>')
+
+        return "\n".join(lines)
+
+    def render_project_document_page(
+        self,
+        product_name: str,
+        ref: str,
+        letter: str,
+        title: str,
+        candidates: Sequence[str],
+    ) -> None:
+        href = page_href_from_contentref(ref)
+        output_file = self.output_dir / href
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+
+        source_name, markdown_text = self.read_optional_project_document(candidates)
+        body = self.render_markdown_document(markdown_text)
+        if not body:
+            body = (
+                f'<div class="ct-documentbody">No {esc(source_name)} document was found in the renderer input directory.</div>'
+            )
+
+        label = f"Appendix {letter}: {title}"
+        html_lines = [
+            "<!doctype html>",
+            "<html>",
+            "<head>",
+            '  <meta charset="utf-8">',
+            f"  <title>{esc(label)}</title>",
+            '  <link rel="stylesheet" href="../assets/doc.css">',
+            '  <link rel="stylesheet" href="../assets/theme.css">',
+            "</head>",
+            "<body>",
+            '<main class="doc-page">',
+            '<header class="doc-page-header">',
+            f'  <div class="doc-title">{esc(label)}</div>',
+            f'  <div class="doc-breadcrumb">{esc(product_name)} / Appendices / {esc(label)}</div>',
+            "</header>",
+            body,
+            "</main>",
+            "</body>",
+            "</html>",
+        ]
+        output_file.write_text("\n".join(html_lines), encoding="utf-8")
+
+    def render_changelog_page(self, product_name: str) -> None:
+        self.render_project_document_page(
+            product_name,
+            changelog_ref(product_name),
+            "Y",
+            "Change Log",
+            ("CHANGELOG.md", "Changelog.md", "changelog.md"),
+        )
+
+    def render_install_page(self, product_name: str) -> None:
+        self.render_project_document_page(
+            product_name,
+            install_ref(product_name),
+            "Z",
+            "First Installation",
+            ("INSTALL.md", "Install.md", "install.md"),
+        )
 
     def render_content_page(self, node: NavNode) -> None:
         href = page_href_from_contentref(node.contentref)

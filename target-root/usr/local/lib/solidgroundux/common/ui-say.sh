@@ -2,9 +2,9 @@
 # SolidGroundUX - UI Messaging
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2619513
-#   Checksum    : feb324588cfc3a781353535396097249366a2da306d7747285092dfd5599f9ae
+#   Version     : 1.8
+#   Build       : 2621201
+#   Checksum    : 8d116236614ebb61f01d98c96617712c2b0434632308bdc54225676016b727b1
 #   Source      : ui-say.sh
 #   Type        : library
 #   Group       : UI
@@ -119,6 +119,9 @@ set -uo pipefail
         #
         # . Returns
         #   0 always.
+        #
+        # . Usage
+        #   _say_normalize_log_level "example"
     _say_normalize_log_level() {
 
         case "${1,,}" in
@@ -173,6 +176,9 @@ set -uo pipefail
         # . Returns
         #   0 if the message should be displayed.
         #   1 if the message should be suppressed.
+        #
+        # . Usage
+        #   _say_should_print_console "example"
     _say_should_print_console() {
 
         local type="${1^^}"
@@ -252,6 +258,9 @@ set -uo pipefail
         # . Returns
         #   0 when the message should be logged.
         #   1 when the message should be suppressed.
+        #
+        # . Usage
+        #   _say_should_write_log "example"
     _say_should_write_log() {
         local type="${1^^}"
         local level
@@ -296,7 +305,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # . Usage
-        #   _say_caller "$value"
+        #   _say_caller 1
     _say_caller() {
         local i
         for ((i=1; i<${#FUNCNAME[@]}; i++)); do
@@ -338,7 +347,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # . Usage
-        #   _say_write_log "$value"
+        #   _say_write_log "example" "example-2" "2026-07-31"
     _say_write_log() {
         local type="${1^^}"
         local msg="$2"
@@ -403,7 +412,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # . Usage
-        #   _sgnd_rotate_logs "$value"
+        #   _sgnd_rotate_logs "/tmp/sgnd-example.txt"
     _sgnd_rotate_logs() {
             # . Usage _sgnd_rotate_logs "/path/to/logfile"
             local logfile="$1"
@@ -458,7 +467,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # . Usage
-        #   _sgnd_logfile "$value"
+        #   _sgnd_logfile
     _sgnd_logfile() {
         
         # Determine logfile path according to priority:
@@ -499,7 +508,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # . Usage
-        #   _sayprogress_write_slot "$value"
+        #   _sayprogress_write_slot "example" "SolidGroundUX example"
     _sayprogress_write_slot() {
         local slot="${1:-0}"
         local text="${2:-}"
@@ -546,7 +555,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # . Usage
-        #   _sgnd_ensure_linebreak "$value"
+        #   _sgnd_ensure_linebreak "example"
     _sgnd_ensure_linebreak() {
         if (( ${SGND_LINEBREAK_PENDING:-0} )); then
             printf '\n' >&2
@@ -960,9 +969,7 @@ set -uo pipefail
         #   1 when an unknown argument is supplied.
         #
         # . Usage
-        #   sayprogress --current 25 --total 100 --label "Processing"
-        #   sayprogress --slot 1 --current "$done" --total "$total" --type 3
-        #   sayprogress --slot 1 --current "$line" --total "$lines" --interval 25
+        #   sayprogress "example" "example-2"
     sayprogress() {
         local current=0
         local slot=0
@@ -1124,7 +1131,7 @@ set -uo pipefail
         #   0 always.
         #
         # . Usage
-        #   sayprogress_done
+        #   sayprogress_done "Package installation complete"
     sayprogress_done() {
         local slots="${SGND_PROGRESS_RESERVED:-0}"
         local i
@@ -1160,7 +1167,7 @@ set -uo pipefail
                 #   0 when the message was handled.
                 #
                 # . Usage
-                #   sayinfo "Workspace created"
+                #   sayinfo "SolidGroundUX example"
         sayinfo() {
             say INFO "$@"
         }
@@ -1179,7 +1186,7 @@ set -uo pipefail
                 #   0 when the message was handled.
                 #
                 # . Usage
-                #   saystart "Installing framework files"
+                #   saystart "Starting SolidGroundUX example"
         saystart() {
             say STRT "$@"
         }
@@ -1192,7 +1199,7 @@ set -uo pipefail
             #   - Delegates to say WARN.
             #
             # . Usage
-            #   saywarning "Disk space low"
+            #   saywarning "Example warning"
             #
             # Examples:
             #   saywarning "Configuration missing"
@@ -1214,7 +1221,7 @@ set -uo pipefail
                 #   0 when the message was handled.
                 #
                 # . Usage
-                #   sayfail "Checksum validation failed"
+                #   sayfail "Example failure"
         sayfail() {
             say FAIL "$@"
         }
@@ -1233,7 +1240,7 @@ set -uo pipefail
                 #   0 when the message was handled.
                 #
                 # . Usage
-                #   saycancel "Deployment cancelled by user"
+                #   saycancel "Operation cancelled"
         saycancel() {
             say CNCL "$@"
         }
@@ -1252,7 +1259,7 @@ set -uo pipefail
                 #   0 when the message was handled.
                 #
                 # . Usage
-                #   sayok "Installation complete"
+                #   sayok "Operation completed"
         sayok() {
             say OK "$@"
         }
@@ -1271,7 +1278,7 @@ set -uo pipefail
                 #   0 when the message was handled.
                 #
                 # . Usage
-                #   sayend "Workspace deployment finished"
+                #   sayend "SolidGroundUX example complete"
         sayend() {
             say END "$@"
         }
@@ -1321,7 +1328,7 @@ set -uo pipefail
                 #   0 when the message was ignored or handled.
                 #
                 # . Usage
-                #   saydebug "Resolved install root: $install_root"
+                #   saydebug "Example debug message"
         saydebug() {
             local src="${BASH_SOURCE[1]##*/}"
             local func="${FUNCNAME[1]}"

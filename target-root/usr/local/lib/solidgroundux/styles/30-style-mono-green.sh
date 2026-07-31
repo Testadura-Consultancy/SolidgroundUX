@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621011
-#   Checksum    : 936d73f80aa4f41fdd84707462ab53496633dde5ee5c6a1dde71fd88bd1e0a69
+#   Build       : 2621122
+#   Checksum    : 8cdc0b2c0eeaa80f2209cd16415ff0ddfdcf0b3dfbdf5311ce1b8778d927d52d
 #   Source      : 30-style-mono-green.sh
 #   Type        : library
 #   Group       : Styles

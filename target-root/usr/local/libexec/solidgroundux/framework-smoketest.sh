@@ -3,9 +3,9 @@
 # SolidGroundUX - Framework smoke tester
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2620211
-#   Checksum    : 106d28f7b6ac7c117b4751e5a979df83147fd7b487ac3e02e18d91330c8e450b
+#   Version     : 1.8
+#   Build       : 2621201
+#   Checksum    : 514e5e338861d69850a8ed86ea838715a28783e45c097506657f3512013eac30
 #   Source      : framework-smoketest.sh
 #   Type        : script
 #   Purpose     : Exercise and validate core SolidGroundUX framework functionality
@@ -627,6 +627,15 @@ set -uo pipefail
         sgnd_print_file "$logfile"
     }
 
+    # fn: motd_test - Motd test
+        # . Purpose
+        #   Motd test.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   motd_test
     motd_test() {
         local motd_file="$SGND_FRAMEWORK_ROOT/etc/update-motd.d/90-solidgroundux"
 
@@ -748,6 +757,15 @@ set -uo pipefail
         sayok "Progress test 3/3 complete"
     }
 
+    # fn: show_colorchart - Show colorchart
+        # . Purpose
+        #   Show colorchart.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   show_colorchart
     show_colorchart(){
         sgnd_color_samples
     }

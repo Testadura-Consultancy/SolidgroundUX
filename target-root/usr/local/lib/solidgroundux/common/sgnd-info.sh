@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2620801
-#   Checksum    : 8e9ca9355655a715182af3499d228fe9db0cd38848e05a926a144cbfd955c9d0
+#   Build       : 2621201
+#   Checksum    : 223c394ee4dae69fd326df0d74d96a22b5027e24462ec3fabcae33a19a0f783d
 #   Source      : sgnd-info.sh
 #   Type        : library
 #   Group       : Common Core
@@ -104,7 +104,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   _sgnd_print_arg_spec_entry "${ENTRY}"
+        #   _sgnd_print_arg_spec_entry "example"
     _sgnd_print_arg_spec_entry() {
         local entry="${1-}"
         local name=""
@@ -151,7 +151,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   _sgnd_print_arg_spec_list "${HEADER}" "${ARRAY_NAME}"
+        #   _sgnd_print_arg_spec_list "example" "example-2"
     _sgnd_print_arg_spec_list() {
         local header="${1:?missing header}"
         local array_name="${2:?missing array name}"
@@ -187,7 +187,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   _sgnd_print_cfg_pass "${HEADER_TEXT}" "${ARRAY_NAME}"
+        #   _sgnd_print_cfg_pass "SolidGroundUX example" "example-2"
     _sgnd_print_cfg_pass() {
         local header_text="${1:?missing header text}"
         local array_name="${2:?missing array name}"
@@ -239,7 +239,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_print_cfg "${ARRAY_NAME}" "${FILTER}"
+        #   sgnd_print_cfg "example" "example-2"
     sgnd_print_cfg() {
         local array_name="${1:?missing spec array name}"
         local filter="${2:-both}"

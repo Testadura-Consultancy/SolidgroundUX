@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621011
-#   Checksum    : 526e7d9f4d4544d56a045127ec4c2fe7f09c6d11d2cfc438c3f1697960403690
+#   Build       : 2621122
+#   Checksum    : e3bcdae2b2630a0e5fd824d19744471b71cb118f7c5f279a83adf9084c6bee13
 #   Source      : 11-style-steelblue.sh
 #   Type        : library
 #   Group       : Styles

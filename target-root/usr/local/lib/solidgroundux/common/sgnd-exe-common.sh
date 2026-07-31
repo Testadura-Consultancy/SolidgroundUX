@@ -2,9 +2,9 @@
 # SolidGroundUX - Executable Runtime Support
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2619513
-#   Checksum    : c5a1cc99f701b759777e2be1f77f7ed6c14410bfaac95981007962f10d4e95bc
+#   Version     : 1.8
+#   Build       : 2621201
+#   Checksum    : 4d76ba15c4afff37e1a6c690890a8fb74fda2bd0175f8cbabb9ebbcb2094a468
 #   Source      : sgnd-exe-common.sh
 #   Type        : library
 #   Group       : Executable Runtime
@@ -65,6 +65,9 @@ set -uo pipefail
         # . Returns
         #   0 if already loaded or successfully initialized.
         #   Exits with code 2 if executed instead of sourced.
+        #
+        # . Usage
+        #   _sgnd_lib_guard "example-0"
     _sgnd_lib_guard() {
         local lib_base
         local guard
@@ -122,6 +125,9 @@ set -uo pipefail
         #
         # . Returns
         #   0 always.
+        #
+        # . Usage
+        #   _sgnd_minimal_say_normalize_log_level "example"
     _sgnd_minimal_say_normalize_log_level() {
         case "${1,,}" in
             off|none|silent) printf '%s\n' 'silent' ;;
@@ -148,6 +154,9 @@ set -uo pipefail
         # . Returns
         #   0 if the message should be displayed.
         #   1 if the message should be suppressed.
+        #
+        # . Usage
+        #   _sgnd_minimal_say_should_print_console "example"
     _sgnd_minimal_say_should_print_console() {
         local type="${1^^}"
         local level=""
@@ -206,6 +215,9 @@ set -uo pipefail
         #
         # . Returns
         #   0 always.
+        #
+        # . Usage
+        #   say "example"
     say() {
         local type="${1^^}"
         local label=""
@@ -231,13 +243,85 @@ set -uo pipefail
         printf '%s%-6s%s\t%s\n' "$color" "$label" "${RESET-}" "$*" >&2
     }
 
+    # saystart
+        # . Purpose
+        #   Saystart.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   saystart "Starting SolidGroundUX example"
     saystart()   { say START "$@"; }
+    # sayinfo
+        # . Purpose
+        #   Sayinfo.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   sayinfo "SolidGroundUX example"
     sayinfo()    { say INFO "$@"; }
+    # sayok
+        # . Purpose
+        #   Sayok.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   sayok "Operation completed"
     sayok()      { say OK "$@"; }
+    # saywarning
+        # . Purpose
+        #   Saywarning.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   saywarning "Example warning"
     saywarning() { say WARN "$@"; }
+    # sayfail
+        # . Purpose
+        #   Sayfail.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   sayfail "Example failure"
     sayfail()    { say FAIL "$@"; }
+    # saydebug
+        # . Purpose
+        #   Saydebug.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   saydebug "Example debug message"
     saydebug()   { say DEBUG "$@"; }
+    # saycancel
+        # . Purpose
+        #   Saycancel.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   saycancel "Operation cancelled"
     saycancel()  { say CANCEL "$@"; }
+    # sayend
+        # . Purpose
+        #   Sayend.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   sayend "SolidGroundUX example complete"
     sayend()     { say END "$@"; }
 
 # - Local helpers -------------------------------------------------------------------

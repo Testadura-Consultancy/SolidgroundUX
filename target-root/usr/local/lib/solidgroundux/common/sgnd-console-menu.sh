@@ -2,9 +2,9 @@
 # SolidGroundUX - Console Menu System
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2620501
-#   Checksum    : b21af8ae6acd9b37053b01c576f6955b58350d6ab168c2f5fafc713683113b39
+#   Version     : 1.8
+#   Build       : 2621201
+#   Checksum    : e51f83f1ca99d3cee3e77290e4bc8762278f6962990fd5ade7c6c347cadea480
 #   Source      : sgnd-console-menu.sh
 #   Group       : SolidGround Console
 #   Type        : library
@@ -104,7 +104,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   _sgnd_console_toggleword "${WORD}" "${HOTKEY}" "${STATE}" "${ONCLR}" "${OFFCLR}"
+        #   _sgnd_console_toggleword "example" "ui.style" "example-3" "example-4" "example-5"
     _sgnd_console_toggleword() {
         local word="${1:?missing word}"
         local hotkey="${2:?missing hotkey}"
@@ -163,7 +163,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   _sgnd_console_onoff "${VALUE}" "${ONCLR}" "${OFFCLR}"
+        #   _sgnd_console_onoff "dark" "example-2" "example-3"
     _sgnd_console_onoff() {
         local value="${1:-0}"
         local onclr="${2:-$SGND_UI_ON}"
@@ -402,7 +402,15 @@ set -uo pipefail
         #   Non-zero when the prompt is cancelled or the state value cannot be saved.
         #
         # . Usage
-        #   _sgnd_console_set_file_loglevel
+        #   _sgnd_console_cycle_loglevel_value
+        # . Purpose
+        #   Console cycle loglevel value.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _sgnd_console_cycle_loglevel_value "example" "/tmp/sgnd-example"
     _sgnd_console_cycle_loglevel_value() {
         local current="${1:-silent}"
         local direction="${2:-1}"
@@ -421,6 +429,15 @@ set -uo pipefail
         printf '%s' "${levels[$i]}"
     }
 
+    # fn: _sgnd_console_persist_framework_value - Console persist framework value
+        # . Purpose
+        #   Console persist framework value.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _sgnd_console_persist_framework_value
     _sgnd_console_persist_framework_value() {
         local key="${1:?missing key}"
         local value="${2-}"
@@ -429,6 +446,15 @@ set -uo pipefail
         sgnd_state_set --file "$SGND_FRAMEWORK_STATEFILE" "$key" "$value"
     }
 
+    # fn: _sgnd_console_cycle_console_loglevel - Console cycle console loglevel
+        # . Purpose
+        #   Console cycle console loglevel.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _sgnd_console_cycle_console_loglevel
     _sgnd_console_cycle_console_loglevel() {
         local direction="${1:-1}"
 
@@ -437,6 +463,15 @@ set -uo pipefail
         SGND_LAST_WAITSECS=0
     }
 
+    # fn: _sgnd_console_cycle_file_loglevel - Console cycle file loglevel
+        # . Purpose
+        #   Console cycle file loglevel.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _sgnd_console_cycle_file_loglevel
     _sgnd_console_cycle_file_loglevel() {
         local direction="${1:-1}"
 
@@ -445,6 +480,15 @@ set -uo pipefail
         SGND_LAST_WAITSECS=0
     }
 
+    # fn: _sgnd_console_theme_name - Console theme name
+        # . Purpose
+        #   Console theme name.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _sgnd_console_theme_name
     _sgnd_console_theme_name() {
         local style="${SGND_UI_STYLE##*/}"
 
@@ -459,6 +503,15 @@ set -uo pipefail
         printf '%s' "$style"
     }
 
+    # fn: _sgnd_console_cycle_theme - Console cycle theme
+        # . Purpose
+        #   Console cycle theme.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _sgnd_console_cycle_theme
     _sgnd_console_cycle_theme() {
         local direction="${1:-1}"
         local current_file="${SGND_UI_STYLE##*/}"
@@ -643,6 +696,9 @@ set -uo pipefail
         #   0 on success.
         #
         # Usage:
+        #   _sgnd_console_refresh_model_cache
+        #
+        # . Usage
         #   _sgnd_console_refresh_model_cache
     _sgnd_console_refresh_model_cache() {
         local group_count="${#SGND_GROUP_ROWS[@]}"
@@ -878,7 +934,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   _sgnd_console_get_visible_row_index "${VISIBLE_INDEX}"
+        #   _sgnd_console_get_visible_row_index 20
     _sgnd_console_get_visible_row_index() {
         local visible_index="${1:?missing visible index}"
 
@@ -907,7 +963,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   _sgnd_console_get_visible_display_number "${ROW_INDEX}"
+        #   _sgnd_console_get_visible_display_number 20
     _sgnd_console_get_visible_display_number() {
         local row_index="${1:?missing row index}"
         local i
@@ -940,7 +996,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   _sgnd_console_find_visible_pos_for_row "${ROW_INDEX}"
+        #   _sgnd_console_find_visible_pos_for_row 20 "example-2"
     _sgnd_console_find_visible_pos_for_row() {
         local row_index="${1:?missing row index}"
         local i
@@ -972,7 +1028,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   _sgnd_console_group_continues_after_visible_pos "${GROUP_KEY}" "${LAST_VISIBLE_POS}"
+        #   _sgnd_console_group_continues_after_visible_pos "runtime" "example-2"
     _sgnd_console_group_continues_after_visible_pos() {
         local group_key="${1:?missing group key}"
         local last_visible_pos="${2:?missing visible position}"
@@ -1033,7 +1089,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   _sgnd_console_measure_item_lines "${ROW_INDEX}"
+        #   _sgnd_console_measure_item_lines 20
     _sgnd_console_measure_item_lines() {
         local row_index="${1:?missing row index}"
         local desc=""
@@ -1408,7 +1464,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   _sgnd_console_render_page_rows "${ARG1}" "${ARG2}"
+        #   _sgnd_console_render_page_rows "example" "example-2"
     _sgnd_console_render_page_rows() {
         local -n _page_groups="$1"
         local -n _page_rows="$2"
@@ -1557,7 +1613,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   _sgnd_console_render_group "${GROUP_KEY}"
+        #   _sgnd_console_render_group "runtime"
     _sgnd_console_render_group() {
         local group_key="${1:?missing group key}"
         local _tpad=3
@@ -1808,7 +1864,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   _sgnd_console_valid_choices_csv
+        #   _sgnd_console_valid_choices_csv "Q,R,S"
     _sgnd_console_valid_choices_csv() {
         local i
         local out=""
@@ -1860,7 +1916,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   _sgnd_console_dispatch "${CHOICE}"
+        #   _sgnd_console_dispatch "example"
     _sgnd_console_dispatch() {
         _sgnd_console_refresh_model_cache
 

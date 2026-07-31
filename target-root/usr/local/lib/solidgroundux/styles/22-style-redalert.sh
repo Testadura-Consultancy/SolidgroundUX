@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621011
-#   Checksum    : 4e481caa11d6cbf0fb8af2b5c619bc76cb5bdcbb38750fcc12b1de5ebf457716
+#   Build       : 2621122
+#   Checksum    : 4db9c3d60be69a683171ae50619a47e5381309e5675592039d58e5771a5a6e7c
 #   Source      : 22-style-redalert.sh
 #   Type        : library
 #   Group       : Styles

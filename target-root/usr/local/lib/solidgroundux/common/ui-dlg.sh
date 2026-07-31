@@ -2,9 +2,9 @@
 # SolidGroundUX - UI Dialogs
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2619513
-#   Checksum    : 28702983d5b64c9e27fb62fada47d2aec88094e2199e055349a742802ea9d28e
+#   Version     : 1.8
+#   Build       : 2621201
+#   Checksum    : 6dbff974282b42c0503222e7dbc1eff8ddb940fd00b2727a471b15d481153de9
 #   Source      : ui-dlg.sh
 #   Type        : library
 #   Group       : UI
@@ -105,7 +105,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # . Usage
-        #   _dlg_keymap "$value"
+        #   _dlg_keymap "example" "example-2"
     _dlg_keymap(){
         local choices="$1"
         local keymap=""
@@ -151,7 +151,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # . Usage
-        #   sgnd_decision_expand_choices "$value"
+        #   sgnd_decision_expand_choices "example"
     sgnd_decision_expand_choices() {
         local spec="${1-}"
         local group=""
@@ -199,7 +199,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # . Usage
-        #   sgnd_decision_normalize "$value"
+        #   sgnd_decision_normalize "dark" "example-2" "dark"
     sgnd_decision_normalize() {
         local value="${1-}"
         local choices="${2-}"
@@ -244,7 +244,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # . Usage
-        #   sgnd_decision_display_choices "$value"
+        #   sgnd_decision_display_choices "example"
     sgnd_decision_display_choices() {
         local spec="${1-}"
         local group=""
@@ -288,7 +288,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # . Usage
-        #   sgnd_decision_from_dialog_rc "$value"
+        #   sgnd_decision_from_dialog_rc "example" "example-2" "dark"
     sgnd_decision_from_dialog_rc() {
         local rc="${1:-}"
         local choices="${2-}"
@@ -348,7 +348,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # . Usage
-        #   sgnd_dlg_autocontinue "$value"
+        #   sgnd_dlg_autocontinue "example" "example-2" "example-3"
     sgnd_dlg_autocontinue() {
         local seconds="${1:-5}"
         local msg="${2:-}"
@@ -404,7 +404,7 @@ set -uo pipefail
             #   Non-zero when validation, resolution, I/O, or user cancellation fails.
             #
             # . Usage
-            #   sgnd_dlg_custom_rc_for_key "$value"
+            #   sgnd_dlg_custom_rc_for_key "example"
         sgnd_dlg_custom_rc_for_key() {
             local pressed="${1:-}"
             local j=0
@@ -692,7 +692,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # . Usage
-        #   sgnd_ask_decision --label "..." --choices "..." --default "..." --var "..."
+        #   sgnd_ask_decision "example" "example-2"
     sgnd_ask_decision() {
         local label=""
         local choices=""

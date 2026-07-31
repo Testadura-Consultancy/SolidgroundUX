@@ -2,9 +2,9 @@
 # SolidGroundUX - Document processor
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2618312
-#   Checksum    : 93f475860f856a9f055e5791c6fa0a63ef35b1cbc729c4540ba47accc8ea4753
+#   Version     : 1.8
+#   Build       : 2621201
+#   Checksum    : 569941872a71a7ce58c79d9bf1f7387109c4181ee07c0ed358efb9e671ab5a78
 #   Source      : doc-processor.sh
 #   Type        : library
 #   Group       : SDK Documentation
@@ -328,7 +328,7 @@ set -uo pipefail
             #   1 when the style hint is unknown or missing.
             #
             # . Usage
-            #   _sgnd_doc_is_valid_stylehint "$doc_stylehint"
+            #   _sgnd_doc_is_valid_stylehint "tip" && printf 'Valid style hint\n'
         _sgnd_doc_is_valid_stylehint() {
             _sgnd_doc_list_contains SGND_DOC_STYLEHINTS "${1:-}"
         }
@@ -786,7 +786,7 @@ set -uo pipefail
             #   0 on success unless the called command returns a different status.
             #
             # . Usage
-            #   _detect_default "${ARG1}" "${ARG2}" "${ARG3}" "${ARG4}" "${ARG5}"
+            #   _detect_default "string" "" "" "" "SolidGroundUX"
         _detect_default(){
             (( src_haltlineprocessing )) && return 0
 
@@ -872,7 +872,7 @@ set -uo pipefail
             #   Non-zero when validation, resolution, user cancellation, or execution fails.
             #
             # . Usage
-            #   _get_section_comments "${MODULE_NAME}" "${GRANDPARENT_SECTION}" "${PARENT_SECTION}" "${SECTION_NAME}" "${ITEM_NAME}"
+            #   _get_section_comments
         _get_section_comments() {
             (( src_haltlineprocessing )) && return 0
 
@@ -1304,7 +1304,7 @@ set -uo pipefail
         #   1 when no source filename is supplied.
         #
         # . Usage
-        #   _parse_module_file "$src_file"
+        #   _parse_module_file "/usr/local/lib/solidgroundux/common/sgnd-core.sh"
     _parse_module_file(){
         src_file="${1:-}"
         [[ -z "$src_file" ]] && {
@@ -1394,7 +1394,7 @@ set -uo pipefail
         #   0 after writing the content reference.
         #
         # . Usage
-        #   _build_content_ref "$mod_name" "$doc_grandparentsection" "$doc_parentsection" "$doc_section" "$doc_item"
+        #   _build_content_ref "sgnd-core" "Core" "Strings" "Formatting" "sgnd_sgr"
     _build_content_ref() {
         local module_name="${1-}"
         local grandparent_section="${2-}"

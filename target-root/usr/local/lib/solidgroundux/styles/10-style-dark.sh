@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621011
-#   Checksum    : 59340bf0ad2f08a988455b36091bb81e19cc1437e0d8de15f84d4c9f56f86274
+#   Build       : 2621122
+#   Checksum    : e867049544362cd9ba2179217126f4d82a3b748fa9c1bebd34666eff8b2e45b9
 #   Source      : 10-style-dark.sh
 #   Type        : library
 #   Group       : Styles

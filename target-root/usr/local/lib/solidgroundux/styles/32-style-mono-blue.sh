@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621011
-#   Checksum    : 25cfd63add0b980a737f86d184b80e753c4fbd8d8346b9a64e4fd7a016751693
+#   Build       : 2621122
+#   Checksum    : 13b37eea2e17c77e36520815431532c7113876e60652bdefd224d4ad0d1fade9
 #   Source      : 32-style-mono-blue.sh
 #   Type        : library
 #   Group       : Styles

@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621011
-#   Checksum    : feb6c11e73b09cbab3015181924284d2ed26c72b5655e73ab50267672e151b4d
+#   Build       : 2621201
+#   Checksum    : 807f97528effb86f9f71e6c16c05bbcb7d4d6c5429d9ebee8bd190e2063a2295
 #   Source      : 20-machine-config.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -65,6 +65,9 @@ set -uo pipefail
         # . Returns
         #   0 if already loaded or successfully initialized.
         #   Exits with code 2 if executed instead of sourced.
+        #
+        # . Usage
+        #   _sgnd_lib_guard "example-0"
     _sgnd_lib_guard() {
         local lib_base
         local guard
@@ -127,6 +130,9 @@ set -uo pipefail
         #
         # . Returns
         #   0 after displaying the available status information.
+        #
+        # . Usage
+        #   _show_machine_status
     _show_machine_status() {
         local machine_id="Unavailable"
         local ssh_unit="ssh.service"
@@ -188,6 +194,9 @@ set -uo pipefail
         #
         # . Returns
         #   0 if successful, 1 if failed to generate machine-id.
+        #
+        # . Usage
+        #   _init_machine
     _init_machine() {
         local machine_id
         if (( ${FLAG_DRYRUN:-0} == 1 )); then
@@ -215,6 +224,9 @@ set -uo pipefail
         #
         # . Returns
         #   0 if successful, 1 if failed to generate SSH host keys.
+        #
+        # . Usage
+        #   _generate_ssh_keys
     _generate_ssh_keys() {
 
         sayinfo "Verifying sshd..."
@@ -254,6 +266,9 @@ set -uo pipefail
         #   - Shows the current enabled state as the prompt default.
         #   - Enables and starts SSH, or disables and stops it.
         #   - Honors console dry-run mode.
+        #
+        # . Usage
+        #   _configure_ssh_service
     _configure_ssh_service() {
         local ssh_unit="ssh.service"
         local enabled="N"
@@ -295,6 +310,15 @@ set -uo pipefail
         esac
     }
 
+    # fn: _set_identity - Set identity
+        # . Purpose
+        #   Set identity.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _set_identity
     _set_identity() {
         _sgnd_run_module_script \
             "$SGND_MACHINE_CONFIG_MODULE_ID" \
@@ -302,6 +326,15 @@ set -uo pipefail
             "$@"
     }
 
+    # fn: _prep_template - Prep template
+        # . Purpose
+        #   Prep template.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _prep_template
     _prep_template() {
         _sgnd_run_module_script \
             "$SGND_MACHINE_CONFIG_MODULE_ID" \
@@ -321,6 +354,9 @@ set -uo pipefail
         #
         # . Returns
         #   0 if the baseline was installed successfully, otherwise non-zero.
+        #
+        # . Usage
+        #   _install_basepackages
     _install_basepackages() {
         if (( ${FLAG_DRYRUN:-0} == 1 )); then
             sayinfo "Dry run: Would install or update Ubuntu baseline packages."
@@ -393,6 +429,9 @@ set -uo pipefail
         #
         # . Returns
         #   0 if the package index was refreshed successfully, otherwise non-zero.
+        #
+        # . Usage
+        #   _update_package_index
     _update_package_index() {
         if (( ${FLAG_DRYRUN:-0} == 1 )); then
             sayinfo "Dry run: Would update the Ubuntu package index."
@@ -416,6 +455,9 @@ set -uo pipefail
         #
         # . Returns
         #   0 if installed packages were upgraded successfully, otherwise non-zero.
+        #
+        # . Usage
+        #   _upgrade_installed_packages
     _upgrade_installed_packages() {
         if (( ${FLAG_DRYRUN:-0} == 1 )); then
             sayinfo "Dry run: Would upgrade installed Ubuntu packages."
@@ -442,6 +484,9 @@ set -uo pipefail
         #
         # . Returns
         #   0 if package cleanup completed successfully, otherwise non-zero.
+        #
+        # . Usage
+        #   _clean_unused_packages
     _clean_unused_packages() {
         if (( ${FLAG_DRYRUN:-0} == 1 )); then
             sayinfo "Dry run: Would remove unused packages and clean the APT cache."
@@ -468,6 +513,9 @@ set -uo pipefail
         #
         # . Returns
         #   0 if the role packages were installed successfully, otherwise non-zero.
+        #
+        # . Usage
+        #   _install_samba_file
     _install_samba_file() {
         if (( ${FLAG_DRYRUN:-0} == 1 )); then
             sayinfo "Dry run: Would install Samba file-server packages."
@@ -500,6 +548,9 @@ set -uo pipefail
         #
         # . Returns
         #   0 if XRDP was installed and enabled successfully, otherwise non-zero.
+        #
+        # . Usage
+        #   _install_xrdp
     _install_xrdp() {
         if (( ${FLAG_DRYRUN:-0} == 1 )); then
             sayinfo "Dry run: Would install and enable XRDP."
@@ -531,6 +582,9 @@ set -uo pipefail
         #
         # . Returns
         #   0 if Docker was installed and enabled successfully, otherwise non-zero.
+        #
+        # . Usage
+        #   _install_docker
     _install_docker() {
         local ubuntu_codename
 

@@ -3,9 +3,9 @@
 # SolidGroundUX - Metadata Editor
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2617512
-#   Checksum    : 847dc942a5ef24cec0109719be0a6702d639847d6cc3250ede0201b949f1dffc
+#   Version     : 1.8
+#   Build       : 2621201
+#   Checksum    : 652f9bed5c0d3cf5f57287ba40c5363790cf42da2c5303342ad5930a1d5564fa
 #   Source      : metadata-editor.sh
 #   Type        : script
 #   Group       : SDK Tools
@@ -313,11 +313,7 @@ set -uo pipefail
         #   1  failed to read datatable contents
         #
         # . Usage
-        #   _print_section_labeledvalues "$META_SCHEMA" META_ROWS "Metadata"
-        #
-        # Examples:
-        #   _print_section_labeledvalues "$META_SCHEMA" META_ROWS "Attribution"
-    # fn: _print_section_labeledvalues - Print labeled values for one metadata section
+        #   _print_section_labeledvalues "example" "example-2" "example-3"
         # . Purpose
         #   Print labeled values for one metadata section.
         #
@@ -493,13 +489,7 @@ set -uo pipefail
         #   1  field is not selected
         #
         # . Usage
-        #   _field_is_selected "Version"
-        #
-        # Examples:
-        #   if _field_is_selected "$field"; then
-        #       :
-        #   fi
-    # fn: _field_is_selected - Test whether a metadata field is selected
+        #   _field_is_selected "example" && printf 'Success\n' || printf 'Failed\n'
         # . Purpose
         #   Test whether a metadata field is selected.
         #
@@ -633,11 +623,7 @@ set -uo pipefail
         #   1  failed to load one or more header sections
         #
         # . Usage
-        #   _get_metadata || return 1
-        #
-        # Examples:
-        #   current_script="$file"
-        # fn: _get_metadata - Read metadata from the current source file
+        #   _get_metadata
     _get_metadata() {
         local -a meta_rows=()
         local -a attr_rows=()
@@ -905,6 +891,9 @@ set -uo pipefail
         # . Returns
         #   0  success
         #   1  failure
+        #
+        # . Usage
+        #   _bump_one_file "/tmp/sgnd-example.txt" "normal"
     _bump_one_file() {
         local file="${1:?missing file}"
         local mode="${2:-none}"
@@ -976,6 +965,9 @@ set -uo pipefail
         #
         # . Outputs
         #   Writes changed field names to stdout, one per line.
+        #
+        # . Usage
+        #   _collect_changed_fields "example"
     _collect_changed_fields() {
         local -n in_buffer="$1"
         local i=0
@@ -1539,7 +1531,7 @@ set -uo pipefail
         #   1  failure or user abort
         #
         # . Usage
-        #   _interactive_edit_current_file
+        #   current_script="/tmp/sgnd-example.sh"; _interactive_edit_current_file
         #
         # Examples:
         #   current_script="$file"
@@ -1726,6 +1718,9 @@ set -uo pipefail
         #   0  success
         #   1  failure
         #   2  cancelled
+        #
+        # . Usage
+        #   _interactive_edit_files
     _interactive_edit_files() {
         local file=""
         local rc=0

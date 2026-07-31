@@ -2,9 +2,9 @@
 # SolidGroundUX - Header Parser
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2619012
-#   Checksum    : b8b562ca032141c0bcde729593a845ab6b69b7bc837aba0413dda7ca0d0baa05
+#   Version     : 1.8
+#   Build       : 2621201
+#   Checksum    : 4b633e4824113cec8091d8cdb1749c4925f4093c1d5583aae631c77f2e32a666
 #   Source      : sgnd-comment-header-parser.sh
 #   Type        : library
 #   Group       : Common Core
@@ -102,7 +102,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_header_read "${FILE}"
+        #   sgnd_header_read "/tmp/sgnd-example.txt"
     sgnd_header_read() {
         local file="${1:?missing file}"
         local line=""
@@ -154,7 +154,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_header_load_section_to_dt "${FILE}" "${SECTION}" "${SCHEMA}" "${TABLE_NAME}"
+        #   sgnd_header_load_section_to_dt "/tmp/sgnd-example.txt" "example-2" "example-3" "example-4"
     sgnd_header_load_section_to_dt() {
         local file="${1:?missing file}"
         local section="${2:?missing section}"
@@ -210,7 +210,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_header_is_section_header "${LINE}"
+        #   sgnd_header_is_section_header "example" && printf 'Success\n' || printf 'Failed\n'
     sgnd_header_is_section_header() {
         local line="${1-}"
 
@@ -237,7 +237,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_header_buffer_load "${FILE}"
+        #   sgnd_header_buffer_load "/tmp/sgnd-example.txt" "example-2"
     sgnd_header_buffer_load() {
         local file="${1:?missing file}"
 
@@ -263,7 +263,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_header_buffer_get_section "${SECTION}" "${_OUTVAR}"
+        #   sgnd_header_buffer_get_section "example" "example-2"
     sgnd_header_buffer_get_section() {
         local section="${1:?missing section}"
         local _outvar="${2:?missing outvar}"
@@ -289,7 +289,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_header_calc_checksum "${FILE}"
+        #   sgnd_header_calc_checksum "/tmp/sgnd-example.txt" "example-2"
     sgnd_header_calc_checksum() {
         local file="${1:?missing file}"
 
@@ -326,7 +326,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_header_bump_version "${FILE}" "${MODE}"
+        #   sgnd_header_bump_version "/tmp/sgnd-example.txt" "normal"
     sgnd_header_bump_version() {
         local file="${1:?missing file}"
         local mode="${2:-none}"
@@ -425,7 +425,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   sgnd_header_get_section "${FILE}" "${SECTION}" "${_RESULTVAR}"
+        #   sgnd_header_get_section "/tmp/sgnd-example.txt" "example-2" "example-3"
     sgnd_header_get_section() {
         local file="${1:?missing file}"
         local section="${2:?missing section}"
@@ -477,7 +477,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   sgnd_header_get_section_from_text "${TEXT}" "${SECTION}" "${_OUTVAR}"
+        #   sgnd_header_get_section_from_text "SolidGroundUX example" "example-2" "example-3"
     sgnd_header_get_section_from_text() {
         local text="${1-}"
         local section="${2:?missing section}"
@@ -529,7 +529,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_header_get_banner_parts_from_text "${TEXT}" "${_PRODUCT_VAR}" "${_TITLE_VAR}"
+        #   sgnd_header_get_banner_parts_from_text "SolidGroundUX example" "example-2" "SolidGroundUX example"
     sgnd_header_get_banner_parts_from_text() {
         local text="${1-}"
         local _product_var="${2:?missing product var}"
@@ -590,7 +590,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_header_parse_banner_line "${LINE}" "${_PRODUCT_VAR}" "${_TITLE_VAR}"
+        #   sgnd_header_parse_banner_line "example" "example-2" "SolidGroundUX example"
     sgnd_header_parse_banner_line() {
         local line="${1-}"
         local _product_var="${2:?missing product var}"
@@ -637,7 +637,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_header_get_field "${FILE}" "${SECTION}" "${FIELD}" "${_RESULTVAR}"
+        #   sgnd_header_get_field "/tmp/sgnd-example.txt" "example-2" "example-3" "example-4"
     sgnd_header_get_field() {
         local file="${1:?missing file}"
         local section="${2:?missing section}"
@@ -701,7 +701,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   sgnd_header_get_field_value "${FILE}" "${SECTION}" "${FIELD}"
+        #   sgnd_header_get_field_value "/tmp/sgnd-example.txt" "example-2" "example-3"
     sgnd_header_get_field_value() {
         local file="$1"
         local section="$2"
@@ -731,7 +731,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_header_get_banner_parts "${FILE}" "${_PRODUCT_VAR}" "${_TITLE_VAR}"
+        #   sgnd_header_get_banner_parts "/tmp/sgnd-example.txt" "example-2" "SolidGroundUX example"
     sgnd_header_get_banner_parts() {
         local file="${1:?missing file}"
         local _product_var="${2:?missing product var}"
@@ -790,7 +790,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   sgnd_section_get_field_value "${SECTION}" "${FIELD}"
+        #   sgnd_section_get_field_value "example" "example-2"
     sgnd_section_get_field_value() {
         local section="${1-}"
         local field="${2:?missing field}"
@@ -843,7 +843,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_header_add_field "${FILE}" "${SECTION}" "${FIELD}" "${VALUE}"
+        #   sgnd_header_add_field "/tmp/sgnd-example.txt" "example-2" "example-3" "dark"
     sgnd_header_add_field() {
         local file="${1:?missing file}"
         local section="${2:?missing section}"
@@ -921,7 +921,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   sgnd_header_upsert_field "${FILE}" "${SECTION}" "${FIELD}" "${VALUE}"
+        #   sgnd_header_upsert_field "/tmp/sgnd-example.txt" "example-2" "example-3" "dark"
     sgnd_header_upsert_field() {
         local file="${1:?missing file}"
         local section="${2:?missing section}"
@@ -963,7 +963,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_header_set_field "${FILE}" "${SECTION}" "${FIELD}" "${VALUE}"
+        #   sgnd_header_set_field "/tmp/sgnd-example.txt" "example-2" "example-3" "dark"
     sgnd_header_set_field() {
         local file="${1:?missing file}"
         local section="${2:?missing section}"
@@ -1074,18 +1074,7 @@ set -uo pipefail
         #   1 when arguments are invalid, the file is unreadable, or an update fails.
         #
         # . Usage
-        #   sgnd_framework_set_version "$file" "$version" "$build"
-        #
-        # Examples:
-        #   sgnd_framework_set_version \
-        #       "/usr/local/lib/solidgroundux/common/sgnd-bootstrap-env.sh" \
-        #       "1.7" \
-        #       "2619110"
-        #
-        # Notes:
-        #   - Intended for use by prepare-release.sh.
-        #   - Unlike sgnd_header_bump_version(), this function updates framework
-        #     runtime identity rather than script header metadata.
+        #   sgnd_framework_set_version "/tmp/sgnd-example.txt" "1.8.0" "1.7.9"
     sgnd_framework_set_version() {
         local file="${1:-}"
         local version="${2:-}"

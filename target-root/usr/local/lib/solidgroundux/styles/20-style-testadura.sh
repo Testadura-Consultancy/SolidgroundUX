@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621011
-#   Checksum    : a868359188acde5ab0440b030310dd8648ea4ac1648565542612f914ccd1977e
+#   Build       : 2621122
+#   Checksum    : 4e7043068529a492b6eeac52502ebb4c0ea5cd1069cf8d44690105fb26ac9a7d
 #   Source      : 20-style-testadura.sh
 #   Type        : library
 #   Group       : Styles

@@ -4,8 +4,8 @@
 # ------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2620810
-#   Checksum    : 0d7fdaf10367f644e856eebbb530c0cc8aab4fedf3e61aec7d24147bea239310
+#   Build       : 2621201
+#   Checksum    : 900dd08d724fe39cfa15e1a46356efe2b7d5b2f674d251e5729a920458c91756
 #   Source      : prepare-template.sh
 #   Type        : script
 #   Group       : SolidGround Console
@@ -341,6 +341,15 @@ set -uo pipefail
         #   - Reporting
         #   - Cleanup
 
+    # fn: _detect_primary_iface - Detect primary iface
+        # . Purpose
+        #   Detect primary iface.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _detect_primary_iface
     _detect_primary_iface() {
         local primary_iface
 
@@ -357,6 +366,15 @@ set -uo pipefail
         printf '%s\n' "$primary_iface"
     }
 
+    # fn: _reset_network_for_template - Reset network for template
+        # . Purpose
+        #   Reset network for template.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _reset_network_for_template
     _reset_network_for_template() {
         local primary_iface
         local netplan_file='/etc/netplan/00-installer-config.yaml'
@@ -380,6 +398,15 @@ set -uo pipefail
         netplan generate || return $?
     }
 
+    # fn: _prepare_template - Prepare template
+        # . Purpose
+        #   Prepare template.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _prepare_template
     _prepare_template() {
         sayinfo "Preparing VM for template conversion..."
 

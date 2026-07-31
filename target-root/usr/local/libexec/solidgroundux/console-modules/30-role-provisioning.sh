@@ -3,11 +3,11 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621101
-#   Checksum    : -
+#   Build       : 2621201
+#   Checksum    : a9bb88b692396d9170bf149de70ad0360a02581f6df17a0a64ff20cc8ed6530a
 #   Source      : 30-role-provisioning.sh
 #   Type        : module
-#   Group       : Role Provisioning
+#   Group       : SolidGround Console
 #   Purpose     : Install and provision optional server roles
 #
 # Description:
@@ -45,6 +45,9 @@ set -uo pipefail
         # . Returns
         #   0 if already loaded or successfully initialized.
         #   Exits with code 2 if executed instead of sourced.
+        #
+        # . Usage
+        #   _sgnd_lib_guard "example-0"
     _sgnd_lib_guard() {
         local lib_base
         local guard
@@ -93,6 +96,9 @@ set -uo pipefail
         # . Returns
         #   0 when the value is valid.
         #   1 when the value is invalid.
+        #
+        # . Usage
+        #   _samba_validate_realm "2026-07-31" && printf 'Success\n' || printf 'Failed\n'
     _samba_validate_realm() {
         [[ "${1-}" =~ ^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)+$ ]]
     }
@@ -112,6 +118,9 @@ set -uo pipefail
         # . Returns
         #   0 when the value is valid.
         #   1 when the value is invalid.
+        #
+        # . Usage
+        #   _samba_validate_netbios "2026-07-31" && printf 'Success\n' || printf 'Failed\n'
     _samba_validate_netbios() {
         [[ "${1-}" =~ ^[A-Za-z][A-Za-z0-9_-]{0,14}$ ]]
     }
@@ -131,6 +140,9 @@ set -uo pipefail
         # . Returns
         #   0 when the value is valid.
         #   1 when the value is invalid.
+        #
+        # . Usage
+        #   _samba_validate_account_name "2026-07-31" && printf 'Success\n' || printf 'Failed\n'
     _samba_validate_account_name() {
         [[ "${1-}" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$ ]]
     }
@@ -148,6 +160,9 @@ set -uo pipefail
         #
         # . Returns
         #   The exit status of the routing-table pipeline.
+        #
+        # . Usage
+        #   _samba_default_gateway "example-3"
     _samba_default_gateway() {
         ip -4 route show default 2>/dev/null | awk 'NR == 1 { print $3 }'
     }
@@ -163,6 +178,9 @@ set -uo pipefail
         # . Returns
         #   0 when a provisioned Samba AD domain is present.
         #   1 otherwise.
+        #
+        # . Usage
+        #   _samba_domain_is_provisioned && printf 'Success\n' || printf 'Failed\n'
     _samba_domain_is_provisioned() {
         [[ -s /var/lib/samba/private/sam.ldb ]] && \
             sudo testparm -s --parameter-name='server role' 2>/dev/null | \
@@ -180,6 +198,9 @@ set -uo pipefail
         # . Returns
         #   0 when a provisioned domain is available.
         #   1 when no provisioned domain was found.
+        #
+        # . Usage
+        #   _samba_require_provisioned_domain
     _samba_require_provisioned_domain() {
         if _samba_domain_is_provisioned; then
             return 0
@@ -208,6 +229,9 @@ set -uo pipefail
         # . Returns
         #   0 when installation and service preparation succeed.
         #   Non-zero when a required package or service operation fails.
+        #
+        # . Usage
+        #   _install_samba_ad
     _install_samba_ad() {
         if (( ${FLAG_DRYRUN:-0} == 1 )); then
             sayinfo "Dry run: Would install Samba Active Directory Domain Controller packages."
@@ -250,6 +274,9 @@ set -uo pipefail
         # . Returns
         #   0 when resolver configuration succeeds.
         #   Non-zero when a filesystem or service operation fails.
+        #
+        # . Usage
+        #   _samba_configure_resolver
     _samba_configure_resolver() {
         local dropin_dir="/etc/systemd/resolved.conf.d"
         local dropin_file="$dropin_dir/solidgroundux-samba-ad.conf"
@@ -283,6 +310,9 @@ set -uo pipefail
         # . Returns
         #   0 when the configuration is updated successfully.
         #   Non-zero when temporary-file creation, rewriting, or installation fails.
+        #
+        # . Usage
+        #   _samba_set_dns_forwarder "example"
     _samba_set_dns_forwarder() {
         local forwarder="$1"
         local smb_conf="/etc/samba/smb.conf"
@@ -359,6 +389,9 @@ set -uo pipefail
         # . Returns
         #   0 when provisioning succeeds or is cancelled by the user.
         #   1 when validation, provisioning, configuration, or verification fails.
+        #
+        # . Usage
+        #   samba_create_domain
     samba_create_domain() {
         local hostname_short
         local current_domain
@@ -513,6 +546,9 @@ set -uo pipefail
         # . Returns
         #   0 after displaying status.
         #   1 when Samba is not installed.
+        #
+        # . Usage
+        #   samba_ad_status
     samba_ad_status() {
         local realm=""
         local role=""
@@ -584,6 +620,9 @@ set -uo pipefail
         # . Returns
         #   0 when the user is created, cancelled, or handled in dry-run mode.
         #   1 when no domain exists or samba-tool fails.
+        #
+        # . Usage
+        #   samba_add_user
     samba_add_user() {
         local account_name=""
         local decision=""
@@ -630,6 +669,9 @@ set -uo pipefail
         # . Returns
         #   0 when the group is created, cancelled, or handled in dry-run mode.
         #   1 when no domain exists or samba-tool fails.
+        #
+        # . Usage
+        #   samba_add_group
     samba_add_group() {
         local group_name=""
         local decision=""

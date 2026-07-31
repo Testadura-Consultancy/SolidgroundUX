@@ -4,8 +4,8 @@
 # ------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621011
-#   Checksum    : 9b1c3d250ee85053a54647399a6c9f5394fde80f834d332db5b9e25de5ad1ced
+#   Build       : 2621201
+#   Checksum    : 261cd9559564692ec5977f221ad5309dd237fafdc42be8285ede604e9c2edf37
 #   Source      : set-identity.sh
 #   Type        : script
 #   Group       : SolidGround Console
@@ -338,6 +338,15 @@ set -uo pipefail
         # Prefer local variables inside functions unless a value must be shared.
 
 # - Local script functions ----------------------------------------------------------
+    # fn: _set_defaults - Set defaults
+        # . Purpose
+        #   Set defaults.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _set_defaults
     _set_defaults() {
         : "${TARGET_HOSTNAME:=}"
         : "${TARGET_IPV4:=}"
@@ -348,6 +357,15 @@ set -uo pipefail
         : "${USE_DHCP:=}"
     }
 
+    # fn: _load_current_values - Load current values
+        # . Purpose
+        #   Load current values.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _load_current_values
     _load_current_values() {
         local detected=""
         local current_netplan=""
@@ -392,6 +410,15 @@ set -uo pipefail
         fi
     }
 
+    # fn: _get_usr_input - Get usr input
+        # . Purpose
+        #   Get usr input.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _get_usr_input
     _get_usr_input() {
         local mxw=80
         local lw=35
@@ -425,6 +452,15 @@ set -uo pipefail
         fi
     }
 
+    # fn: _set_hostname - Set hostname
+        # . Purpose
+        #   Set hostname.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _set_hostname
     _set_hostname() {
         if (( ${FLAG_DRYRUN:-0} == 1 )); then
             sayinfo "Dry-run mode: would set hostname to $TARGET_HOSTNAME"
@@ -441,6 +477,15 @@ set -uo pipefail
         fi
     }
 
+    # fn: _detect_primary_iface - Detect primary iface
+        # . Purpose
+        #   Detect primary iface.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _detect_primary_iface
     _detect_primary_iface() {
         sayinfo 'Detecting primary network interface'
 
@@ -457,6 +502,15 @@ set -uo pipefail
         sayinfo "Primary network interface: $PRIMARY_IFACE"
     }
 
+    # fn: _remove_other_netplan_files - Remove other netplan files
+        # . Purpose
+        #   Remove other netplan files.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _remove_other_netplan_files
     _remove_other_netplan_files() {
         local file
 
@@ -468,6 +522,15 @@ set -uo pipefail
         done < <(find /etc/netplan -maxdepth 1 -type f -name '*.yaml' -print0)
     }
 
+    # fn: _static_ip_conflict_check - Static ip conflict check
+        # . Purpose
+        #   Static ip conflict check.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _static_ip_conflict_check
     _static_ip_conflict_check() {
         local target_ip="${TARGET_IPV4%%/*}"
         local current_ip=""
@@ -533,6 +596,15 @@ set -uo pipefail
         return 0
     }
 
+    # _network_config
+        # . Purpose
+        #   Network config.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _network_config
     _network_config() {
         _detect_primary_iface || return $?
 
@@ -549,14 +621,41 @@ set -uo pipefail
         esac
     }
 
+    # _set_static_ip
+        # . Purpose
+        #   Set static ip.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _set_static_ip
     _set_static_ip() {
         _apply_netplan_config static
     }
 
+    # _set_dhcp
+        # . Purpose
+        #   Set dhcp.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _set_dhcp
     _set_dhcp() {
         _apply_netplan_config dhcp
     }
 
+    # _write_netplan_static
+        # . Purpose
+        #   Write netplan static.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _write_netplan_static
     _write_netplan_static() {
         local output_file="${1:-$NETPLAN_FILE}"
 
@@ -578,6 +677,15 @@ set -uo pipefail
         } > "$output_file"
     }
 
+    # _write_netplan_dhcp
+        # . Purpose
+        #   Write netplan dhcp.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _write_netplan_dhcp
     _write_netplan_dhcp() {
         local output_file="${1:-$NETPLAN_FILE}"
 
@@ -591,6 +699,15 @@ set -uo pipefail
         } > "$output_file"
     }
 
+    # _netplan_has_other_files
+        # . Purpose
+        #   Netplan has other files.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _netplan_has_other_files && printf 'Additional netplan files found\n'
     _netplan_has_other_files() {
         local file=""
 
@@ -601,6 +718,15 @@ set -uo pipefail
         return 1
     }
 
+    # _backup_netplan_files
+        # . Purpose
+        #   Backup netplan files.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _backup_netplan_files
     _backup_netplan_files() {
         local backup_dir="${1:-}"
         local file=""
@@ -613,6 +739,15 @@ set -uo pipefail
         done < <(find /etc/netplan -maxdepth 1 -type f -name '*.yaml' -print0 2>/dev/null)
     }
 
+    # _restore_netplan_files
+        # . Purpose
+        #   Restore netplan files.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _restore_netplan_files
     _restore_netplan_files() {
         local backup_dir="${1:-}"
         local file=""
@@ -628,6 +763,15 @@ set -uo pipefail
         done < <(find "$backup_dir" -maxdepth 1 -type f -name '*.yaml' -print0 2>/dev/null)
     }
 
+    # _apply_netplan_config
+        # . Purpose
+        #   Apply netplan config.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _apply_netplan_config
     _apply_netplan_config() {
         local mode="${1:-}"
         local candidate_file=""

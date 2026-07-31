@@ -2,9 +2,9 @@
 # SolidGroundUX - Datatable
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2615900
-#   Checksum    : 42c40ca37a848dc8d717f0932d0a3d3a15654cc123ab1e852f943e8633d6ddd9
+#   Version     : 1.8
+#   Build       : 2621201
+#   Checksum    : a54bd9ba6399874b500b60159ef77a8b6a77c304062a5a3668b8f89fae2737cb
 #   Source      : sgnd-datatable.sh
 #   Type        : library
 #   Group       : Common Extensions
@@ -100,7 +100,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   sgnd_dt_array_length "${ARRAY_NAME}"
+        #   sgnd_dt_array_length "example"
     sgnd_dt_array_length() {
         local array_name="${1:?missing array name}"
         local -n array_ref="$array_name"
@@ -122,7 +122,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   sgnd_dt_split_schema "${SCHEMA}"
+        #   sgnd_dt_split_schema "example"
     sgnd_dt_split_schema() {
         local schema="${1:?missing schema}"
 
@@ -143,7 +143,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   sgnd_dt_split_row "${ROW}"
+        #   sgnd_dt_split_row "example" "example-2" "example-3"
     sgnd_dt_split_row() {
         local row="${1-}"
         local tmp
@@ -174,7 +174,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   _dt_build_sortkey "${SCHEMA}" "${ROW}" "${SORT_FIELDS}"
+        #   _dt_build_sortkey "example" "example-2" "example-3"
     _dt_build_sortkey() {
         local schema="${1:?missing schema}"
         local row="${2-}"
@@ -213,7 +213,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_dt_validate_value "${VALUE}"
+        #   sgnd_dt_validate_value "dark" && printf 'Success\n' || printf 'Failed\n'
     sgnd_dt_validate_value() {
         local value="${1-}"
 
@@ -241,7 +241,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_dt_validate_schema "${SCHEMA}"
+        #   sgnd_dt_validate_schema "2026-07-31" "2026-07-31" && printf 'Success\n' || printf 'Failed\n'
     sgnd_dt_validate_schema() {
         local schema="${1-}"
         local i
@@ -283,7 +283,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_dt_column_index "${SCHEMA}" "${COLUMN}"
+        #   sgnd_dt_column_index "example" "example-2"
     sgnd_dt_column_index() {
         local schema="${1:?missing schema}"
         local column="${2:?missing column name}"
@@ -318,7 +318,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   sgnd_dt_column_count "${SCHEMA}"
+        #   sgnd_dt_column_count "example"
     sgnd_dt_column_count() {
         local schema="${1:?missing schema}"
 
@@ -344,7 +344,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_dt_make_row "${SCHEMA}"
+        #   sgnd_dt_make_row "example" "example-2" "example-3"
     sgnd_dt_make_row() {
         local schema="${1:?missing schema}"
         shift
@@ -389,7 +389,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   sgnd_dt_has_row "${SCHEMA}" "${TABLE_NAME}" "${COLUMN}" "${VALUE}"
+        #   sgnd_dt_has_row "example" "example-2" "example-3" "dark" && printf 'Success\n' || printf 'Failed\n'
     sgnd_dt_has_row() {
         local schema="${1:?missing schema}"
         local table_name="${2:?missing table name}"
@@ -420,7 +420,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_dt_row_get "${SCHEMA}" "${ROW}" "${COLUMN}"
+        #   sgnd_dt_row_get "example" "example-2" "example-3" "example-4"
     sgnd_dt_row_get() {
         local schema="${1:?missing schema}"
         local row="${2-}"
@@ -455,7 +455,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_dt_row_set "${SCHEMA}" "${ROW}" "${COLUMN}" "${VALUE}"
+        #   sgnd_dt_row_set "example" "example-2" "example-3" "dark"
     sgnd_dt_row_set() {
         local schema="${1:?missing schema}"
         local row="${2-}"
@@ -501,7 +501,7 @@ set -uo pipefail
         #   0 on success unless the called command returns a different status.
         #
         # . Usage
-        #   sgnd_dt_row_count "${TABLE_NAME}"
+        #   sgnd_dt_row_count "example" "example-2" "example-3"
     sgnd_dt_row_count() {
         local table_name="${1:?missing table name}"
 
@@ -526,7 +526,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_dt_insert "${SCHEMA}" "${TABLE_NAME}" "${ROW}"
+        #   sgnd_dt_insert "example" "example-2" "example-3"
     sgnd_dt_insert() {
         local schema="${1:?missing schema}"
         local table_name="${2:?missing table name}"
@@ -559,7 +559,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_dt_delete "${TABLE_NAME}" "${ROW_INDEX}"
+        #   sgnd_dt_delete "example" 20 "example-3" "example-4"
     sgnd_dt_delete() {
         local table_name="${1:?missing table name}"
         local row_index="${2:?missing row index}"
@@ -593,7 +593,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_dt_get "${SCHEMA}" "${TABLE_NAME}" "${ROW_INDEX}" "${COLUMN}"
+        #   sgnd_dt_get "example" "example-2" 20 "example-4" "example-5"
     sgnd_dt_get() {
         local schema="${1:?missing schema}"
         local table_name="${2:?missing table name}"
@@ -629,7 +629,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_dt_set "${SCHEMA}" "${TABLE_NAME}" "${ROW_INDEX}" "${COLUMN}" "${VALUE}"
+        #   sgnd_dt_set "example" "example-2" 20 "example-4" "dark"
     sgnd_dt_set() {
         local schema="${1:?missing schema}"
         local table_name="${2:?missing table name}"
@@ -670,7 +670,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_dt_find_first "${SCHEMA}" "${TABLE_NAME}" "${COLUMN}" "${VALUE}"
+        #   sgnd_dt_find_first "example" "example-2" "example-3" "dark"
     sgnd_dt_find_first() {
         local schema="${1:?missing schema}"
         local table_name="${2:?missing table name}"
@@ -709,7 +709,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_dt_append "${SCHEMA}" "${TABLE_NAME}"
+        #   sgnd_dt_append "example" "example-2" "example-3" "example-4" "example-5" "example-6"
     sgnd_dt_append() {
         local schema="${1:?missing schema}"
         local table_name="${2:?missing table name}"
@@ -749,7 +749,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_dt_print_table "${SCHEMA}" "${TABLE_NAME}" "${PRETTYPRINT}" "${HEADERCOLOR}" "${DATACOLOR}"
+        #   sgnd_dt_print_table "example" "example-2" "example-3" "example-4" "example-5" "example-6"
     sgnd_dt_print_table() {
         local schema="${1:?missing schema}"
         local table_name="${2:?missing table name}"
@@ -905,7 +905,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_dt_get_sorted_rows "${SCHEMA}" "${TABLE_NAME}" "${SORT_FIELDS}"
+        #   sgnd_dt_get_sorted_rows "example" "example-2" "example-3"
     sgnd_dt_get_sorted_rows() {
         local schema="${1:?missing schema}"
         local table_name="${2:?missing table name}"
@@ -949,7 +949,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_dt_row2var "${SCHEMA}" "${TABLE_NAME}" "${ROW}"
+        #   sgnd_dt_row2var "example" "example-2" "example-3"
     sgnd_dt_row2var() {
         local schema="${1:?missing schema}"
         local table_name="${2:?missing table name}"
@@ -1002,7 +1002,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_dt_export_psv "${SCHEMA}" "${TABLE_NAME}" "${OUTPUT_FILE}"
+        #   sgnd_dt_export_psv "example" "example-2" "/tmp/sgnd-example.txt"
     sgnd_dt_export_psv() {
         local schema="${1:?missing schema}"
         local table_name="${2:?missing table name}"

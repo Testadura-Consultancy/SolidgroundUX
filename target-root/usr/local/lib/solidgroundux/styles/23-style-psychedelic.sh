@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621011
-#   Checksum    : c40e5dcda508c011589d7c0602c68866ba122f7b77397519519e62076763cf4e
+#   Build       : 2621122
+#   Checksum    : eb9b5f565657aeff5508b864d4f7b611b154a8370ad47902c2a4cc5db067b010
 #   Source      : 23-style-psychedelic.sh
 #   Type        : library
 #   Group       : Styles

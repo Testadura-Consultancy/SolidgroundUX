@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2620801
-#   Checksum    : e11ee74e86bd99dff602dcf40d20a0cd0fa9879d7931a6a22a6ed9424ac5c604
+#   Build       : 2621201
+#   Checksum    : 7f3c228c07710aa766ceef63e4d575745cf3f3e57ae7d250252e6c1d7705572c
 #   Source      : prepare-release.sh
 #   Type        : script
 #   Group       : SDK Tools
@@ -564,15 +564,7 @@ set -uo pipefail
         #   1 if required arguments are missing or file operations fail
         #
         # . Usage
-        #   _sgnd_release_write_checksum "$tar_path" "$TAR_FILE" "$STAGING_ROOT"
-        #
-        # Examples:
-        #   _sgnd_release_write_checksum "$tar_path_gz" "$TAR_FILE" "$STAGING_ROOT"
-        #
-        # Notes:
-        #   - Idempotent for a given filename.
-        #   - Requires sha256sum, sed, awk, and write permission to staging_root.
-    # fn: _sgnd_release_write_checksum - Write release checksum metadata for a file
+        #   _sgnd_release_write_checksum "/tmp/sgnd-example" "/tmp/sgnd-example.txt" "/tmp/sgnd-example"
         # . Purpose
         #   Write release checksum metadata for a file.
         #
@@ -809,6 +801,9 @@ set -uo pipefail
 
 
     # fn: _set_script_header_version - Set an explicit version in a managed script header
+        #
+        # . Usage
+        #   _set_script_header_version "/tmp/sgnd-example.txt" "1.8.0"
     _set_script_header_version() {
         local file="${1:-}"
         local version="${2:-}"
@@ -843,6 +838,9 @@ set -uo pipefail
         # . Returns
         #   0 on success
         #   1 on failure
+        #
+        # . Usage
+        #   _apply_version_bump
     _apply_version_bump() {
         local mode="none"
         local file=""

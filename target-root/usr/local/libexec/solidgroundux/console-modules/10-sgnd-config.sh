@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2620701
-#   Checksum    : 30c85c997ad8f47317a11941a1c197f64912eba8fa0d42861fee4f92dfbb72dc
+#   Build       : 2621201
+#   Checksum    : 7b3d709c7952156018f631b7a28f2f0aa657063a35064ea2ede3b90fedf411d6
 #   Source      : 10-sgnd-config.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -31,6 +31,9 @@ set -uo pipefail
         #   0 when loading may continue.
         #   1 when the module was already loaded.
         #   Exits with status 2 when executed directly.
+        #
+        # . Usage
+        #   _sgnd_lib_guard "example-0"
     _sgnd_lib_guard() {
         local lib_base
         local guard
@@ -115,14 +118,41 @@ set -uo pipefail
     }
 
 # --- SolidGroundUX installation actions -------------------------------------------
+    # fn: _install_solidgroundux - Install solidgroundux
+        # . Purpose
+        #   Install solidgroundux.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _install_solidgroundux
     _install_solidgroundux() {
         _sgnd_run_public_command "sgnd-install" "$@"
     }
 
+    # fn: _update_solidgroundux - Update solidgroundux
+        # . Purpose
+        #   Update solidgroundux.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _update_solidgroundux
     _update_solidgroundux() {
         _sgnd_run_public_command "sgnd-update" "$@"
     }
 
+    # fn: _uninstall_solidgroundux - Uninstall solidgroundux
+        # . Purpose
+        #   Uninstall solidgroundux.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _uninstall_solidgroundux
     _uninstall_solidgroundux() {
         _sgnd_run_public_command "sgnd-uninstall" "$@"
     }
@@ -134,6 +164,9 @@ set -uo pipefail
         #
         # Usage:
         #   _framework_smoketest
+        #
+        # . Usage
+        #   _framework_smoketest
     _framework_smoketest() {
         _sgnd_run_public_command "sgnd-framework-smoketest"
     }
@@ -143,6 +176,9 @@ set -uo pipefail
         #   Exit status of sgnd-framework-smoketest --show env.
         #
         # Usage:
+        #   _framework_show_environment
+        #
+        # . Usage
         #   _framework_show_environment
     _framework_show_environment() {
         _sgnd_run_public_command "sgnd-framework-smoketest" --show env
@@ -173,6 +209,15 @@ set -uo pipefail
     }
 
 # --- Framework configuration actions ---------------------------------------------
+    # fn: _framework_config_view_file - Framework config view file
+        # . Purpose
+        #   Framework config view file.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _framework_config_view_file
     _framework_config_view_file() {
         local title="$1"
         local file="$2"
@@ -193,6 +238,15 @@ set -uo pipefail
         "${pager_command[@]}" -- "$file"
     }
 
+    # fn: _framework_config_edit_file - Framework config edit file
+        # . Purpose
+        #   Framework config edit file.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _framework_config_edit_file
     _framework_config_edit_file() {
         local title="$1"
         local file="$2"
@@ -223,18 +277,54 @@ set -uo pipefail
         sudo "${editor_command[@]}" "$file"
     }
 
+    # fn: _framework_config_view_system - Framework config view system
+        # . Purpose
+        #   Framework config view system.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _framework_config_view_system
     _framework_config_view_system() {
         _framework_config_view_file             "System framework configuration"             "${SGND_FRAMEWORK_SYSCFG_FILE:-}"
     }
 
+    # fn: _framework_config_edit_system - Framework config edit system
+        # . Purpose
+        #   Framework config edit system.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _framework_config_edit_system
     _framework_config_edit_system() {
         _framework_config_edit_file             "System framework configuration"             "${SGND_FRAMEWORK_SYSCFG_FILE:-}"
     }
 
+    # fn: _framework_config_view_user - Framework config view user
+        # . Purpose
+        #   Framework config view user.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _framework_config_view_user
     _framework_config_view_user() {
         _framework_config_view_file             "User framework configuration"             "${SGND_FRAMEWORK_USRCFG_FILE:-}"
     }
 
+    # fn: _framework_config_edit_user - Framework config edit user
+        # . Purpose
+        #   Framework config edit user.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _framework_config_edit_user
     _framework_config_edit_user() {
         _framework_config_edit_file             "User framework configuration"             "${SGND_FRAMEWORK_USRCFG_FILE:-}"
     }
@@ -245,6 +335,9 @@ set -uo pipefail
         #
         # Usage:
         #   _framework_config_validator "SGND_LOG_KEEP"
+        #
+        # . Usage
+        #   _framework_config_validator "ui.style"
     _framework_config_validator() {
         local key="${1:-}"
 
@@ -270,6 +363,9 @@ set -uo pipefail
         #
         # Usage:
         #   _framework_config_validate_log_level "normal"
+        #
+        # . Usage
+        #   _framework_config_validate_log_level "2026-07-31" "2026-07-31" "2026-07-31" && printf 'Success\n' || printf 'Failed\n'
     _framework_config_validate_log_level() {
         case "${1,,}" in
             silent|quiet|normal|verbose|debug|trace) return 0 ;;
@@ -291,6 +387,9 @@ set -uo pipefail
         #
         # Usage:
         #   _framework_config_write_value "$file" "$key" "$value"
+        #
+        # . Usage
+        #   _framework_config_write_value "example-0" "/tmp/sgnd-example.txt" "ui.style" "dark"
     _framework_config_write_value() {
         local file="${1:?missing cfg file}"
         local key="${2:?missing cfg key}"
@@ -351,6 +450,9 @@ set -uo pipefail
         # Usage:
         #   framework_configure_file
         #   framework_configure_file "$SGND_FRAMEWORK_USRCFG_FILE"
+        #
+        # . Usage
+        #   framework_configure_file "/tmp/sgnd-example.txt"
     framework_configure_file() {
         local cfg_file="${1:-${SGND_FRAMEWORK_SYSCFG_FILE:-}}"
         local spec=""
@@ -411,6 +513,15 @@ set -uo pipefail
     }
 
 # --- Framework logging actions ----------------------------------------------------
+    # fn: _framework_log_validate - Framework log validate
+        # . Purpose
+        #   Framework log validate.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _framework_log_validate
     _framework_log_validate() {
         [[ -n "${SGND_LOG_PATH:-}" ]] || {
             saywarning "SGND_LOG_PATH is not set"
@@ -423,6 +534,15 @@ set -uo pipefail
         }
     }
 
+    # fn: _framework_log_view - Framework log view
+        # . Purpose
+        #   Framework log view.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _framework_log_view
     _framework_log_view() {
         local pager="${PAGER:-less}"
         local -a pager_command=()
@@ -432,11 +552,29 @@ set -uo pipefail
         "${pager_command[@]}" +G -- "$SGND_LOG_PATH"
     }
 
+    # fn: _framework_log_follow - Framework log follow
+        # . Purpose
+        #   Framework log follow.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _framework_log_follow
     _framework_log_follow() {
         _framework_log_validate || return $?
         tail -F -- "$SGND_LOG_PATH"
     }
 
+    # fn: _framework_log_show_errors - Framework log show errors
+        # . Purpose
+        #   Framework log show errors.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _framework_log_show_errors
     _framework_log_show_errors() {
         local pager="${PAGER:-less}"
         local -a pager_command=()
@@ -447,6 +585,15 @@ set -uo pipefail
         grep -E ' type=(ERROR|FAIL|FATAL) ' -- "$SGND_LOG_PATH"             | tail -n 100             | "${pager_command[@]}"
     }
 
+    # fn: _framework_log_rotate - Framework log rotate
+        # . Purpose
+        #   Framework log rotate.
+        #
+        # . Returns
+        #   Returns the underlying command or workflow status.
+        #
+        # . Usage
+        #   _framework_log_rotate
     _framework_log_rotate() {
         local logfile="${SGND_LOG_PATH:-}"
         local keep="${SGND_LOG_KEEP:-5}"
