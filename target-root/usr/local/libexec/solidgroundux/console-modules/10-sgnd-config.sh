@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621201
-#   Checksum    : 7b3d709c7952156018f631b7a28f2f0aa657063a35064ea2ede3b90fedf411d6
+#   Build       : 2621211
+#   Checksum    : b06480d61dadc8c800247b282c68955c9ed07ccb967ff5a8ed0839a333a65962
 #   Source      : 10-sgnd-config.sh
 #   Type        : module
 #   Group       : SolidGround Console

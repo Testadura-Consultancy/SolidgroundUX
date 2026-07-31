@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621201
-#   Checksum    : 807f97528effb86f9f71e6c16c05bbcb7d4d6c5429d9ebee8bd190e2063a2295
+#   Build       : 2621212
+#   Checksum    : 6aaf0db54bcb0031970e48117ca3a95c6a4dd35992a08c3ce43361c86dcc3ad7
 #   Source      : 20-machine-config.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -388,6 +388,8 @@ set -uo pipefail
             gnupg \
             grep \
             htop \
+            iproute2 \
+            iputils-arping \
             iputils-ping \
             jq \
             less \
