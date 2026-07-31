@@ -62,10 +62,6 @@ set -uo pipefail
     SGND_CONFIG_MODULE_VERSION="1.0.0"
     SGND_CONFIG_MODULE_DESC="Manage SolidGroundUX development, installation, state, and diagnostics"
 
-    SGND_MODULE_ID="$SGND_CONFIG_MODULE_ID"
-    SGND_MODULE_NAME="$SGND_CONFIG_MODULE_NAME"
-    SGND_MODULE_VERSION="$SGND_CONFIG_MODULE_VERSION"
-    SGND_MODULE_DESC="$SGND_CONFIG_MODULE_DESC"
 
     SGND_CONSOLE_TITLE_OVERRIDE="SolidGroundUX Management Console"
     SGND_CONSOLE_DESC_OVERRIDE="Manage SolidGroundUX, development tools, and system configuration"

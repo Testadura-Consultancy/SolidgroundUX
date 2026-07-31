@@ -104,10 +104,6 @@ set -uo pipefail
     SGND_MACHINE_CONFIG_MODULE_VERSION="1.0.0"
     SGND_MACHINE_CONFIG_MODULE_DESC="Configure machine identity, packages, roles, and template state"
 
-    SGND_MODULE_ID="$SGND_MACHINE_CONFIG_MODULE_ID"
-    SGND_MODULE_NAME="$SGND_MACHINE_CONFIG_MODULE_NAME"
-    SGND_MODULE_VERSION="$SGND_MACHINE_CONFIG_MODULE_VERSION"
-    SGND_MODULE_DESC="$SGND_MACHINE_CONFIG_MODULE_DESC"
 
 # - Public module actions --------------------------------------------------------
     # doc$ Public module action naming
@@ -384,6 +380,8 @@ set -uo pipefail
             gnupg \
             grep \
             htop \
+            iproute2 \
+            iputils-arping \
             iputils-ping \
             jq \
             less \

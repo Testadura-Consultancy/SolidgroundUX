@@ -71,15 +71,11 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # - Module metadata -------------------------------------------------------------
-    SGND_MACHINE_CONFIG_MODULE_ID="role-config"
-    SGND_MACHINE_CONFIG_MODULE_NAME="Role Provisioning"
-    SGND_MACHINE_CONFIG_MODULE_VERSION="1.0.0"
-    SGND_MACHINE_CONFIG_MODULE_DESC="Provision specific roles on a this server"
+    SGND_ROLE_PROVISIONING_MODULE_ID="role-config"
+    SGND_ROLE_PROVISIONING_MODULE_NAME="Role Provisioning"
+    SGND_ROLE_PROVISIONING_MODULE_VERSION="1.0.0"
+    SGND_ROLE_PROVISIONING_MODULE_DESC="Provision specific roles on this server"
 
-    SGND_MODULE_ID="$SGND_MACHINE_CONFIG_MODULE_ID"
-    SGND_MODULE_NAME="$SGND_MACHINE_CONFIG_MODULE_NAME"
-    SGND_MODULE_VERSION="$SGND_MACHINE_CONFIG_MODULE_VERSION"
-    SGND_MODULE_DESC="$SGND_MACHINE_CONFIG_MODULE_DESC"
 # - Validation helpers -------------------------------------------------------------
     # fn$ _samba_validate_realm
         # . Purpose
