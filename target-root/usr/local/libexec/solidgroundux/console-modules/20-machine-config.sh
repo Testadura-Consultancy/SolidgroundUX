@@ -90,14 +90,6 @@ set -uo pipefail
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
     
-# - Internal helpers -------------------------------------------------------------
-    # doc$ Internal helper naming
-        # Prefix internal-only helpers with "_".
-        # Keep internal helpers module-local and menu-focused.
-        #
-        # Example:
-        #   _sample_format_status() { :; }
-
 # - Module metadata -------------------------------------------------------------
     SGND_MACHINE_CONFIG_MODULE_ID="machine-config"
     SGND_MACHINE_CONFIG_MODULE_NAME="Machine Configuration"
@@ -109,6 +101,15 @@ set -uo pipefail
     SGND_MODULE_NAME="$SGND_MACHINE_CONFIG_MODULE_NAME"
     SGND_MODULE_VERSION="$SGND_MACHINE_CONFIG_MODULE_VERSION"
     SGND_MODULE_DESC="$SGND_MACHINE_CONFIG_MODULE_DESC"
+# - Internal helpers -------------------------------------------------------------
+    # doc$ Internal helper naming
+        # Prefix internal-only helpers with "_".
+        # Keep internal helpers module-local and menu-focused.
+        #
+        # Example:
+        #   _sample_format_status() { :; }
+
+
 
 
 
