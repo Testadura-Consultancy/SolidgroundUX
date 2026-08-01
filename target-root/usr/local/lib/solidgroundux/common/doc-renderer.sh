@@ -406,6 +406,16 @@ set -uo pipefail
 
             project_root="${VAL_SRCDIR%/target-root}"
 
+            if [[ -f "$project_root/SolidGroundUX-Canonical.md" ]]; then
+                cp "$project_root/SolidGroundUX-Canonical.md" \
+                    "$export_dir/SolidGroundUX-Canonical.md" \
+                    || return 1
+            elif [[ -f "$project_root/SolidGroundUX-Cannonical.md" ]]; then
+                cp "$project_root/SolidGroundUX-Cannonical.md" \
+                    "$export_dir/SolidGroundUX-Cannonical.md" \
+                    || return 1
+            fi
+
             if [[ -f "$project_root/CHANGELOG.md" ]]; then
                 cp "$project_root/CHANGELOG.md" \
                     "$export_dir/CHANGELOG.md" \

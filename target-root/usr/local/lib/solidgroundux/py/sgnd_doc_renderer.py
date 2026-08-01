@@ -37,6 +37,7 @@ from typing import Dict, List, Sequence
 RENDERER_BUILD = "2026154"
 
 Row = Dict[str, str]
+CANONICAL_PREFIX = "appendix:canonical:"
 ATTRIBUTION_PREFIX = "appendix:attribution:"
 GLOSSARY_PREFIX = "appendix:glossary:"
 INTEGRITY_PREFIX = "appendix:integrity:"
@@ -119,6 +120,10 @@ def content_ref(
     return f"{module_name}:{grandparent_section}:{parent_section}:{section_name}:{item_name}"
 
 
+def canonical_ref(product_name: str) -> str:
+    return f"{CANONICAL_PREFIX}{product_name}"
+
+
 def attribution_ref(product_name: str) -> str:
     return f"{ATTRIBUTION_PREFIX}{product_name}"
 
@@ -179,11 +184,12 @@ class AppendixSpec:
 
 
 APPENDIX_SPECS: tuple[AppendixSpec, ...] = (
+    AppendixSpec("canonical", "0", "Unimatrix 01", canonical_ref, "render_canonical_page"),
     AppendixSpec("attribution", "A", "Attribution", attribution_ref, "render_attribution_page"),
     AppendixSpec("glossary", "B", "Glossary", glossary_ref, "render_glossary_page"),
     AppendixSpec("integrity", "C", "Integrity Information", integrity_ref, "render_integrity_page"),
     AppendixSpec("globals", "D", "Global Variables", globals_ref, "render_globals_page"),
-    AppendixSpec("enums", "E", "Framework Value Sets", enums_ref, "render_enums_page"),
+    # AppendixSpec("enums", "E", "Framework Value Sets", enums_ref, "render_enums_page"),
     AppendixSpec("license", "X", "License", license_ref, "render_license_page"),
     AppendixSpec("changelog", "Y", "Change Log", changelog_ref, "render_changelog_page"),
     AppendixSpec("install", "Z", "First Installation", install_ref, "render_install_page"),
@@ -1463,6 +1469,7 @@ body {
 
     def is_appendix_ref(self, ref: str) -> bool:
         return any(ref.startswith(prefix) for prefix in (
+            CANONICAL_PREFIX,
             ATTRIBUTION_PREFIX,
             GLOSSARY_PREFIX,
             INTEGRITY_PREFIX,
@@ -2300,6 +2307,19 @@ body {
             "</html>",
         ]
         output_file.write_text("\n".join(html_lines), encoding="utf-8")
+
+    def render_canonical_page(self, product_name: str) -> None:
+        self.render_project_document_page(
+            product_name,
+            canonical_ref(product_name),
+            "0",
+            "Unimatrix 01",
+            (
+                "SolidGroundUX-Canonical.md",
+                "SolidGroundUX-Cannonical.md",
+                "solidgroundux-canonical.md",
+            ),
+        )
 
     def render_changelog_page(self, product_name: str) -> None:
         self.render_project_document_page(
