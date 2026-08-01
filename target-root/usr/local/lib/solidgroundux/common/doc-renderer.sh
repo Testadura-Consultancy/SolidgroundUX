@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621201
-#   Checksum    : 744656ca45b570eead30b07f364d799ffb1d7fc5e74d6284b8caa1f0419764b7
+#   Build       : 2621300
+#   Checksum    : 9d7a95a3596f690bb747fdad93ba3d999398912c94b6bc53ba2837b72928853e
 #   Source      : doc-renderer.sh
 #   Type        : library
 #   Group       : SDK Documentation

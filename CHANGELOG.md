@@ -4,7 +4,7 @@ All notable changes to SolidGroundUX are documented in this file.
 
 The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.
 
-# Version 1.8 (Build 2621212)
+# Version 1.8 (Build 2621300)
 
 ## SolidGroundUX Framework
 
@@ -13,7 +13,8 @@ The format is inspired by *Keep a Changelog* while remaining focused on practica
 
 ### Added
 - Themed color constants SGND_UI_BOLD, SGND_UI_FAINT, SGND_UI_ITALIC
-- Increental update options for doc-generator
+- Incremental update options for doc-generator
+- Added Appendix 0 to documentation (Both for Dev's as well as AI)
 
 ## SolidGroundUX Management Studio
 
