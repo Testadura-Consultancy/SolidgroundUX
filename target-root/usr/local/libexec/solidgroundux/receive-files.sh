@@ -381,4 +381,4 @@ set -uo pipefail
         return 0
     }
 
-    main "$@"
+    main "$@" 
