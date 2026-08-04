@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621602
-#   Checksum    : pending
+#   Build       : 2621612
+#   Checksum    : 1cbc241fc47849858cf869f18524f9e8ceef3c2520b6c08f8e593391c8d51d04
 #   Source      : receive-files.sh
 #   Type        : script
 #   Group       : SDK Tools

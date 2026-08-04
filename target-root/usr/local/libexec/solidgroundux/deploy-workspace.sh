@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621602
-#   Checksum    : pending
+#   Build       : 2621612
+#   Checksum    : 1b4e4702aa978e6a26ea682256faaf31dca934544d5a6d5ae0f78794fd3b3252
 #   Source      : deploy-workspace.sh
 #   Type        : script
 #   Group       : SDK Tools

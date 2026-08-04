@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621602
-#   Checksum    : pending
+#   Build       : 2621612
+#   Checksum    : 95e1bfcba80f89a7139011f563ddcc425789ffc6ba1314fda732f2f2e6060725
 #   Source      : 20-active-directory.sh
 #   Type        : module
 #   Group       : SolidGround Console

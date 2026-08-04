@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>_install_samba_ad</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">_install_samba_ad</div>
+  <div class="doc-breadcrumb">SolidgroundUX / 20-active-directory.sh / Active Directory server / _install_samba_ad</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Install the packages required for a Samba Active Directory Domain Controller.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Refreshes the APT package index.</div>
+<div class="ct-functionbody">  - Installs Samba AD/DC, Kerberos, and DNS diagnostic packages.</div>
+<div class="ct-functionbody">  - Stops, disables, and masks standalone Samba services.</div>
+<div class="ct-functionbody">  - Unmasks and enables the dedicated Samba AD/DC service.</div>
+<div class="ct-functionbody">  - Leaves domain creation to the separate provisioning action.</div>
+<div class="ct-functionbody">  - Honors dry-run mode without changing the system.</div>
+<div class="ct-functionbody"></div>
+<p class="ct-functionbody">Inputs (globals):</p>
+<div class="ct-functionbody">  FLAG_DRYRUN</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 when installation and service preparation succeed.</div>
+<div class="ct-functionbody">  Non-zero when a required package or service operation fails.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  _install_samba_ad</div>
+</main>
+</body>
+</html>

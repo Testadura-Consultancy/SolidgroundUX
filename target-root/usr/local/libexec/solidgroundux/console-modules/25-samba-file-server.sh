@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621602
-#   Checksum    : pending
+#   Build       : 2621612
+#   Checksum    : 0cf4c1b0a4c26ce8f7d277110c21df210fea5afa8a2404bf19e4dc677c10df4d
 #   Source      : 25-samba-file-server.sh
 #   Type        : module
 #   Group       : SolidGround Console

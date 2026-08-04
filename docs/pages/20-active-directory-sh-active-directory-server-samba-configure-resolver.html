@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>_samba_configure_resolver</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">_samba_configure_resolver</div>
+  <div class="doc-breadcrumb">SolidgroundUX / 20-active-directory.sh / Active Directory server / _samba_configure_resolver</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Prepare systemd-resolved to coexist with Samba&#x27;s internal DNS server.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Creates a SolidGroundUX systemd-resolved drop-in.</div>
+<div class="ct-functionbody">  - Disables the local DNS stub listener on port 53.</div>
+<div class="ct-functionbody">  - Points /etc/resolv.conf at the non-stub resolver file.</div>
+<div class="ct-functionbody">  - Restarts systemd-resolved to apply the configuration.</div>
+<div class="ct-functionbody"></div>
+<p class="ct-functionbody">Outputs (files):</p>
+<div class="ct-functionbody">  /etc/systemd/resolved.conf.d/solidgroundux-samba-ad.conf</div>
+<div class="ct-functionbody">  /etc/resolv.conf</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 when resolver configuration succeeds.</div>
+<div class="ct-functionbody">  Non-zero when a filesystem or service operation fails.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  _samba_configure_resolver</div>
+</main>
+</body>
+</html>

@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621602
-#   Checksum    : pending
+#   Build       : 2621612
+#   Checksum    : 50bc8a81665b85d786173916a3c2d2f956c3e3246a5f4fded7e309c19c573b0a
 #   Source      : 90-solidgroundux.sh
 #   Type        : module
 #   Group       : SolidGround Console

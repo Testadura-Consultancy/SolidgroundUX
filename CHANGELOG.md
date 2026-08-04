@@ -4,7 +4,7 @@ All notable changes to SolidGroundUX are documented in this file.
 
 The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.
 
-# Unreleased
+# Version 1.8 (Build 2621612)
 
 ## SolidGround Management Console
 

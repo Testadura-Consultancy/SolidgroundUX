@@ -15,6 +15,84 @@
 <h2 class="ct-L1Sectionheader">Changelog</h2>
 <p class="ct-documentbody">All notable changes to SolidGroundUX are documented in this file.</p>
 <p class="ct-documentbody">The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.</p>
+<h2 class="ct-L1Sectionheader">Version 1.8 (Build 2621612)</h2>
+<h3 class="ct-L2Sectionheader">SolidGround Management Console</h3>
+<h4 class="ct-L3Sectionheader">Added</h4>
+<h5 class="ct-L3Sectionheader">Computer Setup</h5>
+<ul>
+<li>Machine status overview.</li>
+<li>Machine identity and network configuration.</li>
+<li>Machine ID generation.</li>
+<li>SSH service configuration.</li>
+<li>SSH host key generation.</li>
+<li>VM template preparation.</li>
+<li>Ubuntu package management.</li>
+<li>Ubuntu base package installation.</li>
+</ul>
+<h5 class="ct-L3Sectionheader">Active Directory</h5>
+<ul>
+<li>Samba Active Directory package installation.</li>
+<li>Active Directory domain provisioning.</li>
+<li>Active Directory status overview.</li>
+<li>Active Directory user management.</li>
+<li>Active Directory group management.</li>
+<li>Active Directory client installation.</li>
+<li>Domain join and leave support.</li>
+</ul>
+<h5 class="ct-L3Sectionheader">Samba File Server</h5>
+<ul>
+<li>Samba File Server installation.</li>
+</ul>
+<h5 class="ct-L3Sectionheader">Optional Roles</h5>
+<ul>
+<li>Docker installation.</li>
+<li>XRDP installation.</li>
+<li>Framework for future optional server roles.</li>
+</ul>
+<h5 class="ct-L3Sectionheader">SolidGroundUX</h5>
+<ul>
+<li>Framework configuration management.</li>
+<li>Framework state management.</li>
+<li>Framework logging tools.</li>
+<li>Framework diagnostics.</li>
+<li>SolidGroundUX installation, update, and removal.</li>
+</ul>
+<h5 class="ct-L3Sectionheader">Development Tools</h5>
+<ul>
+<li>Workspace creation.</li>
+<li>Workspace deployment through `deploy-workspace.sh`.</li>
+<li>Workspace archiving.</li>
+<li>Workspace restoration.</li>
+<li>Release preparation.</li>
+<li>Metadata editor.</li>
+<li>Documentation generator.</li>
+<li>`receive-files.sh` for receiving streamed deployments.</li>
+<li>`tar-it.sh` for archive creation.</li>
+<li>`untar-it.sh` for archive restoration.</li>
+</ul>
+<h4 class="ct-L3Sectionheader">Changed</h4>
+<ul>
+<li>Reorganized the SolidGround Management Console into dedicated functional modules.</li>
+<li>Simplified the overall console navigation.</li>
+<li>Console actions that invoke external scripts now resolve those scripts from `SGND_COMMON_EXE` or `SGND_COMMON_LIB`.</li>
+<li>Completely redesigned `deploy-workspace.sh`.</li>
+<li>Added support for local and remote workspace deployment over SSH.</li>
+<li>Added support for deploying complete workspaces or filtered file selections.</li>
+<li>`deploy-workspace.sh` now creates a tar stream that is processed by `receive-files.sh`.</li>
+<li>Simplified deployment selection by combining directory, filename or mask, and modification-date filters.</li>
+</ul>
+<h4 class="ct-L3Sectionheader">Removed</h4>
+<ul>
+<li>Replaced the previous console modules with the new functional module structure:</li>
+<li>`10-sgnd-config.sh`</li>
+<li>`20-machine-config.sh`</li>
+<li>`30-role-provisioning.sh`</li>
+</ul>
+<h3 class="ct-L2Sectionheader">SolidGround Framework</h3>
+<h4 class="ct-L3Sectionheader">Added</h4>
+<ul>
+<li>Global variable SGND_COMMON_EXE this is weher Solidground&#x27;s executables can be found</li>
+</ul>
 <h2 class="ct-L1Sectionheader">Version 1.8 (Build 2621300)</h2>
 <h3 class="ct-L2Sectionheader">SolidGroundUX Framework</h3>
 <h4 class="ct-L3Sectionheader">Resolved</h4>

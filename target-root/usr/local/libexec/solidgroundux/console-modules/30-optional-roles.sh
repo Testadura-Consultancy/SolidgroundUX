@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621602
-#   Checksum    : pending
+#   Build       : 2621612
+#   Checksum    : c8e9a11e5590ae0c2510204aa2b40a807f14c8da5bcb0bbcdda08e2ad26051b5
 #   Source      : 30-optional-roles.sh
 #   Type        : module
 #   Group       : SolidGround Console

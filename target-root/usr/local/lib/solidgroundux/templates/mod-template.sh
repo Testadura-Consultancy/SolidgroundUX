@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621211
-#   Checksum    : 3e50a56d33fd9099f885a461dd715b6f4a13d877d703c6a4802d2a47e56dd2cc
+#   Build       : 2621612
+#   Checksum    : a895489ecdf329ba431a0f3a531ae5a2ac2d32cda22054117d520dd3bd74d9e1
 #   Source      : mod-template.sh
 #   Type        : module
 #   Group       : Templates
