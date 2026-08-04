@@ -1,18 +1,17 @@
 # ==================================================================================
-# SolidGroundUX - SolidGroundUX Configuration Console Module
+# SolidGroundUX - SolidGroundUX
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621211
-#   Checksum    : b06480d61dadc8c800247b282c68955c9ed07ccb967ff5a8ed0839a333a65962
-#   Source      : 10-sgnd-config.sh
+#   Build       : 2621602
+#   Checksum    : pending
+#   Source      : 90-solidgroundux.sh
 #   Type        : module
 #   Group       : SolidGround Console
-#   Purpose     : Manage SolidGroundUX development, installation, configuration, state, logging, and diagnostics
+#   Purpose     : Manage the SolidGroundUX installation and framework
 #
 # Description:
-#   Defines the standard SolidGroundUX Management Console identity and registers
-#   development, installation, configuration, state, logging, and diagnostic actions.
+#   Contains only SolidGroundUX installation, configuration, state, logging, diagnostics, and about actions.
 #
 # Attribution:
 #   Developers    : Mark Fieten
@@ -57,69 +56,16 @@ set -uo pipefail
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
-# - Module metadata --------------------------------------------------------------
-    SGND_CONFIG_MODULE_ID="sgnd-config"
-    SGND_CONFIG_MODULE_NAME="SolidGroundUX Configuration"
-    SGND_CONFIG_MODULE_VERSION="1.0.0"
-    SGND_CONFIG_MODULE_DESC="Manage SolidGroundUX development, installation, state, and diagnostics"
+# - Module metadata -------------------------------------------------------------
+    SGND_SOLIDGROUNDUX_MODULE_ID="solidgroundux"
+    SGND_SOLIDGROUNDUX_MODULE_NAME="SolidGroundUX"
+    SGND_SOLIDGROUNDUX_MODULE_VERSION="1.0.0"
+    SGND_SOLIDGROUNDUX_MODULE_DESC="Manage the SolidGroundUX framework and installation"
 
-    # Transient console-loader metadata contract.
-    SGND_MODULE_ID="$SGND_CONFIG_MODULE_ID"
-    SGND_MODULE_NAME="$SGND_CONFIG_MODULE_NAME"
-    SGND_MODULE_VERSION="$SGND_CONFIG_MODULE_VERSION"
-    SGND_MODULE_DESC="$SGND_CONFIG_MODULE_DESC"
-
-
-
-    SGND_CONSOLE_TITLE_OVERRIDE="SolidGroundUX Management Console"
-    SGND_CONSOLE_DESC_OVERRIDE="Manage SolidGroundUX, development tools, and system configuration"
-
-# - Developer tool actions -------------------------------------------------------
-    # fn: _exe_createworkspace
-        # . Returns
-        #   Exit status of create-workspace.sh.
-        # . Usage
-        #   _exe_createworkspace
-    _exe_createworkspace() {
-        _sgnd_run_public_command "sgnd-create-workspace"
-    }
-
-    # fn: _exe_deployworkspace
-        # . Returns
-        #   Exit status of deploy-workspace.sh.
-        # . Usage
-        #   _exe_deployworkspace
-    _exe_deployworkspace() {
-        _sgnd_run_public_command "sgnd-deploy-workspace"
-    }
-
-    # fn: _exe_preparerelease
-        # . Returns
-        #   Exit status of prepare-release.sh.
-        # . Usage
-        #   _exe_preparerelease
-    _exe_preparerelease() {
-        _sgnd_run_public_command "sgnd-prepare-release"
-    }
-
-    # fn: _exe_metadata_editor
-        # . Returns
-        #   Exit status of metadata-editor.sh.
-        # . Usage
-        #   _exe_metadata_editor
-    _exe_metadata_editor() {
-        _sgnd_run_public_command "sgnd-metadata-editor"
-    }
-
-    # _exe_generate_docs
-        # . Returns
-        #   Exit status of sgnd-generate-docs.
-        #
-        # . Usage
-        #   _exe_generate_docs
-    _exe_generate_docs() {
-        _sgnd_run_public_command "sgnd-generate-docs"
-    }
+    SGND_MODULE_ID="${SGND_SOLIDGROUNDUX_MODULE_ID}"
+    SGND_MODULE_NAME="${SGND_SOLIDGROUNDUX_MODULE_NAME}"
+    SGND_MODULE_VERSION="${SGND_SOLIDGROUNDUX_MODULE_VERSION}"
+    SGND_MODULE_DESC="${SGND_SOLIDGROUNDUX_MODULE_DESC}"
 
 # - SolidGroundUX installation actions -------------------------------------------
     # fn: _install_solidgroundux - Install solidgroundux
@@ -797,18 +743,6 @@ set -uo pipefail
     }
 
 # - Console registration ---------------------------------------------------------
-    sgnd_console_register_group \
-        "$SGND_CONFIG_MODULE_ID" \
-        "Developer Tools" \
-        "Workspace, deployment, release, metadata, and documentation tools" \
-        0 1 800
-
-    sgnd_console_register_item "createws" "$SGND_CONFIG_MODULE_ID" "Create workspace" "_exe_createworkspace" "Create a template workspace with target-root structure" 0 15 1
-    sgnd_console_register_item "deployws" "$SGND_CONFIG_MODULE_ID" "Deploy workspace" "_exe_deployworkspace" "Deploy a target-root structure from workspace to root" 0 15 1
-    sgnd_console_register_item "preprel" "$SGND_CONFIG_MODULE_ID" "Prepare release" "_exe_preparerelease" "Create a release archive with checksums and manifests" 0 15 1
-    sgnd_console_register_item "metaedt" "$SGND_CONFIG_MODULE_ID" "Metadata editor" "_exe_metadata_editor" "Edit metadata fields in script header comments" 0 15 1
-    sgnd_console_register_item "gendocs" "$SGND_CONFIG_MODULE_ID" "Generate documentation" "_exe_generate_docs" "Generate SolidGroundUX source documentation" 0 15 1
-
     sgnd_console_register_group "sgndinst" "SolidGroundUX Installation" "Install, update, or uninstall SolidGroundUX" 0 1 810
     sgnd_console_register_item "install" "sgndinst" "Install SolidGroundUX" "_install_solidgroundux" "Install SolidGroundUX release package" 0 5 1
     sgnd_console_register_item "update" "sgndinst" "Update SolidGroundUX" "_update_solidgroundux" "Update SolidGroundUX" 0 5 1

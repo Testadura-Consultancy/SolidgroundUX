@@ -3,40 +3,24 @@
 # SolidGroundUX - Deploy Workspace
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2617512
-#   Checksum    : 62d6fbf61823744452461c6de79f0c7d0b222fb9d4158724328b2e55aed22ee2
+#   Version     : 1.8
+#   Build       : 2621602
+#   Checksum    : pending
 #   Source      : deploy-workspace.sh
 #   Type        : script
 #   Group       : SDK Tools
-#   Purpose     : Deploy or remove a development workspace to or from a target root
+#   Purpose     : Select workspace files and deploy them through receive-files.sh
 #
 # Description:
-#   Provides a deployment utility that synchronizes a structured workspace
-#   into a target filesystem root.
-#
-#   The script:
-#     - Copies files from source to target while preserving structure
-#     - Creates destination directories as required
-#     - Applies permission policy based on PERMISSION_RULES
-#     - Skips private, hidden, and non-deployable files by convention
-#     - Records created files and directories in a deploy manifest
-#     - Supports manifest-based undeploy operations
+#   Collects deployment settings from command-line arguments and interactive prompts,
+#   resolves the requested workspace files into a concrete relative path list, creates
+#   a tar stream, and passes that stream to receive-files.sh locally or over SSH.
 #
 # Design principles:
-#   - Deployment behavior is explicit and predictable
-#   - Only created artifacts are tracked for undeploy
-#   - Honors dry-run, verbose, and debug run modes
-#   - Avoids destructive rollback behavior outside recorded manifests
-#
-# Role in framework:
-#   - Entry point for deploying prepared workspaces into target roots
-#   - Supports controlled install and removal workflows for SolidGroundUX assets
-#
-# Non-goals:
-#   - Full rollback of all modified target files
-#   - Generic backup or restore functionality
-#   - Arbitrary synchronization outside the workspace deployment model
+#   - Selection and transport remain separate from destination-side installation policy
+#   - Local and remote deployment use the same receive-files.sh contract
+#   - Command-line values override saved defaults
+#   - Deployment state is updated only after a successful receive operation
 #
 # Attribution:
 #   Developers  : Mark Fieten
@@ -46,6 +30,7 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
+
 # --- Bootstrap ----------------------------------------------------------------------
     # fn: _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
         # . Purpose
@@ -56,17 +41,11 @@ set -uo pipefail
         #   - Searches user and system bootstrap configuration locations.
         #   - Prefers the invoking user's config over the system config.
         #   - Creates a new bootstrap config when none exists.
-        #   - Prompts for framework/application roots in interactive mode.
-        #   - Applies default values when running non-interactively.
-        #   - Sources the selected bootstrap configuration file.
         #   - Loads sgnd-exe-common.sh from the resolved framework root.
         #
         # . Globals (write)
         #   SGND_FRAMEWORK_ROOT
         #   SGND_APPLICATION_ROOT
-        #
-        # . Output
-        #   Writes primitive printf-based messages before the framework UI is available.
         #
         # . Returns
         #   0 when the bootstrap configuration and executable common library were loaded.
@@ -75,31 +54,26 @@ set -uo pipefail
         #
         # . Usage
         #   _framework_locator || return $?
-        #
-        # Notes:
-        #   - Under sudo, configuration is resolved relative to SUDO_USER instead of /root.
-        #   - This function intentionally uses printf rather than say* helpers because
-        #     the executable common library has not been loaded yet.
     _framework_locator() {
         local cfg_home="$HOME"
-
-        if [[ $EUID -eq 0 && -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]]; then
-            cfg_home="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
-        fi
-
-        local cfg_user="$cfg_home/.config/solidgroundux/solidgroundux.cfg"
+        local cfg_user=""
         local cfg_sys="/etc/solidgroundux/solidgroundux.cfg"
         local cfg=""
         local fw_root="/"
-        local app_root="$fw_root"
+        local app_root="/"
         local reply=""
+        local exe_common=""
+
+        if [[ $EUID -eq 0 && -n "${SUDO_USER:-}" && "$SUDO_USER" != "root" ]]; then
+            cfg_home="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
+        fi
+
+        cfg_user="$cfg_home/.config/solidgroundux/solidgroundux.cfg"
 
         if [[ -r "$cfg_user" ]]; then
             cfg="$cfg_user"
-
         elif [[ -r "$cfg_sys" ]]; then
             cfg="$cfg_sys"
-
         else
             if [[ $EUID -eq 0 ]]; then
                 cfg="$cfg_sys"
@@ -112,11 +86,11 @@ set -uo pipefail
                 printf '%s\n' "No configuration file found." >&2
                 printf '%s\n' "Creating: $cfg" >&2
 
-                printf "SGND_FRAMEWORK_ROOT [/] : " > /dev/tty
+                printf 'SGND_FRAMEWORK_ROOT [/] : ' > /dev/tty
                 read -r reply < /dev/tty
                 fw_root="${reply:-/}"
 
-                printf "SGND_APPLICATION_ROOT [/] : " > /dev/tty
+                printf 'SGND_APPLICATION_ROOT [%s] : ' "$fw_root" > /dev/tty
                 read -r reply < /dev/tty
                 app_root="${reply:-$fw_root}"
             fi
@@ -132,7 +106,6 @@ set -uo pipefail
             esac
 
             mkdir -p "$(dirname "$cfg")" || return 127
-
             {
                 printf '%s\n' "# SolidGroundUX bootstrap configuration"
                 printf '%s\n' "# Auto-generated on first run"
@@ -140,30 +113,12 @@ set -uo pipefail
                 printf 'SGND_FRAMEWORK_ROOT=%q\n' "$fw_root"
                 printf 'SGND_APPLICATION_ROOT=%q\n' "$app_root"
             } > "$cfg" || return 127
-
-            printf '%s\n' "Created bootstrap cfg: $cfg" >&2
         fi
 
-        if [[ -r "$cfg" ]]; then
-            # shellcheck source=/dev/null
-            source "$cfg"
-
-            : "${SGND_FRAMEWORK_ROOT:=/}"
-            : "${SGND_APPLICATION_ROOT:=$SGND_FRAMEWORK_ROOT}"
-        else
-            printf '%s\n' "Cannot read bootstrap cfg: $cfg" >&2
-            return 126
-        fi
-
-        case "${SGND_LOG_LEVEL:-silent}" in
-            silent|quiet)
-                ;;
-            *)
-                printf '%s\n' "Bootstrap cfg loaded: $cfg, SGND_FRAMEWORK_ROOT=$SGND_FRAMEWORK_ROOT, SGND_APPLICATION_ROOT=$SGND_APPLICATION_ROOT" >&2
-                ;;
-        esac
-
-        local exe_common=""
+        # shellcheck source=/dev/null
+        source "$cfg" || return 126
+        : "${SGND_FRAMEWORK_ROOT:=/}"
+        : "${SGND_APPLICATION_ROOT:=$SGND_FRAMEWORK_ROOT}"
 
         if [[ "$SGND_FRAMEWORK_ROOT" == "/" ]]; then
             exe_common="/usr/local/lib/solidgroundux/common/sgnd-exe-common.sh"
@@ -186,1112 +141,639 @@ set -uo pipefail
     SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
     SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
     SGND_SCRIPT_TITLE="Deploy workspace"
-    : "${SGND_SCRIPT_DESC:=Deploy a development workspace to a target root filesystem.}"
-    : "${SGND_SCRIPT_VERSION:=1.0}"
-    : "${SGND_SCRIPT_BUILD:=20250110}"
+    : "${SGND_SCRIPT_DESC:=Select and stream development workspace files to a SolidGroundUX receiver.}"
+    : "${SGND_SCRIPT_VERSION:=1.8}"
+    : "${SGND_SCRIPT_BUILD:=2621602}"
     : "${SGND_SCRIPT_DEVELOPERS:=Mark Fieten}"
     : "${SGND_SCRIPT_COMPANY:=Testadura Consultancy}"
     : "${SGND_SCRIPT_COPYRIGHT:=© 2025 - 2026 Testadura Consultancy}"
     : "${SGND_SCRIPT_LICENSE:=Testadura Non-Commercial License (TD-NC) v1.1.}"
 
-    MANIFEST_BASE_DIR="/var/lib/solidgroundux/deploy-workspace"
-    MANIFEST_SOURCE_ID=""
-    MANIFEST_SOURCE_DIR=""
-    MANIFEST_NAME=""
-    MANIFEST_PATH=""
-    MANIFEST_TMP=""
-
 # --- Script metadata (framework integration) -----------------------------------------
-    # var$ SGND_USING
-        # Libraries to source from SGND_COMMON_LIB.
-        # These are loaded automatically by sgnd_bootstrap AFTER core libraries.
-        #
-        # Example:
-        #   SGND_USING=( net.sh fs.sh )
-        #
-        # Leave empty if no extra libs are needed.
     SGND_USING=(
     )
 
-    # var$ SGND_ARGS_SPEC
-        # Optional: script-specific arguments
-        # --- Example: Arguments
-        # Each entry:
-        #   "name|short|type|var|help|choices"
-        #
-        #   name    = long option name WITHOUT leading --
-        #   short   - short option name WITHOUT leading -
-        #   type    = flag | value | enum
-        # var: = shell variable that will be set
-        #   help    = help string for auto-generated --help output
-        #   choices = for enum: comma-separated values (e.g. fast,slow,auto)
-        #             for flag/value: leave empty
-        #
-        # Notes:
-        #   - -h / --help is built in, you don't need to define it here.
-        #   - After parsing you can use: FLAG_VERBOSE, VAL_CONFIG, ENUM_MODE, ...
     SGND_ARGS_SPEC=(
-        "auto|a|flag|FLAG_AUTO|Repeat with last settings|0|"
-        "undeploy|u|flag|FLAG_UNDEPLOY|Remove files from main root|0|"
-        "source|s|value|SRC_ROOT|Set Source directory|"
-        "target|t|value|DEST_ROOT|Set Target directory|"
-        "manifest|m|value|MANIFEST_NAME|Use a specific manifest name for undeploy|"
+        "auto|a|flag|FLAG_AUTO|Deploy immediately using saved settings|0|"
+        "local|l|flag|FLAG_LOCAL|Deploy to the local system|0|"
+        "remote|r|value|REMOTE_TARGET|Deploy through SSH to user@host|"
+        "source|s|value|SRC_ROOT|Workspace source root|"
+        "target|t|value|DEST_ROOT|Destination filesystem root|"
+        "directory|d|value|SELECT_DIRECTORY|Optional directory below the workspace root|"
+        "match|m|value|SELECT_MATCH|Filename or shell-style file mask|"
+        "changed-after|c|value|CHANGED_AFTER|Only include files modified after this date or timestamp|"
+        "since-last||flag|FLAG_SINCE_LAST|Only include files changed since the last successful deployment|0|"
+        "receiver||value|RECEIVER_PATH|Path to receive-files.sh on the destination|"
     )
 
-    # var$ SGND_SCRIPT_EXAMPLES
-        # Optional: examples for --help output.
-        # Each entry is a string that will be printed verbatim.
-        #
-        # Example:
-        #   SGND_SCRIPT_EXAMPLES=(
-        #       "Example usage:"
-        #       "  script.sh --verbose --mode fast"
-        #       "  script.sh -v -m slow"
-        #   )
-        #
-        # Leave empty if no examples are needed.
     SGND_SCRIPT_EXAMPLES=(
-        "Deploy using defaults:"
-        "  $SGND_SCRIPT_NAME"
+        "Deploy all shell files beneath one directory locally:"
+        "  $SGND_SCRIPT_NAME --local --source /srv/solidgroundux/target-root --directory usr/local/lib/solidgroundux --match '*.sh'"
         ""
-        "Undeploy everything:"
-        "  $SGND_SCRIPT_NAME --undeploy"
-        "  $SGND_SCRIPT_NAME -u"
-    ) 
+        "Deploy one named file remotely:"
+        "  $SGND_SCRIPT_NAME --remote sysadmin@192.168.0.253 --match sgnd-console.sh"
+        ""
+        "Deploy files changed since the last successful deployment:"
+        "  $SGND_SCRIPT_NAME --remote sysadmin@192.168.0.253 --since-last"
+    )
 
-    # var$ SGND_SCRIPT_GLOBALS
-        # Explicit declaration of global variables intentionally used by this script.
-        #
-        # IMPORTANT:
-        #   - If this array is non-empty, sgnd_bootstrap will enable config loading.
-        #   - Variables listed here may be populated from configuration files.
-        #   - This makes SGND_SCRIPT_GLOBALS part of the script’s configuration contract.
-        #
-        # Use this to:
-        #   - Document intentional globals
-        #   - Prevent accidental namespace leakage
-        #   - Enable cfg integration in a predictable way
-        #
-        # Only list:
-        #   - Variables that are meant to be globally accessible
-        #   - Variables that may be set via config files
-        #
-        # Leave empty if:
-        #   - The script does not use config-driven globals
-        #
     SGND_SCRIPT_GLOBALS=(
     )
 
-    # var$ SGND_STATE_VARIABLES
-        # List of variables participating in persistent state.
-        #
-        # . Purpose
-        #   - Declares which variables should be saved/restored when state is enabled.
-        #
-        # . Behavior
-        #   - Only used when sgnd_bootstrap is invoked with --state.
-        #   - Variables listed here are serialized on exit (if SGND_STATE_SAVE=1).
-        #   - On startup, previously saved values are restored before main logic runs.
-        #
-        # Contract:
-        #   - Variables must be simple scalars (no arrays/associatives unless explicitly supported).
-        #   - Script remains fully functional when state is disabled.
-        #
-        # Leave empty if:
-        #   - The script does not use persistent state.
     SGND_STATE_VARIABLES=(
+        DEPLOY_TRANSPORT
+        REMOTE_TARGET
+        SRC_ROOT
+        DEST_ROOT
+        SELECT_DIRECTORY
+        SELECT_MATCH
+        CHANGED_AFTER
+        RECEIVER_PATH
+        LAST_DEPLOY_SUCCESS
     )
 
-    # var$ SGND_ON_EXIT_HANDLERS
-        # List of functions to be invoked on script termination.
-        #
-        # . Purpose
-        #   - Allows scripts to register cleanup or finalization hooks.
-        #
-        # . Behavior
-        #   - Functions listed here are executed during framework exit handling.
-        #   - Execution order follows array order.
-        #   - Handlers run regardless of normal exit or controlled termination.
-        #
-        # Contract:
-        #   - Functions must exist before exit occurs.
-        #   - Handlers must not call exit directly.
-        #   - Handlers should be idempotent (safe if executed once).
-        #
-        # Typical uses:
-        #   - Cleanup temporary files
-        #   - Persist additional state
-        #   - Release locks
-        #
-        # Leave empty if:
-        #   - No custom exit behavior is required.
     SGND_ON_EXIT_HANDLERS=(
     )
-    
-    # var: State persistence is opt-in.
-        # Scripts that want persistent state must:
-        #   1) set SGND_STATE_SAVE=1
-        #   2) call sgnd_bootstrap --state
+
     SGND_STATE_SAVE=0
 
-# --- Local script Declarations -------------------------------------------------------
-    # Put script-local constants and defaults here (NOT framework config).
-    # Prefer local variables inside functions unless a value must be shared.
+# --- Local declarations ---------------------------------------------------------------
+    DEPLOY_TRANSPORT="${DEPLOY_TRANSPORT:-}"
+    REMOTE_TARGET="${REMOTE_TARGET:-}"
+    SRC_ROOT="${SRC_ROOT:-}"
+    DEST_ROOT="${DEST_ROOT:-}"
+    SELECT_DIRECTORY="${SELECT_DIRECTORY:-}"
+    SELECT_MATCH="${SELECT_MATCH:-}"
+    CHANGED_AFTER="${CHANGED_AFTER:-}"
+    RECEIVER_PATH="${RECEIVER_PATH:-}"
+    LAST_DEPLOY_SUCCESS="${LAST_DEPLOY_SUCCESS:-}"
 
-    # PERMISSION_RULES
-    #   Declarative permission policy for installed paths.
-    #
-    # Format (pipe-delimited):
-    #   "<prefix>|<file_mode>|<dir_mode>|<description>"
-    #
-    # Matching:
-    #   - Longest prefix match wins.
-    #   - A rule applies if abs path equals the prefix or is within the prefix folder.
-    #
-    # Modes:
-    #   - file_mode is used for regular files (install -m).
-    #   - dir_mode  is used for directories (install -d -m).
-    #
-    # Notes:
-    #   - This is a policy table: keep it stable and predictable.
-    #   - Description is informational only; not used in logic.
-    PERMISSION_RULES=(
-        "/usr/local/bin|755|755|User entry points"
-        "/usr/local/sbin|755|755|Admin entry points"
-        "/etc/update-motd.d|755|755|Executed by system"
-        "/usr/local/lib/solidgroundux|644|755|Implementation only"
-        "/usr/local/lib/solidgroundux/common/tools|755|755|Implementation only"
-        "/etc/solidgroundux|640|750|Configuration"
-        "/var/lib/solidgroundux|600|700|Application state"
-    )
+    CLI_DEPLOY_TRANSPORT=0
+    CLI_REMOTE_TARGET=0
+    CLI_SRC_ROOT=0
+    CLI_DEST_ROOT=0
+    CLI_SELECT_DIRECTORY=0
+    CLI_SELECT_MATCH=0
+    CLI_CHANGED_AFTER=0
+    CLI_RECEIVER_PATH=0
 
-# --- local script functions ----------------------------------------------------------tree
- # -- Manifests
-    # fn: _manifest_source_id - Build a stable deployment source identifier
-        # . Purpose
-        #   Derive a stable manifest namespace identifier from SRC_ROOT.
+    SELECTED_PATHS=()
+
+# --- Selection helpers ---------------------------------------------------------------
+    # fn: _is_deployable_path - Test whether a relative workspace path is deployable
+        # . Arguments
+        #   $1  Relative path beneath SRC_ROOT.
         #
-        # . Behavior
-        #   - Hashes SRC_ROOT using sha256
-        #   - Prints the resulting identifier to stdout
+        # . Returns
+        #   0 when the path is deployable.
+        #   1 when the path is top-level, hidden, private, or marked .old.
         #
-        # Inputs (globals):
-        #   SRC_ROOT
+        # . Usage
+        #   _is_deployable_path "usr/local/bin/sgnd-console"
+    _is_deployable_path() {
+        local rel="$1"
+        local name=""
+
+        name="$(basename -- "$rel")"
+
+        [[ "$rel" == */* ]] || return 1
+        [[ "$name" != _* ]] || return 1
+        [[ "$name" != *.old ]] || return 1
+        [[ "$rel" != .*/* ]] || return 1
+        [[ "$rel" != _*/* ]] || return 1
+        [[ "$rel" != */.*/* ]] || return 1
+        [[ "$rel" != */_*/* ]] || return 1
+        return 0
+    }
+
+    # fn: _normalize_relative_path - Normalize and validate a workspace-relative path
+        # . Arguments
+        #   $1  User-provided path.
         #
         # . Output
-        #   Prints source-root identifier to stdout
+        #   Writes the normalized relative path to stdout.
         #
         # . Returns
-        #   0 on success
+        #   0 when the path is safe and remains beneath SRC_ROOT.
+        #   1 for absolute paths, empty paths, or parent traversal.
         #
         # . Usage
-        #   id="$(_manifest_source_id)"
-        #
-        # Notes:
-        #   - Used to group manifests by source root
-        #   - Keeps on-disk manifest paths safe and deterministic
-    _manifest_source_id() {
-        printf '%s' "$SRC_ROOT" | sha256sum | awk '{print $1}'
+        #   rel="$(_normalize_relative_path "usr/local/bin")"
+    _normalize_relative_path() {
+        local rel="${1#./}"
+
+        rel="${rel%/}"
+        [[ -n "$rel" && "$rel" != /* ]] || return 1
+        [[ "$rel" != ".." && "$rel" != ../* && "$rel" != */../* && "$rel" != */.. ]] || return 1
+        printf '%s\n' "$rel"
     }
 
-    # fn: _manifest_source_dir - Resolve the deployment manifest source directory
-        # . Purpose
-        #   Resolve the manifest directory for the current SRC_ROOT.
-        #
-        # . Behavior
-        #   - Derives a stable source-root identifier
-        #   - Combines it with MANIFEST_BASE_DIR
-        #   - Prints the directory path to stdout
-        #
-        # Inputs (globals):
-        #   SRC_ROOT
-        #   MANIFEST_BASE_DIR
-        #
-        # . Output
-        #   Prints manifest directory path to stdout
-        #
-        # . Returns
-        #   0 on success
-        #
-        # . Usage
-        #   dir="$(_manifest_source_dir)"
-    _manifest_source_dir() {
-        local id
-        id="$(_manifest_source_id)"
-        printf '%s/%s\n' "$MANIFEST_BASE_DIR" "$id"
-    }
-
-    # _manifest_init
-        # . Purpose
-        #   Initialize a new manifest for the current deployment run.
-        #
-        # . Behavior
-        #   - Creates the source-root-specific manifest directory
-        #   - Generates a manifest name if MANIFEST_NAME is not already set
-        #   - Creates a temporary manifest file
-        #   - Writes manifest header metadata
-        #
-        # Manifest model:
-        #   - One manifest per deploy run
-        #   - Manifests are grouped by source root
-        #   - Only files and directories CREATED by this run are recorded
-        #
-        # Inputs (globals):
-        #   SRC_ROOT
-        #   DEST_ROOT
-        #   MANIFEST_BASE_DIR
-        #   MANIFEST_NAME
-        #   FLAG_DRYRUN
-        #
-        # Outputs (globals):
-        #   MANIFEST_SOURCE_ID
-        #   MANIFEST_SOURCE_DIR
-        #   MANIFEST_NAME
-        #   MANIFEST_PATH
-        #   MANIFEST_TMP
-        #
-        # . Returns
-        #   0 on success
-        #   1 on failure
-        #
-        # . Usage
-        #   _manifest_init || return $?
-        #
-        # Notes:
-        #   - In dry-run mode, no manifest file is created
-        #   - Caller must later invoke _manifest_commit or _manifest_discard
-    # fn: _manifest_init - Initialize the workspace creation manifest
-        # . Purpose
-        #   Initialize the workspace creation manifest.
-        #
-        # . Behavior
-        #   - Internal helper.
-        #   - Preserves existing script runtime behavior.
-        #
-        # . Returns
-        #   Returns the underlying command or workflow status.
-        #
-        # . Usage
-        #   _manifest_init
-    _manifest_init() {
-        local stamp
-
-        MANIFEST_SOURCE_ID="$(_manifest_source_id)"
-        MANIFEST_SOURCE_DIR="$(_manifest_source_dir)"
-
-        if [[ "${FLAG_DRYRUN:-0}" -eq 1 ]]; then
-            stamp="$(date +%Y%m%dT%H%M%S)"
-            MANIFEST_NAME="${MANIFEST_NAME:-$stamp}"
-            MANIFEST_PATH="${MANIFEST_SOURCE_DIR}/${MANIFEST_NAME}.manifest"
-            MANIFEST_TMP="${MANIFEST_PATH}.tmp"
-            sayinfo "Would initialize manifest: $MANIFEST_PATH"
-            return 0
-        fi
-
-        stamp="$(date +%Y%m%dT%H%M%S)"
-        MANIFEST_NAME="${MANIFEST_NAME:-$stamp}"
-        MANIFEST_PATH="${MANIFEST_SOURCE_DIR}/${MANIFEST_NAME}.manifest"
-        MANIFEST_TMP="${MANIFEST_PATH}.tmp"
-
-        install -d -m 700 "$MANIFEST_SOURCE_DIR" || {
-            sayfail "Cannot create manifest directory: $MANIFEST_SOURCE_DIR"
-            return 1
-        }
-
-        {
-            printf '%s\n' "# deploy-workspace manifest"
-            printf 'timestamp=%s\n' "$(date --iso-8601=seconds)"
-            printf 'source=%s\n' "$SRC_ROOT"
-            printf 'target=%s\n' "${DEST_ROOT:-/}"
-            printf 'name=%s\n' "$MANIFEST_NAME"
-            printf '\n'
-        } > "$MANIFEST_TMP" || {
-            sayfail "Cannot create manifest temp file: $MANIFEST_TMP"
-            return 1
-        }
-
-        saydebug "Initialized manifest temp file: $MANIFEST_TMP"
-        return 0
-    }
-
-    # _manifest_add_file
-        # . Purpose
-        #   Record a file CREATED during the current deployment run.
-        #
+    # fn: _add_selected_file - Add one deployable file to the normalized selection
         # . Arguments
-        #   $1  abs_rel   Absolute-style relative target path (e.g. "/usr/local/bin/foo")
+        #   $1  Absolute filename beneath SRC_ROOT.
         #
-        # . Behavior
-        #   - Appends a file entry to the current manifest temp file
-        #   - Does nothing in dry-run mode
-        #
-        # Manifest entry format:
-        #   F|/path/from/target/root
-        #
-        # Inputs (globals):
-        #   MANIFEST_TMP
-        #   FLAG_DRYRUN
+        # . Side effects
+        #   Appends a relative path to SELECTED_PATHS when eligible.
         #
         # . Returns
-        #   0 on success
-        #   1 on write failure
+        #   0 always.
         #
         # . Usage
-        #   _manifest_add_file "/usr/local/bin/foo"
-        #
-        # Notes:
-        #   - Only call this when the target file did not exist prior to install
-    # fn: _manifest_add_file - Add a deployed file to the manifest buffer
-        # . Purpose
-        #   Add a deployed file to the manifest buffer.
-        #
-        # . Behavior
-        #   - Internal helper.
-        #   - Preserves existing script runtime behavior.
-        #
-        # . Returns
-        #   Returns the underlying command or workflow status.
-        #
-        # . Usage
-        #   _manifest_add_file
-    _manifest_add_file() {
-        local abs_rel="$1"
+        #   _add_selected_file "$SRC_ROOT/usr/local/bin/sgnd-console"
+    _add_selected_file() {
+        local file="$1"
+        local rel=""
 
-        if [[ "${FLAG_DRYRUN:-0}" -eq 1 ]]; then
-            sayinfo "Would record created file in manifest: $abs_rel"
-            return 0
-        fi
-
-        printf 'F|%s\n' "$abs_rel" >> "$MANIFEST_TMP" || {
-            sayfail "Cannot append file entry to manifest: $MANIFEST_TMP"
-            return 1
-        }
+        [[ -f "$file" ]] || return 0
+        rel="${file#"$SRC_ROOT"/}"
+        [[ "$rel" != "$file" ]] || return 0
+        _is_deployable_path "$rel" || return 0
+        SELECTED_PATHS+=("$rel")
     }
 
-    # _manifest_add_dir
+    # fn: _select_files - Resolve the combined workspace filters into a concrete file list
         # . Purpose
-        #   Record a directory CREATED during the current deployment run.
+        #   Select deployable files by optional directory, filename or mask, and modification time.
         #
-        # . Arguments
-        #   $1  abs_rel   Absolute-style relative target path (e.g. "/etc/solidgroundux")
+        # . Inputs (globals)
+        #   SRC_ROOT, SELECT_DIRECTORY, SELECT_MATCH, CHANGED_AFTER,
+        #   FLAG_SINCE_LAST, LAST_DEPLOY_SUCCESS
         #
-        # . Behavior
-        #   - Appends a directory entry to the current manifest temp file
-        #   - Does nothing in dry-run mode
-        #
-        # Manifest entry format:
-        #   D|/path/from/target/root
-        #
-        # Inputs (globals):
-        #   MANIFEST_TMP
-        #   FLAG_DRYRUN
+        # . Outputs (globals)
+        #   SELECTED_PATHS
         #
         # . Returns
-        #   0 on success
-        #   1 on write failure
+        #   0 when at least one deployable file was selected.
+        #   1 when a filter is invalid or no files match.
         #
         # . Usage
-        #   _manifest_add_dir "/etc/solidgroundux"
-        #
-        # Notes:
-        #   - Only call this when the target directory did not exist prior to creation
-    # fn: _manifest_add_dir - Add a deployed directory to the manifest buffer
-        # . Purpose
-        #   Add a deployed directory to the manifest buffer.
-        #
-        # . Behavior
-        #   - Internal helper.
-        #   - Preserves existing script runtime behavior.
-        #
-        # . Returns
-        #   Returns the underlying command or workflow status.
-        #
-        # . Usage
-        #   _manifest_add_dir
-    _manifest_add_dir() {
-        local abs_rel="$1"
+        #   _select_files || return $?
+    _select_files() {
+        local search_root="$SRC_ROOT"
+        local directory=""
+        local match="${SELECT_MATCH:-*}"
+        local changed_after="${CHANGED_AFTER:-1900-01-01}"
+        local candidate=""
 
-        if [[ "${FLAG_DRYRUN:-0}" -eq 1 ]]; then
-            sayinfo "Would record created directory in manifest: $abs_rel"
-            return 0
-        fi
+        SELECTED_PATHS=()
 
-        printf 'D|%s\n' "$abs_rel" >> "$MANIFEST_TMP" || {
-            sayfail "Cannot append directory entry to manifest: $MANIFEST_TMP"
-            return 1
-        }
-    }
-
-    # fn: _manifest_commit - Write the deployment manifest to disk
-        # . Purpose
-        #   Finalize the current manifest after a successful deployment run.
-        #
-        # . Behavior
-        #   - Renames the temporary manifest file into its final name
-        #   - Does nothing in dry-run mode
-        #
-        # Inputs (globals):
-        #   MANIFEST_TMP
-        #   MANIFEST_PATH
-        #   FLAG_DRYRUN
-        #
-        # . Returns
-        #   0 on success
-        #   1 on failure
-        #
-        # . Usage
-        #   _manifest_commit || return $?
-        #
-        # Notes:
-        #   - Should only be called after deploy completed successfully
-    _manifest_commit() {
-        if [[ "${FLAG_DRYRUN:-0}" -eq 1 ]]; then
-            sayinfo "Would commit manifest: $MANIFEST_PATH"
-            return 0
-        fi
-
-        mv -f -- "$MANIFEST_TMP" "$MANIFEST_PATH" || {
-            sayfail "Cannot commit manifest: $MANIFEST_PATH"
-            return 1
-        }
-
-        saydebug "Committed manifest: $MANIFEST_PATH"
-        return 0
-    }
-
-    # fn: _manifest_discard - Discard the temporary deployment manifest
-        # . Purpose
-        #   Remove the temporary manifest after an interrupted or failed deployment run.
-        #
-        # . Behavior
-        #   - Deletes MANIFEST_TMP if it exists
-        #   - Does nothing in dry-run mode
-        #
-        # Inputs (globals):
-        #   MANIFEST_TMP
-        #   FLAG_DRYRUN
-        #
-        # . Returns
-        #   0 always
-        #
-        # . Usage
-        #   _manifest_discard
-        #
-        # Notes:
-        #   - Safe to call multiple times
-    _manifest_discard() {
-        if [[ "${FLAG_DRYRUN:-0}" -eq 1 ]]; then
-            return 0
-        fi
-
-        if [[ -n "${MANIFEST_TMP:-}" && -e "${MANIFEST_TMP:-}" ]]; then
-            rm -f -- "$MANIFEST_TMP"
-            saydebug "Discarded manifest temp file: $MANIFEST_TMP"
-        fi
-
-        return 0
-    }
-
-    # _manifest_resolve_for_undeploy
-        # . Purpose
-        #   Resolve which manifest should be used for undeploy.
-        #
-        # . Behavior
-        #   - Uses MANIFEST_NAME when explicitly provided
-        #   - Otherwise selects the latest manifest for the current SRC_ROOT
-        #   - Populates MANIFEST_SOURCE_ID, MANIFEST_SOURCE_DIR, and MANIFEST_PATH
-        #
-        # Selection rules:
-        #   - Explicit:  <source-dir>/<MANIFEST_NAME>.manifest
-        #   - Implicit:  lexically latest *.manifest in the source-root manifest folder
-        #
-        # Inputs (globals):
-        #   SRC_ROOT
-        #   MANIFEST_BASE_DIR
-        #   MANIFEST_NAME
-        #
-        # Outputs (globals):
-        #   MANIFEST_SOURCE_ID
-        #   MANIFEST_SOURCE_DIR
-        #   MANIFEST_PATH
-        #
-        # . Returns
-        #   0 on success
-        #   1 if no suitable manifest is found
-        #
-        # . Usage
-        #   _manifest_resolve_for_undeploy || return $?
-        #
-        # Notes:
-        #   - Assumes manifest names are time-sortable when auto-generated
-    # fn: _manifest_resolve_for_undeploy - Resolve the manifest used for undeploy
-        # . Purpose
-        #   Resolve the manifest used for undeploy.
-        #
-        # . Behavior
-        #   - Internal helper.
-        #   - Preserves existing script runtime behavior.
-        #
-        # . Returns
-        #   Returns the underlying command or workflow status.
-        #
-        # . Usage
-        #   _manifest_resolve_for_undeploy
-    _manifest_resolve_for_undeploy() {
-        local latest
-
-        MANIFEST_SOURCE_ID="$(_manifest_source_id)"
-        MANIFEST_SOURCE_DIR="$(_manifest_source_dir)"
-
-        [[ -d "$MANIFEST_SOURCE_DIR" ]] || {
-            sayfail "No manifest directory found for source root: $SRC_ROOT"
-            return 1
-        }
-
-        if [[ -n "${MANIFEST_NAME:-}" ]]; then
-            MANIFEST_PATH="${MANIFEST_SOURCE_DIR}/${MANIFEST_NAME}.manifest"
-            [[ -r "$MANIFEST_PATH" ]] || {
-                sayfail "Manifest not found: $MANIFEST_PATH"
+        if [[ -n "${SELECT_DIRECTORY:-}" ]]; then
+            directory="$(_normalize_relative_path "$SELECT_DIRECTORY")" || {
+                sayfail "Invalid relative directory path: $SELECT_DIRECTORY"
                 return 1
             }
-            saydebug "Resolved explicit manifest: $MANIFEST_PATH"
-            return 0
+            search_root="$SRC_ROOT/$directory"
         fi
 
-        latest="$(
-            find "$MANIFEST_SOURCE_DIR" -maxdepth 1 -type f -name '*.manifest' -printf '%f\n' 2>/dev/null |
-            sort |
-            tail -n 1
-        )"
-
-        [[ -n "$latest" ]] || {
-            sayfail "No manifests found for source root: $SRC_ROOT"
+        [[ -d "$search_root" ]] || {
+            sayfail "Selection directory not found: $search_root"
             return 1
         }
 
-        MANIFEST_PATH="${MANIFEST_SOURCE_DIR}/${latest}"
-        saydebug "Resolved latest manifest: $MANIFEST_PATH"
-        return 0
-    }
+        if [[ "${FLAG_SINCE_LAST:-0}" -eq 1 ]]; then
+            [[ -n "${LAST_DEPLOY_SUCCESS:-}" ]] || {
+                sayfail "No successful deployment timestamp is available for --since-last."
+                return 1
+            }
+            changed_after="$LAST_DEPLOY_SUCCESS"
+        fi
 
-    # fn: _manifest_list - List available deployment manifests
-        # . Purpose
-        #   List available manifests for the current source root.
-        #
-        # . Behavior
-        #   - Prints manifest filenames for the current SRC_ROOT namespace
-        #   - Sorted lexically
-        #
-        # Inputs (globals):
-        #   SRC_ROOT
-        #   MANIFEST_BASE_DIR
-        #
-        # . Returns
-        #   0 on success
-        #   1 if manifest directory does not exist
-        #
-        # . Usage
-        #   _manifest_list
-    _manifest_list() {
-        local dir
-        dir="$(_manifest_source_dir)"
+        while IFS= read -r -d '' candidate; do
+            _add_selected_file "$candidate"
+        done < <(find "$search_root" -type f -name "$match" -newermt "$changed_after" -print0)
 
-        [[ -d "$dir" ]] || {
-            sayfail "No manifest directory found for source root: $SRC_ROOT"
-            return 1
-        }
-
-        find "$dir" -maxdepth 1 -type f -name '*.manifest' -printf '%f\n' | sort
-        return 0
-    }
-
-    # fn: _manifest_verify_target - Verify manifest target compatibility
-        # . Purpose
-        #   Verify that the resolved manifest belongs to the current DEST_ROOT.
-        #
-        # . Behavior
-        #   - Reads the target= header from the resolved manifest
-        #   - Compares it to the current DEST_ROOT
-        #   - Fails when the two targets do not match
-        #
-        # Inputs (globals):
-        #   MANIFEST_PATH
-        #   DEST_ROOT
-        #
-        # . Returns
-        #   0 when target matches
-        #   1 when target differs or cannot be read
-        #
-        # . Usage
-        #   _manifest_verify_target || return $?
-        #
-        # Notes:
-        #   - Prevents undeploy from applying a manifest to the wrong target root
-    _manifest_verify_target() {
-        local manifest_target=""
-        manifest_target="$(
-            awk -F= '/^target=/{print substr($0,8); exit}' "$MANIFEST_PATH"
-        )"
-
-        [[ -n "$manifest_target" ]] || {
-            sayfail "Cannot read target from manifest: $MANIFEST_PATH"
-            return 1
-        }
-
-        if [[ "${DEST_ROOT:-/}" != "$manifest_target" ]]; then
-            sayfail "Manifest target mismatch: manifest=$manifest_target current=${DEST_ROOT:-/}"
+        if (( ${#SELECTED_PATHS[@]} == 0 )); then
+            saywarning "No deployable files matched the filters."
             return 1
         fi
 
+        mapfile -d '' -t SELECTED_PATHS < <(printf '%s\0' "${SELECTED_PATHS[@]}" | sort -zu)
+        sayinfo "Selected ${#SELECTED_PATHS[@]} file(s)."
         return 0
     }
 
- # -- Main sequence  
-    # fn: _perm_resolve - Resolve permission policy for a path
+# --- Parameter collection ------------------------------------------------------------
+    # fn: _capture_cli_parameters - Record which deployment settings were supplied explicitly
         # . Purpose
-        #   Resolve the effective permission mode for a given path based on PERMISSION_RULES.
+        #   Distinguish command-line values from state/default values so explicit settings
+        #   are not prompted again.
         #
         # . Arguments
-        #   $1  abs_rel   Absolute path relative to root (e.g. "/usr/local/bin/foo")
-        #   $2  kind      "file" or "dir"
+        #   $@  Original executable arguments.
         #
-        # . Behavior
-        #   - Applies longest-prefix match against PERMISSION_RULES
-        #   - Returns file_mode or dir_mode depending on kind
-        #   - Falls back to defaults when no rule matches
-        #
-        # . Output
-        #   Prints the resolved mode to stdout (no newline)
+        # Outputs (globals)
+        #   CLI_DEPLOY_TRANSPORT, CLI_REMOTE_TARGET, CLI_SRC_ROOT, CLI_DEST_ROOT,
+        #   CLI_SELECT_DIRECTORY, CLI_SELECT_MATCH, CLI_CHANGED_AFTER,
+        #   CLI_RECEIVER_PATH
         #
         # . Returns
-        #   0 always
-        #
-        # Defaults:
-        #   file → 644
-        #   dir  → 755
+        #   0 always.
         #
         # . Usage
-        #   mode="$(_perm_resolve "/usr/local/bin/foo" "file")"
-        #
-        # Examples:
-        #   dir_mode="$(_perm_resolve "/usr/local/bin" "dir")"
-    _perm_resolve() {
-        local abs_rel="$1"   # e.g. "/usr/local/sbin"
-        local kind="$2"      # "file" or "dir"
+        #   _capture_cli_parameters "$@"
+    _capture_cli_parameters() {
+        local arg=""
 
-        local best_prefix=""
-        local best_file="644"
-        local best_dir="755"
+        while (( $# > 0 )); do
+            arg="$1"
+            shift
 
-        local entry prefix file_mode dir_mode desc
-
-        for entry in "${PERMISSION_RULES[@]}"; do
-            IFS='|' read -r prefix file_mode dir_mode desc <<< "$entry"
-
-            if [[ "$abs_rel" == "$prefix" || "$abs_rel" == "$prefix/"* ]]; then
-                if [[ ${#prefix} -gt ${#best_prefix} ]]; then
-                    best_prefix="$prefix"
-                    best_file="$file_mode"
-                    best_dir="$dir_mode"
-                fi
-            fi
-        done
-
-        if [[ "$kind" == "dir" ]]; then
-            echo "$best_dir"
-        else
-            echo "$best_file"
-        fi
-    }
-
-    # fn: _update_lastdeployinfo - Update the last deployment information file
-        # . Purpose
-        #   Persist metadata of the last deployment run for reuse (e.g. auto mode).
-        #
-        # . Behavior
-        #   - Stores timestamp, source, and target in state for later reuse
-        #   - Skips writes when FLAG_DRYRUN is enabled
-        #
-        # Writes:
-        #   last_deploy_run
-        #   last_deploy_source
-        #   last_deploy_target
-        #
-        # Inputs (globals):
-        #   SRC_ROOT
-        #   DEST_ROOT
-        #   FLAG_DRYRUN
-        #
-        # . Returns
-        #   0 on success
-        #
-        # . Usage
-        #   _update_lastdeployinfo
-    _update_lastdeployinfo() {
-        if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
-            sayinfo "Would have saved lastdeployinfo"
-        else
-            saydebug "Saving last deploymentinfo"
-            sgnd_state_set "last_deploy_run" "$(date --iso-8601=seconds)"
-            sgnd_state_set "last_deploy_source" "$SRC_ROOT"
-            sgnd_state_set "last_deploy_target" "${DEST_ROOT:-/}"
-        fi
-    }
-
-    # fn: _getparameters - Collect deployment parameters
-        # . Purpose
-        #   Collect deployment parameters (source and target roots).
-        #
-        # . Behavior
-        #   - Auto mode:
-        #       Uses last deployment settings when available
-        #   - Interactive mode:
-        #       Prompts for SRC_ROOT and DEST_ROOT
-        #       Validates SRC_ROOT structure (advisory only)
-        #       Asks for confirmation (OK/Redo/Quit)
-        #
-        # Validation:
-        #   - SRC_ROOT is considered valid if it contains "etc/" or "usr/"
-        #   - Validation is advisory only (does not block execution)
-        #
-        # Outputs (globals):
-        #   SRC_ROOT
-        #   DEST_ROOT
-        #
-        # . Returns
-        #   0 → confirmed
-        #   1 → aborted
-        #
-        # . Usage
-        #   _getparameters ; return $?
-        #
-        # Notes:
-        #   - Uses ask and ask_ok_redo_quit
-    _getparameters() {
-        local default_src default_dst
-        default_src="${last_deploy_source:-$HOME/dev}"
-        default_dst="${last_deploy_target:-/}"
-
-        # --- Auto mode --------------------------------------------------------------
-        if [[ "${FLAG_AUTO:-0}" -eq 1 ]]; then
-            if [[ -n "${last_deploy_source:-}" && -n "${last_deploy_target:-}" ]]; then
-                sayinfo "Auto mode: using last deployment settings."
-                SRC_ROOT="$last_deploy_source"
-                DEST_ROOT="$last_deploy_target"
-                sgnd_print_titlebar
-                return 0
-            fi
-            saywarning "Auto mode requested, but no previous deployment settings found."
-        fi
-
-        # --- Interactive mode -------------------------------------------------------
-        while true; do
-            # --- Source root --------------------------------------------------------
-            if [[ -z "${SRC_ROOT:-}" ]]; then
-                ask --label "Workspace source root" \
-                    --var SRC_ROOT \
-                    --default "$default_src" \
-                    --colorize both
-            fi
-
-            # Advisory validation
-            if [[ -d "$SRC_ROOT/etc" || -d "$SRC_ROOT/usr" ]]; then
-                sayinfo "Source root '$SRC_ROOT' looks valid."
-            else
-                saywarning "Source root '$SRC_ROOT' doesn't look valid; should contain 'etc/' and/or 'usr/'."
-            fi
-
-            # --- Target root --------------------------------------------------------
-            if [[ -z "${DEST_ROOT:-}" ]]; then
-                ask --label "Target root folder" \
-                    --var DEST_ROOT \
-                    --default "$default_dst" \
-                    --colorize both
-            fi
-            DEST_ROOT="${DEST_ROOT:-/}"
-
-            ask_dlg_autocontinue \
-                --seconds 15 \
-                --message "Continue with these settings?" \
-                --redo \
-                --cancel
-
-            case $? in
-                0|1) break ;;
-                2) saycancel "Aborting as per user request."; return 1 ;;
-                3) sayinfo "Redoing input"; continue ;;
-                *) sayfail "Aborting (unexpected response)."; return 1 ;;
+            case "$arg" in
+                --local|-l)
+                    CLI_DEPLOY_TRANSPORT=1
+                    ;;
+                --remote|-r)
+                    CLI_DEPLOY_TRANSPORT=1
+                    CLI_REMOTE_TARGET=1
+                    (( $# > 0 )) && shift
+                    ;;
+                --remote=*)
+                    CLI_DEPLOY_TRANSPORT=1
+                    CLI_REMOTE_TARGET=1
+                    ;;
+                --source|-s)
+                    CLI_SRC_ROOT=1
+                    (( $# > 0 )) && shift
+                    ;;
+                --source=*)
+                    CLI_SRC_ROOT=1
+                    ;;
+                --target|-t)
+                    CLI_DEST_ROOT=1
+                    (( $# > 0 )) && shift
+                    ;;
+                --target=*)
+                    CLI_DEST_ROOT=1
+                    ;;
+                --directory|-d)
+                    CLI_SELECT_DIRECTORY=1
+                    (( $# > 0 )) && shift
+                    ;;
+                --directory=*)
+                    CLI_SELECT_DIRECTORY=1
+                    ;;
+                --match|-m)
+                    CLI_SELECT_MATCH=1
+                    (( $# > 0 )) && shift
+                    ;;
+                --match=*)
+                    CLI_SELECT_MATCH=1
+                    ;;
+                --changed-after|-c)
+                    CLI_CHANGED_AFTER=1
+                    (( $# > 0 )) && shift
+                    ;;
+                --changed-after=*)
+                    CLI_CHANGED_AFTER=1
+                    ;;
+                --since-last)
+                    ;;
+                --receiver)
+                    CLI_RECEIVER_PATH=1
+                    (( $# > 0 )) && shift
+                    ;;
+                --receiver=*)
+                    CLI_RECEIVER_PATH=1
+                    ;;
             esac
         done
 
-        sgnd_print_titlebar
         return 0
     }
 
-    # fn: _deploy - Deploy workspace files to the target root
-        # . Purpose
-        #   Deploy workspace files from SRC_ROOT into DEST_ROOT.
-        #
-        # . Behavior
-        #   - Recursively processes files under SRC_ROOT
-        #   - Computes relative path and destination path
-        #   - Skips:
-        #       - top-level files
-        #       - "_" prefixed files
-        #       - ".old" files
-        #       - hidden or "_" directories
-        #
-        # Update logic:
-        #   - Installs when destination is missing or source is newer
-        #
-        # Manifest behavior:
-        #   - Initializes a new manifest at start of deployment
-        #   - Records only files CREATED by this run
-        #   - Records only directories CREATED by this run
-        #   - Updated pre-existing files are not recorded
-        #   - Finalizes manifest only after successful completion
-        #
-        # Permissions:
-        #   - File mode via _perm_resolve(abs_rel,"file")
-        #   - Directory mode via _perm_resolve(abs_rel,"dir")
-        #
-        # Dry run:
-        #   - When FLAG_DRYRUN=1, only reports actions
-        #
-        # Inputs (globals):
-        #   SRC_ROOT
-        #   DEST_ROOT
-        #   FLAG_DRYRUN
-        #   PERMISSION_RULES
-        #
+    # fn: _validate_parameters - Validate the resolved deployment settings
         # . Returns
-        #   0 on success
-        #   1 on fatal deployment/manifest failure
+        #   0 when all required settings are valid.
+        #   1 when one or more settings are unusable.
         #
         # . Usage
-        #   _deploy
-        #
-        # Notes:
-        #   - Uses install for atomic writes and permission control
-        #   - Manifest records created artifacts only; it is not full rollback state
-    _deploy() {
-        SRC_ROOT="${SRC_ROOT%/}"
-        DEST_ROOT="${DEST_ROOT%/}"
+        #   _validate_parameters || return $?
+    _validate_parameters() {
+        local directory=""
 
-        local file rel name abs_rel perms dst dst_dir dir_mode
-        local dst_existed probe dir_abs_rel
-        local -a missing_dirs=()
-        local i
+        [[ -d "$SRC_ROOT" ]] || {
+            sayfail "Workspace root not found: $SRC_ROOT"
+            return 1
+        }
 
-        saystart "Starting deployment from $SRC_ROOT to ${DEST_ROOT:-/}"
-
-        _manifest_init || return $?
-
-        while IFS= read -r file; do
-            rel="${file#"$SRC_ROOT"/}"
-
-            if [[ "$rel" == "$file" || "$rel" == /* ]]; then
-                sayfail "Bad rel path: file='$file' SRC_ROOT='$SRC_ROOT' rel='$rel'"
-                _manifest_discard
+        case "$DEPLOY_TRANSPORT" in
+            local) ;;
+            remote)
+                [[ -n "$REMOTE_TARGET" ]] || {
+                    sayfail "A remote SSH target is required."
+                    return 1
+                }
+                ;;
+            *)
+                sayfail "Deployment transport must be 'local' or 'remote'."
                 return 1
-            fi
+                ;;
+        esac
 
-            name="$(basename "$file")"
-            abs_rel="/$rel"
-            dst="${DEST_ROOT:-}/$rel"
+        case "$DEST_ROOT" in
+            /*) ;;
+            *) sayfail "Destination root must be an absolute path: $DEST_ROOT"; return 1 ;;
+        esac
 
-            # Skip top-level files, hidden dirs, private dirs
-            if [[ "$rel" != */* || "$name" == _* || "$name" == *.old || \
-                "$rel" == .*/* || "$rel" == _*/* || \
-                "$rel" == */.*/* || "$rel" == */_*/* ]]; then
-                continue
-            fi
+        [[ -n "$RECEIVER_PATH" ]] || {
+            sayfail "Receiver path cannot be empty."
+            return 1
+        }
 
-            if [[ ! -e "$dst" || "$file" -nt "$dst" ]]; then
-                perms="$(_perm_resolve "$abs_rel" "file")"
-                dst_dir="$(dirname "$dst")"
+        if [[ -n "${SELECT_DIRECTORY:-}" ]]; then
+            directory="$(_normalize_relative_path "$SELECT_DIRECTORY")" || {
+                sayfail "Invalid relative directory path: $SELECT_DIRECTORY"
+                return 1
+            }
+            [[ -d "$SRC_ROOT/$directory" ]] || {
+                sayfail "Selection directory not found: $SRC_ROOT/$directory"
+                return 1
+            }
+        fi
 
-                if [[ "${FLAG_DRYRUN:-0}" -eq 0 ]]; then
-                    missing_dirs=()
-                    probe="$dst_dir"
+        [[ -n "${SELECT_MATCH:-}" ]] || SELECT_MATCH="*"
+        [[ -n "${CHANGED_AFTER:-}" ]] || CHANGED_AFTER="1900-01-01"
 
-                    while [[ "$probe" != "${DEST_ROOT:-}" && "$probe" != "/" && ! -d "$probe" ]]; do
-                        missing_dirs+=("$probe")
-                        probe="$(dirname "$probe")"
-                    done
+        if [[ "${FLAG_SINCE_LAST:-0}" -eq 1 ]]; then
+            [[ -n "${LAST_DEPLOY_SUCCESS:-}" ]] || {
+                sayfail "No successful deployment timestamp is available for --since-last."
+                return 1
+            }
+        elif ! date -d "$CHANGED_AFTER" >/dev/null 2>&1; then
+            sayfail "Changed-after value is not a valid date or timestamp: $CHANGED_AFTER"
+            return 1
+        fi
 
-                    for (( i=${#missing_dirs[@]}-1; i>=0; i-- )); do
-                        dir_abs_rel="${missing_dirs[$i]#"${DEST_ROOT:-}"}"
-                        dir_abs_rel="${dir_abs_rel:-/}"
-                        dir_mode="$(_perm_resolve "$dir_abs_rel" "dir")"
-
-                        install -d -m "$dir_mode" "${missing_dirs[$i]}" || {
-                            sayfail "Failed to create directory: ${missing_dirs[$i]}"
-                            _manifest_discard
-                            return 1
-                        }
-
-                        _manifest_add_dir "$dir_abs_rel" || {
-                            _manifest_discard
-                            return 1
-                        }
-                    done
-
-                    dst_existed=0
-                    [[ -e "$dst" ]] && dst_existed=1
-
-                    sayinfo "Installing $file --> $dst, with $perms permissions"
-                    install -m "$perms" "$file" "$dst" || {
-                        sayfail "Failed to install file: $file -> $dst"
-                        _manifest_discard
-                        return 1
-                    }
-
-                    if [[ "$dst_existed" -eq 0 ]]; then
-                        _manifest_add_file "$abs_rel" || {
-                            _manifest_discard
-                            return 1
-                        }
-                    fi
-                else
-                    sayinfo "Would have installed $file --> $dst, with $perms permissions"
-                fi
-            else
-                saydebug "Skipping $rel; destination is up-to-date."
-            fi
-        done < <(find "$SRC_ROOT" -type f)
-
-        _manifest_commit || return $?
-
-        sayend "End deployment complete."
         return 0
     }
 
-    # fn: _undeploy - Remove deployed files recorded in a manifest
+    # fn: _getparameters - Collect deployment parameters from CLI values, state, and ask
         # . Purpose
-        #   Remove previously deployed files and directories using a manifest.
+        #   Resolve command-line overrides first, use saved state as prompt defaults,
+        #   and combine directory, filename/mask, and changed-after filters.
         #
-        # . Behavior
-        #   - Resolves a manifest for the current SRC_ROOT
-        #   - Uses MANIFEST_NAME when provided
-        #   - Otherwise uses the latest manifest for the source root
-        #   - Removes recorded files first
-        #   - Removes recorded directories afterward in reverse-depth order
-        #
-        # Manifest rules:
-        #   - Only files recorded as created by deploy are removed
-        #   - Only directories recorded as created by deploy are considered
-        #   - Directories are removed only if empty
-        #
-        # Dry run:
-        #   - When FLAG_DRYRUN=1, only reports actions
-        #
-        # Inputs (globals):
-        #   SRC_ROOT
-        #   DEST_ROOT
-        #   MANIFEST_NAME
-        #   FLAG_DRYRUN
+        # . Outputs (globals)
+        #   DEPLOY_TRANSPORT, REMOTE_TARGET, SRC_ROOT, DEST_ROOT, SELECT_DIRECTORY,
+        #   SELECT_MATCH, CHANGED_AFTER, RECEIVER_PATH
         #
         # . Returns
-        #   0 on success
-        #   1 if manifest resolution fails
+        #   0 after confirmation or when auto mode has valid resolved settings.
+        #   1 when validation fails or the user cancels.
         #
         # . Usage
-        #   _undeploy
-        #
-        # Notes:
-        #   - This is a manifest-based inverse of created artifacts only
-        #   - Updated pre-existing files are not restored or removed
-    _undeploy() {
-        local kind path dst
+        #   _getparameters || return $?
+    _getparameters() {
+        local reply=""
 
-        _manifest_resolve_for_undeploy || return $?
-        _manifest_verify_target || return $?
+        if [[ "${FLAG_LOCAL:-0}" -eq 1 ]]; then
+            DEPLOY_TRANSPORT="local"
+        elif [[ -n "${REMOTE_TARGET:-}" ]]; then
+            DEPLOY_TRANSPORT="remote"
+        fi
 
-        saystart "Starting UNINSTALL using manifest $MANIFEST_PATH"
+        : "${DEPLOY_TRANSPORT:=local}"
+        : "${SRC_ROOT:=$HOME/dev/target-root}"
+        : "${DEST_ROOT:=/}"
+        : "${SELECT_DIRECTORY:=}"
+        : "${SELECT_MATCH:=*}"
+        : "${CHANGED_AFTER:=1900-01-01}"
+        : "${RECEIVER_PATH:=/usr/local/libexec/solidgroundux/receive-files.sh}"
 
-        # Remove files first
-        while IFS='|' read -r kind path; do
-            [[ -z "$kind" || -z "$path" ]] && continue
-            [[ "$kind" != "F" ]] && continue
+        if [[ "${FLAG_AUTO:-0}" -eq 1 ]]; then
+            _validate_parameters || return $?
+            return 0
+        fi
 
-            dst="${DEST_ROOT%/}$path"
+        while true; do
+            if (( ! CLI_DEPLOY_TRANSPORT )); then
+                sgnd_print "Choose how the files will be delivered."
+                sgnd_print "  local  - Run receive-files.sh on this machine."
+                sgnd_print "  remote - Send the stream over SSH to another machine."
 
-            if [[ -e "$dst" ]]; then
-                if [[ "${FLAG_DRYRUN:-0}" -eq 0 ]]; then
-                    saywarning "Removing $dst"
-                    rm -f -- "$dst"
-                else
-                    sayinfo "Would have removed $dst"
+                ask --label "Deployment transport" \
+                    --var DEPLOY_TRANSPORT \
+                    --default "$DEPLOY_TRANSPORT" \
+                    --colorize both
+            fi
+
+            if [[ "$DEPLOY_TRANSPORT" == "remote" ]]; then
+                if (( ! CLI_REMOTE_TARGET )); then
+                    sgnd_print "Enter the SSH destination in user@host format."
+                    sgnd_print "Examples: sysadmin@192.168.0.253 or sysadmin@td-sambaad"
+
+                    ask --label "Remote target (user@host)" \
+                        --var REMOTE_TARGET \
+                        --default "$REMOTE_TARGET" \
+                        --colorize both
                 fi
             else
-                saydebug "Skipping missing file: $dst"
+                REMOTE_TARGET=""
             fi
-        done < <(grep '^F|' "$MANIFEST_PATH")
 
-        # Remove directories deepest first
-        grep '^D|' "$MANIFEST_PATH" |
-        sed 's/^D|//' |
-        awk '{ print length, $0 }' |
-        sort -rn |
-        cut -d' ' -f2- |
-        while IFS= read -r path; do
-            [[ -z "$path" ]] && continue
-            dst="${DEST_ROOT%/}$path"
+            if (( ! CLI_SRC_ROOT )); then
+                sgnd_print "Enter the local workspace root containing the deployable tree."
+                sgnd_print "All selected paths are resolved beneath this directory."
 
-            if [[ -d "$dst" ]]; then
-                if [[ "${FLAG_DRYRUN:-0}" -eq 0 ]]; then
-                    saywarning "Removing directory if empty: $dst"
-                    rmdir --ignore-fail-on-non-empty -- "$dst" 2>/dev/null || true
-                else
-                    sayinfo "Would have removed directory if empty: $dst"
-                fi
-            else
-                saydebug "Skipping missing directory: $dst"
+                ask --label "Workspace root" \
+                    --var SRC_ROOT \
+                    --default "$SRC_ROOT" \
+                    --colorize both
             fi
+
+            if (( ! CLI_DEST_ROOT )); then
+                sgnd_print "Enter the filesystem root beneath which received paths are installed."
+                sgnd_print "Use / to deploy into the destination system root."
+
+                ask --label "Destination root" \
+                    --var DEST_ROOT \
+                    --default "$DEST_ROOT" \
+                    --colorize both
+            fi
+
+            if (( ! CLI_SELECT_DIRECTORY )); then
+                sgnd_print "Optionally restrict the search to a directory below the workspace root."
+                sgnd_print "Leave it empty to search the complete workspace."
+
+                ask --label "Directory" \
+                    --var SELECT_DIRECTORY \
+                    --default "$SELECT_DIRECTORY" \
+                    --colorize both
+            fi
+
+            if (( ! CLI_SELECT_MATCH )); then
+                sgnd_print "Enter one filename or a shell-style file mask."
+                sgnd_print "Use * to include every filename; quote masks on the command line."
+
+                ask --label "File or mask" \
+                    --var SELECT_MATCH \
+                    --default "$SELECT_MATCH" \
+                    --colorize both
+            fi
+
+            if [[ "${FLAG_SINCE_LAST:-0}" -eq 0 ]] && (( ! CLI_CHANGED_AFTER )); then
+                sgnd_print "Only files modified after this date or timestamp are included."
+                sgnd_print "Use 1900-01-01 to apply no practical date restriction."
+
+                ask --label "Changed after" \
+                    --var CHANGED_AFTER \
+                    --default "$CHANGED_AFTER" \
+                    --colorize both
+            fi
+
+            if (( ! CLI_RECEIVER_PATH )); then
+                sgnd_print "Enter the receive-files.sh path as it exists on the destination system."
+
+                ask --label "Receiver path" \
+                    --var RECEIVER_PATH \
+                    --default "$RECEIVER_PATH" \
+                    --colorize both
+            fi
+
+            _validate_parameters || {
+                saywarning "Please correct the deployment settings."
+                continue
+            }
+
+            ask_dlg_autocontinue \
+                --seconds 15 \
+                --message "Select files and start deployment?" \
+                --redo \
+                --cancel
+
+            reply=$?
+            case "$reply" in
+                0|1) break ;;
+                2) saycancel "Deployment cancelled."; return 1 ;;
+                3) continue ;;
+                *) sayfail "Unexpected confirmation response: $reply"; return 1 ;;
+            esac
         done
 
-        sayend "End undeploy complete."
+        return 0
+    }
+
+# --- Transport ----------------------------------------------------------------------
+    # fn: _quote_remote_arg - Shell-quote one argument for the remote receive command
+        # . Arguments
+        #   $1  Argument value.
+        #
+        # . Output
+        #   Writes one shell-safe argument to stdout.
+        #
+        # . Returns
+        #   0 always.
+        #
+        # . Usage
+        #   quoted="$(_quote_remote_arg "$DEST_ROOT")"
+    _quote_remote_arg() {
+        printf '%q' "$1"
+    }
+
+    # fn: _stream_local - Stream selected workspace files to the local receiver
+        # . Returns
+        #   Status returned by tar or receive-files.sh through pipefail.
+        #
+        # . Usage
+        #   _stream_local
+    _stream_local() {
+        local -a receiver_args=("$RECEIVER_PATH" --target "$DEST_ROOT")
+
+        if [[ "${FLAG_DRYRUN:-0}" -eq 1 ]]; then
+            receiver_args+=(--dry-run)
+        fi
+
+        sudo -v || {
+            sayfail "Unable to obtain local sudo authorization."
+            return 1
+        }
+
+        tar -C "$SRC_ROOT" -cf - -- "${SELECTED_PATHS[@]}" |
+            sudo -n "${receiver_args[@]}"
+    }
+
+    # fn: _stream_remote - Stream selected workspace files to the remote receiver over SSH
+        # . Returns
+        #   Status returned by tar, SSH, or receive-files.sh through pipefail.
+        #
+        # . Usage
+        #   _stream_remote
+    _stream_remote() {
+        local remote_command=""
+
+        remote_command="sudo -n $(_quote_remote_arg "$RECEIVER_PATH") --target $(_quote_remote_arg "$DEST_ROOT")"
+        if [[ "${FLAG_DRYRUN:-0}" -eq 1 ]]; then
+            remote_command+=" --dry-run"
+        fi
+
+        tar -C "$SRC_ROOT" -cf - -- "${SELECTED_PATHS[@]}" |
+            ssh "$REMOTE_TARGET" "$remote_command"
+    }
+
+    # fn: _deploy - Select files and stream them to the configured receiver
+        # . Returns
+        #   0 after a successful receive operation.
+        #   Non-zero when selection, transport, or receiver processing fails.
+        #
+        # . Usage
+        #   _deploy || return $?
+    _deploy() {
+        local started_at=""
+
+        started_at="$(date --iso-8601=seconds)"
+        SRC_ROOT="${SRC_ROOT%/}"
+        DEST_ROOT="${DEST_ROOT%/}"
+        [[ -n "$DEST_ROOT" ]] || DEST_ROOT="/"
+
+        _select_files || return $?
+
+        saystart "Deploying ${#SELECTED_PATHS[@]} file(s) from $SRC_ROOT"
+
+        case "$DEPLOY_TRANSPORT" in
+            local)
+                sayinfo "Receiver: local $RECEIVER_PATH"
+                _stream_local || {
+                    sayfail "Local receiver failed."
+                    return 1
+                }
+                ;;
+            remote)
+                sayinfo "Receiver: $REMOTE_TARGET:$RECEIVER_PATH"
+                _stream_remote || {
+                    sayfail "Remote receiver failed."
+                    return 1
+                }
+                ;;
+        esac
+
+        if [[ "${FLAG_DRYRUN:-0}" -eq 0 ]]; then
+            LAST_DEPLOY_SUCCESS="$started_at"
+        fi
+
+        if [[ "${FLAG_DRYRUN:-0}" -eq 0 ]]; then
+            SGND_STATE_SAVE=1
+        fi
+
+        sayend "Deployment completed successfully."
         return 0
     }
 
 # --- Main ----------------------------------------------------------------------------
-    # fn: main - Run the executable main sequence - Run the executable main sequence
-        # . Purpose
-        #   Execute the workspace deployment workflow.
-        #
-        # . Behavior
-        #   - Loads and initializes the framework bootstrap
-        #   - Handles builtin arguments
-        #   - Displays title bar
-        #   - Collects parameters
-        #   - Executes deploy or undeploy
-        #   - Persists deployment metadata
-        #
+    # fn: main - Run the workspace deployment workflow
         # . Arguments
-        #   $@  Framework and script-specific arguments
+        #   $@  Framework and script-specific arguments.
         #
         # . Returns
-        #   Exit status from executed operations
+        #   Exit status from parameter collection, selection, transport, or receiver processing.
         #
         # . Usage
         #   main "$@"
     main() {
-        # -- Startup
-            _framework_locator || exit $?
-            sgnd_exe_start -- "$@"
+        _capture_cli_parameters "$@"
+        _framework_locator || exit $?
+        sgnd_exe_start --state -- "$@"
 
-        # -- Main script logic
-            _getparameters || return $?
-
-            # Deploy or undeploy                    
-            if [[ "${FLAG_UNDEPLOY:-0}" -eq 0 ]]; then
-                _deploy || return $?
-                _update_lastdeployinfo
-            else
-                _undeploy
-            fi
+        _getparameters || return $?
+        _deploy
     }
 
-    # Entrypoint: sgnd_bootstrap will split framework args from script args.
     main "$@"

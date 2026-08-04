@@ -1,40 +1,17 @@
 # ==================================================================================
-# SolidGroundUX - SolidGroundUX Console Module
+# SolidGroundUX - Computer Setup
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621212
-#   Checksum    : 6aaf0db54bcb0031970e48117ca3a95c6a4dd35992a08c3ce43361c86dcc3ad7
-#   Source      : 20-machine-config.sh
+#   Build       : 2621602
+#   Checksum    : pending
+#   Source      : 10-computer-setup.sh
 #   Type        : module
 #   Group       : SolidGround Console
-#   Purpose     : Configure machine identity, packages, roles, and template state
+#   Purpose     : Prepare and maintain the base computer
 #
 # Description:
-#   Provides the VM configuration menu for freshly installed or cloned Ubuntu
-#   virtual machines. The module manages machine identity, template preparation,
-#   SolidGroundUX installation, baseline packages, and optional server roles.
-#
-# Design principles:
-#   - Modules define functions first, then register themselves explicitly
-#   - Registration is data-driven through sgnd_console_register_group/item
-#   - Keep module logic local and menu-facing
-#   - Avoid framework-wide policy decisions inside modules
-#
-# Role in framework:
-#   - Extends sgnd-console with domain-specific actions and menu entries
-#   - Acts as a lightweight plugin layer on top of the console host
-#   - May depend on framework and sgnd-console primitives already being loaded
-#
-# Assumptions:
-#   - Loaded by sgnd-console after framework bootstrap is complete
-#   - sgnd_console_register_group and sgnd_console_register_item are available
-#   - Framework helpers such as say* and sgnd_print_* may be used
-#
-# Non-goals:
-#   - Standalone execution
-#   - Bootstrap, path resolution, or framework initialization
-#   - Full-screen UI behavior outside the sgnd-console host
+#   Configures computer identity, template state, SSH, and the standard Ubuntu package baseline.
 #
 # Attribution:
 #   Developers    : Mark Fieten
@@ -91,38 +68,20 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
     
 # - Module metadata -------------------------------------------------------------
-    SGND_MACHINE_CONFIG_MODULE_ID="machine-config"
-    SGND_MACHINE_CONFIG_MODULE_NAME="Machine Configuration"
-    SGND_MACHINE_CONFIG_MODULE_VERSION="1.0.0"
-    SGND_MACHINE_CONFIG_MODULE_DESC="Configure machine identity, packages, roles, and template state"
+    SGND_COMPUTER_SETUP_MODULE_ID="computer-setup"
+    SGND_COMPUTER_SETUP_MODULE_NAME="Computer Setup"
+    SGND_COMPUTER_SETUP_MODULE_VERSION="1.0.0"
+    SGND_COMPUTER_SETUP_MODULE_DESC="Configure identity, SSH, templates, and baseline packages"
 
-    # Transient console-loader metadata contract.
-    SGND_MODULE_ID="$SGND_MACHINE_CONFIG_MODULE_ID"
-    SGND_MODULE_NAME="$SGND_MACHINE_CONFIG_MODULE_NAME"
-    SGND_MODULE_VERSION="$SGND_MACHINE_CONFIG_MODULE_VERSION"
-    SGND_MODULE_DESC="$SGND_MACHINE_CONFIG_MODULE_DESC"
-# - Internal helpers -------------------------------------------------------------
-    # doc$ Internal helper naming
-        # Prefix internal-only helpers with "_".
-        # Keep internal helpers module-local and menu-focused.
-        #
-        # Example:
-        #   _sample_format_status() { :; }
+    SGND_MODULE_ID="${SGND_COMPUTER_SETUP_MODULE_ID}"
+    SGND_MODULE_NAME="${SGND_COMPUTER_SETUP_MODULE_NAME}"
+    SGND_MODULE_VERSION="${SGND_COMPUTER_SETUP_MODULE_VERSION}"
+    SGND_MODULE_DESC="${SGND_COMPUTER_SETUP_MODULE_DESC}"
 
+    # Module script directory retained for compatibility with the existing helper scripts.
+    SGND_COMPUTER_SETUP_SCRIPT_MODULE_ID="machine-config"
 
-
-
-
-# - Public module actions --------------------------------------------------------
-    # doc$ Public module action naming
-        # Use clear action-style names for functions registered as menu handlers.
-        # Registered handlers do not need a sgnd_ prefix; they belong to the module surface.
-        #
-        # Example:
-        #   sample_show_message() { :; }
-        #   sys_status() { :; }
-
-
+# - Module actions --------------------------------------------------------------
     # fn$ _show_machine_status
         # . Purpose
         #   Show current network, machine identity, and SSH service status.
@@ -325,7 +284,7 @@ set -uo pipefail
         #   _set_identity
     _set_identity() {
         _sgnd_run_module_script \
-            "$SGND_MACHINE_CONFIG_MODULE_ID" \
+            "$SGND_COMPUTER_SETUP_SCRIPT_MODULE_ID" \
             "set-identity.sh" \
             "$@"
     }
@@ -341,7 +300,7 @@ set -uo pipefail
         #   _prep_template
     _prep_template() {
         _sgnd_run_module_script \
-            "$SGND_MACHINE_CONFIG_MODULE_ID" \
+            "$SGND_COMPUTER_SETUP_SCRIPT_MODULE_ID" \
             "prepare-template.sh" \
             "$@"
     }
@@ -422,7 +381,6 @@ set -uo pipefail
 
         sayinfo "Ubuntu baseline installation or update completed successfully."
     }
-
 
     # fn$ _update_package_index
         # . Purpose
@@ -508,183 +466,22 @@ set -uo pipefail
         sayinfo "Package cleanup completed successfully."
     }
 
-    # fn$ _install_samba_file
-        # . Purpose
-        #   Install the packages required for a standalone Samba file server.
-        #
-        # . Behavior
-        #   - Refreshes the APT package index.
-        #   - Installs Samba and supporting ACL and extended-attribute tools.
-        #   - Leaves share definitions and access-control configuration unchanged.
-        #
-        # . Returns
-        #   0 if the role packages were installed successfully, otherwise non-zero.
-        #
-        # . Usage
-        #   _install_samba_file
-    _install_samba_file() {
-        if (( ${FLAG_DRYRUN:-0} == 1 )); then
-            sayinfo "Dry run: Would install Samba file-server packages."
-            return 0
-        fi
-
-        sayinfo "Updating Ubuntu package index."
-        sudo apt-get update || return 1
-
-        sayinfo "Installing Samba file-server packages."
-        sudo apt-get install -y \
-            acl \
-            attr \
-            cifs-utils \
-            samba \
-            smbclient || return 1
-
-        sayinfo "Samba file-server packages installed; share configuration is still required."
-    }
-
-    # fn$ _install_xrdp
-        # . Purpose
-        #   Install and enable XRDP on an Ubuntu desktop system.
-        #
-        # . Behavior
-        #   - Refreshes the APT package index.
-        #   - Installs XRDP.
-        #   - Enables and starts the XRDP service.
-        #   - Does not install a desktop environment on Ubuntu Server.
-        #
-        # . Returns
-        #   0 if XRDP was installed and enabled successfully, otherwise non-zero.
-        #
-        # . Usage
-        #   _install_xrdp
-    _install_xrdp() {
-        if (( ${FLAG_DRYRUN:-0} == 1 )); then
-            sayinfo "Dry run: Would install and enable XRDP."
-            return 0
-        fi
-
-        sayinfo "Updating Ubuntu package index."
-        sudo apt-get update || return 1
-
-        sayinfo "Installing XRDP."
-        sudo apt-get install -y xrdp || return 1
-
-        sayinfo "Enabling XRDP."
-        sudo systemctl enable --now xrdp.service || return 1
-
-        sayinfo "XRDP installed and enabled successfully."
-    }
-
-    # fn$ _install_docker
-        # . Purpose
-        #   Install Docker Engine from Docker's official Ubuntu repository.
-        #
-        # . Behavior
-        #   - Refreshes the APT package index and installs repository prerequisites.
-        #   - Installs Docker's official signing key and deb822 repository definition.
-        #   - Installs Docker Engine, containerd, Buildx, and the Compose plugin.
-        #   - Enables and starts the Docker service.
-        #   - Does not add users to the privileged docker group.
-        #
-        # . Returns
-        #   0 if Docker was installed and enabled successfully, otherwise non-zero.
-        #
-        # . Usage
-        #   _install_docker
-    _install_docker() {
-        local ubuntu_codename
-
-        if (( ${FLAG_DRYRUN:-0} == 1 )); then
-            sayinfo "Dry run: Would install Docker Engine from Docker's official repository."
-            return 0
-        fi
-
-        sayinfo "Updating Ubuntu package index."
-        sudo apt-get update || return 1
-
-        sayinfo "Installing Docker repository prerequisites."
-        sudo apt-get install -y ca-certificates curl || return 1
-
-        ubuntu_codename="$(. /etc/os-release && printf '%s' "${UBUNTU_CODENAME:-$VERSION_CODENAME}")"
-
-        sudo install -m 0755 -d /etc/apt/keyrings || return 1
-        sudo curl -fsSL \
-            https://download.docker.com/linux/ubuntu/gpg \
-            -o /etc/apt/keyrings/docker.asc || return 1
-        sudo chmod a+r /etc/apt/keyrings/docker.asc || return 1
-
-        printf '%s\n' \
-            'Types: deb' \
-            'URIs: https://download.docker.com/linux/ubuntu' \
-            "Suites: ${ubuntu_codename}" \
-            'Components: stable' \
-            "Architectures: $(dpkg --print-architecture)" \
-            'Signed-By: /etc/apt/keyrings/docker.asc' \
-            | sudo tee /etc/apt/sources.list.d/docker.sources > /dev/null
-
-        sayinfo "Installing Docker Engine."
-        sudo apt-get update || return 1
-        sudo apt-get install -y \
-            containerd.io \
-            docker-buildx-plugin \
-            docker-ce \
-            docker-ce-cli \
-            docker-compose-plugin || return 1
-
-        sayinfo "Enabling Docker Engine."
-        sudo systemctl enable --now docker.service || return 1
-
-        sayinfo "Docker Engine installed and enabled successfully."
-    }
-
-
-
 # - Console registration ---------------------------------------------------------
-    # doc$ Console registration
-        # Allowed side effect:
-        #   - On source, the module may register groups and items with sgnd-console.
-        #
-        # Example:
-        #   sgnd_console_register_group "system" "System tools" "General system operations"
-        #
-        #   sgnd_console_register_item \
-        #       "sys-status" \
-        #       "system" \
-        #       "System status" \
-        #       "sys_status" \
-        #       "Show system status" \
-        #       0 \
-        #       15
     sgnd_console_register_group \
-        "$SGND_MACHINE_CONFIG_MODULE_ID" \
-        "$SGND_MACHINE_CONFIG_MODULE_NAME" \
-        "$SGND_MACHINE_CONFIG_MODULE_DESC" \
-        0 1 800
-    
-    sgnd_console_register_item "machstat" "$SGND_MACHINE_CONFIG_MODULE_ID" "Show machine status" "_show_machine_status" "Show network configuration, machine ID and SSH status" 0 5 1
-    sgnd_console_register_item "prepclone" "$SGND_MACHINE_CONFIG_MODULE_ID" "Prepare for cloning" "_prep_template" "Prepare this VM to be used as a Template" 0 5 1
-    sgnd_console_register_item "machid" "$SGND_MACHINE_CONFIG_MODULE_ID" "Generate Machine ID" "_init_machine" "Set up a new machine ID" 0 5 1
-    sgnd_console_register_item "setnetid" "$SGND_MACHINE_CONFIG_MODULE_ID" "Set network ID" "_set_identity" "Configure hostname and network ID" 0 5 1
-    sgnd_console_register_item "sshcfg" "$SGND_MACHINE_CONFIG_MODULE_ID" "Configure SSH service" "_configure_ssh_service" "Enable or disable the SSH service" 0 5 1
-    sgnd_console_register_item "sshkeys" "$SGND_MACHINE_CONFIG_MODULE_ID" "Generate SSH Keys" "_generate_ssh_keys" "Generate SSH host keys" 0 5 1
+        "$SGND_COMPUTER_SETUP_MODULE_ID" \
+        "$SGND_COMPUTER_SETUP_MODULE_NAME" \
+        "$SGND_COMPUTER_SETUP_MODULE_DESC" \
+        0 1 100
 
-    sgnd_console_register_group \
-        "pkghouse" \
-        "Package Housekeeping" \
-        "Update, upgrade and clean Ubuntu packages" \
-        0 1 800
+    sgnd_console_register_item "machstat" "$SGND_COMPUTER_SETUP_MODULE_ID" "Show computer status" "_show_machine_status" "Show identity, network configuration, machine ID, and SSH status" 0 5 1
+    sgnd_console_register_item "setnetid" "$SGND_COMPUTER_SETUP_MODULE_ID" "Set computer identity" "_set_identity" "Configure hostname and network identity" 0 5 1
+    sgnd_console_register_item "prepclone" "$SGND_COMPUTER_SETUP_MODULE_ID" "Prepare for cloning" "_prep_template" "Prepare this computer to be used as a template" 0 5 1
+    sgnd_console_register_item "machid" "$SGND_COMPUTER_SETUP_MODULE_ID" "Generate machine ID" "_init_machine" "Generate a new machine ID" 0 5 1
+    sgnd_console_register_item "sshcfg" "$SGND_COMPUTER_SETUP_MODULE_ID" "Configure SSH service" "_configure_ssh_service" "Enable or disable the SSH service" 0 5 1
+    sgnd_console_register_item "sshkeys" "$SGND_COMPUTER_SETUP_MODULE_ID" "Generate SSH host keys" "_generate_ssh_keys" "Generate SSH host keys and restart SSH" 0 5 1
 
-    sgnd_console_register_item "basepkg" "pkghouse" "Install base packages" "_install_basepackages" "Install Ubuntu baseline packages" 0 5 1
-    sgnd_console_register_item "pkgindex" "pkghouse" "Update package index" "_update_package_index" "Refresh available package information" 0 5 1
-    sgnd_console_register_item "pkgupgrade" "pkghouse" "Upgrade installed packages" "_upgrade_installed_packages" "Upgrade installed Ubuntu packages" 0 5 1
-    sgnd_console_register_item "pkgclean" "pkghouse" "Clean unused packages" "_clean_unused_packages" "Remove unused packages and cached files" 0 5 1
-
-    sgnd_console_register_group \
-        "roles" \
-        "Optional Roles and Services" \
-        "Install optional server roles and desktop services" \
-        0 1 800
-
-    sgnd_console_register_item "sambafile" "roles" "Install Samba File Server" "_install_samba_file" "Install Samba file-server packages" 0 5 1
-    sgnd_console_register_item "instxrdp" "roles" "Install XRDP" "_install_xrdp" "Install XRDP for Ubuntu Desktop" 0 5 1
-    sgnd_console_register_item "instdocker" "roles" "Install Docker" "_install_docker" "Install Docker Engine" 0 5 1
+    sgnd_console_register_group "package-management" "Package Management" "Install the computer baseline and maintain Ubuntu packages" 0 1 110
+    sgnd_console_register_item "basepkg" "package-management" "Install base packages" "_install_basepackages" "Install the Ubuntu baseline packages" 0 5 1
+    sgnd_console_register_item "pkgindex" "package-management" "Update package index" "_update_package_index" "Refresh available package information" 0 5 1
+    sgnd_console_register_item "pkgupgrade" "package-management" "Upgrade installed packages" "_upgrade_installed_packages" "Upgrade installed Ubuntu packages" 0 5 1
+    sgnd_console_register_item "pkgclean" "package-management" "Clean unused packages" "_clean_unused_packages" "Remove unused packages and cached files" 0 5 1

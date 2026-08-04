@@ -1,19 +1,17 @@
 # ==================================================================================
-# SolidGroundUX - Role Provisioning Console Module
+# SolidGroundUX - Active Directory
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621211
-#   Checksum    : ff98ce204716366d82ebbeed28cfadf94f4e1e4c44eb298a1028b137ffd780b9
-#   Source      : 30-role-provisioning.sh
+#   Build       : 2621602
+#   Checksum    : pending
+#   Source      : 20-active-directory.sh
 #   Type        : module
 #   Group       : SolidGround Console
-#   Purpose     : Install and provision optional server roles
+#   Purpose     : Install and manage Active Directory server and client roles
 #
 # Description:
-#   Provides guided role provisioning actions for the SolidGroundUX Management
-#   Console. The current implementation installs and provisions a Samba Active
-#   Directory Domain Controller and exposes basic AD status and account actions.
+#   Provides Samba Active Directory server provisioning, account management, and client domain membership actions.
 #
 # Attribution:
 #   Developers    : Mark Fieten
@@ -23,17 +21,16 @@
 #   License       : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # ==================================================================================
 set -uo pipefail
-
 # - Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard
         # . Purpose
-        #   Ensure the module is sourced as a library and initialized only once.
+        #   Ensure the file is sourced as a library and only initialized once.
         #
         # . Behavior
-        #   - Derives a unique guard variable from the current filename.
-        #   - Aborts when the module is executed directly.
-        #   - Marks the module as loaded on first source.
-        #   - Returns immediately when the module was already loaded.
+        #   - Derives a unique guard variable name from the current filename.
+        #   - Aborts execution if the file is executed instead of sourced.
+        #   - Sets the guard variable on first load.
+        #   - Skips initialization if the library was already loaded.
         #
         # Inputs:
         #   BASH_SOURCE[0]
@@ -69,21 +66,19 @@ set -uo pipefail
     unset -f _sgnd_lib_guard
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
-
+    
 # - Module metadata -------------------------------------------------------------
-    SGND_ROLE_PROVISIONING_MODULE_ID="role-config"
-    SGND_ROLE_PROVISIONING_MODULE_NAME="Role Provisioning"
-    SGND_ROLE_PROVISIONING_MODULE_VERSION="1.0.0"
-    SGND_ROLE_PROVISIONING_MODULE_DESC="Provision specific roles on this server"
+    SGND_ACTIVE_DIRECTORY_MODULE_ID="active-directory"
+    SGND_ACTIVE_DIRECTORY_MODULE_NAME="Active Directory"
+    SGND_ACTIVE_DIRECTORY_MODULE_VERSION="1.0.0"
+    SGND_ACTIVE_DIRECTORY_MODULE_DESC="Manage Active Directory server and client roles"
 
-    # Transient console-loader metadata contract.
-    SGND_MODULE_ID="$SGND_ROLE_PROVISIONING_MODULE_ID"
-    SGND_MODULE_NAME="$SGND_ROLE_PROVISIONING_MODULE_NAME"
-    SGND_MODULE_VERSION="$SGND_ROLE_PROVISIONING_MODULE_VERSION"
-    SGND_MODULE_DESC="$SGND_ROLE_PROVISIONING_MODULE_DESC"
+    SGND_MODULE_ID="${SGND_ACTIVE_DIRECTORY_MODULE_ID}"
+    SGND_MODULE_NAME="${SGND_ACTIVE_DIRECTORY_MODULE_NAME}"
+    SGND_MODULE_VERSION="${SGND_ACTIVE_DIRECTORY_MODULE_VERSION}"
+    SGND_MODULE_DESC="${SGND_ACTIVE_DIRECTORY_MODULE_DESC}"
 
-
-# - Validation helpers -------------------------------------------------------------
+# - Active Directory server ------------------------------------------------------
     # fn$ _samba_validate_realm
         # . Purpose
         #   Validate a Kerberos realm or DNS domain name.
@@ -213,7 +208,6 @@ set -uo pipefail
         return 1
     }
 
-# - Installation -------------------------------------------------------------------
     # fn$ _install_samba_ad
         # . Purpose
         #   Install the packages required for a Samba Active Directory Domain Controller.
@@ -259,7 +253,6 @@ set -uo pipefail
         sayinfo "Samba AD/DC packages installed; domain provisioning is still required."
     }
 
-# - Domain provisioning ------------------------------------------------------------
     # fn$ _samba_configure_resolver
         # . Purpose
         #   Prepare systemd-resolved to coexist with Samba's internal DNS server.
@@ -531,7 +524,6 @@ set -uo pipefail
         fi
     }
 
-# - Status -------------------------------------------------------------------------
     # fn$ samba_ad_status
         # . Purpose
         #   Display the operational status of the local Samba AD Domain Controller.
@@ -605,7 +597,6 @@ set -uo pipefail
         fi
     }
 
-# - Account management -------------------------------------------------------------
     # fn$ samba_add_user
         # . Purpose
         #   Create a user account in the provisioned Samba AD domain.
@@ -703,62 +694,176 @@ set -uo pipefail
         sayinfo "AD group $group_name created."
     }
 
-# - Console registration -----------------------------------------------------------
-    sgnd_console_register_group \
-        "sambaprv" \
-        "Samba Active Directory" \
-        "Install, provision, and manage a Samba Active Directory domain" \
-        0 1 800
+# - Server account management ---------------------------------------------------
+    # fn: samba_list_users - List Active Directory users
+        # . Returns
+        #   Exit status from samba-tool.
+        #
+        # . Usage
+        #   samba_list_users
+    samba_list_users() {
+        _samba_require_provisioned_domain || return 1
+        sudo samba-tool user list
+    }
 
-    sgnd_console_register_item \
-        "samba-install" \
-        "sambaprv" \
-        "Install Samba AD server" \
-        "_install_samba_ad" \
-        "Install Samba Active Directory Domain Controller packages" \
-        0 5 1
+    # fn: samba_list_groups - List Active Directory groups
+        # . Returns
+        #   Exit status from samba-tool.
+        #
+        # . Usage
+        #   samba_list_groups
+    samba_list_groups() {
+        _samba_require_provisioned_domain || return 1
+        sudo samba-tool group list
+    }
 
-    sgnd_console_register_item \
-        "samba-domain" \
-        "sambaprv" \
-        "Create AD domain" \
-        "samba_create_domain" \
-        "Provision a new Samba Active Directory domain" \
-        0 5 1
+    # fn: _samba_ask_user - Ask for and validate an Active Directory user name
+        # . Arguments
+        #   $1  Output variable name.
+        #
+        # . Returns
+        #   Status returned by ask.
+        #
+        # . Usage
+        #   _samba_ask_user account_name
+    _samba_ask_user() {
+        local output_var="$1"
+        local account_name=""
+        ask --label "AD user name" --var account_name --validate _samba_validate_account_name || return $?
+        printf -v "$output_var" '%s' "$account_name"
+    }
 
-    sgnd_console_register_item \
-        "samba-status" \
-        "sambaprv" \
-        "Show AD status" \
-        "samba_ad_status" \
-        "Show Samba AD service, DNS, Kerberos, and domain status" \
-        0 15 1
+    # fn: samba_change_user_password - Change an Active Directory user password
+        # . Returns
+        #   Exit status from samba-tool.
+        #
+        # . Usage
+        #   samba_change_user_password
+    samba_change_user_password() {
+        local account_name=""
+        _samba_require_provisioned_domain || return 1
+        _samba_ask_user account_name || return $?
+        (( ${FLAG_DRYRUN:-0} == 1 )) && { sayinfo "Dry run: Would change the password for $account_name."; return 0; }
+        sudo samba-tool user setpassword "$account_name" </dev/tty
+    }
 
-    sgnd_console_register_item \
-        "samba-user-add" \
-        "sambaprv" \
-        "Add AD user" \
-        "samba_add_user" \
-        "Create a user in the Active Directory domain" \
-        0 5 1
+    # fn: samba_enable_user - Enable an Active Directory user
+        # . Returns
+        #   Exit status from samba-tool.
+        #
+        # . Usage
+        #   samba_enable_user
+    samba_enable_user() {
+        local account_name=""
+        _samba_require_provisioned_domain || return 1
+        _samba_ask_user account_name || return $?
+        (( ${FLAG_DRYRUN:-0} == 1 )) && { sayinfo "Dry run: Would enable $account_name."; return 0; }
+        sudo samba-tool user enable "$account_name"
+    }
 
-    sgnd_console_register_item \
-        "samba-group-add" \
-        "sambaprv" \
-        "Add AD group" \
-        "samba_add_group" \
-        "Create a group in the Active Directory domain" \
-        0 5 1
-    
-    sgnd_console_register_group \
-        "smbprv" \
-        "Samba File server" \
-        "Install, provision, and manage a Samba file server" \
-        0 1 800
-    sgnd_console_register_item \
-        "smb-install" \
-        "smbprv" \
-        "Install Samba File Server" \
-        "_install_samba_file" \
-        "Install Samba file-server packages" \
-        0 5 1
+    # fn: samba_disable_user - Disable an Active Directory user
+        # . Returns
+        #   Exit status from samba-tool.
+        #
+        # . Usage
+        #   samba_disable_user
+    samba_disable_user() {
+        local account_name=""
+        _samba_require_provisioned_domain || return 1
+        _samba_ask_user account_name || return $?
+        (( ${FLAG_DRYRUN:-0} == 1 )) && { sayinfo "Dry run: Would disable $account_name."; return 0; }
+        sudo samba-tool user disable "$account_name"
+    }
+
+    # fn: samba_set_user_no_expiry - Prevent an Active Directory user password from expiring
+        # . Returns
+        #   Exit status from samba-tool.
+        #
+        # . Usage
+        #   samba_set_user_no_expiry
+    samba_set_user_no_expiry() {
+        local account_name=""
+        _samba_require_provisioned_domain || return 1
+        _samba_ask_user account_name || return $?
+        (( ${FLAG_DRYRUN:-0} == 1 )) && { sayinfo "Dry run: Would set no expiry for $account_name."; return 0; }
+        sudo samba-tool user setexpiry "$account_name" --noexpiry
+    }
+
+# - Active Directory client ------------------------------------------------------
+    # fn: _install_ad_client - Install Active Directory client packages
+        # . Returns
+        #   0 on success; non-zero when package installation fails.
+        #
+        # . Usage
+        #   _install_ad_client
+    _install_ad_client() {
+        if (( ${FLAG_DRYRUN:-0} == 1 )); then
+            sayinfo "Dry run: Would install Active Directory client packages."
+            return 0
+        fi
+        sudo apt-get update || return 1
+        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            adcli krb5-user libnss-sss libpam-sss packagekit realmd \
+            samba-common-bin sssd-ad sssd-tools || return 1
+        sayok "Active Directory client packages installed."
+    }
+
+    # fn: ad_client_status - Show current realm membership
+        # . Returns
+        #   Exit status from realm list.
+        #
+        # . Usage
+        #   ad_client_status
+    ad_client_status() {
+        command -v realm >/dev/null 2>&1 || { saywarning "realmd is not installed."; return 1; }
+        realm list
+    }
+
+    # fn: ad_client_join - Join this computer to an Active Directory realm
+        # . Returns
+        #   Exit status from realm join.
+        #
+        # . Usage
+        #   ad_client_join
+    ad_client_join() {
+        local realm_name="$(hostname -d 2>/dev/null || true)"
+        ask --label "AD realm" --var realm_name --default "$realm_name" --validate _samba_validate_realm || return $?
+        (( ${FLAG_DRYRUN:-0} == 1 )) && { sayinfo "Dry run: Would join $realm_name."; return 0; }
+        sudo realm join "$realm_name" </dev/tty
+    }
+
+    # fn: ad_client_leave - Leave an Active Directory realm
+        # . Returns
+        #   Exit status from realm leave.
+        #
+        # . Usage
+        #   ad_client_leave
+    ad_client_leave() {
+        local realm_name=""
+        realm_name="$(realm list --name-only 2>/dev/null | head -n 1)"
+        ask --label "AD realm" --var realm_name --default "$realm_name" --validate _samba_validate_realm || return $?
+        (( ${FLAG_DRYRUN:-0} == 1 )) && { sayinfo "Dry run: Would leave $realm_name."; return 0; }
+        sudo realm leave "$realm_name"
+    }
+
+# - Console registration ---------------------------------------------------------
+    sgnd_console_register_group "ad-server" "Active Directory Server" "Install, provision, and inspect a Samba Active Directory Domain Controller" 0 1 200
+    sgnd_console_register_item "ad-install" "ad-server" "Install server packages" "_install_samba_ad" "Install Samba Active Directory Domain Controller packages" 0 5 1
+    sgnd_console_register_item "ad-domain" "ad-server" "Create domain" "samba_create_domain" "Provision a new Samba Active Directory domain" 0 5 1
+    sgnd_console_register_item "ad-status" "ad-server" "Show AD status" "samba_ad_status" "Show service, DNS, Kerberos, and domain status" 0 15 1
+
+    sgnd_console_register_group "ad-accounts" "AD Users and Groups" "Create, list, and manage Active Directory users and groups" 0 1 210
+    sgnd_console_register_item "ad-user-add" "ad-accounts" "Create user" "samba_add_user" "Create an Active Directory user" 0 5 1
+    sgnd_console_register_item "ad-group-add" "ad-accounts" "Create group" "samba_add_group" "Create an Active Directory group" 0 5 1
+    sgnd_console_register_item "ad-users" "ad-accounts" "List users" "samba_list_users" "List Active Directory users" 0 15 1
+    sgnd_console_register_item "ad-groups" "ad-accounts" "List groups" "samba_list_groups" "List Active Directory groups" 0 15 1
+    sgnd_console_register_item "ad-passwd" "ad-accounts" "Change user password" "samba_change_user_password" "Set a new Active Directory user password" 0 5 1
+    sgnd_console_register_item "ad-enable" "ad-accounts" "Enable user" "samba_enable_user" "Enable an Active Directory user" 0 5 1
+    sgnd_console_register_item "ad-disable" "ad-accounts" "Disable user" "samba_disable_user" "Disable an Active Directory user" 0 5 1
+    sgnd_console_register_item "ad-noexpiry" "ad-accounts" "Set password never expires" "samba_set_user_no_expiry" "Prevent an Active Directory user password from expiring" 0 5 1
+
+    sgnd_console_register_group "ad-client" "Active Directory Client" "Install, join, leave, and inspect Active Directory client membership" 0 1 220
+    sgnd_console_register_item "adc-install" "ad-client" "Install client packages" "_install_ad_client" "Install realmd and SSSD Active Directory client packages" 0 5 1
+    sgnd_console_register_item "adc-join" "ad-client" "Join domain" "ad_client_join" "Join this computer to an Active Directory realm" 0 5 1
+    sgnd_console_register_item "adc-leave" "ad-client" "Leave domain" "ad_client_leave" "Leave the current Active Directory realm" 0 5 1
+    sgnd_console_register_item "adc-status" "ad-client" "Show membership" "ad_client_status" "Show current realm membership" 0 15 1

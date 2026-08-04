@@ -4,6 +4,71 @@ All notable changes to SolidGroundUX are documented in this file.
 
 The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.
 
+# Unreleased
+
+## SolidGround Management Console
+
+### Added
+
+#### Computer Setup
+- Machine status overview.
+- Machine identity and network configuration.
+- Machine ID generation.
+- SSH service configuration.
+- SSH host key generation.
+- VM template preparation.
+- Ubuntu package management.
+- Ubuntu base package installation.
+
+#### Active Directory
+- Samba Active Directory package installation.
+- Active Directory domain provisioning.
+- Active Directory status.
+- Active Directory user management.
+- Active Directory group management.
+- Active Directory client installation.
+- Domain join and leave support.
+
+#### Samba File Server
+- Samba File Server installation.
+
+#### Optional Roles
+- Docker installation.
+- XRDP installation.
+- Framework for future optional server roles.
+
+#### SolidGroundUX
+- Framework configuration management.
+- Framework state management.
+- Framework logging tools.
+- Framework diagnostics.
+- SolidGroundUX installation, update and removal.
+
+#### Development Tools
+- Workspace creation.
+- Workspace deployment.
+- Workspace archiving.
+- Workspace restoration.
+- Release preparation.
+- Metadata editor.
+- Documentation generator.
+- `receive-files.sh` for streamed deployments.
+
+### Changed
+- Reorganized the SolidGround Management Console into dedicated functional modules.
+- Simplified the overall console navigation.
+- Completely redesigned `deploy-workspace.sh`.
+- Added support for local and remote workspace deployment over SSH.
+- Added support for deploying complete workspaces or filtered file selections.
+- `deploy-workspace.sh` now creates a tar stream that is processed by `receive-files.sh`.
+- Simplified deployment selection by combining directory, filename/mask and modification-date filters.
+
+### Deleted
+- Delete due to reordering of the modules:
+  - 10-sgnd-config.sh
+  - 20-machine-config.sh
+  - 30-role-provisioning.sh
+
 # Version 1.8 (Build 2621300)
 
 ## SolidGroundUX Framework

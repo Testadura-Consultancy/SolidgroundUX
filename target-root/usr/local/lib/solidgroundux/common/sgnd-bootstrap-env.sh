@@ -347,6 +347,7 @@ set -uo pipefail
         SGND_STATE_DIR="$SGND_USER_HOME/.state/$product"
         SGND_FRAMEWORK_STATEFILE="$SGND_USRCFG_DIR/framework.state"
         SGND_STYLE_DIR="$SGND_FRAMEWORK_ROOT/usr/local/lib/$product/styles"
+        SGND_ARCHIVE_DIR="$SGND_FRAMEWORK_ROOT/usr/local/lib/$product/archive"
 
         SGND_DOCS_DIR="$SGND_FRAMEWORK_ROOT/usr/local/share/testadura/$product/doc"   # May be absent in dev/minimal installs
         SGND_LOCAL_DOC="$SGND_DOCS_DIR/$product/index.html"
