@@ -171,6 +171,7 @@ set -uo pipefail
         "both|SGND_FRAMEWORK_ROOT|Root path used as the base for framework filesystem locations.|"
         "both|SGND_APPLICATION_ROOT|Root path used as the base for application filesystem locations.|"
         "both|SGND_COMMON_LIB|Directory containing common SolidGroundUX library files.|"
+        "both|SGND_COMMON_EXE|Directory containing common SolidGroundUX executable files.|"
         "system|SGND_SYSCFG_DIR|Directory containing system-level SolidGroundUX configuration files.|"
         "user|SGND_USRCFG_DIR|Directory containing user-level SolidGroundUX configuration files.|"
         "user|SGND_STATE_DIR|Directory containing user-level SolidGroundUX state files.|"
@@ -234,6 +235,7 @@ set -uo pipefail
     _build_framework_dirs(){
         SGND_FRAMEWORK_DIRS=(
             "s|$SGND_COMMON_LIB"
+            "s|$SGND_COMMON_EXE"
             "s|$SGND_SYSCFG_DIR"
             "u|$SGND_USRCFG_DIR"
             "u|$SGND_STATE_DIR"
@@ -342,6 +344,8 @@ set -uo pipefail
         product="$(printf '%s' "${SGND_PRODUCT:-solidgroundux}" | tr '[:upper:]' '[:lower:]')"
 
         SGND_COMMON_LIB="$SGND_FRAMEWORK_ROOT/usr/local/lib/$product/common"
+        SGND_COMMON_EXE="$SGND_FRAMEWORK_ROOT/usr/local/libexec/$product"
+
         SGND_SYSCFG_DIR="$SGND_APPLICATION_ROOT/etc/$product"
         SGND_USRCFG_DIR="$SGND_USER_HOME/.config/$product"
         SGND_STATE_DIR="$SGND_USER_HOME/.state/$product"

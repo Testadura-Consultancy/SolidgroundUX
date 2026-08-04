@@ -23,7 +23,7 @@ The format is inspired by *Keep a Changelog* while remaining focused on practica
 #### Active Directory
 - Samba Active Directory package installation.
 - Active Directory domain provisioning.
-- Active Directory status.
+- Active Directory status overview.
 - Active Directory user management.
 - Active Directory group management.
 - Active Directory client installation.
@@ -42,32 +42,40 @@ The format is inspired by *Keep a Changelog* while remaining focused on practica
 - Framework state management.
 - Framework logging tools.
 - Framework diagnostics.
-- SolidGroundUX installation, update and removal.
+- SolidGroundUX installation, update, and removal.
 
 #### Development Tools
 - Workspace creation.
-- Workspace deployment.
+- Workspace deployment through `deploy-workspace.sh`.
 - Workspace archiving.
 - Workspace restoration.
 - Release preparation.
 - Metadata editor.
 - Documentation generator.
-- `receive-files.sh` for streamed deployments.
+- `receive-files.sh` for receiving streamed deployments.
+- `tar-it.sh` for archive creation.
+- `untar-it.sh` for archive restoration.
 
 ### Changed
 - Reorganized the SolidGround Management Console into dedicated functional modules.
 - Simplified the overall console navigation.
+- Console actions that invoke external scripts now resolve those scripts from `SGND_COMMON_EXE` or `SGND_COMMON_LIB`.
 - Completely redesigned `deploy-workspace.sh`.
 - Added support for local and remote workspace deployment over SSH.
 - Added support for deploying complete workspaces or filtered file selections.
 - `deploy-workspace.sh` now creates a tar stream that is processed by `receive-files.sh`.
-- Simplified deployment selection by combining directory, filename/mask and modification-date filters.
+- Simplified deployment selection by combining directory, filename or mask, and modification-date filters.
 
-### Deleted
-- Delete due to reordering of the modules:
-  - 10-sgnd-config.sh
-  - 20-machine-config.sh
-  - 30-role-provisioning.sh
+### Removed
+- Replaced the previous console modules with the new functional module structure:
+  - `10-sgnd-config.sh`
+  - `20-machine-config.sh`
+  - `30-role-provisioning.sh`
+
+## SolidGround Framework
+
+### Added
+- Global variable SGND_COMMON_EXE this is weher Solidground's executables can be found
 
 # Version 1.8 (Build 2621300)
 

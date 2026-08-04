@@ -284,7 +284,6 @@ set -uo pipefail
         #   _set_identity
     _set_identity() {
         _sgnd_run_module_script \
-            "$SGND_COMPUTER_SETUP_SCRIPT_MODULE_ID" \
             "set-identity.sh" \
             "$@"
     }
@@ -300,7 +299,6 @@ set -uo pipefail
         #   _prep_template
     _prep_template() {
         _sgnd_run_module_script \
-            "$SGND_COMPUTER_SETUP_SCRIPT_MODULE_ID" \
             "prepare-template.sh" \
             "$@"
     }

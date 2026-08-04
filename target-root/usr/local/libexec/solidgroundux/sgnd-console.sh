@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =====================================================================================
-# SolidGroundUX - Console Host
+# SolidGroundUX - SolidGround Management Console
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
@@ -185,8 +185,8 @@ set -uo pipefail
     SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"
     SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
     SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
-    SGND_SCRIPT_TITLE="sgnd-console"
-    : "${SGND_SCRIPT_DESC:=Generic SolidGroundUX console host}"
+    SGND_SCRIPT_TITLE="SolidGround Management Console"
+    : "${SGND_SCRIPT_DESC:=Collection of scripts and tools for managing SolidGroundUX environments}"
     : "${SGND_SCRIPT_VERSION:=1.0}"
     : "${SGND_SCRIPT_BUILD:=20260312}"
     : "${SGND_SCRIPT_DEVELOPERS:=Mark Fieten}"
@@ -792,32 +792,58 @@ set -uo pipefail
         "$resolved" "${command_args[@]}"
     }
 
-    # _sgnd_run_module_script
+        # _sgnd_run_module_script
         # . Purpose
-        #   Sgnd run module script.
+        #   Locates and executes a console helper script from the canonical
+        #   SolidGroundUX executable or library directories.
+        #
+        # . Arguments
+        #   $1  Script filename.
+        #   $@  Optional arguments passed to the script.
         #
         # . Returns
-        #   Returns the underlying command or workflow status.
+        #   Returns the exit status of the executed script.
+        #   Returns 1 when the script cannot be found or is not executable.
         #
         # . Usage
-        #   _sgnd_run_module_script "/usr/local/libexec/solidgroundux/console-modules/machine-config/set-identity.sh"
+        #   _sgnd_run_module_script "set-identity.sh"
+        #   _sgnd_run_module_script "prepare-template.sh" --dryrun
     _sgnd_run_module_script() {
-        local module_id="${1:?missing module ID}"
-        local script_name="${2:?missing script name}"
-        shift 2
-        local resolved="${SGND_CONSOLE_DEFAULT_MODULE_DIRECTORY%/}/${module_id}/${script_name}"
+        local script_name="${1:?missing script name}"
+        shift
+
+        local resolved=""
+        local candidate=""
+        local -a search_directories=(
+            "$SGND_COMMON_EXE"
+            "$SGND_COMMON_LIB"
+        )
         local -a command_args=()
 
         [[ "$script_name" != */* ]] || {
             sayfail "Module script must be a filename: $script_name"
             return 1
         }
-        [[ -f "$resolved" && -x "$resolved" ]] || {
-            sayfail "Module script not found or not executable: $resolved"
+
+        for candidate in "${search_directories[@]}"; do
+            [[ -n "$candidate" ]] || continue
+
+            candidate="${candidate%/}/${script_name}"
+
+            if [[ -f "$candidate" && -x "$candidate" ]]; then
+                resolved="$candidate"
+                break
+            fi
+        done
+
+        if [[ -z "$resolved" ]]; then
+            sayfail "Module script not found or not executable: $script_name"
+            saydebug "Searched: ${search_directories[*]}"
             return 1
-        }
+        fi
 
         _sgnd_build_command_args command_args "$@"
+
         saydebug "Executing module script: $resolved ${command_args[*]}"
         "$resolved" "${command_args[@]}"
     }

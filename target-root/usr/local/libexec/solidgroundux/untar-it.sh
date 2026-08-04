@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # =====================================================================================
-# SolidGroundUX - Un-Tar It
+# SolidGroundUX - Untar It
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621603
+#   Build       : 2621604
 #   Checksum    : pending
 #   Source      : untar-it.sh
 #   Type        : script
@@ -107,7 +107,7 @@ set -uo pipefail
     SGND_SCRIPT_TITLE="Un-tar it"
     : "${SGND_SCRIPT_DESC:=Restore selected files from a SolidGroundUX framework archive.}"
     : "${SGND_SCRIPT_VERSION:=1.8}"
-    : "${SGND_SCRIPT_BUILD:=2621603}"
+    : "${SGND_SCRIPT_BUILD:=2621604}"
     : "${SGND_SCRIPT_DEVELOPERS:=Mark Fieten}"
     : "${SGND_SCRIPT_COMPANY:=Testadura Consultancy}"
     : "${SGND_SCRIPT_COPYRIGHT:=© 2025 - 2026 Testadura Consultancy}"
@@ -151,6 +151,7 @@ set -uo pipefail
     RESTORE_TARGET_ROOT="${RESTORE_TARGET_ROOT:-}"
     RESTORE_DIRECTORY="${RESTORE_DIRECTORY:-}"
     RESTORE_MATCH="${RESTORE_MATCH:-}"
+    AVAILABLE_ARCHIVES=()
 
     CLI_ARCHIVE_FILE=0
     CLI_ARCHIVE_DIRECTORY=0
@@ -228,18 +229,88 @@ set -uo pipefail
         return 0
     }
 
-    # fn: _latest_archive_name - Return the newest archive basename
-        # . Output
-        #   Writes the newest matching basename, or nothing when none exist.
+    # fn: _list_archives - Build the available archive list, newest first
+        # . Purpose
+        #   Find readable .tar.gz archives in ARCHIVE_DIRECTORY and store their basenames.
+        #
+        # Outputs (globals):
+        #   AVAILABLE_ARCHIVES
         #
         # . Returns
-        #   0 always.
+        #   0 when at least one archive is available; 1 otherwise.
         #
         # . Usage
-        #   latest="$(_latest_archive_name)"
-    _latest_archive_name() {
-        find "$ARCHIVE_DIRECTORY" -maxdepth 1 -type f -name '*.tar.gz' -printf '%T@|%f\n' 2>/dev/null |
-            sort -nr | head -n 1 | cut -d'|' -f2-
+        #   _list_archives || return $?
+    _list_archives() {
+        AVAILABLE_ARCHIVES=()
+
+        [[ -d "$ARCHIVE_DIRECTORY" ]] || {
+            sayfail "Archive directory not found: $ARCHIVE_DIRECTORY"
+            return 1
+        }
+
+        mapfile -t AVAILABLE_ARCHIVES < <(
+            find "$ARCHIVE_DIRECTORY" \
+                -maxdepth 1 \
+                -type f \
+                -readable \
+                -name '*.tar.gz' \
+                -printf '%T@|%f\n' 2>/dev/null | \
+            sort -nr | \
+            cut -d'|' -f2-
+        )
+
+        if (( ${#AVAILABLE_ARCHIVES[@]} == 0 )); then
+            saywarning "No readable .tar.gz archives found in $ARCHIVE_DIRECTORY."
+            return 1
+        fi
+
+        return 0
+    }
+
+    # fn: _select_archive - Select an archive from the numbered archive list
+        # . Purpose
+        #   Display available archives and resolve a numeric user selection.
+        #
+        # Outputs (globals):
+        #   ARCHIVE_FILE
+        #
+        # . Returns
+        #   0 after a valid selection; non-zero when no archives are available.
+        #
+        # . Usage
+        #   _select_archive || return $?
+    _select_archive() {
+        local selection="1"
+        local index=0
+        local count=0
+
+        _list_archives || return $?
+        count=${#AVAILABLE_ARCHIVES[@]}
+
+        sgnd_print "Available archives in $ARCHIVE_DIRECTORY:"
+        sgnd_print
+
+        for (( index=0; index<count; index++ )); do
+            sgnd_print "  $((index + 1))) ${AVAILABLE_ARCHIVES[$index]}"
+        done
+
+        sgnd_print
+        while true; do
+            ask \
+                --label "Archive number" \
+                --var selection \
+                --default "1" \
+                --colorize both
+
+            if [[ "$selection" =~ ^[0-9]+$ ]] && \
+               (( selection >= 1 && selection <= count )); then
+                ARCHIVE_FILE="${AVAILABLE_ARCHIVES[$((selection - 1))]}"
+                return 0
+            fi
+
+            saywarning "Enter a number between 1 and $count."
+        done
     }
 
     # fn: _validate_archive_entries - Reject unsafe archive entry paths
@@ -300,55 +371,45 @@ set -uo pipefail
         #   _getparameters || return $?
     _getparameters() {
         local reply=0
-        local latest=""
 
         : "${ARCHIVE_DIRECTORY:=$SGND_ARCHIVE_DIR}"
         : "${RESTORE_TARGET_ROOT:=$SGND_FRAMEWORK_ROOT}"
         : "${RESTORE_DIRECTORY:=}"
         : "${RESTORE_MATCH:=*}"
 
-        if [[ -z "$ARCHIVE_FILE" && -d "$ARCHIVE_DIRECTORY" ]]; then
-            latest="$(_latest_archive_name)"
-            ARCHIVE_FILE="$latest"
-        fi
-
         if [[ "${FLAG_AUTO:-0}" -eq 1 ]]; then
             _validate_parameters
             return $?
         fi
-        sgnd_print
+
         while true; do
-            
             if [[ "$CLI_ARCHIVE_DIRECTORY" -eq 0 ]]; then
                 sgnd_print "Enter the directory containing SolidGroundUX archives."
                 ask --label "Archive directory" --var ARCHIVE_DIRECTORY --default "$ARCHIVE_DIRECTORY" --colorize both
-                sgnd_print
             fi
 
             if [[ "$CLI_ARCHIVE_FILE" -eq 0 ]]; then
-                sgnd_print "Enter an archive filename from that directory, or an absolute archive path."
-                sgnd_print "The newest archive is shown as the default when available."
-                ask --label "Archive" --var ARCHIVE_FILE --default "$ARCHIVE_FILE" --colorize both
-                sgnd_print
+                sgnd_print "Select the archive to restore. Archives are listed newest first."
+                _select_archive || {
+                    saywarning "Choose another archive directory."
+                    continue
+                }
             fi
 
             if [[ "$CLI_RESTORE_TARGET_ROOT" -eq 0 ]]; then
                 sgnd_print "Enter the filesystem root beneath which archived paths are restored."
                 ask --label "Target root" --var RESTORE_TARGET_ROOT --default "$RESTORE_TARGET_ROOT" --colorize both
-                sgnd_print
             fi
 
             if [[ "$CLI_RESTORE_DIRECTORY" -eq 0 ]]; then
                 sgnd_print "Optionally restrict restoration to one directory inside the archive."
                 sgnd_print "Leave empty to search the complete archive."
                 ask --label "Directory" --var RESTORE_DIRECTORY --default "$RESTORE_DIRECTORY" --colorize both
-                sgnd_print
             fi
 
             if [[ "$CLI_RESTORE_MATCH" -eq 0 ]]; then
                 sgnd_print "Enter a filename or shell-style mask. Use * to restore all matching files."
                 ask --label "File or mask" --var RESTORE_MATCH --default "$RESTORE_MATCH" --colorize both
-                sgnd_print
             fi
 
             _validate_parameters || {
@@ -478,6 +539,7 @@ set -uo pipefail
         _getparameters || return $?
         _extract_staging || return $?
         _select_files || return $?
+        sgnd_print_titlebar
         _restore_files
     }
 

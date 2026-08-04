@@ -93,7 +93,7 @@ set -uo pipefail
 # - Module metadata -------------------------------------------------------------
     # Rename these variables to a module specific name
     SGND_MACHINE_TEMPLATE_MODULE_ID="mod-template"
-    SGND_MACHINE_TEMPLATE_MODULE_NAME="Consle module template"
+    SGND_MACHINE_TEMPLATE_MODULE_NAME="Console module template"
     SGND_MACHINE_TEMPLATE_MODULE_VERSION="1.0.0"
     SGND_MACHINE_TEMPLATE_MODULE_DESC="Console module template script"
 
