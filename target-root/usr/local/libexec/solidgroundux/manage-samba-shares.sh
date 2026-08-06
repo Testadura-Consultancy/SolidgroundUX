@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621816
-#   Checksum    : -
+#   Build       : 2621822
+#   Checksum    : 44e2f7e2d58b285cc6c32b3be4ad324cf502e6b1178a3fdf911d14dcee2df0b0
 #   Source      : manage-samba-shares.sh
 #   Type        : script
 #   Group       : SDK Tools
@@ -158,6 +158,9 @@ set -uo pipefail
     SAMBA_SHARE_NAMES=()
     SAMBA_SHARE_PATHS=()
     SELECTED_SHARE_INDEXES=()
+    SAMBA_ACL_USERS=()
+    SAMBA_ACL_GROUPS=()
+    SELECTED_PRINCIPAL_INDEXES=()
 
 # - Share discovery and selection ---------------------------------------------------
     # fn: _samba_discover_managed_shares - Load configured managed Samba shares
@@ -577,6 +580,171 @@ set -uo pipefail
         return 1
     }
 
+
+    # fn: _samba_discover_acl_principals - Discover domain users or groups for ACL assignment
+        # . Arguments
+        #   $1 - users or groups.
+        #
+        # Outputs (globals):
+        #   SAMBA_ACL_USERS or SAMBA_ACL_GROUPS.
+        #
+        # . Returns
+        #   0 when at least one principal was discovered; otherwise 1.
+        #
+        # . Usage
+        #   _samba_discover_acl_principals users
+    _samba_discover_acl_principals() {
+        local kind="$1"
+        local -a values=()
+
+        case "$kind" in
+            users)
+                if command -v wbinfo >/dev/null 2>&1; then
+                    mapfile -t values < <(wbinfo -u 2>/dev/null | LC_ALL=C sort -fu)
+                elif command -v samba-tool >/dev/null 2>&1; then
+                    mapfile -t values < <(sudo samba-tool user list 2>/dev/null | LC_ALL=C sort -fu)
+                fi
+                SAMBA_ACL_USERS=("${values[@]}")
+                ;;
+            groups)
+                if command -v wbinfo >/dev/null 2>&1; then
+                    mapfile -t values < <(wbinfo -g 2>/dev/null | LC_ALL=C sort -fu)
+                elif command -v samba-tool >/dev/null 2>&1; then
+                    mapfile -t values < <(sudo samba-tool group list 2>/dev/null | LC_ALL=C sort -fu)
+                fi
+                SAMBA_ACL_GROUPS=("${values[@]}")
+                ;;
+            *) return 1 ;;
+        esac
+
+        (( ${#values[@]} > 0 )) || {
+            saywarning "No domain $kind could be discovered through wbinfo or samba-tool."
+            return 1
+        }
+    }
+
+    # fn: _samba_select_principals - Select multiple users or groups for share ACL changes
+        # . Arguments
+        #   $1 - users or groups.
+        #
+        # Outputs (globals):
+        #   SELECTED_PRINCIPAL_INDEXES.
+        #
+        # . Returns
+        #   0 when a selection is accepted; otherwise 1.
+    _samba_select_principals() {
+        local kind="$1"
+        local selection=""
+        local index=0
+        local -a values=()
+        local -a original_share_indexes=("${SELECTED_SHARE_INDEXES[@]}")
+
+        _samba_discover_acl_principals "$kind" || return 1
+        if [[ "$kind" == "users" ]]; then
+            values=("${SAMBA_ACL_USERS[@]}")
+        else
+            values=("${SAMBA_ACL_GROUPS[@]}")
+        fi
+
+        while true; do
+            sgnd_print
+            sgnd_print_sectionheader "Available domain $kind"
+            for index in "${!values[@]}"; do
+                printf '  %3d) %s\n' "$((index + 1))" "${values[$index]}"
+            done
+            sgnd_print "Enter comma-separated numbers, ranges such as 2-4, or A for all."
+            ask --label "Select $kind" --var selection --colorize both
+
+            SAMBA_SHARE_NAMES=("${values[@]}")
+            if _samba_parse_selection "$selection"; then
+                SELECTED_PRINCIPAL_INDEXES=("${SELECTED_SHARE_INDEXES[@]}")
+                _samba_discover_managed_shares || return 1
+                SELECTED_SHARE_INDEXES=("${original_share_indexes[@]}")
+                return 0
+            fi
+            _samba_discover_managed_shares || return 1
+            SELECTED_SHARE_INDEXES=("${original_share_indexes[@]}")
+            saywarning "Invalid $kind selection: $selection"
+        done
+    }
+
+    # fn: _samba_validate_acl_permissions - Validate a POSIX ACL permission triplet
+        # . Arguments
+        #   $1 - Permission triplet such as rwx, rw-, r--, or ---.
+        #
+        # . Returns
+        #   0 when valid; otherwise 1.
+    _samba_validate_acl_permissions() {
+        [[ "${1:-}" =~ ^[r-][w-][x-]$ ]]
+    }
+
+    # fn: _samba_manage_acl_access - Apply or remove ACLs for selected principals and shares
+        # . Purpose
+        #   Select multiple domain users or groups and apply one ACL operation to every
+        #   selected principal/share combination.
+        #
+        # . Returns
+        #   0 after applying or cancelling the operation; 1 on validation or setfacl failure.
+    _samba_manage_acl_access() {
+        local principal_kind="users"
+        local operation="SET"
+        local permissions="rwx"
+        local default_acl="YES"
+        local decision="NO"
+        local share_index=0 principal_index=0
+        local principal="" prefix="u"
+        local -a principals=()
+
+        command -v setfacl >/dev/null 2>&1 || {
+            sayfail "setfacl is unavailable; install the acl package first."
+            return 1
+        }
+
+        ask_choose --label "Principal type" --choices "users,groups" --var principal_kind || return $?
+        _samba_select_principals "$principal_kind" || return 1
+        if [[ "$principal_kind" == "users" ]]; then
+            principals=("${SAMBA_ACL_USERS[@]}")
+            prefix="u"
+        else
+            principals=("${SAMBA_ACL_GROUPS[@]}")
+            prefix="g"
+        fi
+
+        ask_choose --label "ACL operation" --choices "SET,REMOVE" --var operation || return $?
+        if [[ "$operation" == "SET" ]]; then
+            ask --label "Permissions" --var permissions --default "$permissions" --validate _samba_validate_acl_permissions || return $?
+            ask_decision --label "Apply matching default ACL" --choices "YES|Y,NO|N" --default "YES" --var default_acl || return $?
+        fi
+
+        ask_decision \
+            --label "Apply ACL operation to selected principals and shares?" \
+            --choices "YES|Y,NO|N" \
+            --default "NO" \
+            --var decision
+        [[ "$decision" == "YES" ]] || return 0
+
+        for share_index in "${SELECTED_SHARE_INDEXES[@]}"; do
+            for principal_index in "${SELECTED_PRINCIPAL_INDEXES[@]}"; do
+                principal="${principals[$principal_index]}"
+                if (( ${FLAG_DRYRUN:-0} )); then
+                    sayinfo "Dry run: Would $operation ACL for $principal on ${SAMBA_SHARE_NAMES[$share_index]}."
+                    continue
+                fi
+
+                if [[ "$operation" == "SET" ]]; then
+                    sudo setfacl -m "$prefix:$principal:$permissions" "${SAMBA_SHARE_PATHS[$share_index]}" || return 1
+                    if [[ "$default_acl" == "YES" ]]; then
+                        sudo setfacl -m "d:$prefix:$principal:$permissions" "${SAMBA_SHARE_PATHS[$share_index]}" || return 1
+                    fi
+                else
+                    sudo setfacl -x "$prefix:$principal" "${SAMBA_SHARE_PATHS[$share_index]}" 2>/dev/null || true
+                    sudo setfacl -x "d:$prefix:$principal" "${SAMBA_SHARE_PATHS[$share_index]}" 2>/dev/null || true
+                fi
+                sayok "$operation ACL for $principal on ${SAMBA_SHARE_NAMES[$share_index]}."
+            done
+        done
+    }
+
 # - Interactive management loop -----------------------------------------------------
     # fn: _samba_manage_selected - Run actions against the active share collection
         # . Purpose
@@ -601,13 +769,14 @@ set -uo pipefail
             sgnd_print "  4) Set permissions"
             sgnd_print "  5) Restore default permissions"
             sgnd_print "  6) Validate shares"
+            sgnd_print "  7) Manage user/group access ACLs"
             sgnd_print "  R) Reselect shares"
             sgnd_print "  Q) Return"
 
             ask_choose_immediate \
                 --label "Select action" \
-                --choices "1-6,R,Q" \
-                --instantchoices "1-6,R,Q" \
+                --choices "1-7,R,Q" \
+                --instantchoices "1-7,R,Q" \
                 --var action
 
             case "${action^^}" in
@@ -617,6 +786,7 @@ set -uo pipefail
                 4) _samba_set_permissions ;;
                 5) _samba_restore_defaults ;;
                 6) _samba_validate_selected || true ;;
+                7) _samba_manage_acl_access ;;
                 R) return 2 ;;
                 Q) return 0 ;;
             esac

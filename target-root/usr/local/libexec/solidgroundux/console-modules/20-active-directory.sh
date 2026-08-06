@@ -3,9 +3,9 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621804
-#   Checksum    : 479ddd58d87e375a43feded7db7b6d38570956292058f114eba5384a7d9a7fb2
-#   Source      : 20-active-directory-v2.sh
+#   Build       : 2621822
+#   Checksum    : 4bbd4e33d294e03bf2e00e0a6138edd45884c58114098372a75b7ce0be7883e8
+#   Source      : 20-active-directory.sh
 #   Type        : module
 #   Group       : SolidGround Console
 #   Purpose     : Install and manage Active Directory server and client roles
@@ -70,7 +70,7 @@ set -uo pipefail
 # - Module metadata -------------------------------------------------------------
     SGND_ACTIVE_DIRECTORY_MODULE_ID="active-directory"
     SGND_ACTIVE_DIRECTORY_MODULE_NAME="Active Directory"
-    SGND_ACTIVE_DIRECTORY_MODULE_VERSION="1.0.0"
+    SGND_ACTIVE_DIRECTORY_MODULE_VERSION="1.1.0"
     SGND_ACTIVE_DIRECTORY_MODULE_DESC="Manage Active Directory server and client roles"
 
     SGND_MODULE_ID="${SGND_ACTIVE_DIRECTORY_MODULE_ID}"
@@ -1254,6 +1254,44 @@ set -uo pipefail
         sudo samba-tool user setexpiry "$account_name" --noexpiry
     }
 
+
+# - Account management launcher ---------------------------------------------------
+    # fn: samba_manage_accounts - Launch the interactive AD user and group manager
+        # . Purpose
+        #   Start the dedicated executable used to manage Active Directory users, groups,
+        #   memberships, and locally visible Samba share permissions.
+        #
+        # . Behavior
+        #   - Resolves manage-users-n-groups.sh beneath the active framework root.
+        #   - Verifies that the executable exists and is executable.
+        #   - Passes the current dry-run mode to the manager.
+        #   - Returns to the SolidGroundUX console when the manager exits.
+        #
+        # Inputs (globals):
+        #   SGND_FRAMEWORK_ROOT
+        #   FLAG_DRYRUN
+        #
+        # . Returns
+        #   Exit status returned by manage-users-n-groups.sh.
+        #
+        # . Usage
+        #   samba_manage_accounts
+    samba_manage_accounts() {
+        local manager_path="${SGND_FRAMEWORK_ROOT%/}/usr/local/libexec/solidgroundux/manage-users-n-groups.sh"
+        local -a manager_args=()
+
+        [[ -x "$manager_path" ]] || {
+            sayfail "AD account manager is not executable: $manager_path"
+            return 1
+        }
+
+        if (( ${FLAG_DRYRUN:-0} )); then
+            manager_args+=(--dryrun)
+        fi
+
+        "$manager_path" "${manager_args[@]}"
+    }
+
 # - Active Directory client ------------------------------------------------------
     # fn: _install_ad_client - Install Active Directory client packages
         # . Returns
@@ -1370,15 +1408,8 @@ set -uo pipefail
     sgnd_console_register_item "ad-status" "ad-server" "Show AD status" "samba_ad_status" "Show service, DNS, Kerberos, and domain status" 0 15 1
     sgnd_console_register_item "ad-verify" "ad-server" "Verify AD domain" "samba_verify_domain" "Run active DNS, directory, database, and Kerberos verification" 0 15 1
 
-    sgnd_console_register_group "ad-accounts" "AD Users and Groups" "Create, list, and manage Active Directory users and groups" 0 1 210
-    sgnd_console_register_item "ad-user-add" "ad-accounts" "Create user" "samba_add_user" "Create an Active Directory user" 0 5 1
-    sgnd_console_register_item "ad-group-add" "ad-accounts" "Create group" "samba_add_group" "Create an Active Directory group" 0 5 1
-    sgnd_console_register_item "ad-users" "ad-accounts" "List users" "samba_list_users" "List Active Directory users" 0 15 1
-    sgnd_console_register_item "ad-groups" "ad-accounts" "List groups" "samba_list_groups" "List Active Directory groups" 0 15 1
-    sgnd_console_register_item "ad-passwd" "ad-accounts" "Change user password" "samba_change_user_password" "Set a new Active Directory user password" 0 5 1
-    sgnd_console_register_item "ad-enable" "ad-accounts" "Enable user" "samba_enable_user" "Enable an Active Directory user" 0 5 1
-    sgnd_console_register_item "ad-disable" "ad-accounts" "Disable user" "samba_disable_user" "Disable an Active Directory user" 0 5 1
-    sgnd_console_register_item "ad-noexpiry" "ad-accounts" "Set password never expires" "samba_set_user_no_expiry" "Prevent an Active Directory user password from expiring" 0 5 1
+    sgnd_console_register_group "ad-accounts" "AD Users and Groups" "Create and manage Active Directory users, groups, memberships, and share access" 0 1 210
+    sgnd_console_register_item "ad-account-manage" "ad-accounts" "Manage users and groups" "samba_manage_accounts" "Open the interactive Active Directory account manager" 0 5 1
 
     sgnd_console_register_group "ad-client" "Active Directory Client" "Install, join, leave, and inspect Active Directory client membership" 0 1 220
     sgnd_console_register_item "adc-install" "ad-client" "Install client packages" "_install_ad_client" "Install realmd and SSSD Active Directory client packages" 0 5 1

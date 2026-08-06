@@ -4,27 +4,167 @@ All notable changes to SolidGroundUX are documented in this file.
 
 The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.
 
-# Unreleased
-
-## SolidGround Framework
+# Version 1.8 (Build 1.8.2621822)
 
 ## SolidGround Framework
 
 ### Added
-- Added `sgnd_print_labeledmultivalue`, a multiline variant of `sgnd_print_labeledvalue` that supports wrapped values while keeping the label on a single line. It accepts either a single string (optionally wrapped to a configurable value width) or an array of values, rendering each array element on its own line.
+- Added `manage-users-n-groups.sh`, a dedicated interactive workflow for managing Active Directory users and groups.
+- The user and group manager supports:
+  - Managing users and groups from a single integrated interface.
+  - Selecting multiple users or groups for bulk operations.
+  - Creating, modifying, and removing users and groups.
+  - Managing group memberships from either the user or group perspective.
+  - Displaying user-group membership relationships.
+  - Displaying user and group access to managed Samba shares.
+- Added `manage-samba-shares.sh`, a dedicated interactive workflow for managing Samba shares.
+- The share manager supports:
+  - Selecting one or more shares.
+  - Bulk management of ownership, groups, permissions, and validation.
+  - Applying access rights to multiple users, groups, and shares simultaneously.
+- Added `sgnd_print_labeledmultivalue`, a multiline variant of `sgnd_print_labeledvalue` that keeps the label on the first line while allowing values to span multiple lines.
+- `sgnd_print_labeledmultivalue` accepts either:
+  - A single string, optionally wrapped to a configurable value width.
+  - An array of values, with each item rendered on a separate aligned line.
 - Added `ask_datetime`, a datetime-aware variant of `ask` that accepts both absolute dates and SolidGroundUX relative date/time expressions.
-- Supported shortcuts include:
+- Added the following datetime shortcuts:
   - `N` – Current date and time.
-  - `D` – Today.
+  - `D` – Today at the start of the day.
+  - `s` – Seconds.
+  - `m` – Minutes.
+  - `h` – Hours.
+  - `d` – Days.
+  - `M` – Months.
+  - `y` – Years.
   - Relative expressions such as `-2m`, `-2h`, `+30m`, `-1d`, `-3M`, and `-1y`.
-- Relative expressions are automatically resolved to an absolute ISO-8601 timestamp before being returned to the caller.
+- Relative datetime expressions are resolved immediately and returned as absolute ISO-8601 timestamps.
+- `ask_datetime` now displays the resolved absolute timestamp when a shorthand expression is entered.
+- Added an interactive `ask_datetime` test to the framework smoke test.
+
+## Active Directory
+
+### Changed
+- **Show membership** now displays the fully qualified domain name of the current machine before showing its Active Directory realm membership.
+
+## Storage
+
+### Added
+- Added storage provisioning for an unused disk, including:
+  - GPT partition creation.
+  - EXT4 or XFS filesystem creation.
+  - Persistent `/etc/fstab` configuration.
+  - Mounting at `/srv/storage`.
+  - Creation of the standard `/srv/storage/shares` directory.
+- Added actions to mount, unmount, and expand configured storage.
+- Added **Validate storage provisioning**, which verifies:
+  - The storage filesystem is mounted.
+  - The filesystem is mounted read/write.
+  - The configured source matches the active mount source.
+  - The persistent `/etc/fstab` entry is valid.
+  - The expected filesystem label is present.
+  - `/srv/storage` exists.
+  - `/srv/storage/shares` exists.
+- Added a separate **Storage Access** menu group for managing the ownership and permissions of:
+  - `/srv/storage`
+  - `/srv/storage/shares`
+- Added actions to:
+  - Show storage ownership and permissions.
+  - Set the storage owner.
+  - Set the storage group.
+  - Set storage permissions.
+  - Restore canonical storage permissions.
+- Canonical storage permissions can now be restored to:
+  - `/srv/storage` – `root:root`, mode `0755`.
+  - `/srv/storage/shares` – `root:root`, mode `0770`.
+
+### Changed
+- **Show storage status** now reports:
+  - Mount source.
+  - Filesystem.
+  - Filesystem label.
+  - UUID.
+  - Mounted state.
+  - Persistent configuration state.
+  - `/etc/fstab` validity.
+  - Whether the active mount source matches the configured source.
+  - Whether the filesystem is mounted read/write.
+  - Storage-root and shares-root availability.
+  - Capacity and available space.
+- Replaced the misleading **Storage root writable** status with **Mounted read/write**.
+- Storage configuration now performs `systemctl daemon-reload` after updating `/etc/fstab`.
+
+### Fixed
+- Fixed storage mount detection incorrectly treating `/srv/storage` as mounted when it was only an ordinary directory on the root filesystem.
+- Fixed storage status showing the capacity of the system root instead of the configured storage volume.
+- Fixed storage provisioning stopping after filesystem creation without completing persistent mounting.
+
+## Samba File Server
+
+### Added
+- Added Samba file-server package installation.
+- Added managed Samba share creation beneath `/srv/storage/shares`.
+- Added actions to list and remove managed Samba shares.
+- Share creation now:
+  - Creates the backing directory.
+  - Adds a managed section to `smb.conf`.
+  - Validates the configuration with `testparm`.
+  - Reloads Samba.
+  - Restores the previous configuration if validation fails.
+- Added file-server validation for:
+  - Samba tooling.
+  - Samba configuration.
+  - `smbd` service state.
+  - Mounted storage.
+  - The managed share root.
+  - Configured share backing directories.
+- Added a dedicated `manage-samba-shares.sh` executable for interactive share management.
+- The share manager supports:
+  - Listing all managed shares.
+  - Selecting one or more shares by number.
+  - Comma-separated selections.
+  - Numeric ranges.
+  - Selecting all shares.
+  - Keeping the selected collection active while applying multiple actions.
+- Added share-management actions to:
+  - Show share details.
+  - Set owner.
+  - Set group.
+  - Set Unix permissions.
+  - Restore default permissions.
+  - Validate selected shares.
+
+### Changed
+- Replaced the separate share-permission menu actions with a single **Manage shares** action.
+- Share ownership and permission management is now handled by the dedicated share-management executable rather than repeated prompts in the console module.
+- The Samba module now delegates detailed share-management workflows while retaining installation, creation, removal, validation, and status actions.
 
 ## Development Tools
 
 ### Changed
 - `deploy-workspace.sh` now uses `ask_datetime` for the **Changed after** prompt.
-- `deploy-workspace.sh` now uses `sgnd_print_labeledmultivalue` to report transferred files.
-- The deployment filter now accepts SolidGroundUX relative date/time expressions (for example `N`, `D`, `-2h`, and `-1d`) in addition to absolute dates and timestamps.
+- The deployment filter now accepts SolidGroundUX relative date/time expressions, such as `N`, `D`, `-2h`, and `-1d`, in addition to absolute dates and timestamps.
+- `deploy-workspace.sh` now displays a deployment summary after a successful transfer.
+- The deployment summary reports:
+  - Result.
+  - Transport.
+  - Source root.
+  - Destination.
+  - Receiver.
+  - Start and finish timestamps.
+  - Every transferred file.
+- The deployment summary now uses `sgnd_print_labeledmultivalue`, displaying transferred files on separate aligned lines instead of as a truncated comma-separated string.
+- `prepare-release.sh` now ensures that every regular file directly beneath `usr/local/libexec/solidgroundux` has its executable bit set before staging and archive creation.
+- Dry-run mode reports which executable permissions would be corrected without modifying the source tree.
+
+## Framework Tests
+
+### Added
+- Added an `ask_datetime` smoke test using a redo/continue loop.
+- The test allows:
+  - Enter to continue to the next smoke test.
+  - `R` to repeat the datetime prompt.
+  - Timeout to repeat the datetime prompt.
+  - Pause and resume through the standard auto-continue dialog.
 
 # Version 1.8 (Build 1.8.2621804)
 

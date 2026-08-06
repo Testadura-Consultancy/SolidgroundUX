@@ -15,22 +15,169 @@
 <h2 class="ct-L1Sectionheader">Changelog</h2>
 <p class="ct-documentbody">All notable changes to SolidGroundUX are documented in this file.</p>
 <p class="ct-documentbody">The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.</p>
-<h2 class="ct-L1Sectionheader">Unreleased</h2>
+<h2 class="ct-L1Sectionheader">Version 1.8 (Build 1.8.2621822)</h2>
 <h3 class="ct-L2Sectionheader">SolidGround Framework</h3>
 <h4 class="ct-L3Sectionheader">Added</h4>
 <ul>
+<li>Added `manage-users-n-groups.sh`, a dedicated interactive workflow for managing Active Directory users and groups.</li>
+<li>The user and group manager supports:</li>
+<li>Managing users and groups from a single integrated interface.</li>
+<li>Selecting multiple users or groups for bulk operations.</li>
+<li>Creating, modifying, and removing users and groups.</li>
+<li>Managing group memberships from either the user or group perspective.</li>
+<li>Displaying user-group membership relationships.</li>
+<li>Displaying user and group access to managed Samba shares.</li>
+<li>Added `manage-samba-shares.sh`, a dedicated interactive workflow for managing Samba shares.</li>
+<li>The share manager supports:</li>
+<li>Selecting one or more shares.</li>
+<li>Bulk management of ownership, groups, permissions, and validation.</li>
+<li>Applying access rights to multiple users, groups, and shares simultaneously.</li>
+<li>Added `sgnd_print_labeledmultivalue`, a multiline variant of `sgnd_print_labeledvalue` that keeps the label on the first line while allowing values to span multiple lines.</li>
+<li>`sgnd_print_labeledmultivalue` accepts either:</li>
+<li>A single string, optionally wrapped to a configurable value width.</li>
+<li>An array of values, with each item rendered on a separate aligned line.</li>
 <li>Added `ask_datetime`, a datetime-aware variant of `ask` that accepts both absolute dates and SolidGroundUX relative date/time expressions.</li>
-<li>Supported shortcuts include:</li>
-<li>`N` – current date and time</li>
-<li>`D` – today (start of day)</li>
-<li>Relative expressions such as `-2m`, `-2h`, `+30m`, `-1d`, `-3M`, and `-1y`</li>
-<li>Relative expressions are automatically resolved to an absolute ISO-8601 timestamp before being returned to the caller.</li>
+<li>Added the following datetime shortcuts:</li>
+<li>`N` – Current date and time.</li>
+<li>`D` – Today at the start of the day.</li>
+<li>`s` – Seconds.</li>
+<li>`m` – Minutes.</li>
+<li>`h` – Hours.</li>
+<li>`d` – Days.</li>
+<li>`M` – Months.</li>
+<li>`y` – Years.</li>
+<li>Relative expressions such as `-2m`, `-2h`, `+30m`, `-1d`, `-3M`, and `-1y`.</li>
+<li>Relative datetime expressions are resolved immediately and returned as absolute ISO-8601 timestamps.</li>
+<li>`ask_datetime` now displays the resolved absolute timestamp when a shorthand expression is entered.</li>
+<li>Added an interactive `ask_datetime` test to the framework smoke test.</li>
+</ul>
+<h3 class="ct-L2Sectionheader">Active Directory</h3>
+<h4 class="ct-L3Sectionheader">Changed</h4>
+<ul>
+<li>**Show membership** now displays the fully qualified domain name of the current machine before showing its Active Directory realm membership.</li>
+</ul>
+<h3 class="ct-L2Sectionheader">Storage</h3>
+<h4 class="ct-L3Sectionheader">Added</h4>
+<ul>
+<li>Added storage provisioning for an unused disk, including:</li>
+<li>GPT partition creation.</li>
+<li>EXT4 or XFS filesystem creation.</li>
+<li>Persistent `/etc/fstab` configuration.</li>
+<li>Mounting at `/srv/storage`.</li>
+<li>Creation of the standard `/srv/storage/shares` directory.</li>
+<li>Added actions to mount, unmount, and expand configured storage.</li>
+<li>Added **Validate storage provisioning**, which verifies:</li>
+<li>The storage filesystem is mounted.</li>
+<li>The filesystem is mounted read/write.</li>
+<li>The configured source matches the active mount source.</li>
+<li>The persistent `/etc/fstab` entry is valid.</li>
+<li>The expected filesystem label is present.</li>
+<li>`/srv/storage` exists.</li>
+<li>`/srv/storage/shares` exists.</li>
+<li>Added a separate **Storage Access** menu group for managing the ownership and permissions of:</li>
+<li>`/srv/storage`</li>
+<li>`/srv/storage/shares`</li>
+<li>Added actions to:</li>
+<li>Show storage ownership and permissions.</li>
+<li>Set the storage owner.</li>
+<li>Set the storage group.</li>
+<li>Set storage permissions.</li>
+<li>Restore canonical storage permissions.</li>
+<li>Canonical storage permissions can now be restored to:</li>
+<li>`/srv/storage` – `root:root`, mode `0755`.</li>
+<li>`/srv/storage/shares` – `root:root`, mode `0770`.</li>
+</ul>
+<h4 class="ct-L3Sectionheader">Changed</h4>
+<ul>
+<li>**Show storage status** now reports:</li>
+<li>Mount source.</li>
+<li>Filesystem.</li>
+<li>Filesystem label.</li>
+<li>UUID.</li>
+<li>Mounted state.</li>
+<li>Persistent configuration state.</li>
+<li>`/etc/fstab` validity.</li>
+<li>Whether the active mount source matches the configured source.</li>
+<li>Whether the filesystem is mounted read/write.</li>
+<li>Storage-root and shares-root availability.</li>
+<li>Capacity and available space.</li>
+<li>Replaced the misleading **Storage root writable** status with **Mounted read/write**.</li>
+<li>Storage configuration now performs `systemctl daemon-reload` after updating `/etc/fstab`.</li>
+</ul>
+<h4 class="ct-L3Sectionheader">Fixed</h4>
+<ul>
+<li>Fixed storage mount detection incorrectly treating `/srv/storage` as mounted when it was only an ordinary directory on the root filesystem.</li>
+<li>Fixed storage status showing the capacity of the system root instead of the configured storage volume.</li>
+<li>Fixed storage provisioning stopping after filesystem creation without completing persistent mounting.</li>
+</ul>
+<h3 class="ct-L2Sectionheader">Samba File Server</h3>
+<h4 class="ct-L3Sectionheader">Added</h4>
+<ul>
+<li>Added Samba file-server package installation.</li>
+<li>Added managed Samba share creation beneath `/srv/storage/shares`.</li>
+<li>Added actions to list and remove managed Samba shares.</li>
+<li>Share creation now:</li>
+<li>Creates the backing directory.</li>
+<li>Adds a managed section to `smb.conf`.</li>
+<li>Validates the configuration with `testparm`.</li>
+<li>Reloads Samba.</li>
+<li>Restores the previous configuration if validation fails.</li>
+<li>Added file-server validation for:</li>
+<li>Samba tooling.</li>
+<li>Samba configuration.</li>
+<li>`smbd` service state.</li>
+<li>Mounted storage.</li>
+<li>The managed share root.</li>
+<li>Configured share backing directories.</li>
+<li>Added a dedicated `manage-samba-shares.sh` executable for interactive share management.</li>
+<li>The share manager supports:</li>
+<li>Listing all managed shares.</li>
+<li>Selecting one or more shares by number.</li>
+<li>Comma-separated selections.</li>
+<li>Numeric ranges.</li>
+<li>Selecting all shares.</li>
+<li>Keeping the selected collection active while applying multiple actions.</li>
+<li>Added share-management actions to:</li>
+<li>Show share details.</li>
+<li>Set owner.</li>
+<li>Set group.</li>
+<li>Set Unix permissions.</li>
+<li>Restore default permissions.</li>
+<li>Validate selected shares.</li>
+</ul>
+<h4 class="ct-L3Sectionheader">Changed</h4>
+<ul>
+<li>Replaced the separate share-permission menu actions with a single **Manage shares** action.</li>
+<li>Share ownership and permission management is now handled by the dedicated share-management executable rather than repeated prompts in the console module.</li>
+<li>The Samba module now delegates detailed share-management workflows while retaining installation, creation, removal, validation, and status actions.</li>
 </ul>
 <h3 class="ct-L2Sectionheader">Development Tools</h3>
 <h4 class="ct-L3Sectionheader">Changed</h4>
 <ul>
 <li>`deploy-workspace.sh` now uses `ask_datetime` for the **Changed after** prompt.</li>
-<li>The deployment filter now accepts SolidGroundUX relative date/time expressions (for example `N`, `D`, `-2h`, or `-1d`) in addition to absolute dates and timestamps.</li>
+<li>The deployment filter now accepts SolidGroundUX relative date/time expressions, such as `N`, `D`, `-2h`, and `-1d`, in addition to absolute dates and timestamps.</li>
+<li>`deploy-workspace.sh` now displays a deployment summary after a successful transfer.</li>
+<li>The deployment summary reports:</li>
+<li>Result.</li>
+<li>Transport.</li>
+<li>Source root.</li>
+<li>Destination.</li>
+<li>Receiver.</li>
+<li>Start and finish timestamps.</li>
+<li>Every transferred file.</li>
+<li>The deployment summary now uses `sgnd_print_labeledmultivalue`, displaying transferred files on separate aligned lines instead of as a truncated comma-separated string.</li>
+<li>`prepare-release.sh` now ensures that every regular file directly beneath `usr/local/libexec/solidgroundux` has its executable bit set before staging and archive creation.</li>
+<li>Dry-run mode reports which executable permissions would be corrected without modifying the source tree.</li>
+</ul>
+<h3 class="ct-L2Sectionheader">Framework Tests</h3>
+<h4 class="ct-L3Sectionheader">Added</h4>
+<ul>
+<li>Added an `ask_datetime` smoke test using a redo/continue loop.</li>
+<li>The test allows:</li>
+<li>Enter to continue to the next smoke test.</li>
+<li>`R` to repeat the datetime prompt.</li>
+<li>Timeout to repeat the datetime prompt.</li>
+<li>Pause and resume through the standard auto-continue dialog.</li>
 </ul>
 <h2 class="ct-L1Sectionheader">Version 1.8 (Build 1.8.2621804)</h2>
 <h3 class="ct-L2Sectionheader">Changed</h3>

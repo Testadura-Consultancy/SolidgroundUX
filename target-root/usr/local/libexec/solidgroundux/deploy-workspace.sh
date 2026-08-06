@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621814
-#   Checksum    : 2ce7581258f0ea52e5d3553b03125393df6a7152fa410bd422052c613c41d890
+#   Build       : 2621822
+#   Checksum    : 0edf29e11cb3679fe455ead45009b8f4364b76429b0cf39e48527ef6f7b57afb
 #   Source      : deploy-workspace-v4.sh
 #   Type        : script
 #   Group       : SDK Tools

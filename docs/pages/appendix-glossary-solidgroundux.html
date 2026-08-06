@@ -20,6 +20,7 @@
 <tbody>
 <tr><td>_action_headerend</td><td>Emit module-level header data</td><td>Store collected file header metadata in module-level data tables.</td><td>doc-processor.sh</td></tr>
 <tr><td>_add_selected_file</td><td>Add one deployable file to the normalized selection</td><td></td><td>deploy-workspace.sh</td></tr>
+<tr><td>_apply_user_command</td><td>Apply a samba-tool user command to selected users</td><td></td><td>manage-users-n-groups.sh</td></tr>
 <tr><td>_apply_value_buffer_to_file</td><td>Apply buffered metadata values to a file</td><td>Apply buffered metadata values to a file.</td><td>metadata-editor.sh</td></tr>
 <tr><td>_apply_version_bump</td><td>Apply release version bump metadata</td><td>Apply header checksum/build refresh and optional version bumping to source files.</td><td>prepare-release.sh</td></tr>
 <tr><td>_ask_build_prompt</td><td>Build a readline-safe ask prompt</td><td>Build the colored prompt string used by ask-style input functions.</td><td>ui-ask.sh</td></tr>
@@ -42,6 +43,8 @@
 <tr><td>_bump_one_file</td><td>Apply a version bump to one file</td><td>Apply a version bump to one file, respecting dry-run.</td><td>metadata-editor.sh</td></tr>
 <tr><td>_bump_version_files</td><td>Apply version bumps to selected files</td><td>Apply the resolved version metadata update mode to all target files.</td><td>metadata-editor.sh</td></tr>
 <tr><td>_capture_cli_parameters</td><td>Record which deployment settings were supplied explicitly</td><td>Distinguish command-line values from state/default values so explicit settings are not prompted again.</td><td>deploy-workspace.sh</td></tr>
+<tr><td>_change_membership</td><td>Add or remove selected users from selected groups</td><td></td><td>manage-users-n-groups.sh</td></tr>
+<tr><td>_change_passwords</td><td>Change passwords for selected users one at a time</td><td></td><td>manage-users-n-groups.sh</td></tr>
 <tr><td>_cleanup_archive</td><td>Remove the temporary received archive</td><td></td><td>receive-files.sh</td></tr>
 <tr><td>_cleanup_old_render_exports</td><td>Clean old renderer export folders</td><td>Remove stale temporary documentation renderer export folders from /tmp.</td><td>doc-renderer.sh</td></tr>
 <tr><td>_cleanup_staging</td><td>Remove gathered staging data</td><td>Remove the release-specific staging directory if cleanup is enabled.</td><td>prepare-release.sh</td></tr>
@@ -52,9 +55,11 @@
 <tr><td>_copy_template_file</td><td>Copy one template file into the workspace</td><td>Copy a single template file to a target location.</td><td>create-workspace.sh</td></tr>
 <tr><td>_create_archive</td><td>Create the compressed framework archive</td><td></td><td>tar-it.sh</td></tr>
 <tr><td>_create_gitignore_file</td><td>Create the workspace .gitignore file</td><td>Create the workspace .gitignore file.</td><td>create-workspace.sh</td></tr>
+<tr><td>_create_group</td><td>Create an Active Directory group</td><td></td><td>manage-users-n-groups.sh</td></tr>
 <tr><td>_create_mod_appcfg</td><td>Create the module application configuration file</td><td>Create a console-module application configuration file.</td><td>create-workspace.sh</td></tr>
 <tr><td>_create_repository</td><td>Create the repository directory structure</td><td>Create the project repository structure and copy template files.</td><td>create-workspace.sh</td></tr>
 <tr><td>_create_tar</td><td>Create the release tar archive</td><td>Create the release tar archive.</td><td>prepare-release.sh</td></tr>
+<tr><td>_create_user</td><td>Create an Active Directory user</td><td></td><td>manage-users-n-groups.sh</td></tr>
 <tr><td>_create_workspace_file</td><td>Create the VS Code workspace file</td><td>Create the VS Code workspace file.</td><td>create-workspace.sh</td></tr>
 <tr><td>_deploy</td><td>Select files and stream them to the configured receiver</td><td></td><td>deploy-workspace.sh</td></tr>
 <tr><td>_detect_commentseparator</td><td>Ignore visual comment separators</td><td>Detect separator-only comment lines and prevent them from becoming content.</td><td>doc-processor.sh</td></tr>
@@ -128,6 +133,7 @@
 <tr><td>_getparameters</td><td>Collect deployment parameters from CLI values, state, and ask</td><td>Resolve command-line overrides first, use saved state as prompt defaults, and combine directory, filename/mask, and changed-after filters.</td><td>deploy-workspace.sh</td></tr>
 <tr><td>_getparameters</td><td>Resolve and confirm archive settings</td><td></td><td>tar-it.sh</td></tr>
 <tr><td>_getparameters</td><td>Resolve and confirm restore settings</td><td></td><td>untar-it.sh</td></tr>
+<tr><td>_group_workflow</td><td>Manage a persistent selection of groups</td><td></td><td>manage-users-n-groups.sh</td></tr>
 <tr><td>_guess_nextcontenttype</td><td>Advance content type after emitted headers</td><td>Prepare the parser for body content following a recognized header line.</td><td>doc-processor.sh</td></tr>
 <tr><td>_init_bootstrap</td><td>Initialize bootstrap environment</td><td>Prepare the minimum framework environment required before core libraries load.</td><td>sgnd-bootstrap.sh</td></tr>
 <tr><td>_init_localvars</td><td>Initialize parser state variables</td><td>Reset source, module, item, section, and emission state before parsing a file.</td><td>doc-processor.sh</td></tr>
@@ -145,6 +151,7 @@
 <tr><td>_list_archives</td><td>Build the available archive list, newest first</td><td>Find readable .tar.gz archives in ARCHIVE_DIRECTORY and store their basenames.</td><td>untar-it.sh</td></tr>
 <tr><td>_load_bootstrapper</td><td>Load the SolidGroundUX bootstrap library</td><td>Resolve and source the main SolidGroundUX bootstrap library.</td><td>sgnd-exe-common.sh</td></tr>
 <tr><td>_load_current_values</td><td>Load current values</td><td>Load current values.</td><td>set-identity.sh</td></tr>
+<tr><td>_main_menu</td><td>Run the top-level account management workflow</td><td></td><td>manage-users-n-groups.sh</td></tr>
 <tr><td>_manifest_init</td><td>Initialize the workspace creation manifest</td><td>Initialize the workspace creation manifest.</td><td>create-workspace.sh</td></tr>
 <tr><td>_manifest_record_dir</td><td>Record a created directory in the manifest</td><td>Append a directory entry to the workspace manifest.</td><td>create-workspace.sh</td></tr>
 <tr><td>_manifest_record_file</td><td>Record a created file in the manifest</td><td>Append a file entry to the workspace manifest.</td><td>create-workspace.sh</td></tr>
@@ -153,6 +160,7 @@
 <tr><td>_normalize_relative_path</td><td>Normalize and validate a workspace-relative path</td><td></td><td>deploy-workspace.sh</td></tr>
 <tr><td>_parse_bootstrap_args</td><td>Parse early bootstrap options</td><td>Extract bootstrap-only options before the full argument parser is available.</td><td>sgnd-bootstrap.sh</td></tr>
 <tr><td>_parse_module_file</td><td>Parse one module source file</td><td>Parse a source file and collect normalized documentation tables.</td><td>doc-processor.sh</td></tr>
+<tr><td>_parse_selection</td><td>Parse numbers, ranges, or A into zero-based indexes</td><td></td><td>manage-users-n-groups.sh</td></tr>
 <tr><td>_prep_template</td><td>Prep template</td><td>Prep template.</td><td>10-computer-setup.sh</td></tr>
 <tr><td>_prepare_output_directory</td><td>Create and optionally clean the documentation output directory</td><td>Ensure the configured output directory exists and is ready for rendering.</td><td>doc-renderer.sh</td></tr>
 <tr><td>_prepare_template</td><td>Prepare template</td><td>Prepare template.</td><td>prepare-template.sh</td></tr>
@@ -160,8 +168,10 @@
 <tr><td>_prompt_value_buffer</td><td>Prompt for metadata field values</td><td>Prompt for metadata field values.</td><td>metadata-editor.sh</td></tr>
 <tr><td>_quote_remote_arg</td><td>Shell-quote one argument for the remote receive command</td><td></td><td>deploy-workspace.sh</td></tr>
 <tr><td>_receive_stream</td><td>Store the incoming tar stream in a temporary archive</td><td>Capture standard input so the archive can be validated before extraction.</td><td>receive-files.sh</td></tr>
+<tr><td>_refresh_accounts</td><td>Refresh the available users and groups</td><td></td><td>manage-users-n-groups.sh</td></tr>
 <tr><td>_remove_other_netplan_files</td><td>Remove other netplan files</td><td>Remove other netplan files.</td><td>set-identity.sh</td></tr>
 <tr><td>_render_site</td><td>Render collected documentation data</td><td>Provide the renderer hand-off point for collected documentation tables.</td><td>doc-renderer.sh</td></tr>
+<tr><td>_require_directory</td><td>Require a provisioned Samba Active Directory</td><td></td><td>manage-users-n-groups.sh</td></tr>
 <tr><td>_reset_network_for_template</td><td>Reset network for template</td><td>Reset network for template.</td><td>prepare-template.sh</td></tr>
 <tr><td>_resolve_archive</td><td>Resolve ARCHIVE_FILE against ARCHIVE_DIRECTORY</td><td></td><td>untar-it.sh</td></tr>
 <tr><td>_resolve_bump_mode</td><td>Resolve requested version bump mode</td><td>Resolve requested version bump mode.</td><td>metadata-editor.sh</td></tr>
@@ -169,6 +179,24 @@
 <tr><td>_resolve_source_input</td><td>Prompt for source selection input</td><td>Prompt for source selection input.</td><td>metadata-editor.sh</td></tr>
 <tr><td>_restore_files</td><td>Restore selected staged files beneath the target root</td><td></td><td>untar-it.sh</td></tr>
 <tr><td>_samba_ask_user</td><td>Ask for and validate an Active Directory user name</td><td></td><td>20-active-directory.sh</td></tr>
+<tr><td>_samba_discover_acl_principals</td><td>Discover domain users or groups for ACL assignment</td><td></td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_samba_discover_managed_shares</td><td>Load configured managed Samba shares</td><td>Discover configured Samba shares whose backing paths are below the managed root.</td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_samba_manage_acl_access</td><td>Apply or remove ACLs for selected principals and shares</td><td>Select multiple domain users or groups and apply one ACL operation to every selected principal/share combination.</td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_samba_manage_selected</td><td>Run actions against the active share collection</td><td>Keep the selected collection active while the operator performs actions.</td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_samba_parse_selection</td><td>Parse a numbered share selection</td><td>Convert comma-separated numbers and ranges into unique zero-based indexes.</td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_samba_restore_defaults</td><td>Restore canonical ownership and mode</td><td>Restore root:root ownership and mode 0770 on every selected share directory.</td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_samba_select_principals</td><td>Select multiple users or groups for share ACL changes</td><td></td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_samba_select_shares</td><td>Ask the operator to select managed shares</td><td>Display managed shares and collect a valid multi-selection.</td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_samba_set_group</td><td>Set one group on all selected shares</td><td></td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_samba_set_owner</td><td>Set one owner on all selected shares</td><td></td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_samba_set_permissions</td><td>Set one Unix mode on all selected shares</td><td></td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_samba_show_available_shares</td><td>Display numbered managed shares</td><td>Display all discovered shares with their backing paths.</td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_samba_show_details</td><td>Show details for selected shares</td><td>Display Samba settings, ownership, mode, and ACL state for each selection.</td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_samba_show_selected_shares</td><td>Display the active share collection</td><td>Render the names of all currently selected shares.</td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_samba_validate_account</td><td>Validate a local or domain user/group name</td><td></td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_samba_validate_acl_permissions</td><td>Validate a POSIX ACL permission triplet</td><td></td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_samba_validate_mode</td><td>Validate a four-digit Unix mode</td><td></td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_samba_validate_selected</td><td>Validate selected share definitions and directories</td><td>Verify paths, directory existence, Samba configuration, and basic permissions.</td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_sample_internal_function</td><td>Internal function documentation</td><td>Demonstrate an internal function.</td><td>doc-sample.sh</td></tr>
 <tr><td>_say_caller</td><td>Say caller</td><td>Determine the script or function context that emitted a say message.</td><td>ui-say.sh</td></tr>
 <tr><td>_say_normalize_log_level</td><td>Normalize a log level name</td><td>Convert aliases and legacy log-level names into a canonical SolidGroundUX log-level value.</td><td>ui-say.sh</td></tr>
@@ -181,6 +209,9 @@
 <tr><td>_select_archive</td><td>Select an archive from the numbered archive list</td><td>Display available archives and resolve a numeric user selection.</td><td>untar-it.sh</td></tr>
 <tr><td>_select_files</td><td>Resolve the combined workspace filters into a concrete file list</td><td>Select deployable files by optional directory, filename or mask, and modification time.</td><td>deploy-workspace.sh</td></tr>
 <tr><td>_select_files</td><td>Select staged files using directory and filename mask</td><td></td><td>untar-it.sh</td></tr>
+<tr><td>_select_items</td><td>Display and select users or groups</td><td></td><td>manage-users-n-groups.sh</td></tr>
+<tr><td>_select_users_and_groups</td><td>Select both sides of a membership operation</td><td></td><td>manage-users-n-groups.sh</td></tr>
+<tr><td>_selected_names</td><td>Resolve selected indexes to names</td><td></td><td>manage-users-n-groups.sh</td></tr>
 <tr><td>_set_defaults</td><td>Set defaults</td><td>Set defaults.</td><td>set-identity.sh</td></tr>
 <tr><td>_set_hostname</td><td>Set hostname</td><td>Set hostname.</td><td>set-identity.sh</td></tr>
 <tr><td>_set_identity</td><td>Set identity</td><td>Set identity.</td><td>10-computer-setup.sh</td></tr>
@@ -265,7 +296,9 @@
 <tr><td>_sgnd_ui_resolve_theme_file</td><td>Ui resolve theme file</td><td>Resolve a palette or style name to a readable theme file path.</td><td>ui.sh</td></tr>
 <tr><td>_sh_err</td><td>Sh err</td><td>Write an error message through say when available, otherwise stderr.</td><td>ui.sh</td></tr>
 <tr><td>_show_current_metadata</td><td>Display current metadata for the selected file</td><td>Render the currently loaded metadata for the active script.</td><td>metadata-editor.sh</td></tr>
+<tr><td>_show_group_info</td><td>Show selected groups, members, and local share ACLs</td><td></td><td>manage-users-n-groups.sh</td></tr>
 <tr><td>_show_pending_value_buffer</td><td>Display pending metadata values</td><td>Display pending metadata values.</td><td>metadata-editor.sh</td></tr>
+<tr><td>_show_user_info</td><td>Show selected users, memberships, and local share ACLs</td><td></td><td>manage-users-n-groups.sh</td></tr>
 <tr><td>_source_corelibs</td><td>Source required core libraries</td><td>Load the fixed set of framework core libraries in bootstrap order.</td><td>sgnd-bootstrap.sh</td></tr>
 <tr><td>_source_usinglibs</td><td>Source declared optional libraries</td><td>Load script-declared framework libraries listed in SGND_USING.</td><td>sgnd-bootstrap.sh</td></tr>
 <tr><td>_static_ip_conflict_check</td><td>Static ip conflict check</td><td>Static ip conflict check.</td><td>set-identity.sh</td></tr>
@@ -275,6 +308,7 @@
 <tr><td>_uncreate_from_manifest</td><td>Remove artifacts recorded in the create manifest</td><td>Remove files and directories listed in a workspace manifest.</td><td>create-workspace.sh</td></tr>
 <tr><td>_uninstall_solidgroundux</td><td>Uninstall solidgroundux</td><td>Uninstall solidgroundux.</td><td>90-solidgroundux.sh</td></tr>
 <tr><td>_update_solidgroundux</td><td>Update solidgroundux</td><td>Update solidgroundux.</td><td>90-solidgroundux.sh</td></tr>
+<tr><td>_user_workflow</td><td>Manage a persistent selection of users</td><td></td><td>manage-users-n-groups.sh</td></tr>
 <tr><td>_validate_archive</td><td>Validate all received archive entries</td><td>Reject unsafe paths and non-regular archive entry types before extraction.</td><td>receive-files.sh</td></tr>
 <tr><td>_validate_archive_entries</td><td>Reject unsafe archive entry paths</td><td></td><td>untar-it.sh</td></tr>
 <tr><td>_validate_auto_args</td><td>Validate non-interactive metadata editor arguments</td><td>Validate non-interactive metadata editor arguments.</td><td>metadata-editor.sh</td></tr>
@@ -285,7 +319,6 @@
 <tr><td>_validate_target</td><td>Validate and prepare the destination root</td><td>Ensure the destination is an absolute directory path suitable for extraction.</td><td>receive-files.sh</td></tr>
 <tr><td>ad_client_join</td><td>Join this computer to an Active Directory realm</td><td></td><td>20-active-directory.sh</td></tr>
 <tr><td>ad_client_leave</td><td>Leave an Active Directory realm</td><td></td><td>20-active-directory.sh</td></tr>
-<tr><td>ad_client_status</td><td>Show current realm membership</td><td></td><td>20-active-directory.sh</td></tr>
 <tr><td>archive_uninstall_records</td><td>Archive uninstall records</td><td>Moves install records for the uninstalled release into uninstall history.</td><td>sgnd-uninstall.sh</td></tr>
 <tr><td>ask</td><td>Ask for a single typed value</td><td>Prompt the user for one text value through the SolidGroundUX console UI.</td><td>ui-ask.sh</td></tr>
 <tr><td>ask_choose</td><td>Ask for a value from a choice list</td><td>Prompt the user for a choice and store the entered value in a named variable.</td><td>ui-ask.sh</td></tr>
@@ -315,6 +348,8 @@
 <tr><td>main</td><td>Run the workspace deployment workflow</td><td></td><td>deploy-workspace.sh</td></tr>
 <tr><td>main</td><td>Run the executable main sequence - Run the executable main sequence</td><td>Provide the canonical executable entry point for the documentation generator.</td><td>doc-generator.sh</td></tr>
 <tr><td>main</td><td>Run the executable main sequence</td><td>Run the executable main sequence.</td><td>framework-smoketest.sh</td></tr>
+<tr><td>main</td><td>Run the Samba share management workflow</td><td>Initialize SolidGroundUX, select managed shares, and run the action loop.</td><td>manage-samba-shares.sh</td></tr>
+<tr><td>main</td><td>Run the Active Directory account management workflow</td><td></td><td>manage-users-n-groups.sh</td></tr>
 <tr><td>main</td><td>Run the executable main sequence - Run the executable main sequence</td><td>Bootstrap the framework, validate arguments, and run metadata-editor mode logic.</td><td>metadata-editor.sh</td></tr>
 <tr><td>main</td><td>Run the executable main sequence - Run the executable main sequence</td><td>Execute the release preparation workflow.</td><td>prepare-release.sh</td></tr>
 <tr><td>main</td><td>Run the executable main sequence</td><td>Run the standard executable startup sequence and then execute script-specific logic.</td><td>prepare-template.sh</td></tr>
@@ -351,6 +386,8 @@
 <tr><td>samba_list_groups</td><td>List Active Directory groups</td><td></td><td>20-active-directory.sh</td></tr>
 <tr><td>samba_list_shares</td><td>List configured Samba shares</td><td></td><td>25-samba-file-server.sh</td></tr>
 <tr><td>samba_list_users</td><td>List Active Directory users</td><td></td><td>20-active-directory.sh</td></tr>
+<tr><td>samba_manage_accounts</td><td>Launch the interactive AD user and group manager</td><td>Start the dedicated executable used to manage Active Directory users, groups, memberships, and locally visible Samba share permissions.</td><td>20-active-directory.sh</td></tr>
+<tr><td>samba_manage_shares</td><td>Launch the interactive Samba share manager</td><td>Start the dedicated executable used to select and manage one or more shares.</td><td>25-samba-file-server.sh</td></tr>
 <tr><td>samba_set_user_no_expiry</td><td>Prevent an Active Directory user password from expiring</td><td></td><td>20-active-directory.sh</td></tr>
 <tr><td>sample_function_with_arguments</td><td>Sample function with arguments</td><td>Demonstrate how function arguments are documented.</td><td>doc-sample.sh</td></tr>
 <tr><td>sample_public_function</td><td>Sample public function</td><td>Sample public function.</td><td>doc-sample.sh</td></tr>

@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621816
-#   Checksum    : 5bff562120cfce033e863485ad7eb1aa0ca9b3bf8baa0cd5dee067e293513ccc
+#   Build       : 2621822
+#   Checksum    : fda214004717f51eea6b1c882ddbb8c24bf6fb3926183100e8b76e24949ef14c
 #   Source      : 25-samba-file-server.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -72,8 +72,8 @@ set -uo pipefail
 # - Module metadata -------------------------------------------------------------
     SGND_SAMBA_FILE_MODULE_ID="samba-file-server"
     SGND_SAMBA_FILE_MODULE_NAME="Samba File Server"
-    SGND_SAMBA_FILE_MODULE_VERSION="1.2.0"
-    SGND_SAMBA_FILE_MODULE_DESC="Install and manage Samba file services"
+    SGND_SAMBA_FILE_MODULE_VERSION="1.3.0"
+    SGND_SAMBA_FILE_MODULE_DESC="Install and manage Samba file services, shares, and access"
 
     SGND_MODULE_ID="${SGND_SAMBA_FILE_MODULE_ID}"
     SGND_MODULE_NAME="${SGND_SAMBA_FILE_MODULE_NAME}"
@@ -614,7 +614,7 @@ set -uo pipefail
         "$SGND_SAMBA_FILE_MODULE_ID" \
         "Manage shares" \
         "samba_manage_shares" \
-        "Select and manage one or more configured Samba shares" \
+        "Select shares and manage ownership, permissions, and user/group ACL access" \
         0 \
         25 \
         1

@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SolidGroundUX - Manage Samba Shares</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">SolidGroundUX - Manage Samba Shares</div>
+  <div class="doc-breadcrumb">SolidgroundUX / manage-samba-shares.sh</div>
+</header>
+<div class="ct-modulebody sh-label">Description</div>
+<div class="ct-modulebody">  Provides an interactive bulk-management console for Samba shares configured below</div>
+<div class="ct-modulebody">  the SolidGroundUX share root. The operator selects one or more configured shares and</div>
+<div class="ct-modulebody">  may inspect, validate, or update their Unix ownership and permissions.</div>
+<div class="ct-modulebody"></div>
+<div class="ct-modulebody sh-label">Design principles</div>
+<div class="ct-modulebody">  - Share discovery is derived from Samba&#x27;s effective configuration</div>
+<div class="ct-modulebody">  - All mutable operations are restricted to managed paths below /srv/storage/shares</div>
+<div class="ct-modulebody">  - A selected collection remains active until the operator chooses to reselect</div>
+<div class="ct-modulebody">  - Bulk changes require explicit confirmation and honor framework dry-run mode</div>
+<div class="ct-modulebody"></div>
+</main>
+</body>
+</html>
