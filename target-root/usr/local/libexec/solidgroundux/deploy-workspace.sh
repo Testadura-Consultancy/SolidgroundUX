@@ -6,7 +6,7 @@
 #   Version     : 1.8
 #   Build       : 2621803
 #   Checksum    : d557ed0fc4333a677f82b332d06cba2c3911280accf9c9f1aa8ca78267032099
-#   Source      : deploy-workspace.sh
+#   Source      : deploy-workspace-v4.sh
 #   Type        : script
 #   Group       : SDK Tools
 #   Purpose     : Select workspace files and deploy them through receive-files.sh
@@ -162,7 +162,7 @@ set -uo pipefail
         "target|t|value|DEST_ROOT|Destination filesystem root|"
         "directory|d|value|SELECT_DIRECTORY|Optional directory below the workspace root|"
         "match|m|value|SELECT_MATCH|Comma-separated filenames or shell-style file masks|"
-        "changed-after|c|value|CHANGED_AFTER|Only include files modified after this date or timestamp|"
+        "changed-after|c|value|CHANGED_AFTER|Only include files modified after this date, timestamp, or datetime shortcut|"
         "since-last||flag|FLAG_SINCE_LAST|Only include files changed since the last successful deployment|0|"
         "receiver||value|RECEIVER_PATH|Path to receive-files.sh on the destination|"
     )
@@ -219,6 +219,8 @@ set -uo pipefail
     CLI_RECEIVER_PATH=0
 
     SELECTED_PATHS=()
+    DEPLOY_STARTED_AT=""
+    DEPLOY_FINISHED_AT=""
 
 # --- Selection helpers ---------------------------------------------------------------
     # fn: _is_deployable_path - Test whether a relative workspace path is deployable
@@ -656,9 +658,10 @@ set -uo pipefail
                         FLAG_SINCE_LAST=0
                         CHANGED_AFTER="1900-01-01"
                         sgnd_print "Only files modified after this date or timestamp are included."
+                        sgnd_print "Datetime shortcuts are accepted, for example N, D, -2h, -30m, or -1d."
                         sgnd_print "Use 1900-01-01 to apply no practical date restriction."
 
-                        ask --label "Changed after" \
+                        ask_datetime --label "Changed after" \
                             --var CHANGED_AFTER \
                             --default "$CHANGED_AFTER" \
                             --colorize both
@@ -694,6 +697,74 @@ set -uo pipefail
                 *) sayfail "Unexpected confirmation response: $reply"; return 1 ;;
             esac
         done
+
+        return 0
+    }
+
+
+# --- Reporting ----------------------------------------------------------------------
+    # fn: _print_deployment_summary - Display the completed deployment details
+        # . Purpose
+        #   Show which workspace files were selected and where they were sent.
+        #
+        # . Behavior
+        #   - Displays source, destination, transport, receiver, timing, and result mode.
+        #   - Displays selected relative paths as one comma-separated value.
+        #   - Limits the file list to 512 characters and adds an ellipsis when truncated.
+        #   - Clearly marks dry-run deployments.
+        #
+        # Inputs (globals)
+        #   DEPLOY_TRANSPORT, REMOTE_TARGET, SRC_ROOT, DEST_ROOT, RECEIVER_PATH,
+        #   SELECTED_PATHS, DEPLOY_STARTED_AT, DEPLOY_FINISHED_AT, FLAG_DRYRUN
+        #
+        # . Returns
+        #   0 after displaying the summary.
+        #
+        # . Usage
+        #   _print_deployment_summary
+    _print_deployment_summary() {
+        local destination=""
+        local result="Completed"
+        local changed_files=""
+        local rel=""
+
+        case "$DEPLOY_TRANSPORT" in
+            local)
+                destination="$DEST_ROOT"
+                ;;
+            remote)
+                destination="$REMOTE_TARGET:$DEST_ROOT"
+                ;;
+            *)
+                destination="$DEST_ROOT"
+                ;;
+        esac
+
+        if [[ "${FLAG_DRYRUN:-0}" -eq 1 ]]; then
+            result="Dry run completed"
+        fi
+
+        for rel in "${SELECTED_PATHS[@]}"; do
+            if [[ -n "$changed_files" ]]; then
+                changed_files+=", "
+            fi
+            changed_files+="$rel"
+        done
+
+        if (( ${#changed_files} > 512 )); then
+            changed_files="${changed_files:0:509}..."
+        fi
+
+        sgnd_print
+        sgnd_print_sectionheader "Deployment summary"
+        sgnd_print_labeledvalue --label "Result" --value "$result" --labelwidth 20
+        sgnd_print_labeledvalue --label "Transport" --value "$DEPLOY_TRANSPORT" --labelwidth 20
+        sgnd_print_labeledvalue --label "Source root" --value "$SRC_ROOT" --labelwidth 20
+        sgnd_print_labeledvalue --label "Destination" --value "$destination" --labelwidth 20
+        sgnd_print_labeledvalue --label "Receiver" --value "$RECEIVER_PATH" --labelwidth 20
+        sgnd_print_labeledvalue --label "Started" --value "${DEPLOY_STARTED_AT:-Unknown}" --labelwidth 20
+        sgnd_print_labeledvalue --label "Finished" --value "${DEPLOY_FINISHED_AT:-Unknown}" --labelwidth 20
+        sgnd_print_labeledvalue --label "Changed files" --value "$changed_files" --labelwidth 20
 
         return 0
     }
@@ -763,9 +834,9 @@ set -uo pipefail
         # . Usage
         #   _deploy || return $?
     _deploy() {
-        local started_at=""
+        DEPLOY_STARTED_AT="$(date --iso-8601=seconds)"
+        DEPLOY_FINISHED_AT=""
 
-        started_at="$(date --iso-8601=seconds)"
         SRC_ROOT="${SRC_ROOT%/}"
         DEST_ROOT="${DEST_ROOT%/}"
         [[ -n "$DEST_ROOT" ]] || DEST_ROOT="/"
@@ -792,9 +863,11 @@ set -uo pipefail
         esac
 
         if [[ "${FLAG_DRYRUN:-0}" -eq 0 ]]; then
-            LAST_DEPLOY_SUCCESS="$started_at"
+            LAST_DEPLOY_SUCCESS="$DEPLOY_STARTED_AT"
         fi
 
+        DEPLOY_FINISHED_AT="$(date --iso-8601=seconds)"
+        _print_deployment_summary
         sayend "Deployment completed successfully."
         return 0
     }

@@ -69,6 +69,9 @@ set -uo pipefail
         # . Returns
         #   0 if already loaded or successfully initialized.
         #   Exits with code 2 if executed instead of sourced.
+        #
+        # . Usage
+        #   _sgnd_lib_guard
     _sgnd_lib_guard() {
         local lib_base
         local guard
@@ -90,50 +93,115 @@ set -uo pipefail
     unset -f _sgnd_lib_guard
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
+
 # - Module metadata -------------------------------------------------------------
-    # Rename these variables to a module specific name
-    SGND_MACHINE_TEMPLATE_MODULE_ID="mod-template"
-    SGND_MACHINE_TEMPLATE_MODULE_NAME="Console module template"
-    SGND_MACHINE_TEMPLATE_MODULE_VERSION="1.0.0"
-    SGND_MACHINE_TEMPLATE_MODULE_DESC="Console module template script"
+    # Replace SAMPLE_MODULE in all variable names and values below.
+    SGND_SAMPLE_MODULE_ID="sample-module"
+    SGND_SAMPLE_MODULE_NAME="Sample Module"
+    SGND_SAMPLE_MODULE_VERSION="1.0.0"
+    SGND_SAMPLE_MODULE_DESC="Describe the module capability"
 
     # Transient console-loader metadata contract.
-    SGND_MODULE_ID="$SGND_MACHINE_CONFIG_MODULE_ID"
-    SGND_MODULE_NAME="$SGND_MACHINE_CONFIG_MODULE_NAME"
-    SGND_MODULE_VERSION="$SGND_MACHINE_CONFIG_MODULE_VERSION"
-    SGND_MODULE_DESC="$SGND_MACHINE_CONFIG_MODULE_DESC"    
+    SGND_MODULE_ID="${SGND_SAMPLE_MODULE_ID}"
+    SGND_MODULE_NAME="${SGND_SAMPLE_MODULE_NAME}"
+    SGND_MODULE_VERSION="${SGND_SAMPLE_MODULE_VERSION}"
+    SGND_MODULE_DESC="${SGND_SAMPLE_MODULE_DESC}"
+
 # - Internal helpers -------------------------------------------------------------
-    # doc$ Internal helper naming
-        # Prefix internal-only helpers with "_".
-        # Keep internal helpers module-local and menu-focused.
+    # fn$ _sample_format_status
+        # . Purpose
+        #   Format a status value for display by a public module action.
         #
-        # Example:
-        #   _sample_format_status() { :; }
+        # . Behavior
+        #   - Accepts a raw status value.
+        #   - Substitutes a readable fallback when the value is empty.
+        #   - Writes the formatted value to stdout.
+        #
+        # Inputs:
+        #   $1 - Raw status value.
+        #
+        # Outputs (stdout):
+        #   Formatted status value.
+        #
+        # . Returns
+        #   0 after writing the formatted value.
+        #
+        # . Usage
+        #   _sample_format_status "active"
+    _sample_format_status() {
+        local status="${1:-}"
+
+        [[ -n "$status" ]] || status="Unavailable"
+        printf '%s\n' "$status"
+    }
 
 # - Public module actions --------------------------------------------------------
-    # doc$ Public module action naming
-        # Use clear action-style names for functions registered as menu handlers.
-        # Registered handlers do not need a sgnd_ prefix; they belong to the module surface.
+    # fn$ sample_show_status
+        # . Purpose
+        #   Display example module status using the canonical console helpers.
         #
-        # Example:
-        #   sample_show_message() { :; }
-        #   sys_status() { :; }
+        # . Behavior
+        #   - Resolves the current example status through the internal helper.
+        #   - Displays the module section and status value.
+        #
+        # Outputs (console):
+        #   Example module status.
+        #
+        # . Returns
+        #   0 after displaying status.
+        #
+        # . Usage
+        #   sample_show_status
+    sample_show_status() {
+        local status=""
+
+        status="$(_sample_format_status "active")"
+
+        sgnd_print
+        sgnd_print_sectionheader "$SGND_SAMPLE_MODULE_NAME"
+        sgnd_print_labeledvalue --label "Status" --value "$status" --labelwidth 20
+    }
+
+    # fn: sample_run_action - Run the example module action
+        # . Returns
+        #   0 after reporting successful execution.
+        #
+        # . Usage
+        #   sample_run_action
+    sample_run_action() {
+        if (( ${FLAG_DRYRUN:-0} == 1 )); then
+            sayinfo "Dry run: Would run the sample module action."
+            return 0
+        fi
+
+        sayok "Sample module action completed successfully."
+    }
 
 # - Console registration ---------------------------------------------------------
-    # doc$ Console registration
-        # Allowed side effect:
-        #   - On source, the module may register groups and items with sgnd-console.
-        #
-        # Example:
-    #   sgnd_console_register_group "system" "System tools" "General system operations"
-    #
-    #   sgnd_console_register_item \
-    #       "sys-status" \
-    #       "system" \
-    #       "System status" \
-    #       "sys_status" \
-    #       "Show system status" \
-    #       0 \
-    #       15
+    sgnd_console_register_group \
+        "$SGND_SAMPLE_MODULE_ID" \
+        "$SGND_SAMPLE_MODULE_NAME" \
+        "$SGND_SAMPLE_MODULE_DESC" \
+        0 \
+        1 \
+        300
 
+    sgnd_console_register_item \
+        "sample-action" \
+        "$SGND_SAMPLE_MODULE_ID" \
+        "Run sample action" \
+        "sample_run_action" \
+        "Run the example module action" \
+        0 \
+        5 \
+        1
 
+    sgnd_console_register_item \
+        "sample-status" \
+        "$SGND_SAMPLE_MODULE_ID" \
+        "Show sample status" \
+        "sample_show_status" \
+        "Show example module status" \
+        0 \
+        15 \
+        1

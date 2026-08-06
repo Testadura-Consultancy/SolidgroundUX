@@ -6,7 +6,7 @@
 #   Version     : 1.8
 #   Build       : 2621201
 #   Checksum    : 514e5e338861d69850a8ed86ea838715a28783e45c097506657f3512013eac30
-#   Source      : framework-smoketest.sh
+#   Source      : framework-smoketest-v3.sh
 #   Type        : script
 #   Purpose     : Exercise and validate core SolidGroundUX framework functionality
 #
@@ -324,9 +324,49 @@ set -uo pipefail
         sgnd_print "Result: TEST_NAME=$TEST_NAME"
 
         # -----------------------------------------------------------------------------
-        # 2. ask_decision
+        # 2. ask_datetime
         # -----------------------------------------------------------------------------
-        sgnd_print " 2. Testing ask_decision()"
+        sgnd_print " 2. Testing ask_datetime()"
+        sgnd_print "Enter an absolute datetime or a shorthand such as N, D, -2h, or +30m.\n"
+
+        TEST_DATETIME=""
+        TEST_RC=0
+
+        while true; do
+            ask_datetime \
+                --label "Changed after" \
+                --default "-2h" \
+                --var TEST_DATETIME \
+                --labelwidth 28 \
+                --pad 2 \
+                --colorize both
+
+            sgnd_print "Result: TEST_DATETIME='$TEST_DATETIME'"
+
+            ask_dlg_autocontinue \
+                --seconds 8 \
+                --message "Press Enter to continue, or R to repeat ask_datetime." \
+                --redo \
+                --pause
+
+            TEST_RC=$?
+            case "$TEST_RC" in
+                0)
+                    break
+                    ;;
+                1|3)
+                    sgnd_print "Repeating ask_datetime test.\n"
+                    ;;
+                *)
+                    sgnd_print "Unexpected response rc=$TEST_RC; repeating ask_datetime test.\n"
+                    ;;
+            esac
+        done
+
+        # -----------------------------------------------------------------------------
+        # 3. ask_decision
+        # -----------------------------------------------------------------------------
+        sgnd_print " 3. Testing ask_decision()"
 
         TEST_DECISION=""
         ask_decision \
@@ -340,9 +380,9 @@ set -uo pipefail
         sgnd_print "Result: TEST_DECISION='$TEST_DECISION'"
 
         # -----------------------------------------------------------------------------
-        # 3. ask_dlg_autocontinue
+        # 4. ask_dlg_autocontinue
         # -----------------------------------------------------------------------------
-        sgnd_print " 3. Testing ask_dlg_autocontinue()"
+        sgnd_print " 4. Testing ask_dlg_autocontinue()"
         sgnd_print "Try Enter, R, C, P/Space, or do nothing and let it time out.\n"
 
         ask_dlg_autocontinue \
@@ -363,9 +403,9 @@ set -uo pipefail
         esac
 
         # -----------------------------------------------------------------------------
-        # 4. ask_choose
+        # 5. ask_choose
         # -----------------------------------------------------------------------------
-        sgnd_print " 4. Testing ask_choose()"
+        sgnd_print " 5. Testing ask_choose()"
 
         TEST_ENV=""
         ask_choose \
@@ -378,9 +418,9 @@ set -uo pipefail
         sgnd_print "Result: TEST_ENV='$TEST_ENV'"
 
         # -----------------------------------------------------------------------------
-        # 5. ask_choose_immediate
+        # 6. ask_choose_immediate
         # -----------------------------------------------------------------------------
-        sgnd_print " 5. Testing ask_choose_immediate()"
+        sgnd_print " 6. Testing ask_choose_immediate()"
         sgnd_print "Instant choices: B,D,Q. Other values require Enter.\n"
 
         TEST_ACTION=""
@@ -411,7 +451,7 @@ set -uo pipefail
         #     [[ "${1-}" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]
         # }
         #
-        # sgnd_print " 6. Testing ask_prompt_form()"
+        # sgnd_print " 7. Testing ask_prompt_form()"
         #
         HOSTNAME=""
         PORT=""
@@ -670,9 +710,9 @@ set -uo pipefail
         local outer=0
         local middle=0
         local inner=0
-        local outer_total=1000
-        local middle_total=250
-        local inner_total=275
+        local outer_total=10
+        local middle_total=90
+        local inner_total=125
 
         sgnd_print
         sgnd_print_sectionheader --text "Testing sayprogress() helpers"

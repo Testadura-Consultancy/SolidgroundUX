@@ -19,11 +19,13 @@
 #     - Supports constrained symbolic decisions
 #     - Supports timed auto-continue prompts with simple intervention keys
 #     - Supports typed and immediate choice selection helpers
+    - Supports normalized absolute and relative datetime input through ask_datetime
 #     - Supports prompting a variable set from field-spec lines
 #     - Reads input from the controlling terminal to avoid stdin conflicts
 #
 # Public API:
 #   - ask
+#   - ask_datetime
 #   - ask_decision
 #   - ask_dlg_autocontinue
 #   - ask_choose
@@ -507,6 +509,90 @@ set -uo pipefail
         [[ "${1-}" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]
     }
 
+    # fn$ _ask_datetime_normalize
+        # . Purpose
+        #   Normalize an absolute date/time value or SolidGroundUX datetime shortcut.
+        #
+        # . Behavior
+        #   - Accepts absolute values understood by GNU date.
+        #   - Resolves N to the current local date and time.
+        #   - Resolves D to the start of the current local day.
+        #   - Resolves signed relative expressions against the current local time.
+        #   - Supports s, m, h, d, M, and y units for seconds, minutes, hours,
+        #     days, months, and years respectively.
+        #   - Supports combined relative expressions such as -1d2h30m.
+        #   - Returns a local ISO-8601 timestamp including the UTC offset.
+        #
+        # Inputs:
+        #   $1 - Absolute date/time value or SolidGroundUX datetime expression.
+        #
+        # Outputs (stdout):
+        #   Normalized ISO-8601 datetime.
+        #
+        # . Returns
+        #   0 when the value was normalized successfully.
+        #   1 when the value is empty or invalid.
+        #
+        # . Usage
+        #   normalized="$(_ask_datetime_normalize "-2h30m")"
+    _ask_datetime_normalize() {
+        local value="${1-}"
+        local sign=""
+        local remainder=""
+        local amount=""
+        local unit=""
+        local date_unit=""
+        local expression="now"
+
+        value="${value#"${value%%[![:space:]]*}"}"
+        value="${value%"${value##*[![:space:]]}"}"
+        [[ -n "$value" ]] || return 1
+
+        case "$value" in
+            N)
+                date --iso-8601=seconds
+                return $?
+                ;;
+            D)
+                date --iso-8601=seconds -d 'today 00:00:00'
+                return $?
+                ;;
+        esac
+
+        if [[ "$value" =~ ^[+-] ]]; then
+            sign="${value:0:1}"
+            remainder="${value:1}"
+            [[ -n "$remainder" ]] || return 1
+
+            while [[ -n "$remainder" ]]; do
+                if [[ "$remainder" =~ ^([0-9]+)([smhdMy])(.*)$ ]]; then
+                    amount="${BASH_REMATCH[1]}"
+                    unit="${BASH_REMATCH[2]}"
+                    remainder="${BASH_REMATCH[3]}"
+                else
+                    return 1
+                fi
+
+                case "$unit" in
+                    s) date_unit="seconds" ;;
+                    m) date_unit="minutes" ;;
+                    h) date_unit="hours" ;;
+                    d) date_unit="days" ;;
+                    M) date_unit="months" ;;
+                    y) date_unit="years" ;;
+                    *) return 1 ;;
+                esac
+
+                expression+=" $sign $amount $date_unit"
+            done
+
+            date --iso-8601=seconds -d "$expression" 2>/dev/null
+            return $?
+        fi
+
+        date --iso-8601=seconds -d "$value" 2>/dev/null
+    }
+
 # --- Public API ---------------------------------------------------------------------
     # fn: ask - Ask for a single typed value
         # . Purpose
@@ -658,6 +744,144 @@ set -uo pipefail
         elif (( echo_input )); then
             printf '%s\n' "$value"
         fi
+    }
+
+    # fn$ ask_datetime
+        # . Purpose
+        #   Prompt for an absolute or relative date/time value and normalize it.
+        #
+        # . Behavior
+        #   - Reuses ask for readline editing, defaults, alignment, and colors.
+        #   - Accepts normal date and datetime values understood by GNU date.
+        #   - Accepts N for now and D for today at 00:00:00.
+        #   - Accepts signed relative values using s, m, h, d, M, and y units.
+        #   - Supports combined relative expressions such as -1d2h30m.
+        #   - Re-prompts until the entered value can be normalized.
+        #   - Displays the resolved ISO-8601 datetime when a shortcut is entered.
+        #   - Stores the accepted value as a local ISO-8601 timestamp.
+        #
+        # . options
+        #   --label TEXT
+        #       Prompt label shown before the input field.
+        #   --var NAME
+        #       Shell variable that receives the normalized datetime.
+        #   --default VALUE
+        #       Editable absolute value or SolidGroundUX datetime shortcut.
+        #   --echo
+        #       Echo the normalized value after it has been accepted.
+        #   --labelwidth WIDTH
+        #       Visible width used to align the prompt label.
+        #   --pad COUNT
+        #       Number of spaces inserted before the prompt label.
+        #   --labelclr ANSI
+        #       ANSI sequence used for the label.
+        #   --inputclr ANSI
+        #       ANSI sequence used for the input.
+        #   --colorize MODE
+        #       Colorize mode: none, label, input, or both.
+        #
+        # Supported shortcuts:
+        #   N       Current local date and time.
+        #   D       Current local date at 00:00:00.
+        #   s       Seconds.
+        #   m       Minutes.
+        #   h       Hours.
+        #   d       Days.
+        #   M       Months.
+        #   y       Years.
+        #
+        # Outputs (globals):
+        #   Variable named by --var, when --var is supplied.
+        #
+        # . Output
+        #   Displays the normalized value after N, D, or a signed relative shortcut.
+        #   Writes the normalized value to stdout only when --echo is used without --var.
+        #
+        # . Returns
+        #   0 when a valid datetime was accepted.
+        #   2 when /dev/tty is unavailable through ask.
+        #
+        # . Usage
+        #   ask_datetime --label "Changed after" --var CHANGED_AFTER --default "-2h"
+    ask_datetime() {
+        local label=""
+        local var_name=""
+        local default_value=""
+        local colorize="both"
+        local labelwidth=25
+        local pad=0
+        local labelclr="${SGND_UI_LABEL}"
+        local inputclr="${SGND_UI_INPUT}"
+        local echo_input=0
+        local entered=""
+        local normalized=""
+        local shortcut_entered=0
+        local rc=0
+
+        while [[ $# -gt 0 ]]; do
+            case "$1" in
+                --label)       label="$2"; shift 2 ;;
+                --var)         var_name="$2"; shift 2 ;;
+                --default)     default_value="$2"; shift 2 ;;
+                --colorize)    colorize="$2"; shift 2 ;;
+                --labelwidth)  labelwidth="$2"; shift 2 ;;
+                --pad)         pad="$2"; shift 2 ;;
+                --labelclr)    labelclr="$2"; shift 2 ;;
+                --inputclr)    inputclr="$2"; shift 2 ;;
+                --echo)        echo_input=1; shift ;;
+                --)            shift; break ;;
+                *)             [[ -z "$label" ]] && label="$1"; shift ;;
+            esac
+        done
+
+        while :; do
+            entered="$default_value"
+
+            ask \
+                --label "$label" \
+                --var entered \
+                --default "$default_value" \
+                --colorize "$colorize" \
+                --labelwidth "$labelwidth" \
+                --pad "$pad" \
+                --labelclr "$labelclr" \
+                --inputclr "$inputclr"
+            rc=$?
+            (( rc == 0 )) || return "$rc"
+
+            normalized="$(_ask_datetime_normalize "$entered" 2>/dev/null || true)"
+            if [[ -n "$normalized" ]]; then
+                case "$entered" in
+                    N|D) shortcut_entered=1 ;;
+                    *)
+                        [[ "$entered" =~ ^[+-]([0-9]+[smhdMy])+$ ]] && shortcut_entered=1
+                        ;;
+                esac
+                break
+            fi
+
+            saywarning "Invalid date, datetime, or relative datetime expression: $entered"
+            default_value="$entered"
+        done
+
+        if (( shortcut_entered )); then
+            sgnd_print_labeledvalue \
+                --label "Resolved" \
+                --value "$normalized" \
+                --labelwidth "$labelwidth"
+        fi
+
+        if [[ -n "$var_name" ]]; then
+            printf -v "$var_name" '%s' "$normalized"
+        elif (( echo_input )); then
+            printf '%s\n' "$normalized"
+        fi
+
+        if (( echo_input )) && [[ -n "$var_name" ]]; then
+            printf '%s\n' "$normalized" >/dev/tty
+        fi
+
+        return 0
     }
 
     # fn: ask_decision - Ask for a canonical symbolic decision
