@@ -709,8 +709,8 @@ set -uo pipefail
         #
         # . Behavior
         #   - Displays source, destination, transport, receiver, timing, and result mode.
-        #   - Displays selected relative paths as one comma-separated value.
-        #   - Limits the file list to 512 characters and adds an ellipsis when truncated.
+        #   - Displays every selected relative path on its own aligned value line.
+        #   - Uses sgnd_print_labeledmultivalue so no selected path is truncated.
         #   - Clearly marks dry-run deployments.
         #
         # Inputs (globals)
@@ -725,8 +725,6 @@ set -uo pipefail
     _print_deployment_summary() {
         local destination=""
         local result="Completed"
-        local changed_files=""
-        local rel=""
 
         case "$DEPLOY_TRANSPORT" in
             local)
@@ -744,17 +742,6 @@ set -uo pipefail
             result="Dry run completed"
         fi
 
-        for rel in "${SELECTED_PATHS[@]}"; do
-            if [[ -n "$changed_files" ]]; then
-                changed_files+=", "
-            fi
-            changed_files+="$rel"
-        done
-
-        if (( ${#changed_files} > 512 )); then
-            changed_files="${changed_files:0:509}..."
-        fi
-
         sgnd_print
         sgnd_print_sectionheader "Deployment summary"
         sgnd_print_labeledvalue --label "Result" --value "$result" --labelwidth 20
@@ -764,7 +751,10 @@ set -uo pipefail
         sgnd_print_labeledvalue --label "Receiver" --value "$RECEIVER_PATH" --labelwidth 20
         sgnd_print_labeledvalue --label "Started" --value "${DEPLOY_STARTED_AT:-Unknown}" --labelwidth 20
         sgnd_print_labeledvalue --label "Finished" --value "${DEPLOY_FINISHED_AT:-Unknown}" --labelwidth 20
-        sgnd_print_labeledvalue --label "Changed files" --value "$changed_files" --labelwidth 20
+        sgnd_print_labeledmultivalue \
+            --label "Changed files" \
+            --labelwidth 20 \
+            --items "${SELECTED_PATHS[@]}"
 
         return 0
     }

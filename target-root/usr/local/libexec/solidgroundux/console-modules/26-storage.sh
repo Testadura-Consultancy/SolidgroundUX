@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621814
-#   Checksum    : 001dcbb288702bf7c375f75cea60d69ecbf64b43e6be9c56d8967f0af3fb2d39
+#   Build       : 2621804
+#   Checksum    : -
 #   Source      : 26-storage-v4.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -72,7 +72,7 @@ set -uo pipefail
 # - Module metadata -------------------------------------------------------------
     SGND_STORAGE_MODULE_ID="storage"
     SGND_STORAGE_MODULE_NAME="Storage"
-    SGND_STORAGE_MODULE_VERSION="1.0.0"
+    SGND_STORAGE_MODULE_VERSION="1.1.0"
     SGND_STORAGE_MODULE_DESC="Configure and inspect local storage volumes"
 
     SGND_MODULE_ID="${SGND_STORAGE_MODULE_ID}"
@@ -81,6 +81,7 @@ set -uo pipefail
     SGND_MODULE_DESC="${SGND_STORAGE_MODULE_DESC}"
 
     SGND_STORAGE_DEFAULT_MOUNTPOINT="/srv/storage"
+    SGND_STORAGE_DEFAULT_SHARE_ROOT="/srv/storage/shares"
 
 # - Internal helpers -------------------------------------------------------------
     # fn$ _storage_validate_device
@@ -190,6 +191,93 @@ set -uo pipefail
         done
 
         return 1
+    }
+
+    # fn$ _storage_validate_account
+        # . Purpose
+        #   Validate that a local or directory-backed user account can be resolved.
+        #
+        # Inputs:
+        #   $1 - User name to validate.
+        #
+        # . Returns
+        #   0 when the account can be resolved through getent, otherwise 1.
+        #
+        # . Usage
+        #   _storage_validate_account "root"
+    _storage_validate_account() {
+        local account="${1:-}"
+        [[ -n "$account" ]] || return 1
+        getent passwd "$account" >/dev/null 2>&1
+    }
+
+    # fn$ _storage_validate_group
+        # . Purpose
+        #   Validate that a local or directory-backed group can be resolved.
+        #
+        # Inputs:
+        #   $1 - Group name to validate.
+        #
+        # . Returns
+        #   0 when the group can be resolved through getent, otherwise 1.
+        #
+        # . Usage
+        #   _storage_validate_group "root"
+    _storage_validate_group() {
+        local group="${1:-}"
+        [[ -n "$group" ]] || return 1
+        getent group "$group" >/dev/null 2>&1
+    }
+
+    # fn$ _storage_validate_mode
+        # . Purpose
+        #   Validate a three- or four-digit octal filesystem mode.
+        #
+        # Inputs:
+        #   $1 - Proposed octal mode.
+        #
+        # . Returns
+        #   0 when the mode is valid, otherwise 1.
+        #
+        # . Usage
+        #   _storage_validate_mode "0770"
+    _storage_validate_mode() {
+        [[ "${1:-}" =~ ^[0-7]{3,4}$ ]]
+    }
+
+    # fn$ _storage_select_access_target
+        # . Purpose
+        #   Ask which managed storage directory should be changed.
+        #
+        # Outputs (globals):
+        #   Variable named by $1 receives either the storage root or shares root path.
+        #
+        # Inputs:
+        #   $1 - Output variable name.
+        #
+        # . Returns
+        #   0 when a target was selected, otherwise non-zero.
+        #
+        # . Usage
+        #   _storage_select_access_target target
+    _storage_select_access_target() {
+        local output_var="$1"
+        local selection="STORAGE"
+        local target=""
+
+        ask_decision \
+            --label "Storage access target" \
+            --choices "STORAGE|S,SHARES|H" \
+            --default "STORAGE" \
+            --var selection || return $?
+
+        case "$selection" in
+            STORAGE) target="$SGND_STORAGE_DEFAULT_MOUNTPOINT" ;;
+            SHARES)  target="$SGND_STORAGE_DEFAULT_SHARE_ROOT" ;;
+            *)       return 1 ;;
+        esac
+
+        printf -v "$output_var" '%s' "$target"
     }
 
 # - Public module actions --------------------------------------------------------
@@ -540,6 +628,241 @@ set -uo pipefail
         sayok "Storage expansion completed successfully."
     }
 
+    # fn$ storage_access_status
+        # . Purpose
+        #   Display ownership and Unix permissions for the managed storage directories.
+        #
+        # . Behavior
+        #   - Reports owner, group, and octal mode for /srv/storage.
+        #   - Reports owner, group, and octal mode for /srv/storage/shares.
+        #   - Reports missing directories without changing the filesystem.
+        #
+        # . Returns
+        #   0 after displaying the available ownership information.
+        #
+        # . Usage
+        #   storage_access_status
+    storage_access_status() {
+        local path=""
+        local owner="-"
+        local group="-"
+        local mode="-"
+
+        sgnd_print
+        sgnd_print_sectionheader "Storage access"
+
+        for path in "$SGND_STORAGE_DEFAULT_MOUNTPOINT" "$SGND_STORAGE_DEFAULT_SHARE_ROOT"; do
+            owner="-"
+            group="-"
+            mode="-"
+
+            if [[ -e "$path" ]]; then
+                owner="$(stat -c '%U' "$path" 2>/dev/null || printf '-')"
+                group="$(stat -c '%G' "$path" 2>/dev/null || printf '-')"
+                mode="$(stat -c '%a' "$path" 2>/dev/null || printf '-')"
+            fi
+
+            sgnd_print_labeledvalue --label "Path" --value "$path" --labelwidth 18
+            sgnd_print_labeledvalue --label "Owner" --value "$owner" --labelwidth 18
+            sgnd_print_labeledvalue --label "Group" --value "$group" --labelwidth 18
+            sgnd_print_labeledvalue --label "Permissions" --value "$mode" --labelwidth 18
+            sgnd_print
+        done
+
+        return 0
+    }
+
+    # fn$ storage_set_owner
+        # . Purpose
+        #   Set the Unix owner of a managed storage directory.
+        #
+        # . Behavior
+        #   - Lets the administrator select the storage root or shares root.
+        #   - Validates the requested account through getent.
+        #   - Changes only the selected directory, not its descendants.
+        #   - Honors console dry-run mode.
+        #
+        # Inputs (globals):
+        #   FLAG_DRYRUN
+        #
+        # . Returns
+        #   0 when ownership is updated, otherwise non-zero.
+        #
+        # . Usage
+        #   storage_set_owner
+    storage_set_owner() {
+        local target=""
+        local current_owner="root"
+        local owner=""
+
+        _storage_select_access_target target || return $?
+        [[ -d "$target" ]] || { sayfail "Storage directory does not exist: $target"; return 1; }
+
+        current_owner="$(stat -c '%U' "$target" 2>/dev/null || printf 'root')"
+        owner="$current_owner"
+
+        ask \
+            --label "Storage owner" \
+            --var owner \
+            --default "$owner" \
+            --validate _storage_validate_account || return $?
+
+        if (( ${FLAG_DRYRUN:-0} == 1 )); then
+            sayinfo "Dry run: Would set owner of $target to $owner."
+            return 0
+        fi
+
+        sudo chown "$owner" "$target" || return 1
+        sayok "Storage owner updated for $target."
+    }
+
+    # fn$ storage_set_group
+        # . Purpose
+        #   Set the Unix group of a managed storage directory.
+        #
+        # . Behavior
+        #   - Lets the administrator select the storage root or shares root.
+        #   - Validates the requested group through getent.
+        #   - Changes only the selected directory, not its descendants.
+        #   - Honors console dry-run mode.
+        #
+        # Inputs (globals):
+        #   FLAG_DRYRUN
+        #
+        # . Returns
+        #   0 when the group is updated, otherwise non-zero.
+        #
+        # . Usage
+        #   storage_set_group
+    storage_set_group() {
+        local target=""
+        local current_group="root"
+        local group=""
+
+        _storage_select_access_target target || return $?
+        [[ -d "$target" ]] || { sayfail "Storage directory does not exist: $target"; return 1; }
+
+        current_group="$(stat -c '%G' "$target" 2>/dev/null || printf 'root')"
+        group="$current_group"
+
+        ask \
+            --label "Storage group" \
+            --var group \
+            --default "$group" \
+            --validate _storage_validate_group || return $?
+
+        if (( ${FLAG_DRYRUN:-0} == 1 )); then
+            sayinfo "Dry run: Would set group of $target to $group."
+            return 0
+        fi
+
+        sudo chgrp "$group" "$target" || return 1
+        sayok "Storage group updated for $target."
+    }
+
+    # fn$ storage_set_permissions
+        # . Purpose
+        #   Set Unix permissions on a managed storage directory.
+        #
+        # . Behavior
+        #   - Lets the administrator select the storage root or shares root.
+        #   - Uses the current mode as the editable default.
+        #   - Accepts a three- or four-digit octal mode.
+        #   - Changes only the selected directory, not its descendants.
+        #   - Honors console dry-run mode.
+        #
+        # Inputs (globals):
+        #   FLAG_DRYRUN
+        #
+        # . Returns
+        #   0 when permissions are updated, otherwise non-zero.
+        #
+        # . Usage
+        #   storage_set_permissions
+    storage_set_permissions() {
+        local target=""
+        local mode=""
+
+        _storage_select_access_target target || return $?
+        [[ -d "$target" ]] || { sayfail "Storage directory does not exist: $target"; return 1; }
+
+        mode="$(stat -c '%a' "$target" 2>/dev/null || true)"
+        ask \
+            --label "Storage permissions" \
+            --var mode \
+            --default "$mode" \
+            --validate _storage_validate_mode || return $?
+
+        if (( ${FLAG_DRYRUN:-0} == 1 )); then
+            sayinfo "Dry run: Would set permissions on $target to $mode."
+            return 0
+        fi
+
+        sudo chmod "$mode" "$target" || return 1
+        sayok "Storage permissions updated for $target."
+    }
+
+    # fn$ storage_restore_access_defaults
+        # . Purpose
+        #   Restore canonical ownership and permissions for the managed storage roots.
+        #
+        # . Behavior
+        #   - Restores /srv/storage to root:root with mode 0755.
+        #   - Restores /srv/storage/shares to root:root with mode 0770.
+        #   - Requires confirmation before changing either directory.
+        #   - Does not alter share directories beneath /srv/storage/shares.
+        #   - Honors console dry-run mode.
+        #
+        # Inputs (globals):
+        #   FLAG_DRYRUN
+        #
+        # . Returns
+        #   0 when defaults are restored or the action is cancelled.
+        #   Non-zero when a required directory or filesystem operation fails.
+        #
+        # . Usage
+        #   storage_restore_access_defaults
+    storage_restore_access_defaults() {
+        local decision="NO"
+
+        [[ -d "$SGND_STORAGE_DEFAULT_MOUNTPOINT" ]] || {
+            sayfail "Storage root does not exist: $SGND_STORAGE_DEFAULT_MOUNTPOINT"
+            return 1
+        }
+        [[ -d "$SGND_STORAGE_DEFAULT_SHARE_ROOT" ]] || {
+            sayfail "Shares root does not exist: $SGND_STORAGE_DEFAULT_SHARE_ROOT"
+            return 1
+        }
+
+        sgnd_print
+        sgnd_print_sectionheader "Restore storage access defaults"
+        sgnd_print_labeledvalue --label "Storage root" --value "root:root 0755" --labelwidth 20
+        sgnd_print_labeledvalue --label "Shares root" --value "root:root 0770" --labelwidth 20
+
+        ask_decision \
+            --label "Restore these defaults?" \
+            --choices "YES|Y,NO|N" \
+            --default "NO" \
+            --var decision || return $?
+
+        [[ "$decision" == "YES" ]] || {
+            sayinfo "Storage access reset cancelled."
+            return 0
+        }
+
+        if (( ${FLAG_DRYRUN:-0} == 1 )); then
+            sayinfo "Dry run: Would restore canonical storage ownership and permissions."
+            return 0
+        fi
+
+        sudo chown root:root "$SGND_STORAGE_DEFAULT_MOUNTPOINT" || return 1
+        sudo chmod 0755 "$SGND_STORAGE_DEFAULT_MOUNTPOINT" || return 1
+        sudo chown root:root "$SGND_STORAGE_DEFAULT_SHARE_ROOT" || return 1
+        sudo chmod 0770 "$SGND_STORAGE_DEFAULT_SHARE_ROOT" || return 1
+
+        sayok "Canonical storage ownership and permissions restored."
+    }
+
     # fn$ storage_status
         # . Purpose
         #   Display local block devices and the configured SolidGroundUX storage state.
@@ -569,7 +892,7 @@ set -uo pipefail
         local mounted="No"
         local persistent="No"
         local root_exists="No"
-        local root_writable="No"
+        local mounted_readwrite="No"
         local share_root_exists="No"
         local mount_matches="No"
         local fstab_valid="Not checked"
@@ -591,7 +914,9 @@ set -uo pipefail
                 [[ -n "$filesystem_uuid" ]] || filesystem_uuid="-"
             fi
 
-            [[ -w "$mountpoint" ]] && root_writable="Yes"
+            if findmnt -n -o OPTIONS --mountpoint "$mountpoint" 2>/dev/null | tr "," "\n" | grep -qx "rw"; then
+                mounted_readwrite="Yes"
+            fi
 
             if [[ "$(findmnt -n -o TARGET --source "$source" 2>/dev/null || true)" == "$mountpoint" ]]; then
                 mount_matches="Yes"
@@ -627,10 +952,153 @@ set -uo pipefail
         sgnd_print_labeledvalue --label "fstab valid" --value "$fstab_valid" --labelwidth 24
         sgnd_print_labeledvalue --label "Mount source matches" --value "$mount_matches" --labelwidth 24
         sgnd_print_labeledvalue --label "Storage root exists" --value "$root_exists" --labelwidth 24
-        sgnd_print_labeledvalue --label "Storage root writable" --value "$root_writable" --labelwidth 24
+        sgnd_print_labeledvalue --label "Mounted read/write" --value "$mounted_readwrite" --labelwidth 24
         sgnd_print_labeledvalue --label "Shares root exists" --value "$share_root_exists" --labelwidth 24
         sgnd_print_labeledvalue --label "Capacity" --value "$size" --labelwidth 24
         sgnd_print_labeledvalue --label "Available" --value "$available" --labelwidth 24
+    }
+
+
+    # fn$ storage_validate_provisioning
+        # . Purpose
+        #   Actively validate the SolidGroundUX storage provisioning state.
+        #
+        # . Behavior
+        #   - Verifies that /etc/fstab is syntactically valid.
+        #   - Verifies that the canonical storage mount point has a persistent entry.
+        #   - Verifies that the storage filesystem is mounted read/write.
+        #   - Resolves the active source and compares it with the configured fstab source.
+        #   - Verifies the expected filesystem label and storage directory structure.
+        #   - Displays each check as Passed or Failed and returns failure when any
+        #     required provisioning check fails.
+        #
+        # Outputs (console):
+        #   Validation results for fstab, mount state, source, filesystem, and directories.
+        #
+        # . Returns
+        #   0 when all storage provisioning checks pass.
+        #   1 when one or more checks fail.
+        #
+        # . Usage
+        #   storage_validate_provisioning
+    storage_validate_provisioning() {
+        local mountpoint="$SGND_STORAGE_DEFAULT_MOUNTPOINT"
+        local share_root="$mountpoint/shares"
+        local fstab_source=""
+        local resolved_fstab_source=""
+        local active_source=""
+        local filesystem=""
+        local filesystem_label=""
+        local result=""
+        local failures=0
+
+        sgnd_print
+        sgnd_print_sectionheader "Validate storage provisioning"
+
+        if findmnt --verify --tab-file /etc/fstab >/dev/null 2>&1; then
+            result="Passed"
+        else
+            result="Failed"
+            failures=$((failures + 1))
+        fi
+        sgnd_print_labeledvalue --label "fstab syntax" --value "$result" --labelwidth 24
+
+        fstab_source="$(awk -v target="$mountpoint" '
+            $0 !~ /^[[:space:]]*#/ && NF >= 3 && $2 == target { print $1; exit }
+        ' /etc/fstab)"
+
+        if [[ -n "$fstab_source" ]]; then
+            result="Passed"
+        else
+            result="Failed"
+            failures=$((failures + 1))
+        fi
+        sgnd_print_labeledvalue --label "Persistent entry" --value "$result" --labelwidth 24
+
+        if mountpoint -q "$mountpoint"; then
+            result="Passed"
+            active_source="$(findmnt -n -o SOURCE --mountpoint "$mountpoint" 2>/dev/null || true)"
+            filesystem="$(findmnt -n -o FSTYPE --mountpoint "$mountpoint" 2>/dev/null || true)"
+        else
+            result="Failed"
+            failures=$((failures + 1))
+        fi
+        sgnd_print_labeledvalue --label "Mounted" --value "$result" --labelwidth 24
+
+        if mountpoint -q "$mountpoint" && \
+           findmnt -n -o OPTIONS --mountpoint "$mountpoint" 2>/dev/null | tr ',' '\n' | grep -qx 'rw'; then
+            result="Passed"
+        else
+            result="Failed"
+            failures=$((failures + 1))
+        fi
+        sgnd_print_labeledvalue --label "Mounted read/write" --value "$result" --labelwidth 24
+
+        case "$fstab_source" in
+            UUID=*)
+                resolved_fstab_source="$(blkid -U "${fstab_source#UUID=}" 2>/dev/null || true)"
+                ;;
+            LABEL=*)
+                resolved_fstab_source="$(blkid -L "${fstab_source#LABEL=}" 2>/dev/null || true)"
+                ;;
+            *)
+                resolved_fstab_source="$fstab_source"
+                ;;
+        esac
+
+        active_source="$(readlink -f "$active_source" 2>/dev/null || true)"
+        resolved_fstab_source="$(readlink -f "$resolved_fstab_source" 2>/dev/null || true)"
+
+        if [[ -n "$active_source" && -n "$resolved_fstab_source" && "$active_source" == "$resolved_fstab_source" ]]; then
+            result="Passed"
+        else
+            result="Failed"
+            failures=$((failures + 1))
+        fi
+        sgnd_print_labeledvalue --label "Mount source matches" --value "$result" --labelwidth 24
+
+        case "${filesystem,,}" in
+            ext4|xfs) result="Passed" ;;
+            *)
+                result="Failed"
+                failures=$((failures + 1))
+                ;;
+        esac
+        sgnd_print_labeledvalue --label "Supported filesystem" --value "$result" --labelwidth 24
+
+        filesystem_label="$(blkid -s LABEL -o value "$active_source" 2>/dev/null || true)"
+        if [[ "$filesystem_label" == "SGND_STORAGE" ]]; then
+            result="Passed"
+        else
+            result="Failed"
+            failures=$((failures + 1))
+        fi
+        sgnd_print_labeledvalue --label "Filesystem label" --value "$result" --labelwidth 24
+
+        if [[ -d "$mountpoint" ]]; then
+            result="Passed"
+        else
+            result="Failed"
+            failures=$((failures + 1))
+        fi
+        sgnd_print_labeledvalue --label "Storage root" --value "$result" --labelwidth 24
+
+        if [[ -d "$share_root" ]]; then
+            result="Passed"
+        else
+            result="Failed"
+            failures=$((failures + 1))
+        fi
+        sgnd_print_labeledvalue --label "Shares root" --value "$result" --labelwidth 24
+
+        sgnd_print
+        if (( failures == 0 )); then
+            sayok "Storage provisioning validation passed."
+            return 0
+        fi
+
+        sayfail "$failures storage provisioning check(s) failed."
+        return 1
     }
 
 # - Console registration ---------------------------------------------------------
@@ -683,11 +1151,80 @@ set -uo pipefail
         1
 
     sgnd_console_register_item \
+        "storage-validate" \
+        "$SGND_STORAGE_MODULE_ID" \
+        "Validate storage provisioning" \
+        "storage_validate_provisioning" \
+        "Run active checks against the configured storage volume" \
+        0 \
+        25 \
+        1
+
+    sgnd_console_register_item \
         "storage-status" \
         "$SGND_STORAGE_MODULE_ID" \
         "Show storage status" \
         "storage_status" \
         "Show local disks and configured storage status" \
         0 \
+        30 \
+        1
+
+    sgnd_console_register_group \
+        "storage-access" \
+        "Storage Access" \
+        "Manage ownership and Unix permissions for the storage and shares roots" \
+        0 \
+        1 \
+        245
+
+    sgnd_console_register_item \
+        "storage-access-status" \
+        "storage-access" \
+        "Show storage ownership" \
+        "storage_access_status" \
+        "Show ownership and permissions for the storage and shares roots" \
+        0 \
+        5 \
+        1
+
+    sgnd_console_register_item \
+        "storage-access-owner" \
+        "storage-access" \
+        "Set storage owner" \
+        "storage_set_owner" \
+        "Set the owner of the storage root or shares root" \
+        0 \
+        10 \
+        1
+
+    sgnd_console_register_item \
+        "storage-access-group" \
+        "storage-access" \
+        "Set storage group" \
+        "storage_set_group" \
+        "Set the group of the storage root or shares root" \
+        0 \
+        15 \
+        1
+
+    sgnd_console_register_item \
+        "storage-access-mode" \
+        "storage-access" \
+        "Set storage permissions" \
+        "storage_set_permissions" \
+        "Set Unix permissions on the storage root or shares root" \
+        0 \
+        20 \
+        1
+
+    sgnd_console_register_item \
+        "storage-access-reset" \
+        "storage-access" \
+        "Restore default permissions" \
+        "storage_restore_access_defaults" \
+        "Restore canonical ownership and permissions for managed storage roots" \
+        0 \
         25 \
         1
+

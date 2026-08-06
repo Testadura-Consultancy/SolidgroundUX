@@ -928,6 +928,57 @@ set -uo pipefail
         return "$failed"
     }
 
+
+    # fn$ _ensure_libexec_executables
+        # . Purpose
+        #   Ensure top-level SolidGroundUX libexec files are executable before packaging.
+        #
+        # . Behavior
+        #   - Inspects files directly beneath usr/local/libexec/solidgroundux.
+        #   - Does not recurse into subdirectories.
+        #   - Adds the executable bit for user, group, and others when missing.
+        #   - Reports intended changes without modifying files in dry-run mode.
+        #   - Succeeds quietly when the directory does not exist or contains no files.
+        #
+        # Inputs (globals):
+        #   SOURCE_DIR
+        #   FLAG_DRYRUN
+        #
+        # . Returns
+        #   0 when all applicable files are executable or the directory is absent.
+        #   1 when one or more permission updates fail.
+        #
+        # . Usage
+        #   _ensure_libexec_executables
+    _ensure_libexec_executables() {
+        local libexec_root="${SOURCE_DIR%/}/usr/local/libexec/solidgroundux"
+        local file=""
+        local failed=0
+
+        [[ -d "$libexec_root" ]] || {
+            saydebug "No SolidGroundUX libexec directory found at $libexec_root; skipping executable-bit verification."
+            return 0
+        }
+
+        while IFS= read -r -d '' file; do
+            [[ -x "$file" ]] && continue
+
+            if (( ${FLAG_DRYRUN:-0} )); then
+                sayinfo "[DRYRUN] Would have set executable permissions on $file"
+                continue
+            fi
+
+            if chmod a+x "$file"; then
+                sayok "Set executable permissions on $file"
+            else
+                saywarning "Could not set executable permissions on $file"
+                failed=1
+            fi
+        done < <(find "$libexec_root" -mindepth 1 -maxdepth 1 -type f -print0)
+
+        return "$failed"
+    }
+
 # --- Main Sequence -------------------------------------------------------------------
     # fn: main - Run the executable main sequence - Run the executable main sequence
         # . Purpose
@@ -960,6 +1011,7 @@ set -uo pipefail
 
         _get_parameters
         _apply_version_bump || exit $?
+        _ensure_libexec_executables || exit $?
         _create_tar
         _cleanup_staging
     }

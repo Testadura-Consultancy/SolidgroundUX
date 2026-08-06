@@ -3,9 +3,9 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621814
+#   Build       : 2621816
 #   Checksum    : 5bff562120cfce033e863485ad7eb1aa0ca9b3bf8baa0cd5dee067e293513ccc
-#   Source      : 25-samba-file-server-v2.sh
+#   Source      : 25-samba-file-server.sh
 #   Type        : module
 #   Group       : SolidGround Console
 #   Purpose     : Install and manage Samba file services
@@ -72,7 +72,7 @@ set -uo pipefail
 # - Module metadata -------------------------------------------------------------
     SGND_SAMBA_FILE_MODULE_ID="samba-file-server"
     SGND_SAMBA_FILE_MODULE_NAME="Samba File Server"
-    SGND_SAMBA_FILE_MODULE_VERSION="1.0.0"
+    SGND_SAMBA_FILE_MODULE_VERSION="1.2.0"
     SGND_SAMBA_FILE_MODULE_DESC="Install and manage Samba file services"
 
     SGND_MODULE_ID="${SGND_SAMBA_FILE_MODULE_ID}"
@@ -140,6 +140,8 @@ set -uo pipefail
         [[ -r "$SGND_SAMBA_CONFIG" ]] || return 1
         grep -Eqi "^[[:space:]]*\\[$share_name\\][[:space:]]*$" "$SGND_SAMBA_CONFIG"
     }
+
+
 
     # fn$ _samba_reload_configuration
         # . Purpose
@@ -426,6 +428,138 @@ set -uo pipefail
         sayok "Samba share '$share_name' removed successfully."
     }
 
+
+# - Share management ------------------------------------------------------------
+    # fn: samba_manage_shares - Launch the interactive Samba share manager
+        # . Purpose
+        #   Start the dedicated executable used to select and manage one or more shares.
+        #
+        # . Behavior
+        #   - Resolves manage-samba-shares.sh beneath the active framework root.
+        #   - Verifies that the executable exists and is executable.
+        #   - Passes the current dry-run mode to the manager.
+        #   - Returns to the SolidGroundUX console when the manager exits.
+        #
+        # Inputs (globals):
+        #   SGND_FRAMEWORK_ROOT
+        #   FLAG_DRYRUN
+        #
+        # . Returns
+        #   Exit status returned by manage-samba-shares.sh.
+        #
+        # . Usage
+        #   samba_manage_shares
+    samba_manage_shares() {
+        local manager_path="${SGND_FRAMEWORK_ROOT%/}/usr/local/libexec/solidgroundux/manage-samba-shares.sh"
+        local -a manager_args=()
+
+        [[ -x "$manager_path" ]] || {
+            sayfail "Samba share manager is not executable: $manager_path"
+            return 1
+        }
+
+        if (( ${FLAG_DRYRUN:-0} )); then
+            manager_args+=(--dryrun)
+        fi
+
+        "$manager_path" "${manager_args[@]}"
+    }
+
+    # fn$ samba_validate_file_server
+        # . Purpose
+        #   Run active validation checks against the Samba file-server role and managed shares.
+        #
+        # . Behavior
+        #   - Verifies Samba commands, configuration, and smbd service state.
+        #   - Verifies mounted storage and the standard share root.
+        #   - Checks every configured non-global share for a valid backing directory.
+        #   - Requires managed share paths to remain beneath SGND_SAMBA_SHARE_ROOT.
+        #   - Displays each result and returns failure when any required check fails.
+        #
+        # . Returns
+        #   0 when all checks pass, otherwise 1.
+        #
+        # . Usage
+        #   samba_validate_file_server
+    samba_validate_file_server() {
+        local failures=0
+        local result=""
+        local share_name=""
+        local share_path=""
+        local share_count=0
+
+        sgnd_print
+        sgnd_print_sectionheader "Validate Samba File Server"
+
+        if command -v smbd >/dev/null 2>&1 && command -v testparm >/dev/null 2>&1; then
+            result="Passed"
+        else
+            result="Failed"
+            failures=$((failures + 1))
+        fi
+        sgnd_print_labeledvalue --label "Samba tools" --value "$result" --labelwidth 24
+
+        if command -v testparm >/dev/null 2>&1 && sudo testparm -s >/dev/null 2>&1; then
+            result="Passed"
+        else
+            result="Failed"
+            failures=$((failures + 1))
+        fi
+        sgnd_print_labeledvalue --label "Configuration" --value "$result" --labelwidth 24
+
+        if systemctl is-active --quiet smbd.service; then
+            result="Passed"
+        else
+            result="Failed"
+            failures=$((failures + 1))
+        fi
+        sgnd_print_labeledvalue --label "smbd service" --value "$result" --labelwidth 24
+
+        if mountpoint -q /srv/storage; then
+            result="Passed"
+        else
+            result="Failed"
+            failures=$((failures + 1))
+        fi
+        sgnd_print_labeledvalue --label "Storage mounted" --value "$result" --labelwidth 24
+
+        if [[ -d "$SGND_SAMBA_SHARE_ROOT" ]]; then
+            result="Passed"
+        else
+            result="Failed"
+            failures=$((failures + 1))
+        fi
+        sgnd_print_labeledvalue --label "Share root" --value "$result" --labelwidth 24
+
+        if command -v testparm >/dev/null 2>&1; then
+            while IFS= read -r share_name; do
+                [[ -n "$share_name" ]] || continue
+                share_count=$((share_count + 1))
+                share_path="$(sudo testparm -s --section-name "$share_name" --parameter-name path 2>/dev/null || true)"
+
+                if [[ "$share_path" == "$SGND_SAMBA_SHARE_ROOT/"* && -d "$share_path" ]]; then
+                    result="Passed"
+                else
+                    result="Failed"
+                    failures=$((failures + 1))
+                fi
+
+                sgnd_print_labeledvalue --label "Share: $share_name" --value "$result" --labelwidth 24
+            done < <(sudo testparm -s 2>/dev/null | awk '/^\[[^]]+\]$/ { name=$0; gsub(/^\[|\]$/, "", name); if (tolower(name) != "global") print name }')
+        fi
+
+        sgnd_print_labeledvalue --label "Configured shares" --value "$share_count" --labelwidth 24
+        sgnd_print
+
+        if (( failures == 0 )); then
+            sayok "All Samba file-server validation checks passed."
+            return 0
+        fi
+
+        sayfail "$failures Samba file-server validation check(s) failed."
+        return 1
+    }
+
 # - Console registration ---------------------------------------------------------
     sgnd_console_register_group \
         "$SGND_SAMBA_FILE_MODULE_ID" \
@@ -476,11 +610,31 @@ set -uo pipefail
         1
 
     sgnd_console_register_item \
+        "smb-share-manage" \
+        "$SGND_SAMBA_FILE_MODULE_ID" \
+        "Manage shares" \
+        "samba_manage_shares" \
+        "Select and manage one or more configured Samba shares" \
+        0 \
+        25 \
+        1
+
+    sgnd_console_register_item \
+        "smb-validate" \
+        "$SGND_SAMBA_FILE_MODULE_ID" \
+        "Validate file server" \
+        "samba_validate_file_server" \
+        "Run active checks against Samba services, configuration, and managed shares" \
+        0 \
+        30 \
+        1
+
+    sgnd_console_register_item \
         "smb-status" \
         "$SGND_SAMBA_FILE_MODULE_ID" \
         "Show file-server status" \
         "samba_file_server_status" \
         "Show Samba service, configuration, and storage status" \
         0 \
-        25 \
+        35 \
         1

@@ -5,7 +5,7 @@
 #   Version     : 1.8
 #   Build       : 2621804
 #   Checksum    : 479ddd58d87e375a43feded7db7b6d38570956292058f114eba5384a7d9a7fb2
-#   Source      : 20-active-directory.sh
+#   Source      : 20-active-directory-v2.sh
 #   Type        : module
 #   Group       : SolidGround Console
 #   Purpose     : Install and manage Active Directory server and client roles
@@ -1273,14 +1273,39 @@ set -uo pipefail
         sayok "Active Directory client packages installed."
     }
 
-    # fn: ad_client_status - Show current realm membership
+    # fn$ ad_client_status
+        # . Purpose
+        #   Display the current machine identity and Active Directory realm membership.
+        #
+        # . Behavior
+        #   - Resolves and displays the current machine FQDN.
+        #   - Displays the configured realm membership reported by realmd.
+        #   - Reports when realmd is unavailable.
+        #
+        # Outputs (console):
+        #   Current machine FQDN and realm membership details.
+        #
         # . Returns
         #   Exit status from realm list.
+        #   1 when realmd is not installed.
         #
         # . Usage
         #   ad_client_status
     ad_client_status() {
-        command -v realm >/dev/null 2>&1 || { saywarning "realmd is not installed."; return 1; }
+        local fqdn=""
+
+        command -v realm >/dev/null 2>&1 || {
+            saywarning "realmd is not installed."
+            return 1
+        }
+
+        fqdn="$(hostname -f 2>/dev/null || true)"
+        [[ -n "$fqdn" ]] || fqdn="Not resolved"
+
+        sgnd_print
+        sgnd_print_sectionheader "Active Directory membership"
+        sgnd_print_labeledvalue --label "Machine FQDN" --value "$fqdn" --labelwidth 20
+        sgnd_print
         realm list
     }
 

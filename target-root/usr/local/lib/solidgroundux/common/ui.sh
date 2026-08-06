@@ -919,6 +919,180 @@ set -uo pipefail
             "${valueclr}${value}${RESET}"
     }
 
+    # fn$ sgnd_print_labeledmultivalue
+        # . Purpose
+        #   Print one label followed by a value that may span multiple aligned lines.
+        #
+        # . Behavior
+        #   - Renders the label and separator only on the first output line.
+        #   - Aligns continuation lines with the first value column.
+        #   - Accepts either one large value or an array of discrete items.
+        #   - Starts every supplied item on a new value line.
+        #   - Wraps long values and items to the requested or available value width.
+        #   - Applies the configured label and value colors to every rendered line.
+        #
+        # . options
+        #   --label VALUE
+        #       Label rendered on the first line.
+        #   --value VALUE
+        #       One value that may contain long text or embedded newlines.
+        #   --items ITEM...
+        #       Remaining arguments are treated as individual values. This option must
+        #       be the final option in the call.
+        #   --valuewidth WIDTH
+        #       Maximum visible width of the value column. Defaults to the available
+        #       width after padding, label, and separator are accounted for.
+        #   --sep VALUE
+        #       Separator between label and first value. Defaults to a colon.
+        #   --labelwidth WIDTH
+        #       Visible width reserved for the label. Defaults to 25.
+        #   --maxwidth WIDTH
+        #       Maximum total render width.
+        #   --pad COUNT
+        #       Number of spaces before the label. Defaults to 0.
+        #   --labelclr ANSI
+        #       ANSI sequence used for the label.
+        #   --valueclr ANSI
+        #       ANSI sequence used for the value lines.
+        #
+        # . Output
+        #   Writes one or more aligned labeled-value lines to stdout.
+        #
+        # . Returns
+        #   0 after rendering.
+        #   2 when no label is supplied or a numeric option is invalid.
+        #
+        # . Usage
+        #   sgnd_print_labeledmultivalue \
+        #       --label "Changed files" \
+        #       --labelwidth 20 \
+        #       --items "file-one.sh" "file-two.sh"
+        #
+        #   sgnd_print_labeledmultivalue \
+        #       --label "Description" \
+        #       --value "$description" \
+        #       --valuewidth 60
+    sgnd_print_labeledmultivalue() {
+        local label=""
+        local value=""
+        local sep=":"
+        local labelwidth=25
+        local valuewidth=""
+        local maxwidth="${SGND_CONSOLE_WIDTH:-}"
+        local pad=0
+        local labelclr="${SGND_UI_LABEL}"
+        local valueclr="${SGND_UI_VALUE}"
+        local input_mode="value"
+        local -a items=()
+
+        local available_width=0
+        local continuation_width=0
+        local continuation_prefix=""
+        local item=""
+        local raw_line=""
+        local wrapped_line=""
+        local first_output=1
+        local emitted=0
+
+        while [[ $# -gt 0 ]]; do
+            case "$1" in
+                --label)      label="$2"; shift 2 ;;
+                --value)      value="$2"; input_mode="value"; shift 2 ;;
+                --items)
+                    shift
+                    items=("$@")
+                    input_mode="items"
+                    break
+                    ;;
+                --valuewidth) valuewidth="$2"; shift 2 ;;
+                --sep)        sep="$2"; shift 2 ;;
+                --labelwidth) labelwidth="$2"; shift 2 ;;
+                --maxwidth)   maxwidth="$2"; shift 2 ;;
+                --pad)        pad="$2"; shift 2 ;;
+                --labelclr)   labelclr="$2"; shift 2 ;;
+                --valueclr)   valueclr="$2"; shift 2 ;;
+                --)           shift; break ;;
+                *)
+                    if [[ -z "$label" ]]; then
+                        label="$1"
+                    elif [[ -z "$value" ]]; then
+                        value="$1"
+                    fi
+                    shift
+                    ;;
+            esac
+        done
+
+        [[ -n "$label" ]] || return 2
+        [[ "$labelwidth" =~ ^[0-9]+$ ]] || return 2
+        [[ "$pad" =~ ^[0-9]+$ ]] || return 2
+        [[ -z "$valuewidth" || "$valuewidth" =~ ^[1-9][0-9]*$ ]] || return 2
+
+        maxwidth="$(sgnd_render_width "$maxwidth")"
+        continuation_width=$(( pad + labelwidth + 1 + ${#sep} + 1 ))
+        available_width=$(( maxwidth - continuation_width ))
+        (( available_width < 1 )) && available_width=1
+
+        if [[ -z "$valuewidth" ]] || (( valuewidth > available_width )); then
+            valuewidth="$available_width"
+        fi
+
+        printf -v continuation_prefix '%*s' "$continuation_width" ''
+
+        _sgnd_labeledmultivalue_emit() {
+            local line="$1"
+
+            if (( first_output )); then
+                printf '%*s%s %s %s%s%s\n' \
+                    "$pad" "" \
+                    "${labelclr}$(printf "%-*.*s" "$labelwidth" "$labelwidth" "$label")${RESET}" \
+                    "$sep" \
+                    "$valueclr" "$line" "$RESET"
+                first_output=0
+            else
+                printf '%s%s%s%s\n' \
+                    "$continuation_prefix" \
+                    "$valueclr" "$line" "$RESET"
+            fi
+            emitted=1
+        }
+
+        if [[ "$input_mode" == "items" ]]; then
+            for item in "${items[@]}"; do
+                if [[ -z "$item" ]]; then
+                    _sgnd_labeledmultivalue_emit ""
+                    continue
+                fi
+
+                while IFS= read -r raw_line || [[ -n "$raw_line" ]]; do
+                    if [[ -z "$raw_line" ]]; then
+                        _sgnd_labeledmultivalue_emit ""
+                        continue
+                    fi
+
+                    while IFS= read -r wrapped_line || [[ -n "$wrapped_line" ]]; do
+                        _sgnd_labeledmultivalue_emit "$wrapped_line"
+                    done < <(sgnd_wrap_words --width "$valuewidth" --text "$raw_line")
+                done < <(printf '%s' "$item")
+            done
+        else
+            while IFS= read -r raw_line || [[ -n "$raw_line" ]]; do
+                if [[ -z "$raw_line" ]]; then
+                    _sgnd_labeledmultivalue_emit ""
+                    continue
+                fi
+
+                while IFS= read -r wrapped_line || [[ -n "$wrapped_line" ]]; do
+                    _sgnd_labeledmultivalue_emit "$wrapped_line"
+                done < <(sgnd_wrap_words --width "$valuewidth" --text "$raw_line")
+            done < <(printf '%s' "$value")
+        fi
+
+        (( emitted )) || _sgnd_labeledmultivalue_emit ""
+        unset -f _sgnd_labeledmultivalue_emit
+        return 0
+    }
+
     # fn: sgnd_print_fill - Print fill
         # . Purpose
         #   Print a left/right line filled to a target width.
