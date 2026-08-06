@@ -15,6 +15,33 @@
 <h2 class="ct-L1Sectionheader">Changelog</h2>
 <p class="ct-documentbody">All notable changes to SolidGroundUX are documented in this file.</p>
 <p class="ct-documentbody">The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.</p>
+<h2 class="ct-L1Sectionheader">Version 1.8 (Build 1.8.2621803)</h2>
+<h4 class="ct-L3Sectionheader">Changed</h4>
+<h5 class="ct-L3Sectionheader">Active Directory</h5>
+<ul>
+<li>Active Directory provisioning now updates the machine to use its own DNS server after successful domain creation.</li>
+<li>Refined the provisioning workflow to better separate networking responsibilities from Active Directory orchestration.</li>
+<li>Included Adiminstrator password prompt</li>
+<li>Fully automated and tested ad domain provisioning</li>
+</ul>
+<h5 class="ct-L3Sectionheader">Development Tools</h5>
+<ul>
+<li>`deploy-workspace.sh` now supports comma-separated filenames and shell-style file masks.</li>
+<li>Deployment settings are now persisted between sessions.</li>
+<li>Improved incremental deployment workflow by integrating support for the last successful deployment timestamp.</li>
+<li>`deploy-workspace.sh` now offers an interactive **Since last deployment** prompt.</li>
+<li>When **Since last deployment** is selected, the stored deployment timestamp is displayed and the **Changed after** prompt is skipped.</li>
+<li>When **Since last deployment** is not selected, **Changed after** defaults to `1900-01-01`.</li>
+<li>Improved deployment prompts and selection workflow for a more streamlined incremental deployment experience.</li>
+<li>Significantly enhanced incremental documentation generation workflow.</li>
+<li>Documentation generation now supports selective regeneration based on changed source files, substantially reducing documentation update time during development.</li>
+</ul>
+<h4 class="ct-L3Sectionheader">Resolved</h4>
+<h5 class="ct-L3Sectionheader">Development Tools</h5>
+<ul>
+<li>Fixed deployment state persistence for `deploy-workspace.sh`.</li>
+<li>Fixed deployment selection to correctly process multiple filename filters in a single deployment operation.</li>
+</ul>
 <h2 class="ct-L1Sectionheader">Version 1.8 (Build 2621612)</h2>
 <h3 class="ct-L2Sectionheader">SolidGround Management Console</h3>
 <h4 class="ct-L3Sectionheader">Added</h4>

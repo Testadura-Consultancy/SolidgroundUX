@@ -14,13 +14,10 @@ Where implementation, documentation, historical practice, or personal preference
 
 We hold these principles to be self-evident:
 
-		That software should be understandable, maintainable and predictable.
-
-		That consistency outweighs novelty.
-
-		That technology exists to serve its users.
-
-		That every contribution should leave the framework stronger than it was found.
+- *That software should be understandable, maintainable and predictable.*
+- *That consistency outweighs novelty.*
+- *That technology exists to serve its users.*
+- *That every contribution should leave the framework stronger than it was found.*
 
 These principles are not immutable.
 

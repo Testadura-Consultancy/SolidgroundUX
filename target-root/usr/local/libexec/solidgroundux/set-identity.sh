@@ -4,8 +4,8 @@
 # ------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621201
-#   Checksum    : 261cd9559564692ec5977f221ad5309dd237fafdc42be8285ede604e9c2edf37
+#   Build       : 2621801
+#   Checksum    : c8135a739beaad2826861f548e89821aa317b2919703f5b172a2862f9e437ac0
 #   Source      : set-identity.sh
 #   Type        : script
 #   Group       : SolidGround Console
@@ -221,6 +221,7 @@ set -uo pipefail
         "Ipv4|i|value|TARGET_IPV4|Target static IPv4 address with CIDR|"
         "dhcp||enum|USE_DHCP|Use DHCP for IPv4 configuration|yes,no"
         "DNS|d|value|TARGET_DNS|Target DNS server IP address|"
+        "dns-only||flag|FLAG_DNS_ONLY|Update only the configured DNS server|"
         "Gateway|g|value|TARGET_GATEWAY|Target gateway IP address|"
         "Hostname|n|value|TARGET_HOSTNAME|Target hostname for the VM|"
         "Netplan|p|value|NETPLAN_FILE|Path to the netplan configuration file|"
@@ -696,6 +697,14 @@ set -uo pipefail
             printf '%s\n' '  ethernets:'
             printf '    %s:\n' "$PRIMARY_IFACE"
             printf '%s\n' '      dhcp4: true'
+
+            if (( ${FLAG_DNS_ONLY:-0} == 1 )); then
+                printf '%s\n' '      dhcp4-overrides:'
+                printf '%s\n' '        use-dns: false'
+                printf '%s\n' '      nameservers:'
+                printf '%s\n' '        addresses:'
+                printf '          - %s\n' "$TARGET_DNS"
+            fi
         } > "$output_file"
     }
 
@@ -917,6 +926,21 @@ set -uo pipefail
         _set_defaults
         sgnd_exe_start --needroot "$@"
         _load_current_values || exit $?
+
+        if (( ${FLAG_DNS_ONLY:-0} == 1 )); then
+            [[ -n "$TARGET_DNS" ]] || {
+                sayfail "A DNS server address is required in DNS-only mode."
+                exit 1
+            }
+
+            sgnd_validate_ipv4 "$TARGET_DNS" || {
+                sayfail "Invalid DNS server IPv4 address: $TARGET_DNS"
+                exit 1
+            }
+
+            _network_config || exit $?
+            exit 0
+        fi
 
         _get_usr_input || exit $?
         _detect_primary_iface || exit $?

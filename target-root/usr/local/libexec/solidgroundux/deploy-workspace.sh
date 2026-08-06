@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621612
-#   Checksum    : 1b4e4702aa978e6a26ea682256faaf31dca934544d5a6d5ae0f78794fd3b3252
+#   Build       : 2621803
+#   Checksum    : d557ed0fc4333a677f82b332d06cba2c3911280accf9c9f1aa8ca78267032099
 #   Source      : deploy-workspace.sh
 #   Type        : script
 #   Group       : SDK Tools
@@ -20,7 +20,8 @@
 #   - Selection and transport remain separate from destination-side installation policy
 #   - Local and remote deployment use the same receive-files.sh contract
 #   - Command-line values override saved defaults
-#   - Deployment state is updated only after a successful receive operation
+#   - Confirmed deployment settings are always saved; the success timestamp changes only after a successful receive operation
+#   - Changed-after defaults to the last successful deployment timestamp when available
 #
 # Attribution:
 #   Developers  : Mark Fieten
@@ -160,7 +161,7 @@ set -uo pipefail
         "source|s|value|SRC_ROOT|Workspace source root|"
         "target|t|value|DEST_ROOT|Destination filesystem root|"
         "directory|d|value|SELECT_DIRECTORY|Optional directory below the workspace root|"
-        "match|m|value|SELECT_MATCH|Filename or shell-style file mask|"
+        "match|m|value|SELECT_MATCH|Comma-separated filenames or shell-style file masks|"
         "changed-after|c|value|CHANGED_AFTER|Only include files modified after this date or timestamp|"
         "since-last||flag|FLAG_SINCE_LAST|Only include files changed since the last successful deployment|0|"
         "receiver||value|RECEIVER_PATH|Path to receive-files.sh on the destination|"
@@ -187,7 +188,6 @@ set -uo pipefail
         DEST_ROOT
         SELECT_DIRECTORY
         SELECT_MATCH
-        CHANGED_AFTER
         RECEIVER_PATH
         LAST_DEPLOY_SUCCESS
     )
@@ -195,7 +195,7 @@ set -uo pipefail
     SGND_ON_EXIT_HANDLERS=(
     )
 
-    SGND_STATE_SAVE=0
+    SGND_STATE_SAVE=1
 
 # --- Local declarations ---------------------------------------------------------------
     DEPLOY_TRANSPORT="${DEPLOY_TRANSPORT:-}"
@@ -215,6 +215,7 @@ set -uo pipefail
     CLI_SELECT_DIRECTORY=0
     CLI_SELECT_MATCH=0
     CLI_CHANGED_AFTER=0
+    CLI_SINCE_LAST=0
     CLI_RECEIVER_PATH=0
 
     SELECTED_PATHS=()
@@ -311,9 +312,11 @@ set -uo pipefail
     _select_files() {
         local search_root="$SRC_ROOT"
         local directory=""
-        local match="${SELECT_MATCH:-*}"
+        local match_list="${SELECT_MATCH:-*}"
         local changed_after="${CHANGED_AFTER:-1900-01-01}"
         local candidate=""
+        local pattern=""
+        local -a patterns=()
 
         SELECTED_PATHS=()
 
@@ -338,9 +341,17 @@ set -uo pipefail
             changed_after="$LAST_DEPLOY_SUCCESS"
         fi
 
-        while IFS= read -r -d '' candidate; do
-            _add_selected_file "$candidate"
-        done < <(find "$search_root" -type f -name "$match" -newermt "$changed_after" -print0)
+        IFS=',' read -r -a patterns <<< "$match_list"
+
+        for pattern in "${patterns[@]}"; do
+            pattern="${pattern#"${pattern%%[![:space:]]*}"}"
+            pattern="${pattern%"${pattern##*[![:space:]]}"}"
+            [[ -n "$pattern" ]] || continue
+
+            while IFS= read -r -d '' candidate; do
+                _add_selected_file "$candidate"
+            done < <(find "$search_root" -type f -name "$pattern" -newermt "$changed_after" -print0)
+        done
 
         if (( ${#SELECTED_PATHS[@]} == 0 )); then
             saywarning "No deployable files matched the filters."
@@ -364,7 +375,7 @@ set -uo pipefail
         # Outputs (globals)
         #   CLI_DEPLOY_TRANSPORT, CLI_REMOTE_TARGET, CLI_SRC_ROOT, CLI_DEST_ROOT,
         #   CLI_SELECT_DIRECTORY, CLI_SELECT_MATCH, CLI_CHANGED_AFTER,
-        #   CLI_RECEIVER_PATH
+        #   CLI_SINCE_LAST, CLI_RECEIVER_PATH
         #
         # . Returns
         #   0 always.
@@ -427,6 +438,7 @@ set -uo pipefail
                     CLI_CHANGED_AFTER=1
                     ;;
                 --since-last)
+                    CLI_SINCE_LAST=1
                     ;;
                 --receiver)
                     CLI_RECEIVER_PATH=1
@@ -524,6 +536,7 @@ set -uo pipefail
         #   _getparameters || return $?
     _getparameters() {
         local reply=""
+        local since_last="N"
 
         if [[ "${FLAG_LOCAL:-0}" -eq 1 ]]; then
             DEPLOY_TRANSPORT="local"
@@ -538,6 +551,10 @@ set -uo pipefail
         : "${SELECT_MATCH:=*}"
         : "${CHANGED_AFTER:=1900-01-01}"
         : "${RECEIVER_PATH:=/usr/local/libexec/solidgroundux/receive-files.sh}"
+
+        if [[ "${FLAG_SINCE_LAST:-0}" -eq 1 ]]; then
+            since_last="Y"
+        fi
 
         if [[ "${FLAG_AUTO:-0}" -eq 1 ]]; then
             _validate_parameters || return $?
@@ -601,23 +618,52 @@ set -uo pipefail
             fi
 
             if (( ! CLI_SELECT_MATCH )); then
-                sgnd_print "Enter one filename or a shell-style file mask."
-                sgnd_print "Use * to include every filename; quote masks on the command line."
+                sgnd_print "Enter one or more filenames or shell-style file masks."
+                sgnd_print "Separate multiple entries with commas; use * to include every filename."
 
-                ask --label "File or mask" \
+                ask --label "Files or masks" \
                     --var SELECT_MATCH \
                     --default "$SELECT_MATCH" \
                     --colorize both
             fi
 
-            if [[ "${FLAG_SINCE_LAST:-0}" -eq 0 ]] && (( ! CLI_CHANGED_AFTER )); then
-                sgnd_print "Only files modified after this date or timestamp are included."
-                sgnd_print "Use 1900-01-01 to apply no practical date restriction."
+            if (( CLI_CHANGED_AFTER )); then
+                FLAG_SINCE_LAST=0
+            elif (( CLI_SINCE_LAST )); then
+                sgnd_print_labeledvalue \
+                    --label "Last succeededdeployment" \
+                    --value "${LAST_DEPLOY_SUCCESS:-Not available}"
+            else
+                if [[ -n "${LAST_DEPLOY_SUCCESS:-}" ]]; then
+                    sgnd_print "Deploy only files changed since the last successful deployment."
+                    ask --label "Since last deployment (Y/N)" \
+                        --var since_last \
+                        --default "$since_last" \
+                        --colorize both
+                else
+                    since_last="N"
+                    sgnd_print "No successful deployment timestamp is available yet."
+                fi
 
-                ask --label "Changed after" \
-                    --var CHANGED_AFTER \
-                    --default "$CHANGED_AFTER" \
-                    --colorize both
+                case "${since_last^^}" in
+                    Y|YES)
+                        FLAG_SINCE_LAST=1
+                        sgnd_print_labeledvalue \
+                            --label "Last succeeded deployment" \
+                            --value "$LAST_DEPLOY_SUCCESS"
+                        ;;
+                    *)
+                        FLAG_SINCE_LAST=0
+                        CHANGED_AFTER="1900-01-01"
+                        sgnd_print "Only files modified after this date or timestamp are included."
+                        sgnd_print "Use 1900-01-01 to apply no practical date restriction."
+
+                        ask --label "Changed after" \
+                            --var CHANGED_AFTER \
+                            --default "$CHANGED_AFTER" \
+                            --colorize both
+                        ;;
+                esac
             fi
 
             if (( ! CLI_RECEIVER_PATH )); then
@@ -749,10 +795,6 @@ set -uo pipefail
             LAST_DEPLOY_SUCCESS="$started_at"
         fi
 
-        if [[ "${FLAG_DRYRUN:-0}" -eq 0 ]]; then
-            SGND_STATE_SAVE=1
-        fi
-
         sayend "Deployment completed successfully."
         return 0
     }
@@ -770,9 +812,10 @@ set -uo pipefail
     main() {
         _capture_cli_parameters "$@"
         _framework_locator || exit $?
-        sgnd_exe_start --state -- "$@"
+        sgnd_exe_start --autostate -- "$@"
 
         _getparameters || return $?
+
         _deploy
     }
 

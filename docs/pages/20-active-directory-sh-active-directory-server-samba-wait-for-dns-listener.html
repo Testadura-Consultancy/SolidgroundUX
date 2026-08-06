@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>_samba_wait_for_dns_listener</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">_samba_wait_for_dns_listener</div>
+  <div class="doc-breadcrumb">SolidgroundUX / 20-active-directory.sh / Active Directory server / _samba_wait_for_dns_listener</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Wait briefly for Samba DNS to bind TCP and UDP port 53.</div>
+<div class="ct-functionbody"></div>
+<p class="ct-functionbody">Inputs:</p>
+<div class="ct-functionbody">  $1 - Maximum number of seconds to wait. Defaults to 15.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 when both TCP and UDP listeners are detected.</div>
+<div class="ct-functionbody">  1 when the timeout expires.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  _samba_wait_for_dns_listener 15</div>
+</main>
+</body>
+</html>

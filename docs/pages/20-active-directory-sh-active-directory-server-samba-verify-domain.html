@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>samba_verify_domain</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">samba_verify_domain</div>
+  <div class="doc-breadcrumb">SolidgroundUX / 20-active-directory.sh / Active Directory server / samba_verify_domain</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Perform active verification of the local Samba Active Directory domain.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Validates the Samba configuration and AD/DC service state.</div>
+<div class="ct-functionbody">  - Verifies TCP and UDP DNS listeners and essential AD DNS records.</div>
+<div class="ct-functionbody">  - Tests local domain information and Samba database consistency.</div>
+<div class="ct-functionbody">  - Verifies the installed Kerberos configuration.</div>
+<div class="ct-functionbody">  - Optionally requests and displays an Administrator Kerberos ticket.</div>
+<div class="ct-functionbody">  - Pauses after the Kerberos test so the result remains visible.</div>
+<div class="ct-functionbody">  - Displays each verification result and returns failure when a required check fails.</div>
+<div class="ct-functionbody"></div>
+<p class="ct-functionbody">Inputs (globals):</p>
+<div class="ct-functionbody">  FLAG_DRYRUN</div>
+<div class="ct-functionbody"></div>
+<p class="ct-functionbody">Outputs (console):</p>
+<div class="ct-functionbody">  Verification results for configuration, service, DNS, directory, database, and Kerberos.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 when all required checks succeed.</div>
+<div class="ct-functionbody">  1 when the domain is unavailable or one or more required checks fail.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  samba_verify_domain</div>
+</main>
+</body>
+</html>

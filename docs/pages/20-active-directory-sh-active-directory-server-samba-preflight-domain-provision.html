@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>_samba_preflight_domain_provision</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">_samba_preflight_domain_provision</div>
+  <div class="doc-breadcrumb">SolidgroundUX / 20-active-directory.sh / Active Directory server / _samba_preflight_domain_provision</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Validate the local host and requested domain settings before provisioning.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Verifies hostname, FQDN, server address, and basic time synchronization state.</div>
+<div class="ct-functionbody">  - Rejects loopback or self-referencing DNS forwarders.</div>
+<div class="ct-functionbody">  - Detects remnants of an incomplete Samba domain provision.</div>
+<div class="ct-functionbody">  - Reports all detected blocking conditions before returning.</div>
+<div class="ct-functionbody"></div>
+<p class="ct-functionbody">Inputs:</p>
+<div class="ct-functionbody">  $1 - Requested DNS domain.</div>
+<div class="ct-functionbody">  $2 - Server IPv4 address.</div>
+<div class="ct-functionbody">  $3 - DNS forwarder IPv4 address.</div>
+<div class="ct-functionbody">  $4 - Optional FQDN override used for non-mutating validation.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 when no blocking condition is detected.</div>
+<div class="ct-functionbody">  1 when provisioning should not continue.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  _samba_preflight_domain_provision &quot;testadura.hq&quot; &quot;192.168.0.10&quot; &quot;192.168.0.1&quot;</div>
+</main>
+</body>
+</html>

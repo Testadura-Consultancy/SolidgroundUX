@@ -3,15 +3,15 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621612
-#   Checksum    : 5c6cd2a9faeed00bb04def6b10518e04fe4a070971b07b03288d44dc5f46306b
+#   Build       : 2621801
+#   Checksum    : 0715a610a451b6be9749b90fd087c5349a0600ec9f4292c463421c306881cd12
 #   Source      : 10-computer-setup.sh
 #   Type        : module
 #   Group       : SolidGround Console
 #   Purpose     : Prepare and maintain the base computer
 #
 # Description:
-#   Configures computer identity, template state, SSH, and the standard Ubuntu package baseline.
+#   Configures computer identity, template state, SSH, SolidGroundUX sudo access, and the standard Ubuntu package baseline.
 #
 # Attribution:
 #   Developers    : Mark Fieten
@@ -71,7 +71,7 @@ set -uo pipefail
     SGND_COMPUTER_SETUP_MODULE_ID="computer-setup"
     SGND_COMPUTER_SETUP_MODULE_NAME="Computer Setup"
     SGND_COMPUTER_SETUP_MODULE_VERSION="1.0.0"
-    SGND_COMPUTER_SETUP_MODULE_DESC="Configure identity, SSH, templates, and baseline packages"
+    SGND_COMPUTER_SETUP_MODULE_DESC="Configure identity, SSH, sudo access, templates, and baseline packages"
 
     SGND_MODULE_ID="${SGND_COMPUTER_SETUP_MODULE_ID}"
     SGND_MODULE_NAME="${SGND_COMPUTER_SETUP_MODULE_NAME}"
@@ -288,6 +288,41 @@ set -uo pipefail
             "$@"
     }
 
+    # fn$ _set_dns_server
+        # . Purpose
+        #   Update the machine's configured DNS server without changing its hostname
+        #   or address assignment mode.
+        #
+        # . Behavior
+        #   - Delegates to set-identity.sh in DNS-only automatic mode.
+        #   - Preserves the current hostname, interface, IPv4 address, gateway, and
+        #     DHCP/static selection.
+        #   - Rewrites and applies the active Netplan configuration through the
+        #     canonical identity workflow.
+        #
+        # Inputs:
+        #   $1 - DNS server IPv4 address.
+        #
+        # . Returns
+        #   Returns the underlying set-identity.sh status.
+        #
+        # . Usage
+        #   _set_dns_server "192.168.0.15"
+    _set_dns_server() {
+        local dns_server="${1:-}"
+
+        [[ -n "$dns_server" ]] || {
+            sayfail "A DNS server IPv4 address is required."
+            return 1
+        }
+
+        _sgnd_run_module_script \
+            "set-identity.sh" \
+            --dns-only \
+            --DNS "$dns_server" \
+            --Auto
+    }
+
     # fn: _prep_template - Prep template
         # . Purpose
         #   Prep template.
@@ -464,6 +499,107 @@ set -uo pipefail
         sayinfo "Package cleanup completed successfully."
     }
 
+
+    # fn$ _configure_solidgroundux_sudoers
+        # . Purpose
+        #   Configure passwordless sudo access for trusted SolidGroundUX administration tools.
+        #
+        # . Behavior
+        #   - Prompts for the local administrator account.
+        #   - Creates /etc/sudoers.d/solidgroundux using a temporary file.
+        #   - Grants passwordless root execution for tools beneath
+        #     /usr/local/libexec/solidgroundux.
+        #   - Validates the generated rule with visudo before installation.
+        #   - Honors console dry-run mode.
+        #
+        # . Returns
+        #   0 when the sudoers rule is valid and installed, otherwise non-zero.
+        #
+        # . Usage
+        #   _configure_solidgroundux_sudoers
+    _configure_solidgroundux_sudoers() {
+        local admin_user="${SUDO_USER:-${USER:-sysadmin}}"
+        local sudoers_file="/etc/sudoers.d/solidgroundux"
+        local temp_file=""
+        local reply=0
+
+        ask --label "SolidGroundUX administrator" \
+            --var admin_user \
+            --default "$admin_user" \
+            --labelwidth 32
+
+        if ! id "$admin_user" >/dev/null 2>&1; then
+            sayfail "User does not exist: $admin_user"
+            return 1
+        fi
+
+        sgnd_print
+        sgnd_print "This grants $admin_user passwordless sudo access to trusted"
+        sgnd_print "SolidGroundUX administration tools beneath:"
+        sgnd_print "  /usr/local/libexec/solidgroundux"
+        sgnd_print
+
+        ask_dlg_autocontinue \
+            --seconds 15 \
+            --message "Configure SolidGroundUX sudo access for $admin_user?" \
+            --cancel
+
+        reply=$?
+        case "$reply" in
+            0|1) ;;
+            2) saycancel "Sudo configuration cancelled."; return 1 ;;
+            *) sayfail "Unexpected confirmation response: $reply"; return 1 ;;
+        esac
+
+        if (( ${FLAG_DRYRUN:-0} == 1 )); then
+            sayinfo "Dry run: Would create $sudoers_file for $admin_user."
+            return 0
+        fi
+
+        command -v visudo >/dev/null 2>&1 || {
+            sayfail "visudo is unavailable. Install the sudo package first."
+            return 1
+        }
+
+        temp_file="$(mktemp "${TMPDIR:-/tmp}/solidgroundux-sudoers.XXXXXX")" || {
+            sayfail "Cannot create temporary sudoers file."
+            return 1
+        }
+
+        printf '%s\n' \
+            '# SolidGroundUX sudo policy' \
+            '# Passwordless elevation for trusted framework administration tools.' \
+            'Cmnd_Alias SGND_ADMIN = /usr/local/libexec/solidgroundux/*' \
+            "$admin_user ALL=(root) NOPASSWD: SGND_ADMIN" \
+            > "$temp_file" || {
+                rm -f -- "$temp_file"
+                sayfail "Cannot write temporary sudoers configuration."
+                return 1
+            }
+
+        if ! visudo -cf "$temp_file" >/dev/null; then
+            rm -f -- "$temp_file"
+            sayfail "Generated sudoers configuration is invalid."
+            return 1
+        fi
+
+        if ! sudo install -m 0440 -o root -g root "$temp_file" "$sudoers_file"; then
+            rm -f -- "$temp_file"
+            sayfail "Failed to install $sudoers_file."
+            return 1
+        fi
+
+        rm -f -- "$temp_file"
+
+        if ! sudo visudo -cf "$sudoers_file" >/dev/null; then
+            sayfail "Installed sudoers configuration failed validation."
+            return 1
+        fi
+
+        sayok "SolidGroundUX passwordless sudo access configured for $admin_user."
+        return 0
+    }
+
 # - Console registration ---------------------------------------------------------
     sgnd_console_register_group \
         "$SGND_COMPUTER_SETUP_MODULE_ID" \
@@ -477,6 +613,7 @@ set -uo pipefail
     sgnd_console_register_item "machid" "$SGND_COMPUTER_SETUP_MODULE_ID" "Generate machine ID" "_init_machine" "Generate a new machine ID" 0 5 1
     sgnd_console_register_item "sshcfg" "$SGND_COMPUTER_SETUP_MODULE_ID" "Configure SSH service" "_configure_ssh_service" "Enable or disable the SSH service" 0 5 1
     sgnd_console_register_item "sshkeys" "$SGND_COMPUTER_SETUP_MODULE_ID" "Generate SSH host keys" "_generate_ssh_keys" "Generate SSH host keys and restart SSH" 0 5 1
+    sgnd_console_register_item "sudoers" "$SGND_COMPUTER_SETUP_MODULE_ID" "Setup SolidGround sudo access" "_configure_solidgroundux_sudoers" "Allow the administrator to run trusted SolidGroundUX tools without a password" 0 5 1
 
     sgnd_console_register_group "package-management" "Package Management" "Install the computer baseline and maintain Ubuntu packages" 0 1 110
     sgnd_console_register_item "basepkg" "package-management" "Install base packages" "_install_basepackages" "Install the Ubuntu baseline packages" 0 5 1

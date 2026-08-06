@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>_configure_solidgroundux_sudoers</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">_configure_solidgroundux_sudoers</div>
+  <div class="doc-breadcrumb">SolidgroundUX / 10-computer-setup.sh / Module actions / _configure_solidgroundux_sudoers</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Configure passwordless sudo access for trusted SolidGroundUX administration tools.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Prompts for the local administrator account.</div>
+<div class="ct-functionbody">  - Creates /etc/sudoers.d/solidgroundux using a temporary file.</div>
+<div class="ct-functionbody">  - Grants passwordless root execution for tools beneath</div>
+<div class="ct-functionbody">    /usr/local/libexec/solidgroundux.</div>
+<div class="ct-functionbody">  - Validates the generated rule with visudo before installation.</div>
+<div class="ct-functionbody">  - Honors console dry-run mode.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 when the sudoers rule is valid and installed, otherwise non-zero.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  _configure_solidgroundux_sudoers</div>
+</main>
+</body>
+</html>

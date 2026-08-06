@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>_samba_prepare_fqdn</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">_samba_prepare_fqdn</div>
+  <div class="doc-breadcrumb">SolidgroundUX / 20-active-directory.sh / Active Directory server / _samba_prepare_fqdn</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Configure the domain controller FQDN before Samba AD provisioning.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Derives the required FQDN from the current short hostname and DNS domain.</div>
+<div class="ct-functionbody">  - Replaces existing /etc/hosts entries for the current hostname.</div>
+<div class="ct-functionbody">  - Adds a canonical IPv4 hosts entry for the future domain controller.</div>
+<div class="ct-functionbody">  - Preserves localhost and unrelated host mappings.</div>
+<div class="ct-functionbody">  - Verifies that hostname -f resolves to the expected FQDN.</div>
+<div class="ct-functionbody"></div>
+<p class="ct-functionbody">Inputs:</p>
+<div class="ct-functionbody">  $1 - Server IPv4 address.</div>
+<div class="ct-functionbody">  $2 - Active Directory DNS domain.</div>
+<div class="ct-functionbody"></div>
+<p class="ct-functionbody">Outputs (files):</p>
+<div class="ct-functionbody">  /etc/hosts</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 when the FQDN is configured and verified.</div>
+<div class="ct-functionbody">  1 when validation, file generation, installation, or verification fails.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  _samba_prepare_fqdn &quot;192.168.0.253&quot; &quot;testadura.hq&quot;</div>
+</main>
+</body>
+</html>

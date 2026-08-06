@@ -4,6 +4,44 @@ All notable changes to SolidGroundUX are documented in this file.
 
 The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.
 
+
+# Version 1.8 (Build 1.8.2621804)
+
+## Changed
+
+### Active Directory
+
+- Active Directory provisioning now automatically configures the domain controller to use itself as the primary DNS server after successful domain creation.
+- Refined the provisioning workflow with a clearer separation between network configuration and Active Directory provisioning responsibilities.
+- Active Directory provisioning now prompts for the Administrator account password as part of the provisioning process.
+- Completed and fully validated the end-to-end Active Directory provisioning workflow, including DNS, Kerberos, and domain verification.
+
+### Development Tools
+
+- `deploy-workspace.sh` now supports comma-separated filenames and shell-style file masks.
+- Deployment settings are now persisted automatically between sessions.
+- Added support for incremental deployments based on the last successful deployment timestamp.
+- `deploy-workspace.sh` now offers an interactive **Since last deployment** option.
+- When **Since last deployment** is selected, the stored deployment timestamp is displayed and the **Changed after** prompt is skipped.
+- When **Since last deployment** is not selected, the **Changed after** date defaults to `1900-01-01`.
+- Streamlined deployment prompts and selection workflow for a faster incremental deployment experience.
+- Significantly improved incremental documentation generation by supporting selective regeneration of changed source files, greatly reducing documentation build times during development.
+
+## Resolved
+
+### Active Directory
+
+- Fixed domain provisioning to correctly configure the required Fully Qualified Domain Name (FQDN) before provisioning.
+- Fixed DNS listener detection during Active Directory verification.
+- Fixed Kerberos configuration and verification workflow.
+- Fixed Active Directory verification to correctly validate DNS, directory services, and Kerberos authentication.
+- Fixed Administrator account configuration to support non-expiring passwords.
+
+### Development Tools
+
+- Fixed deployment state persistence in `deploy-workspace.sh`.
+- Fixed deployment selection to correctly process multiple filename filters during a single deployment operation.
+
 # Version 1.8 (Build 2621612)
 
 ## SolidGround Management Console

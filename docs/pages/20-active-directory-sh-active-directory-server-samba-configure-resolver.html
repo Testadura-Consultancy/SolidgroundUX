@@ -17,9 +17,14 @@
 <div class="ct-functionbody"></div>
 <div class="ct-functionbody sh-highlight">Behavior</div>
 <div class="ct-functionbody">  - Creates a SolidGroundUX systemd-resolved drop-in.</div>
-<div class="ct-functionbody">  - Disables the local DNS stub listener on port 53.</div>
+<div class="ct-functionbody">  - Configures the Active Directory DNS routing domain.</div>
+<div class="ct-functionbody">  - Disables the local DNS stub listener so Samba can bind port 53.</div>
+<div class="ct-functionbody">  - Leaves DNS server addresses under Netplan control.</div>
 <div class="ct-functionbody">  - Points /etc/resolv.conf at the non-stub resolver file.</div>
 <div class="ct-functionbody">  - Restarts systemd-resolved to apply the configuration.</div>
+<div class="ct-functionbody"></div>
+<p class="ct-functionbody">Inputs:</p>
+<div class="ct-functionbody">  $1 - Active Directory DNS domain.</div>
 <div class="ct-functionbody"></div>
 <p class="ct-functionbody">Outputs (files):</p>
 <div class="ct-functionbody">  /etc/systemd/resolved.conf.d/solidgroundux-samba-ad.conf</div>
@@ -30,7 +35,7 @@
 <div class="ct-functionbody">  Non-zero when a filesystem or service operation fails.</div>
 <div class="ct-functionbody"></div>
 <div class="ct-functionbody sh-highlight">Usage</div>
-<div class="ct-functionbody">  _samba_configure_resolver</div>
+<div class="ct-functionbody">  _samba_configure_resolver &quot;testadura.hq&quot;</div>
 </main>
 </body>
 </html>
