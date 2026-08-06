@@ -15,32 +15,56 @@
 <h2 class="ct-L1Sectionheader">Changelog</h2>
 <p class="ct-documentbody">All notable changes to SolidGroundUX are documented in this file.</p>
 <p class="ct-documentbody">The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.</p>
-<h2 class="ct-L1Sectionheader">Version 1.8 (Build 1.8.2621803)</h2>
-<h4 class="ct-L3Sectionheader">Changed</h4>
-<h5 class="ct-L3Sectionheader">Active Directory</h5>
+<h2 class="ct-L1Sectionheader">Unreleased</h2>
+<h3 class="ct-L2Sectionheader">SolidGround Framework</h3>
+<h4 class="ct-L3Sectionheader">Added</h4>
 <ul>
-<li>Active Directory provisioning now updates the machine to use its own DNS server after successful domain creation.</li>
-<li>Refined the provisioning workflow to better separate networking responsibilities from Active Directory orchestration.</li>
-<li>Included Adiminstrator password prompt</li>
-<li>Fully automated and tested ad domain provisioning</li>
+<li>Added `ask_datetime`, a datetime-aware variant of `ask` that accepts both absolute dates and SolidGroundUX relative date/time expressions.</li>
+<li>Supported shortcuts include:</li>
+<li>`N` – current date and time</li>
+<li>`D` – today (start of day)</li>
+<li>Relative expressions such as `-2m`, `-2h`, `+30m`, `-1d`, `-3M`, and `-1y`</li>
+<li>Relative expressions are automatically resolved to an absolute ISO-8601 timestamp before being returned to the caller.</li>
 </ul>
-<h5 class="ct-L3Sectionheader">Development Tools</h5>
+<h3 class="ct-L2Sectionheader">Development Tools</h3>
+<h4 class="ct-L3Sectionheader">Changed</h4>
+<ul>
+<li>`deploy-workspace.sh` now uses `ask_datetime` for the **Changed after** prompt.</li>
+<li>The deployment filter now accepts SolidGroundUX relative date/time expressions (for example `N`, `D`, `-2h`, or `-1d`) in addition to absolute dates and timestamps.</li>
+</ul>
+<h2 class="ct-L1Sectionheader">Version 1.8 (Build 1.8.2621804)</h2>
+<h3 class="ct-L2Sectionheader">Changed</h3>
+<h4 class="ct-L3Sectionheader">Active Directory</h4>
+<ul>
+<li>Active Directory provisioning now automatically configures the domain controller to use itself as the primary DNS server after successful domain creation.</li>
+<li>Refined the provisioning workflow with a clearer separation between network configuration and Active Directory provisioning responsibilities.</li>
+<li>Active Directory provisioning now prompts for the Administrator account password as part of the provisioning process.</li>
+<li>Completed and fully validated the end-to-end Active Directory provisioning workflow, including DNS, Kerberos, and domain verification.</li>
+</ul>
+<h4 class="ct-L3Sectionheader">Development Tools</h4>
 <ul>
 <li>`deploy-workspace.sh` now supports comma-separated filenames and shell-style file masks.</li>
-<li>Deployment settings are now persisted between sessions.</li>
-<li>Improved incremental deployment workflow by integrating support for the last successful deployment timestamp.</li>
-<li>`deploy-workspace.sh` now offers an interactive **Since last deployment** prompt.</li>
+<li>Deployment settings are now persisted automatically between sessions.</li>
+<li>Added support for incremental deployments based on the last successful deployment timestamp.</li>
+<li>`deploy-workspace.sh` now offers an interactive **Since last deployment** option.</li>
 <li>When **Since last deployment** is selected, the stored deployment timestamp is displayed and the **Changed after** prompt is skipped.</li>
-<li>When **Since last deployment** is not selected, **Changed after** defaults to `1900-01-01`.</li>
-<li>Improved deployment prompts and selection workflow for a more streamlined incremental deployment experience.</li>
-<li>Significantly enhanced incremental documentation generation workflow.</li>
-<li>Documentation generation now supports selective regeneration based on changed source files, substantially reducing documentation update time during development.</li>
+<li>When **Since last deployment** is not selected, the **Changed after** date defaults to `1900-01-01`.</li>
+<li>Streamlined deployment prompts and selection workflow for a faster incremental deployment experience.</li>
+<li>Significantly improved incremental documentation generation by supporting selective regeneration of changed source files, greatly reducing documentation build times during development.</li>
 </ul>
-<h4 class="ct-L3Sectionheader">Resolved</h4>
-<h5 class="ct-L3Sectionheader">Development Tools</h5>
+<h3 class="ct-L2Sectionheader">Resolved</h3>
+<h4 class="ct-L3Sectionheader">Active Directory</h4>
 <ul>
-<li>Fixed deployment state persistence for `deploy-workspace.sh`.</li>
-<li>Fixed deployment selection to correctly process multiple filename filters in a single deployment operation.</li>
+<li>Fixed domain provisioning to correctly configure the required Fully Qualified Domain Name (FQDN) before provisioning.</li>
+<li>Fixed DNS listener detection during Active Directory verification.</li>
+<li>Fixed Kerberos configuration and verification workflow.</li>
+<li>Fixed Active Directory verification to correctly validate DNS, directory services, and Kerberos authentication.</li>
+<li>Fixed Administrator account configuration to support non-expiring passwords.</li>
+</ul>
+<h4 class="ct-L3Sectionheader">Development Tools</h4>
+<ul>
+<li>Fixed deployment state persistence in `deploy-workspace.sh`.</li>
+<li>Fixed deployment selection to correctly process multiple filename filters during a single deployment operation.</li>
 </ul>
 <h2 class="ct-L1Sectionheader">Version 1.8 (Build 2621612)</h2>
 <h3 class="ct-L2Sectionheader">SolidGround Management Console</h3>

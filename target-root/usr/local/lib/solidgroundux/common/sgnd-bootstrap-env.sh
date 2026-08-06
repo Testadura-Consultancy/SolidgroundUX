@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621803
-#   Checksum    : 91f5c706e727ee70960a91b110d077a148ca58abcf98a4f881b9e68763ad9646
+#   Build       : 2621814
+#   Checksum    : 6f2b7d71abc3de68d668ca417d4488b5bb5bf903a7e7a75d81965b76fc55dbe1
 #   Source      : sgnd-bootstrap-env.sh
 #   Type        : library
 #   Group       : Bootstrap
@@ -90,7 +90,7 @@ set -uo pipefail
         #   framework metadata, informational output, and license checks.
     SGND_PRODUCT="SolidGroundUX"
     SGND_VERSION="1.8"
-    SGND_BUILD="2621804"
+    SGND_BUILD="2621814"
     SGND_COMPANY="Testadura Consultancy"
     SGND_COPYRIGHT="© 2025 - 2026 Testadura Consultancy"
     SGND_LICENSE="Testadura Non-Commercial License (TD-NC) v1.1."

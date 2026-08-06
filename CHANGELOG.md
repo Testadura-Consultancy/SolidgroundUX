@@ -4,6 +4,23 @@ All notable changes to SolidGroundUX are documented in this file.
 
 The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.
 
+# Unreleased
+
+## SolidGround Framework
+
+### Added
+- Added `ask_datetime`, a datetime-aware variant of `ask` that accepts both absolute dates and SolidGroundUX relative date/time expressions.
+- Supported shortcuts include:
+  - `N` – current date and time
+  - `D` – today (start of day)
+  - Relative expressions such as `-2m`, `-2h`, `+30m`, `-1d`, `-3M`, and `-1y`
+- Relative expressions are automatically resolved to an absolute ISO-8601 timestamp before being returned to the caller.
+
+## Development Tools
+
+### Changed
+- `deploy-workspace.sh` now uses `ask_datetime` for the **Changed after** prompt.
+- The deployment filter now accepts SolidGroundUX relative date/time expressions (for example `N`, `D`, `-2h`, or `-1d`) in addition to absolute dates and timestamps.
 
 # Version 1.8 (Build 1.8.2621804)
 

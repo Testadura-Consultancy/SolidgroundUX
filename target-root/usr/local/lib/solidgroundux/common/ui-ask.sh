@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621201
-#   Checksum    : ed6d84b7c76fc291d09f8ad2e37a0c82782d11455ad25d606fde25e24315719e
+#   Build       : 2621814
+#   Checksum    : e4f3249932fb628b9fef6a3911e70fe65d0f6a290b48ee025b0835c2e0eba258
 #   Source      : ui-ask.sh
 #   Type        : library
 #   Group       : UI
@@ -19,7 +19,7 @@
 #     - Supports constrained symbolic decisions
 #     - Supports timed auto-continue prompts with simple intervention keys
 #     - Supports typed and immediate choice selection helpers
-    - Supports normalized absolute and relative datetime input through ask_datetime
+#     - Supports normalized absolute and relative datetime input through ask_datetime
 #     - Supports prompting a variable set from field-spec lines
 #     - Reads input from the controlling terminal to avoid stdin conflicts
 #

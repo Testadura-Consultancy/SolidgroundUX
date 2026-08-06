@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>samba_remove_share</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">samba_remove_share</div>
+  <div class="doc-breadcrumb">SolidgroundUX / 25-samba-file-server.sh / Module actions / samba_remove_share</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Remove a SolidGroundUX-managed Samba share definition.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Removes the managed share section from smb.conf.</div>
+<div class="ct-functionbody">  - Optionally removes the backing directory and its contents.</div>
+<div class="ct-functionbody">  - Validates and reloads Samba after the change.</div>
+<div class="ct-functionbody">  - Honors console dry-run mode.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 when the share is removed or cancelled, otherwise non-zero.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  samba_remove_share</div>
+</main>
+</body>
+</html>

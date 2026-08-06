@@ -444,6 +444,8 @@
 <a class="doc-nav-item type-function" style="padding-left:60px" href="pages/deploy-workspace-sh-parameter-collection-capture-cli-parameters.html" target="docframe">_capture_cli_parameters</a>
 <a class="doc-nav-item type-function" style="padding-left:60px" href="pages/deploy-workspace-sh-parameter-collection-validate-parameters.html" target="docframe">_validate_parameters</a>
 <a class="doc-nav-item type-function" style="padding-left:60px" href="pages/deploy-workspace-sh-parameter-collection-getparameters.html" target="docframe">_getparameters</a>
+<a class="doc-nav-section type-section" style="padding-left:50px" href="pages/deploy-workspace-sh-reporting.html" target="docframe">Reporting</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/deploy-workspace-sh-reporting-print-deployment-summary.html" target="docframe">_print_deployment_summary</a>
 <a class="doc-nav-section type-section" style="padding-left:50px" href="pages/deploy-workspace-sh-transport.html" target="docframe">Transport</a>
 <a class="doc-nav-item type-function" style="padding-left:60px" href="pages/deploy-workspace-sh-transport-quote-remote-arg.html" target="docframe">_quote_remote_arg</a>
 <a class="doc-nav-item type-function" style="padding-left:60px" href="pages/deploy-workspace-sh-transport-stream-local.html" target="docframe">_stream_local</a>
@@ -628,9 +630,33 @@
 <summary style="padding-left:20px"><a class="doc-nav-module" href="pages/25-samba-file-server-sh.html" target="docframe">25-samba-file-server.sh</a></summary>
 <a class="doc-nav-section type-section" style="padding-left:30px" href="pages/25-samba-file-server-sh-library-guard.html" target="docframe">Library guard</a>
 <a class="doc-nav-item type-function" style="padding-left:40px" href="pages/25-samba-file-server-sh-library-guard-sgnd-lib-guard.html" target="docframe">_sgnd_lib_guard</a>
+<a class="doc-nav-section type-section" style="padding-left:30px" href="pages/25-samba-file-server-sh-internal-helpers.html" target="docframe">Internal helpers</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/25-samba-file-server-sh-internal-helpers-samba-validate-share-name.html" target="docframe">_samba_validate_share_name</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/25-samba-file-server-sh-internal-helpers-samba-require-share-root.html" target="docframe">_samba_require_share_root</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/25-samba-file-server-sh-internal-helpers-samba-share-exists.html" target="docframe">_samba_share_exists</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/25-samba-file-server-sh-internal-helpers-samba-reload-configuration.html" target="docframe">_samba_reload_configuration</a>
 <a class="doc-nav-section type-section" style="padding-left:30px" href="pages/25-samba-file-server-sh-module-actions.html" target="docframe">Module actions</a>
 <a class="doc-nav-item type-function" style="padding-left:40px" href="pages/25-samba-file-server-sh-module-actions-install-samba-file.html" target="docframe">_install_samba_file</a>
 <a class="doc-nav-item type-function" style="padding-left:40px" href="pages/25-samba-file-server-sh-module-actions-samba-file-server-status.html" target="docframe">samba_file_server_status</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/25-samba-file-server-sh-module-actions-samba-create-share.html" target="docframe">samba_create_share</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/25-samba-file-server-sh-module-actions-samba-list-shares.html" target="docframe">samba_list_shares</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/25-samba-file-server-sh-module-actions-samba-remove-share.html" target="docframe">samba_remove_share</a>
+</details>
+<details class="doc-nav-node level-2 type-module">
+<summary style="padding-left:20px"><a class="doc-nav-module" href="pages/26-storage-sh.html" target="docframe">26-storage.sh</a></summary>
+<a class="doc-nav-section type-section" style="padding-left:30px" href="pages/26-storage-sh-library-guard.html" target="docframe">Library guard</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/26-storage-sh-library-guard-sgnd-lib-guard.html" target="docframe">_sgnd_lib_guard</a>
+<a class="doc-nav-section type-section" style="padding-left:30px" href="pages/26-storage-sh-internal-helpers.html" target="docframe">Internal helpers</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/26-storage-sh-internal-helpers-storage-validate-device.html" target="docframe">_storage_validate_device</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/26-storage-sh-internal-helpers-storage-validate-mountpoint.html" target="docframe">_storage_validate_mountpoint</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/26-storage-sh-internal-helpers-storage-list-unused-disks.html" target="docframe">_storage_list_unused_disks</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/26-storage-sh-internal-helpers-storage-partition-path.html" target="docframe">_storage_partition_path</a>
+<a class="doc-nav-section type-section" style="padding-left:30px" href="pages/26-storage-sh-public-module-actions.html" target="docframe">Public module actions</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/26-storage-sh-public-module-actions-storage-configure.html" target="docframe">storage_configure</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/26-storage-sh-public-module-actions-storage-mount.html" target="docframe">storage_mount</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/26-storage-sh-public-module-actions-storage-unmount.html" target="docframe">storage_unmount</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/26-storage-sh-public-module-actions-storage-expand.html" target="docframe">storage_expand</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/26-storage-sh-public-module-actions-storage-status.html" target="docframe">storage_status</a>
 </details>
 <details class="doc-nav-node level-2 type-module">
 <summary style="padding-left:20px"><a class="doc-nav-module" href="pages/30-optional-roles-sh.html" target="docframe">30-optional-roles.sh</a></summary>
@@ -968,8 +994,10 @@
 <a class="doc-nav-item type-function" style="padding-left:40px" href="pages/mod-template-sh-library-guard-sgnd-lib-guard.html" target="docframe">_sgnd_lib_guard</a>
 <a class="doc-nav-section type-section" style="padding-left:30px" href="pages/mod-template-sh-module-metadata.html" target="docframe">Module metadata</a>
 <a class="doc-nav-section type-section" style="padding-left:30px" href="pages/mod-template-sh-internal-helpers.html" target="docframe">Internal helpers</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/mod-template-sh-internal-helpers-sample-format-status.html" target="docframe">_sample_format_status</a>
 <a class="doc-nav-section type-section" style="padding-left:30px" href="pages/mod-template-sh-public-module-actions.html" target="docframe">Public module actions</a>
-<a class="doc-nav-section type-section" style="padding-left:30px" href="pages/mod-template-sh-console-registration.html" target="docframe">Console registration</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/mod-template-sh-public-module-actions-sample-show-status.html" target="docframe">sample_show_status</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/mod-template-sh-public-module-actions-sample-run-action.html" target="docframe">sample_run_action</a>
 </details>
 </details>
 <details class="doc-nav-node level-1 type-group doc-nav-special">
@@ -990,8 +1018,10 @@
 <a class="doc-nav-item type-function" style="padding-left:60px" href="pages/ui-ask-sh-internal-helpers-ask-decision-map-dlg-rc.html" target="docframe">_ask_decision_map_dlg_rc</a>
 <a class="doc-nav-item type-function" style="padding-left:60px" href="pages/ui-ask-sh-internal-helpers-ask-parse-fieldspec.html" target="docframe">_ask_parse_fieldspec</a>
 <a class="doc-nav-item type-function" style="padding-left:60px" href="pages/ui-ask-sh-internal-helpers-ask-is-ident.html" target="docframe">_ask_is_ident</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/ui-ask-sh-internal-helpers-ask-datetime-normalize.html" target="docframe">_ask_datetime_normalize</a>
 <a class="doc-nav-section type-section" style="padding-left:50px" href="pages/ui-ask-sh-public-api.html" target="docframe">Public API</a>
 <a class="doc-nav-item type-function" style="padding-left:60px" href="pages/ui-ask-sh-public-api-ask.html" target="docframe">ask</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/ui-ask-sh-public-api-ask-datetime.html" target="docframe">ask_datetime</a>
 <a class="doc-nav-item type-function" style="padding-left:60px" href="pages/ui-ask-sh-public-api-ask-decision.html" target="docframe">ask_decision</a>
 <a class="doc-nav-item type-function" style="padding-left:60px" href="pages/ui-ask-sh-public-api-ask-dlg-autocontinue.html" target="docframe">ask_dlg_autocontinue</a>
 <a class="doc-nav-item type-function" style="padding-left:60px" href="pages/ui-ask-sh-public-api-ask-choose.html" target="docframe">ask_choose</a>
