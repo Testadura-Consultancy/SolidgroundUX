@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>ad_client_add_dns_record</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">ad_client_add_dns_record</div>
+  <div class="doc-breadcrumb">SolidgroundUX / 20-active-directory.sh / Active Directory client / ad_client_add_dns_record</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Register this Active Directory client&#x27;s A record on the domain DNS server.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Uses the joined realm when no realm is supplied by the caller.</div>
+<div class="ct-functionbody">  - Determines the local machine FQDN and primary IPv4 address.</div>
+<div class="ct-functionbody">  - Finds the DNS server serving the Active Directory realm.</div>
+<div class="ct-functionbody">  - Prompts for an account when one is not supplied by the caller.</div>
+<div class="ct-functionbody">  - Requests confirmation for manual console use.</div>
+<div class="ct-functionbody">  - Can be called non-interactively by ad_client_join while using exactly</div>
+<div class="ct-functionbody">    the same DNS-record implementation as the manual menu action.</div>
+<div class="ct-functionbody">  - Verifies the resulting A record directly against the AD DNS server.</div>
+<div class="ct-functionbody">  - Honors dry-run mode without changing DNS.</div>
+<div class="ct-functionbody"></div>
+<p class="ct-functionbody">Inputs:</p>
+<div class="ct-functionbody">  $1 - Optional realm name.</div>
+<div class="ct-functionbody">  $2 - Optional Active Directory account.</div>
+<div class="ct-functionbody">  $3 - Optional confirmation flag: 1 prompts, 0 does not. Defaults to 1.</div>
+<div class="ct-functionbody"></div>
+<p class="ct-functionbody">Inputs (globals):</p>
+<div class="ct-functionbody">  FLAG_DRYRUN</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 when the record exists after the operation, is cancelled, or dry-run succeeds.</div>
+<div class="ct-functionbody">  Non-zero when client identity, DNS discovery, samba-tool, or verification fails.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  ad_client_add_dns_record</div>
+<div class="ct-functionbody">  ad_client_add_dns_record &quot;testadura.hq&quot; &quot;Administrator&quot; 0</div>
+</main>
+</body>
+</html>

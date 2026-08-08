@@ -348,6 +348,7 @@ set -uo pipefail
         SGND_CONSOLE_LIBEXEC_DIRECTORY=""
         SGND_CONSOLE_DEFAULT_MODULE_DIRECTORY=""
         SGND_CONSOLE_MODULE_PATH=""
+        SGND_CONSOLE_MODULE_STATE_FILE=""
         SGND_CURRENT_MODULE=""
         SGND_LAST_WAITSECS=15
         declare -ag SGND_CONSOLE_ORIGINAL_ARGS=()
@@ -412,6 +413,7 @@ set -uo pipefail
         SGND_CONSOLE_SBIN_DIRECTORY="${SGND_APPLICATION_ROOT%/}/usr/local/sbin"
         SGND_CONSOLE_LIBEXEC_DIRECTORY="${SGND_APPLICATION_ROOT%/}/usr/local/libexec/solidgroundux"
         SGND_CONSOLE_DEFAULT_MODULE_DIRECTORY="${SGND_CONSOLE_LIBEXEC_DIRECTORY%/}/console-modules"
+        SGND_CONSOLE_MODULE_STATE_FILE="${SGND_STATE_DIR%/}/console-modules.state"
     }
 
     # --- Console configuration -------------------------------------------------------
@@ -527,6 +529,7 @@ set -uo pipefail
         sgnd_console_register_item "t" "$SGND_GROUP_RUNTIME" "Theme" "_sgnd_console_cycle_theme" "Cycle installed themes" 1 0 0
 
         sgnd_console_register_item "S" "$SGND_GROUP_SESSION" "Open shell" "_sgnd_console_open_shell" "Open an interactive shell; exit returns to the console" 1 0 1
+        sgnd_console_register_item "M" "$SGND_GROUP_SESSION" "Manage modules" "_sgnd_console_manage_modules" "Enable or disable console modules" 1 0 1
         sgnd_console_register_item "L" "$SGND_GROUP_SESSION" "Set lines per page" "_sgnd_console_set_lines_per_page" "Set the maximum number of menu lines per page" 1 0 1
         sgnd_console_register_item "<" "$SGND_GROUP_SESSION" "Previous page" "_sgnd_console_prevpage" "Show previous menu page" 1 0 0
         sgnd_console_register_item ">" "$SGND_GROUP_SESSION" "Next page" "_sgnd_console_nextpage" "Show next menu page" 1 0 0
@@ -611,6 +614,201 @@ set -uo pipefail
         sgnd_dt_has_row "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS key "$key"
     }
 
+    # --- Module visibility ----------------------------------------------------------
+    # fn$: _sgnd_console_module_id_from_filename - Derive module ID from filename
+        # . Returns
+        #   0 after writing the normalized module ID to stdout.
+        #
+        # . Usage
+        #   _sgnd_console_module_id_from_filename "20-active-directory.sh"
+    _sgnd_console_module_id_from_filename() {
+        local module_name=""
+
+        module_name="$(basename -- "${1:?missing module file}")"
+        module_name="${module_name%.sh}"
+        module_name="${module_name#[0-9][0-9]-}"
+        printf '%s\n' "$module_name"
+    }
+
+    # fn$: _sgnd_console_module_state_get - Read module visibility state
+        # . Returns
+        #   Writes enabled or disabled. Missing entries default to enabled.
+        #
+        # . Usage
+        #   _sgnd_console_module_state_get "active-directory"
+    _sgnd_console_module_state_get() {
+        local module_id="${1:?missing module ID}"
+        local state=""
+
+        if [[ -r "$SGND_CONSOLE_MODULE_STATE_FILE" ]]; then
+            state="$(awk -F= -v id="$module_id" '$1 == id { value=$2 } END { print value }' "$SGND_CONSOLE_MODULE_STATE_FILE")"
+        fi
+
+        case "$state" in
+            disabled) printf '%s\n' "disabled" ;;
+            *)        printf '%s\n' "enabled" ;;
+        esac
+    }
+
+    # fn$: _sgnd_console_module_enabled - Test whether a module is enabled
+        # . Returns
+        #   0 when enabled or unspecified; 1 when explicitly disabled.
+        #
+        # . Usage
+        #   _sgnd_console_module_enabled "active-directory"
+    _sgnd_console_module_enabled() {
+        [[ "$(_sgnd_console_module_state_get "${1:?missing module ID}")" == "enabled" ]]
+    }
+
+    # fn$: _sgnd_console_module_state_set - Persist module visibility state
+        # . Returns
+        #   0 when the state file was updated successfully.
+        #
+        # . Usage
+        #   _sgnd_console_module_state_set "active-directory" "disabled"
+    _sgnd_console_module_state_set() {
+        local module_id="${1:?missing module ID}"
+        local state="${2:?missing module state}"
+        local state_dir=""
+        local temp_file=""
+
+        case "$state" in
+            enabled|disabled) ;;
+            *) return 2 ;;
+        esac
+
+        state_dir="$(dirname -- "$SGND_CONSOLE_MODULE_STATE_FILE")"
+        mkdir -p -- "$state_dir" || return 1
+        temp_file="$(mktemp "${SGND_CONSOLE_MODULE_STATE_FILE}.XXXXXX")" || return 1
+
+        if [[ -r "$SGND_CONSOLE_MODULE_STATE_FILE" ]]; then
+            awk -F= -v id="$module_id" '$1 != id { print }' "$SGND_CONSOLE_MODULE_STATE_FILE" > "$temp_file" || {
+                rm -f -- "$temp_file"
+                return 1
+            }
+        fi
+
+        printf '%s=%s\n' "$module_id" "$state" >> "$temp_file" || {
+            rm -f -- "$temp_file"
+            return 1
+        }
+
+        mv -- "$temp_file" "$SGND_CONSOLE_MODULE_STATE_FILE"
+    }
+
+    # fn$: _sgnd_console_discover_module_files - Discover configured module files
+        # . Returns
+        #   Writes sorted module paths to stdout.
+        #
+        # . Usage
+        #   mapfile -t modules < <(_sgnd_console_discover_module_files)
+    _sgnd_console_discover_module_files() {
+        local module_path="${SGND_CONSOLE_MODULE_PATH:?missing module source}"
+
+        if [[ -f "$module_path" ]]; then
+            printf '%s\n' "$module_path"
+            return 0
+        fi
+
+        [[ -d "$module_path" ]] || return 126
+        find "$module_path" -maxdepth 1 -type f -name '*.sh' -print0 | sort -z | tr '\0' '\n'
+    }
+
+    # fn: _sgnd_console_manage_modules - Enable or disable console modules
+        # . Purpose
+        #   Edit persisted module visibility without loading disabled modules.
+        #
+        # . Behavior
+        #   - Discovers modules from the configured module source.
+        #   - Derives each module ID from its ordered filename.
+        #   - Toggles enabled/disabled state in console-modules.state.
+        #   - Applies changes on the next console start.
+        #
+        # . Returns
+        #   0 when the user returns to the console; non-zero on state-write failure.
+        #
+        # . Usage
+        #   _sgnd_console_manage_modules
+    _sgnd_console_manage_modules() {
+        local choice=""
+        local module=""
+        local module_id=""
+        local state=""
+        local next_state=""
+        local choices="Q"
+        local i=0
+        local -a module_files=()
+        local -a module_ids=()
+
+        mapfile -t module_files < <(_sgnd_console_discover_module_files) || return $?
+        (( ${#module_files[@]} > 0 )) || {
+            saywarning "No console modules were found."
+            return 0
+        }
+
+        while true; do
+            module_ids=()
+            choices="Q"
+
+            sgnd_print
+            sgnd_print_sectionheader "Console Modules"
+            sgnd_print "Select a module to toggle its visibility. Changes apply after restarting the console."
+            sgnd_print
+
+            for i in "${!module_files[@]}"; do
+                module="${module_files[$i]}"
+                module_id="$(_sgnd_console_module_id_from_filename "$module")"
+                module_ids+=("$module_id")
+                state="$(_sgnd_console_module_state_get "$module_id")"
+                choices+=",$((i + 1))"
+                sgnd_print_labeledvalue \
+                    --label "$((i + 1))) $module_id" \
+                    --value "${state^}" \
+                    --labelwidth 34
+            done
+
+            sgnd_print
+            sgnd_print "Q) Return"
+
+            ask_choose_immediate \
+                --label "Select module" \
+                --choices "$choices" \
+                --instantchoices "Q" \
+                --displaychoices 0 \
+                --keepasking 1 \
+                --preservecase 1 \
+                --var choice
+
+            [[ "${choice^^}" != "Q" ]] || return 0
+            [[ "$choice" =~ ^[0-9]+$ ]] || continue
+            (( choice >= 1 && choice <= ${#module_ids[@]} )) || continue
+
+            module_id="${module_ids[$((choice - 1))]}"
+            state="$(_sgnd_console_module_state_get "$module_id")"
+            if [[ "$state" == "enabled" ]]; then
+                next_state="disabled"
+            else
+                next_state="enabled"
+            fi
+
+            _sgnd_console_module_state_set "$module_id" "$next_state" || {
+                sayfail "Could not update module visibility for $module_id"
+                return 1
+            }
+        done
+    }
+
+    # fn: sgnd_console_package_installed - Test whether a Debian package is installed
+        # . Returns
+        #   0 when the package status is install ok installed; 1 otherwise.
+        #
+        # . Usage
+        #   sgnd_console_package_installed "samba-ad-dc"
+    sgnd_console_package_installed() {
+        local package="${1:?missing package name}"
+        [[ "$(dpkg-query -W -f='${Status}' "$package" 2>/dev/null || true)" == "install ok installed" ]]
+    }
+
     # --- Module loading -------------------------------------------------------------
     # fn: _sgnd_console_source_module - Source one console module
         # . Arguments
@@ -637,7 +835,7 @@ set -uo pipefail
 
         unset SGND_MODULE_ID SGND_MODULE_NAME SGND_MODULE_VERSION SGND_MODULE_DESC
         unset SGND_CONSOLE_TITLE_OVERRIDE SGND_CONSOLE_DESC_OVERRIDE
-        SGND_CURRENT_MODULE="$(basename "${module_file%.sh}")"
+        SGND_CURRENT_MODULE="$(_sgnd_console_module_id_from_filename "$module_file")"
         SGND_CURRENT_MODULE_DIR="$(dirname "$module_file")"
         saydebug "Loading module: $module_file"
 
@@ -650,12 +848,12 @@ set -uo pipefail
             return 126
         }
 
-        module_id="${SGND_MODULE_ID:-}"
+        module_id="$(_sgnd_console_module_id_from_filename "$module_file")"
         module_name="${SGND_MODULE_NAME:-}"
         module_version="${SGND_MODULE_VERSION:-}"
         module_desc="${SGND_MODULE_DESC:-}"
 
-        if [[ -z "$module_id" || -z "$module_name" || -z "$module_version" || -z "$module_desc" ]]; then
+        if [[ -z "$module_name" || -z "$module_version" || -z "$module_desc" ]]; then
             sayfail "Module metadata is incomplete: $module_file"
             unset SGND_CURRENT_MODULE SGND_CURRENT_MODULE_DIR
             unset SGND_MODULE_ID SGND_MODULE_NAME SGND_MODULE_VERSION SGND_MODULE_DESC
@@ -693,77 +891,44 @@ set -uo pipefail
 
     # fn: _sgnd_console_load_modules - Load configured console modules
         # . Purpose
-        #   Load one module file or all modules in a configured directory.
+        #   Load enabled modules from the configured module source.
         #
         # . Behavior
-        #   - Sources SGND_CONSOLE_MODULE_PATH directly when it is a .sh file.
-        #   - Sources every top-level .sh file when it is a directory.
-        #   - Loads directory modules in sorted filename order.
-        #   - Shows transient progress while modules are being loaded.
-        #   - Warns when a directory contains no modules.
-        #
-        # Inputs (globals):
-        #   SGND_CONSOLE_MODULE_PATH
+        #   - Derives module IDs from filenames before sourcing modules.
+        #   - Treats missing visibility entries as enabled.
+        #   - Skips modules explicitly marked disabled in console-modules.state.
+        #   - Loads enabled modules in sorted filename order.
+        #   - Shows transient progress while enabled modules are loaded.
         #
         # . Returns
-        #   0   success
-        #   126 module source missing or module load failed
+        #   0 on success.
+        #   126 when the module source is invalid or an enabled module fails to load.
         #
         # . Usage
         #   _sgnd_console_load_modules || return $?
     _sgnd_console_load_modules() {
-        local module_path="${SGND_CONSOLE_MODULE_PATH:?missing module source}"
         local module=""
+        local module_id=""
         local module_count=0
         local module_index=0
         local module_name=""
+        local -a discovered_files=()
         local -a module_files=()
 
-        if [[ -f "$module_path" ]]; then
-            sayprogress_begin --slots 1
+        mapfile -t discovered_files < <(_sgnd_console_discover_module_files) || return $?
 
-            sayprogress \
-                --slot 0 \
-                --current 0 \
-                --total 1 \
-                --label "Loading $(basename -- "$module_path")" \
-                --type 7 \
-                --padleft 0
-
-            _sgnd_console_source_module "$module_path" || {
-                sayprogress_done
-                return 126
-            }
-
-            sayprogress \
-                --slot 0 \
-                --current 1 \
-                --total 1 \
-                --label "Loaded $(basename -- "$module_path")" \
-                --type 7 \
-                --padleft 0
-
-            sayprogress_done
-            return 0
-        fi
-
-        [[ -d "$module_path" ]] || {
-            sayfail "Module source not found: $module_path"
-            return 126
-        }
-
-        mapfile -t module_files < <(
-            find "$module_path" -maxdepth 1 -type f -name '*.sh' -print0 |
-                sort -z |
-                while IFS= read -r -d '' module; do
-                    printf '%s\n' "$module"
-                done
-        )
+        for module in "${discovered_files[@]}"; do
+            module_id="$(_sgnd_console_module_id_from_filename "$module")"
+            if _sgnd_console_module_enabled "$module_id"; then
+                module_files+=("$module")
+            else
+                saydebug "Skipping disabled console module: $module_id"
+            fi
+        done
 
         module_count="${#module_files[@]}"
-
         if (( module_count == 0 )); then
-            saywarning "No modules found in: $module_path"
+            saywarning "No enabled console modules found in: $SGND_CONSOLE_MODULE_PATH"
             return 0
         fi
 
@@ -777,7 +942,7 @@ set -uo pipefail
                 --slot 0 \
                 --current "$module_index" \
                 --total "$module_count" \
-                --label "Loading $module_name" \
+                --label "Initializing $module_name" \
                 --type 7 \
                 --padleft 0
 
@@ -1051,7 +1216,7 @@ set -uo pipefail
             ask_choose_immediate \
                 --label "Select option" \
                 --choices "$valid_choices" \
-                --instantchoices "A,C,D,F,T,S,L,R,Q,<,>" \
+                --instantchoices "A,C,D,F,T,S,M,L,R,Q,<,>" \
                 --displaychoices 0 \
                 --keepasking 1 \
                 --preservecase 1 \
@@ -1299,6 +1464,10 @@ set -uo pipefail
 
         sgnd_print "Loading console modules"
         _sgnd_console_load_modules || exit $?
+
+        if (( SGND_CLEAR_ONRENDER )); then
+            printf '\033[2J\033[H'
+        fi
 
         if (( $(sgnd_dt_row_count SGND_ITEM_ROWS) == 0 )); then
             saywarning "No menu items registered"

@@ -75,7 +75,6 @@ set -uo pipefail
     SGND_SAMBA_FILE_MODULE_VERSION="1.3.0"
     SGND_SAMBA_FILE_MODULE_DESC="Install and manage Samba file services, shares, and access"
 
-    SGND_MODULE_ID="${SGND_SAMBA_FILE_MODULE_ID}"
     SGND_MODULE_NAME="${SGND_SAMBA_FILE_MODULE_NAME}"
     SGND_MODULE_VERSION="${SGND_SAMBA_FILE_MODULE_VERSION}"
     SGND_MODULE_DESC="${SGND_SAMBA_FILE_MODULE_DESC}"
@@ -84,7 +83,7 @@ set -uo pipefail
     SGND_SAMBA_CONFIG="/etc/samba/smb.conf"
 
 # - Internal helpers -------------------------------------------------------------
-    # fn$ _samba_validate_share_name
+    # fn: _samba_validate_share_name
         # . Purpose
         #   Validate a Samba share name used for its directory and configuration section.
         #
@@ -102,7 +101,7 @@ set -uo pipefail
         [[ "$share_name" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$ ]]
     }
 
-    # fn$ _samba_require_share_root
+    # fn: _samba_require_share_root
         # . Purpose
         #   Require mounted SolidGroundUX storage and its standard shares directory.
         #
@@ -125,7 +124,7 @@ set -uo pipefail
         return 0
     }
 
-    # fn$ _samba_share_exists
+    # fn: _samba_share_exists
         # . Purpose
         #   Determine whether a named share exists in the Samba configuration.
         #
@@ -143,7 +142,7 @@ set -uo pipefail
 
 
 
-    # fn$ _samba_reload_configuration
+    # fn: _samba_reload_configuration
         # . Purpose
         #   Validate the Samba configuration and reload the file-server service.
         #
@@ -159,40 +158,8 @@ set -uo pipefail
     }
 
 # - Module actions --------------------------------------------------------------
-    # fn$ _install_samba_file
-        # . Purpose
-        #   Install the packages required for a Samba file server.
-        #
-        # . Behavior
-        #   - Refreshes the APT package index.
-        #   - Installs Samba server, client diagnostics, ACL, and xattr tooling.
-        #   - Leaves storage and share definitions unchanged.
-        #
-        # . Returns
-        #   0 if the role packages were installed successfully, otherwise non-zero.
-        #
-        # . Usage
-        #   _install_samba_file
-    _install_samba_file() {
-        if (( ${FLAG_DRYRUN:-0} == 1 )); then
-            sayinfo "Dry run: Would install Samba file-server packages."
-            return 0
-        fi
 
-        sayinfo "Updating Ubuntu package index."
-        sudo apt-get update || return 1
-
-        sayinfo "Installing Samba file-server packages."
-        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y \
-            acl \
-            attr \
-            samba \
-            smbclient || return 1
-
-        sayinfo "Samba file-server packages installed; share configuration is still required."
-    }
-
-    # fn$ samba_file_server_status
+    # fn: samba_file_server_status
         # . Purpose
         #   Display Samba service, configuration, and storage readiness status.
         #
@@ -239,7 +206,7 @@ set -uo pipefail
         sgnd_print_labeledvalue --label "Share root" --value "$share_root_state" --labelwidth 20
     }
 
-    # fn$ samba_create_share
+    # fn: samba_create_share
         # . Purpose
         #   Create a directory-backed Samba share beneath the standard share root.
         #
@@ -347,7 +314,7 @@ set -uo pipefail
         sudo testparm -s 2>/dev/null | awk '/^\[[^]]+\]$/ { name=$0; gsub(/^\[|\]$/, "", name); if (tolower(name) != "global") print name }'
     }
 
-    # fn$ samba_remove_share
+    # fn: samba_remove_share
         # . Purpose
         #   Remove a SolidGroundUX-managed Samba share definition.
         #
@@ -465,7 +432,7 @@ set -uo pipefail
         "$manager_path" "${manager_args[@]}"
     }
 
-    # fn$ samba_validate_file_server
+    # fn: samba_validate_file_server
         # . Purpose
         #   Run active validation checks against the Samba file-server role and managed shares.
         #
@@ -561,23 +528,17 @@ set -uo pipefail
     }
 
 # - Console registration ---------------------------------------------------------
+    SGND_SAMBA_FILE_VISIBLE=0
+    sgnd_console_package_installed "samba" && SGND_SAMBA_FILE_VISIBLE=1
+
     sgnd_console_register_group \
         "$SGND_SAMBA_FILE_MODULE_ID" \
         "$SGND_SAMBA_FILE_MODULE_NAME" \
         "$SGND_SAMBA_FILE_MODULE_DESC" \
         0 \
-        1 \
+        "$SGND_SAMBA_FILE_VISIBLE" \
         250
 
-    sgnd_console_register_item \
-        "smb-install" \
-        "$SGND_SAMBA_FILE_MODULE_ID" \
-        "Install Samba File Server" \
-        "_install_samba_file" \
-        "Install Samba file-server packages" \
-        0 \
-        5 \
-        1
 
     sgnd_console_register_item \
         "smb-share-create" \
@@ -638,3 +599,5 @@ set -uo pipefail
         0 \
         35 \
         1
+
+unset SGND_SAMBA_FILE_VISIBLE

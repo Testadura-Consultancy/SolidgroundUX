@@ -13,20 +13,18 @@
   <div class="doc-breadcrumb">SolidgroundUX / sgnd-console.sh / Module loading / _sgnd_console_load_modules</div>
 </header>
 <div class="ct-functionbody sh-highlight">Purpose</div>
-<div class="ct-functionbody">  Load one module file or all modules in a configured directory.</div>
+<div class="ct-functionbody">  Load enabled modules from the configured module source.</div>
 <div class="ct-functionbody"></div>
 <div class="ct-functionbody sh-highlight">Behavior</div>
-<div class="ct-functionbody">  - Sources SGND_CONSOLE_MODULE_PATH directly when it is a .sh file.</div>
-<div class="ct-functionbody">  - Sources every top-level .sh file when it is a directory.</div>
-<div class="ct-functionbody">  - Loads directory modules in sorted filename order.</div>
-<div class="ct-functionbody">  - Warns when a directory contains no modules.</div>
-<div class="ct-functionbody"></div>
-<p class="ct-functionbody">Inputs (globals):</p>
-<div class="ct-functionbody">  SGND_CONSOLE_MODULE_PATH</div>
+<div class="ct-functionbody">  - Derives module IDs from filenames before sourcing modules.</div>
+<div class="ct-functionbody">  - Treats missing visibility entries as enabled.</div>
+<div class="ct-functionbody">  - Skips modules explicitly marked disabled in console-modules.state.</div>
+<div class="ct-functionbody">  - Loads enabled modules in sorted filename order.</div>
+<div class="ct-functionbody">  - Shows transient progress while enabled modules are loaded.</div>
 <div class="ct-functionbody"></div>
 <div class="ct-functionbody sh-highlight">Returns</div>
-<div class="ct-functionbody">  0   success</div>
-<div class="ct-functionbody">  126 module source missing or module load failed</div>
+<div class="ct-functionbody">  0 on success.</div>
+<div class="ct-functionbody">  126 when the module source is invalid or an enabled module fails to load.</div>
 <div class="ct-functionbody"></div>
 <div class="ct-functionbody sh-highlight">Usage</div>
 </main>

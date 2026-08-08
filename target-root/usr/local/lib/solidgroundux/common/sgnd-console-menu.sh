@@ -309,6 +309,7 @@ set -uo pipefail
         # . Behavior
         #   - Supports the module implementation; not intended as a public framework API.
         #   - Uses framework UI/output conventions for terminal or dialog interaction.
+        #   - Displays the current hostname right-aligned on the title line when space permits.
         #
         # . Returns
         #   0 on success unless the called command returns a different status.
@@ -860,6 +861,7 @@ set -uo pipefail
         local item_row_count=0
         local group_key=""
         local group_builtin="0"
+        local group_state="1"
         local item_group=""
         local item_builtin="0"
         local item_state="1"
@@ -872,6 +874,9 @@ set -uo pipefail
         for gi in "${SGND_GROUP_RENDER_INDEXES[@]}"; do
             group_builtin="${SGND_GROUP_CACHE_BUILTIN[$gi]}"
             (( group_builtin )) && continue
+
+            group_state="${SGND_GROUP_CACHE_VISIBLE[$gi]}"
+            (( group_state != 0 )) || continue
 
             group_key="${SGND_GROUP_CACHE_KEY[$gi]}"
 
@@ -1365,13 +1370,41 @@ set -uo pipefail
         #   _sgnd_console_render_menu_title
     _sgnd_console_render_menu_title() {
         (( ! SGND_CLEAR_ONRENDER )) || printf '\033[2J\033[H'
-        
+
         local width=80
+        local pad=4
+        local inner_width=0
+        local hostname_text=""
+        local title_len=0
+        local hostname_len=0
+        local gap=1
+        local title_style=""
+        local hostname_style=""
+
         width="$(sgnd_terminal_width)"
+        inner_width=$(( width - (pad * 2) ))
+        (( inner_width < 1 )) && inner_width=1
+
+        hostname_text="$(hostname 2>/dev/null || printf '%s' "${HOSTNAME:-unknown}")"
+        title_len="$(sgnd_visible_length "$SGND_CONSOLE_TITLE")"
+        hostname_len="$(sgnd_visible_length "$hostname_text")"
+        title_style="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")"
+        hostname_style="$(sgnd_sgr "$SGND_UI_VALUE" "" "$FX_ITALIC")"
 
         sgnd_print_sectionheader --border "$DL_H" --maxwidth "$width"
-        sgnd_print --pad 4 "$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")${SGND_CONSOLE_TITLE}${RESET}" --maxwidth "$width"
-        sgnd_print --pad 4 "$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_ITALIC")${SGND_CONSOLE_DESC}" --maxwidth "$width"
+
+        if (( title_len + hostname_len + 1 <= inner_width )); then
+            gap=$(( inner_width - title_len - hostname_len ))
+            printf '%*s%s%s%s%*s%s%s%s\n' \
+                "$pad" "" \
+                "$title_style" "$SGND_CONSOLE_TITLE" "$RESET" \
+                "$gap" "" \
+                "$hostname_style" "$hostname_text" "$RESET"
+        else
+            sgnd_print --pad "$pad" "${title_style}${SGND_CONSOLE_TITLE}${RESET}" --maxwidth "$width"
+        fi
+
+        sgnd_print --pad "$pad" "$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_ITALIC")${SGND_CONSOLE_DESC}" --maxwidth "$width"
         sgnd_print_sectionheader --border "$LN_H" --maxwidth "$width"
         sgnd_print
     }

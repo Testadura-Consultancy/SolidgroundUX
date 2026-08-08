@@ -62,7 +62,6 @@ set -uo pipefail
     SGND_SOLIDGROUNDUX_MODULE_VERSION="1.0.0"
     SGND_SOLIDGROUNDUX_MODULE_DESC="Manage the SolidGroundUX framework and installation"
 
-    SGND_MODULE_ID="${SGND_SOLIDGROUNDUX_MODULE_ID}"
     SGND_MODULE_NAME="${SGND_SOLIDGROUNDUX_MODULE_NAME}"
     SGND_MODULE_VERSION="${SGND_SOLIDGROUNDUX_MODULE_VERSION}"
     SGND_MODULE_DESC="${SGND_SOLIDGROUNDUX_MODULE_DESC}"
@@ -108,7 +107,7 @@ set -uo pipefail
     }
 
 # - Framework diagnostics --------------------------------------------------------
-    # _framework_smoketest
+    # fn: _framework_smoketest
         # Returns:
         #   Exit status of sgnd-framework-smoketest.
         #
@@ -121,7 +120,7 @@ set -uo pipefail
         _sgnd_run_public_command "sgnd-framework-smoketest"
     }
 
-    # _framework_show_environment
+    # fn: _framework_show_environment
         # Returns:
         #   Exit status of sgnd-framework-smoketest --show env.
         #
@@ -134,7 +133,7 @@ set -uo pipefail
         _sgnd_run_public_command "sgnd-framework-smoketest" --show env
     }
 
-    # _framework_show_about
+    # fn: _framework_show_about
         # Output:
         #   Displays Framework about info
         # Usage:
@@ -279,7 +278,7 @@ set -uo pipefail
         _framework_config_edit_file             "User framework configuration"             "${SGND_FRAMEWORK_USRCFG_FILE:-}"
     }
 
-    # _framework_config_validator
+    # fn: _framework_config_validator
         # Returns:
         #   Validator function name suitable for the requested configuration key.
         #
@@ -307,7 +306,7 @@ set -uo pipefail
         esac
     }
 
-    # _framework_config_validate_log_level
+    # fn: _framework_config_validate_log_level
         # Returns:
         #   0 for a supported framework log level; 1 otherwise.
         #
@@ -323,7 +322,7 @@ set -uo pipefail
         esac
     }
 
-    # _framework_config_write_value
+    # fn: _framework_config_write_value
         # Purpose:
         #   Replace or append one KEY=VALUE assignment in a cfg file.
         #
@@ -381,7 +380,7 @@ set -uo pipefail
         return "$rc"
     }
 
-    # framework_configure_file
+    # fn: framework_configure_file
         # Purpose:
         #   Interactively configure registered settings in a SolidGroundUX cfg file.
         #

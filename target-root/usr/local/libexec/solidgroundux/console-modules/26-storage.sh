@@ -75,7 +75,6 @@ set -uo pipefail
     SGND_STORAGE_MODULE_VERSION="1.1.0"
     SGND_STORAGE_MODULE_DESC="Configure and inspect local storage volumes"
 
-    SGND_MODULE_ID="${SGND_STORAGE_MODULE_ID}"
     SGND_MODULE_NAME="${SGND_STORAGE_MODULE_NAME}"
     SGND_MODULE_VERSION="${SGND_STORAGE_MODULE_VERSION}"
     SGND_MODULE_DESC="${SGND_STORAGE_MODULE_DESC}"
@@ -84,7 +83,7 @@ set -uo pipefail
     SGND_STORAGE_DEFAULT_SHARE_ROOT="/srv/storage/shares"
 
 # - Internal helpers -------------------------------------------------------------
-    # fn$ _storage_validate_device
+    # fn: _storage_validate_device
         # . Purpose
         #   Validate that a selected path is an unused whole block device.
         #
@@ -116,7 +115,7 @@ set -uo pipefail
         return 0
     }
 
-    # fn$ _storage_validate_mountpoint
+    # fn: _storage_validate_mountpoint
         # . Purpose
         #   Validate an absolute mount-point path.
         #
@@ -137,7 +136,7 @@ set -uo pipefail
         [[ "$mountpoint" != *[[:space:]]* ]] || return 1
     }
 
-    # fn$ _storage_list_unused_disks
+    # fn: _storage_list_unused_disks
         # . Purpose
         #   List whole disks that do not currently contain mounted filesystems.
         #
@@ -160,7 +159,7 @@ set -uo pipefail
         done < <(lsblk -dn -o NAME,TYPE 2>/dev/null | awk '$2 == "disk" { print $1 }')
     }
 
-    # fn$ _storage_partition_path
+    # fn: _storage_partition_path
         # . Purpose
         #   Return the first partition belonging to a disk after partitioning.
         #
@@ -193,7 +192,7 @@ set -uo pipefail
         return 1
     }
 
-    # fn$ _storage_validate_account
+    # fn: _storage_validate_account
         # . Purpose
         #   Validate that a local or directory-backed user account can be resolved.
         #
@@ -211,7 +210,7 @@ set -uo pipefail
         getent passwd "$account" >/dev/null 2>&1
     }
 
-    # fn$ _storage_validate_group
+    # fn: _storage_validate_group
         # . Purpose
         #   Validate that a local or directory-backed group can be resolved.
         #
@@ -229,7 +228,7 @@ set -uo pipefail
         getent group "$group" >/dev/null 2>&1
     }
 
-    # fn$ _storage_validate_mode
+    # fn: _storage_validate_mode
         # . Purpose
         #   Validate a three- or four-digit octal filesystem mode.
         #
@@ -245,7 +244,7 @@ set -uo pipefail
         [[ "${1:-}" =~ ^[0-7]{3,4}$ ]]
     }
 
-    # fn$ _storage_select_access_target
+    # fn: _storage_select_access_target
         # . Purpose
         #   Ask which managed storage directory should be changed.
         #

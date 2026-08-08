@@ -548,14 +548,17 @@ class DocRenderer:
             )
         )
 
-    def is_template_group(self, module: Row) -> bool:
-        return (module.get("group", "") or "").casefold() == "templates"
+    def is_template_module(self, module: Row) -> bool:
+        source_file = Path(module.get("file", "") or "").name
+        return "template" in source_file.casefold()
 
     def should_render_item(self, module: Row, item: Row) -> bool:
-        # All documented items belong in the navigation and page set.
-        # The template role controls presentation/glossary behavior; it must not
-        # suppress var$, fn$, or doc$ blocks outside the Templates module group.
-        return True
+        # ':' items are always documented. '$' items describe template scaffolding
+        # and are documented only when the source script itself is a template.
+        if item.get("itemrole", "") != "template":
+            return True
+
+        return self.is_template_module(module)
 
     def section_key(self, section: Row) -> tuple[str, str, str]:
         return (
@@ -1750,7 +1753,7 @@ body {
 
             if row_product != product_name:
                 continue
-            if self.is_template_group(module):
+            if self.is_template_module(module):
                 continue
             if item.get("itemrole", "") == "template":
                 continue

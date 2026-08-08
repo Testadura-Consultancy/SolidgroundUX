@@ -73,13 +73,12 @@ set -uo pipefail
     SGND_ACTIVE_DIRECTORY_MODULE_VERSION="1.1.0"
     SGND_ACTIVE_DIRECTORY_MODULE_DESC="Manage Active Directory server and client roles"
 
-    SGND_MODULE_ID="${SGND_ACTIVE_DIRECTORY_MODULE_ID}"
     SGND_MODULE_NAME="${SGND_ACTIVE_DIRECTORY_MODULE_NAME}"
     SGND_MODULE_VERSION="${SGND_ACTIVE_DIRECTORY_MODULE_VERSION}"
     SGND_MODULE_DESC="${SGND_ACTIVE_DIRECTORY_MODULE_DESC}"
 
 # - Active Directory server ------------------------------------------------------
-    # fn$ _samba_validate_realm
+    # fn: _samba_validate_realm
         # . Purpose
         #   Validate a Kerberos realm or DNS domain name.
         #
@@ -101,7 +100,7 @@ set -uo pipefail
         [[ "${1-}" =~ ^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)+$ ]]
     }
 
-    # fn$ _samba_validate_netbios
+    # fn: _samba_validate_netbios
         # . Purpose
         #   Validate a Samba NetBIOS domain name.
         #
@@ -123,7 +122,7 @@ set -uo pipefail
         [[ "${1-}" =~ ^[A-Za-z][A-Za-z0-9_-]{0,14}$ ]]
     }
 
-    # fn$ _samba_validate_account_name
+    # fn: _samba_validate_account_name
         # . Purpose
         #   Validate a basic Samba account or group name.
         #
@@ -145,7 +144,7 @@ set -uo pipefail
         [[ "${1-}" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$ ]]
     }
 
-    # fn$ _samba_default_gateway
+    # fn: _samba_default_gateway
         # . Purpose
         #   Determine the first configured IPv4 default gateway.
         #
@@ -165,7 +164,7 @@ set -uo pipefail
         ip -4 route show default 2>/dev/null | awk 'NR == 1 { print $3 }'
     }
 
-    # fn$ _samba_primary_ipv4
+    # fn: _samba_primary_ipv4
         # . Purpose
         #   Determine the primary non-loopback IPv4 address used for the default route.
         #
@@ -188,7 +187,7 @@ set -uo pipefail
     }
 
 
-    # fn$ _samba_prepare_fqdn
+    # fn: _samba_prepare_fqdn
         # . Purpose
         #   Configure the domain controller FQDN before Samba AD provisioning.
         #
@@ -279,7 +278,7 @@ set -uo pipefail
         return 0
     }
 
-    # fn$ _samba_preflight_domain_provision
+    # fn: _samba_preflight_domain_provision
         # . Purpose
         #   Validate the local host and requested domain settings before provisioning.
         #
@@ -350,7 +349,7 @@ set -uo pipefail
         (( failures == 0 ))
     }
 
-    # fn$ _samba_domain_is_provisioned
+    # fn: _samba_domain_is_provisioned
         # . Purpose
         #   Determine whether this machine contains a provisioned Samba AD domain.
         #
@@ -370,7 +369,7 @@ set -uo pipefail
                 grep -qi '^active directory domain controller$'
     }
 
-    # fn$ _samba_require_provisioned_domain
+    # fn: _samba_require_provisioned_domain
         # . Purpose
         #   Guard actions that require an existing Samba AD domain.
         #
@@ -393,52 +392,8 @@ set -uo pipefail
         return 1
     }
 
-    # fn$ _install_samba_ad
-        # . Purpose
-        #   Install the packages required for a Samba Active Directory Domain Controller.
-        #
-        # . Behavior
-        #   - Refreshes the APT package index.
-        #   - Installs Samba AD/DC, Kerberos, and DNS diagnostic packages.
-        #   - Stops, disables, and masks standalone Samba services.
-        #   - Unmasks and enables the dedicated Samba AD/DC service.
-        #   - Leaves domain creation to the separate provisioning action.
-        #   - Honors dry-run mode without changing the system.
-        #
-        # Inputs (globals):
-        #   FLAG_DRYRUN
-        #
-        # . Returns
-        #   0 when installation and service preparation succeed.
-        #   Non-zero when a required package or service operation fails.
-        #
-        # . Usage
-        #   _install_samba_ad
-    _install_samba_ad() {
-        if (( ${FLAG_DRYRUN:-0} == 1 )); then
-            sayinfo "Dry run: Would install Samba Active Directory Domain Controller packages."
-            return 0
-        fi
 
-        sayinfo "Updating Ubuntu package index."
-        sudo apt-get update || return 1
-
-        sayinfo "Installing Samba Active Directory Domain Controller packages."
-        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y \
-            bind9-dnsutils \
-            krb5-user \
-            samba-ad-dc || return 1
-
-        sayinfo "Preparing Samba services for AD/DC provisioning."
-        sudo systemctl disable --now smbd.service nmbd.service winbind.service 2>/dev/null || true
-        sudo systemctl mask smbd.service nmbd.service winbind.service 2>/dev/null || true
-        sudo systemctl unmask samba-ad-dc.service || return 1
-        sudo systemctl enable samba-ad-dc.service || return 1
-
-        sayinfo "Samba AD/DC packages installed; domain provisioning is still required."
-    }
-
-    # fn$ _samba_configure_resolver
+    # fn: _samba_configure_resolver
         # . Purpose
         #   Prepare systemd-resolved to coexist with Samba's internal DNS server.
         #
@@ -479,7 +434,7 @@ set -uo pipefail
         sudo systemctl restart systemd-resolved.service || return 1
     }
 
-    # fn$ _samba_wait_for_dns_listener
+    # fn: _samba_wait_for_dns_listener
         # . Purpose
         #   Wait briefly for Samba DNS to bind TCP and UDP port 53.
         #
@@ -515,7 +470,7 @@ set -uo pipefail
         return 1
     }
 
-    # fn$ _samba_set_dns_forwarder
+    # fn: _samba_set_dns_forwarder
         # . Purpose
         #   Set or replace Samba's DNS forwarder in the global configuration section.
         #
@@ -584,7 +539,7 @@ set -uo pipefail
         rm -f "$tmp_file"
     }
 
-    # fn$ samba_create_domain
+    # fn: samba_create_domain
         # . Purpose
         #   Interactively provision a new Samba Active Directory domain.
         #
@@ -804,7 +759,7 @@ set -uo pipefail
         sayinfo "Run 'Verify AD domain' to perform the complete DNS, directory, database, and Kerberos checks."
     }
 
-    # fn$ samba_verify_domain
+#   fn: samba_verify_domain
         # . Purpose
         #   Perform active verification of the local Samba Active Directory domain.
         #
@@ -980,7 +935,7 @@ set -uo pipefail
         return 1
     }
 
-    # fn$ samba_ad_status
+    # fn: samba_ad_status
         # . Purpose
         #   Display the operational status of the local Samba AD Domain Controller.
         #
@@ -1062,7 +1017,7 @@ set -uo pipefail
         fi
     }
 
-    # fn$ samba_add_user
+    # fn: samba_add_user
         # . Purpose
         #   Create a user account in the provisioned Samba AD domain.
         #
@@ -1111,7 +1066,7 @@ set -uo pipefail
         sayinfo "AD user $account_name created."
     }
 
-    # fn$ samba_add_group
+    # fn: samba_add_group
         # . Purpose
         #   Create a group in the provisioned Samba AD domain.
         #
@@ -1293,7 +1248,7 @@ set -uo pipefail
     }
 
 # - Active Directory DNS management ---------------------------------------------
-    # fn$ _samba_dns_context
+    # fn: _samba_dns_context
         # . Purpose
         #   Resolve the local Samba AD DNS domain and validate that the domain is provisioned.
         #
@@ -1323,7 +1278,7 @@ set -uo pipefail
         printf -v "$output_var" '%s' "$resolved_dns_domain"
     }
 
-    # fn$ samba_dns_list_zones
+    # fn: samba_dns_list_zones
         # . Purpose
         #   Display the DNS zones hosted by the local Samba Active Directory server.
         #
@@ -1342,7 +1297,7 @@ set -uo pipefail
         sudo samba-tool dns zonelist localhost -U Administrator </dev/tty
     }
 
-    # fn$ samba_dns_query_host
+    # fn: samba_dns_query_host
         # . Purpose
         #   Query an A record in the local Active Directory DNS zone.
         #
@@ -1369,7 +1324,7 @@ set -uo pipefail
         sudo samba-tool dns query localhost "$dns_domain" "$host_name" A -U Administrator </dev/tty
     }
 
-    # fn$ samba_dns_add_host
+    # fn: samba_dns_add_host
         # . Purpose
         #   Add an IPv4 host record to the local Active Directory DNS zone.
         #
@@ -1417,7 +1372,7 @@ set -uo pipefail
         sudo samba-tool dns add localhost "$dns_domain" "$host_name" A "$address" -U Administrator </dev/tty
     }
 
-    # fn$ samba_dns_delete_host
+    # fn: samba_dns_delete_host
         # . Purpose
         #   Delete an IPv4 host record from the local Active Directory DNS zone.
         #
@@ -1465,7 +1420,7 @@ set -uo pipefail
         sudo samba-tool dns delete localhost "$dns_domain" "$host_name" A "$address" -U Administrator </dev/tty
     }
 
-    # fn$ samba_dns_register_dc
+    # fn: samba_dns_register_dc
         # . Purpose
         #   Re-run Samba DNS registration for the local Active Directory Domain Controller.
         #
@@ -1494,25 +1449,8 @@ set -uo pipefail
     }
 
 # - Active Directory client ------------------------------------------------------
-    # fn: _install_ad_client - Install Active Directory client packages
-        # . Returns
-        #   0 on success; non-zero when package installation fails.
-        #
-        # . Usage
-        #   _install_ad_client
-    _install_ad_client() {
-        if (( ${FLAG_DRYRUN:-0} == 1 )); then
-            sayinfo "Dry run: Would install Active Directory client packages."
-            return 0
-        fi
-        sudo apt-get update || return 1
-        sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y \
-            adcli krb5-user libnss-sss libpam-sss packagekit realmd \
-            samba-common-bin sssd-ad sssd-tools || return 1
-        sayok "Active Directory client packages installed."
-    }
 
-    # fn$ _ad_client_find_ad_dns_server
+    # fn:_ad_client_find_ad_dns_server
         # . Purpose
         #   Find a configured DNS server that is authoritative for the joined Active Directory realm.
         #
@@ -1572,7 +1510,7 @@ set -uo pipefail
         return 1
     }
 
-    # fn$ _ad_client_dns_record_matches
+    # fn: _ad_client_dns_record_matches
         # . Purpose
         #   Verify that Active Directory DNS contains the machine A record.
         #
@@ -1604,7 +1542,7 @@ set -uo pipefail
             grep -Fxq "$expected_ip"
     }
 
-    # fn$ _ad_client_change_dns_record
+    # fn: _ad_client_change_dns_record
         # . Purpose
         #   Add or delete this client's IPv4 host record in Active Directory DNS.
         #
@@ -1653,7 +1591,7 @@ set -uo pipefail
             </dev/tty
     }
 
-    # fn$ ad_client_view_dns_record
+    # fn: ad_client_view_dns_record
         # . Purpose
         #   Display this Active Directory client's A record directly from the domain DNS server.
         #
@@ -1718,7 +1656,7 @@ set -uo pipefail
         return 1
     }
 
-    # fn$ ad_client_add_dns_record
+    # fn: ad_client_add_dns_record
         # . Purpose
         #   Register this Active Directory client's A record on the domain DNS server.
         #
@@ -1817,7 +1755,7 @@ set -uo pipefail
         return 1
     }
 
-    # fn$ ad_client_delete_dns_record
+    # fn: ad_client_delete_dns_record
         # . Purpose
         #   Delete this Active Directory client's A record from the domain DNS server.
         #
@@ -1901,7 +1839,7 @@ set -uo pipefail
         return 0
     }
 
-    # fn$ ad_client_status
+    # fn: ad_client_status
         # . Purpose
         #   Display the current machine identity and Active Directory realm membership.
         #
@@ -1985,7 +1923,7 @@ set -uo pipefail
         fi
     }
 
-    # fn$ ad_client_join
+    # fn: ad_client_join
         # . Purpose
         #   Join this computer to an Active Directory realm and verify client identity and DNS registration.
         #
@@ -2132,26 +2070,32 @@ set -uo pipefail
     }
 
 # - Console registration ---------------------------------------------------------
-    sgnd_console_register_group "ad-server" "Active Directory Server" "Install, provision, and inspect a Samba Active Directory Domain Controller" 0 1 200
-    sgnd_console_register_item "ad-install" "ad-server" "Install server packages" "_install_samba_ad" "Install Samba Active Directory Domain Controller packages" 0 5 1
+    SGND_AD_SERVER_VISIBLE=0
+    SGND_AD_CLIENT_VISIBLE=0
+
+    sgnd_console_package_installed "samba-ad-dc" && SGND_AD_SERVER_VISIBLE=1
+    sgnd_console_package_installed "realmd" && sgnd_console_package_installed "sssd-ad" && SGND_AD_CLIENT_VISIBLE=1
+
+    sgnd_console_register_group "ad-server" "Active Directory Server" "Provision and inspect a Samba Active Directory Domain Controller" 0 "$SGND_AD_SERVER_VISIBLE" 200
     sgnd_console_register_item "ad-domain" "ad-server" "Create domain" "samba_create_domain" "Provision a new Samba Active Directory domain" 0 5 1
     sgnd_console_register_item "ad-status" "ad-server" "Show AD status" "samba_ad_status" "Show service, DNS, Kerberos, and domain status" 0 15 1
     sgnd_console_register_item "ad-verify" "ad-server" "Verify AD domain" "samba_verify_domain" "Run active DNS, directory, database, and Kerberos verification" 0 15 1
 
-    sgnd_console_register_group "ad-dns" "Active Directory DNS" "Inspect and manage Samba Active Directory DNS records" 0 1 210
+    sgnd_console_register_group "ad-dns" "Active Directory DNS" "Inspect and manage Samba Active Directory DNS records" 0 "$SGND_AD_SERVER_VISIBLE" 210
     sgnd_console_register_item "ad-dns-zones" "ad-dns" "List DNS zones" "samba_dns_list_zones" "List DNS zones hosted by the local Samba Active Directory server" 0 5 1
     sgnd_console_register_item "ad-dns-query" "ad-dns" "Query host record" "samba_dns_query_host" "Query an IPv4 host record in the Active Directory DNS zone" 0 5 1
     sgnd_console_register_item "ad-dns-add" "ad-dns" "Add host record" "samba_dns_add_host" "Add an IPv4 host record to the Active Directory DNS zone" 0 5 1
     sgnd_console_register_item "ad-dns-delete" "ad-dns" "Delete host record" "samba_dns_delete_host" "Delete an IPv4 host record from the Active Directory DNS zone" 0 5 1
     sgnd_console_register_item "ad-dns-register" "ad-dns" "Register DC DNS" "samba_dns_register_dc" "Re-run DNS registration for the local domain controller" 0 5 1
 
-    sgnd_console_register_group "ad-accounts" "AD Users and Groups" "Create and manage Active Directory users, groups, memberships, and share access" 0 1 220
+    sgnd_console_register_group "ad-accounts" "AD Users and Groups" "Create and manage Active Directory users, groups, memberships, and share access" 0 "$SGND_AD_SERVER_VISIBLE" 220
     sgnd_console_register_item "ad-account-manage" "ad-accounts" "Manage users and groups" "samba_manage_accounts" "Open the interactive Active Directory account manager" 0 5 1
 
-    sgnd_console_register_group "ad-client" "Active Directory Client" "Install, join, leave, and inspect Active Directory client membership" 0 1 230
-    sgnd_console_register_item "adc-install" "ad-client" "Install client packages" "_install_ad_client" "Install realmd and SSSD Active Directory client packages" 0 5 1
+    sgnd_console_register_group "ad-client" "Active Directory Client" "Join, leave, and inspect Active Directory client membership" 0 "$SGND_AD_CLIENT_VISIBLE" 230
     sgnd_console_register_item "adc-join" "ad-client" "Join domain" "ad_client_join" "Join this computer to an Active Directory realm" 0 5 1
     sgnd_console_register_item "adc-dns-add" "ad-client" "Add client DNS record" "ad_client_add_dns_record" "Register this computer's IPv4 host record in Active Directory DNS" 0 5 1
     sgnd_console_register_item "adc-dns-delete" "ad-client" "Delete client DNS record" "ad_client_delete_dns_record" "Delete this computer's IPv4 host record from Active Directory DNS" 0 5 1
     sgnd_console_register_item "adc-leave" "ad-client" "Leave domain" "ad_client_leave" "Leave the current Active Directory realm" 0 5 1
     sgnd_console_register_item "adc-status" "ad-client" "Show membership" "ad_client_status" "Show current realm membership" 0 15 1
+
+unset SGND_AD_SERVER_VISIBLE SGND_AD_CLIENT_VISIBLE

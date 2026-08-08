@@ -19,6 +19,8 @@
 <thead><tr><th>Function</th><th>Title</th><th>Purpose</th><th>Module</th></tr></thead>
 <tbody>
 <tr><td>_action_headerend</td><td>Emit module-level header data</td><td>Store collected file header metadata in module-level data tables.</td><td>doc-processor.sh</td></tr>
+<tr><td>_ad_client_change_dns_record</td><td></td><td>Add or delete this client&#x27;s IPv4 host record in Active Directory DNS.</td><td>20-active-directory.sh</td></tr>
+<tr><td>_ad_client_dns_record_matches</td><td></td><td>Verify that Active Directory DNS contains the machine A record.</td><td>20-active-directory.sh</td></tr>
 <tr><td>_add_selected_file</td><td>Add one deployable file to the normalized selection</td><td></td><td>deploy-workspace.sh</td></tr>
 <tr><td>_apply_user_command</td><td>Apply a samba-tool user command to selected users</td><td></td><td>manage-users-n-groups.sh</td></tr>
 <tr><td>_apply_value_buffer_to_file</td><td>Apply buffered metadata values to a file</td><td>Apply buffered metadata values to a file.</td><td>metadata-editor.sh</td></tr>
@@ -45,12 +47,15 @@
 <tr><td>_capture_cli_parameters</td><td>Record which deployment settings were supplied explicitly</td><td>Distinguish command-line values from state/default values so explicit settings are not prompted again.</td><td>deploy-workspace.sh</td></tr>
 <tr><td>_change_membership</td><td>Add or remove selected users from selected groups</td><td></td><td>manage-users-n-groups.sh</td></tr>
 <tr><td>_change_passwords</td><td>Change passwords for selected users one at a time</td><td></td><td>manage-users-n-groups.sh</td></tr>
+<tr><td>_clean_unused_packages</td><td></td><td>Remove unused package dependencies and cached package data.</td><td>15-package-management.sh</td></tr>
 <tr><td>_cleanup_archive</td><td>Remove the temporary received archive</td><td></td><td>receive-files.sh</td></tr>
 <tr><td>_cleanup_old_render_exports</td><td>Clean old renderer export folders</td><td>Remove stale temporary documentation renderer export folders from /tmp.</td><td>doc-renderer.sh</td></tr>
 <tr><td>_cleanup_staging</td><td>Remove gathered staging data</td><td>Remove the release-specific staging directory if cleanup is enabled.</td><td>prepare-release.sh</td></tr>
 <tr><td>_cleanup_staging</td><td>Remove the temporary extraction directory</td><td></td><td>untar-it.sh</td></tr>
 <tr><td>_collect_changed_fields</td><td>Collect changed metadata fields</td><td>Collect the names of fields whose pending values differ from current metadata.</td><td>metadata-editor.sh</td></tr>
 <tr><td>_collect_license_lines</td><td>Collect active license text for appendix rendering</td><td>Load the active framework license file into the renderer license table.</td><td>doc-renderer.sh</td></tr>
+<tr><td>_configure_solidgroundux_sudoers</td><td></td><td>Configure passwordless sudo access for trusted SolidGroundUX administration tools.</td><td>10-computer-setup.sh</td></tr>
+<tr><td>_configure_ssh_service</td><td></td><td>Enable or disable the SSH service and keep its runtime state aligned.</td><td>10-computer-setup.sh</td></tr>
 <tr><td>_copy_project_templates</td><td>Copy project templates into the workspace</td><td>Copy the appropriate template file(s) for the selected project components.</td><td>create-workspace.sh</td></tr>
 <tr><td>_copy_template_file</td><td>Copy one template file into the workspace</td><td>Copy a single template file to a target location.</td><td>create-workspace.sh</td></tr>
 <tr><td>_create_archive</td><td>Create the compressed framework archive</td><td></td><td>tar-it.sh</td></tr>
@@ -72,7 +77,6 @@
 <tr><td>_detect_items</td><td>Detect documented items</td><td>Detect structured item markers such as functions, variables, and general documentation blocks.</td><td>doc-processor.sh</td></tr>
 <tr><td>_detect_moduletitle</td><td>Detect the module title line</td><td>Extract product and title information from the first title line in the file header.</td><td>doc-processor.sh</td></tr>
 <tr><td>_detect_noncommentline</td><td>Detect non-comment source lines</td><td>Stop documentation parsing for source lines that are not structured comments.</td><td>doc-processor.sh</td></tr>
-<tr><td>_detect_primary_iface</td><td>Detect primary iface</td><td>Detect primary iface.</td><td>prepare-template.sh</td></tr>
 <tr><td>_detect_primary_iface</td><td>Detect primary iface</td><td>Detect primary iface.</td><td>set-identity.sh</td></tr>
 <tr><td>_detect_section</td><td>Detect documentation section headers</td><td>Detect structured level 1, 2, and 3 documentation section headers.</td><td>doc-processor.sh</td></tr>
 <tr><td>_dlg_keymap</td><td>Dlg keymap</td><td>Return the dialog key/action mapping used by custom dialog controls.</td><td>ui-dlg.sh</td></tr>
@@ -104,9 +108,12 @@
 <tr><td>_framework_config_edit_file</td><td>Framework config edit file</td><td>Framework config edit file.</td><td>90-solidgroundux.sh</td></tr>
 <tr><td>_framework_config_edit_system</td><td>Framework config edit system</td><td>Framework config edit system.</td><td>90-solidgroundux.sh</td></tr>
 <tr><td>_framework_config_edit_user</td><td>Framework config edit user</td><td>Framework config edit user.</td><td>90-solidgroundux.sh</td></tr>
+<tr><td>_framework_config_validate_log_level</td><td></td><td></td><td>90-solidgroundux.sh</td></tr>
+<tr><td>_framework_config_validator</td><td></td><td></td><td>90-solidgroundux.sh</td></tr>
 <tr><td>_framework_config_view_file</td><td>Framework config view file</td><td>Framework config view file.</td><td>90-solidgroundux.sh</td></tr>
 <tr><td>_framework_config_view_system</td><td>Framework config view system</td><td>Framework config view system.</td><td>90-solidgroundux.sh</td></tr>
 <tr><td>_framework_config_view_user</td><td>Framework config view user</td><td>Framework config view user.</td><td>90-solidgroundux.sh</td></tr>
+<tr><td>_framework_config_write_value</td><td></td><td>Replace or append one KEY=VALUE assignment in a cfg file.</td><td>90-solidgroundux.sh</td></tr>
 <tr><td>_framework_locator</td><td>Locate and load the SolidGroundUX executable bootstrap context</td><td>Locate, create, and load the SolidGroundUX bootstrap configuration, then load the executable runtime support library.</td><td>create-workspace.sh</td></tr>
 <tr><td>_framework_locator</td><td>Locate and load the SolidGroundUX executable bootstrap context</td><td>Locate, create, and load the SolidGroundUX bootstrap configuration, then load the executable runtime support library.</td><td>deploy-workspace.sh</td></tr>
 <tr><td>_framework_locator</td><td>Locate and load the SolidGroundUX executable bootstrap context</td><td>Locate, create, and load the SolidGroundUX bootstrap configuration, then load the executable runtime support library.</td><td>doc-generator.sh</td></tr>
@@ -122,8 +129,12 @@
 <tr><td>_framework_log_show_errors</td><td>Framework log show errors</td><td>Framework log show errors.</td><td>90-solidgroundux.sh</td></tr>
 <tr><td>_framework_log_validate</td><td>Framework log validate</td><td>Framework log validate.</td><td>90-solidgroundux.sh</td></tr>
 <tr><td>_framework_log_view</td><td>Framework log view</td><td>Framework log view.</td><td>90-solidgroundux.sh</td></tr>
+<tr><td>_framework_show_about</td><td></td><td></td><td>90-solidgroundux.sh</td></tr>
+<tr><td>_framework_show_environment</td><td></td><td></td><td>90-solidgroundux.sh</td></tr>
+<tr><td>_framework_smoketest</td><td></td><td></td><td>90-solidgroundux.sh</td></tr>
 <tr><td>_framework_state_apply_ui</td><td></td><td>Reload the active palette and style after framework state changes.</td><td>90-solidgroundux.sh</td></tr>
 <tr><td>_framework_state_validate</td><td></td><td>Verify that the transferable framework-state contract is available.</td><td>90-solidgroundux.sh</td></tr>
+<tr><td>_generate_ssh_keys</td><td></td><td>Generate SSH host keys for the VM.</td><td>10-computer-setup.sh</td></tr>
 <tr><td>_get_parameters</td><td>Collect prepare-release parameters</td><td>Collect prepare-release parameters.</td><td>prepare-release.sh</td></tr>
 <tr><td>_get_project_directories</td><td>Resolve project directory layout</td><td>Build the directory list required for the selected project components.</td><td>create-workspace.sh</td></tr>
 <tr><td>_get_section_comments</td><td>Get section comments</td><td>Internal helper for get section comments.</td><td>doc-processor.sh</td></tr>
@@ -137,10 +148,16 @@
 <tr><td>_guess_nextcontenttype</td><td>Advance content type after emitted headers</td><td>Prepare the parser for body content following a recognized header line.</td><td>doc-processor.sh</td></tr>
 <tr><td>_init_bootstrap</td><td>Initialize bootstrap environment</td><td>Prepare the minimum framework environment required before core libraries load.</td><td>sgnd-bootstrap.sh</td></tr>
 <tr><td>_init_localvars</td><td>Initialize parser state variables</td><td>Reset source, module, item, section, and emission state before parsing a file.</td><td>doc-processor.sh</td></tr>
+<tr><td>_init_machine</td><td></td><td>Generate a new machine-id for the VM.</td><td>10-computer-setup.sh</td></tr>
 <tr><td>_init_metadata</td><td>Initialize document-level render metadata</td><td>Populate renderer metadata from document configuration values.</td><td>doc-renderer.sh</td></tr>
 <tr><td>_init_parameters</td><td>Initialize documentation generator parameters</td><td>Initialize parameter variables from defaults when still unset.</td><td>doc-generator.sh</td></tr>
-<tr><td>_install_ad_client</td><td>Install Active Directory client packages</td><td></td><td>20-active-directory.sh</td></tr>
+<tr><td>_install_ad_client</td><td>Install Active Directory client packages</td><td></td><td>15-package-management.sh</td></tr>
+<tr><td>_install_basepackages</td><td></td><td>Install or update the standard Ubuntu VM baseline packages.</td><td>15-package-management.sh</td></tr>
+<tr><td>_install_docker</td><td></td><td>Install Docker Engine from Docker&#x27;s official Ubuntu repository.</td><td>15-package-management.sh</td></tr>
+<tr><td>_install_samba_ad</td><td></td><td>Install the packages required for a Samba Active Directory Domain Controller.</td><td>15-package-management.sh</td></tr>
+<tr><td>_install_samba_file</td><td></td><td>Install the packages required for a Samba file server.</td><td>15-package-management.sh</td></tr>
 <tr><td>_install_solidgroundux</td><td>Install solidgroundux</td><td>Install solidgroundux.</td><td>90-solidgroundux.sh</td></tr>
+<tr><td>_install_xrdp</td><td></td><td>Install and enable XRDP on an Ubuntu desktop system.</td><td>15-package-management.sh</td></tr>
 <tr><td>_interactive_bump_files</td><td>Run interactive version bump workflow</td><td>Run interactive version bump workflow.</td><td>metadata-editor.sh</td></tr>
 <tr><td>_interactive_edit_current_file</td><td>Edit metadata for the current file interactively</td><td>Edit metadata for the current file interactively.</td><td>metadata-editor.sh</td></tr>
 <tr><td>_interactive_edit_current_file_with_buffer</td><td>Edit current file using a prepared value buffer</td><td>Edit current file using a prepared value buffer.</td><td>metadata-editor.sh</td></tr>
@@ -163,7 +180,6 @@
 <tr><td>_parse_selection</td><td>Parse numbers, ranges, or A into zero-based indexes</td><td></td><td>manage-users-n-groups.sh</td></tr>
 <tr><td>_prep_template</td><td>Prep template</td><td>Prep template.</td><td>10-computer-setup.sh</td></tr>
 <tr><td>_prepare_output_directory</td><td>Create and optionally clean the documentation output directory</td><td>Ensure the configured output directory exists and is ready for rendering.</td><td>doc-renderer.sh</td></tr>
-<tr><td>_prepare_template</td><td>Prepare template</td><td>Prepare template.</td><td>prepare-template.sh</td></tr>
 <tr><td>_print_deployment_summary</td><td>Display the completed deployment details</td><td>Show which workspace files were selected and where they were sent.</td><td>deploy-workspace.sh</td></tr>
 <tr><td>_prompt_value_buffer</td><td>Prompt for metadata field values</td><td>Prompt for metadata field values.</td><td>metadata-editor.sh</td></tr>
 <tr><td>_quote_remote_arg</td><td>Shell-quote one argument for the remote receive command</td><td></td><td>deploy-workspace.sh</td></tr>
@@ -172,31 +188,47 @@
 <tr><td>_remove_other_netplan_files</td><td>Remove other netplan files</td><td>Remove other netplan files.</td><td>set-identity.sh</td></tr>
 <tr><td>_render_site</td><td>Render collected documentation data</td><td>Provide the renderer hand-off point for collected documentation tables.</td><td>doc-renderer.sh</td></tr>
 <tr><td>_require_directory</td><td>Require a provisioned Samba Active Directory</td><td></td><td>manage-users-n-groups.sh</td></tr>
-<tr><td>_reset_network_for_template</td><td>Reset network for template</td><td>Reset network for template.</td><td>prepare-template.sh</td></tr>
 <tr><td>_resolve_archive</td><td>Resolve ARCHIVE_FILE against ARCHIVE_DIRECTORY</td><td></td><td>untar-it.sh</td></tr>
 <tr><td>_resolve_bump_mode</td><td>Resolve requested version bump mode</td><td>Resolve requested version bump mode.</td><td>metadata-editor.sh</td></tr>
 <tr><td>_resolve_source</td><td>Resolve metadata editor source files</td><td>Resolve metadata editor source files.</td><td>metadata-editor.sh</td></tr>
 <tr><td>_resolve_source_input</td><td>Prompt for source selection input</td><td>Prompt for source selection input.</td><td>metadata-editor.sh</td></tr>
 <tr><td>_restore_files</td><td>Restore selected staged files beneath the target root</td><td></td><td>untar-it.sh</td></tr>
 <tr><td>_samba_ask_user</td><td>Ask for and validate an Active Directory user name</td><td></td><td>20-active-directory.sh</td></tr>
+<tr><td>_samba_configure_resolver</td><td></td><td>Prepare systemd-resolved to coexist with Samba&#x27;s internal DNS server.</td><td>20-active-directory.sh</td></tr>
+<tr><td>_samba_default_gateway</td><td></td><td>Determine the first configured IPv4 default gateway.</td><td>20-active-directory.sh</td></tr>
 <tr><td>_samba_discover_acl_principals</td><td>Discover domain users or groups for ACL assignment</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_samba_discover_managed_shares</td><td>Load configured managed Samba shares</td><td>Discover configured Samba shares whose backing paths are below the managed root.</td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_samba_dns_context</td><td></td><td>Resolve the local Samba AD DNS domain and validate that the domain is provisioned.</td><td>20-active-directory.sh</td></tr>
+<tr><td>_samba_domain_is_provisioned</td><td></td><td>Determine whether this machine contains a provisioned Samba AD domain.</td><td>20-active-directory.sh</td></tr>
 <tr><td>_samba_manage_acl_access</td><td>Apply or remove ACLs for selected principals and shares</td><td>Select multiple domain users or groups and apply one ACL operation to every selected principal/share combination.</td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_samba_manage_selected</td><td>Run actions against the active share collection</td><td>Keep the selected collection active while the operator performs actions.</td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_samba_parse_selection</td><td>Parse a numbered share selection</td><td>Convert comma-separated numbers and ranges into unique zero-based indexes.</td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_samba_preflight_domain_provision</td><td></td><td>Validate the local host and requested domain settings before provisioning.</td><td>20-active-directory.sh</td></tr>
+<tr><td>_samba_prepare_fqdn</td><td></td><td>Configure the domain controller FQDN before Samba AD provisioning.</td><td>20-active-directory.sh</td></tr>
+<tr><td>_samba_primary_ipv4</td><td></td><td>Determine the primary non-loopback IPv4 address used for the default route.</td><td>20-active-directory.sh</td></tr>
+<tr><td>_samba_reload_configuration</td><td></td><td>Validate the Samba configuration and reload the file-server service.</td><td>25-samba-file-server.sh</td></tr>
+<tr><td>_samba_require_provisioned_domain</td><td></td><td>Guard actions that require an existing Samba AD domain.</td><td>20-active-directory.sh</td></tr>
+<tr><td>_samba_require_share_root</td><td></td><td>Require mounted SolidGroundUX storage and its standard shares directory.</td><td>25-samba-file-server.sh</td></tr>
 <tr><td>_samba_restore_defaults</td><td>Restore canonical ownership and mode</td><td>Restore root:root ownership and mode 0770 on every selected share directory.</td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_samba_select_principals</td><td>Select multiple users or groups for share ACL changes</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_samba_select_shares</td><td>Ask the operator to select managed shares</td><td>Display managed shares and collect a valid multi-selection.</td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_samba_set_dns_forwarder</td><td></td><td>Set or replace Samba&#x27;s DNS forwarder in the global configuration section.</td><td>20-active-directory.sh</td></tr>
 <tr><td>_samba_set_group</td><td>Set one group on all selected shares</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_samba_set_owner</td><td>Set one owner on all selected shares</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_samba_set_permissions</td><td>Set one Unix mode on all selected shares</td><td></td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_samba_share_exists</td><td></td><td>Determine whether a named share exists in the Samba configuration.</td><td>25-samba-file-server.sh</td></tr>
 <tr><td>_samba_show_available_shares</td><td>Display numbered managed shares</td><td>Display all discovered shares with their backing paths.</td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_samba_show_details</td><td>Show details for selected shares</td><td>Display Samba settings, ownership, mode, and ACL state for each selection.</td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_samba_show_selected_shares</td><td>Display the active share collection</td><td>Render the names of all currently selected shares.</td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_samba_validate_account</td><td>Validate a local or domain user/group name</td><td></td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_samba_validate_account_name</td><td></td><td>Validate a basic Samba account or group name.</td><td>20-active-directory.sh</td></tr>
 <tr><td>_samba_validate_acl_permissions</td><td>Validate a POSIX ACL permission triplet</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_samba_validate_mode</td><td>Validate a four-digit Unix mode</td><td></td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_samba_validate_netbios</td><td></td><td>Validate a Samba NetBIOS domain name.</td><td>20-active-directory.sh</td></tr>
+<tr><td>_samba_validate_realm</td><td></td><td>Validate a Kerberos realm or DNS domain name.</td><td>20-active-directory.sh</td></tr>
 <tr><td>_samba_validate_selected</td><td>Validate selected share definitions and directories</td><td>Verify paths, directory existence, Samba configuration, and basic permissions.</td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_samba_validate_share_name</td><td></td><td>Validate a Samba share name used for its directory and configuration section.</td><td>25-samba-file-server.sh</td></tr>
+<tr><td>_samba_wait_for_dns_listener</td><td></td><td>Wait briefly for Samba DNS to bind TCP and UDP port 53.</td><td>20-active-directory.sh</td></tr>
 <tr><td>_sample_internal_function</td><td>Internal function documentation</td><td>Demonstrate an internal function.</td><td>doc-sample.sh</td></tr>
 <tr><td>_say_caller</td><td>Say caller</td><td>Determine the script or function context that emitted a say message.</td><td>ui-say.sh</td></tr>
 <tr><td>_say_normalize_log_level</td><td>Normalize a log level name</td><td>Convert aliases and legacy log-level names into a canonical SolidGroundUX log-level value.</td><td>ui-say.sh</td></tr>
@@ -213,6 +245,7 @@
 <tr><td>_select_users_and_groups</td><td>Select both sides of a membership operation</td><td></td><td>manage-users-n-groups.sh</td></tr>
 <tr><td>_selected_names</td><td>Resolve selected indexes to names</td><td></td><td>manage-users-n-groups.sh</td></tr>
 <tr><td>_set_defaults</td><td>Set defaults</td><td>Set defaults.</td><td>set-identity.sh</td></tr>
+<tr><td>_set_dns_server</td><td></td><td>Update the machine&#x27;s configured DNS server without changing its hostname or address assignment mode.</td><td>10-computer-setup.sh</td></tr>
 <tr><td>_set_hostname</td><td>Set hostname</td><td>Set hostname.</td><td>set-identity.sh</td></tr>
 <tr><td>_set_identity</td><td>Set identity</td><td>Set identity.</td><td>10-computer-setup.sh</td></tr>
 <tr><td>_set_script_header_version</td><td>Set an explicit version in a managed script header</td><td></td><td>prepare-release.sh</td></tr>
@@ -241,7 +274,8 @@
 <tr><td>_sgnd_console_label_logfile</td><td>Build logfile label</td><td>Build the current menu label for the logfile toggle.</td><td>sgnd-console-menu.sh</td></tr>
 <tr><td>_sgnd_console_label_verbose</td><td>Build verbose label</td><td>Build the current menu label for the verbose toggle.</td><td>sgnd-console-menu.sh</td></tr>
 <tr><td>_sgnd_console_load_config</td><td>Resolve the console module source</td><td>Resolve the module file or directory used by this console instance.</td><td>sgnd-console.sh</td></tr>
-<tr><td>_sgnd_console_load_modules</td><td>Load configured console modules</td><td>Load one module file or all modules in a configured directory.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_console_load_modules</td><td>Load configured console modules</td><td>Load enabled modules from the configured module source.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_console_manage_modules</td><td>Enable or disable console modules</td><td>Edit persisted module visibility without loading disabled modules.</td><td>sgnd-console.sh</td></tr>
 <tr><td>_sgnd_console_measure_group_header_lines</td><td>Console measure group header lines</td><td>Handle console menu measure group header lines behavior.</td><td>sgnd-console-menu.sh</td></tr>
 <tr><td>_sgnd_console_measure_item_lines</td><td>Console measure item lines</td><td>Handle console menu measure item lines behavior.</td><td>sgnd-console-menu.sh</td></tr>
 <tr><td>_sgnd_console_nextpage</td><td>Console nextpage</td><td>Handle console menu nextpage behavior.</td><td>sgnd-console-menu.sh</td></tr>
@@ -297,17 +331,28 @@
 <tr><td>_sh_err</td><td>Sh err</td><td>Write an error message through say when available, otherwise stderr.</td><td>ui.sh</td></tr>
 <tr><td>_show_current_metadata</td><td>Display current metadata for the selected file</td><td>Render the currently loaded metadata for the active script.</td><td>metadata-editor.sh</td></tr>
 <tr><td>_show_group_info</td><td>Show selected groups, members, and local share ACLs</td><td></td><td>manage-users-n-groups.sh</td></tr>
+<tr><td>_show_machine_status</td><td></td><td>Show current network, machine identity, and SSH service status.</td><td>10-computer-setup.sh</td></tr>
 <tr><td>_show_pending_value_buffer</td><td>Display pending metadata values</td><td>Display pending metadata values.</td><td>metadata-editor.sh</td></tr>
 <tr><td>_show_user_info</td><td>Show selected users, memberships, and local share ACLs</td><td></td><td>manage-users-n-groups.sh</td></tr>
 <tr><td>_source_corelibs</td><td>Source required core libraries</td><td>Load the fixed set of framework core libraries in bootstrap order.</td><td>sgnd-bootstrap.sh</td></tr>
 <tr><td>_source_usinglibs</td><td>Source declared optional libraries</td><td>Load script-declared framework libraries listed in SGND_USING.</td><td>sgnd-bootstrap.sh</td></tr>
 <tr><td>_static_ip_conflict_check</td><td>Static ip conflict check</td><td>Static ip conflict check.</td><td>set-identity.sh</td></tr>
+<tr><td>_storage_list_unused_disks</td><td></td><td>List whole disks that do not currently contain mounted filesystems.</td><td>26-storage.sh</td></tr>
+<tr><td>_storage_partition_path</td><td></td><td>Return the first partition belonging to a disk after partitioning.</td><td>26-storage.sh</td></tr>
+<tr><td>_storage_select_access_target</td><td></td><td>Ask which managed storage directory should be changed.</td><td>26-storage.sh</td></tr>
+<tr><td>_storage_validate_account</td><td></td><td>Validate that a local or directory-backed user account can be resolved.</td><td>26-storage.sh</td></tr>
+<tr><td>_storage_validate_device</td><td></td><td>Validate that a selected path is an unused whole block device.</td><td>26-storage.sh</td></tr>
+<tr><td>_storage_validate_group</td><td></td><td>Validate that a local or directory-backed group can be resolved.</td><td>26-storage.sh</td></tr>
+<tr><td>_storage_validate_mode</td><td></td><td>Validate a three- or four-digit octal filesystem mode.</td><td>26-storage.sh</td></tr>
+<tr><td>_storage_validate_mountpoint</td><td></td><td>Validate an absolute mount-point path.</td><td>26-storage.sh</td></tr>
 <tr><td>_stream_local</td><td>Stream selected workspace files to the local receiver</td><td></td><td>deploy-workspace.sh</td></tr>
 <tr><td>_stream_remote</td><td>Stream selected workspace files to the remote receiver over SSH</td><td></td><td>deploy-workspace.sh</td></tr>
 <tr><td>_summary</td><td>Print documentation generation summary</td><td>Generate a summary of the documentation data collected.</td><td>doc-generator.sh</td></tr>
 <tr><td>_uncreate_from_manifest</td><td>Remove artifacts recorded in the create manifest</td><td>Remove files and directories listed in a workspace manifest.</td><td>create-workspace.sh</td></tr>
 <tr><td>_uninstall_solidgroundux</td><td>Uninstall solidgroundux</td><td>Uninstall solidgroundux.</td><td>90-solidgroundux.sh</td></tr>
+<tr><td>_update_package_index</td><td></td><td>Refresh the local Ubuntu package index.</td><td>15-package-management.sh</td></tr>
 <tr><td>_update_solidgroundux</td><td>Update solidgroundux</td><td>Update solidgroundux.</td><td>90-solidgroundux.sh</td></tr>
+<tr><td>_upgrade_installed_packages</td><td></td><td>Upgrade installed Ubuntu packages to their available versions.</td><td>15-package-management.sh</td></tr>
 <tr><td>_user_workflow</td><td>Manage a persistent selection of users</td><td></td><td>manage-users-n-groups.sh</td></tr>
 <tr><td>_validate_archive</td><td>Validate all received archive entries</td><td>Reject unsafe paths and non-regular archive entry types before extraction.</td><td>receive-files.sh</td></tr>
 <tr><td>_validate_archive_entries</td><td>Reject unsafe archive entry paths</td><td></td><td>untar-it.sh</td></tr>
@@ -317,8 +362,12 @@
 <tr><td>_validate_parameters</td><td>Validate archive source and destination settings</td><td></td><td>tar-it.sh</td></tr>
 <tr><td>_validate_parameters</td><td>Validate restore settings</td><td></td><td>untar-it.sh</td></tr>
 <tr><td>_validate_target</td><td>Validate and prepare the destination root</td><td>Ensure the destination is an absolute directory path suitable for extraction.</td><td>receive-files.sh</td></tr>
-<tr><td>ad_client_join</td><td>Join this computer to an Active Directory realm</td><td></td><td>20-active-directory.sh</td></tr>
+<tr><td>ad_client_add_dns_record</td><td></td><td>Register this Active Directory client&#x27;s A record on the domain DNS server.</td><td>20-active-directory.sh</td></tr>
+<tr><td>ad_client_delete_dns_record</td><td></td><td>Delete this Active Directory client&#x27;s A record from the domain DNS server.</td><td>20-active-directory.sh</td></tr>
+<tr><td>ad_client_join</td><td></td><td>Join this computer to an Active Directory realm and verify client identity and DNS registration.</td><td>20-active-directory.sh</td></tr>
 <tr><td>ad_client_leave</td><td>Leave an Active Directory realm</td><td></td><td>20-active-directory.sh</td></tr>
+<tr><td>ad_client_status</td><td></td><td>Display the current machine identity and Active Directory realm membership.</td><td>20-active-directory.sh</td></tr>
+<tr><td>ad_client_view_dns_record</td><td></td><td>Display this Active Directory client&#x27;s A record directly from the domain DNS server.</td><td>20-active-directory.sh</td></tr>
 <tr><td>archive_uninstall_records</td><td>Archive uninstall records</td><td>Moves install records for the uninstalled release into uninstall history.</td><td>sgnd-uninstall.sh</td></tr>
 <tr><td>ask</td><td>Ask for a single typed value</td><td>Prompt the user for one text value through the SolidGroundUX console UI.</td><td>ui-ask.sh</td></tr>
 <tr><td>ask_choose</td><td>Ask for a value from a choice list</td><td>Prompt the user for a choice and store the entered value in a named variable.</td><td>ui-ask.sh</td></tr>
@@ -333,6 +382,7 @@
 <tr><td>extract_release_archive</td><td>Extract release archive</td><td>Extracts the selected release archive into the configured target root.</td><td>sgnd-install.sh</td></tr>
 <tr><td>file_loglevel_test</td><td>Run file logging tests for every log level</td><td>Verify file logging and file-level filtering independently from console output.</td><td>framework-smoketest.sh</td></tr>
 <tr><td>find_candidate_archives</td><td>Find candidate release archives</td><td>Lists candidate .tar.gz release archives from the configured releases directory.</td><td>sgnd-install.sh</td></tr>
+<tr><td>framework_configure_file</td><td></td><td>Interactively configure registered settings in a SolidGroundUX cfg file.</td><td>90-solidgroundux.sh</td></tr>
 <tr><td>framework_state_edit</td><td></td><td>Edit and save all transferable framework-state variables.</td><td>90-solidgroundux.sh</td></tr>
 <tr><td>framework_state_reload</td><td></td><td>Reload transferable framework state from disk into the console instance.</td><td>90-solidgroundux.sh</td></tr>
 <tr><td>framework_state_save</td><td></td><td>Save current transferable framework-state values.</td><td>90-solidgroundux.sh</td></tr>
@@ -352,7 +402,6 @@
 <tr><td>main</td><td>Run the Active Directory account management workflow</td><td></td><td>manage-users-n-groups.sh</td></tr>
 <tr><td>main</td><td>Run the executable main sequence - Run the executable main sequence</td><td>Bootstrap the framework, validate arguments, and run metadata-editor mode logic.</td><td>metadata-editor.sh</td></tr>
 <tr><td>main</td><td>Run the executable main sequence - Run the executable main sequence</td><td>Execute the release preparation workflow.</td><td>prepare-release.sh</td></tr>
-<tr><td>main</td><td>Run the executable main sequence</td><td>Run the standard executable startup sequence and then execute script-specific logic.</td><td>prepare-template.sh</td></tr>
 <tr><td>main</td><td>Receive, validate, and extract a streamed workspace archive</td><td></td><td>receive-files.sh</td></tr>
 <tr><td>main</td><td>Run the executable main sequence</td><td>Run the standard executable startup sequence and then execute script-specific logic.</td><td>set-identity.sh</td></tr>
 <tr><td>main</td><td>Run the executable main sequence</td><td>Run the executable main sequence.</td><td>sgnd-console.sh</td></tr>
@@ -380,15 +429,29 @@
 <tr><td>restore_backup</td><td>Restore recorded backup</td><td>Restores files from the recorded backup directory when one is available.</td><td>sgnd-uninstall.sh</td></tr>
 <tr><td>run_cmd</td><td>Run a command with dry-run support</td><td>Executes a command, or prints the command when dry-run mode is enabled.</td><td>sgnd-install.sh</td></tr>
 <tr><td>run_cmd</td><td>Run a command with dry-run support</td><td>Executes a command, or prints the command when dry-run mode is enabled.</td><td>sgnd-uninstall.sh</td></tr>
+<tr><td>samba_ad_status</td><td></td><td>Display the operational status of the local Samba AD Domain Controller.</td><td>20-active-directory.sh</td></tr>
+<tr><td>samba_add_group</td><td></td><td>Create a group in the provisioned Samba AD domain.</td><td>20-active-directory.sh</td></tr>
+<tr><td>samba_add_user</td><td></td><td>Create a user account in the provisioned Samba AD domain.</td><td>20-active-directory.sh</td></tr>
 <tr><td>samba_change_user_password</td><td>Change an Active Directory user password</td><td></td><td>20-active-directory.sh</td></tr>
+<tr><td>samba_create_domain</td><td></td><td>Interactively provision a new Samba Active Directory domain.</td><td>20-active-directory.sh</td></tr>
+<tr><td>samba_create_share</td><td></td><td>Create a directory-backed Samba share beneath the standard share root.</td><td>25-samba-file-server.sh</td></tr>
 <tr><td>samba_disable_user</td><td>Disable an Active Directory user</td><td></td><td>20-active-directory.sh</td></tr>
+<tr><td>samba_dns_add_host</td><td></td><td>Add an IPv4 host record to the local Active Directory DNS zone.</td><td>20-active-directory.sh</td></tr>
+<tr><td>samba_dns_delete_host</td><td></td><td>Delete an IPv4 host record from the local Active Directory DNS zone.</td><td>20-active-directory.sh</td></tr>
+<tr><td>samba_dns_list_zones</td><td></td><td>Display the DNS zones hosted by the local Samba Active Directory server.</td><td>20-active-directory.sh</td></tr>
+<tr><td>samba_dns_query_host</td><td></td><td>Query an A record in the local Active Directory DNS zone.</td><td>20-active-directory.sh</td></tr>
+<tr><td>samba_dns_register_dc</td><td></td><td>Re-run Samba DNS registration for the local Active Directory Domain Controller.</td><td>20-active-directory.sh</td></tr>
 <tr><td>samba_enable_user</td><td>Enable an Active Directory user</td><td></td><td>20-active-directory.sh</td></tr>
+<tr><td>samba_file_server_status</td><td></td><td>Display Samba service, configuration, and storage readiness status.</td><td>25-samba-file-server.sh</td></tr>
 <tr><td>samba_list_groups</td><td>List Active Directory groups</td><td></td><td>20-active-directory.sh</td></tr>
 <tr><td>samba_list_shares</td><td>List configured Samba shares</td><td></td><td>25-samba-file-server.sh</td></tr>
 <tr><td>samba_list_users</td><td>List Active Directory users</td><td></td><td>20-active-directory.sh</td></tr>
 <tr><td>samba_manage_accounts</td><td>Launch the interactive AD user and group manager</td><td>Start the dedicated executable used to manage Active Directory users, groups, memberships, and locally visible Samba share permissions.</td><td>20-active-directory.sh</td></tr>
 <tr><td>samba_manage_shares</td><td>Launch the interactive Samba share manager</td><td>Start the dedicated executable used to select and manage one or more shares.</td><td>25-samba-file-server.sh</td></tr>
+<tr><td>samba_remove_share</td><td></td><td>Remove a SolidGroundUX-managed Samba share definition.</td><td>25-samba-file-server.sh</td></tr>
 <tr><td>samba_set_user_no_expiry</td><td>Prevent an Active Directory user password from expiring</td><td></td><td>20-active-directory.sh</td></tr>
+<tr><td>samba_validate_file_server</td><td></td><td>Run active validation checks against the Samba file-server role and managed shares.</td><td>25-samba-file-server.sh</td></tr>
+<tr><td>samba_verify_domain</td><td></td><td>Perform active verification of the local Samba Active Directory domain.</td><td>20-active-directory.sh</td></tr>
 <tr><td>sample_function_with_arguments</td><td>Sample function with arguments</td><td>Demonstrate how function arguments are documented.</td><td>doc-sample.sh</td></tr>
 <tr><td>sample_public_function</td><td>Sample public function</td><td>Sample public function.</td><td>doc-sample.sh</td></tr>
 <tr><td>say</td><td>Emit a minimal bootstrap message</td><td>Emit a status message before the full SolidGroundUX UI layer is loaded.</td><td>sgnd-exe-common.sh</td></tr>
@@ -444,6 +507,7 @@
 <tr><td>sgnd_cfg_write_skeleton_filtered</td><td></td><td>Write an auto-generated cfg skeleton filtered by audience.</td><td>sgnd-cfg.sh</td></tr>
 <tr><td>sgnd_check_license</td><td>Check license</td><td>Validate the current SolidGroundUX license state when licensing is enabled.</td><td>sgnd-bootstrap.sh</td></tr>
 <tr><td>sgnd_color_samples</td><td>Color samples</td><td>Print sample output for the currently loaded color palette.</td><td>ui.sh</td></tr>
+<tr><td>sgnd_console_package_installed</td><td>Test whether a Debian package is installed</td><td></td><td>sgnd-console.sh</td></tr>
 <tr><td>sgnd_console_register_group</td><td>Register a console menu group</td><td>Register a console menu group.</td><td>sgnd-console.sh</td></tr>
 <tr><td>sgnd_console_register_item</td><td>Register a console menu item</td><td>Register a console menu item.</td><td>sgnd-console.sh</td></tr>
 <tr><td>sgnd_decision_display_choices</td><td>Decision display choices</td><td>Build a compact display string from a decision choice specification.</td><td>ui-dlg.sh</td></tr>
@@ -630,30 +694,19 @@
 <tr><td>palette_solidground_brand</td><td>SolidGround brand colors</td><td>Define the SolidGround product brand colors.</td><td>default-ui-palette.sh</td></tr>
 <tr><td>palette_testadura_brand</td><td>Testadura brand colors</td><td>Define the official Testadura corporate brand colors.</td><td>default-ui-palette.sh</td></tr>
 <tr><td>SAMPLE_PUBLIC_VARIABLE</td><td>Public variable documentation</td><td>Demonstrate a normal documented variable.</td><td>doc-sample.sh</td></tr>
-<tr><td>SGND_ARGS_SPEC</td><td>Script-specific command-line argument specification</td><td></td><td>prepare-template.sh</td></tr>
 <tr><td>SGND_ARGS_SPEC</td><td>Script-specific command-line argument specification</td><td></td><td>set-identity.sh</td></tr>
 <tr><td>SGND_BUILTIN_ARGS</td><td>Builtin framework argument specifications</td><td>Define standard command-line options available to framework-enabled scripts.</td><td>sgnd-args.sh</td></tr>
 <tr><td>SGND_BUILTIN_EXAMPLES</td><td>Builtin help examples</td><td>Provide reusable help examples for standard framework options.</td><td>sgnd-args.sh</td></tr>
-<tr><td>SGND_CORE_LIBS</td><td>Ordered core library list</td><td>Define the core libraries that sgnd-bootstrap loads in fixed order.</td><td>sgnd-bootstrap-env.sh</td></tr>
+<tr><td>SGND_CORE_LIBS</td><td>Ordered core library list</td><td>Define the core libraries that sgnd-bootstrap loads in fixed order.</td><td>sgnd-definitions.sh</td></tr>
 <tr><td>SGND_FRAMEWORK_DIRS</td><td>Framework directory specifications</td><td>Hold the rebuilt path specification list consumed by sgnd_ensure_dirs.</td><td>sgnd-bootstrap-env.sh</td></tr>
-<tr><td>SGND_FRAMEWORK_GLOBALS</td><td>Framework configuration variable registry</td><td>Declare framework variables that may be managed through system and/or user configuration files.</td><td>sgnd-bootstrap-env.sh</td></tr>
-<tr><td>SGND_ON_EXIT_HANDLERS</td><td>Script-specific exit handler list</td><td>- Allows scripts to register cleanup or finalization hooks.</td><td>prepare-template.sh</td></tr>
 <tr><td>SGND_ON_EXIT_HANDLERS</td><td>Script-specific exit handler list</td><td>- Allows scripts to register cleanup or finalization hooks.</td><td>set-identity.sh</td></tr>
-<tr><td>SGND_SCRIPT_BASE</td><td>Filename of the currently executing script</td><td></td><td>prepare-template.sh</td></tr>
 <tr><td>SGND_SCRIPT_BASE</td><td>Filename of the currently executing script</td><td></td><td>set-identity.sh</td></tr>
-<tr><td>SGND_SCRIPT_DIR</td><td>Directory containing the currently executing script</td><td></td><td>prepare-template.sh</td></tr>
 <tr><td>SGND_SCRIPT_DIR</td><td>Directory containing the currently executing script</td><td></td><td>set-identity.sh</td></tr>
-<tr><td>SGND_SCRIPT_EXAMPLES</td><td>Optional help examples for this script</td><td></td><td>prepare-template.sh</td></tr>
 <tr><td>SGND_SCRIPT_EXAMPLES</td><td>Optional help examples for this script</td><td></td><td>set-identity.sh</td></tr>
-<tr><td>SGND_SCRIPT_FILE</td><td>Absolute path to the currently executing script</td><td></td><td>prepare-template.sh</td></tr>
 <tr><td>SGND_SCRIPT_FILE</td><td>Absolute path to the currently executing script</td><td></td><td>set-identity.sh</td></tr>
-<tr><td>SGND_SCRIPT_GLOBALS</td><td>Script globals participating in configuration loading# var: SGND_SCRIPT_GLOBALS - Script globals participating in configuration loading</td><td>- Declares which globals are part of the script’s public/config contract. - Enables optional configuration loading when non-empty.</td><td>prepare-template.sh</td></tr>
 <tr><td>SGND_SCRIPT_GLOBALS</td><td>Script globals participating in configuration loading# var: SGND_SCRIPT_GLOBALS - Script globals participating in configuration loading</td><td>- Declares which globals are part of the script’s public/config contract. - Enables optional configuration loading when non-empty.</td><td>set-identity.sh</td></tr>
-<tr><td>SGND_SCRIPT_NAME</td><td>Script basename without the .sh extension</td><td></td><td>prepare-template.sh</td></tr>
 <tr><td>SGND_SCRIPT_NAME</td><td>Script basename without the .sh extension</td><td></td><td>set-identity.sh</td></tr>
-<tr><td>SGND_STATE_VARIABLES</td><td>Script variables participating in persistent state</td><td>- Declares which variables should be saved/restored when state is enabled.</td><td>prepare-template.sh</td></tr>
 <tr><td>SGND_STATE_VARIABLES</td><td>Script variables participating in persistent state</td><td>- Declares which variables should be saved/restored when state is enabled.</td><td>set-identity.sh</td></tr>
-<tr><td>SGND_USING</td><td>Optional framework libraries to source after core bootstrap</td><td></td><td>prepare-template.sh</td></tr>
 <tr><td>SGND_USING</td><td>Optional framework libraries to source after core bootstrap</td><td></td><td>set-identity.sh</td></tr>
 <tr><td>style_background_bright</td><td>Background: Bright</td><td>Document the variables assigned in this style section.</td><td>default-ui-palette.sh</td></tr>
 <tr><td>style_background_dark_muted</td><td>Background: Dark / muted</td><td>Document the variables assigned in this style section.</td><td>default-ui-palette.sh</td></tr>

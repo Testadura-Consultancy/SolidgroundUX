@@ -73,7 +73,6 @@ set -uo pipefail
     SGND_COMPUTER_SETUP_MODULE_VERSION="1.0.0"
     SGND_COMPUTER_SETUP_MODULE_DESC="Configure identity, SSH, sudo access, templates, and baseline packages"
 
-    SGND_MODULE_ID="${SGND_COMPUTER_SETUP_MODULE_ID}"
     SGND_MODULE_NAME="${SGND_COMPUTER_SETUP_MODULE_NAME}"
     SGND_MODULE_VERSION="${SGND_COMPUTER_SETUP_MODULE_VERSION}"
     SGND_MODULE_DESC="${SGND_COMPUTER_SETUP_MODULE_DESC}"
@@ -82,7 +81,7 @@ set -uo pipefail
     SGND_COMPUTER_SETUP_SCRIPT_MODULE_ID="machine-config"
 
 # - Module actions --------------------------------------------------------------
-    # fn$ _show_machine_status
+    # fn: _show_machine_status
         # . Purpose
         #   Show current network, machine identity, and SSH service status.
         #
@@ -147,7 +146,7 @@ set -uo pipefail
         return 0
     }
 
-    # fn$ _init_machine
+    # fn: _init_machine
         # . Purpose
         #   Generate a new machine-id for the VM.
         #
@@ -177,7 +176,7 @@ set -uo pipefail
         fi
     }
 
-    # fn$ _generate_ssh_keys
+    # fn: _generate_ssh_keys
         # . Purpose
         #   Generate SSH host keys for the VM.
         #
@@ -220,7 +219,7 @@ set -uo pipefail
         sayinfo "SSH host keys generated and SSH service restarted successfully."
     }
 
-    # fn$ _configure_ssh_service
+    # fn: _configure_ssh_service
         # . Purpose
         #   Enable or disable the SSH service and keep its runtime state aligned.
         #
@@ -288,7 +287,7 @@ set -uo pipefail
             "$@"
     }
 
-    # fn$ _set_dns_server
+    # fn: _set_dns_server
         # . Purpose
         #   Update the machine's configured DNS server without changing its hostname
         #   or address assignment mode.
@@ -338,169 +337,12 @@ set -uo pipefail
             "$@"
     }
 
-    # fn$ _install_basepackages
-        # . Purpose
-        #   Install or update the standard Ubuntu VM baseline packages.
-        #
-        # . Behavior
-        #   - Refreshes the APT package index.
-        #   - Installs general administration, diagnostics, and Samba client tools.
-        #   - Enables and starts the QEMU Guest Agent.
-        #   - Reports the intended action without changing the system in dry-run mode.
-        #
-        # . Returns
-        #   0 if the baseline was installed successfully, otherwise non-zero.
-        #
-        # . Usage
-        #   _install_basepackages
-    _install_basepackages() {
-        if (( ${FLAG_DRYRUN:-0} == 1 )); then
-            sayinfo "Dry run: Would install or update Ubuntu baseline packages."
-            return 0
-        fi
-
-        sayinfo "Updating Ubuntu package index."
-        sudo apt-get update || return 1
-
-        sayinfo "Installing or updating Ubuntu baseline packages."
-        sudo apt-get install -y \
-            acl \
-            attr \
-            bash-completion \
-            ca-certificates \
-            cifs-utils \
-            coreutils \
-            curl \
-            dnsutils \
-            dos2unix \
-            file \
-            findutils \
-            gawk \
-            git \
-            gnupg \
-            grep \
-            htop \
-            iproute2 \
-            iputils-arping \
-            iputils-ping \
-            jq \
-            less \
-            libc-bin \
-            lsb-release \
-            lsof \
-            man-db \
-            manpages \
-            nano \
-            ncdu \
-            net-tools \
-            openssh-server \
-            python3 \
-            qemu-guest-agent \
-            rsync \
-            smbclient \
-            software-properties-common \
-            tar \
-            tcpdump \
-            traceroute \
-            tree \
-            ufw \
-            unzip \
-            vim \
-            wget \
-            zip || return 1
-
-        sayinfo "Enabling QEMU Guest Agent."
-        sudo systemctl enable --now qemu-guest-agent.service || return 1
-
-        sayinfo "Ubuntu baseline installation or update completed successfully."
-    }
-
-    # fn$ _update_package_index
-        # . Purpose
-        #   Refresh the local Ubuntu package index.
-        #
-        # . Behavior
-        #   - Downloads current package metadata from configured APT repositories.
-        #   - Does not install or upgrade packages.
-        #   - Reports the intended action without changing the system in dry-run mode.
-        #
-        # . Returns
-        #   0 if the package index was refreshed successfully, otherwise non-zero.
-        #
-        # . Usage
-        #   _update_package_index
-    _update_package_index() {
-        if (( ${FLAG_DRYRUN:-0} == 1 )); then
-            sayinfo "Dry run: Would update the Ubuntu package index."
-            return 0
-        fi
-
-        sayinfo "Updating Ubuntu package index."
-        sudo apt-get update || return 1
-
-        sayinfo "Ubuntu package index updated successfully."
-    }
-
-    # fn$ _upgrade_installed_packages
-        # . Purpose
-        #   Upgrade installed Ubuntu packages to their available versions.
-        #
-        # . Behavior
-        #   - Refreshes the APT package index before upgrading.
-        #   - Applies available upgrades without removing installed packages.
-        #   - Reports the intended action without changing the system in dry-run mode.
-        #
-        # . Returns
-        #   0 if installed packages were upgraded successfully, otherwise non-zero.
-        #
-        # . Usage
-        #   _upgrade_installed_packages
-    _upgrade_installed_packages() {
-        if (( ${FLAG_DRYRUN:-0} == 1 )); then
-            sayinfo "Dry run: Would upgrade installed Ubuntu packages."
-            return 0
-        fi
-
-        sayinfo "Updating Ubuntu package index."
-        sudo apt-get update || return 1
-
-        sayinfo "Upgrading installed Ubuntu packages."
-        sudo apt-get upgrade -y || return 1
-
-        sayinfo "Installed Ubuntu packages upgraded successfully."
-    }
-
-    # fn$ _clean_unused_packages
-        # . Purpose
-        #   Remove unused package dependencies and cached package data.
-        #
-        # . Behavior
-        #   - Removes packages that were installed automatically and are no longer needed.
-        #   - Removes obsolete package files from the local APT cache.
-        #   - Reports the intended action without changing the system in dry-run mode.
-        #
-        # . Returns
-        #   0 if package cleanup completed successfully, otherwise non-zero.
-        #
-        # . Usage
-        #   _clean_unused_packages
-    _clean_unused_packages() {
-        if (( ${FLAG_DRYRUN:-0} == 1 )); then
-            sayinfo "Dry run: Would remove unused packages and clean the APT cache."
-            return 0
-        fi
-
-        sayinfo "Removing unused package dependencies."
-        sudo apt-get autoremove -y || return 1
-
-        sayinfo "Cleaning obsolete package files from the APT cache."
-        sudo apt-get autoclean || return 1
-
-        sayinfo "Package cleanup completed successfully."
-    }
 
 
-    # fn$ _configure_solidgroundux_sudoers
+
+
+
+    # fn: _configure_solidgroundux_sudoers
         # . Purpose
         #   Configure passwordless sudo access for trusted SolidGroundUX administration tools.
         #
@@ -615,8 +457,3 @@ set -uo pipefail
     sgnd_console_register_item "sshkeys" "$SGND_COMPUTER_SETUP_MODULE_ID" "Generate SSH host keys" "_generate_ssh_keys" "Generate SSH host keys and restart SSH" 0 5 1
     sgnd_console_register_item "sudoers" "$SGND_COMPUTER_SETUP_MODULE_ID" "Setup SolidGround sudo access" "_configure_solidgroundux_sudoers" "Allow the administrator to run trusted SolidGroundUX tools without a password" 0 5 1
 
-    sgnd_console_register_group "package-management" "Package Management" "Install the computer baseline and maintain Ubuntu packages" 0 1 110
-    sgnd_console_register_item "basepkg" "package-management" "Install base packages" "_install_basepackages" "Install the Ubuntu baseline packages" 0 5 1
-    sgnd_console_register_item "pkgindex" "package-management" "Update package index" "_update_package_index" "Refresh available package information" 0 5 1
-    sgnd_console_register_item "pkgupgrade" "package-management" "Upgrade installed packages" "_upgrade_installed_packages" "Upgrade installed Ubuntu packages" 0 5 1
-    sgnd_console_register_item "pkgclean" "package-management" "Clean unused packages" "_clean_unused_packages" "Remove unused packages and cached files" 0 5 1

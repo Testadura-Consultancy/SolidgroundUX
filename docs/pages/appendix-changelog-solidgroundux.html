@@ -15,46 +15,154 @@
 <h2 class="ct-L1Sectionheader">Changelog</h2>
 <p class="ct-documentbody">All notable changes to SolidGroundUX are documented in this file.</p>
 <p class="ct-documentbody">The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.</p>
-<h2 class="ct-L1Sectionheader">Version 1.8 (Build 1.8.2621822)</h2>
+<h2 class="ct-L1Sectionheader">Issues</h2>
+<ul>
+<li>Various script&#x27;s screen layout</li>
+<li>Setup SolidGround sudo access has two ask_continues</li>
+<li>Display IPv4 address in console header</li>
+<li>Last run status indicator in sgnd_console</li>
+</ul>
+<h2 class="ct-L1Sectionheader">Unreleased</h2>
 <h3 class="ct-L2Sectionheader">SolidGround Framework</h3>
 <h4 class="ct-L3Sectionheader">Added</h4>
 <ul>
-<li>Added `manage-users-n-groups.sh`, a dedicated interactive workflow for managing Active Directory users and groups.</li>
-<li>The user and group manager supports:</li>
-<li>Managing users and groups from a single integrated interface.</li>
-<li>Selecting multiple users or groups for bulk operations.</li>
-<li>Creating, modifying, and removing users and groups.</li>
-<li>Managing group memberships from either the user or group perspective.</li>
-<li>Displaying user-group membership relationships.</li>
-<li>Displaying user and group access to managed Samba shares.</li>
-<li>Added `manage-samba-shares.sh`, a dedicated interactive workflow for managing Samba shares.</li>
-<li>The share manager supports:</li>
-<li>Selecting one or more shares.</li>
-<li>Bulk management of ownership, groups, permissions, and validation.</li>
-<li>Applying access rights to multiple users, groups, and shares simultaneously.</li>
-<li>Added `sgnd_print_labeledmultivalue`, a multiline variant of `sgnd_print_labeledvalue` that keeps the label on the first line while allowing values to span multiple lines.</li>
+<li>Added `sgnd-definitions.sh` as the canonical source for</li>
+<p class="ct-documentbody">SolidGroundUX framework identity, version/build information, default settings, framework registries, and core-library declarations.</p>
+<li>Added `sgnd_print_labeledmultivalue`, a multiline variant of</li>
+<p class="ct-documentbody">`sgnd_print_labeledvalue` that keeps the label on the first line while allowing values to span multiple lines.</p>
 <li>`sgnd_print_labeledmultivalue` accepts either:</li>
-<li>A single string, optionally wrapped to a configurable value width.</li>
-<li>An array of values, with each item rendered on a separate aligned line.</li>
-<li>Added `ask_datetime`, a datetime-aware variant of `ask` that accepts both absolute dates and SolidGroundUX relative date/time expressions.</li>
+<li>A single string, optionally wrapped to a configurable value</li>
+<p class="ct-documentbody">width.</p>
+<li>An array of values, with each item rendered on a separate</li>
+<p class="ct-documentbody">aligned line.</p>
+<li>Added `ask_datetime`, a datetime-aware variant of `ask` that accepts</li>
+<p class="ct-documentbody">both absolute dates and SolidGroundUX relative date/time expressions.</p>
 <li>Added the following datetime shortcuts:</li>
-<li>`N` – Current date and time.</li>
-<li>`D` – Today at the start of the day.</li>
-<li>`s` – Seconds.</li>
-<li>`m` – Minutes.</li>
-<li>`h` – Hours.</li>
-<li>`d` – Days.</li>
-<li>`M` – Months.</li>
-<li>`y` – Years.</li>
-<li>Relative expressions such as `-2m`, `-2h`, `+30m`, `-1d`, `-3M`, and `-1y`.</li>
-<li>Relative datetime expressions are resolved immediately and returned as absolute ISO-8601 timestamps.</li>
-<li>`ask_datetime` now displays the resolved absolute timestamp when a shorthand expression is entered.</li>
-<li>Added an interactive `ask_datetime` test to the framework smoke test.</li>
+<li>`N` -- Current date and time.</li>
+<li>`D` -- Today at the start of the day.</li>
+<li>`s` -- Seconds.</li>
+<li>`m` -- Minutes.</li>
+<li>`h` -- Hours.</li>
+<li>`d` -- Days.</li>
+<li>`M` -- Months.</li>
+<li>`y` -- Years.</li>
+<li>Relative expressions such as `-2m`, `-2h`, `+30m`, `-1d`, `-3M`,</li>
+<p class="ct-documentbody">and `-1y`.</p>
+<li>Relative datetime expressions are resolved immediately and returned</li>
+<p class="ct-documentbody">as absolute ISO-8601 timestamps.</p>
+<li>`ask_datetime` now displays the resolved absolute timestamp when a</li>
+<p class="ct-documentbody">shorthand expression is entered.</p>
+<li>Added an interactive `ask_datetime` test to the framework smoke</li>
+<p class="ct-documentbody">test.</p>
 </ul>
-<h3 class="ct-L2Sectionheader">Active Directory</h3>
+<h3 class="ct-L2Sectionheader">SolidGround Management Console</h3>
+<h4 class="ct-L3Sectionheader">Added</h4>
+<ul>
+<li>Added persistent console-module visibility state, with module</li>
+<p class="ct-documentbody">identifiers derived conventionally from module filenames.</p>
+<li>Added **Manage modules** to **Console Session**, allowing console</li>
+<p class="ct-documentbody">modules to be enabled or disabled without editing configuration files manually.</p>
+<li>Added role-aware console visibility so Active Directory server,</li>
+<p class="ct-documentbody">Active Directory client, DNS, user/group, and Samba file-server functionality is only exposed when the corresponding role packages are installed.</p>
+<li>Added the executing machine hostname to the Management Console title</li>
+<p class="ct-documentbody">bar, making machine identity immediately visible across local and remote sessions.</p>
+<li>Added transient console initialization/progress feedback while</li>
+<p class="ct-documentbody">paths, configuration, built-in menu items, and console modules are loaded.</p>
+</ul>
 <h4 class="ct-L3Sectionheader">Changed</h4>
 <ul>
-<li>**Show membership** now displays the fully qualified domain name of the current machine before showing its Active Directory realm membership.</li>
+<li>Consolidated all package-related actions into a dedicated **Package</li>
+<p class="ct-documentbody">Management** module, including base packages, Active Directory server/client packages, Samba File Server, XRDP, and Docker.</p>
+<li>Console module load control now follows SolidGroundUX</li>
+<p class="ct-documentbody">convention-over-configuration: module IDs are derived from filenames rather than duplicated as explicit module declarations.</p>
+<li>Disabled console modules are no longer sourced; modules without an</li>
+<p class="ct-documentbody">explicit visibility-state entry remain enabled by default for backward compatibility.</p>
+<li>Console screen clearing now uses an explicit ANSI</li>
+<p class="ct-documentbody">erase-display/cursor-home sequence instead of the host `clear` implementation, producing consistent rendering across SSH/PowerShell and VS Code terminals.</p>
+<li>Increased the console menu label-width allowance to improve</li>
+<p class="ct-documentbody">readability of longer package-management actions.</p>
+</ul>
+<h4 class="ct-L3Sectionheader">Fixed</h4>
+<ul>
+<li>Fixed the duplicate top separator line that could appear in the</li>
+<p class="ct-documentbody">Management Console when running through SSH from PowerShell.</p>
+<li>Fixed hidden console groups still allowing their menu items to</li>
+<p class="ct-documentbody">participate in pagination/rendering.</p>
+</ul>
+<h4 class="ct-L3Sectionheader">Changed</h4>
+<ul>
+<li>`sgnd-bootstrap-env.sh` now consumes canonical definitions from</li>
+<p class="ct-documentbody">`sgnd-definitions.sh` while retaining responsibility for runtime-derived paths, rebasing, user resolution, and directory construction.</p>
+<li>`prepare-release.sh` now updates framework version/build identity in</li>
+<p class="ct-documentbody">`sgnd-definitions.sh` instead of `sgnd-bootstrap-env.sh`.</p>
+</ul>
+<h3 class="ct-L2Sectionheader">Machine and Network Configuration</h3>
+<h4 class="ct-L3Sectionheader">Added</h4>
+<ul>
+<li>Added DNS search-domain support to `set-identity.sh`.</li>
+<li>Added an interactive **DNS search domain** prompt alongside the DNS</li>
+<p class="ct-documentbody">server setting.</p>
+<li>Added `--DNS-search` support for non-interactive and DNS-only</li>
+<p class="ct-documentbody">network updates.</p>
+<li>DNS search-domain values now participate in persistent script state.</li>
+<li>Netplan generation now writes the configured DNS search domain</li>
+<p class="ct-documentbody">beneath `nameservers.search`.</p>
+</ul>
+<h4 class="ct-L3Sectionheader">Changed</h4>
+<ul>
+<li>DNS configuration now treats the DNS server and DNS search domain as</li>
+<p class="ct-documentbody">a single network identity concern.</p>
+<li>Active Directory provisioning and domain join now use the generic</li>
+<p class="ct-documentbody">DNS-setting path instead of maintaining separate Netplan search-domain logic.</p>
+</ul>
+<h3 class="ct-L2Sectionheader">Active Directory</h3>
+<h4 class="ct-L3Sectionheader">Added</h4>
+<ul>
+<li>Added an **Active Directory DNS** console group.</li>
+<li>Added DNS-zone listing and host-record query actions.</li>
+<li>Added actions to create and delete IPv4 host records in Samba Active</li>
+<p class="ct-documentbody">Directory DNS.</p>
+<li>Added an action to rerun DNS registration for the local domain</li>
+<p class="ct-documentbody">controller.</p>
+<li>Added client-side actions to manually add or remove the current</li>
+<p class="ct-documentbody">machine&#x27;s Active Directory DNS record.</p>
+<li>Domain join now registers the joining machine&#x27;s IPv4 host record in</li>
+<p class="ct-documentbody">Active Directory DNS.</p>
+<li>Domain join now configures the Active Directory DNS server and</li>
+<p class="ct-documentbody">domain search suffix as part of client network configuration.</p>
+</ul>
+<h4 class="ct-L3Sectionheader">Changed</h4>
+<ul>
+<li>**Show membership** now provides a consolidated client-domain status</li>
+<p class="ct-documentbody">overview, including:</p>
+<li>Machine FQDN.</li>
+<li>Machine IPv4 address.</li>
+<li>Joined realm.</li>
+<li>Domain membership state.</li>
+<li>Active Directory DNS server.</li>
+<li>DNS host-record registration state.</li>
+<li>Registered DNS A-record address.</li>
+<li>Kerberos SRV availability.</li>
+<li>LDAP SRV availability.</li>
+<li>Domain join now explicitly configures and validates the machine FQDN</li>
+<p class="ct-documentbody">before joining the realm.</p>
+<li>Active Directory DNS registration checks now query the authoritative</li>
+<p class="ct-documentbody">AD DNS server directly rather than relying on the local resolver.</p>
+<li>DNS host-record creation and deletion use shared non-interactive</li>
+<p class="ct-documentbody">helpers so the same implementation is available to both console actions and domain join.</p>
+</ul>
+<h4 class="ct-L3Sectionheader">Fixed</h4>
+<ul>
+<li>Fixed joined clients retaining only a short hostname instead of the</li>
+<p class="ct-documentbody">expected fully qualified domain name.</p>
+<li>Fixed DNS-registration status reporting false positives caused by</li>
+<p class="ct-documentbody">local `/etc/hosts` resolution.</p>
+<li>Fixed DNS helper variable scoping that could reduce a host FQDN to a</li>
+<p class="ct-documentbody">malformed value such as `td-nas.`.</p>
+<li>Fixed domain-joined Linux clients being unable to resolve short AD</li>
+<p class="ct-documentbody">hostnames because no DNS search domain was configured.</p>
+<li>Fixed the domain-join chain so a successful join results in a</li>
+<p class="ct-documentbody">resolvable AD DNS A record for the client.</p>
 </ul>
 <h3 class="ct-L2Sectionheader">Storage</h3>
 <h4 class="ct-L3Sectionheader">Added</h4>
@@ -74,7 +182,8 @@
 <li>The expected filesystem label is present.</li>
 <li>`/srv/storage` exists.</li>
 <li>`/srv/storage/shares` exists.</li>
-<li>Added a separate **Storage Access** menu group for managing the ownership and permissions of:</li>
+<li>Added a separate **Storage Access** menu group for managing the</li>
+<p class="ct-documentbody">ownership and permissions of:</p>
 <li>`/srv/storage`</li>
 <li>`/srv/storage/shares`</li>
 <li>Added actions to:</li>
@@ -84,8 +193,8 @@
 <li>Set storage permissions.</li>
 <li>Restore canonical storage permissions.</li>
 <li>Canonical storage permissions can now be restored to:</li>
-<li>`/srv/storage` – `root:root`, mode `0755`.</li>
-<li>`/srv/storage/shares` – `root:root`, mode `0770`.</li>
+<li>`/srv/storage` -- `root:root`, mode `0755`.</li>
+<li>`/srv/storage/shares` -- `root:root`, mode `0770`.</li>
 </ul>
 <h4 class="ct-L3Sectionheader">Changed</h4>
 <ul>
@@ -101,14 +210,19 @@
 <li>Whether the filesystem is mounted read/write.</li>
 <li>Storage-root and shares-root availability.</li>
 <li>Capacity and available space.</li>
-<li>Replaced the misleading **Storage root writable** status with **Mounted read/write**.</li>
-<li>Storage configuration now performs `systemctl daemon-reload` after updating `/etc/fstab`.</li>
+<li>Replaced the misleading **Storage root writable** status with</li>
+<p class="ct-documentbody">**Mounted read/write**.</p>
+<li>Storage configuration now performs `systemctl daemon-reload` after</li>
+<p class="ct-documentbody">updating `/etc/fstab`.</p>
 </ul>
 <h4 class="ct-L3Sectionheader">Fixed</h4>
 <ul>
-<li>Fixed storage mount detection incorrectly treating `/srv/storage` as mounted when it was only an ordinary directory on the root filesystem.</li>
-<li>Fixed storage status showing the capacity of the system root instead of the configured storage volume.</li>
-<li>Fixed storage provisioning stopping after filesystem creation without completing persistent mounting.</li>
+<li>Fixed storage mount detection incorrectly treating `/srv/storage` as</li>
+<p class="ct-documentbody">mounted when it was only an ordinary directory on the root filesystem.</p>
+<li>Fixed storage status showing the capacity of the system root instead</li>
+<p class="ct-documentbody">of the configured storage volume.</p>
+<li>Fixed storage provisioning stopping after filesystem creation</li>
+<p class="ct-documentbody">without completing persistent mounting.</p>
 </ul>
 <h3 class="ct-L2Sectionheader">Samba File Server</h3>
 <h4 class="ct-L3Sectionheader">Added</h4>
@@ -129,14 +243,16 @@
 <li>Mounted storage.</li>
 <li>The managed share root.</li>
 <li>Configured share backing directories.</li>
-<li>Added a dedicated `manage-samba-shares.sh` executable for interactive share management.</li>
+<li>Added a dedicated `manage-samba-shares.sh` executable for</li>
+<p class="ct-documentbody">interactive share management.</p>
 <li>The share manager supports:</li>
 <li>Listing all managed shares.</li>
 <li>Selecting one or more shares by number.</li>
 <li>Comma-separated selections.</li>
 <li>Numeric ranges.</li>
 <li>Selecting all shares.</li>
-<li>Keeping the selected collection active while applying multiple actions.</li>
+<li>Keeping the selected collection active while applying multiple</li>
+<p class="ct-documentbody">actions.</p>
 <li>Added share-management actions to:</li>
 <li>Show share details.</li>
 <li>Set owner.</li>
@@ -147,16 +263,24 @@
 </ul>
 <h4 class="ct-L3Sectionheader">Changed</h4>
 <ul>
-<li>Replaced the separate share-permission menu actions with a single **Manage shares** action.</li>
-<li>Share ownership and permission management is now handled by the dedicated share-management executable rather than repeated prompts in the console module.</li>
-<li>The Samba module now delegates detailed share-management workflows while retaining installation, creation, removal, validation, and status actions.</li>
+<li>Replaced the separate share-permission menu actions with a single</li>
+<p class="ct-documentbody">**Manage shares** action.</p>
+<li>Share ownership and permission management is now handled by the</li>
+<p class="ct-documentbody">dedicated share-management executable rather than repeated prompts in the console module.</p>
+<li>The Samba module now delegates detailed share-management workflows</li>
+<p class="ct-documentbody">while retaining installation, creation, removal, validation, and status actions.</p>
 </ul>
 <h3 class="ct-L2Sectionheader">Development Tools</h3>
 <h4 class="ct-L3Sectionheader">Changed</h4>
 <ul>
-<li>`deploy-workspace.sh` now uses `ask_datetime` for the **Changed after** prompt.</li>
-<li>The deployment filter now accepts SolidGroundUX relative date/time expressions, such as `N`, `D`, `-2h`, and `-1d`, in addition to absolute dates and timestamps.</li>
-<li>`deploy-workspace.sh` now displays a deployment summary after a successful transfer.</li>
+<li>`deploy-workspace.sh` now ends with a redo/continue prompt: Continue</li>
+<p class="ct-documentbody">exits cleanly, while `R` restarts the deployment from the beginning with the original arguments.</p>
+<li>`deploy-workspace.sh` now uses `ask_datetime` for the **Changed</li>
+<p class="ct-documentbody">after** prompt.</p>
+<li>The deployment filter now accepts SolidGroundUX relative date/time</li>
+<p class="ct-documentbody">expressions, such as `N`, `D`, `-2h`, and `-1d`, in addition to absolute dates and timestamps.</p>
+<li>`deploy-workspace.sh` now displays a deployment summary after a</li>
+<p class="ct-documentbody">successful transfer.</p>
 <li>The deployment summary reports:</li>
 <li>Result.</li>
 <li>Transport.</li>
@@ -165,9 +289,12 @@
 <li>Receiver.</li>
 <li>Start and finish timestamps.</li>
 <li>Every transferred file.</li>
-<li>The deployment summary now uses `sgnd_print_labeledmultivalue`, displaying transferred files on separate aligned lines instead of as a truncated comma-separated string.</li>
-<li>`prepare-release.sh` now ensures that every regular file directly beneath `usr/local/libexec/solidgroundux` has its executable bit set before staging and archive creation.</li>
-<li>Dry-run mode reports which executable permissions would be corrected without modifying the source tree.</li>
+<li>The deployment summary now uses `sgnd_print_labeledmultivalue`,</li>
+<p class="ct-documentbody">displaying transferred files on separate aligned lines instead of as a truncated comma-separated string.</p>
+<li>`prepare-release.sh` now ensures that every regular file directly</li>
+<p class="ct-documentbody">beneath `usr/local/libexec/solidgroundux` has its executable bit set before staging and archive creation.</p>
+<li>Dry-run mode reports which executable permissions would be corrected</li>
+<p class="ct-documentbody">without modifying the source tree.</p>
 </ul>
 <h3 class="ct-L2Sectionheader">Framework Tests</h3>
 <h4 class="ct-L3Sectionheader">Added</h4>
@@ -179,39 +306,64 @@
 <li>Timeout to repeat the datetime prompt.</li>
 <li>Pause and resume through the standard auto-continue dialog.</li>
 </ul>
+<h3 class="ct-L2Sectionheader">Open Issues / Next</h3>
+<ul>
+<li>Review screen layout consistency across scripts.</li>
+<li>Remove the duplicate `ask_continue` in **Setup SolidGround sudo</li>
+<p class="ct-documentbody">access**.</p>
+<li>Display IPv4 address in the console header.</li>
+<li>Add a persistent last-run status indicator to `sgnd_console` menu</li>
+<p class="ct-documentbody">items.</p>
+</ul>
 <h2 class="ct-L1Sectionheader">Version 1.8 (Build 1.8.2621804)</h2>
 <h3 class="ct-L2Sectionheader">Changed</h3>
 <h4 class="ct-L3Sectionheader">Active Directory</h4>
 <ul>
-<li>Active Directory provisioning now automatically configures the domain controller to use itself as the primary DNS server after successful domain creation.</li>
-<li>Refined the provisioning workflow with a clearer separation between network configuration and Active Directory provisioning responsibilities.</li>
-<li>Active Directory provisioning now prompts for the Administrator account password as part of the provisioning process.</li>
-<li>Completed and fully validated the end-to-end Active Directory provisioning workflow, including DNS, Kerberos, and domain verification.</li>
+<li>Active Directory provisioning now automatically configures the</li>
+<p class="ct-documentbody">domain controller to use itself as the primary DNS server after successful domain creation.</p>
+<li>Refined the provisioning workflow with a clearer separation between</li>
+<p class="ct-documentbody">network configuration and Active Directory provisioning responsibilities.</p>
+<li>Active Directory provisioning now prompts for the Administrator</li>
+<p class="ct-documentbody">account password as part of the provisioning process.</p>
+<li>Completed and fully validated the end-to-end Active Directory</li>
+<p class="ct-documentbody">provisioning workflow, including DNS, Kerberos, and domain verification.</p>
 </ul>
 <h4 class="ct-L3Sectionheader">Development Tools</h4>
 <ul>
-<li>`deploy-workspace.sh` now supports comma-separated filenames and shell-style file masks.</li>
-<li>Deployment settings are now persisted automatically between sessions.</li>
-<li>Added support for incremental deployments based on the last successful deployment timestamp.</li>
-<li>`deploy-workspace.sh` now offers an interactive **Since last deployment** option.</li>
-<li>When **Since last deployment** is selected, the stored deployment timestamp is displayed and the **Changed after** prompt is skipped.</li>
-<li>When **Since last deployment** is not selected, the **Changed after** date defaults to `1900-01-01`.</li>
-<li>Streamlined deployment prompts and selection workflow for a faster incremental deployment experience.</li>
-<li>Significantly improved incremental documentation generation by supporting selective regeneration of changed source files, greatly reducing documentation build times during development.</li>
+<li>`deploy-workspace.sh` now supports comma-separated filenames and</li>
+<p class="ct-documentbody">shell-style file masks.</p>
+<li>Deployment settings are now persisted automatically between</li>
+<p class="ct-documentbody">sessions.</p>
+<li>Added support for incremental deployments based on the last</li>
+<p class="ct-documentbody">successful deployment timestamp.</p>
+<li>`deploy-workspace.sh` now offers an interactive **Since last</li>
+<p class="ct-documentbody">deployment** option.</p>
+<li>When **Since last deployment** is selected, the stored deployment</li>
+<p class="ct-documentbody">timestamp is displayed and the **Changed after** prompt is skipped.</p>
+<li>When **Since last deployment** is not selected, the **Changed</li>
+<p class="ct-documentbody">after** date defaults to `1900-01-01`.</p>
+<li>Streamlined deployment prompts and selection workflow for a faster</li>
+<p class="ct-documentbody">incremental deployment experience.</p>
+<li>Significantly improved incremental documentation generation by</li>
+<p class="ct-documentbody">supporting selective regeneration of changed source files, greatly reducing documentation build times during development.</p>
 </ul>
 <h3 class="ct-L2Sectionheader">Resolved</h3>
 <h4 class="ct-L3Sectionheader">Active Directory</h4>
 <ul>
-<li>Fixed domain provisioning to correctly configure the required Fully Qualified Domain Name (FQDN) before provisioning.</li>
+<li>Fixed domain provisioning to correctly configure the required Fully</li>
+<p class="ct-documentbody">Qualified Domain Name (FQDN) before provisioning.</p>
 <li>Fixed DNS listener detection during Active Directory verification.</li>
 <li>Fixed Kerberos configuration and verification workflow.</li>
-<li>Fixed Active Directory verification to correctly validate DNS, directory services, and Kerberos authentication.</li>
-<li>Fixed Administrator account configuration to support non-expiring passwords.</li>
+<li>Fixed Active Directory verification to correctly validate DNS,</li>
+<p class="ct-documentbody">directory services, and Kerberos authentication.</p>
+<li>Fixed Administrator account configuration to support non-expiring</li>
+<p class="ct-documentbody">passwords.</p>
 </ul>
 <h4 class="ct-L3Sectionheader">Development Tools</h4>
 <ul>
 <li>Fixed deployment state persistence in `deploy-workspace.sh`.</li>
-<li>Fixed deployment selection to correctly process multiple filename filters during a single deployment operation.</li>
+<li>Fixed deployment selection to correctly process multiple filename</li>
+<p class="ct-documentbody">filters during a single deployment operation.</p>
 </ul>
 <h2 class="ct-L1Sectionheader">Version 1.8 (Build 2621612)</h2>
 <h3 class="ct-L2Sectionheader">SolidGround Management Console</h3>
@@ -270,18 +422,24 @@
 </ul>
 <h4 class="ct-L3Sectionheader">Changed</h4>
 <ul>
-<li>Reorganized the SolidGround Management Console into dedicated functional modules.</li>
+<li>Reorganized the SolidGround Management Console into dedicated</li>
+<p class="ct-documentbody">functional modules.</p>
 <li>Simplified the overall console navigation.</li>
-<li>Console actions that invoke external scripts now resolve those scripts from `SGND_COMMON_EXE` or `SGND_COMMON_LIB`.</li>
+<li>Console actions that invoke external scripts now resolve those</li>
+<p class="ct-documentbody">scripts from `SGND_COMMON_EXE` or `SGND_COMMON_LIB`.</p>
 <li>Completely redesigned `deploy-workspace.sh`.</li>
 <li>Added support for local and remote workspace deployment over SSH.</li>
-<li>Added support for deploying complete workspaces or filtered file selections.</li>
-<li>`deploy-workspace.sh` now creates a tar stream that is processed by `receive-files.sh`.</li>
-<li>Simplified deployment selection by combining directory, filename or mask, and modification-date filters.</li>
+<li>Added support for deploying complete workspaces or filtered file</li>
+<p class="ct-documentbody">selections.</p>
+<li>`deploy-workspace.sh` now creates a tar stream that is processed by</li>
+<p class="ct-documentbody">`receive-files.sh`.</p>
+<li>Simplified deployment selection by combining directory, filename or</li>
+<p class="ct-documentbody">mask, and modification-date filters.</p>
 </ul>
 <h4 class="ct-L3Sectionheader">Removed</h4>
 <ul>
-<li>Replaced the previous console modules with the new functional module structure:</li>
+<li>Replaced the previous console modules with the new functional module</li>
+<p class="ct-documentbody">structure:</p>
 <li>`10-sgnd-config.sh`</li>
 <li>`20-machine-config.sh`</li>
 <li>`30-role-provisioning.sh`</li>
@@ -289,7 +447,143 @@
 <h3 class="ct-L2Sectionheader">SolidGround Framework</h3>
 <h4 class="ct-L3Sectionheader">Added</h4>
 <ul>
-<li>Global variable SGND_COMMON_EXE this is weher Solidground&#x27;s executables can be found</li>
+<li>Global variable SGND_COMMON_EXE this is weher Solidground&#x27;s</li>
+<p class="ct-documentbody">executables can be found</p>
+</ul>
+<h2 class="ct-L1Sectionheader">Version 1.8 (Build 1.8.2621804)</h2>
+<h3 class="ct-L2Sectionheader">Changed</h3>
+<h4 class="ct-L3Sectionheader">Active Directory</h4>
+<ul>
+<li>Active Directory provisioning now automatically configures the</li>
+<p class="ct-documentbody">domain controller to use itself as the primary DNS server after successful domain creation.</p>
+<li>Refined the provisioning workflow with a clearer separation between</li>
+<p class="ct-documentbody">network configuration and Active Directory provisioning responsibilities.</p>
+<li>Active Directory provisioning now prompts for the Administrator</li>
+<p class="ct-documentbody">account password as part of the provisioning process.</p>
+<li>Completed and fully validated the end-to-end Active Directory</li>
+<p class="ct-documentbody">provisioning workflow, including DNS, Kerberos, and domain verification.</p>
+</ul>
+<h4 class="ct-L3Sectionheader">Development Tools</h4>
+<ul>
+<li>`deploy-workspace.sh` now supports comma-separated filenames and</li>
+<p class="ct-documentbody">shell-style file masks.</p>
+<li>Deployment settings are now persisted automatically between</li>
+<p class="ct-documentbody">sessions.</p>
+<li>Added support for incremental deployments based on the last</li>
+<p class="ct-documentbody">successful deployment timestamp.</p>
+<li>`deploy-workspace.sh` now offers an interactive **Since last</li>
+<p class="ct-documentbody">deployment** option.</p>
+<li>When **Since last deployment** is selected, the stored deployment</li>
+<p class="ct-documentbody">timestamp is displayed and the **Changed after** prompt is skipped.</p>
+<li>When **Since last deployment** is not selected, the **Changed</li>
+<p class="ct-documentbody">after** date defaults to `1900-01-01`.</p>
+<li>Streamlined deployment prompts and selection workflow for a faster</li>
+<p class="ct-documentbody">incremental deployment experience.</p>
+<li>Significantly improved incremental documentation generation by</li>
+<p class="ct-documentbody">supporting selective regeneration of changed source files, greatly reducing documentation build times during development.</p>
+</ul>
+<h3 class="ct-L2Sectionheader">Resolved</h3>
+<h4 class="ct-L3Sectionheader">Active Directory</h4>
+<ul>
+<li>Fixed domain provisioning to correctly configure the required Fully</li>
+<p class="ct-documentbody">Qualified Domain Name (FQDN) before provisioning.</p>
+<li>Fixed DNS listener detection during Active Directory verification.</li>
+<li>Fixed Kerberos configuration and verification workflow.</li>
+<li>Fixed Active Directory verification to correctly validate DNS,</li>
+<p class="ct-documentbody">directory services, and Kerberos authentication.</p>
+<li>Fixed Administrator account configuration to support non-expiring</li>
+<p class="ct-documentbody">passwords.</p>
+</ul>
+<h4 class="ct-L3Sectionheader">Development Tools</h4>
+<ul>
+<li>Fixed deployment state persistence in `deploy-workspace.sh`.</li>
+<li>Fixed deployment selection to correctly process multiple filename</li>
+<p class="ct-documentbody">filters during a single deployment operation.</p>
+</ul>
+<h2 class="ct-L1Sectionheader">Version 1.8 (Build 2621612)</h2>
+<h3 class="ct-L2Sectionheader">SolidGround Management Console</h3>
+<h4 class="ct-L3Sectionheader">Added</h4>
+<h5 class="ct-L3Sectionheader">Computer Setup</h5>
+<ul>
+<li>Machine status overview.</li>
+<li>Machine identity and network configuration.</li>
+<li>Machine ID generation.</li>
+<li>SSH service configuration.</li>
+<li>SSH host key generation.</li>
+<li>VM template preparation.</li>
+<li>Ubuntu package management.</li>
+<li>Ubuntu base package installation.</li>
+</ul>
+<h5 class="ct-L3Sectionheader">Active Directory</h5>
+<ul>
+<li>Samba Active Directory package installation.</li>
+<li>Active Directory domain provisioning.</li>
+<li>Active Directory status overview.</li>
+<li>Active Directory user management.</li>
+<li>Active Directory group management.</li>
+<li>Active Directory client installation.</li>
+<li>Domain join and leave support.</li>
+</ul>
+<h5 class="ct-L3Sectionheader">Samba File Server</h5>
+<ul>
+<li>Samba File Server installation.</li>
+</ul>
+<h5 class="ct-L3Sectionheader">Optional Roles</h5>
+<ul>
+<li>Docker installation.</li>
+<li>XRDP installation.</li>
+<li>Framework for future optional server roles.</li>
+</ul>
+<h5 class="ct-L3Sectionheader">SolidGroundUX</h5>
+<ul>
+<li>Framework configuration management.</li>
+<li>Framework state management.</li>
+<li>Framework logging tools.</li>
+<li>Framework diagnostics.</li>
+<li>SolidGroundUX installation, update, and removal.</li>
+</ul>
+<h5 class="ct-L3Sectionheader">Development Tools</h5>
+<ul>
+<li>Workspace creation.</li>
+<li>Workspace deployment through `deploy-workspace.sh`.</li>
+<li>Workspace archiving.</li>
+<li>Workspace restoration.</li>
+<li>Release preparation.</li>
+<li>Metadata editor.</li>
+<li>Documentation generator.</li>
+<li>`receive-files.sh` for receiving streamed deployments.</li>
+<li>`tar-it.sh` for archive creation.</li>
+<li>`untar-it.sh` for archive restoration.</li>
+</ul>
+<h4 class="ct-L3Sectionheader">Changed</h4>
+<ul>
+<li>Reorganized the SolidGround Management Console into dedicated</li>
+<p class="ct-documentbody">functional modules.</p>
+<li>Simplified the overall console navigation.</li>
+<li>Console actions that invoke external scripts now resolve those</li>
+<p class="ct-documentbody">scripts from `SGND_COMMON_EXE` or `SGND_COMMON_LIB`.</p>
+<li>Completely redesigned `deploy-workspace.sh`.</li>
+<li>Added support for local and remote workspace deployment over SSH.</li>
+<li>Added support for deploying complete workspaces or filtered file</li>
+<p class="ct-documentbody">selections.</p>
+<li>`deploy-workspace.sh` now creates a tar stream that is processed by</li>
+<p class="ct-documentbody">`receive-files.sh`.</p>
+<li>Simplified deployment selection by combining directory, filename or</li>
+<p class="ct-documentbody">mask, and modification-date filters.</p>
+</ul>
+<h4 class="ct-L3Sectionheader">Removed</h4>
+<ul>
+<li>Replaced the previous console modules with the new functional module</li>
+<p class="ct-documentbody">structure:</p>
+<li>`10-sgnd-config.sh`</li>
+<li>`20-machine-config.sh`</li>
+<li>`30-role-provisioning.sh`</li>
+</ul>
+<h3 class="ct-L2Sectionheader">SolidGround Framework</h3>
+<h4 class="ct-L3Sectionheader">Added</h4>
+<ul>
+<li>Global variable SGND_COMMON_EXE this is weher Solidground&#x27;s</li>
+<p class="ct-documentbody">executables can be found</p>
 </ul>
 <h2 class="ct-L1Sectionheader">Version 1.8 (Build 2621300)</h2>
 <h3 class="ct-L2Sectionheader">SolidGroundUX Framework</h3>
@@ -307,7 +601,8 @@
 <h4 class="ct-L3Sectionheader">Added</h4>
 <ul>
 <li>Added sshd verification to 20-machine-config.sh</li>
-<li>Added new module 30-role-provisioning.sh with samba ad provisoning functions</li>
+<li>Added new module 30-role-provisioning.sh with samba ad provisoning</li>
+<p class="ct-documentbody">functions</p>
 </ul>
 <h4 class="ct-L3Sectionheader">Changed</h4>
 <ul>
@@ -317,54 +612,72 @@
 <h3 class="ct-L2Sectionheader">SolidGroundUX Management Studio</h3>
 <h4 class="ct-L3Sectionheader">Added</h4>
 <ul>
-<li>Added a Machine Configuration action to enable or disable the SSH service.</li>
+<li>Added a Machine Configuration action to enable or disable the SSH</li>
+<p class="ct-documentbody">service.</p>
 <li>Added a Console Session action to open a child shell.</li>
 </ul>
 <h4 class="ct-L3Sectionheader">Changed</h4>
 <ul>
-<li>Updated `set-identity.sh` to use the current machine configuration as the default prompt values.</li>
-<li>Added automatic availability checks for static IPv4 addresses before applying network configuration, with user confirmation when a potential address conflict is detected.</li>
+<li>Updated `set-identity.sh` to use the current machine configuration</li>
+<p class="ct-documentbody">as the default prompt values.</p>
+<li>Added automatic availability checks for static IPv4 addresses before</li>
+<p class="ct-documentbody">applying network configuration, with user confirmation when a potential address conflict is detected.</p>
 </ul>
 <h3 class="ct-L2Sectionheader">SolidGroundUX Framework</h3>
 <h4 class="ct-L3Sectionheader">Added</h4>
 <ul>
-<li>Added dedicated style variables for title and section rendering, allowing title text, subtitle text, border colours, and border characters to be customized independently of the base UI palette.</li>
+<li>Added dedicated style variables for title and section rendering,</li>
+<p class="ct-documentbody">allowing title text, subtitle text, border colours, and border characters to be customized independently of the base UI palette.</p>
 </ul>
 <h2 class="ct-L1Sectionheader">Version 1.8 (Build 2620810)</h2>
 <h3 class="ct-L2Sectionheader">Resolved</h3>
 <ul>
-<li>Fixed various machine configuration issues in the Management Console.</li>
-<li>Fixed an issue where state variables were not being saved by `prepare-release.sh`.</li>
-<li>Fixed documentation grouping issues caused by inconsistent script title prefixes.</li>
+<li>Fixed various machine configuration issues in the Management</li>
+<p class="ct-documentbody">Console.</p>
+<li>Fixed an issue where state variables were not being saved by</li>
+<p class="ct-documentbody">`prepare-release.sh`.</p>
+<li>Fixed documentation grouping issues caused by inconsistent script</li>
+<p class="ct-documentbody">title prefixes.</p>
 </ul>
 <h3 class="ct-L2Sectionheader">Added</h3>
 <ul>
-<li>Added framework global `SGND_CONSOLE_WIDTH` to define the preferred console rendering width.</li>
-<li>Added framework global `SGND_MAX_RENDER_WIDTH` to define the maximum console rendering width.</li>
-<li>Added documentation summary sections (`var:` blocks) to the framework style files.</li>
+<li>Added framework global `SGND_CONSOLE_WIDTH` to define the preferred</li>
+<p class="ct-documentbody">console rendering width.</p>
+<li>Added framework global `SGND_MAX_RENDER_WIDTH` to define the maximum</li>
+<p class="ct-documentbody">console rendering width.</p>
+<li>Added documentation summary sections (`var:` blocks) to the</li>
+<p class="ct-documentbody">framework style files.</p>
 </ul>
 <h3 class="ct-L2Sectionheader">Changed</h3>
 <ul>
-<li>Updated all UI rendering primitives to respect the framework console width settings.</li>
-<li>Changed HTML documentation rendering so consecutive non-empty lines are treated as paragraphs.</li>
-<li>Updated `prepare-release.sh` to synchronize the selected version with changed script headers.</li>
+<li>Updated all UI rendering primitives to respect the framework console</li>
+<p class="ct-documentbody">width settings.</p>
+<li>Changed HTML documentation rendering so consecutive non-empty lines</li>
+<p class="ct-documentbody">are treated as paragraphs.</p>
+<li>Updated `prepare-release.sh` to synchronize the selected version</li>
+<p class="ct-documentbody">with changed script headers.</p>
 <li>Improved documentation generation for style configuration variables.</li>
 </ul>
 <h2 class="ct-L1Sectionheader">Version 1.8 (Build 2620423)</h2>
 <h3 class="ct-L2Sectionheader">Resolved</h3>
 <ul>
-<li>Fixed an issue where `sgnd-install.sh` could overwrite ownership and permissions of existing system directories (such as `/`, `/etc`, and `/usr`) during installation.</li>
+<li>Fixed an issue where `sgnd-install.sh` could overwrite ownership and</li>
+<p class="ct-documentbody">permissions of existing system directories (such as `/`, `/etc`, and `/usr`) during installation.</p>
 </ul>
 <h3 class="ct-L2Sectionheader">Changed</h3>
 <ul>
-<li>Updated `sgnd-install.sh` to preserve metadata of existing target directories.</li>
-<li>Updated `prepare-release.sh` to package repository directories with `root:root` ownership.</li>
+<li>Updated `sgnd-install.sh` to preserve metadata of existing target</li>
+<p class="ct-documentbody">directories.</p>
+<li>Updated `prepare-release.sh` to package repository directories with</li>
+<p class="ct-documentbody">`root:root` ownership.</p>
 </ul>
 <h2 class="ct-L1Sectionheader">Version 1.8 (Build 2620413)</h2>
 <h3 class="ct-L2Sectionheader">Added</h3>
 <ul>
-<li>Introduced the **SolidGroundUX Management Console**, a module-driven administration application built on the generic `sgnd-console` engine.</li>
-<li>Added ordered console-module loading through numeric filename prefixes, allowing the first module to define the console title and description.</li>
+<li>Introduced the **SolidGroundUX Management Console**, a module-driven</li>
+<p class="ct-documentbody">administration application built on the generic `sgnd-console` engine.</p>
+<li>Added ordered console-module loading through numeric filename</li>
+<p class="ct-documentbody">prefixes, allowing the first module to define the console title and description.</p>
 <li>Added the `10-sgnd-config.sh` module for:</li>
 <li>Developer tools</li>
 <li>SolidGroundUX installation and maintenance</li>
@@ -372,98 +685,109 @@
 <li>Framework state</li>
 <li>Framework logging</li>
 <li>Framework diagnostics</li>
-<li>Added the `20-machine-config.sh` module for machine identity, package maintenance, template preparation, and optional server roles.</li>
+<li>Added the `20-machine-config.sh` module for machine identity,</li>
+<p class="ct-documentbody">package maintenance, template preparation, and optional server roles.</p>
 <li>Added direct bottom-bar controls for:</li>
 <li>Dry-run or commit mode</li>
 <li>Console log level</li>
 <li>File log level</li>
 <li>Active theme</li>
 <li>Screen clearing</li>
-<li>Added reverse cycling for console log level, file log level, and theme using `Shift+C`, `Shift+F`, and `Shift+T`.</li>
-<li>Added framework configuration actions for viewing effective settings and editing system-wide and user-specific configuration files.</li>
-<li>Added framework logging actions for viewing, following, filtering, and rotating the active logfile.</li>
-<li>Added `sgnd-update.sh` to download the latest SolidGroundUX release from GitHub.</li>
-<li>Added public command wrappers for install, uninstall, and update operations.</li>
-<li>Added cached console menu models and cached page layouts to make redraws effectively immediate.</li>
+<li>Added reverse cycling for console log level, file log level, and</li>
+<p class="ct-documentbody">theme using `Shift+C`, `Shift+F`, and `Shift+T`.</p>
+<li>Added framework configuration actions for viewing effective settings</li>
+<p class="ct-documentbody">and editing system-wide and user-specific configuration files.</p>
+<li>Added framework logging actions for viewing, following, filtering,</li>
+<p class="ct-documentbody">and rotating the active logfile.</p>
+<li>Added `sgnd-update.sh` to download the latest SolidGroundUX release</li>
+<p class="ct-documentbody">from GitHub.</p>
+<li>Added public command wrappers for install, uninstall, and update</li>
+<p class="ct-documentbody">operations.</p>
+<li>Added cached console menu models and cached page layouts to make</li>
+<p class="ct-documentbody">redraws effectively immediate.</p>
 </ul>
 <h3 class="ct-L2Sectionheader">Changed</h3>
 <ul>
-<li>Redesigned `sgnd-console` as a reusable console engine rather than a SolidGroundUX-specific application.</li>
-<li>Moved the visible console identity from the host into the first successfully loaded module.</li>
-<li>Replaced implicit module discovery order with deterministic filename sorting.</li>
+<li>Redesigned `sgnd-console` as a reusable console engine rather than a</li>
+<p class="ct-documentbody">SolidGroundUX-specific application.</p>
+<li>Moved the visible console identity from the host into the first</li>
+<p class="ct-documentbody">successfully loaded module.</p>
+<li>Replaced implicit module discovery order with deterministic filename</li>
+<p class="ct-documentbody">sorting.</p>
 <li>Reworked the console module contract around:</li>
 <li>`SGND_MODULE_ID`</li>
 <li>`SGND_MODULE_NAME`</li>
 <li>`SGND_MODULE_VERSION`</li>
 <li>`SGND_MODULE_DESC`</li>
 <li>Separated public commands from module-private helper scripts.</li>
-<li>Merged the former Developer Tools and Framework State modules into `10-sgnd-config.sh`.</li>
-<li>Moved SolidGroundUX installation actions into the SolidGroundUX configuration module.</li>
-<li>Renamed the `vm-config` module and helper directory to `machine-config`.</li>
-<li>Replaced the individual framework smoke-test menu entries with a single framework smoke-test command.</li>
-<li>Reused `framework-smoketest.sh --show env` as the effective framework configuration and environment overview.</li>
-<li>Updated console rendering to reuse cached datatable data instead of repeatedly querying and rebuilding menu structures.</li>
-<li>Updated console and module documentation for the new Management Console architecture.</li>
+<li>Merged the former Developer Tools and Framework State modules into</li>
+<p class="ct-documentbody">`10-sgnd-config.sh`.</p>
+<li>Moved SolidGroundUX installation actions into the SolidGroundUX</li>
+<p class="ct-documentbody">configuration module.</p>
+<li>Renamed the `vm-config` module and helper directory to</li>
+<p class="ct-documentbody">`machine-config`.</p>
+<li>Replaced the individual framework smoke-test menu entries with a</li>
+<p class="ct-documentbody">single framework smoke-test command.</p>
+<li>Reused `framework-smoketest.sh --show env` as the effective</li>
+<p class="ct-documentbody">framework configuration and environment overview.</p>
+<li>Updated console rendering to reuse cached datatable data instead of</li>
+<p class="ct-documentbody">repeatedly querying and rebuilding menu structures.</p>
+<li>Updated console and module documentation for the new Management</li>
+<p class="ct-documentbody">Console architecture.</p>
 <li>Made style sequence fixed so forward and back actually work</li>
 </ul>
 <h3 class="ct-L2Sectionheader">Removed</h3>
 <ul>
 <li>Removed the old `console-devtools.sh` module.</li>
 <li>Removed the old `console-framework-state.sh` module.</li>
-<li>Removed the old `vm-config.sh` module name and `vm-config/` helper directory.</li>
-<li>Removed the prompt-based console and file log-level selectors from the Console Session menu.</li>
-<li>Removed the prompt-based theme selector from the Console Session menu.</li>
+<li>Removed the old `vm-config.sh` module name and `vm-config/` helper</li>
+<p class="ct-documentbody">directory.</p>
+<li>Removed the prompt-based console and file log-level selectors from</li>
+<p class="ct-documentbody">the Console Session menu.</p>
+<li>Removed the prompt-based theme selector from the Console Session</li>
+<p class="ct-documentbody">menu.</p>
 <li>Removed the individual in-process framework smoke-test menu actions.</li>
 </ul>
-<p class="ct-documentbody">---</p>
+<p class="ct-documentbody">------------------------------------------------------------------------</p>
 <h2 class="ct-L1Sectionheader">Version 1.7 (Build 2620012) 2026-07-19</h2>
 <h3 class="ct-L2Sectionheader">Removed</h3>
 <ul>
-<li>Removed motd file,  but archaic and cumbersome, and doesn&#x27;t really add any functionality</li>
+<li>Removed motd file, but archaic and cumbersome, and doesn&#x27;t really</li>
+<p class="ct-documentbody">add any functionality</p>
 </ul>
 <h3 class="ct-L2Sectionheader">Added</h3>
 <ul>
-<li>Added images to documentation, do-generator now supports image tag in comments</li>
+<li>Added images to documentation, do-generator now supports image tag</li>
+<p class="ct-documentbody">in comments</p>
 </ul>
-<p class="ct-documentbody">---</p>
-<h2 class="ct-L1Sectionheader">Version 1.7 (Build 2619600) - 2026-07-14</h2>
-<h3 class="ct-L2Sectionheader">Fixed</h3>
-<ul>
-<li>sgnd-console didn&#x27;t handle --appcfg well, corrected so it works as intended</li>
-<li>updated style files with SGND_UI_ON and SGND_UI_OFF</li>
-</ul>
-<h2 class="ct-L1Sectionheader">Version 1.7 (Build 2619513) - 2026-07-14</h2>
-<h3 class="ct-L2Sectionheader">Added</h3>
-<ul>
-<li>Added Appendix F to the generated documentation containing the framework license.</li>
-<li>Introduced persistent framework settings between sessions.</li>
-<li>Added persistent console session settings.</li>
-<li>Added interactive console customization for:</li>
-<li>Theme selection</li>
-<li>File log level</li>
-<li>Menu lines per page</li>
-</ul>
-<h3 class="ct-L2Sectionheader">Changed</h3>
-<ul>
-<li>Reorganized `sgnd-console` and `sgnd-console-menu` into logical sections for improved maintainability.</li>
-</ul>
-<h3 class="ct-L2Sectionheader">Fixed</h3>
-<ul>
-<li>Framework settings are now correctly restored when scripts are started outside the console.</li>
-<li>Restored menu page height is now applied before the first console render.</li>
-</ul>
-<p class="ct-documentbody">---</p>
+<p class="ct-documentbody">--------------------- \# Version 1.7 (Build</p>
+<ol>
+<li>- 2026-07-14</li>
+</ol>
+<p class="ct-documentbody">\## Fixed - sgnd-console didn&#x27;t handle --appcfg well, corrected so it works as intended - updated style files with SGND_UI_ON and SGND_UI_OFF</p>
+<p class="ct-documentbody">\# Version 1.7 (Build</p>
+<ol>
+<li>- 2026-07-14</li>
+</ol>
+<p class="ct-documentbody">\## Added</p>
+<p class="ct-documentbody">\- Added Appendix F to the generated documentation containing the framework license. - Introduced persistent framework settings between sessions. - Added persistent console session settings. - Added interactive console customization for: - Theme selection - File log level - Menu lines per page</p>
+<p class="ct-documentbody">\## Changed</p>
+<p class="ct-documentbody">\- Reorganized `sgnd-console` and `sgnd-console-menu` into logical sections for improved maintainability.</p>
+<p class="ct-documentbody">\## Fixed</p>
+<p class="ct-documentbody">\- Framework settings are now correctly restored when scripts are started outside the console. - Restored menu page height is now applied before the first console render. ---------------------</p>
 <h2 class="ct-L1Sectionheader">Version 1.6 (Build 2618912) - 2026-07-02</h2>
 <h3 class="ct-L2Sectionheader">Added</h3>
 <ul>
-<li>Introduced configurable console log levels, including the new default **Silent** mode.</li>
+<li>Introduced configurable console log levels, including the new</li>
+<p class="ct-documentbody">default **Silent** mode.</p>
 <li>Added extensive smoke tests for logging and progress bars.</li>
 <li>Added a framework styled MOTD.</li>
 <li>Introduced progress update intervals to improve performance.</li>
 </ul>
 <h3 class="ct-L2Sectionheader">Changed</h3>
 <ul>
-<li>Refactored executable bootstrap architecture by introducing `sgnd-exe-common.sh`.</li>
+<li>Refactored executable bootstrap architecture by introducing</li>
+<p class="ct-documentbody">`sgnd-exe-common.sh`.</p>
 <li>Redesigned the first-time installation process.</li>
 <li>Updated the installation guide and generated documentation.</li>
 </ul>
