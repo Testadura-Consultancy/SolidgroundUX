@@ -699,6 +699,7 @@ set -uo pipefail
         #   - Sources SGND_CONSOLE_MODULE_PATH directly when it is a .sh file.
         #   - Sources every top-level .sh file when it is a directory.
         #   - Loads directory modules in sorted filename order.
+        #   - Shows transient progress while modules are being loaded.
         #   - Warns when a directory contains no modules.
         #
         # Inputs (globals):
@@ -713,11 +714,37 @@ set -uo pipefail
     _sgnd_console_load_modules() {
         local module_path="${SGND_CONSOLE_MODULE_PATH:?missing module source}"
         local module=""
+        local module_count=0
+        local module_index=0
+        local module_name=""
         local -a module_files=()
 
         if [[ -f "$module_path" ]]; then
-            _sgnd_console_source_module "$module_path"
-            return $?
+            sayprogress_begin --slots 1
+
+            sayprogress \
+                --slot 0 \
+                --current 0 \
+                --total 1 \
+                --label "Loading $(basename -- "$module_path")" \
+                --type 7 \
+                --padleft 0
+
+            _sgnd_console_source_module "$module_path" || {
+                sayprogress_done
+                return 126
+            }
+
+            sayprogress \
+                --slot 0 \
+                --current 1 \
+                --total 1 \
+                --label "Loaded $(basename -- "$module_path")" \
+                --type 7 \
+                --padleft 0
+
+            sayprogress_done
+            return 0
         fi
 
         [[ -d "$module_path" ]] || {
@@ -733,14 +760,35 @@ set -uo pipefail
                 done
         )
 
-        if (( ${#module_files[@]} == 0 )); then
+        module_count="${#module_files[@]}"
+
+        if (( module_count == 0 )); then
             saywarning "No modules found in: $module_path"
             return 0
         fi
 
+        sayprogress_begin --slots 1
+
         for module in "${module_files[@]}"; do
-            _sgnd_console_source_module "$module" || return 126
+            module_index=$((module_index + 1))
+            module_name="$(basename -- "$module")"
+
+            sayprogress \
+                --slot 0 \
+                --current "$module_index" \
+                --total "$module_count" \
+                --label "Loading $module_name" \
+                --type 7 \
+                --padleft 0
+
+            _sgnd_console_source_module "$module" || {
+                sayprogress_done
+                return 126
+            }
         done
+
+        sayprogress_done
+        return 0
     }
 
 # --- Script execution ----------------------------------------------------------------
@@ -792,7 +840,7 @@ set -uo pipefail
         "$resolved" "${command_args[@]}"
     }
 
-        # _sgnd_run_module_script
+    # _sgnd_run_module_script
         # . Purpose
         #   Locates and executes a console helper script from the canonical
         #   SolidGroundUX executable or library directories.
@@ -1222,6 +1270,10 @@ set -uo pipefail
         # -- Startup
             _framework_locator || exit $?
             sgnd_exe_start --state -- "$@"
+
+            sgnd_print
+            sgnd_print "Initializing SolidGroundUX Management Console"
+            sgnd_print "Initializing paths" 
             _sgnd_console_init_paths || exit $?
 
         # -- Main script logic
@@ -1231,6 +1283,7 @@ set -uo pipefail
             exit 126
         }
 
+        sgnd_print "Loading console configuration"
         _sgnd_console_load_config || exit $?
 
         # Script state has already been restored by sgnd_exe_start --state.
@@ -1241,14 +1294,18 @@ set -uo pipefail
 
         SGND_PAGE_INDEX=0
 
+        sgnd_print "Registering builtin menu items"
         _sgnd_console_register_builtin_items || exit $?
+
+        sgnd_print "Loading console modules"
         _sgnd_console_load_modules || exit $?
 
         if (( $(sgnd_dt_row_count SGND_ITEM_ROWS) == 0 )); then
             saywarning "No menu items registered"
         fi
 
-            _sgnd_console_run
+        sgnd_print "Starting interactive console"
+        _sgnd_console_run
     }
 
     # Entrypoint: sgnd_bootstrap will split framework args from script args.

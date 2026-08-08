@@ -873,13 +873,36 @@ set -uo pipefail
         # . Usage
         #   main "$@"
     main() {
+        local reply=0
+
         _capture_cli_parameters "$@"
         _framework_locator || exit $?
         sgnd_exe_start --autostate -- "$@"
 
         _getparameters || return $?
+        _deploy || return $?
 
-        _deploy
+        ask_dlg_autocontinue \
+            --seconds 15 \
+            --message "Deployment finished. Press Enter to exit, or R to deploy again." \
+            --redo \
+            --pause
+
+        reply=$?
+        case "$reply" in
+            0|1)
+                return 0
+                ;;
+            3)
+                sgnd_save_state || return $?
+                exec "$SGND_SCRIPT_FILE" "$@"
+                ;;
+            *)
+                sayfail "Unexpected continuation response: $reply"
+                return 1
+                ;;
+        esac
     }
 
     main "$@"
+    exit $?

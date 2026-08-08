@@ -1364,7 +1364,7 @@ set -uo pipefail
         # . Usage
         #   _sgnd_console_render_menu_title
     _sgnd_console_render_menu_title() {
-        (( ! SGND_CLEAR_ONRENDER )) || clear
+        (( ! SGND_CLEAR_ONRENDER )) || printf '\033[2J\033[H'
         
         local width=80
         width="$(sgnd_terminal_width)"

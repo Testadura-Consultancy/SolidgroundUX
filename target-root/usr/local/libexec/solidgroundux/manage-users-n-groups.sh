@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621822
-#   Checksum    : 771aa2f959c2e771670519fb8f43744edbb46b45a65972cbc06038cd45601b5f
+#   Build       : 2621901
+#   Checksum    : -
 #   Source      : manage-users-n-groups.sh
 #   Type        : script
 #   Group       : System Administration
@@ -112,7 +112,9 @@ set -uo pipefail
 # - Local script declarations -------------------------------------------------------
     SGND_SAMBA_SHARE_ROOT="/srv/storage/shares"
     USERS=()
-    GROUPS=()
+    # GROUPS is a Bash special array containing the current process group IDs.
+    # Use AD_GROUPS for Active Directory group names to avoid clobbering it.
+    AD_GROUPS=()
     SELECTED_USERS=()
     SELECTED_GROUPS=()
 
@@ -127,10 +129,10 @@ set -uo pipefail
 
     # fn: _refresh_accounts - Refresh the available users and groups
         # . Outputs (globals)
-        #   USERS, GROUPS
+        #   USERS, AD_GROUPS
     _refresh_accounts() {
         mapfile -t USERS < <(sudo samba-tool user list 2>/dev/null | LC_ALL=C sort -f)
-        mapfile -t GROUPS < <(sudo samba-tool group list 2>/dev/null | LC_ALL=C sort -f)
+        mapfile -t AD_GROUPS < <(sudo samba-tool group list 2>/dev/null | LC_ALL=C sort -f)
     }
 
     # fn: _parse_selection - Parse numbers, ranges, or A into zero-based indexes
@@ -180,8 +182,13 @@ set -uo pipefail
             sgnd_print
             sgnd_print_sectionheader "Available $title"
             for index in "${!source[@]}"; do printf '  %3d) %s\n' "$((index+1))" "${source[$index]}"; done
-            sgnd_print "Enter numbers, comma-separated values, ranges such as 2-5, or A for all."
+            sgnd_print "Enter numbers, comma-separated values, ranges such as 2-5, A for all, or Q to return."
             ask --label "Select $title" --var selection --colorize both
+
+            if [[ "${selection^^}" == "Q" ]]; then
+                return 2
+            fi
+
             _parse_selection "$selection" "${#source[@]}" "$output_name" && return 0
             saywarning "Invalid selection: $selection"
         done
@@ -224,7 +231,7 @@ set -uo pipefail
     _show_group_info() {
         local -a names=() members=() shares=()
         local group="" share="" acl_line=""
-        _selected_names GROUPS SELECTED_GROUPS names
+        _selected_names AD_GROUPS SELECTED_GROUPS names
         for group in "${names[@]}"; do
             mapfile -t members < <(sudo samba-tool group listmembers "$group" 2>/dev/null | LC_ALL=C sort -f)
             sgnd_print; sgnd_print_sectionheader "Group: $group"
@@ -305,7 +312,7 @@ set -uo pipefail
         local operation="$1" decision="NO" user="" group=""
         local -a user_names=() group_names=()
         _selected_names USERS SELECTED_USERS user_names
-        _selected_names GROUPS SELECTED_GROUPS group_names
+        _selected_names AD_GROUPS SELECTED_GROUPS group_names
         local prompt="Add selected users to selected groups?"
         [[ "$operation" == "remove" ]] && prompt="Remove selected users from selected groups?"
         ask_decision --label "$prompt" --choices "YES|Y,NO|N" --default "NO" --var decision
@@ -333,7 +340,7 @@ set -uo pipefail
     _select_users_and_groups() {
         _refresh_accounts
         _select_items "users" USERS SELECTED_USERS || return 1
-        _select_items "groups" GROUPS SELECTED_GROUPS || return 1
+        _select_items "groups" AD_GROUPS SELECTED_GROUPS || return 1
     }
 
 # - Workflows -----------------------------------------------------------------------
@@ -361,8 +368,8 @@ set -uo pipefail
                 3) _apply_user_command enable "Enable" ;;
                 4) _apply_user_command disable "Disable" ;;
                 5) _apply_user_command noexpiry "Set no-expiry for" ;;
-                6) _refresh_accounts; _select_items "groups" GROUPS SELECTED_GROUPS && _change_membership add ;;
-                7) _refresh_accounts; _select_items "groups" GROUPS SELECTED_GROUPS && _change_membership remove ;;
+                6) _refresh_accounts; _select_items "groups" AD_GROUPS SELECTED_GROUPS && _change_membership add ;;
+                7) _refresh_accounts; _select_items "groups" AD_GROUPS SELECTED_GROUPS && _change_membership remove ;;
                 8) _apply_user_command delete "Delete"; return 0 ;;
                 R) _refresh_accounts; _select_items "users" USERS SELECTED_USERS || return 0 ;;
                 Q) return 0 ;;
@@ -374,7 +381,7 @@ set -uo pipefail
     _group_workflow() {
         local action=""
         _refresh_accounts
-        _select_items "groups" GROUPS SELECTED_GROUPS || return 0
+        _select_items "groups" AD_GROUPS SELECTED_GROUPS || return 0
         while true; do
             sgnd_print; sgnd_print_sectionheader "Group Management"
             sgnd_print "  1) Show group information"
@@ -390,7 +397,7 @@ set -uo pipefail
                 3) _refresh_accounts; _select_items "users" USERS SELECTED_USERS && _change_membership remove ;;
                 4)
                     local group="" decision="NO"; local -a names=()
-                    _selected_names GROUPS SELECTED_GROUPS names
+                    _selected_names AD_GROUPS SELECTED_GROUPS names
                     ask_decision --label "Delete selected groups?" --choices "YES|Y,NO|N" --default "NO" --var decision
                     if [[ "$decision" == "YES" ]]; then
                         for group in "${names[@]}"; do
@@ -399,7 +406,7 @@ set -uo pipefail
                     fi
                     return 0
                     ;;
-                R) _refresh_accounts; _select_items "groups" GROUPS SELECTED_GROUPS || return 0 ;;
+                R) _refresh_accounts; _select_items "groups" AD_GROUPS SELECTED_GROUPS || return 0 ;;
                 Q) return 0 ;;
             esac
         done

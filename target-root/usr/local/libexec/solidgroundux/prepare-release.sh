@@ -911,18 +911,18 @@ set -uo pipefail
             fi
         done < <(find "$SOURCE_DIR" -type f -name '*.sh' -not -path '*/releases/*' -print0)
 
-        local bootstrap_env_file
-        bootstrap_env_file="$SOURCE_DIR/usr/local/lib/solidgroundux/common/sgnd-bootstrap-env.sh"
+        local definitions_file
+        definitions_file="$SOURCE_DIR/usr/local/lib/solidgroundux/common/sgnd-definitions.sh"
 
-        if [[ -f "$bootstrap_env_file" ]]; then
+        if [[ -f "$definitions_file" ]]; then
             if (( ${FLAG_DRYRUN:-0} )); then
-                sayinfo "[DRYRUN] Would have updated framework version identity in $bootstrap_env_file"
+                sayinfo "[DRYRUN] Would have updated framework version identity in $definitions_file"
             else
-                sgnd_framework_set_version "$bootstrap_env_file" "$VERSION" "$BUILD" \
+                sgnd_framework_set_version "$definitions_file" "$VERSION" "$BUILD" \
                     || { sayfail "Failed to update framework version identity"; return 1; }
             fi
         else
-            saydebug "No sgnd-bootstrap-env.sh in source tree; skipping framework version identity update."
+            saydebug "No sgnd-definitions.sh in source tree; skipping framework version identity update."
         fi
 
         return "$failed"

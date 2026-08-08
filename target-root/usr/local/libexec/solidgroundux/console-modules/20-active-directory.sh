@@ -791,8 +791,8 @@ set -uo pipefail
             return 1
         }
 
-        sayinfo "Setting the domain controller as this machine's primary DNS server."
-        _set_dns_server "$server_ip" || return 1
+        sayinfo "Setting the domain controller as this machine's primary DNS server and DNS search domain."
+        _set_dns_server "$server_ip" "$dns_domain" || return 1
         sudo resolvectl flush-caches 2>/dev/null || true
 
         sayinfo "Running Samba DNS registration."
@@ -1292,6 +1292,207 @@ set -uo pipefail
         "$manager_path" "${manager_args[@]}"
     }
 
+# - Active Directory DNS management ---------------------------------------------
+    # fn$ _samba_dns_context
+        # . Purpose
+        #   Resolve the local Samba AD DNS domain and validate that the domain is provisioned.
+        #
+        # Inputs:
+        #   $1 - Output variable name for the DNS domain.
+        #
+        # . Returns
+        #   0 when a DNS domain can be resolved from the local Samba configuration.
+        #   1 when no provisioned domain or realm is available.
+        #
+        # . Usage
+        #   _samba_dns_context dns_domain
+    _samba_dns_context() {
+        local output_var="$1"
+        local resolved_realm=""
+        local resolved_dns_domain=""
+
+        _samba_require_provisioned_domain || return 1
+
+        resolved_realm="$(sudo testparm -s --parameter-name='realm' 2>/dev/null || true)"
+        [[ -n "$resolved_realm" ]] || {
+            sayfail "The Samba Active Directory realm could not be determined."
+            return 1
+        }
+
+        resolved_dns_domain="${resolved_realm,,}"
+        printf -v "$output_var" '%s' "$resolved_dns_domain"
+    }
+
+    # fn$ samba_dns_list_zones
+        # . Purpose
+        #   Display the DNS zones hosted by the local Samba Active Directory server.
+        #
+        # . Returns
+        #   Exit status from samba-tool.
+        #
+        # . Usage
+        #   samba_dns_list_zones
+    samba_dns_list_zones() {
+        local dns_domain=""
+
+        _samba_dns_context dns_domain || return 1
+
+        sgnd_print
+        sgnd_print_sectionheader "Active Directory DNS zones"
+        sudo samba-tool dns zonelist localhost -U Administrator </dev/tty
+    }
+
+    # fn$ samba_dns_query_host
+        # . Purpose
+        #   Query an A record in the local Active Directory DNS zone.
+        #
+        # . Behavior
+        #   - Uses the provisioned Samba realm as the default DNS zone.
+        #   - Accepts a short host name or a fully qualified host name in the same zone.
+        #   - Removes the local zone suffix before querying samba-tool.
+        #
+        # . Returns
+        #   Exit status from samba-tool.
+        #
+        # . Usage
+        #   samba_dns_query_host
+    samba_dns_query_host() {
+        local dns_domain=""
+        local host_name=""
+
+        _samba_dns_context dns_domain || return 1
+
+        ask --label "DNS host name" --var host_name --validate _samba_validate_account_name || return $?
+        host_name="${host_name,,}"
+        host_name="${host_name%.${dns_domain}}"
+
+        sudo samba-tool dns query localhost "$dns_domain" "$host_name" A -U Administrator </dev/tty
+    }
+
+    # fn$ samba_dns_add_host
+        # . Purpose
+        #   Add an IPv4 host record to the local Active Directory DNS zone.
+        #
+        # . Behavior
+        #   - Uses the provisioned Samba realm as the DNS zone.
+        #   - Asks for a host name and IPv4 address.
+        #   - Requests confirmation before changing DNS.
+        #   - Honors dry-run mode without changing the zone.
+        #
+        # Inputs (globals):
+        #   FLAG_DRYRUN
+        #
+        # . Returns
+        #   0 when the record is added, cancelled, or handled in dry-run mode.
+        #   Non-zero when validation or samba-tool fails.
+        #
+        # . Usage
+        #   samba_dns_add_host
+    samba_dns_add_host() {
+        local dns_domain=""
+        local host_name=""
+        local address=""
+        local decision=""
+
+        _samba_dns_context dns_domain || return 1
+
+        ask --label "DNS host name" --var host_name --validate _samba_validate_account_name || return $?
+        host_name="${host_name,,}"
+        host_name="${host_name%.${dns_domain}}"
+        ask --label "IPv4 address" --var address --validate sgnd_validate_ipv4 || return $?
+
+        ask_decision \
+            --label "Add $host_name.$dns_domain -> $address?" \
+            --choices "YES|Y,NO|N" \
+            --default "YES" \
+            --var decision
+
+        [[ "$decision" == "YES" ]] || return 0
+
+        if (( ${FLAG_DRYRUN:-0} == 1 )); then
+            sayinfo "Dry run: Would add $host_name.$dns_domain -> $address."
+            return 0
+        fi
+
+        sudo samba-tool dns add localhost "$dns_domain" "$host_name" A "$address" -U Administrator </dev/tty
+    }
+
+    # fn$ samba_dns_delete_host
+        # . Purpose
+        #   Delete an IPv4 host record from the local Active Directory DNS zone.
+        #
+        # . Behavior
+        #   - Uses the provisioned Samba realm as the DNS zone.
+        #   - Asks for the host name and exact IPv4 value to remove.
+        #   - Requests confirmation before changing DNS.
+        #   - Honors dry-run mode without changing the zone.
+        #
+        # Inputs (globals):
+        #   FLAG_DRYRUN
+        #
+        # . Returns
+        #   0 when the record is deleted, cancelled, or handled in dry-run mode.
+        #   Non-zero when validation or samba-tool fails.
+        #
+        # . Usage
+        #   samba_dns_delete_host
+    samba_dns_delete_host() {
+        local dns_domain=""
+        local host_name=""
+        local address=""
+        local decision=""
+
+        _samba_dns_context dns_domain || return 1
+
+        ask --label "DNS host name" --var host_name --validate _samba_validate_account_name || return $?
+        host_name="${host_name,,}"
+        host_name="${host_name%.${dns_domain}}"
+        ask --label "IPv4 address" --var address --validate sgnd_validate_ipv4 || return $?
+
+        ask_decision \
+            --label "Delete $host_name.$dns_domain -> $address?" \
+            --choices "YES|Y,NO|N" \
+            --default "NO" \
+            --var decision
+
+        [[ "$decision" == "YES" ]] || return 0
+
+        if (( ${FLAG_DRYRUN:-0} == 1 )); then
+            sayinfo "Dry run: Would delete $host_name.$dns_domain -> $address."
+            return 0
+        fi
+
+        sudo samba-tool dns delete localhost "$dns_domain" "$host_name" A "$address" -U Administrator </dev/tty
+    }
+
+    # fn$ samba_dns_register_dc
+        # . Purpose
+        #   Re-run Samba DNS registration for the local Active Directory Domain Controller.
+        #
+        # . Behavior
+        #   - Requires a provisioned local Samba AD domain.
+        #   - Executes samba_dnsupdate with verbose output.
+        #   - Honors dry-run mode without changing DNS.
+        #
+        # Inputs (globals):
+        #   FLAG_DRYRUN
+        #
+        # . Returns
+        #   Exit status from samba_dnsupdate.
+        #
+        # . Usage
+        #   samba_dns_register_dc
+    samba_dns_register_dc() {
+        _samba_require_provisioned_domain || return 1
+
+        if (( ${FLAG_DRYRUN:-0} == 1 )); then
+            sayinfo "Dry run: Would run Samba DNS registration for this domain controller."
+            return 0
+        fi
+
+        sudo samba_dnsupdate --verbose
+    }
+
 # - Active Directory client ------------------------------------------------------
     # fn: _install_ad_client - Install Active Directory client packages
         # . Returns
@@ -1311,26 +1512,428 @@ set -uo pipefail
         sayok "Active Directory client packages installed."
     }
 
+    # fn$ _ad_client_find_ad_dns_server
+        # . Purpose
+        #   Find a configured DNS server that is authoritative for the joined Active Directory realm.
+        #
+        # . Behavior
+        #   - Collects configured IPv4 DNS servers from systemd-resolved and /etc/resolv.conf.
+        #   - Ignores loopback resolver addresses.
+        #   - Queries each candidate directly for the realm SOA record.
+        #   - Returns the first DNS server that answers authoritatively for the realm.
+        #
+        # Inputs:
+        #   $1 - Active Directory DNS realm/domain.
+        #
+        # Outputs (stdout):
+        #   IPv4 address of the first matching Active Directory DNS server.
+        #
+        # . Returns
+        #   0 when an Active Directory DNS server is found.
+        #   1 otherwise.
+        #
+        # . Usage
+        #   _ad_client_find_ad_dns_server "testadura.hq"
+    _ad_client_find_ad_dns_server() {
+        local realm_name="$1"
+        local dns_server=""
+        local candidate=""
+        local -a candidates=()
+
+        [[ -n "$realm_name" ]] || return 1
+
+        if command -v resolvectl >/dev/null 2>&1; then
+            while IFS= read -r candidate; do
+                [[ -n "$candidate" ]] && candidates+=("$candidate")
+            done < <(
+                resolvectl dns 2>/dev/null | \
+                    grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | \
+                    awk '!seen[$0]++'
+            )
+        fi
+
+        while IFS= read -r candidate; do
+            [[ -n "$candidate" ]] && candidates+=("$candidate")
+        done < <(
+            awk '/^[[:space:]]*nameserver[[:space:]]+/ { print $2 }' /etc/resolv.conf 2>/dev/null | \
+                grep -E '^([0-9]{1,3}\.){3}[0-9]{1,3}$' | \
+                awk '!seen[$0]++'
+        )
+
+        for dns_server in "${candidates[@]}"; do
+            [[ "$dns_server" == 127.* ]] && continue
+
+            if host -t SOA "$realm_name" "$dns_server" >/dev/null 2>&1; then
+                printf '%s\n' "$dns_server"
+                return 0
+            fi
+        done
+
+        return 1
+    }
+
+    # fn$ _ad_client_dns_record_matches
+        # . Purpose
+        #   Verify that Active Directory DNS contains the machine A record.
+        #
+        # . Behavior
+        #   - Queries the supplied Active Directory DNS server directly.
+        #   - Does not use the client's normal resolver path or /etc/hosts.
+        #   - Verifies that the returned A record matches the expected IPv4 address.
+        #
+        # Inputs:
+        #   $1 - Fully qualified machine name.
+        #   $2 - Expected IPv4 address.
+        #   $3 - Active Directory DNS server IPv4 address.
+        #
+        # . Returns
+        #   0 when the DNS server returns an A record matching the expected address.
+        #   1 otherwise.
+        #
+        # . Usage
+        #   _ad_client_dns_record_matches "td-nas.testadura.hq" "192.168.0.20" "192.168.0.15"
+    _ad_client_dns_record_matches() {
+        local fqdn="$1"
+        local expected_ip="$2"
+        local dns_server="$3"
+
+        [[ -n "$fqdn" && "$fqdn" == *.* && -n "$expected_ip" && -n "$dns_server" ]] || return 1
+
+        host -t A "$fqdn" "$dns_server" 2>/dev/null | \
+            awk '/has address/ { print $NF }' | \
+            grep -Fxq "$expected_ip"
+    }
+
+    # fn$ _ad_client_change_dns_record
+        # . Purpose
+        #   Add or delete this client's IPv4 host record in Active Directory DNS.
+        #
+        # . Behavior
+        #   - Targets the supplied Active Directory DNS server directly.
+        #   - Normalizes a short or fully qualified machine name to the record name
+        #     stored inside the Active Directory DNS zone.
+        #   - Uses samba-tool for both add and delete operations.
+        #   - Authenticates with the supplied Active Directory account.
+        #
+        # Inputs:
+        #   $1 - Action: add or delete.
+        #   $2 - Active Directory DNS server IPv4 address.
+        #   $3 - Active Directory DNS domain.
+        #   $4 - Short or fully qualified machine host name.
+        #   $5 - IPv4 address.
+        #   $6 - Active Directory account used for the DNS change.
+        #
+        # . Returns
+        #   Exit status from samba-tool.
+        #
+        # . Usage
+        #   _ad_client_change_dns_record add 192.168.0.15 testadura.hq td-nas.testadura.hq 192.168.0.20 Administrator
+    _ad_client_change_dns_record() {
+        local action="$1"
+        local dns_server="$2"
+        local dns_domain="${3,,}"
+        local host_name="${4,,}"
+        local address="$5"
+        local account="$6"
+
+        [[ "$action" == "add" || "$action" == "delete" ]] || return 1
+        [[ -n "$dns_server" && -n "$dns_domain" && -n "$host_name" && -n "$address" && -n "$account" ]] || return 1
+
+        host_name="${host_name%.}"
+        host_name="${host_name%.${dns_domain}}"
+        host_name="${host_name%.}"
+
+        sudo samba-tool dns "$action" \
+            "$dns_server" \
+            "$dns_domain" \
+            "$host_name" \
+            A \
+            "$address" \
+            -U "$account" \
+            </dev/tty
+    }
+
+    # fn$ ad_client_view_dns_record
+        # . Purpose
+        #   Display this Active Directory client's A record directly from the domain DNS server.
+        #
+        # . Behavior
+        #   - Uses the currently joined Active Directory realm.
+        #   - Determines the local machine FQDN and primary IPv4 address.
+        #   - Finds the DNS server serving the Active Directory realm.
+        #   - Queries that DNS server directly, bypassing local /etc/hosts resolution.
+        #   - Displays the expected machine address together with the DNS query result.
+        #
+        # . Returns
+        #   0 when an A record is returned by the Active Directory DNS server.
+        #   1 when client identity, DNS discovery, or the DNS record is unavailable.
+        #
+        # . Usage
+        #   ad_client_view_dns_record
+    ad_client_view_dns_record() {
+        local realm_name=""
+        local fqdn=""
+        local machine_ip=""
+        local ad_dns_server=""
+        local query_result=""
+
+        realm_name="$(realm list --name-only 2>/dev/null | head -n 1)"
+        realm_name="${realm_name,,}"
+        [[ -n "$realm_name" ]] || {
+            sayfail "This machine is not joined to an Active Directory realm."
+            return 1
+        }
+
+        fqdn="$(hostname -f 2>/dev/null || true)"
+        machine_ip="$(_samba_primary_ipv4 2>/dev/null || true)"
+        ad_dns_server="$(_ad_client_find_ad_dns_server "$realm_name" 2>/dev/null || true)"
+
+        [[ -n "$fqdn" && "$fqdn" == *.* ]] || {
+            sayfail "The machine FQDN could not be determined."
+            return 1
+        }
+        [[ -n "$ad_dns_server" ]] || {
+            sayfail "No Active Directory DNS server could be identified for $realm_name."
+            return 1
+        }
+
+        query_result="$(host -t A "$fqdn" "$ad_dns_server" 2>&1 || true)"
+
+        sgnd_print
+        sgnd_print_sectionheader "Active Directory client DNS record"
+        sgnd_print_labeledvalue --label "Machine FQDN" --value "$fqdn" --labelwidth 20
+        sgnd_print_labeledvalue --label "Machine IPv4" --value "${machine_ip:-Not detected}" --labelwidth 20
+        sgnd_print_labeledvalue --label "AD DNS server" --value "$ad_dns_server" --labelwidth 20
+        sgnd_print
+        printf '%s\n' "$query_result"
+
+        if _ad_client_dns_record_matches "$fqdn" "$machine_ip" "$ad_dns_server"; then
+            sgnd_print
+            sayok "DNS host record matches this machine's IPv4 address."
+            return 0
+        fi
+
+        sgnd_print
+        saywarning "No matching DNS host record was found on $ad_dns_server."
+        return 1
+    }
+
+    # fn$ ad_client_add_dns_record
+        # . Purpose
+        #   Register this Active Directory client's A record on the domain DNS server.
+        #
+        # . Behavior
+        #   - Uses the joined realm when no realm is supplied by the caller.
+        #   - Determines the local machine FQDN and primary IPv4 address.
+        #   - Finds the DNS server serving the Active Directory realm.
+        #   - Prompts for an account when one is not supplied by the caller.
+        #   - Requests confirmation for manual console use.
+        #   - Can be called non-interactively by ad_client_join while using exactly
+        #     the same DNS-record implementation as the manual menu action.
+        #   - Verifies the resulting A record directly against the AD DNS server.
+        #   - Honors dry-run mode without changing DNS.
+        #
+        # Inputs:
+        #   $1 - Optional realm name.
+        #   $2 - Optional Active Directory account.
+        #   $3 - Optional confirmation flag: 1 prompts, 0 does not. Defaults to 1.
+        #
+        # Inputs (globals):
+        #   FLAG_DRYRUN
+        #
+        # . Returns
+        #   0 when the record exists after the operation, is cancelled, or dry-run succeeds.
+        #   Non-zero when client identity, DNS discovery, samba-tool, or verification fails.
+        #
+        # . Usage
+        #   ad_client_add_dns_record
+        #   ad_client_add_dns_record "testadura.hq" "Administrator" 0
+    ad_client_add_dns_record() {
+        local realm_name="${1:-}"
+        local account="${2:-}"
+        local confirm_change="${3:-1}"
+        local fqdn=""
+        local machine_ip=""
+        local ad_dns_server=""
+        local decision=""
+
+        [[ -n "$realm_name" ]] || realm_name="$(realm list --name-only 2>/dev/null | head -n 1)"
+        realm_name="${realm_name,,}"
+        [[ -n "$realm_name" ]] || {
+            sayfail "This machine is not joined to an Active Directory realm."
+            return 1
+        }
+
+        fqdn="$(hostname -f 2>/dev/null || true)"
+        machine_ip="$(_samba_primary_ipv4 2>/dev/null || true)"
+        ad_dns_server="$(_ad_client_find_ad_dns_server "$realm_name" 2>/dev/null || true)"
+
+        [[ -n "$fqdn" && "$fqdn" == *.* ]] || {
+            sayfail "The machine FQDN could not be determined."
+            return 1
+        }
+        [[ -n "$machine_ip" ]] || {
+            sayfail "The primary IPv4 address could not be determined."
+            return 1
+        }
+        [[ -n "$ad_dns_server" ]] || {
+            sayfail "No Active Directory DNS server could be identified for $realm_name."
+            return 1
+        }
+
+        if _ad_client_dns_record_matches "$fqdn" "$machine_ip" "$ad_dns_server"; then
+            sayok "DNS host record $fqdn -> $machine_ip is already registered on $ad_dns_server."
+            return 0
+        fi
+
+        if [[ -z "$account" ]]; then
+            account="Administrator"
+            ask --label "AD account" --var account --default "$account" --validate _samba_validate_account_name || return $?
+        fi
+
+        if (( confirm_change )); then
+            ask_decision \
+                --label "Register $fqdn -> $machine_ip on $ad_dns_server?" \
+                --choices "YES|Y,NO|N" \
+                --default "YES" \
+                --var decision
+            [[ "$decision" == "YES" ]] || return 0
+        fi
+
+        if (( ${FLAG_DRYRUN:-0} == 1 )); then
+            sayinfo "Dry run: Would register $fqdn -> $machine_ip on $ad_dns_server."
+            return 0
+        fi
+
+        sayinfo "Registering $fqdn -> $machine_ip on Active Directory DNS server $ad_dns_server."
+        _ad_client_change_dns_record add "$ad_dns_server" "$realm_name" "$fqdn" "$machine_ip" "$account" || return $?
+
+        if _ad_client_dns_record_matches "$fqdn" "$machine_ip" "$ad_dns_server"; then
+            sayok "DNS host record $fqdn -> $machine_ip is registered on $ad_dns_server."
+            return 0
+        fi
+
+        sayfail "DNS host record $fqdn -> $machine_ip could not be verified on $ad_dns_server."
+        return 1
+    }
+
+    # fn$ ad_client_delete_dns_record
+        # . Purpose
+        #   Delete this Active Directory client's A record from the domain DNS server.
+        #
+        # . Behavior
+        #   - Uses the currently joined Active Directory realm.
+        #   - Determines the local machine FQDN and primary IPv4 address.
+        #   - Finds the DNS server serving the Active Directory realm.
+        #   - Requests the Active Directory account and confirmation before deletion.
+        #   - Uses the same canonical DNS-record implementation as automatic registration.
+        #   - Honors dry-run mode without changing DNS.
+        #
+        # Inputs (globals):
+        #   FLAG_DRYRUN
+        #
+        # . Returns
+        #   0 when the record is deleted, already absent, cancelled, or dry-run succeeds.
+        #   Non-zero when client identity, DNS discovery, or samba-tool fails.
+        #
+        # . Usage
+        #   ad_client_delete_dns_record
+    ad_client_delete_dns_record() {
+        local realm_name=""
+        local account="Administrator"
+        local fqdn=""
+        local machine_ip=""
+        local ad_dns_server=""
+        local decision=""
+
+        realm_name="$(realm list --name-only 2>/dev/null | head -n 1)"
+        realm_name="${realm_name,,}"
+        [[ -n "$realm_name" ]] || {
+            sayfail "This machine is not joined to an Active Directory realm."
+            return 1
+        }
+
+        fqdn="$(hostname -f 2>/dev/null || true)"
+        machine_ip="$(_samba_primary_ipv4 2>/dev/null || true)"
+        ad_dns_server="$(_ad_client_find_ad_dns_server "$realm_name" 2>/dev/null || true)"
+
+        [[ -n "$fqdn" && "$fqdn" == *.* ]] || {
+            sayfail "The machine FQDN could not be determined."
+            return 1
+        }
+        [[ -n "$machine_ip" ]] || {
+            sayfail "The primary IPv4 address could not be determined."
+            return 1
+        }
+        [[ -n "$ad_dns_server" ]] || {
+            sayfail "No Active Directory DNS server could be identified for $realm_name."
+            return 1
+        }
+
+        if ! _ad_client_dns_record_matches "$fqdn" "$machine_ip" "$ad_dns_server"; then
+            sayinfo "DNS host record $fqdn -> $machine_ip is already absent from $ad_dns_server."
+            return 0
+        fi
+
+        ask --label "AD account" --var account --default "$account" --validate _samba_validate_account_name || return $?
+        ask_decision \
+            --label "Delete $fqdn -> $machine_ip from $ad_dns_server?" \
+            --choices "YES|Y,NO|N" \
+            --default "NO" \
+            --var decision
+
+        [[ "$decision" == "YES" ]] || return 0
+
+        if (( ${FLAG_DRYRUN:-0} == 1 )); then
+            sayinfo "Dry run: Would delete $fqdn -> $machine_ip from $ad_dns_server."
+            return 0
+        fi
+
+        sayinfo "Deleting $fqdn -> $machine_ip from Active Directory DNS server $ad_dns_server."
+        _ad_client_change_dns_record delete "$ad_dns_server" "$realm_name" "$fqdn" "$machine_ip" "$account" || return $?
+
+        if _ad_client_dns_record_matches "$fqdn" "$machine_ip" "$ad_dns_server"; then
+            sayfail "DNS host record $fqdn -> $machine_ip is still present on $ad_dns_server."
+            return 1
+        fi
+
+        sayok "DNS host record $fqdn -> $machine_ip was deleted from $ad_dns_server."
+        return 0
+    }
+
     # fn$ ad_client_status
         # . Purpose
         #   Display the current machine identity and Active Directory realm membership.
         #
         # . Behavior
-        #   - Resolves and displays the current machine FQDN.
-        #   - Displays the configured realm membership reported by realmd.
-        #   - Reports when realmd is unavailable.
+        #   - Resolves and displays the current machine FQDN and primary IPv4 address.
+        #   - Displays whether a realm is currently joined.
+        #   - Finds the configured DNS server serving the joined Active Directory realm.
+        #   - Applies the AD DNS server and realm search domain through the computer setup DNS action.
+        #   - Queries that DNS server directly for the machine A record and displays its IPv4 value.
+        #   - Checks Kerberos and LDAP service discovery for the joined realm.
+        #   - Displays the detailed membership reported by realmd.
         #
         # Outputs (console):
-        #   Current machine FQDN and realm membership details.
+        #   Current machine identity, AD DNS server, DNS state and A record, service discovery, and realm membership details.
         #
         # . Returns
-        #   Exit status from realm list.
+        #   Exit status from realm list when a realm is joined.
+        #   0 when realmd is available but no realm is currently joined.
         #   1 when realmd is not installed.
         #
         # . Usage
         #   ad_client_status
     ad_client_status() {
         local fqdn=""
+        local machine_ip=""
+        local realm_name=""
+        local ad_dns_server=""
+        local dns_state="Not checked"
+        local dns_record="Not available"
+        local kerberos_state="Unavailable"
+        local ldap_state="Unavailable"
+        local membership_state="Not joined"
 
         command -v realm >/dev/null 2>&1 || {
             saywarning "realmd is not installed."
@@ -1339,29 +1942,121 @@ set -uo pipefail
 
         fqdn="$(hostname -f 2>/dev/null || true)"
         [[ -n "$fqdn" ]] || fqdn="Not resolved"
+        machine_ip="$(_samba_primary_ipv4 2>/dev/null || true)"
+        realm_name="$(realm list --name-only 2>/dev/null | head -n 1)"
+
+        if [[ -n "$realm_name" ]]; then
+            membership_state="Joined"
+
+            host -t SRV "_kerberos._tcp.${realm_name,,}" >/dev/null 2>&1 && kerberos_state="Available"
+            host -t SRV "_ldap._tcp.${realm_name,,}" >/dev/null 2>&1 && ldap_state="Available"
+
+            ad_dns_server="$(_ad_client_find_ad_dns_server "${realm_name,,}" 2>/dev/null || true)"
+            if [[ -n "$ad_dns_server" ]]; then
+                dns_state="Missing"
+                dns_record="$(host -t A "$fqdn" "$ad_dns_server" 2>/dev/null | awk '/has address/ { print $NF; exit }')"
+                [[ -n "$dns_record" ]] || dns_record="Not found"
+
+                if [[ "$dns_record" == "$machine_ip" ]]; then
+                    dns_state="Registered"
+                elif [[ "$dns_record" != "Not found" ]]; then
+                    dns_state="Mismatch"
+                fi
+            else
+                dns_state="DNS server not found"
+            fi
+        fi
 
         sgnd_print
         sgnd_print_sectionheader "Active Directory membership"
         sgnd_print_labeledvalue --label "Machine FQDN" --value "$fqdn" --labelwidth 20
-        sgnd_print
-        realm list
+        sgnd_print_labeledvalue --label "Machine IPv4" --value "${machine_ip:-Not detected}" --labelwidth 20
+        sgnd_print_labeledvalue --label "Realm" --value "${realm_name:-Not joined}" --labelwidth 20
+        sgnd_print_labeledvalue --label "Domain membership" --value "$membership_state" --labelwidth 20
+        sgnd_print_labeledvalue --label "AD DNS server" --value "${ad_dns_server:-Not detected}" --labelwidth 20
+        sgnd_print_labeledvalue --label "DNS host record" --value "$dns_state" --labelwidth 20
+        sgnd_print_labeledvalue --label "DNS A record" --value "$dns_record" --labelwidth 20
+        sgnd_print_labeledvalue --label "Kerberos SRV" --value "$kerberos_state" --labelwidth 20
+        sgnd_print_labeledvalue --label "LDAP SRV" --value "$ldap_state" --labelwidth 20
+
+        if [[ -n "$realm_name" ]]; then
+            sgnd_print
+            realm list
+        fi
     }
 
-    # fn: ad_client_join - Join this computer to an Active Directory realm
+    # fn$ ad_client_join
+        # . Purpose
+        #   Join this computer to an Active Directory realm and verify client identity and DNS registration.
+        #
+        # . Behavior
+        #   - Asks for the Active Directory realm and join account.
+        #   - Resolves the machine primary IPv4 address and sets its static hostname to the FQDN.
+        #   - Updates /etc/hosts and verifies that hostname -f returns the expected FQDN.
+        #   - Verifies realm discovery plus Kerberos and LDAP service records before joining.
+        #   - Joins the realm with realmd.
+        #   - Restarts SSSD after a successful join so client services can initialize immediately.
+        #   - Finds the configured DNS server serving the joined Active Directory realm.
+        #   - Applies the AD DNS server and realm search domain through the computer setup DNS action.
+        #   - Queries that DNS server directly for the machine A record and displays its IPv4 value.
+        #   - Registers a missing client A record using the same action exposed by the client DNS menu.
+        #   - Warns without undoing the successful domain join when DNS registration fails.
+        #   - Honors dry-run mode without changing the machine.
+        #
+        # Inputs (globals):
+        #   FLAG_DRYRUN
+        #
         # . Returns
-        #   Exit status from realm join.
+        #   0 when the join succeeds, including when post-join DNS registration is still pending.
+        #   Non-zero when validation, FQDN preparation, discovery, or realm join fails.
         #
         # . Usage
         #   ad_client_join
     ad_client_join() {
         local realm_name=""
         local join_account="Administrator"
+        local hostname_short=""
+        local expected_fqdn=""
+        local machine_ip=""
+        local ad_dns_server=""
 
         realm_name="$(hostname -d 2>/dev/null || true)"
         ask --label "AD realm" --var realm_name --default "$realm_name" --validate _samba_validate_realm || return $?
         realm_name="${realm_name,,}"
 
         ask --label "Join account" --var join_account --default "$join_account" --validate _samba_validate_account_name || return $?
+
+        hostname_short="$(hostname -s 2>/dev/null || true)"
+        machine_ip="$(_samba_primary_ipv4 2>/dev/null || true)"
+        expected_fqdn="${hostname_short}.${realm_name}"
+
+        [[ -n "$hostname_short" && "$hostname_short" != "localhost" ]] || {
+            sayfail "A valid non-localhost machine hostname is required before joining Active Directory."
+            return 1
+        }
+
+        [[ -n "$machine_ip" ]] || {
+            sayfail "The primary IPv4 address could not be determined."
+            return 1
+        }
+
+        if (( ${FLAG_DRYRUN:-0} == 1 )); then
+            sayinfo "Dry run: Would set the static hostname to $expected_fqdn and configure /etc/hosts."
+        else
+            sayinfo "Setting the static hostname to $expected_fqdn."
+            sudo hostnamectl set-hostname "$expected_fqdn" || {
+                sayfail "The machine hostname could not be set to $expected_fqdn."
+                return 1
+            }
+
+            sayinfo "Configuring the machine FQDN in /etc/hosts."
+            _samba_prepare_fqdn "$machine_ip" "$realm_name" || return 1
+
+            if [[ "$(hostname -f 2>/dev/null || true)" != "$expected_fqdn" ]]; then
+                sayfail "The machine FQDN is not $expected_fqdn after hostname configuration."
+                return 1
+            fi
+        fi
 
         sayinfo "Discovering Active Directory realm $realm_name."
         realm discover "$realm_name" >/dev/null 2>&1 || {
@@ -1379,12 +2074,47 @@ set -uo pipefail
             return 1
         }
 
-        (( ${FLAG_DRYRUN:-0} == 1 )) && {
+        if (( ${FLAG_DRYRUN:-0} == 1 )); then
             sayinfo "Dry run: Would join $realm_name using account $join_account."
+            return 0
+        fi
+
+        sudo realm join --user="$join_account" "$realm_name" </dev/tty || return $?
+
+        sayinfo "Restarting SSSD after successful domain join."
+        sudo systemctl restart sssd.service 2>/dev/null || saywarning "SSSD could not be restarted; review client status."
+
+        ad_dns_server="$(_ad_client_find_ad_dns_server "$realm_name" 2>/dev/null || true)"
+        if [[ -z "$ad_dns_server" ]]; then
+            saywarning "Domain join successful, but no configured Active Directory DNS server could be identified."
+            saywarning "Run Show membership to inspect the client DNS state."
+            return 0
+        fi
+
+        declare -F _set_dns_server >/dev/null 2>&1 || {
+            saywarning "Domain join successful, but the computer setup DNS configuration action is unavailable."
             return 0
         }
 
-        sudo realm join --user="$join_account" "$realm_name" </dev/tty
+        sayinfo "Setting the Active Directory DNS server and DNS search domain."
+        _set_dns_server "$ad_dns_server" "$realm_name" || {
+            saywarning "The domain join succeeded, but the DNS server/search-domain configuration could not be updated."
+        }
+        sudo resolvectl flush-caches 2>/dev/null || true
+
+        if _ad_client_dns_record_matches "$expected_fqdn" "$machine_ip" "$ad_dns_server"; then
+            sayok "Domain join successful; DNS host record is registered on $ad_dns_server."
+            return 0
+        fi
+
+        sayinfo "Domain join successful; registering the missing client DNS host record."
+        ad_client_add_dns_record "$realm_name" "$join_account" 0 || {
+            saywarning "The domain join succeeded, but the client DNS host record could not be registered automatically."
+            saywarning "Use 'Add client DNS record' from Active Directory Client to retry the registration."
+            return 0
+        }
+
+        return 0
     }
 
     # fn: ad_client_leave - Leave an Active Directory realm
@@ -1408,11 +2138,20 @@ set -uo pipefail
     sgnd_console_register_item "ad-status" "ad-server" "Show AD status" "samba_ad_status" "Show service, DNS, Kerberos, and domain status" 0 15 1
     sgnd_console_register_item "ad-verify" "ad-server" "Verify AD domain" "samba_verify_domain" "Run active DNS, directory, database, and Kerberos verification" 0 15 1
 
-    sgnd_console_register_group "ad-accounts" "AD Users and Groups" "Create and manage Active Directory users, groups, memberships, and share access" 0 1 210
+    sgnd_console_register_group "ad-dns" "Active Directory DNS" "Inspect and manage Samba Active Directory DNS records" 0 1 210
+    sgnd_console_register_item "ad-dns-zones" "ad-dns" "List DNS zones" "samba_dns_list_zones" "List DNS zones hosted by the local Samba Active Directory server" 0 5 1
+    sgnd_console_register_item "ad-dns-query" "ad-dns" "Query host record" "samba_dns_query_host" "Query an IPv4 host record in the Active Directory DNS zone" 0 5 1
+    sgnd_console_register_item "ad-dns-add" "ad-dns" "Add host record" "samba_dns_add_host" "Add an IPv4 host record to the Active Directory DNS zone" 0 5 1
+    sgnd_console_register_item "ad-dns-delete" "ad-dns" "Delete host record" "samba_dns_delete_host" "Delete an IPv4 host record from the Active Directory DNS zone" 0 5 1
+    sgnd_console_register_item "ad-dns-register" "ad-dns" "Register DC DNS" "samba_dns_register_dc" "Re-run DNS registration for the local domain controller" 0 5 1
+
+    sgnd_console_register_group "ad-accounts" "AD Users and Groups" "Create and manage Active Directory users, groups, memberships, and share access" 0 1 220
     sgnd_console_register_item "ad-account-manage" "ad-accounts" "Manage users and groups" "samba_manage_accounts" "Open the interactive Active Directory account manager" 0 5 1
 
-    sgnd_console_register_group "ad-client" "Active Directory Client" "Install, join, leave, and inspect Active Directory client membership" 0 1 220
+    sgnd_console_register_group "ad-client" "Active Directory Client" "Install, join, leave, and inspect Active Directory client membership" 0 1 230
     sgnd_console_register_item "adc-install" "ad-client" "Install client packages" "_install_ad_client" "Install realmd and SSSD Active Directory client packages" 0 5 1
     sgnd_console_register_item "adc-join" "ad-client" "Join domain" "ad_client_join" "Join this computer to an Active Directory realm" 0 5 1
+    sgnd_console_register_item "adc-dns-add" "ad-client" "Add client DNS record" "ad_client_add_dns_record" "Register this computer's IPv4 host record in Active Directory DNS" 0 5 1
+    sgnd_console_register_item "adc-dns-delete" "ad-client" "Delete client DNS record" "ad_client_delete_dns_record" "Delete this computer's IPv4 host record from Active Directory DNS" 0 5 1
     sgnd_console_register_item "adc-leave" "ad-client" "Leave domain" "ad_client_leave" "Leave the current Active Directory realm" 0 5 1
     sgnd_console_register_item "adc-status" "ad-client" "Show membership" "ad_client_status" "Show current realm membership" 0 15 1

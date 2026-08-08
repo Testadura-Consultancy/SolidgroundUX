@@ -221,7 +221,8 @@ set -uo pipefail
         "Ipv4|i|value|TARGET_IPV4|Target static IPv4 address with CIDR|"
         "dhcp||enum|USE_DHCP|Use DHCP for IPv4 configuration|yes,no"
         "DNS|d|value|TARGET_DNS|Target DNS server IP address|"
-        "dns-only||flag|FLAG_DNS_ONLY|Update only the configured DNS server|"
+        "DNS-search||value|TARGET_DNS_SEARCH|Target DNS search domain|"
+        "dns-only||flag|FLAG_DNS_ONLY|Update only the configured DNS server and search domain|"
         "Gateway|g|value|TARGET_GATEWAY|Target gateway IP address|"
         "Hostname|n|value|TARGET_HOSTNAME|Target hostname for the VM|"
         "Netplan|p|value|NETPLAN_FILE|Path to the netplan configuration file|"
@@ -296,6 +297,7 @@ set -uo pipefail
         TARGET_HOSTNAME
         TARGET_GATEWAY
         TARGET_DNS
+        TARGET_DNS_SEARCH
         USE_DHCP
     )
 
@@ -353,6 +355,7 @@ set -uo pipefail
         : "${TARGET_IPV4:=}"
         : "${TARGET_GATEWAY:=}"
         : "${TARGET_DNS:=}"
+        : "${TARGET_DNS_SEARCH:=}"
         : "${NETPLAN_FILE:=}"
         : "${PRIMARY_IFACE:=}"
         : "${USE_DHCP:=}"
@@ -409,6 +412,15 @@ set -uo pipefail
                 TARGET_DNS="$(awk '/^[[:space:]]*nameserver[[:space:]]+/ {print $2; exit}' /etc/resolv.conf)"
             fi
         fi
+
+        if [[ -z "$TARGET_DNS_SEARCH" ]]; then
+            if command -v resolvectl >/dev/null 2>&1 && [[ -n "$PRIMARY_IFACE" ]]; then
+                TARGET_DNS_SEARCH="$(resolvectl domain "$PRIMARY_IFACE" 2>/dev/null | awk -F: 'NR == 1 {gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); for (i = 1; i <= NF; i++) if ($i !~ /^~/) {print $i; exit}}')"
+            fi
+            if [[ -z "$TARGET_DNS_SEARCH" && -r "$NETPLAN_FILE" ]]; then
+                TARGET_DNS_SEARCH="$(awk '/^[[:space:]]*search:[[:space:]]*$/ {getline; sub(/^[[:space:]]*-[[:space:]]*/, ""); print; exit}' "$NETPLAN_FILE")"
+            fi
+        fi
     }
 
     # fn: _get_usr_input - Get usr input
@@ -450,6 +462,7 @@ set -uo pipefail
             ask --label "IPv4 address" --var TARGET_IPV4 --default "$TARGET_IPV4" --labelwidth "$lw"
             ask --label "Gateway" --var TARGET_GATEWAY --default "$TARGET_GATEWAY" --labelwidth "$lw"
             ask --label "DNS" --var TARGET_DNS --default "$TARGET_DNS" --labelwidth "$lw"
+            ask --label "DNS search domain" --var TARGET_DNS_SEARCH --default "$TARGET_DNS_SEARCH" --labelwidth "$lw"
         fi
     }
 
@@ -675,6 +688,10 @@ set -uo pipefail
             printf '%s\n' '      nameservers:'
             printf '%s\n' '        addresses:'
             printf '          - %s\n' "$TARGET_DNS"
+            if [[ -n "$TARGET_DNS_SEARCH" ]]; then
+                printf '%s\n' '        search:'
+                printf '          - %s\n' "$TARGET_DNS_SEARCH"
+            fi
         } > "$output_file"
     }
 
@@ -704,6 +721,10 @@ set -uo pipefail
                 printf '%s\n' '      nameservers:'
                 printf '%s\n' '        addresses:'
                 printf '          - %s\n' "$TARGET_DNS"
+                if [[ -n "$TARGET_DNS_SEARCH" ]]; then
+                    printf '%s\n' '        search:'
+                    printf '          - %s\n' "$TARGET_DNS_SEARCH"
+                fi
             fi
         } > "$output_file"
     }

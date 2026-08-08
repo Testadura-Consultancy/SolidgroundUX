@@ -220,12 +220,14 @@ set -uo pipefail
         
         # shellcheck source=/dev/null
         source "$SGND_BOOTSTRAP_DIR/sgnd-comment-header-parser.sh"
+        source "$SGND_BOOTSTRAP_DIR/sgnd-definitions.sh"
         source "$SGND_BOOTSTRAP_DIR/sgnd-bootstrap-env.sh"
 
         # Core modules cannot self-initialize metadata during early source phase.
         # Initialize them here once header parsing helpers are available.     
         sgnd_module_init_metadata "$SGND_BOOTSTRAP_DIR/sgnd-bootstrap.sh"
         sgnd_module_init_metadata "$SGND_BOOTSTRAP_DIR/sgnd-comment-header-parser.sh"
+        sgnd_module_init_metadata "$SGND_BOOTSTRAP_DIR/sgnd-definitions.sh"
         sgnd_module_init_metadata "$SGND_BOOTSTRAP_DIR/sgnd-bootstrap-env.sh"
 
         sgnd_script_init_metadata

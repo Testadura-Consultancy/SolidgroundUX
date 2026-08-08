@@ -4,24 +4,19 @@ All notable changes to SolidGroundUX are documented in this file.
 
 The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.
 
-# Version 1.8 (Build 1.8.2621822)
+# Issues
+- Various script's screen layout
+- Setup SolidGround sudo access has two ask_continues
+- Double doubkle line in console header
+- Display hostname and ip address in console header
+- Enable disable console menuitems for certain roles (on for user you need to be on pdc)
+- Last run status indicator in sgnd_console
+
+# Unreleased
 
 ## SolidGround Framework
 
 ### Added
-- Added `manage-users-n-groups.sh`, a dedicated interactive workflow for managing Active Directory users and groups.
-- The user and group manager supports:
-  - Managing users and groups from a single integrated interface.
-  - Selecting multiple users or groups for bulk operations.
-  - Creating, modifying, and removing users and groups.
-  - Managing group memberships from either the user or group perspective.
-  - Displaying user-group membership relationships.
-  - Displaying user and group access to managed Samba shares.
-- Added `manage-samba-shares.sh`, a dedicated interactive workflow for managing Samba shares.
-- The share manager supports:
-  - Selecting one or more shares.
-  - Bulk management of ownership, groups, permissions, and validation.
-  - Applying access rights to multiple users, groups, and shares simultaneously.
 - Added `sgnd_print_labeledmultivalue`, a multiline variant of `sgnd_print_labeledvalue` that keeps the label on the first line while allowing values to span multiple lines.
 - `sgnd_print_labeledmultivalue` accepts either:
   - A single string, optionally wrapped to a configurable value width.
@@ -41,10 +36,51 @@ The format is inspired by *Keep a Changelog* while remaining focused on practica
 - `ask_datetime` now displays the resolved absolute timestamp when a shorthand expression is entered.
 - Added an interactive `ask_datetime` test to the framework smoke test.
 
-## Active Directory
+## Machine and Network Configuration
+
+### Added
+- Added DNS search-domain support to `set-identity.sh`.
+- Added an interactive **DNS search domain** prompt alongside the DNS server setting.
+- Added `--DNS-search` support for non-interactive and DNS-only network updates.
+- DNS search-domain values now participate in persistent script state.
+- Netplan generation now writes the configured DNS search domain beneath `nameservers.search`.
 
 ### Changed
-- **Show membership** now displays the fully qualified domain name of the current machine before showing its Active Directory realm membership.
+- DNS configuration now treats the DNS server and DNS search domain as a single network identity concern.
+- Active Directory provisioning and domain join now use the generic DNS-setting path instead of maintaining separate Netplan search-domain logic.
+
+## Active Directory
+
+### Added
+- Added an **Active Directory DNS** console group.
+- Added DNS-zone listing and host-record query actions.
+- Added actions to create and delete IPv4 host records in Samba Active Directory DNS.
+- Added an action to rerun DNS registration for the local domain controller.
+- Added client-side actions to manually add or remove the current machine's Active Directory DNS record.
+- Domain join now registers the joining machine's IPv4 host record in Active Directory DNS.
+- Domain join now configures the Active Directory DNS server and domain search suffix as part of client network configuration.
+
+### Changed
+- **Show membership** now provides a consolidated client-domain status overview, including:
+  - Machine FQDN.
+  - Machine IPv4 address.
+  - Joined realm.
+  - Domain membership state.
+  - Active Directory DNS server.
+  - DNS host-record registration state.
+  - Registered DNS A-record address.
+  - Kerberos SRV availability.
+  - LDAP SRV availability.
+- Domain join now explicitly configures and validates the machine FQDN before joining the realm.
+- Active Directory DNS registration checks now query the authoritative AD DNS server directly rather than relying on the local resolver.
+- DNS host-record creation and deletion use shared non-interactive helpers so the same implementation is available to both console actions and domain join.
+
+### Fixed
+- Fixed joined clients retaining only a short hostname instead of the expected fully qualified domain name.
+- Fixed DNS-registration status reporting false positives caused by local `/etc/hosts` resolution.
+- Fixed DNS helper variable scoping that could reduce a host FQDN to a malformed value such as `td-nas.`.
+- Fixed domain-joined Linux clients being unable to resolve short AD hostnames because no DNS search domain was configured.
+- Fixed the domain-join chain so a successful join results in a resolvable AD DNS A record for the client.
 
 ## Storage
 
@@ -165,6 +201,125 @@ The format is inspired by *Keep a Changelog* while remaining focused on practica
   - `R` to repeat the datetime prompt.
   - Timeout to repeat the datetime prompt.
   - Pause and resume through the standard auto-continue dialog.
+
+## Open Issues / Next
+
+- Review screen layout consistency across scripts.
+- Remove the duplicate `ask_continue` in **Setup SolidGround sudo access**.
+- Fix the double separator line in the console header.
+- Display hostname and IPv4 address in the console header.
+- Add role-aware enable/disable behavior for console menu items, for example restricting AD user-management actions to a domain controller.
+- Add a persistent last-run status indicator to `sgnd_console` menu items.
+
+# Version 1.8 (Build 1.8.2621804)
+
+## Changed
+
+### Active Directory
+
+- Active Directory provisioning now automatically configures the domain controller to use itself as the primary DNS server after successful domain creation.
+- Refined the provisioning workflow with a clearer separation between network configuration and Active Directory provisioning responsibilities.
+- Active Directory provisioning now prompts for the Administrator account password as part of the provisioning process.
+- Completed and fully validated the end-to-end Active Directory provisioning workflow, including DNS, Kerberos, and domain verification.
+
+### Development Tools
+
+- `deploy-workspace.sh` now supports comma-separated filenames and shell-style file masks.
+- Deployment settings are now persisted automatically between sessions.
+- Added support for incremental deployments based on the last successful deployment timestamp.
+- `deploy-workspace.sh` now offers an interactive **Since last deployment** option.
+- When **Since last deployment** is selected, the stored deployment timestamp is displayed and the **Changed after** prompt is skipped.
+- When **Since last deployment** is not selected, the **Changed after** date defaults to `1900-01-01`.
+- Streamlined deployment prompts and selection workflow for a faster incremental deployment experience.
+- Significantly improved incremental documentation generation by supporting selective regeneration of changed source files, greatly reducing documentation build times during development.
+
+## Resolved
+
+### Active Directory
+
+- Fixed domain provisioning to correctly configure the required Fully Qualified Domain Name (FQDN) before provisioning.
+- Fixed DNS listener detection during Active Directory verification.
+- Fixed Kerberos configuration and verification workflow.
+- Fixed Active Directory verification to correctly validate DNS, directory services, and Kerberos authentication.
+- Fixed Administrator account configuration to support non-expiring passwords.
+
+### Development Tools
+
+- Fixed deployment state persistence in `deploy-workspace.sh`.
+- Fixed deployment selection to correctly process multiple filename filters during a single deployment operation.
+
+# Version 1.8 (Build 2621612)
+
+## SolidGround Management Console
+
+### Added
+
+#### Computer Setup
+- Machine status overview.
+- Machine identity and network configuration.
+- Machine ID generation.
+- SSH service configuration.
+- SSH host key generation.
+- VM template preparation.
+- Ubuntu package management.
+- Ubuntu base package installation.
+
+#### Active Directory
+- Samba Active Directory package installation.
+- Active Directory domain provisioning.
+- Active Directory status overview.
+- Active Directory user management.
+- Active Directory group management.
+- Active Directory client installation.
+- Domain join and leave support.
+
+#### Samba File Server
+- Samba File Server installation.
+
+#### Optional Roles
+- Docker installation.
+- XRDP installation.
+- Framework for future optional server roles.
+
+#### SolidGroundUX
+- Framework configuration management.
+- Framework state management.
+- Framework logging tools.
+- Framework diagnostics.
+- SolidGroundUX installation, update, and removal.
+
+#### Development Tools
+- Workspace creation.
+- Workspace deployment through `deploy-workspace.sh`.
+- Workspace archiving.
+- Workspace restoration.
+- Release preparation.
+- Metadata editor.
+- Documentation generator.
+- `receive-files.sh` for receiving streamed deployments.
+- `tar-it.sh` for archive creation.
+- `untar-it.sh` for archive restoration.
+
+### Changed
+- Reorganized the SolidGround Management Console into dedicated functional modules.
+- Simplified the overall console navigation.
+- Console actions that invoke external scripts now resolve those scripts from `SGND_COMMON_EXE` or `SGND_COMMON_LIB`.
+- Completely redesigned `deploy-workspace.sh`.
+- Added support for local and remote workspace deployment over SSH.
+- Added support for deploying complete workspaces or filtered file selections.
+- `deploy-workspace.sh` now creates a tar stream that is processed by `receive-files.sh`.
+- Simplified deployment selection by combining directory, filename or mask, and modification-date filters.
+
+### Removed
+- Replaced the previous console modules with the new functional module structure:
+  - `10-sgnd-config.sh`
+  - `20-machine-config.sh`
+  - `30-role-provisioning.sh`
+
+## SolidGround Framework
+
+### Added
+- Global variable SGND_COMMON_EXE this is weher Solidground's executables can be found
 
 # Version 1.8 (Build 1.8.2621804)
 
