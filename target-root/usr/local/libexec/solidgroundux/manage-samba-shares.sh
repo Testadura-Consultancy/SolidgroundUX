@@ -315,8 +315,12 @@ set -uo pipefail
 
         while true; do
             _samba_show_available_shares
-            sgnd_print "Enter comma-separated numbers, ranges such as 2-4, or A for all shares."
+            sgnd_print "Enter comma-separated numbers, ranges such as 2-4, A for all shares, or Q to return."
             ask --label "Select shares" --var selection --colorize both
+
+            if [[ "${selection^^}" == "Q" ]]; then
+                return 2
+            fi
 
             if _samba_parse_selection "$selection"; then
                 return 0
@@ -652,8 +656,12 @@ set -uo pipefail
             for index in "${!values[@]}"; do
                 printf '  %3d) %s\n' "$((index + 1))" "${values[$index]}"
             done
-            sgnd_print "Enter comma-separated numbers, ranges such as 2-4, or A for all."
+            sgnd_print "Enter comma-separated numbers, ranges such as 2-4, A for all, or Q to return."
             ask --label "Select $kind" --var selection --colorize both
+
+            if [[ "${selection^^}" == "Q" ]]; then
+                return 2
+            fi
 
             SAMBA_SHARE_NAMES=("${values[@]}")
             if _samba_parse_selection "$selection"; then
@@ -760,18 +768,24 @@ set -uo pipefail
 
         while true; do
             sgnd_print
-            sgnd_print_sectionheader "Samba Share Management"
-            _samba_show_selected_shares
+            sgnd_print_sectionheader "Samba Share Management" --padend 0
+
             sgnd_print
-            sgnd_print "  1) Show details"
-            sgnd_print "  2) Set owner"
-            sgnd_print "  3) Set group"
-            sgnd_print "  4) Set permissions"
-            sgnd_print "  5) Restore default permissions"
-            sgnd_print "  6) Validate shares"
-            sgnd_print "  7) Manage user/group access ACLs"
-            sgnd_print "  R) Reselect shares"
-            sgnd_print "  Q) Return"
+            sgnd_print_sectionheader "Current selection" --padleft 2 --padend 0
+            _samba_show_selected_shares
+
+            sgnd_print
+            sgnd_print_sectionheader "Actions" --padleft 2 --padend 0
+            sgnd_print_labeledvalue --label "1" --value "Show details" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "2" --value "Set owner" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "3" --value "Set group" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "4" --value "Set permissions" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "5" --value "Restore default permissions" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "6" --value "Validate shares" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "7" --value "Manage user/group access ACLs" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "R" --value "Reselect shares" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "Q" --value "Return" --labelwidth 4 --pad 3
+            sgnd_print
 
             ask_choose_immediate \
                 --label "Select action" \
@@ -814,7 +828,14 @@ set -uo pipefail
         sgnd_exe_start -- "$@"
 
         while true; do
-            _samba_select_shares || return $?
+            _samba_select_shares
+            manage_rc=$?
+            case "$manage_rc" in
+                0) ;;
+                2) return 0 ;;
+                *) return "$manage_rc" ;;
+            esac
+
             _samba_manage_selected
             manage_rc=$?
             [[ "$manage_rc" -eq 2 ]] || break

@@ -293,6 +293,7 @@ set -uo pipefail
         # Leave empty if:
         #   - The script does not use persistent state.
     SGND_STATE_VARIABLES=(
+        SGND_CONSOLE_ROLE_AWARE
         SGND_PAGE_MAX_ROWS
     )
 
@@ -343,6 +344,7 @@ set -uo pipefail
 
         SGND_CONSOLE_TITLE="$SGND_SCRIPT_TITLE"
         SGND_CONSOLE_DESC="$SGND_SCRIPT_DESC"
+        : "${SGND_CONSOLE_ROLE_AWARE:=1}"
         SGND_CONSOLE_BIN_DIRECTORY=""
         SGND_CONSOLE_SBIN_DIRECTORY=""
         SGND_CONSOLE_LIBEXEC_DIRECTORY=""
@@ -391,7 +393,7 @@ set -uo pipefail
         SGND_CONSOLE_LAYOUT_CACHE_KEY=""
         SGND_PAGE_HAS_PREV=0
         SGND_PAGE_HAS_NEXT=0
-        SGND_PAGE_MAX_ROWS=15
+        : "${SGND_PAGE_MAX_ROWS:=15}"
             
     # --- Console paths ---------------------------------------------------------------
     # _sgnd_console_init_paths
@@ -471,9 +473,10 @@ set -uo pipefail
 
         SGND_CONSOLE_MODULE_PATH="$module_path"
 
-        saydebug "Console title : $SGND_CONSOLE_TITLE"
-        saydebug "Console desc  : $SGND_CONSOLE_DESC"
-        saydebug "Module source : $SGND_CONSOLE_MODULE_PATH"
+        saydebug "Console title      : $SGND_CONSOLE_TITLE"
+        saydebug "Console desc       : $SGND_CONSOLE_DESC"
+        saydebug "Module source      : $SGND_CONSOLE_MODULE_PATH"
+        saydebug "Role-aware loading : $SGND_CONSOLE_ROLE_AWARE"
     }
 
     # --- Built-in menu registration -------------------------------------------------
@@ -531,6 +534,7 @@ set -uo pipefail
         sgnd_console_register_item "S" "$SGND_GROUP_SESSION" "Open shell" "_sgnd_console_open_shell" "Open an interactive shell; exit returns to the console" 1 0 1
         sgnd_console_register_item "M" "$SGND_GROUP_SESSION" "Manage modules" "_sgnd_console_manage_modules" "Enable or disable console modules" 1 0 1
         sgnd_console_register_item "L" "$SGND_GROUP_SESSION" "Set lines per page" "_sgnd_console_set_lines_per_page" "Set the maximum number of menu lines per page" 1 0 1
+        sgnd_console_register_item "V" "$SGND_GROUP_SESSION" "Set role awareness" "_sgnd_console_set_role_awareness" "Enable or disable role-aware console visibility" 1 0 1
         sgnd_console_register_item "<" "$SGND_GROUP_SESSION" "Previous page" "_sgnd_console_prevpage" "Show previous menu page" 1 0 0
         sgnd_console_register_item ">" "$SGND_GROUP_SESSION" "Next page" "_sgnd_console_nextpage" "Show next menu page" 1 0 0
         sgnd_console_register_item "R" "$SGND_GROUP_SESSION" "Redraw menu" "_sgnd_console_redraw" "Refresh console display" 1 0 1
@@ -799,13 +803,37 @@ set -uo pipefail
     }
 
     # fn: sgnd_console_package_installed - Test whether a Debian package is installed
+        # . Purpose
+        #   Evaluate a package-backed console role requirement.
+        #
+        # . Behavior
+        #   - When SGND_CONSOLE_ROLE_AWARE is enabled, checks the actual Debian
+        #     package installation state.
+        #   - When SGND_CONSOLE_ROLE_AWARE is disabled, treats the role requirement
+        #     as satisfied so development environments can expose all role-aware
+        #     console functionality.
+        #   - Does not affect persisted module enable/disable state.
+        #
+        # Inputs (globals):
+        #   SGND_CONSOLE_ROLE_AWARE
+        #
+        # . Arguments
+        #   $1  PACKAGE
+        #       Debian package name used as the role-presence indicator.
+        #
         # . Returns
-        #   0 when the package status is install ok installed; 1 otherwise.
+        #   0 when role awareness is disabled or the package is installed.
+        #   1 when role awareness is enabled and the package is not installed.
         #
         # . Usage
         #   sgnd_console_package_installed "samba-ad-dc"
     sgnd_console_package_installed() {
         local package="${1:?missing package name}"
+
+        if ! _sgnd_flag_is_on "${SGND_CONSOLE_ROLE_AWARE:-1}"; then
+            return 0
+        fi
+
         [[ "$(dpkg-query -W -f='${Status}' "$package" 2>/dev/null || true)" == "install ok installed" ]]
     }
 
@@ -1089,6 +1117,50 @@ set -uo pipefail
     }
 
 
+    # fn: _sgnd_console_set_role_awareness - Set role-aware console visibility
+        # . Purpose
+        #   Enable or disable package-backed role filtering for console modules.
+        #
+        # . Behavior
+        #   - Prompts for the desired role-awareness state.
+        #   - Stores the result in SGND_CONSOLE_ROLE_AWARE.
+        #   - The value is persisted through sgnd-console state.
+        #   - Changes take effect on the next console start because role-aware
+        #     module registration has already completed in the current session.
+        #
+        # Outputs (globals):
+        #   SGND_CONSOLE_ROLE_AWARE
+        #
+        # . Returns
+        #   0 after the preference is updated or left unchanged.
+        #
+        # . Usage
+        #   _sgnd_console_set_role_awareness
+    _sgnd_console_set_role_awareness() {
+        local decision="YES"
+
+        if ! _sgnd_flag_is_on "${SGND_CONSOLE_ROLE_AWARE:-1}"; then
+            decision="NO"
+        fi
+
+        ask_decision             --label "Role-aware console visibility"             --choices "YES|Y,NO|N"             --default "$decision"             --var decision
+
+        case "$decision" in
+            YES) SGND_CONSOLE_ROLE_AWARE=1 ;;
+            NO)  SGND_CONSOLE_ROLE_AWARE=0 ;;
+        esac
+
+        if _sgnd_flag_is_on "$SGND_CONSOLE_ROLE_AWARE"; then
+            sayok "Role-aware console visibility enabled."
+        else
+            saywarning "Role-aware console visibility disabled."
+        fi
+
+        sayinfo "The change will take effect after restarting the console."
+        SGND_LAST_WAITSECS=0
+        return 0
+    }
+
     # fn: _sgnd_console_open_shell - Open an interactive child shell
         # . Purpose
         #   Open a new interactive shell and return to the Management Console on exit.
@@ -1216,7 +1288,7 @@ set -uo pipefail
             ask_choose_immediate \
                 --label "Select option" \
                 --choices "$valid_choices" \
-                --instantchoices "A,C,D,F,T,S,M,L,R,Q,<,>" \
+                --instantchoices "A,C,D,F,T,S,M,L,V,R,Q,<,>" \
                 --displaychoices 0 \
                 --keepasking 1 \
                 --preservecase 1 \
@@ -1434,7 +1506,7 @@ set -uo pipefail
 
         # -- Startup
             _framework_locator || exit $?
-            sgnd_exe_start --state -- "$@"
+            sgnd_exe_start --autostate -- "$@"
 
             sgnd_print
             sgnd_print "Initializing SolidGroundUX Management Console"
@@ -1451,7 +1523,7 @@ set -uo pipefail
         sgnd_print "Loading console configuration"
         _sgnd_console_load_config || exit $?
 
-        # Script state has already been restored by sgnd_exe_start --state.
+        # Console preferences have already been restored from sgnd-console state.
         # An explicitly supplied command-line value has the highest precedence.
         if [[ -n "${VAL_MAXROWS:-}" ]]; then
             SGND_PAGE_MAX_ROWS="$VAL_MAXROWS"

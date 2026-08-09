@@ -206,6 +206,22 @@ set -uo pipefail
         eval "$output_name=(\"\${result[@]}\")"
     }
 
+    # fn: _show_current_selection - Display the active user or group selection
+        # . Arguments
+        #   $1 label; $2 source array name; $3 selected-index array name.
+        #
+        # . Returns
+        #   0 after rendering the active selection.
+    _show_current_selection() {
+        local label="$1"
+        local source_name="$2"
+        local indexes_name="$3"
+        local -a names=()
+
+        _selected_names "$source_name" "$indexes_name" names
+        sgnd_print_labeledmultivalue             --label "$label"             --labelwidth 20             --items "${names[@]}"
+    }
+
 # - Information ---------------------------------------------------------------------
     # fn: _show_user_info - Show selected users, memberships, and local share ACLs
     _show_user_info() {
@@ -350,17 +366,26 @@ set -uo pipefail
         _refresh_accounts
         _select_items "users" USERS SELECTED_USERS || return 0
         while true; do
-            sgnd_print; sgnd_print_sectionheader "User Management"
-            sgnd_print "  1) Show user information"
-            sgnd_print "  2) Change password"
-            sgnd_print "  3) Enable users"
-            sgnd_print "  4) Disable users"
-            sgnd_print "  5) Set password never expires"
-            sgnd_print "  6) Add users to groups"
-            sgnd_print "  7) Remove users from groups"
-            sgnd_print "  8) Delete users"
-            sgnd_print "  R) Reselect users"
-            sgnd_print "  Q) Return"
+            sgnd_print
+            sgnd_print_sectionheader "User Management" --padend 0
+
+            sgnd_print
+            sgnd_print_sectionheader "Current selection" --padleft 2 --padend 0
+            _show_current_selection "Users" USERS SELECTED_USERS
+
+            sgnd_print
+            sgnd_print_sectionheader "Actions" --padleft 2 --padend 0
+            sgnd_print_labeledvalue --label "1" --value "Show user information" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "2" --value "Change password" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "3" --value "Enable users" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "4" --value "Disable users" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "5" --value "Set password never expires" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "6" --value "Add users to groups" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "7" --value "Remove users from groups" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "8" --value "Delete users" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "R" --value "Reselect users" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "Q" --value "Return" --labelwidth 4 --pad 3
+            sgnd_print
             ask_choose_immediate --label "Select action" --choices "1-8,R,Q" --instantchoices "1-8,R,Q" --var action
             case "${action^^}" in
                 1) _show_user_info ;;
@@ -383,13 +408,22 @@ set -uo pipefail
         _refresh_accounts
         _select_items "groups" AD_GROUPS SELECTED_GROUPS || return 0
         while true; do
-            sgnd_print; sgnd_print_sectionheader "Group Management"
-            sgnd_print "  1) Show group information"
-            sgnd_print "  2) Add users"
-            sgnd_print "  3) Remove users"
-            sgnd_print "  4) Delete groups"
-            sgnd_print "  R) Reselect groups"
-            sgnd_print "  Q) Return"
+            sgnd_print
+            sgnd_print_sectionheader "Group Management" --padend 0
+
+            sgnd_print
+            sgnd_print_sectionheader "Current selection" --padleft 2 --padend 0
+            _show_current_selection "Groups" AD_GROUPS SELECTED_GROUPS
+
+            sgnd_print
+            sgnd_print_sectionheader "Actions" --padleft 2 --padend 0
+            sgnd_print_labeledvalue --label "1" --value "Show group information" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "2" --value "Add users" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "3" --value "Remove users" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "4" --value "Delete groups" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "R" --value "Reselect groups" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "Q" --value "Return" --labelwidth 4 --pad 3
+            sgnd_print
             ask_choose_immediate --label "Select action" --choices "1-4,R,Q" --instantchoices "1-4,R,Q" --var action
             case "${action^^}" in
                 1) _show_group_info ;;
@@ -416,13 +450,18 @@ set -uo pipefail
     _main_menu() {
         local action=""
         while true; do
-            sgnd_print; sgnd_print_sectionheader "AD User and Group Management"
-            sgnd_print "  1) Create user"
-            sgnd_print "  2) Create group"
-            sgnd_print "  3) Manage users"
-            sgnd_print "  4) Manage groups"
-            sgnd_print "  5) Manage memberships"
-            sgnd_print "  Q) Return"
+            sgnd_print
+            sgnd_print_sectionheader "AD User and Group Management" --padend 0
+
+            sgnd_print
+            sgnd_print_sectionheader "Actions" --padleft 2 --padend 0
+            sgnd_print_labeledvalue --label "1" --value "Create user" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "2" --value "Create group" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "3" --value "Manage users" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "4" --value "Manage groups" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "5" --value "Manage memberships" --labelwidth 4 --pad 3
+            sgnd_print_labeledvalue --label "Q" --value "Return" --labelwidth 4 --pad 3
+            sgnd_print
             ask_choose_immediate --label "Select action" --choices "1-5,Q" --instantchoices "1-5,Q" --var action
             case "${action^^}" in
                 1) _create_user ;;
@@ -431,8 +470,15 @@ set -uo pipefail
                 4) _group_workflow ;;
                 5)
                     _select_users_and_groups || continue
-                    sgnd_print "  1) Add selected users to selected groups"
-                    sgnd_print "  2) Remove selected users from selected groups"
+                    sgnd_print
+                    sgnd_print_sectionheader "Membership action" --padleft 2 --padend 0
+                    _show_current_selection "Users" USERS SELECTED_USERS
+                    _show_current_selection "Groups" AD_GROUPS SELECTED_GROUPS
+                    sgnd_print
+                    sgnd_print_labeledvalue --label "1" --value "Add selected users to selected groups" --labelwidth 4 --pad 3
+                    sgnd_print_labeledvalue --label "2" --value "Remove selected users from selected groups" --labelwidth 4 --pad 3
+                    sgnd_print_labeledvalue --label "Q" --value "Return" --labelwidth 4 --pad 3
+                    sgnd_print
                     ask_choose_immediate --label "Membership action" --choices "1-2,Q" --instantchoices "1-2,Q" --var action
                     [[ "$action" == "1" ]] && _change_membership add
                     [[ "$action" == "2" ]] && _change_membership remove

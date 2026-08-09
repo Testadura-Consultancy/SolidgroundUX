@@ -117,7 +117,9 @@ practical framework development.
 -   Active Directory provisioning and domain join now use the generic
     DNS-setting path instead of maintaining separate Netplan
     search-domain logic.
-
+-   Management console now has a state variable SGND_CONSOLE_ROLE_AWARE
+    indicating if only role appropriate menus are displayed
+    
 ## Active Directory
 
 ### Added
