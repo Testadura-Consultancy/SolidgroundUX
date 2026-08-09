@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621822
-#   Checksum    : ed954d95b8b249096798954a4b0f4559143b96bfaef71fc7771f9a2bafb24639
+#   Build       : 2622101
+#   Checksum    : ac9979be2c6530a9927d5dde7c59b62c234d8ade6a10464b9c5310553e5c7170
 #   Source      : prepare-release.sh
 #   Type        : script
 #   Group       : SDK Tools
@@ -20,6 +20,7 @@
 #     - Applies optional major or minor version bumps
 #     - Supports dry-run verification before committing changes
 #     - Ensures release metadata is consistent across processed scripts
+#     - Verifies public command wrappers for executable top-level libexec scripts
 #
 # Design principles:
 #   - Release preparation is deterministic and repeatable
@@ -219,8 +220,9 @@ set -uo pipefail
         "useexisting|u|flag|FLAG_USEEXISTING|Use existing staging files|1|"
         "bumpmajor||flag|FLAG_BUMP_MAJOR|Bump major version in source headers before packaging|"
         "bumpminor||flag|FLAG_BUMP_MINOR|Bump minor version in source headers before packaging|"
-        "updatebuild||flag|FLAG_UPDATEBUILD|Update source header metadata before packaging|"
-        "updateversion||flag|FLAG_UPDATEVERSION|Update version in changed source headers|"
+        "updatebuild||enum|MODE_UPDATEBUILD|Build metadata policy: A=all, C=changed, N=none|C"
+        "updateversion||enum|MODE_UPDATEVERSION|Version metadata policy: A=all, C=changed, N=none|C"
+        "createwrappers|w|flag|FLAG_CREATEWRAPPERS|Create missing /usr/local/bin wrappers for top-level libexec scripts|1|"
     )
 
     # SGND_SCRIPT_EXAMPLES
@@ -294,8 +296,9 @@ set -uo pipefail
         FLAG_CLEANUP
         FLAG_USEEXISTING
         FLAG_SAVEPARMS
-        FLAG_UPDATEBUILD
-        FLAG_UPDATEVERSION
+        MODE_UPDATEBUILD
+        MODE_UPDATEVERSION
+        FLAG_CREATEWRAPPERS
     )
 
     # SGND_ON_EXIT_HANDLERS
@@ -404,8 +407,9 @@ set -uo pipefail
         FLAG_CLEANUP="${FLAG_CLEANUP:-1}"
         FLAG_USEEXISTING="${FLAG_USEEXISTING:-1}"
         FLAG_SAVEPARMS="${FLAG_SAVEPARMS:-1}"
-        FLAG_UPDATEBUILD="${FLAG_UPDATEBUILD:-1}"
-        FLAG_UPDATEVERSION="${FLAG_UPDATEVERSION:-1}"
+        MODE_UPDATEBUILD="${MODE_UPDATEBUILD:-C}"
+        MODE_UPDATEVERSION="${MODE_UPDATEVERSION:-C}"
+        FLAG_CREATEWRAPPERS="${FLAG_CREATEWRAPPERS:-1}"
 
         sgnd_state_load_keys --array SGND_STATE_VARIABLES || return $?
         
@@ -480,29 +484,43 @@ set -uo pipefail
                 saveparms="N"
             fi
 
-            if [[ "$FLAG_UPDATEBUILD" -eq 1 ]]; then
-                upd="Y"
-            else
-                upd="N"
-            fi
-            ask --label "Update build and checksum (Y/N)" --var upd --default "$upd" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
-            if [[ "$upd" == "Y" || "$upd" == "y" ]]; then
-                FLAG_UPDATEBUILD=1
-            else
-                FLAG_UPDATEBUILD=0
-            fi
+            ask_decision --label "Update build (A(ll)/C(hanged only)/N(o))" \
+                --choices "A,C,N" \
+                --default "${MODE_UPDATEBUILD^^}" \
+                --var MODE_UPDATEBUILD \
+                --displaychoices 0 \
+                --colorize both \
+                --labelclr "${CYAN}" \
+                --pad "$lp" \
+                --labelwidth "$lw"
 
-            if [[ "$FLAG_UPDATEVERSION" -eq 1 ]]; then
-                updversion="Y"
+            ask_decision --label "Update version (A(ll)/C(hanged only)/N(o))" \
+                --choices "A,C,N" \
+                --default "${MODE_UPDATEVERSION^^}" \
+                --var MODE_UPDATEVERSION \
+                --displaychoices 0 \
+                --colorize both \
+                --labelclr "${CYAN}" \
+                --pad "$lp" \
+                --labelwidth "$lw"
+
+            if [[ "$FLAG_CREATEWRAPPERS" -eq 1 ]]; then
+                createwrappers="Y"
             else
-                updversion="N"
+                createwrappers="N"
             fi
-            ask --label "Update version in changed files (Y/N)" --var updversion --default "$updversion" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
-            if [[ "$updversion" == "Y" || "$updversion" == "y" ]]; then
-                FLAG_UPDATEVERSION=1
-            else
-                FLAG_UPDATEVERSION=0
-            fi
+            ask --label "Create missing command wrappers (Y/N)" \
+                --var createwrappers \
+                --default "$createwrappers" \
+                --choices "Y,Yes,N,No" \
+                --colorize both \
+                --labelclr "${CYAN}" \
+                --pad "$lp" \
+                --labelwidth "$lw"
+            case "${createwrappers^^}" in
+                Y|YES) FLAG_CREATEWRAPPERS=1 ;;
+                *)     FLAG_CREATEWRAPPERS=0 ;;
+            esac
 
             ask --label "Save these settings for future use (Y/N)" --var saveparms --default "$saveparms" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
             if [[ "$saveparms" == "Y" || "$saveparms" == "y" ]]; then
@@ -602,6 +620,126 @@ set -uo pipefail
         printf '%s  %s\n' "$hash" "$tar_file" >> "$sums_file" || return 1
     }
 
+
+    # fn: _sgnd_release_find_previous_manifest - Find previous release manifest
+        # . Purpose
+        #   Resolve the most recent earlier release manifest for the current product.
+        #
+        # . Behavior
+        #   - Searches STAGING_ROOT for top-level PRODUCT-*.manifest files.
+        #   - Excludes the manifest being generated for the current release.
+        #   - Selects the most recently modified remaining manifest.
+        #   - Returns success without output when no previous manifest is available.
+        #
+        # . Arguments
+        #   $1  CURRENT_MANIFEST - Current release manifest path to exclude.
+        #
+        # . Output
+        #   Writes the previous manifest path to stdout when one is found.
+        #
+        # . Returns
+        #   0 always.
+        #
+        # . Usage
+        #   previous_manifest="$(_sgnd_release_find_previous_manifest "$manifest_path")"
+    _sgnd_release_find_previous_manifest() {
+        local current_manifest="${1:-}"
+        local candidate=""
+        local newest=""
+        local newest_mtime=""
+        local mtime=""
+
+        [[ -d "$STAGING_ROOT" ]] || return 0
+
+        while IFS= read -r -d '' candidate; do
+            [[ "$candidate" != "$current_manifest" ]] || continue
+
+            mtime="$(stat -c '%Y' "$candidate" 2>/dev/null || printf '0')"
+            if [[ -z "$newest" || "$mtime" -gt "$newest_mtime" ]]; then
+                newest="$candidate"
+                newest_mtime="$mtime"
+            fi
+        done < <(find "$STAGING_ROOT" -maxdepth 1 -type f -name "${PRODUCT}-*.manifest" -print0 2>/dev/null)
+
+        [[ -n "$newest" ]] && printf '%s\n' "$newest"
+        return 0
+    }
+
+    # fn: _sgnd_release_write_removed_manifest - Write removed-path delta
+        # . Purpose
+        #   Create the release removal manifest by comparing the previous and current package manifests.
+        #
+        # . Behavior
+        #   - Computes paths present in the previous manifest but absent from the current manifest.
+        #   - Writes one removed relative path per line in sorted order.
+        #   - Creates an empty removal manifest when no previous release manifest exists.
+        #   - Does not remove files; it only declares the release delta for the installer.
+        #
+        # . Arguments
+        #   $1  CURRENT_MANIFEST - Newly generated release manifest.
+        #   $2  REMOVED_MANIFEST - Output path for the removal manifest.
+        #
+        # . Output
+        #   Writes status through the standard SolidGroundUX output helpers.
+        #
+        # . Side effects
+        #   Creates or replaces REMOVED_MANIFEST.
+        #
+        # . Returns
+        #   0 on success.
+        #   1 when manifest comparison or output creation fails.
+        #
+        # . Usage
+        #   _sgnd_release_write_removed_manifest "$manifest_path" "$removed_path"
+    _sgnd_release_write_removed_manifest() {
+        local current_manifest="${1:-}"
+        local removed_manifest="${2:-}"
+        local previous_manifest=""
+        local previous_sorted=""
+        local current_sorted=""
+        local removed_count=0
+
+        [[ -f "$current_manifest" ]] || return 1
+        [[ -n "$removed_manifest" ]] || return 1
+
+        previous_manifest="$(_sgnd_release_find_previous_manifest "$current_manifest")"
+
+        if [[ -z "$previous_manifest" ]]; then
+            : > "$removed_manifest" || return 1
+            sayinfo "No previous release manifest found; removal manifest is empty."
+            return 0
+        fi
+
+        sayinfo "Comparing with previous manifest: $(basename -- "$previous_manifest")"
+
+        previous_sorted="$(mktemp)" || return 1
+        current_sorted="$(mktemp)" || {
+            rm -f -- "$previous_sorted"
+            return 1
+        }
+
+        if ! LC_ALL=C sort -u -- "$previous_manifest" > "$previous_sorted"; then
+            rm -f -- "$previous_sorted" "$current_sorted"
+            return 1
+        fi
+
+        if ! LC_ALL=C sort -u -- "$current_manifest" > "$current_sorted"; then
+            rm -f -- "$previous_sorted" "$current_sorted"
+            return 1
+        fi
+
+        if ! LC_ALL=C comm -23 -- "$previous_sorted" "$current_sorted" > "$removed_manifest"; then
+            rm -f -- "$previous_sorted" "$current_sorted"
+            return 1
+        fi
+
+        rm -f -- "$previous_sorted" "$current_sorted"
+
+        removed_count="$(grep -cve '^[[:space:]]*$' "$removed_manifest" 2>/dev/null || true)"
+        sayinfo "Removal manifest contains $removed_count obsolete path(s)."
+        return 0
+    }
+
     # _create_tar
         # . Purpose
         #   Stage a clean release tree and produce a versioned tar.gz archive.
@@ -612,7 +750,8 @@ set -uo pipefail
         #   - Reuses existing staging files when requested and non-empty.
         #   - Creates an uncompressed tar archive from the staged files.
         #   - Generates an uninstall manifest from the tar contents.
-        #   - Embeds the manifest into the tar archive.
+        #   - Compares the new manifest with the previous release manifest and writes a removal delta.
+        #   - Embeds the uninstall manifest into the tar archive.
         #   - Compresses the archive to tar.gz.
         #   - Updates SHA256SUMS and writes sidecar .sha256 files.
         #
@@ -630,9 +769,11 @@ set -uo pipefail
         # Output artifacts:
         #   - $STAGING_ROOT/$TAR_FILE
         #   - $STAGING_ROOT/$RELEASE.manifest
+        #   - $STAGING_ROOT/$RELEASE.removed
         #   - $STAGING_ROOT/SHA256SUMS
         #   - $STAGING_ROOT/$TAR_FILE.sha256
         #   - $STAGING_ROOT/$RELEASE.manifest.sha256
+        #   - $STAGING_ROOT/$RELEASE.removed.sha256
         #
         # . Returns
         #   0 on success
@@ -663,8 +804,8 @@ set -uo pipefail
     _create_tar() {
         saystart "Creating release: $RELEASE"
 
-        local stage_path tar_path_tar tar_path_gz manifest_path sums_path
-        local manifest_base manifest_hash
+        local stage_path tar_path_tar tar_path_gz manifest_path removed_path sums_path
+        local manifest_base manifest_hash removed_base removed_hash
 
         stage_path="${STAGING_ROOT%/}/$RELEASE"
 
@@ -699,6 +840,7 @@ set -uo pipefail
         tar_path_tar="${STAGING_ROOT%/}/${TAR_FILE%.gz}"
         tar_path_gz="${STAGING_ROOT%/}/$TAR_FILE"
         manifest_path="${STAGING_ROOT%/}/${RELEASE}.manifest"
+        removed_path="${STAGING_ROOT%/}/${RELEASE}.removed"
         sums_path="${STAGING_ROOT%/}/SHA256SUMS"
 
         saydebug "Creating tar archive $tar_path_tar from staged files in $stage_path"
@@ -706,10 +848,12 @@ set -uo pipefail
         if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
             sayinfo "Would have created tar archive at: $tar_path_tar"
             sayinfo "Would have written manifest to: $manifest_path"
+            sayinfo "Would have compared the previous manifest and written removals to: $removed_path"
             sayinfo "Would have updated checksums file: $sums_path"
             sayinfo "Would have generated manifest and compressed to: $tar_path_gz"
             sayinfo "Would have written checksum to: ${tar_path_gz}.sha256"
             sayinfo "Would have written checksum to: ${manifest_path}.sha256"
+            sayinfo "Would have written checksum to: ${removed_path}.sha256"
         else
 
             # --- Create uncompressed tar -----------------------------------------------
@@ -724,6 +868,10 @@ set -uo pipefail
                 | sed 's|^\./||' \
                 | sed '/^[[:space:]]*$/d' \
                 > "$manifest_path" || { sayfail "Failed to write manifest."; return 1; }
+
+            # --- Write removed-path delta ------------------------------------------------
+            _sgnd_release_write_removed_manifest "$manifest_path" "$removed_path" \
+                || { sayfail "Failed to write removal manifest."; return 1; }
 
             # --- Embed manifest into tar ------------------------------------------------
             tar -C "$STAGING_ROOT" \
@@ -751,9 +899,21 @@ set -uo pipefail
             printf '%s  %s\n' "$manifest_hash" "$manifest_base" >> "$sums_path" \
                 || { sayfail "Failed to append manifest checksum to SHA256SUMS."; return 1; }
 
+            # Add removal manifest checksum (idempotent)
+            removed_base="$(basename "$removed_path")"
+            removed_hash="$(sha256sum "$removed_path" | awk '{print $1}')" \
+                || { sayfail "Failed to hash removal manifest."; return 1; }
+
+            sed -i "\|  $removed_base$|d" "$sums_path" \
+                || { sayfail "Failed to update SHA256SUMS (removal manifest)."; return 1; }
+
+            printf '%s  %s\n' "$removed_hash" "$removed_base" >> "$sums_path" \
+                || { sayfail "Failed to append removal manifest checksum to SHA256SUMS."; return 1; }
+
             # Write sidecar .sha256 files
             printf '%s  %s\n' "$(sha256sum "$tar_path_gz" | awk '{print $1}')" "$TAR_FILE" > "${tar_path_gz}.sha256"
             printf '%s  %s\n' "$manifest_hash" "$manifest_base" > "${manifest_path}.sha256"
+            printf '%s  %s\n' "$removed_hash" "$removed_base" > "${removed_path}.sha256"
 
             sayinfo "Created $tar_path_gz"
 
@@ -816,98 +976,84 @@ set -uo pipefail
             "$file"
     }
 
-    # fn: _apply_version_bump - Apply release version bump metadata
+    # fn: _apply_version_bump - Apply release metadata policy to managed source files
         # . Purpose
-        #   Apply header checksum/build refresh and optional version bumping to source files.
+        #   Apply Version and Build according to A/C/N policy and always refresh Checksum
+        #   for files whose source or metadata changed.
         #
         # . Behavior
-        #   - Scans SOURCE_DIR for readable shell source files.
-        #   - Applies sgnd_header_bump_version to each file.
-        #   - Uses --bumpmajor or --bumpminor to decide the bump mode.
-        #   - When no bump flag is set, refreshes build/checksum only for changed files.
-        #   - Reports unchanged files separately.
-        #   - In dry-run mode, reports intended actions without modifying files.
-        #
-        # Inputs (globals):
-        #   SOURCE_DIR
-        #   FLAG_BUMP_MAJOR
-        #   FLAG_BUMP_MINOR
-        #   FLAG_DRYRUN
-        #   FLAG_NOSOURCEUPDATE
+        #   - Detects source changes by comparing the stored checksum with the current
+        #     managed-body checksum.
+        #   - MODE_UPDATEVERSION: A=all, C=changed, N=none.
+        #   - MODE_UPDATEBUILD:   A=all, C=changed, N=none.
+        #   - Any file changed by source edits or metadata policy receives a refreshed
+        #     checksum after metadata updates are applied.
+        #   - Optional major/minor bump flags override explicit Version policy.
         #
         # . Returns
-        #   0 on success
-        #   1 on failure
+        #   0 on success; 1 when one or more managed files could not be updated.
         #
         # . Usage
         #   _apply_version_bump
     _apply_version_bump() {
-        local mode="none"
         local file=""
+        local stored_checksum=""
+        local current_checksum=""
+        local source_changed=0
+        local metadata_changed=0
         local failed=0
+        local version_mode="${MODE_UPDATEVERSION:-C}"
+        local build_mode="${MODE_UPDATEBUILD:-C}"
 
-        if (( ${FLAG_NOSOURCEUPDATE:-0} )); then
-            sayinfo "Skipping source header metadata updates (--nosourceupdate)"
-            return 0
-        fi
+        version_mode="${version_mode^^}"
+        build_mode="${build_mode^^}"
+
+        case "$version_mode" in A|C|N) ;; *) sayfail "Invalid version update mode: $version_mode"; return 1 ;; esac
+        case "$build_mode" in A|C|N) ;; *) sayfail "Invalid build update mode: $build_mode"; return 1 ;; esac
 
         if (( ${FLAG_BUMP_MAJOR:-0} )) && (( ${FLAG_BUMP_MINOR:-0} )); then
             sayfail "Use either --bumpmajor or --bumpminor, not both"
             return 1
         fi
 
-        if (( ${FLAG_BUMP_MAJOR:-0} )); then
-            mode="major"
-        elif (( ${FLAG_BUMP_MINOR:-0} )); then
-            mode="minor"
-        else
-            mode="none"
-        fi
-
         while IFS= read -r -d '' file; do
+            current_checksum="$(sgnd_header_calc_checksum "$file")" || { saywarning "Skipping unmanaged file: $file"; continue; }
+            sgnd_header_get_field "$file" "Metadata" "Checksum" stored_checksum || stored_checksum=""
+            source_changed=0
+            metadata_changed=0
+            [[ "$stored_checksum" != "$current_checksum" ]] && source_changed=1
+
             if (( ${FLAG_DRYRUN:-0} )); then
-                case "$mode" in
-                    major) sayinfo "[DRYRUN] Would have bumped major version in $file" ;;
-                    minor) sayinfo "[DRYRUN] Would have bumped minor version in $file" ;;
-                    none)  sayinfo "[DRYRUN] Would have refreshed build/checksum in $file if needed" ;;
-                esac
+                sayinfo "[DRYRUN] $file source_changed=$source_changed version=$version_mode build=$build_mode"
                 continue
             fi
 
-            if sgnd_header_bump_version "$file" "$mode"; then
-                if (( ${SGND_HEADER_BUMP_CHANGED:-0} )); then
-                    if [[ "$mode" == "none" ]] && (( ${FLAG_UPDATEVERSION:-0} )); then
-                        _set_script_header_version "$file" "$VERSION" || {
-                            saywarning "Could not set version $VERSION in $file"
-                            failed=1
-                            continue
-                        }
-
-                        # The version edit changes the file content, so refresh the
-                        # build/checksum once more after applying the selected version.
-                        sgnd_header_bump_version "$file" "none" || {
-                            saywarning "Could not refresh metadata after setting version in $file"
-                            failed=1
-                            continue
-                        }
-                    fi
-
-                    case "$mode" in
-                        major) sayok "Bumped major version in $file" ;;
-                        minor) sayok "Bumped minor version in $file" ;;
-                        none)
-                            if (( ${FLAG_UPDATEVERSION:-0} )); then
-                                sayok "Updated version/build/checksum in $file"
-                            else
-                                sayok "Updated build/checksum in $file"
-                            fi
-                            ;;
-                    esac
-                else
-                    sayinfo "$file is unchanged, no metadata applied."
-                fi
+            if (( ${FLAG_BUMP_MAJOR:-0} || ${FLAG_BUMP_MINOR:-0} )); then
+                local bump_mode="major"
+                (( ${FLAG_BUMP_MINOR:-0} )) && bump_mode="minor"
+                sgnd_header_bump_version "$file" "$bump_mode" || { saywarning "Could not bump version in $file"; failed=1; continue; }
+                metadata_changed=1
             else
-                saywarning "Skipping unmanaged file (no valid header): $file"
+                if [[ "$version_mode" == "A" || ( "$version_mode" == "C" && "$source_changed" -eq 1 ) ]]; then
+                    sgnd_header_upsert_field "$file" "Metadata" "Version" "$VERSION" || { saywarning "Could not set version in $file"; failed=1; continue; }
+                    metadata_changed=1
+                fi
+
+                if [[ "$build_mode" == "A" || ( "$build_mode" == "C" && "$source_changed" -eq 1 ) ]]; then
+                    sgnd_header_upsert_field "$file" "Metadata" "Build" "$BUILD" || { saywarning "Could not set build in $file"; failed=1; continue; }
+                    metadata_changed=1
+                fi
+
+                if (( source_changed || metadata_changed )); then
+                    current_checksum="$(sgnd_header_calc_checksum "$file")" || { saywarning "Could not calculate checksum for $file"; failed=1; continue; }
+                    sgnd_header_upsert_field "$file" "Metadata" "Checksum" "$current_checksum" || { saywarning "Could not set checksum in $file"; failed=1; continue; }
+                fi
+            fi
+
+            if (( source_changed || metadata_changed )); then
+                sayok "Updated metadata in $file"
+            else
+                sayinfo "$file is unchanged, no metadata applied."
             fi
         done < <(find "$SOURCE_DIR" -type f -name '*.sh' -not -path '*/releases/*' -print0)
 
@@ -979,6 +1125,106 @@ set -uo pipefail
         return "$failed"
     }
 
+    # fn: _ensure_public_command_wrappers - Ensure public wrappers exist for top-level libexec scripts
+        # . Purpose
+        #   Ensure every executable top-level shell script under the SolidGroundUX
+        #   libexec directory has a matching public command wrapper in /usr/local/bin.
+        #
+        # . Behavior
+        #   - Inspects executable *.sh files directly beneath usr/local/libexec/solidgroundux.
+        #   - Uses the script basename without .sh as the public command name.
+        #   - Leaves existing wrappers untouched.
+        #   - Creates only missing wrappers when FLAG_CREATEWRAPPERS=1.
+        #   - Reports missing wrappers without creating them when the option is disabled.
+        #   - Honors dry-run mode.
+        #
+        # Inputs (globals):
+        #   SOURCE_DIR
+        #   FLAG_CREATEWRAPPERS
+        #   FLAG_DRYRUN
+        #
+        # Side effects:
+        #   May create executable files beneath SOURCE_DIR/usr/local/bin.
+        #
+        # . Returns
+        #   0 when all wrappers exist or missing wrappers were created successfully.
+        #   1 when one or more wrapper creations fail.
+        #
+        # . Usage
+        #   _ensure_public_command_wrappers
+    _ensure_public_command_wrappers() {
+        local libexec_root="${SOURCE_DIR%/}/usr/local/libexec/solidgroundux"
+        local bin_root="${SOURCE_DIR%/}/usr/local/bin"
+        local script=""
+        local script_base=""
+        local command_name=""
+        local wrapper=""
+        local installed_target=""
+        local missing=0
+        local created=0
+        local failed=0
+
+        [[ -d "$libexec_root" ]] || {
+            saydebug "No SolidGroundUX libexec directory found at $libexec_root; skipping wrapper verification."
+            return 0
+        }
+
+        while IFS= read -r -d '' script; do
+            script_base="$(basename -- "$script")"
+            command_name="${script_base%.sh}"
+            wrapper="${bin_root}/${command_name}"
+            installed_target="/usr/local/libexec/solidgroundux/${script_base}"
+
+            [[ -e "$wrapper" || -L "$wrapper" ]] && continue
+
+            (( missing++ ))
+
+            if (( ! ${FLAG_CREATEWRAPPERS:-0} )); then
+                saywarning "Missing command wrapper: $wrapper -> $installed_target"
+                continue
+            fi
+
+            if (( ${FLAG_DRYRUN:-0} )); then
+                sayinfo "[DRYRUN] Would create command wrapper: $wrapper -> $installed_target"
+                continue
+            fi
+
+            mkdir -p -- "$bin_root" || {
+                saywarning "Could not create wrapper directory: $bin_root"
+                failed=1
+                continue
+            }
+
+            printf '%s\n' \
+                '#!/usr/bin/env bash' \
+                "exec \"$installed_target\" \"\$@\"" \
+                > "$wrapper" || {
+                    saywarning "Could not create command wrapper: $wrapper"
+                    failed=1
+                    continue
+                }
+
+            chmod 0755 -- "$wrapper" || {
+                saywarning "Could not make command wrapper executable: $wrapper"
+                failed=1
+                continue
+            }
+
+            sayok "Created command wrapper: $wrapper -> $installed_target"
+            (( created++ ))
+        done < <(find "$libexec_root" -mindepth 1 -maxdepth 1 -type f -name '*.sh' -perm /111 -print0)
+
+        if (( missing == 0 )); then
+            sayinfo "All executable top-level libexec scripts have public command wrappers."
+        elif (( ${FLAG_CREATEWRAPPERS:-0} )); then
+            sayinfo "Wrapper summary: $created created, $failed failed."
+        else
+            saywarning "Wrapper summary: $missing missing; creation disabled."
+        fi
+
+        return "$failed"
+    }
+
 # --- Main Sequence -------------------------------------------------------------------
     # fn: main - Run the executable main sequence - Run the executable main sequence
         # . Purpose
@@ -1012,6 +1258,7 @@ set -uo pipefail
         _get_parameters
         _apply_version_bump || exit $?
         _ensure_libexec_executables || exit $?
+        _ensure_public_command_wrappers || exit $?
         _create_tar
         _cleanup_staging
     }

@@ -1,5 +1,12 @@
 # Installing SolidGroundUX
 
+SolidGroundUX uses a standalone `release-manager.sh` for installation, update,
+rollback, reinstallation, and removal.
+
+The release manager does not depend on an existing SolidGroundUX installation.
+It can therefore be used on a clean machine or to recover an incomplete or
+damaged installation.
+
 ## Download
 
 Download the latest SolidGroundUX release bundle from:
@@ -10,83 +17,258 @@ The release bundle is provided as:
 
 * `SolidGroundUX-<version>-release.zip`
 
-Copy the release bundle to the target machine and extract it into the SolidGroundUX releases directory:
+The ZIP contains:
 
-```bash
-sudo mkdir -p /var/lib/solidgroundux/releases
-
-sudo unzip SolidGroundUX-<version>-release.zip \
-    -d /var/lib/solidgroundux/releases
-```
-
-After extraction, the releases directory should contain files similar to:
-
+* `release-manager.sh`
 * `SolidGroundUX-<version>.tar.gz`
-* `SolidGroundUX-<version>.manifest`
 * `SolidGroundUX-<version>.tar.gz.sha256`
+* `SolidGroundUX-<version>.manifest`
 * `SolidGroundUX-<version>.manifest.sha256`
-
-## Verify (Optional)
-
-Verify the downloaded release files:
-
-```bash
-cd /var/lib/solidgroundux/releases
-
-sha256sum -c SolidGroundUX-<version>.tar.gz.sha256
-sha256sum -c SolidGroundUX-<version>.manifest.sha256
-```
+* `SolidGroundUX-<version>.removed`
+* `SolidGroundUX-<version>.removed.sha256`
+* `SHA256SUMS`
 
 ## First-time Installation
 
-For a first-time installation, extract the release archive directly into the root filesystem:
+A first installation can be started from any temporary directory.
+
+For example:
 
 ```bash
-sudo tar -xzpf \
-    /var/lib/solidgroundux/releases/SolidGroundUX-<version>.tar.gz \
-    -C /
+cd /tmp
+unzip SolidGroundUX-<version>-release.zip
+chmod +x release-manager.sh
+sudo ./release-manager.sh --install
 ```
 
-The release archive contains a prepared filesystem layout and will install the
-SolidGroundUX commands, libraries, templates, documentation, and deployment
-tools into their expected locations.
+The release manager then:
+
+1. Creates the required release-management directories.
+2. Detects the release files beside itself.
+3. Verifies checksums and release paths.
+4. Moves the validated release set into `/var/lib/solidgroundux/releases`.
+5. Installs the release into the target filesystem.
+6. Moves the installed release set into the versioned archive.
+7. Copies itself to:
+
+```text
+/var/lib/solidgroundux/release-manager.sh
+```
+
+8. Removes only the known temporary bootstrap files after a successful install.
+
+After the first installation, the temporary copy of the release manager is no
+longer required.
+
+## Release Storage
+
+SolidGroundUX deliberately uses the filesystem itself as release state.
+
+### Available releases
+
+Downloaded, prepared, or rolled-back releases are stored below:
+
+```text
+/var/lib/solidgroundux/releases
+```
+
+These releases are available for installation.
+
+### Installed release history
+
+Installed releases are stored below:
+
+```text
+/var/lib/solidgroundux/archive/<release>
+```
+
+For example:
+
+```text
+/var/lib/solidgroundux/archive/SolidGroundUX-1.8.2622102
+```
+
+The highest versioned directory in `archive/` represents the currently installed
+release.
+
+No separate current-version database is required.
+
+## Interactive Release Manager
+
+After installation, start the release manager with:
+
+```bash
+sudo /var/lib/solidgroundux/release-manager.sh
+```
+
+The interactive menu can:
+
+* Check GitHub for the latest release.
+* Download the latest release.
+* Update to the latest GitHub release.
+* Install the newest locally available release.
+* Reinstall or roll back to an archived release.
+* Remove SolidGroundUX.
+
+Archived releases are shown in a submenu with the current release marked
+explicitly.
+
+## Checking for Updates
+
+To check GitHub without changing the local machine:
+
+```bash
+sudo /var/lib/solidgroundux/release-manager.sh --check
+```
+
+The release manager compares the latest published GitHub release with releases
+already present in `archive/` or `releases/`.
+
+If the latest release is already installed or downloaded, it is not downloaded
+again.
+
+## Downloading Without Installing
+
+To download and validate the latest release without installing it:
+
+```bash
+sudo /var/lib/solidgroundux/release-manager.sh --download
+```
+
+Downloads are first staged in a temporary directory.
+
+The ZIP is extracted and validated before its release files are admitted into:
+
+```text
+/var/lib/solidgroundux/releases
+```
+
+This prevents incomplete or malformed downloads from contaminating the local
+release repository.
 
 ## Updating
 
-Download the newer SolidGroundUX release bundle and copy it to the target machine.
-
-Extract the release bundle into the SolidGroundUX releases directory and start the installer:
+To check GitHub, download the latest release when required, and install it:
 
 ```bash
-sudo mkdir -p /var/lib/solidgroundux/releases
-
-sudo unzip SolidGroundUX-<version>-release.zip \
-    -d /var/lib/solidgroundux/releases
-
-sudo sgnd-install --product SolidGroundUX
+sudo /var/lib/solidgroundux/release-manager.sh --update
 ```
-The installer selects the newest available SolidGroundUX release package from
-/var/lib/solidgroundux/releases, verifies the release files, creates backups,
-extracts the package, and updates the installation records.
+
+An update installs the complete new release archive and applies the incoming
+`.removed` manifest.
+
+The `.removed` manifest identifies paths that belonged to the previous release
+but are no longer part of the new release.
+
+Because each SolidGroundUX release contains a complete framework tree, updates
+do not depend on incremental binary patching.
+
+For unattended operation:
+
+```bash
+sudo /var/lib/solidgroundux/release-manager.sh --update --auto
+```
+
+## Installing a Local Release
+
+To install the newest release already available under `releases/`:
+
+```bash
+sudo /var/lib/solidgroundux/release-manager.sh --install
+```
+
+To install a specific release:
+
+```bash
+sudo /var/lib/solidgroundux/release-manager.sh     --install     --release 1.8.2622102
+```
+
+## Rollback and Reinstallation
+
+To roll back to the previous archived release:
+
+```bash
+sudo /var/lib/solidgroundux/release-manager.sh --rollback
+```
+
+To install a specific archived release:
+
+```bash
+sudo /var/lib/solidgroundux/release-manager.sh     --rollback     --release 1.8.2621804
+```
+
+Rollback makes the active filesystem match the selected archived release.
+
+Files that exist only in the newer release are removed, and the selected
+complete release archive is installed again.
+
+Newer archived versions are returned to `releases/`, so the highest remaining
+archive directory continues to represent the active version.
+
+## Removing SolidGroundUX
+
+To remove the active SolidGroundUX installation:
+
+```bash
+sudo /var/lib/solidgroundux/release-manager.sh --remove
+```
+
+The release manager removes framework-owned paths using the current release
+manifest.
+
+Archived release sets are returned to `releases/` rather than discarded, so
+they remain available for later reinstallation.
+
+## Dry Run
+
+To preview filesystem changes without applying them:
+
+```bash
+sudo /var/lib/solidgroundux/release-manager.sh --update --dryrun
+```
+
+The same option can be used with install, rollback, and removal operations.
+
+## Alternate Release Source
+
+The default update source is the latest published GitHub release.
+
+A specific ZIP file may also be used:
+
+```bash
+sudo /var/lib/solidgroundux/release-manager.sh     --update     --source /tmp/SolidGroundUX-release.zip
+```
+
+Or a direct URL:
+
+```bash
+sudo /var/lib/solidgroundux/release-manager.sh     --update     --source https://example.org/releases/SolidGroundUX-release.zip
+```
+
+## Testing With Alternate Roots
+
+The release manager supports alternate target and state roots, which is useful
+for testing installation behavior without modifying the live system:
+
+```bash
+sudo ./release-manager.sh     --install     --target-root /mnt/testroot     --state-root /mnt/testroot/var/lib/solidgroundux
+```
+
+## Development Deployment
+
+Formal releases are created with `prepare-release.sh` and installed with
+`release-manager.sh`.
+
+During development, `deploy-workspace.sh` provides a faster path for deploying
+selected workspace files directly to a local or remote test machine.
+
+`deploy-workspace.sh` does not create an installed release record and does not
+participate in archive-based rollback.
+
+See the Deployment documentation for details.
 
 ## Documentation
 
 Framework documentation is available online:
 
 https://testadura-consultancy.github.io/SolidGroundUX/
-
-## Uninstalling
-
-To remove an installed version:
-
-```bash
-sgnd-uninstall
-```
-
-The uninstall process uses installation metadata recorded during installation.
-
-## Version Archives
-
-SolidGroundUX maintains versioned release artifacts to support repeatable deployments and version rollback scenarios.
-
-See the deployment documentation for details.

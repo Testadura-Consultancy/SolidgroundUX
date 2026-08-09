@@ -3,15 +3,15 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621612
-#   Checksum    : 40040c9b5cda73ae4a0bf0d45e0d679dadea8aca3c0bd7402a6e8b4bfa801c31
+#   Build       : 2622101
+#   Checksum    : 3a4c1661d51fb280653e3726e08dfc5c48e2ddd6a31d2919809947181d76c78b
 #   Source      : 95-development-tools.sh
 #   Type        : module
 #   Group       : SolidGround Console
-#   Purpose     : Provide SolidGroundUX development and release tools
+#   Purpose     : Provide core SolidGroundUX development and release tools
 #
 # Description:
-#   Contains workspace, deployment, archive, restoration, release, metadata, and documentation actions.
+#   Contains workspace creation, workspace deployment, release preparation, and documentation generation actions.
 #
 # Attribution:
 #   Developers    : Mark Fieten
@@ -60,7 +60,7 @@ set -uo pipefail
     SGND_DEVELOPMENT_TOOLS_MODULE_ID="development-tools"
     SGND_DEVELOPMENT_TOOLS_MODULE_NAME="Development Tools"
     SGND_DEVELOPMENT_TOOLS_MODULE_VERSION="1.0.0"
-    SGND_DEVELOPMENT_TOOLS_MODULE_DESC="Workspace, deployment, archive, release, metadata, and documentation tools"
+    SGND_DEVELOPMENT_TOOLS_MODULE_DESC="Workspace creation, deployment, release preparation, and documentation tools"
 
     SGND_MODULE_NAME="${SGND_DEVELOPMENT_TOOLS_MODULE_NAME}"
     SGND_MODULE_VERSION="${SGND_DEVELOPMENT_TOOLS_MODULE_VERSION}"
@@ -94,16 +94,7 @@ set -uo pipefail
         _sgnd_run_public_command "sgnd-prepare-release"
     }
 
-    # fn: _exe_metadata_editor
-        # . Returns
-        #   Exit status of metadata-editor.sh.
-        # . Usage
-        #   _exe_metadata_editor
-    _exe_metadata_editor() {
-        _sgnd_run_public_command "sgnd-metadata-editor"
-    }
-
-    # _exe_generate_docs
+    # fn: _exe_generate_docs
         # . Returns
         #   Exit status of sgnd-generate-docs.
         #
@@ -113,32 +104,9 @@ set -uo pipefail
         _sgnd_run_public_command "sgnd-generate-docs"
     }
 
-    # fn: _exe_tar_it - Create a SolidGroundUX archive
-        # . Returns
-        #   Exit status of sgnd-tar-it.
-        #
-        # . Usage
-        #   _exe_tar_it
-    _exe_tar_it() {
-        _sgnd_run_public_command "sgnd-tar-it"
-    }
-
-    # fn: _exe_un_tar_it - Restore files from a SolidGroundUX archive
-        # . Returns
-        #   Exit status of sgnd-un-tar-it.
-        #
-        # . Usage
-        #   _exe_un_tar_it
-    _exe_un_tar_it() {
-        _sgnd_run_public_command "sgnd-un-tar-it"
-    }
-
 # - Console registration ---------------------------------------------------------
     sgnd_console_register_group "$SGND_DEVELOPMENT_TOOLS_MODULE_ID" "$SGND_DEVELOPMENT_TOOLS_MODULE_NAME" "$SGND_DEVELOPMENT_TOOLS_MODULE_DESC" 0 1 950
     sgnd_console_register_item "createws" "$SGND_DEVELOPMENT_TOOLS_MODULE_ID" "Create workspace" "_exe_createworkspace" "Create a template workspace with target-root structure" 0 15 1
     sgnd_console_register_item "deployws" "$SGND_DEVELOPMENT_TOOLS_MODULE_ID" "Deploy workspace" "_exe_deployworkspace" "Select and deploy workspace files locally or remotely" 0 15 1
-    sgnd_console_register_item "archive" "$SGND_DEVELOPMENT_TOOLS_MODULE_ID" "Create archive" "_exe_tar_it" "Create a timestamped SolidGroundUX archive" 0 15 1
-    sgnd_console_register_item "restore" "$SGND_DEVELOPMENT_TOOLS_MODULE_ID" "Restore archive" "_exe_un_tar_it" "Restore selected files from a SolidGroundUX archive" 0 15 1
     sgnd_console_register_item "preprel" "$SGND_DEVELOPMENT_TOOLS_MODULE_ID" "Prepare release" "_exe_preparerelease" "Create a release archive with checksums and manifests" 0 15 1
-    sgnd_console_register_item "metaedt" "$SGND_DEVELOPMENT_TOOLS_MODULE_ID" "Metadata editor" "_exe_metadata_editor" "Edit metadata fields in script header comments" 0 15 1
     sgnd_console_register_item "gendocs" "$SGND_DEVELOPMENT_TOOLS_MODULE_ID" "Generate documentation" "_exe_generate_docs" "Generate SolidGroundUX source documentation" 0 15 1

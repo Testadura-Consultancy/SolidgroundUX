@@ -3,15 +3,15 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621612
-#   Checksum    : 50bc8a81665b85d786173916a3c2d2f956c3e3246a5f4fded7e309c19c573b0a
+#   Build       : 2622101
+#   Checksum    : a3bc21e2eb31520dee421071ba619b829b49b0c3deb0d4ac671abba5b1662760
 #   Source      : 90-solidgroundux.sh
 #   Type        : module
 #   Group       : SolidGround Console
-#   Purpose     : Manage the SolidGroundUX installation and framework
+#   Purpose     : Manage the SolidGroundUX framework and release lifecycle
 #
 # Description:
-#   Contains only SolidGroundUX installation, configuration, state, logging, diagnostics, and about actions.
+#   Contains SolidGroundUX framework information, release management, configuration, state, logging, and diagnostics.
 #
 # Attribution:
 #   Developers    : Mark Fieten
@@ -67,43 +67,29 @@ set -uo pipefail
     SGND_MODULE_DESC="${SGND_SOLIDGROUNDUX_MODULE_DESC}"
 
 # - SolidGroundUX installation actions -------------------------------------------
-    # fn: _install_solidgroundux - Install solidgroundux
+    # fn: _release_manager - Open the standalone SolidGroundUX release manager
         # . Purpose
-        #   Install solidgroundux.
+        #   Start the framework-independent release manager for installation,
+        #   update, rollback, reinstallation, and removal operations.
         #
         # . Returns
-        #   Returns the underlying command or workflow status.
+        #   Returns the release manager exit status.
         #
         # . Usage
-        #   _install_solidgroundux
-    _install_solidgroundux() {
-        _sgnd_run_public_command "sgnd-install" "$@"
-    }
+        #   _release_manager
+    _release_manager() {
+        local manager="/var/lib/solidgroundux/release-manager.sh"
 
-    # fn: _update_solidgroundux - Update solidgroundux
-        # . Purpose
-        #   Update solidgroundux.
-        #
-        # . Returns
-        #   Returns the underlying command or workflow status.
-        #
-        # . Usage
-        #   _update_solidgroundux
-    _update_solidgroundux() {
-        _sgnd_run_public_command "sgnd-update" "$@"
-    }
+        [[ -f "$manager" ]] || {
+            saywarning "Release manager not found: $manager"
+            return 1
+        }
 
-    # fn: _uninstall_solidgroundux - Uninstall solidgroundux
-        # . Purpose
-        #   Uninstall solidgroundux.
-        #
-        # . Returns
-        #   Returns the underlying command or workflow status.
-        #
-        # . Usage
-        #   _uninstall_solidgroundux
-    _uninstall_solidgroundux() {
-        _sgnd_run_public_command "sgnd-uninstall" "$@"
+        if [[ -x "$manager" ]]; then
+            sudo "$manager" "$@"
+        else
+            sudo bash "$manager" "$@"
+        fi
     }
 
 # - Framework diagnostics --------------------------------------------------------
@@ -742,11 +728,9 @@ set -uo pipefail
     }
 
 # - Console registration ---------------------------------------------------------
-    sgnd_console_register_group "sgndinst" "SolidGroundUX Installation" "Install, update, or uninstall SolidGroundUX" 0 1 810
-    sgnd_console_register_item "install" "sgndinst" "Install SolidGroundUX" "_install_solidgroundux" "Install SolidGroundUX release package" 0 5 1
-    sgnd_console_register_item "update" "sgndinst" "Update SolidGroundUX" "_update_solidgroundux" "Update SolidGroundUX" 0 5 1
-    sgnd_console_register_item "uninstall" "sgndinst" "Uninstall SolidGroundUX" "_uninstall_solidgroundux" "Uninstall SolidGroundUX release package" 0 5 1
-    sgnd_console_register_item "about" "sgndinst" "About SolidGroundUX" "_framework_show_about" "Show SolidGroundUX info" 0 15 1
+    sgnd_console_register_group "sgndinst" "SolidGroundUX" "SolidGroundUX framework information and release management" 0 1 810
+    sgnd_console_register_item "about" "sgndinst" "About SolidGroundUX" "_framework_show_about" "Show SolidGroundUX information" 0 15 1
+    sgnd_console_register_item "release-manager" "sgndinst" "Release manager" "_release_manager" "Install, update, roll back, reinstall, or remove SolidGroundUX" 0 15 1
 
     sgnd_console_register_group "framework-config" "Framework Configuration" "View and edit framework configuration files and effective settings" 0 1 820
     sgnd_console_register_item "config-env" "framework-config" "Show effective configuration" "_framework_show_environment" "Show the resolved SolidGroundUX framework environment and effective settings" 0 30 1

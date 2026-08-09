@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621822
-#   Checksum    : -
+#   Build       : 2622101
+#   Checksum    : 9806e668f825ed4ba2b367d212295e170ad52887ffdb0966f14cbd1fc94ca7de
 #   Source      : 15-package-management.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -423,8 +423,8 @@ set -uo pipefail
     sgnd_console_register_item "pkgupgrade" "$SGND_PACKAGE_MANAGEMENT_MODULE_ID" "Upgrade installed packages" "_upgrade_installed_packages" "Upgrade installed Ubuntu packages" 0 5 1
     sgnd_console_register_item "pkgclean" "$SGND_PACKAGE_MANAGEMENT_MODULE_ID" "Clean unused packages" "_clean_unused_packages" "Remove unused packages and cached files" 0 5 1
 
-    sgnd_console_register_item "ad-install" "$SGND_PACKAGE_MANAGEMENT_MODULE_ID" "Install AD server packages" "_install_samba_ad" "Install Samba Active Directory Domain Controller packages" 0 5 1
-    sgnd_console_register_item "adc-install" "$SGND_PACKAGE_MANAGEMENT_MODULE_ID" "Install AD client packages" "_install_ad_client" "Install realmd and SSSD Active Directory client packages" 0 5 1
-    sgnd_console_register_item "smb-install" "$SGND_PACKAGE_MANAGEMENT_MODULE_ID" "Install Samba File Server packages" "_install_samba_file" "Install Samba file-server packages" 0 5 1
+    sgnd_console_register_item "ad-install" "$SGND_PACKAGE_MANAGEMENT_MODULE_ID" "Install AD server" "_install_samba_ad" "Install Samba Active Directory Domain Controller packages" 0 5 1
+    sgnd_console_register_item "adc-install" "$SGND_PACKAGE_MANAGEMENT_MODULE_ID" "Install AD client" "_install_ad_client" "Install realmd and SSSD Active Directory client packages" 0 5 1
+    sgnd_console_register_item "smb-install" "$SGND_PACKAGE_MANAGEMENT_MODULE_ID" "Install Samba File Server" "_install_samba_file" "Install Samba file-server packages" 0 5 1
     sgnd_console_register_item "instxrdp" "$SGND_PACKAGE_MANAGEMENT_MODULE_ID" "Install XRDP" "_install_xrdp" "Install XRDP for Ubuntu Desktop" 0 5 1
     sgnd_console_register_item "instdocker" "$SGND_PACKAGE_MANAGEMENT_MODULE_ID" "Install Docker" "_install_docker" "Install Docker Engine" 0 5 1

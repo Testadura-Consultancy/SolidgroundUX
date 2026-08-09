@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621201
-#   Checksum    : e51f83f1ca99d3cee3e77290e4bc8762278f6962990fd5ade7c6c347cadea480
+#   Build       : 2622101
+#   Checksum    : 8a4a2ef08a62879b061897747c1af13e471b401ef906e95b376692db0b318af9
 #   Source      : sgnd-console-menu.sh
 #   Group       : SolidGround Console
 #   Type        : library
@@ -1369,7 +1369,9 @@ set -uo pipefail
         # . Usage
         #   _sgnd_console_render_menu_title
     _sgnd_console_render_menu_title() {
-        (( ! SGND_CLEAR_ONRENDER )) || printf '\033[2J\033[H'
+        #(( ! SGND_CLEAR_ONRENDER )) || 
+        clear
+        #printf '\033[2J\033[H'
 
         local width=80
         local pad=4

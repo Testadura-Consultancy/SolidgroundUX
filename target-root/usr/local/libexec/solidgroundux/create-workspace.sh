@@ -17,8 +17,9 @@
 #
 #   The script:
 #     - Resolves project name and target folder
-#     - Creates repository and target-root structure
-#     - Copies framework template files
+#     - Creates a repository-shaped target-root structure
+#     - Copies the canonical SolidGroundUX template set into the workspace
+#     - Instantiates the selected starter template(s) from that local template set
 #     - Generates a VS Code workspace file
 #     - Generates a standard .gitignore
 #
@@ -183,13 +184,6 @@ set -uo pipefail
     SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
     SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
     SGND_SCRIPT_TITLE="Create workspace"
-    : "${SGND_SCRIPT_DESC:=Create a new project workspace from templates}"
-    : "${SGND_SCRIPT_VERSION:=1.0}"
-    : "${SGND_SCRIPT_BUILD:=20250110}"    
-    : "${SGND_SCRIPT_DEVELOPERS:=Mark Fieten}"
-    : "${SGND_SCRIPT_COMPANY:=Testadura Consultancy}"
-    : "${SGND_SCRIPT_COPYRIGHT:=© 2025 - 2026 Testadura Consultancy}"
-    : "${SGND_SCRIPT_LICENSE:=Testadura Non-Commercial License (TD-NC) v1.1.}"
    
 # --- Script metadata (framework integration) -----------------------------------------
     # SGND_USING
@@ -440,15 +434,63 @@ set -uo pipefail
         mod_ref="mod-${project_slug}.sh"
     }
 
-    # fn: _copy_project_templates - Copy project templates into the workspace
+    # fn: _copy_workspace_templates - Copy canonical templates into the workspace
         # . Purpose
-        #   Copy the appropriate template file(s) for the selected project components.
+        #   Seed the repository-shaped workspace with the installed SolidGroundUX templates.
         #
         # . Behavior
-        #   - Copies exe-template when FLAG_EXE=1
-        #   - Copies lib-template when FLAG_LIB=1
-        #   - Copies mod-template when FLAG_MOD=1
-        #   - Uses component-specific output filenames
+        #   - Resolves the installed canonical template directory.
+        #   - Copies all top-level *.sh templates into target-root/usr/local/lib/solidgroundux/templates.
+        #   - Records newly created template files in the workspace manifest.
+        #   - Honors dry-run mode through _copy_template_file().
+        #
+        # Inputs (globals):
+        #   SGND_COMMON_LIB
+        #   PROJECT_FOLDER
+        #
+        # . Returns
+        #   0 on success.
+        #   1 when the canonical template directory is missing or a copy fails.
+        #
+        # . Usage
+        #   _copy_workspace_templates
+    _copy_workspace_templates() {
+        local source_dir="${SGND_COMMON_LIB}/../templates"
+        local target_dir="${PROJECT_FOLDER}/target-root/usr/local/lib/solidgroundux/templates"
+        local template=""
+        local found=0
+
+        [[ -d "$source_dir" ]] || {
+            sayfail "Canonical template directory not found: $source_dir"
+            return 1
+        }
+
+        shopt -s nullglob
+        for template in "$source_dir"/*.sh; do
+            found=1
+            _copy_template_file "$template" "$target_dir/$(basename -- "$template")" || {
+                shopt -u nullglob
+                return 1
+            }
+        done
+        shopt -u nullglob
+
+        (( found )) || {
+            sayfail "No shell templates found in: $source_dir"
+            return 1
+        }
+
+        return 0
+    }
+
+    # fn: _instantiate_project_templates - Instantiate selected workspace templates
+        # . Purpose
+        #   Create selected project starter files from the workspace-local template set.
+        #
+        # . Behavior
+        #   - Uses only templates already copied into the active workspace.
+        #   - Instantiates executable, library, and/or console module templates according to selection.
+        #   - Preserves the repository-shaped target-root layout.
         #
         # Inputs (globals):
         #   PROJECT_NAME
@@ -456,16 +498,15 @@ set -uo pipefail
         #   FLAG_EXE
         #   FLAG_LIB
         #   FLAG_MOD
-        #   SGND_COMMON_LIB
         #
         # . Returns
-        #   0 on success
-        #   1 on failure
+        #   0 on success.
+        #   1 when a selected template cannot be instantiated.
         #
         # . Usage
-        #   _copy_project_templates
-    _copy_project_templates() {
-        local template_dir=""
+        #   _instantiate_project_templates
+    _instantiate_project_templates() {
+        local template_dir="${PROJECT_FOLDER}/target-root/usr/local/lib/solidgroundux/templates"
         local exe_file=""
         local lib_file=""
         local mod_file=""
@@ -473,13 +514,6 @@ set -uo pipefail
 
         project_slug="${PROJECT_NAME// /-}"
         project_slug="${project_slug,,}"
-
-        template_dir="${SGND_COMMON_LIB}/../templates"
-
-        [[ -d "$template_dir" ]] || {
-            saywarning "Template directory $template_dir does not exist; skipping template copy."
-            return 0
-        }
 
         _get_template_filenames exe_file lib_file mod_file
 
@@ -503,7 +537,10 @@ set -uo pipefail
                 "${PROJECT_FOLDER}/target-root/usr/local/libexec/${project_slug}/${mod_file}" \
                 || return 1
         fi
+
+        return 0
     }
+
 
     # fn: _get_project_directories - Resolve project directory layout
         # . Purpose
@@ -967,7 +1004,8 @@ set -uo pipefail
             fi
         done
 
-        _copy_project_templates || return 1
+        _copy_workspace_templates || return 1
+        _instantiate_project_templates || return 1
     }
 
     # _create_workspace_file

@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621901
-#   Checksum    : -
+#   Build       : 2622101
+#   Checksum    : 51ea022b5c007d69ad64299bb7a484337dda34f4904e6af0c604b48f091a6d9d
 #   Source      : manage-users-n-groups.sh
 #   Type        : script
 #   Group       : System Administration

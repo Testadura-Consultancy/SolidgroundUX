@@ -280,22 +280,134 @@ practical framework development.
     while retaining installation, creation, removal, validation, and
     status actions.
 
-## Development Tools
+## Installation and Release Management
+
+### Added
+
+-   Added the standalone `release-manager.sh` as the canonical
+    SolidGroundUX installation and release-lifecycle tool, replacing the
+    separate install, update, and uninstall workflow.
+-   Added filesystem-based release state:
+    -   `/var/lib/solidgroundux/releases` contains releases available
+        for installation.
+    -   `/var/lib/solidgroundux/archive/<release>` contains installed
+        release history.
+    -   The highest archived version represents the currently installed
+        release.
+-   Added interactive archived-release selection for reinstallation and
+    rollback, with the current release identified and **Remove
+    SolidGroundUX** available as the final action.
+-   Added GitHub latest-release discovery and download support.
+-   Added release acquisition through temporary staging, extraction,
+    checksum validation, release-identity validation, and path-safety
+    validation before a release is admitted into `releases/`.
+-   Added bootstrap installation from a GitHub release ZIP containing
+    `release-manager.sh` and the complete prepared release set.
+-   Added automatic creation of the SolidGroundUX release-management
+    directories during first installation.
+-   Added automatic installation of a valid release set found beside the
+    bootstrap copy of `release-manager.sh`.
+-   Added automatic installation of the release manager itself at
+    `/var/lib/solidgroundux/release-manager.sh`.
+-   Added safe cleanup of known bootstrap files after a successful
+    installation from a temporary directory.
+-   Added command-line operations for checking, downloading, installing,
+    updating, rolling back, reinstalling, and removing releases,
+    including unattended and dry-run operation.
 
 ### Changed
 
--   `sgnd_doc_renderer.py` now renders $ marked entries only for template packages, : is rendered always 
+-   First-time installation no longer requires manually creating the
+    releases directory, copying release files into it, or extracting the
+    framework archive directly into `/`.
+-   Release bundles now act as self-contained bootstrap packages: they
+    can be downloaded and extracted into a temporary directory and
+    installed by running the bundled `release-manager.sh`.
+-   Updates now install complete release archives and process the
+    incoming `.removed` manifest for files that no longer belong to the
+    new release.
+-   Rollback now reinstalls a complete archived release and returns
+    newer archived releases to `releases/`, preserving the
+    filesystem-based current-version rule.
+-   Removal now uses release manifests to remove framework-owned files
+    while retaining release artifacts for later reinstallation.
+-   Release-manager UI is self-contained and framework-independent while
+    following the SolidGroundUX default visual conventions for titles,
+    separators, labels, values, prompts, and status colors.
+-   Updated deployment and installation documentation to describe the
+    new `prepare-release.sh` → release artifacts → `release-manager.sh`
+    workflow and distinguish it from direct development deployment
+    through `deploy-workspace.sh`.
+
+### Removed
+
+-   The separate installer/updater/uninstaller architecture is
+    superseded by `release-manager.sh`.
+-   Removed the requirement for installation metadata or a separate
+    current-version marker; release and archive directories now provide
+    the required state.
+
+## Development Tools
+
+### Added
+
+-   `prepare-release.sh` now verifies that executable scripts directly
+    beneath `usr/local/libexec/solidgroundux` have corresponding public
+    command wrappers in `usr/local/bin`.
+-   Added optional automatic creation of missing public command wrappers
+    during release preparation.
+-   `create-workspace.sh` now copies the canonical SolidGroundUX
+    template set into the workspace under
+    `target-root/usr/local/lib/solidgroundux/templates` and instantiates
+    selected starter files from those workspace-local templates.
+
+### Changed
+
+-   Consolidated release metadata maintenance into `prepare-release.sh`,
+    superseding the separate metadata-editor workflow.
+
+-   Version and Build metadata policies in `prepare-release.sh` now
+    support `A` (all files), `C` (changed files only), and `N` (no
+    update) independently.
+
+-   Changed-file detection for release metadata uses the canonical
+    header checksum mechanism, allowing source changes to be
+    distinguished from Version, Build, and Checksum metadata changes.
+
+-   Checksums are refreshed automatically for changed files and whenever
+    release metadata changes a file.
+
+-   Version and Build policy prompts now use constrained SolidGroundUX
+    decision input with `C` as the default.
+
+-   Corrected the `prepare-release.sh` argument specifications so `C` is
+    stored as the default for Version and Build policies and `A,C,N`
+    remains the choice list.
+
+-   Workspace creation now follows the repository-shaped `target-root`
+    layout more explicitly and uses its local template copy as the
+    source for newly selected executable, library, and module starter
+    files.
+
+-   `sgnd_doc_renderer.py` now renders \$ marked entries only for
+    template packages, : is rendered always
+
 -   `deploy-workspace.sh` now ends with a redo/continue prompt: Continue
     exits cleanly, while `R` restarts the deployment from the beginning
     with the original arguments.
+
 -   `deploy-workspace.sh` now uses `ask_datetime` for the **Changed
     after** prompt.
+
 -   The deployment filter now accepts SolidGroundUX relative date/time
     expressions, such as `N`, `D`, `-2h`, and `-1d`, in addition to
     absolute dates and timestamps.
+
 -   `deploy-workspace.sh` now displays a deployment summary after a
     successful transfer.
+
 -   The deployment summary reports:
+
     -   Result.
     -   Transport.
     -   Source root.
@@ -303,15 +415,17 @@ practical framework development.
     -   Receiver.
     -   Start and finish timestamps.
     -   Every transferred file.
+
 -   The deployment summary now uses `sgnd_print_labeledmultivalue`,
     displaying transferred files on separate aligned lines instead of as
     a truncated comma-separated string.
+
 -   `prepare-release.sh` now ensures that every regular file directly
     beneath `usr/local/libexec/solidgroundux` has its executable bit set
     before staging and archive creation.
+
 -   Dry-run mode reports which executable permissions would be corrected
     without modifying the source tree.
-
 
 # Version 1.8 (Build 1.8.2621804)
 

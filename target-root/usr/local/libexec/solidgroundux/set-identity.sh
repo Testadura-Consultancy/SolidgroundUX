@@ -4,8 +4,8 @@
 # ------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.8
-#   Build       : 2621801
-#   Checksum    : c8135a739beaad2826861f548e89821aa317b2919703f5b172a2862f9e437ac0
+#   Build       : 2622101
+#   Checksum    : d613a4120d9a68a7c24e3b0654c7558bc28f29190887cc0696990b418a792c03
 #   Source      : set-identity.sh
 #   Type        : script
 #   Group       : SolidGround Console
