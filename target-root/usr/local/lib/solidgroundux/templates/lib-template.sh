@@ -2,8 +2,8 @@
 # SolidGroundUX - Library Template
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2615900
+#   Version     : 1.9
+#   Build       : 2622203
 #   Checksum    : 7857e2fe3d49f8984eb2ff9ca484cb147ba47bf2a7cf5a746bab3d03b0618497
 #   Source      : lib-template.sh
 #   Type        : library

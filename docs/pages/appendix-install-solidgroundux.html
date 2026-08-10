@@ -13,6 +13,8 @@
   <div class="doc-breadcrumb">SolidGroundUX / Appendices / Appendix Z: First Installation</div>
 </header>
 <h2 class="ct-L1Sectionheader">Installing SolidGroundUX</h2>
+<p class="ct-documentbody">SolidGroundUX uses a standalone `release-manager.sh` for installation, update, rollback, reinstallation, and removal.</p>
+<p class="ct-documentbody">The release manager does not depend on an existing SolidGroundUX installation. It can therefore be used on a clean machine or to recover an incomplete or damaged installation.</p>
 <h3 class="ct-L2Sectionheader">Download</h3>
 <p class="ct-documentbody">Download the latest SolidGroundUX release bundle from:</p>
 <p class="ct-documentbody">https://github.com/Testadura-Mark/SolidGroundUX/releases</p>
@@ -20,50 +22,124 @@
 <ul>
 <li>`SolidGroundUX-&lt;version&gt;-release.zip`</li>
 </ul>
-<p class="ct-documentbody">Copy the release bundle to the target machine and extract it into the SolidGroundUX releases directory:</p>
-<pre class="doc-license-text"><code>sudo mkdir -p /var/lib/solidgroundux/releases
-
-sudo unzip SolidGroundUX-&lt;version&gt;-release.zip \
-    -d /var/lib/solidgroundux/releases</code></pre>
-<p class="ct-documentbody">After extraction, the releases directory should contain files similar to:</p>
+<p class="ct-documentbody">The ZIP contains:</p>
 <ul>
+<li>`release-manager.sh`</li>
 <li>`SolidGroundUX-&lt;version&gt;.tar.gz`</li>
-<li>`SolidGroundUX-&lt;version&gt;.manifest`</li>
 <li>`SolidGroundUX-&lt;version&gt;.tar.gz.sha256`</li>
+<li>`SolidGroundUX-&lt;version&gt;.manifest`</li>
 <li>`SolidGroundUX-&lt;version&gt;.manifest.sha256`</li>
+<li>`SolidGroundUX-&lt;version&gt;.removed`</li>
+<li>`SolidGroundUX-&lt;version&gt;.removed.sha256`</li>
+<li>`SHA256SUMS`</li>
 </ul>
-<h3 class="ct-L2Sectionheader">Verify (Optional)</h3>
-<p class="ct-documentbody">Verify the downloaded release files:</p>
-<pre class="doc-license-text"><code>cd /var/lib/solidgroundux/releases
-
-sha256sum -c SolidGroundUX-&lt;version&gt;.tar.gz.sha256
-sha256sum -c SolidGroundUX-&lt;version&gt;.manifest.sha256</code></pre>
 <h3 class="ct-L2Sectionheader">First-time Installation</h3>
-<p class="ct-documentbody">For a first-time installation, extract the release archive directly into the root filesystem:</p>
-<pre class="doc-license-text"><code>sudo tar -xzpf \
-    /var/lib/solidgroundux/releases/SolidGroundUX-&lt;version&gt;.tar.gz \
-    -C /</code></pre>
-<p class="ct-documentbody">The release archive contains a prepared filesystem layout and will install the SolidGroundUX commands, libraries, templates, documentation, and deployment tools into their expected locations.</p>
+<p class="ct-documentbody">A first installation can be started from any temporary directory.</p>
+<p class="ct-documentbody">For example:</p>
+<pre class="doc-license-text"><code>cd /tmp
+unzip SolidGroundUX-&lt;version&gt;-release.zip
+chmod +x release-manager.sh
+sudo ./release-manager.sh --install</code></pre>
+<p class="ct-documentbody">The release manager then:</p>
+<ol>
+<li>Creates the required release-management directories.</li>
+<li>Detects the release files beside itself.</li>
+<li>Verifies checksums and release paths.</li>
+<li>Moves the validated release set into `/var/lib/solidgroundux/releases`.</li>
+<li>Installs the release into the target filesystem.</li>
+<li>Moves the installed release set into the versioned archive.</li>
+<li>Copies itself to:</li>
+</ol>
+<pre class="doc-license-text"><code>/var/lib/solidgroundux/release-manager.sh</code></pre>
+<ol>
+<li>Removes only the known temporary bootstrap files after a successful install.</li>
+</ol>
+<p class="ct-documentbody">After the first installation, the temporary copy of the release manager is no longer required.</p>
+<h3 class="ct-L2Sectionheader">Release Storage</h3>
+<p class="ct-documentbody">SolidGroundUX deliberately uses the filesystem itself as release state.</p>
+<h4 class="ct-L3Sectionheader">Available releases</h4>
+<p class="ct-documentbody">Downloaded, prepared, or rolled-back releases are stored below:</p>
+<pre class="doc-license-text"><code>/var/lib/solidgroundux/releases</code></pre>
+<p class="ct-documentbody">These releases are available for installation.</p>
+<h4 class="ct-L3Sectionheader">Installed release history</h4>
+<p class="ct-documentbody">Installed releases are stored below:</p>
+<pre class="doc-license-text"><code>/var/lib/solidgroundux/archive/&lt;release&gt;</code></pre>
+<p class="ct-documentbody">For example:</p>
+<pre class="doc-license-text"><code>/var/lib/solidgroundux/archive/SolidGroundUX-1.8.2622102</code></pre>
+<p class="ct-documentbody">The highest versioned directory in `archive/` represents the currently installed release.</p>
+<p class="ct-documentbody">No separate current-version database is required.</p>
+<h3 class="ct-L2Sectionheader">Interactive Release Manager</h3>
+<p class="ct-documentbody">After installation, start the release manager with:</p>
+<pre class="doc-license-text"><code>sudo /var/lib/solidgroundux/release-manager.sh</code></pre>
+<p class="ct-documentbody">The interactive menu can:</p>
+<ul>
+<li>Check GitHub for the latest release.</li>
+<li>Download the latest release.</li>
+<li>Update to the latest GitHub release.</li>
+<li>Install the newest locally available release.</li>
+<li>Reinstall or roll back to an archived release.</li>
+<li>Remove SolidGroundUX.</li>
+</ul>
+<p class="ct-documentbody">Archived releases are shown in a submenu with the current release marked explicitly.</p>
+<h3 class="ct-L2Sectionheader">Checking for Updates</h3>
+<p class="ct-documentbody">To check GitHub without changing the local machine:</p>
+<pre class="doc-license-text"><code>sudo /var/lib/solidgroundux/release-manager.sh --check</code></pre>
+<p class="ct-documentbody">The release manager compares the latest published GitHub release with releases already present in `archive/` or `releases/`.</p>
+<p class="ct-documentbody">If the latest release is already installed or downloaded, it is not downloaded again.</p>
+<h3 class="ct-L2Sectionheader">Downloading Without Installing</h3>
+<p class="ct-documentbody">To download and validate the latest release without installing it:</p>
+<pre class="doc-license-text"><code>sudo /var/lib/solidgroundux/release-manager.sh --download</code></pre>
+<p class="ct-documentbody">Downloads are first staged in a temporary directory.</p>
+<p class="ct-documentbody">The ZIP is extracted and validated before its release files are admitted into:</p>
+<pre class="doc-license-text"><code>/var/lib/solidgroundux/releases</code></pre>
+<p class="ct-documentbody">This prevents incomplete or malformed downloads from contaminating the local release repository.</p>
 <h3 class="ct-L2Sectionheader">Updating</h3>
-<p class="ct-documentbody">Download the newer SolidGroundUX release bundle and copy it to the target machine.</p>
-<p class="ct-documentbody">Extract the release bundle into the SolidGroundUX releases directory and start the installer:</p>
-<pre class="doc-license-text"><code>sudo mkdir -p /var/lib/solidgroundux/releases
-
-sudo unzip SolidGroundUX-&lt;version&gt;-release.zip \
-    -d /var/lib/solidgroundux/releases
-
-sudo sgnd-install --product SolidGroundUX</code></pre>
-<p class="ct-documentbody">The installer selects the newest available SolidGroundUX release package from /var/lib/solidgroundux/releases, verifies the release files, creates backups, extracts the package, and updates the installation records.</p>
+<p class="ct-documentbody">To check GitHub, download the latest release when required, and install it:</p>
+<pre class="doc-license-text"><code>sudo /var/lib/solidgroundux/release-manager.sh --update</code></pre>
+<p class="ct-documentbody">An update installs the complete new release archive and applies the incoming `.removed` manifest.</p>
+<p class="ct-documentbody">The `.removed` manifest identifies paths that belonged to the previous release but are no longer part of the new release.</p>
+<p class="ct-documentbody">Because each SolidGroundUX release contains a complete framework tree, updates do not depend on incremental binary patching.</p>
+<p class="ct-documentbody">For unattended operation:</p>
+<pre class="doc-license-text"><code>sudo /var/lib/solidgroundux/release-manager.sh --update --auto</code></pre>
+<h3 class="ct-L2Sectionheader">Installing a Local Release</h3>
+<p class="ct-documentbody">To install the newest release already available under `releases/`:</p>
+<pre class="doc-license-text"><code>sudo /var/lib/solidgroundux/release-manager.sh --install</code></pre>
+<p class="ct-documentbody">To install a specific release:</p>
+<pre class="doc-license-text"><code>sudo /var/lib/solidgroundux/release-manager.sh     --install     --release 1.8.2622102</code></pre>
+<h3 class="ct-L2Sectionheader">Rollback and Reinstallation</h3>
+<p class="ct-documentbody">To roll back to the previous archived release:</p>
+<pre class="doc-license-text"><code>sudo /var/lib/solidgroundux/release-manager.sh --rollback</code></pre>
+<p class="ct-documentbody">To install a specific archived release:</p>
+<pre class="doc-license-text"><code>sudo /var/lib/solidgroundux/release-manager.sh     --rollback     --release 1.8.2621804</code></pre>
+<p class="ct-documentbody">Rollback makes the active filesystem match the selected archived release.</p>
+<p class="ct-documentbody">Files that exist only in the newer release are removed, and the selected complete release archive is installed again.</p>
+<p class="ct-documentbody">Newer archived versions are returned to `releases/`, so the highest remaining archive directory continues to represent the active version.</p>
+<h3 class="ct-L2Sectionheader">Removing SolidGroundUX</h3>
+<p class="ct-documentbody">To remove the active SolidGroundUX installation:</p>
+<pre class="doc-license-text"><code>sudo /var/lib/solidgroundux/release-manager.sh --remove</code></pre>
+<p class="ct-documentbody">The release manager removes framework-owned paths using the current release manifest.</p>
+<p class="ct-documentbody">Archived release sets are returned to `releases/` rather than discarded, so they remain available for later reinstallation.</p>
+<h3 class="ct-L2Sectionheader">Dry Run</h3>
+<p class="ct-documentbody">To preview filesystem changes without applying them:</p>
+<pre class="doc-license-text"><code>sudo /var/lib/solidgroundux/release-manager.sh --update --dryrun</code></pre>
+<p class="ct-documentbody">The same option can be used with install, rollback, and removal operations.</p>
+<h3 class="ct-L2Sectionheader">Alternate Release Source</h3>
+<p class="ct-documentbody">The default update source is the latest published GitHub release.</p>
+<p class="ct-documentbody">A specific ZIP file may also be used:</p>
+<pre class="doc-license-text"><code>sudo /var/lib/solidgroundux/release-manager.sh     --update     --source /tmp/SolidGroundUX-release.zip</code></pre>
+<p class="ct-documentbody">Or a direct URL:</p>
+<pre class="doc-license-text"><code>sudo /var/lib/solidgroundux/release-manager.sh     --update     --source https://example.org/releases/SolidGroundUX-release.zip</code></pre>
+<h3 class="ct-L2Sectionheader">Testing With Alternate Roots</h3>
+<p class="ct-documentbody">The release manager supports alternate target and state roots, which is useful for testing installation behavior without modifying the live system:</p>
+<pre class="doc-license-text"><code>sudo ./release-manager.sh     --install     --target-root /mnt/testroot     --state-root /mnt/testroot/var/lib/solidgroundux</code></pre>
+<h3 class="ct-L2Sectionheader">Development Deployment</h3>
+<p class="ct-documentbody">Formal releases are created with `prepare-release.sh` and installed with `release-manager.sh`.</p>
+<p class="ct-documentbody">During development, `deploy-workspace.sh` provides a faster path for deploying selected workspace files directly to a local or remote test machine.</p>
+<p class="ct-documentbody">`deploy-workspace.sh` does not create an installed release record and does not participate in archive-based rollback.</p>
+<p class="ct-documentbody">See the Deployment documentation for details.</p>
 <h3 class="ct-L2Sectionheader">Documentation</h3>
 <p class="ct-documentbody">Framework documentation is available online:</p>
 <p class="ct-documentbody">https://testadura-consultancy.github.io/SolidGroundUX/</p>
-<h3 class="ct-L2Sectionheader">Uninstalling</h3>
-<p class="ct-documentbody">To remove an installed version:</p>
-<pre class="doc-license-text"><code>sgnd-uninstall</code></pre>
-<p class="ct-documentbody">The uninstall process uses installation metadata recorded during installation.</p>
-<h3 class="ct-L2Sectionheader">Version Archives</h3>
-<p class="ct-documentbody">SolidGroundUX maintains versioned release artifacts to support repeatable deployments and version rollback scenarios.</p>
-<p class="ct-documentbody">See the deployment documentation for details.</p>
 </main>
 </body>
 </html>

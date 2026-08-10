@@ -3,8 +3,8 @@
 # SolidGroundUX - Deploy Workspace
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2622101
+#   Version     : 1.9
+#   Build       : 2622203
 #   Checksum    : fea0b3d8b5aba392ed47945acf97e7c0579feb8ee780207bb6387b2175427339
 #   Source      : deploy-workspace-v4.sh
 #   Type        : script

@@ -13,23 +13,27 @@
   <div class="doc-breadcrumb">solidground console_preface.sh::SolidGround Console:Architecture:</div>
 </header>
 <div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">The console is organized as a layered architecture:</p>
-<div class="ct-L2Sectionbody"></div>
-<div class="ct-L2Sectionbody">    User</div>
-<div class="ct-L2Sectionbody">        │</div>
 <div class="ct-L2Sectionbody">    sgnd-console</div>
 <div class="ct-L2Sectionbody">        │</div>
-<div class="ct-L2Sectionbody">    Console Host</div>
+<div class="ct-L2Sectionbody">        ├─ Main menu module set</div>
+<div class="ct-L2Sectionbody">        │    ├─ Computer Management</div>
+<div class="ct-L2Sectionbody">        │    ├─ Active Directory</div>
+<div class="ct-L2Sectionbody">        │    ├─ File Services</div>
+<div class="ct-L2Sectionbody">        │    ├─ SolidGroundUX Setup</div>
+<div class="ct-L2Sectionbody">        │    ├─ Development</div>
+<div class="ct-L2Sectionbody">        │    └─ Console Settings</div>
 <div class="ct-L2Sectionbody">        │</div>
-<div class="ct-L2Sectionbody">    Menu Engine</div>
-<div class="ct-L2Sectionbody">        │</div>
-<div class="ct-L2Sectionbody">    Console Modules</div>
-<div class="ct-L2Sectionbody">        │</div>
-<div class="ct-L2Sectionbody">    Private Executables</div>
-<div class="ct-L2Sectionbody">        │</div>
-<div class="ct-L2Sectionbody">    SolidGroundUX Framework</div>
+<div class="ct-L2Sectionbody">        └─ selected launcher</div>
+<div class="ct-L2Sectionbody">             │</div>
+<div class="ct-L2Sectionbody">             └─ sgnd-console</div>
+<div class="ct-L2Sectionbody">                  │</div>
+<div class="ct-L2Sectionbody">                  └─ submenu module set</div>
+<div class="ct-L2Sectionbody">                       │</div>
+<div class="ct-L2Sectionbody">                       └─ registered groups and actions</div>
+<div class="ct-L2Sectionbody">                            │</div>
+<div class="ct-L2Sectionbody">                            └─ public/private executables</div>
 <div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">Each layer has a clearly defined responsibility and depends only on the layer beneath it.</p>
+<p class="ct-L2Sectionbody">The important boundary is ownership: sgnd-console owns menu mechanics; modules own menu content. A submenu is not a second menu implementation. It is another use of the same console host with a different module source.</p>
 <div class="ct-L2Sectionbody"></div>
 </main>
 </body>

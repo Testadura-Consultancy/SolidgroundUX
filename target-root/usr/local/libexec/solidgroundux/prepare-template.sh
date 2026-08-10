@@ -3,8 +3,8 @@
 # SolidGroundUX - Executable Script Template
 # ------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2621201
+#   Version     : 1.9
+#   Build       : 2622203
 #   Checksum    : 900dd08d724fe39cfa15e1a46356efe2b7d5b2f674d251e5729a920458c91756
 #   Source      : prepare-template.sh
 #   Type        : script

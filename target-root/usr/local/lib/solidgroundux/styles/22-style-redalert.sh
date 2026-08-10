@@ -2,8 +2,8 @@
 # SolidGroundUX - RedAlert UI Style
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2621122
+#   Version     : 1.9
+#   Build       : 2622203
 #   Checksum    : 4db9c3d60be69a683171ae50619a47e5381309e5675592039d58e5771a5a6e7c
 #   Source      : 22-style-redalert.sh
 #   Type        : library

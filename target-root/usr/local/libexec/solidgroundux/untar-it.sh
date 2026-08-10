@@ -3,8 +3,8 @@
 # SolidGroundUX - Untar It
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2621612
+#   Version     : 1.9
+#   Build       : 2622203
 #   Checksum    : 369e5f2b45f26cbdc473d1580cce4f3c5776e62cbfbbc4140dd71802b606d46e
 #   Source      : untar-it.sh
 #   Type        : script

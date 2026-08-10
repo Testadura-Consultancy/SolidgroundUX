@@ -3,9 +3,9 @@
 # SolidGroundUX - Manage Samba Shares
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2621822
-#   Checksum    : 44e2f7e2d58b285cc6c32b3be4ad324cf502e6b1178a3fdf911d14dcee2df0b0
+#   Version     : 1.9
+#   Build       : 2622203
+#   Checksum    : 88e1e4675080100b33c6d2844bd26f0afb6cb04d4bf9432967528924fa19f43d
 #   Source      : manage-samba-shares.sh
 #   Type        : script
 #   Group       : SDK Tools

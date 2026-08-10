@@ -2,8 +2,8 @@
 # SolidGroundUX - Configuration Management
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2621201
+#   Version     : 1.9
+#   Build       : 2622203
 #   Checksum    : d785b7581eccc6442405af10d9f9fde6552c63131c7e20756e42eeb2373d1da5
 #   Source      : sgnd-cfg.sh
 #   Type        : library

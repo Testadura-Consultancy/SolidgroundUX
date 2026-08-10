@@ -2,8 +2,8 @@
 # SolidGroundUX - UI Framework
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2620721
+#   Version     : 1.9
+#   Build       : 2622203
 #   Checksum    : c9b98db00ef0c77850d1c611cf4dc0fb00df11044c7b5a49c8ec365e33b3a627
 #   Source      : ui_preface.sh
 #   Type        : documentation

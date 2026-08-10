@@ -2,8 +2,8 @@
 # SolidGroundUX - Monochrome Blue UI Style
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2621122
+#   Version     : 1.9
+#   Build       : 2622203
 #   Checksum    : 13b37eea2e17c77e36520815431532c7113876e60652bdefd224d4ad0d1fade9
 #   Source      : 32-style-mono-blue.sh
 #   Type        : library

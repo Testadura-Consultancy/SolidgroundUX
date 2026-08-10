@@ -2,9 +2,9 @@
 # SolidGroundUX - UI Ask
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2621814
-#   Checksum    : e4f3249932fb628b9fef6a3911e70fe65d0f6a290b48ee025b0835c2e0eba258
+#   Version     : 1.9
+#   Build       : 2622216
+#   Checksum    : 00251b52e2a444673761b60b22beabcf4d0bc928ea3923bac8bf21a756614248
 #   Source      : ui-ask.sh
 #   Type        : library
 #   Group       : UI
@@ -28,7 +28,7 @@
 #   - ask_datetime
 #   - ask_decision
 #   - ask_dlg_autocontinue
-#   - ask_choose
+#   - ask_choose./
 #   - ask_choose_immediate
 #   - ask_prompt_form
 #

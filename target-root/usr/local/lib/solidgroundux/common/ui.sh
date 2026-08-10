@@ -2,9 +2,9 @@
 # SolidGroundUX - UI Rendering
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2621822
-#   Checksum    : 8a1edc38d0b6959f720c3d861454d4983fe9e265dd08be43ba9ec3fd995328c5
+#   Version     : 1.9
+#   Build       : 2622216
+#   Checksum    : 747a29d53e7eabf741f90e4a59ea8dd905dea3fb7f5e509605c69bac283ba3be
 #   Source      : ui.sh
 #   Type        : library
 #   Group       : UI
@@ -1214,6 +1214,12 @@ set -uo pipefail
 
         local left="${SGND_SCRIPT_TITLE:-$SGND_SCRIPT_BASE}"
         local right="${RUN_MODE:-}"
+
+        if [[ -n "${SGND_SCRIPT_VERSION:-}" && -n "${SGND_SCRIPT_BUILD:-}" ]]; then
+            left+=" (v. ${SGND_SCRIPT_VERSION}.${SGND_SCRIPT_BUILD})"
+        elif [[ -n "${SGND_SCRIPT_VERSION:-}" ]]; then
+            left+=" (v. ${SGND_SCRIPT_VERSION})"
+        fi
         local leftclr="${SGND_TITLE_TEXTCLR:-$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")}"
         local rightclr="${SGND_TITLE_RIGHTCLR:-${SGND_TITLE_TEXTCLR:-$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")}}"
         local sub="${SGND_SCRIPT_DESC:-""}"

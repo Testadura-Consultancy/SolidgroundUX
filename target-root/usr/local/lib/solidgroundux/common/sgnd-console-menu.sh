@@ -2,9 +2,9 @@
 # SolidGroundUX - Console Menu System
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2622101
-#   Checksum    : 8a4a2ef08a62879b061897747c1af13e471b401ef906e95b376692db0b318af9
+#   Version     : 1.9
+#   Build       : 2622203
+#   Checksum    : 1308860bf2d5fc45675d01ebff9eb5663256ff75bd7223c5a6a464b2db38e8ba
 #   Source      : sgnd-console-menu.sh
 #   Group       : SolidGround Console
 #   Type        : library
@@ -144,6 +144,32 @@ set -uo pipefail
             "$word_style" "$suffix" \
             "$RESET"
     }
+    # _sgnd_console_statusword
+        # Returns:
+        #   0 after writing a colored status fragment.
+        #
+        # Usage:
+        #   _sgnd_console_statusword "MODE" "DRY-RUN" "$SGND_UI_DRYRUN"
+    _sgnd_console_statusword() {
+        local label="${1:?missing label}"
+        local value="${2:?missing value}"
+        local color="${3:-$SGND_UI_TEXT}"
+        local hotkey="${4:-}"
+        local label_text=""
+        local prefix=""
+        local suffix=""
+
+        label_text="$(sgnd_sgr "$SGND_UI_LABEL")${label}${RESET}"
+
+        if [[ -n "$hotkey" && "$label" == *"$hotkey"* ]]; then
+            prefix="${label%%"$hotkey"*}"
+            suffix="${label#*"$hotkey"}"
+            label_text="$(sgnd_sgr "$SGND_UI_LABEL")${prefix}$(sgnd_sgr "$SGND_UI_LABEL" "" "$FX_BOLD" "$FX_UNDERLINE")${hotkey}${RESET}$(sgnd_sgr "$SGND_UI_LABEL")${suffix}${RESET}"
+        fi
+
+        printf '%s: %s%s%s' "$label_text" "$(sgnd_sgr "$color" "" "$FX_BOLD")" "$value" "$RESET"
+    }
+
     # fn: _sgnd_console_onoff - Render on/off state
         # . Purpose
         #   Render a colored On/Off fragment for a boolean state.
@@ -1550,8 +1576,6 @@ set -uo pipefail
                 group_label="${SGND_GROUP_CACHE_LABEL[$gi]}"
             fi
 
-            [[ -n "$group_label" ]] || continue
-
             for row_index in "${_page_rows[@]}"; do
                 item_group="${SGND_ITEM_CACHE_GROUP[$row_index]}"
                 [[ "$item_group" == "$group_key" ]] || continue
@@ -1570,9 +1594,11 @@ set -uo pipefail
                 fi
             fi
 
-            sgnd_print --text "$group_label_display"
-            left_width="$(sgnd_visible_length "$group_label_display")"
-            sgnd_print_sectionheader --border "$LN_H" --maxwidth "$left_width"
+            if [[ -n "${group_label_display//[[:space:]]/}" ]]; then
+                sgnd_print --text "$group_label_display"
+                left_width="$(sgnd_visible_length "$group_label_display")"
+                sgnd_print_sectionheader --border "$LN_H" --maxwidth "$left_width"
+            fi
 
             for row_index in "${_page_rows[@]}"; do
                 item_group="${SGND_ITEM_CACHE_GROUP[$row_index]}"
@@ -1716,9 +1742,11 @@ set -uo pipefail
         desc_width=$(( term_width - _tpad - left_width_max - gap ))
         (( desc_width < 20 )) && desc_width=20
 
-        sgnd_print --text "$group_label"
-        left_width="$(sgnd_visible_length "$group_label")"
-        sgnd_print_sectionheader --border "$LN_H" --maxwidth "$left_width"
+        if [[ -n "${group_label//[[:space:]]/}" ]]; then
+            sgnd_print --text "$group_label"
+            left_width="$(sgnd_visible_length "$group_label")"
+            sgnd_print_sectionheader --border "$LN_H" --maxwidth "$left_width"
+        fi
 
         row_count="${#SGND_ITEM_ROWS[@]}"
 
@@ -1807,81 +1835,88 @@ set -uo pipefail
         local render_width=80
         local pad=3
         local gap=3
-        local dryrun_text=""
-        local console_text=""
-        local file_text=""
-        local theme_text=""
-        local access_text=""
-        local clearscr_text=""
-        local prevtext=""
-        local nexttext=""
+        local access_value="STANDARD"
+        local access_color="$GREEN"
+        local mode_value="DRY-RUN"
+        local mode_color="${SGND_UI_DRYRUN}"
+        local console_value="${SGND_CONSOLE_LOG_LEVEL^^}"
+        local file_value="${SGND_FILE_LOG_LEVEL^^}"
+        local theme_value=""
+        local role_value="ON"
+        local role_color="$SGND_UI_TEXT"
+        local status_text=""
         local page_text=""
-        local bar_text=""
         local visible_len=0
         local left_pad=0
-        local prev_enabled=0
-        local next_enabled=0
         local page_count="${#SGND_PAGE_STARTS[@]}"
-        local seg=""
-        local -a segments=()
+        local prev_text="<<"
+        local next_text=">>"
+        local prev_color="$DARK_GRAY"
+        local next_color="$DARK_GRAY"
+        local -a status_segments=()
+        local segment=""
 
         render_width="$(sgnd_terminal_width)"
-        dryrun_text="$(_sgnd_console_toggleword "DRYRUN" "D" "${FLAG_DRYRUN:-0}" "${SGND_UI_DRYRUN}" "${SGND_UI_COMMIT}")"
-        console_text="$(_sgnd_console_toggleword \
-            "CONSOLE(${SGND_CONSOLE_LOG_LEVEL^^})" \
-            "C" \
-            "$([[ "${SGND_CONSOLE_LOG_LEVEL:-silent}" != "silent" ]] && printf 1 || printf 0)" \
-            "$GREEN" \
-            "$DARK_GRAY")"
-        file_text="$(_sgnd_console_toggleword \
-            "FILE(${SGND_FILE_LOG_LEVEL^^})" \
-            "F" \
-            "$([[ "${SGND_FILE_LOG_LEVEL:-silent}" != "silent" ]] && printf 1 || printf 0)" \
-            "$GREEN" \
-            "$DARK_GRAY")"
-        theme_text="$(_sgnd_console_toggleword \
-            "THEME($(_sgnd_console_theme_name | tr '[:lower:]' '[:upper:]'))" \
-            "T" \
-            0 \
-            "$SGND_UI_TEXT" \
-            "$SGND_UI_TEXT")"
+        (( page_count > 0 )) || page_count=1
+
+        if ! _sgnd_flag_is_on "${FLAG_DRYRUN:-0}"; then
+            mode_value="COMMIT"
+            mode_color="${SGND_UI_COMMIT}"
+        fi
+
         if (( EUID == 0 )); then
+            access_value="ROOT"
             if _sgnd_flag_is_on "${FLAG_DRYRUN:-0}"; then
-                access_text="$(_sgnd_console_toggleword "ACCESS(ROOT)" "A" 1 "$SGND_UI_COMMIT" "$SGND_UI_COMMIT")"
+                access_color="${SGND_UI_COMMIT}"
             else
-                access_text="$(_sgnd_console_toggleword "ACCESS(ROOT)" "A" 1 "$RED" "$RED")"
+                access_color="$RED"
             fi
-        else
-            if _sgnd_flag_is_on "${FLAG_DRYRUN:-0}"; then
-                access_text="$(_sgnd_console_toggleword "ACCESS(STANDARD)" "A" 1 "$GREEN" "$GREEN")"
-            else
-                access_text="$(_sgnd_console_toggleword "ACCESS(STANDARD)" "A" 1 "$SGND_UI_COMMIT" "$SGND_UI_COMMIT")"
-            fi
+        elif ! _sgnd_flag_is_on "${FLAG_DRYRUN:-0}"; then
+            access_color="${SGND_UI_COMMIT}"
         fi
 
-        (( SGND_PAGE_INDEX > 0 )) && prev_enabled=1
-        (( SGND_PAGE_INDEX + 1 < page_count )) && next_enabled=1
-        prevtext="$(_sgnd_console_toggleword "<<PREV" "<" "$prev_enabled")"
-        nexttext="$(_sgnd_console_toggleword "NEXT>>" ">" "$next_enabled")"
-
-        segments+=("$access_text" "$dryrun_text" "$console_text" "$file_text" "$theme_text")
-        if (( page_count > 1 )); then
-            page_text="$(sgnd_sgr "$SILVER" "" "$FX_ITALIC")Page $((SGND_PAGE_INDEX + 1))/$page_count${RESET}"
-            segments=("$prevtext" "${segments[@]}" "$page_text" "$nexttext")
+        if ! _sgnd_flag_is_on "${SGND_CONSOLE_ROLE_AWARE:-1}"; then
+            role_value="OFF"
+            role_color="$DARK_GRAY"
         fi
 
-        for seg in "${segments[@]}"; do
-            [[ -z "$bar_text" ]] || bar_text+="$(sgnd_string_repeat ' ' "$gap")"
-            bar_text+="$seg"
+        theme_value="$(_sgnd_console_theme_name | tr '[:lower:]' '[:upper:]')"
+        status_segments+=(
+            "$(_sgnd_console_statusword "MODE" "$mode_value" "$mode_color" "M")"
+            "$(_sgnd_console_statusword "ACCESS" "$access_value" "$access_color" "A")"
+            "$(_sgnd_console_statusword "CONSOLE" "$console_value" "$([[ "$console_value" != "SILENT" ]] && printf '%s' "$GREEN" || printf '%s' "$DARK_GRAY")" "C")"
+            "$(_sgnd_console_statusword "FILE" "$file_value" "$([[ "$file_value" != "SILENT" ]] && printf '%s' "$GREEN" || printf '%s' "$DARK_GRAY")" "F")"
+            "$(_sgnd_console_statusword "THEME" "$theme_value" "$SGND_UI_TEXT" "T")"
+            "$(_sgnd_console_statusword "ROLE" "$role_value" "$role_color" "R")"
+        )
+
+        for segment in "${status_segments[@]}"; do
+            [[ -z "$status_text" ]] || status_text+="$(sgnd_string_repeat ' ' "$gap")"
+            status_text+="$segment"
         done
 
-        visible_len="$(sgnd_visible_length "$bar_text")"
+        visible_len="$(sgnd_visible_length "$status_text")"
         left_pad=$(( (render_width - visible_len) / 2 ))
         (( left_pad < pad )) && left_pad="$pad"
 
         sgnd_print_sectionheader --border "$DL_H" --maxwidth "$render_width"
-        printf '%*s%s\n' "$left_pad" "" "$bar_text"
+        printf '%*s%s\n' "$left_pad" "" "$status_text"
+
+        (( SGND_PAGE_INDEX > 0 )) && prev_color="$SGND_UI_TEXT"
+        (( SGND_PAGE_INDEX + 1 < page_count )) && next_color="$SGND_UI_TEXT"
+
+        page_text="$(sgnd_sgr "$prev_color" "" "$FX_BOLD")${prev_text}${RESET}"
+        page_text+="$(sgnd_string_repeat ' ' 5)"
+        page_text+="$(sgnd_sgr "$SILVER" "" "$FX_ITALIC")Page $((SGND_PAGE_INDEX + 1))/$page_count${RESET}"
+        page_text+="$(sgnd_string_repeat ' ' 5)"
+        page_text+="$(sgnd_sgr "$next_color" "" "$FX_BOLD")${next_text}${RESET}"
+
+        visible_len="$(sgnd_visible_length "$page_text")"
+        left_pad=$(( (render_width - visible_len) / 2 ))
+        (( left_pad < pad )) && left_pad="$pad"
+        printf '%*s%s\n' "$left_pad" "" "$page_text"
     }
+
 # --- Menu input and dispatch --------------------------------------------------------
     # fn: _sgnd_console_valid_choices_csv - Console valid choices csv
         # . Purpose
@@ -1921,6 +1956,13 @@ set -uo pipefail
             (( builtin )) || continue
 
             key="${SGND_ITEM_CACHE_KEY[$i]}"
+            [[ -n "$out" ]] && out+=","
+            out+="$key"
+        done
+
+        # Framework-owned direct controls remain available without occupying
+        # menu rows. Case is significant for forward/reverse cycling.
+        for key in M A c C f F t T R; do
             [[ -n "$out" ]] && out+=","
             out+="$key"
         done
@@ -1973,6 +2015,14 @@ set -uo pipefail
                 _sgnd_console_nextpage
                 return $?
                 ;;
+            M|m)
+                _sgnd_console_toggle_dryrun
+                return $?
+                ;;
+            A|a)
+                _sgnd_console_toggle_access
+                return $?
+                ;;
             c)
                 _sgnd_console_cycle_console_loglevel 1
                 return $?
@@ -1995,6 +2045,10 @@ set -uo pipefail
                 ;;
             T)
                 _sgnd_console_cycle_theme -1
+                return $?
+                ;;
+            R|r)
+                _sgnd_console_toggle_role_awareness
                 return $?
                 ;;
         esac

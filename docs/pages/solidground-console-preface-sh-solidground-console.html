@@ -18,13 +18,9 @@
 <figcaption>Figure 1 – SolidGroundUX Management Studio.</figcaption>
 </figure>
 </div>
-<p class="ct-L1Sectionbody">The SolidGround Console is the reusable application host that powers the SolidGroundUX Management Studio. The host provides menu management, rendering, paging, runtime controls, state management, and action dispatch, while the application itself is implemented entirely through loadable modules.</p>
+<p class="ct-L1Sectionbody">The SolidGround Console is the reusable application host that powers the SolidGroundUX Management Studio. The host provides menu registration, rendering, paging, runtime state, action dispatch, and module loading. Applications are composed from source-only console modules rather than hard-coded into the host.</p>
 <div class="ct-L1Sectionbody"></div>
-<p class="ct-L1Sectionbody">This separation allows the same console engine to host different applications. The standard SolidGroundUX module set simply supplies one such application:</p>
-<div class="ct-L1Sectionbody"></div>
-<div class="ct-L1Sectionbody">    SolidGroundUX Management Studio</div>
-<div class="ct-L1Sectionbody"></div>
-<p class="ct-L1Sectionbody">The result is a reusable console framework whose behaviour is defined by the modules it loads rather than by the host itself.</p>
+<p class="ct-L1Sectionbody">The Management Studio uses the same console recursively: the main console loads a small set of launcher modules, and each launcher opens another sgnd-console instance with the module set that defines its submenu. The same menu engine, themes, state indicators, paging, and dispatch logic are therefore reused at every level.</p>
 <div class="ct-L1Sectionbody"></div>
 </main>
 </body>

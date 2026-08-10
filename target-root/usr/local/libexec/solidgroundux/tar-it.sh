@@ -3,8 +3,8 @@
 # SolidGroundUX - Tar It
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2621612
+#   Version     : 1.9
+#   Build       : 2622203
 #   Checksum    : 890296dee369e80da643c7a36db493460acae3f1fdcd08bb1753faa4c02ab8a2
 #   Source      : tar-it.sh
 #   Type        : script

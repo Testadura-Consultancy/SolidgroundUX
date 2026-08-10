@@ -3,8 +3,8 @@
 # SolidGroundUX - Executable Script Template
 # ------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2622101
+#   Version     : 1.9
+#   Build       : 2622203
 #   Checksum    : d613a4120d9a68a7c24e3b0654c7558bc28f29190887cc0696990b418a792c03
 #   Source      : set-identity.sh
 #   Type        : script

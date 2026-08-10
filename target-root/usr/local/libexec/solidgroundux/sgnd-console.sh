@@ -3,9 +3,9 @@
 # SolidGroundUX - SolidGround Management Console
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2622101
-#   Checksum    : 4d1384efa917d479f7c8ab9b05fefe7ec61c105d19739f7579ab2c19a3e02e81
+#   Version     : 1.9
+#   Build       : 2622203
+#   Checksum    : d336a40b311000303549d03d85c08df5d02bcb12d24114166f089ba3cef39bc5
 #   Source      : sgnd-console.sh
 #   Type        : script
 #   Group       : SolidGround Console
@@ -227,7 +227,9 @@ set -uo pipefail
         #   - After parsing you can use: FLAG_VERBOSE, VAL_CONFIG, ENUM_MODE, ...
     SGND_ARGS_SPEC=(
         "appcfg||value|VAL_APPCFG|Console module file or module directory|"
-        "maxrows||value|VAL_MAXROWS|Maximum menu rows per page||"
+        "maxrows||value|VAL_MAXROWS|Maximum menu rows per page|"
+        "title||value|VAL_TITLE|Override console title|"
+        "submenu||flag|FLAG_SUBMENU|Run as a submenu console|0|"
     )
 
     # SGND_SCRIPT_EXAMPLES
@@ -450,6 +452,10 @@ set -uo pipefail
         : "${SGND_CONSOLE_DESC:=${SGND_SCRIPT_DESC}}"
         : "${SGND_PAGE_MAX_ROWS:=15}"
 
+        if [[ -n "${VAL_TITLE:-}" ]]; then
+            SGND_CONSOLE_TITLE="$VAL_TITLE"
+        fi
+
         if [[ -z "$module_path" ]]; then
             module_path="$SGND_CONSOLE_DEFAULT_MODULE_DIRECTORY"
         fi
@@ -519,26 +525,47 @@ set -uo pipefail
         # . Usage
         #   _sgnd_console_register_builtin_items
     _sgnd_console_register_builtin_items() {
-        SGND_GROUP_RUNTIME="runtime"
-        SGND_GROUP_SESSION="session"
+        SGND_GROUP_NAVIGATION="navigation"
 
-        sgnd_console_register_group "$SGND_GROUP_RUNTIME" "Runtime toggles" "" 1 0 980
-        sgnd_console_register_group "$SGND_GROUP_SESSION" "Console Session" "" 1 1 990
+        # Navigation is framework-owned but intentionally hidden from the menu body.
+        # Left/right arrow keys page; Q returns from submenus or exits the root console.
+        sgnd_console_register_group "$SGND_GROUP_NAVIGATION" "Navigation" "" 1 0 990
+        sgnd_console_register_item "<" "$SGND_GROUP_NAVIGATION" "Previous page" "_sgnd_console_prevpage" "Show previous menu page" 1 0 0
+        sgnd_console_register_item ">" "$SGND_GROUP_NAVIGATION" "Next page" "_sgnd_console_nextpage" "Show next menu page" 1 0 0
+        sgnd_console_register_item "Q" "$SGND_GROUP_NAVIGATION" "Return" "_sgnd_console_quit" "Return from the current console" 1 0 0
+    }
 
-        sgnd_console_register_item "A" "$SGND_GROUP_RUNTIME" "Access" "_sgnd_console_toggle_access" "Relaunch with root or standard access" 1 0 0
-        sgnd_console_register_item "D" "$SGND_GROUP_RUNTIME" "Dry-run / Commit" "_sgnd_console_toggle_dryrun" "Toggle dry-run mode" 1 0 0
-        sgnd_console_register_item "c" "$SGND_GROUP_RUNTIME" "Console log level" "_sgnd_console_cycle_console_loglevel" "Cycle console log level" 1 0 0
-        sgnd_console_register_item "f" "$SGND_GROUP_RUNTIME" "File log level" "_sgnd_console_cycle_file_loglevel" "Cycle file log level" 1 0 0
-        sgnd_console_register_item "t" "$SGND_GROUP_RUNTIME" "Theme" "_sgnd_console_cycle_theme" "Cycle installed themes" 1 0 0
+    # sgnd_console_open_submenu
+        # Purpose:
+        #   Launch a nested SolidGroundUX console using one submenu module definition.
+        #
+        # Arguments:
+        #   $1  PROFILE_FILE - Filename beneath console-submenus.
+        #   $2  TITLE        - Console title shown by the nested menu.
+        #
+        # Returns:
+        #   Exit status of the nested console process.
+        #
+        # Usage:
+        #   sgnd_console_open_submenu "20-active-directory.sh" "Active Directory"
+    sgnd_console_open_submenu() {
+        local profile_file="${1:?missing submenu profile}"
+        local title="${2:?missing submenu title}"
+        local submenu_directory="${SGND_CONSOLE_DEFAULT_MODULE_DIRECTORY%/}/../console-submenus"
+        local profile_path="${submenu_directory%/}/$profile_file"
+        local -a command_args=()
 
-        sgnd_console_register_item "S" "$SGND_GROUP_SESSION" "Open shell" "_sgnd_console_open_shell" "Open an interactive shell; exit returns to the console" 1 0 1
-        sgnd_console_register_item "M" "$SGND_GROUP_SESSION" "Manage modules" "_sgnd_console_manage_modules" "Enable or disable console modules" 1 0 1
-        sgnd_console_register_item "L" "$SGND_GROUP_SESSION" "Set lines per page" "_sgnd_console_set_lines_per_page" "Set the maximum number of menu lines per page" 1 0 1
-        sgnd_console_register_item "V" "$SGND_GROUP_SESSION" "Set role awareness" "_sgnd_console_set_role_awareness" "Enable or disable role-aware console visibility" 1 0 1
-        sgnd_console_register_item "<" "$SGND_GROUP_SESSION" "Previous page" "_sgnd_console_prevpage" "Show previous menu page" 1 0 0
-        sgnd_console_register_item ">" "$SGND_GROUP_SESSION" "Next page" "_sgnd_console_nextpage" "Show next menu page" 1 0 0
-        sgnd_console_register_item "R" "$SGND_GROUP_SESSION" "Redraw menu" "_sgnd_console_redraw" "Refresh console display" 1 0 1
-        sgnd_console_register_item "Q" "$SGND_GROUP_SESSION" "Quit" "_sgnd_console_quit" "Exit console" 1 0 1
+        [[ -r "$profile_path" ]] || {
+            sayfail "Console submenu not found: $profile_path"
+            return 126
+        }
+
+        _sgnd_build_command_args command_args \
+            --appcfg "$profile_path" \
+            --title "$title" \
+            --submenu
+
+        "$SGND_SCRIPT_FILE" "${command_args[@]}"
     }
 
     # fn: _sgnd_console_register_fallback_group - Register fallback console group
@@ -661,7 +688,9 @@ set -uo pipefail
         # . Usage
         #   _sgnd_console_module_enabled "active-directory"
     _sgnd_console_module_enabled() {
-        [[ "$(_sgnd_console_module_state_get "${1:?missing module ID}")" == "enabled" ]]
+        local module_id="${1:?missing module ID}"
+        [[ "$module_id" == "console-settings" ]] && return 0
+        [[ "$(_sgnd_console_module_state_get "$module_id")" == "enabled" ]]
     }
 
     # fn$: _sgnd_console_module_state_set - Persist module visibility state
@@ -734,6 +763,7 @@ set -uo pipefail
         # . Usage
         #   _sgnd_console_manage_modules
     _sgnd_console_manage_modules() {
+        local module_path="${1:-$SGND_CONSOLE_MODULE_PATH}"
         local choice=""
         local module=""
         local module_id=""
@@ -744,7 +774,10 @@ set -uo pipefail
         local -a module_files=()
         local -a module_ids=()
 
-        mapfile -t module_files < <(_sgnd_console_discover_module_files) || return $?
+        local saved_module_path="$SGND_CONSOLE_MODULE_PATH"
+        SGND_CONSOLE_MODULE_PATH="$module_path"
+        mapfile -t module_files < <(_sgnd_console_discover_module_files) || { SGND_CONSOLE_MODULE_PATH="$saved_module_path"; return $?; }
+        SGND_CONSOLE_MODULE_PATH="$saved_module_path"
         (( ${#module_files[@]} > 0 )) || {
             saywarning "No console modules were found."
             return 0
@@ -788,6 +821,10 @@ set -uo pipefail
             (( choice >= 1 && choice <= ${#module_ids[@]} )) || continue
 
             module_id="${module_ids[$((choice - 1))]}"
+            if [[ "$module_id" == "console-settings" ]]; then
+                sayinfo "Console Settings is always enabled."
+                continue
+            fi
             state="$(_sgnd_console_module_state_get "$module_id")"
             if [[ "$state" == "enabled" ]]; then
                 next_state="disabled"
@@ -1161,6 +1198,27 @@ set -uo pipefail
         return 0
     }
 
+    # _sgnd_console_toggle_role_awareness
+        # Returns:
+        #   0 after toggling role-aware console visibility for the current session.
+        #
+        # Usage:
+        #   _sgnd_console_toggle_role_awareness
+    _sgnd_console_toggle_role_awareness() {
+        : "${SGND_CONSOLE_ROLE_AWARE:=1}"
+
+        if _sgnd_flag_is_on "$SGND_CONSOLE_ROLE_AWARE"; then
+            SGND_CONSOLE_ROLE_AWARE=0
+            saywarning "Role-aware console visibility disabled."
+        else
+            SGND_CONSOLE_ROLE_AWARE=1
+            sayok "Role-aware console visibility enabled."
+        fi
+
+        SGND_LAST_WAITSECS=0
+        return 0
+    }
+
     # fn: _sgnd_console_open_shell - Open an interactive child shell
         # . Purpose
         #   Open a new interactive shell and return to the Management Console on exit.
@@ -1288,7 +1346,7 @@ set -uo pipefail
             ask_choose_immediate \
                 --label "Select option" \
                 --choices "$valid_choices" \
-                --instantchoices "A,C,D,F,T,S,M,L,V,R,Q,<,>" \
+                --instantchoices "Q,<,>,M,A,c,C,f,F,t,T,R" \
                 --displaychoices 0 \
                 --keepasking 1 \
                 --preservecase 1 \
@@ -1445,7 +1503,7 @@ set -uo pipefail
         #   sgnd_console_register_group
     sgnd_console_register_group() {
         local key="${1:?missing group key}"
-        local label="${2:?missing group label}"
+        local label="${2-}"
         local desc="${3:-}"
         local builtin="${4:-0}"
         local visible="${5:-1}"

@@ -15,13 +15,6 @@
 <h2 class="ct-L1Sectionheader">Changelog</h2>
 <p class="ct-documentbody">All notable changes to SolidGroundUX are documented in this file.</p>
 <p class="ct-documentbody">The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.</p>
-<h2 class="ct-L1Sectionheader">Issues</h2>
-<ul>
-<li>Various script&#x27;s screen layout</li>
-<li>Setup SolidGround sudo access has two ask_continues</li>
-<li>Display IPv4 address in console header</li>
-<li>Last run status indicator in sgnd_console</li>
-</ul>
 <h2 class="ct-L1Sectionheader">Unreleased</h2>
 <h3 class="ct-L2Sectionheader">SolidGround Framework</h3>
 <h4 class="ct-L3Sectionheader">Added</h4>
@@ -114,6 +107,8 @@
 <p class="ct-documentbody">a single network identity concern.</p>
 <li>Active Directory provisioning and domain join now use the generic</li>
 <p class="ct-documentbody">DNS-setting path instead of maintaining separate Netplan search-domain logic.</p>
+<li>Management console now has a state variable SGND_CONSOLE_ROLE_AWARE</li>
+<p class="ct-documentbody">indicating if only role appropriate menus are displayed</p>
 </ul>
 <h3 class="ct-L2Sectionheader">Active Directory</h3>
 <h4 class="ct-L3Sectionheader">Added</h4>
@@ -270,18 +265,123 @@
 <li>The Samba module now delegates detailed share-management workflows</li>
 <p class="ct-documentbody">while retaining installation, creation, removal, validation, and status actions.</p>
 </ul>
-<h3 class="ct-L2Sectionheader">Development Tools</h3>
+<h3 class="ct-L2Sectionheader">Installation and Release Management</h3>
+<h4 class="ct-L3Sectionheader">Added</h4>
+<ul>
+<li>Added the standalone `release-manager.sh` as the canonical</li>
+<p class="ct-documentbody">SolidGroundUX installation and release-lifecycle tool, replacing the separate install, update, and uninstall workflow.</p>
+<li>Added filesystem-based release state:</li>
+<li>`/var/lib/solidgroundux/releases` contains releases available</li>
+<p class="ct-documentbody">for installation.</p>
+<li>`/var/lib/solidgroundux/archive/&lt;release&gt;` contains installed</li>
+<p class="ct-documentbody">release history.</p>
+<li>The highest archived version represents the currently installed</li>
+<p class="ct-documentbody">release.</p>
+<li>Added interactive archived-release selection for reinstallation and</li>
+<p class="ct-documentbody">rollback, with the current release identified and **Remove SolidGroundUX** available as the final action.</p>
+<li>Added GitHub latest-release discovery and download support.</li>
+<li>Added release acquisition through temporary staging, extraction,</li>
+<p class="ct-documentbody">checksum validation, release-identity validation, and path-safety validation before a release is admitted into `releases/`.</p>
+<li>Added bootstrap installation from a GitHub release ZIP containing</li>
+<p class="ct-documentbody">`release-manager.sh` and the complete prepared release set.</p>
+<li>Added automatic creation of the SolidGroundUX release-management</li>
+<p class="ct-documentbody">directories during first installation.</p>
+<li>Added automatic installation of a valid release set found beside the</li>
+<p class="ct-documentbody">bootstrap copy of `release-manager.sh`.</p>
+<li>Added automatic installation of the release manager itself at</li>
+<p class="ct-documentbody">`/var/lib/solidgroundux/release-manager.sh`.</p>
+<li>Added safe cleanup of known bootstrap files after a successful</li>
+<p class="ct-documentbody">installation from a temporary directory.</p>
+<li>Added command-line operations for checking, downloading, installing,</li>
+<p class="ct-documentbody">updating, rolling back, reinstalling, and removing releases, including unattended and dry-run operation.</p>
+</ul>
 <h4 class="ct-L3Sectionheader">Changed</h4>
+<ul>
+<li>First-time installation no longer requires manually creating the</li>
+<p class="ct-documentbody">releases directory, copying release files into it, or extracting the framework archive directly into `/`.</p>
+<li>Release bundles now act as self-contained bootstrap packages: they</li>
+<p class="ct-documentbody">can be downloaded and extracted into a temporary directory and installed by running the bundled `release-manager.sh`.</p>
+<li>Updates now install complete release archives and process the</li>
+<p class="ct-documentbody">incoming `.removed` manifest for files that no longer belong to the new release.</p>
+<li>Rollback now reinstalls a complete archived release and returns</li>
+<p class="ct-documentbody">newer archived releases to `releases/`, preserving the filesystem-based current-version rule.</p>
+<li>Removal now uses release manifests to remove framework-owned files</li>
+<p class="ct-documentbody">while retaining release artifacts for later reinstallation.</p>
+<li>Release-manager UI is self-contained and framework-independent while</li>
+<p class="ct-documentbody">following the SolidGroundUX default visual conventions for titles, separators, labels, values, prompts, and status colors.</p>
+<li>Updated deployment and installation documentation to describe the</li>
+<p class="ct-documentbody">new `prepare-release.sh` → release artifacts → `release-manager.sh` workflow and distinguish it from direct development deployment through `deploy-workspace.sh`.</p>
+</ul>
+<h4 class="ct-L3Sectionheader">Removed</h4>
+<ul>
+<li>The separate installer/updater/uninstaller architecture is</li>
+<p class="ct-documentbody">superseded by `release-manager.sh`.</p>
+<li>Removed the requirement for installation metadata or a separate</li>
+<p class="ct-documentbody">current-version marker; release and archive directories now provide the required state.</p>
+</ul>
+<h3 class="ct-L2Sectionheader">Development Tools</h3>
+<h4 class="ct-L3Sectionheader">Added</h4>
+<ul>
+<li>`prepare-release.sh` now verifies that executable scripts directly</li>
+<p class="ct-documentbody">beneath `usr/local/libexec/solidgroundux` have corresponding public command wrappers in `usr/local/bin`.</p>
+<li>Added optional automatic creation of missing public command wrappers</li>
+<p class="ct-documentbody">during release preparation.</p>
+<li>`create-workspace.sh` now copies the canonical SolidGroundUX</li>
+<p class="ct-documentbody">template set into the workspace under `target-root/usr/local/lib/solidgroundux/templates` and instantiates selected starter files from those workspace-local templates.</p>
+</ul>
+<h4 class="ct-L3Sectionheader">Changed</h4>
+<ul>
+<li>Consolidated release metadata maintenance into `prepare-release.sh`,</li>
+<p class="ct-documentbody">superseding the separate metadata-editor workflow.</p>
+</ul>
+<ul>
+<li>Version and Build metadata policies in `prepare-release.sh` now</li>
+<p class="ct-documentbody">support `A` (all files), `C` (changed files only), and `N` (no update) independently.</p>
+</ul>
+<ul>
+<li>Changed-file detection for release metadata uses the canonical</li>
+<p class="ct-documentbody">header checksum mechanism, allowing source changes to be distinguished from Version, Build, and Checksum metadata changes.</p>
+</ul>
+<ul>
+<li>Checksums are refreshed automatically for changed files and whenever</li>
+<p class="ct-documentbody">release metadata changes a file.</p>
+</ul>
+<ul>
+<li>Version and Build policy prompts now use constrained SolidGroundUX</li>
+<p class="ct-documentbody">decision input with `C` as the default.</p>
+</ul>
+<ul>
+<li>Corrected the `prepare-release.sh` argument specifications so `C` is</li>
+<p class="ct-documentbody">stored as the default for Version and Build policies and `A,C,N` remains the choice list.</p>
+</ul>
+<ul>
+<li>Workspace creation now follows the repository-shaped `target-root`</li>
+<p class="ct-documentbody">layout more explicitly and uses its local template copy as the source for newly selected executable, library, and module starter files.</p>
+</ul>
+<ul>
+<li>`sgnd_doc_renderer.py` now renders \$ marked entries only for</li>
+<p class="ct-documentbody">template packages, : is rendered always</p>
+</ul>
 <ul>
 <li>`deploy-workspace.sh` now ends with a redo/continue prompt: Continue</li>
 <p class="ct-documentbody">exits cleanly, while `R` restarts the deployment from the beginning with the original arguments.</p>
+</ul>
+<ul>
 <li>`deploy-workspace.sh` now uses `ask_datetime` for the **Changed</li>
 <p class="ct-documentbody">after** prompt.</p>
+</ul>
+<ul>
 <li>The deployment filter now accepts SolidGroundUX relative date/time</li>
 <p class="ct-documentbody">expressions, such as `N`, `D`, `-2h`, and `-1d`, in addition to absolute dates and timestamps.</p>
+</ul>
+<ul>
 <li>`deploy-workspace.sh` now displays a deployment summary after a</li>
 <p class="ct-documentbody">successful transfer.</p>
+</ul>
+<ul>
 <li>The deployment summary reports:</li>
+</ul>
+<ul>
 <li>Result.</li>
 <li>Transport.</li>
 <li>Source root.</li>
@@ -289,31 +389,18 @@
 <li>Receiver.</li>
 <li>Start and finish timestamps.</li>
 <li>Every transferred file.</li>
+</ul>
+<ul>
 <li>The deployment summary now uses `sgnd_print_labeledmultivalue`,</li>
 <p class="ct-documentbody">displaying transferred files on separate aligned lines instead of as a truncated comma-separated string.</p>
+</ul>
+<ul>
 <li>`prepare-release.sh` now ensures that every regular file directly</li>
 <p class="ct-documentbody">beneath `usr/local/libexec/solidgroundux` has its executable bit set before staging and archive creation.</p>
+</ul>
+<ul>
 <li>Dry-run mode reports which executable permissions would be corrected</li>
 <p class="ct-documentbody">without modifying the source tree.</p>
-</ul>
-<h3 class="ct-L2Sectionheader">Framework Tests</h3>
-<h4 class="ct-L3Sectionheader">Added</h4>
-<ul>
-<li>Added an `ask_datetime` smoke test using a redo/continue loop.</li>
-<li>The test allows:</li>
-<li>Enter to continue to the next smoke test.</li>
-<li>`R` to repeat the datetime prompt.</li>
-<li>Timeout to repeat the datetime prompt.</li>
-<li>Pause and resume through the standard auto-continue dialog.</li>
-</ul>
-<h3 class="ct-L2Sectionheader">Open Issues / Next</h3>
-<ul>
-<li>Review screen layout consistency across scripts.</li>
-<li>Remove the duplicate `ask_continue` in **Setup SolidGround sudo</li>
-<p class="ct-documentbody">access**.</p>
-<li>Display IPv4 address in the console header.</li>
-<li>Add a persistent last-run status indicator to `sgnd_console` menu</li>
-<p class="ct-documentbody">items.</p>
 </ul>
 <h2 class="ct-L1Sectionheader">Version 1.8 (Build 1.8.2621804)</h2>
 <h3 class="ct-L2Sectionheader">Changed</h3>

@@ -2,8 +2,8 @@
 # SolidGroundUX - Monochrome Amber UI Style
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2621122
+#   Version     : 1.9
+#   Build       : 2622203
 #   Checksum    : 072ddb9b975b3105e4489cf383667b9c74705ab7dffb5c6df0ff969c3bac6906
 #   Source      : 31-style-mono-amber.sh
 #   Type        : library

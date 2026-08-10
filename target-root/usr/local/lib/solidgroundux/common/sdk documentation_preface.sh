@@ -2,8 +2,8 @@
 # SolidGroundUX - Documentation Generator Overview
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2618308
+#   Version     : 1.9
+#   Build       : 2622203
 #   Checksum    : ce0737b77c9a7222ec15cc735e21f9b7af9d7b1c1855e47b29310136bedeb581
 #   Source      : sdk documentation_preface.sh
 #   Type        : documentation

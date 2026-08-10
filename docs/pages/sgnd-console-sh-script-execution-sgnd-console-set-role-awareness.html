@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Set role-aware console visibility</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Set role-aware console visibility</div>
+  <div class="doc-breadcrumb">SolidgroundUX / sgnd-console.sh / Script execution / _sgnd_console_set_role_awareness</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Enable or disable package-backed role filtering for console modules.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Prompts for the desired role-awareness state.</div>
+<div class="ct-functionbody">  - Stores the result in SGND_CONSOLE_ROLE_AWARE.</div>
+<div class="ct-functionbody">  - The value is persisted through sgnd-console state.</div>
+<div class="ct-functionbody">  - Changes take effect on the next console start because role-aware</div>
+<div class="ct-functionbody">    module registration has already completed in the current session.</div>
+<div class="ct-functionbody"></div>
+<p class="ct-functionbody">Outputs (globals):</p>
+<div class="ct-functionbody">  SGND_CONSOLE_ROLE_AWARE</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 after the preference is updated or left unchanged.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  _sgnd_console_set_role_awareness</div>
+</main>
+</body>
+</html>

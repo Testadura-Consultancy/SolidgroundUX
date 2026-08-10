@@ -2,8 +2,8 @@
 # SolidGroundUX - How to?
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2617512
+#   Version     : 1.9
+#   Build       : 2622203
 #   Checksum    : c6461fec463b0033157a52936bd47fce66e973d6fa8cf2d45f1ea0142ffa88ea
 #   Source      : solidgroundux_epilogue.sh
 #   Type        : documentation

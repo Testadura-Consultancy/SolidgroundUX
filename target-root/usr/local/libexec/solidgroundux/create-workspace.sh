@@ -3,9 +3,9 @@
 # SolidGroundUX - Create Workspace
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2621201
-#   Checksum    : c31569322f13cebe67d95372e91893d84451b425d32eab04f7ef777c2d81aff3
+#   Version     : 1.9
+#   Build       : 2622203
+#   Checksum    : 1e3945545718136095ede93cc04bbb224ef37111d65819660a935778aa7e9cb4
 #   Source      : create-workspace.sh
 #   Type        : script
 #   Group       : SDK Tools

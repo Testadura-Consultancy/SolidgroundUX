@@ -2,8 +2,8 @@
 # SolidGroundUX - Bootstrap Environment
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2622101
+#   Version     : 1.9
+#   Build       : 2622203
 #   Checksum    : 1c9811443d7584c2b419da903c64fe0a6660b9291d14211ca1dc559936bab491
 #   Source      : sgnd-bootstrap-env.sh
 #   Type        : library

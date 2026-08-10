@@ -3,9 +3,9 @@
 # SolidGroundUX - Release Manager
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.0
-#   Build       : 2622102
-#   Checksum    : -
+#   Version     : 1.9
+#   Build       : 2622214
+#   Checksum    : 5d274fce24ffe3f41cd15e2ab08b26a7f47f68e2d2265cb8d11134721ab6d4f3
 #   Source      : release-manager.sh
 #   Type        : script
 #   Group       : Deployment
@@ -22,6 +22,8 @@
 #     - Rolls back by making the installed filesystem match a selected archived release
 #     - Removes SolidGroundUX while preserving release packages for later reinstall
 #     - Queries GitHub for the latest published release and downloads it only when needed
+#     - Bootstraps a clean machine from release-manager.sh plus an adjacent release bundle
+#     - Installs a canonical manager copy under /var/lib/solidgroundux for future recovery
 #     - Uses a small self-contained UI without depending on the SolidGroundUX framework
 #
 # Design principles:
@@ -30,6 +32,7 @@
 #   - Complete release archives; no incremental binary patching
 #   - Conservative removal: files/symlinks are removed, directories only when empty
 #   - Transactional acquisition through a temporary directory before release admission
+#   - Bootstrap cleanup is limited to known release-manager bundle files under /tmp
 #
 # Attribution:
 #   Developers  : Mark Fieten
@@ -59,8 +62,13 @@ set -uo pipefail
     VAL_GITHUB_REPO="$SGND_RELEASE_GITHUB_REPO"
 
     SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
+    SCRIPT_DIR="$(cd -- "$(dirname -- "$SCRIPT_FILE")" && pwd)"
     SCRIPT_BASE="$(basename -- "$SCRIPT_FILE")"
     SCRIPT_NAME="${SCRIPT_BASE%.sh}"
+    CANONICAL_MANAGER_PATH=""
+
+    BOOTSTRAP_RELEASE_BASE=""
+    BOOTSTRAP_SOURCE_DIR=""
 
 # --- Standalone UI ------------------------------------------------------------------
     # Default-theme-compatible standalone palette.
@@ -164,6 +172,33 @@ set -uo pipefail
         printf '%s%s%s\n' "$_RL_BRIGHT_CYAN" "$line" "$_RL_RESET"
     }
 
+    # fn: _release_metadata_field - Read a field from this script's Metadata header
+        # . Purpose
+        #   Read one value from the canonical script Metadata block without depending on
+        #   SolidGroundUX framework libraries.
+        # . Arguments
+        #   $1  Metadata field name, for example Version or Build.
+        # . Returns
+        #   0 and the trimmed field value when found; 1 otherwise.
+        # . Usage
+        #   version="$(_release_metadata_field "Version")"
+    _release_metadata_field() {
+        local field="${1:-}"
+        local value=""
+
+        [[ -n "$field" ]] || return 1
+
+        value="$(
+            sed -n -E \
+                "s/^#[[:space:]]*${field}[[:space:]]*:[[:space:]]*(.*)[[:space:]]*$/\1/p" \
+                "$SCRIPT_FILE" \
+                | head -n 1
+        )"
+
+        [[ -n "$value" ]] || return 1
+        printf '%s\n' "$value"
+    }
+
     # fn: _release_title - Render the standalone release-manager title
         # . Purpose
         #   Display the release-manager identity and current hostname without using framework UI libraries.
@@ -173,6 +208,8 @@ set -uo pipefail
         #   _release_title
     _release_title() {
         local width=80
+        local manager_version=""
+        local manager_build=""
         local title="SolidGroundUX Release Manager"
         local desc="Standalone installation, update, rollback and removal"
         local host=""
@@ -181,10 +218,19 @@ set -uo pipefail
         local gap=2
         local available=0
 
+        manager_version="$(_release_metadata_field "Version" 2>/dev/null || true)"
+        manager_build="$(_release_metadata_field "Build" 2>/dev/null || true)"
+
+        if [[ -n "$manager_version" && -n "$manager_build" ]]; then
+            title+=" (v. ${manager_version}.${manager_build})"
+        elif [[ -n "$manager_version" ]]; then
+            title+=" (v. ${manager_version})"
+        fi
+
         width="$(_release_terminal_width)"
         host="$(hostname -f 2>/dev/null || hostname 2>/dev/null || printf 'unknown')"
         
-        print "\n"
+        printf '\n'
         _release_line "═"
         
         available=$(( width - pad - right_pad - ${#title} - gap ))
@@ -431,6 +477,7 @@ set -uo pipefail
 
         : "${VAL_RELEASES_DIR:=${VAL_STATE_ROOT%/}/releases}"
         : "${VAL_ARCHIVE_ROOT:=${VAL_STATE_ROOT%/}/archive}"
+        CANONICAL_MANAGER_PATH="${VAL_STATE_ROOT%/}/release-manager.sh"
     }
 
     # fn: _require_command - Verify that a required system command is available
@@ -446,6 +493,225 @@ set -uo pipefail
             _release_fail "Required command not found: $command_name"
             return 1
         }
+    }
+
+# --- Bootstrap housekeeping ----------------------------------------------------------
+    # fn: _ensure_manager_directories - Ensure standalone release-manager directories exist
+        # . Purpose
+        #   Create the state, pending-release, and archive directories required by the
+        #   standalone release manager.
+        # . Returns
+        #   0 on success; non-zero when a required directory cannot be created.
+        # . Usage
+        #   _ensure_manager_directories
+    _ensure_manager_directories() {
+        _release_run mkdir -p -- "$VAL_STATE_ROOT" "$VAL_RELEASES_DIR" "$VAL_ARCHIVE_ROOT"
+    }
+
+    # fn: _install_release_manager - Install the standalone manager at its canonical path
+        # . Purpose
+        #   Copy the currently running release manager to the machine-local state root so
+        #   future update, rollback, repair, and removal operations do not depend on a
+        #   temporary bootstrap copy.
+        # . Returns
+        #   0 on success; non-zero when the manager cannot be copied or made executable.
+        # . Usage
+        #   _install_release_manager
+    _install_release_manager() {
+        [[ -n "$CANONICAL_MANAGER_PATH" ]] || return 1
+
+        if [[ "$SCRIPT_FILE" == "$CANONICAL_MANAGER_PATH" ]]; then
+            return 0
+        fi
+
+        _release_run cp -f -- "$SCRIPT_FILE" "$CANONICAL_MANAGER_PATH" || return 1
+        _release_run chmod 0755 -- "$CANONICAL_MANAGER_PATH" || return 1
+        _release_info "Installed release manager: $CANONICAL_MANAGER_PATH"
+    }
+
+    # fn: _detect_bootstrap_release - Detect one complete release set beside the running script
+        # . Purpose
+        #   Detect the release payload supplied in a first-install bootstrap bundle without
+        #   depending on the current working directory.
+        # . Outputs
+        #   BOOTSTRAP_RELEASE_BASE
+        #   BOOTSTRAP_SOURCE_DIR
+        # . Returns
+        #   0 when exactly one adjacent release archive is found; 1 when none is present;
+        #   2 when multiple release archives make the bundle ambiguous.
+        # . Usage
+        #   _detect_bootstrap_release
+    _detect_bootstrap_release() {
+        local archive=""
+        local -a candidates=()
+
+        BOOTSTRAP_RELEASE_BASE=""
+        BOOTSTRAP_SOURCE_DIR=""
+
+        mapfile -t candidates < <(
+            find "$SCRIPT_DIR" -maxdepth 1 -type f -name "${SGND_RELEASE_PRODUCT}-*.tar.gz" -print 2>/dev/null
+        )
+
+        (( ${#candidates[@]} > 0 )) || return 1
+        if (( ${#candidates[@]} != 1 )); then
+            _release_fail "Bootstrap directory must contain exactly one SolidGroundUX tar.gz archive"
+            return 2
+        fi
+
+        archive="${candidates[0]}"
+        BOOTSTRAP_RELEASE_BASE="$(_release_base_from_archive "$archive")" || return 2
+        BOOTSTRAP_SOURCE_DIR="$SCRIPT_DIR"
+        return 0
+    }
+
+    # fn: _admit_bootstrap_release - Validate and move an adjacent bootstrap release into releases/
+        # . Purpose
+        #   Validate the release set shipped beside release-manager.sh and move its known
+        #   artifacts into the canonical pending-release directory.
+        # . Returns
+        #   0 when no bootstrap release is present or admission succeeds; non-zero on
+        #   ambiguity, validation failure, or filesystem failure.
+        # . Usage
+        #   _admit_bootstrap_release
+    _admit_bootstrap_release() {
+        local detect_rc=0
+        local archive=""
+        local base=""
+        local artifact=""
+        local -a artifacts=()
+
+        _detect_bootstrap_release || detect_rc=$?
+        case "$detect_rc" in
+            0) ;;
+            1) return 0 ;;
+            *) return "$detect_rc" ;;
+        esac
+
+        base="$BOOTSTRAP_RELEASE_BASE"
+
+        if _release_is_local_or_installed "$base"; then
+            _release_info "Bootstrap release is already local or installed: $base"
+            return 0
+        fi
+
+        archive="${BOOTSTRAP_SOURCE_DIR%/}/${base}.tar.gz"
+        _verify_release_set "$archive" || return 1
+
+        artifacts=(
+            "${base}.tar.gz"
+            "${base}.tar.gz.sha256"
+            "${base}.manifest"
+            "${base}.manifest.sha256"
+            "${base}.removed"
+            "${base}.removed.sha256"
+        )
+
+        for artifact in "${artifacts[@]}"; do
+            [[ -f "${BOOTSTRAP_SOURCE_DIR%/}/${artifact}" ]] || {
+                _release_fail "Bootstrap bundle is missing: $artifact"
+                return 1
+            }
+        done
+
+        _release_run mkdir -p -- "$VAL_RELEASES_DIR" || return 1
+        for artifact in "${artifacts[@]}"; do
+            _release_run mv -f -- "${BOOTSTRAP_SOURCE_DIR%/}/${artifact}" "$VAL_RELEASES_DIR/" || return 1
+        done
+
+        if [[ -f "${BOOTSTRAP_SOURCE_DIR%/}/SHA256SUMS" ]]; then
+            _release_run rm -f -- "${BOOTSTRAP_SOURCE_DIR%/}/SHA256SUMS" || return 1
+        fi
+
+        _release_ok "Bootstrap release admitted: $base"
+        return 0
+    }
+
+    # fn: _cleanup_bootstrap_files - Remove known temporary bootstrap files after first install
+        # . Purpose
+        #   Clean only the known release-manager bootstrap files when the manager was run
+        #   from /tmp, leaving unrelated temporary files untouched.
+        # . Returns
+        #   0 always unless removal of a known bootstrap file fails.
+        # . Usage
+        #   _cleanup_bootstrap_files
+    _cleanup_bootstrap_files() {
+        local base="${BOOTSTRAP_RELEASE_BASE:-}"
+        local source_dir="${BOOTSTRAP_SOURCE_DIR:-$SCRIPT_DIR}"
+        local artifact=""
+        local -a artifacts=()
+
+        case "$source_dir" in
+            /tmp|/tmp/*) ;;
+            *) return 0 ;;
+        esac
+
+        [[ "$SCRIPT_FILE" != "$CANONICAL_MANAGER_PATH" ]] || return 0
+
+        if [[ -n "$base" ]]; then
+            artifacts=(
+                "${base}.tar.gz"
+                "${base}.tar.gz.sha256"
+                "${base}.manifest"
+                "${base}.manifest.sha256"
+                "${base}.removed"
+                "${base}.removed.sha256"
+                "SHA256SUMS"
+            )
+
+            for artifact in "${artifacts[@]}"; do
+                [[ -e "${source_dir%/}/${artifact}" ]] || continue
+                _release_run rm -f -- "${source_dir%/}/${artifact}" || return 1
+            done
+        fi
+
+        # The running script may safely unlink its temporary pathname after the canonical
+        # copy has been written; the current process continues from the already-open file.
+        [[ -e "$SCRIPT_FILE" ]] && _release_run rm -f -- "$SCRIPT_FILE" || true
+
+        if [[ "$source_dir" != "/tmp" ]]; then
+            if (( FLAG_DRYRUN )); then
+                printf '[DRYRUN] rmdir -- %q\n' "$source_dir"
+            else
+                rmdir -- "$source_dir" 2>/dev/null || true
+            fi
+        fi
+
+        return 0
+    }
+
+    # fn: _bootstrap_first_install - Bootstrap and install an adjacent release on a clean machine
+        # . Purpose
+        #   Complete the zero-framework first-install path when release-manager.sh is
+        #   executed from a GitHub bootstrap bundle: ensure directories, admit the bundled
+        #   release, install it when no version is installed, persist the manager, and clean
+        #   the temporary bundle.
+        # . Returns
+        #   0 when no first-install bootstrap is required or when it completes successfully;
+        #   non-zero on admission, verification, installation, or persistence failure.
+        # . Usage
+        #   _bootstrap_first_install
+    _bootstrap_first_install() {
+        local current=""
+        local archive=""
+        local base=""
+
+        current="$(_current_release 2>/dev/null || true)"
+        [[ -z "$current" ]] || return 0
+
+        [[ -n "${BOOTSTRAP_RELEASE_BASE:-}" ]] || return 0
+
+        base="$BOOTSTRAP_RELEASE_BASE"
+        archive="$(_newest_pending_archive "$base" 2>/dev/null || true)"
+        [[ -n "$archive" ]] || {
+            _release_fail "Bootstrap release was admitted but cannot be found in releases/: $base"
+            return 1
+        }
+
+        _release_info "Performing first install from bootstrap bundle: $base"
+        _install_pending_archive "$archive" || return 1
+        _install_release_manager || return 1
+        _cleanup_bootstrap_files || return 1
+        return 0
     }
 
 # --- Release identity and discovery -------------------------------------------------
@@ -1414,7 +1680,7 @@ set -uo pipefail
         current="$(_current_release 2>/dev/null || true)"
         mapfile -t releases < <(_list_archived_releases)
         (( ${#releases[@]} > 0 )) || { _release_fail "No archived releases found"; return 1; }
-5
+
         local remove_choice=$(( ${#releases[@]} + 1 ))
 
         printf '\n%sArchived releases%s\n' "$_RL_BRIGHT_WHITE" "$_RL_RESET" > /dev/tty
@@ -1721,6 +1987,15 @@ set -uo pipefail
         _require_command comm || return 1
         _require_command mktemp || return 1
 
+        _ensure_manager_directories || return 1
+        _admit_bootstrap_release || return $?
+        _install_release_manager || return 1
+
+        if [[ -z "$ACTION" && -n "${BOOTSTRAP_RELEASE_BASE:-}" ]]; then
+            # A clean machine started from a release bundle bootstraps itself immediately.
+            _bootstrap_first_install || return $?
+        fi
+
         if [[ -z "$ACTION" ]]; then
             [[ -t 0 && -t 1 ]] || {
                 _release_fail "No action specified in non-interactive mode"
@@ -1731,15 +2006,22 @@ set -uo pipefail
             return $?
         fi
 
+        local rc=0
         case "$ACTION" in
-            check) _action_check ;;
-            download) _action_download ;;
-            update) _action_update ;;
-            install) _action_install ;;
-            rollback) _action_rollback ;;
-            remove) _action_remove ;;
-            *) _release_fail "Unknown action: $ACTION"; return 1 ;;
+            check) _action_check || rc=$? ;;
+            download) _action_download || rc=$? ;;
+            update) _action_update || rc=$? ;;
+            install) _action_install || rc=$? ;;
+            rollback) _action_rollback || rc=$? ;;
+            remove) _action_remove || rc=$? ;;
+            *) _release_fail "Unknown action: $ACTION"; rc=1 ;;
         esac
+
+        if (( rc == 0 )) && [[ -n "${BOOTSTRAP_RELEASE_BASE:-}" ]]; then
+            _cleanup_bootstrap_files || return 1
+        fi
+
+        return "$rc"
     }
 
     main "$@"

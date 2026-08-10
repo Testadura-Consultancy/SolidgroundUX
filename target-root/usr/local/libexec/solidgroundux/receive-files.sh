@@ -3,8 +3,8 @@
 # SolidGroundUX - Receive Files
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2621801
+#   Version     : 1.9
+#   Build       : 2622203
 #   Checksum    : f316e321a4463c5efd61d59e59ea37be9feef6a1b1ac56d2ec60e7daf336766d
 #   Source      : receive-files.sh
 #   Type        : script

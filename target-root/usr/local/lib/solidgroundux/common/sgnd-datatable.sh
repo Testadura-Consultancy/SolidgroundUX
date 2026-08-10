@@ -2,8 +2,8 @@
 # SolidGroundUX - Datatable
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2621201
+#   Version     : 1.9
+#   Build       : 2622203
 #   Checksum    : a54bd9ba6399874b500b60159ef77a8b6a77c304062a5a3668b8f89fae2737cb
 #   Source      : sgnd-datatable.sh
 #   Type        : library

@@ -2,8 +2,8 @@
 # SolidGroundUX - Framework Services Overview
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.5
-#   Build       : 2615900
+#   Version     : 1.9
+#   Build       : 2622203
 #   Checksum    : e200aac99ed20ec670214866399444f12f748505e652085c12dbce216d353344
 #   Source      : common core_preface.sh
 #   Type        : documentation

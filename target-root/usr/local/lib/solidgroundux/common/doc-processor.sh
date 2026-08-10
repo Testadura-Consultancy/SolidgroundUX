@@ -2,8 +2,8 @@
 # SolidGroundUX - Document processor
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2621201
+#   Version     : 1.9
+#   Build       : 2622203
 #   Checksum    : 569941872a71a7ce58c79d9bf1f7387109c4181ee07c0ed358efb9e671ab5a78
 #   Source      : doc-processor.sh
 #   Type        : library

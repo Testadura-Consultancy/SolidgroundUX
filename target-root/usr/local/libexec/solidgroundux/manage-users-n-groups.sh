@@ -3,9 +3,9 @@
 # SolidGroundUX - Manage Users and Groups
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2622101
-#   Checksum    : 51ea022b5c007d69ad64299bb7a484337dda34f4904e6af0c604b48f091a6d9d
+#   Version     : 1.9
+#   Build       : 2622203
+#   Checksum    : 0a1bb3592537414435e4c3cd26c92b766ab2f7f1cec25149d041bfc7fb4deb2e
 #   Source      : manage-users-n-groups.sh
 #   Type        : script
 #   Group       : System Administration

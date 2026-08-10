@@ -3,9 +3,9 @@
 # SolidGroundUX - Prepare Release
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2622101
-#   Checksum    : ac9979be2c6530a9927d5dde7c59b62c234d8ade6a10464b9c5310553e5c7170
+#   Version     : 1.9
+#   Build       : 2622214
+#   Checksum    : d140f7484e5375c97237ec90e565b341f2f5ab0e8ab336201572489bb0d4f83a
 #   Source      : prepare-release.sh
 #   Type        : script
 #   Group       : SDK Tools
@@ -21,6 +21,9 @@
 #     - Supports dry-run verification before committing changes
 #     - Ensures release metadata is consistent across processed scripts
 #     - Verifies public command wrappers for executable top-level libexec scripts
+#     - Creates release tar/manifests/checksums and a complete distributable release ZIP
+#     - Uses an explicit removal-baseline manifest from persistent manifest history
+#     - Ships the standalone release-manager.sh beside the release payload
 #
 # Design principles:
 #   - Release preparation is deterministic and repeatable
@@ -33,7 +36,6 @@
 #   - Ensures release metadata is synchronized before distribution
 #
 # Non-goals:
-#   - Packaging release artifacts
 #   - Deploying files to target environments
 #   - Managing version control, tagging, or publication workflows
 #
@@ -223,6 +225,7 @@ set -uo pipefail
         "updatebuild||enum|MODE_UPDATEBUILD|Build metadata policy: A=all, C=changed, N=none|C"
         "updateversion||enum|MODE_UPDATEVERSION|Version metadata policy: A=all, C=changed, N=none|C"
         "createwrappers|w|flag|FLAG_CREATEWRAPPERS|Create missing /usr/local/bin wrappers for top-level libexec scripts|1|"
+        "previous-manifest||value|PREVIOUS_MANIFEST|Removal baseline manifest path|"
     )
 
     # SGND_SCRIPT_EXAMPLES
@@ -299,6 +302,8 @@ set -uo pipefail
         MODE_UPDATEBUILD
         MODE_UPDATEVERSION
         FLAG_CREATEWRAPPERS
+        PREVIOUS_MANIFEST
+        MANIFEST_HISTORY_DIR
     )
 
     # SGND_ON_EXIT_HANDLERS
@@ -410,6 +415,8 @@ set -uo pipefail
         MODE_UPDATEBUILD="${MODE_UPDATEBUILD:-C}"
         MODE_UPDATEVERSION="${MODE_UPDATEVERSION:-C}"
         FLAG_CREATEWRAPPERS="${FLAG_CREATEWRAPPERS:-1}"
+        MANIFEST_HISTORY_DIR="${MANIFEST_HISTORY_DIR:-"${STAGING_ROOT%/}/manifest-history"}"
+        PREVIOUS_MANIFEST="${PREVIOUS_MANIFEST:-}"
 
         sgnd_state_load_keys --array SGND_STATE_VARIABLES || return $?
         
@@ -522,6 +529,11 @@ set -uo pipefail
                 *)     FLAG_CREATEWRAPPERS=0 ;;
             esac
 
+            _sgnd_release_select_previous_manifest || {
+                saycancel "Release preparation cancelled."
+                return 1
+            }
+
             ask --label "Save these settings for future use (Y/N)" --var saveparms --default "$saveparms" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
             if [[ "$saveparms" == "Y" || "$saveparms" == "y" ]]; then
                 FLAG_SAVEPARMS=1
@@ -554,6 +566,120 @@ set -uo pipefail
                 sgnd_state_save_keys --array SGND_STATE_VARIABLES || return $?
             fi
         fi
+    }
+
+
+    # fn: _sgnd_release_list_manifest_history - List available removal-baseline manifests
+        # . Purpose
+        #   List persistent manifest-history files in release/version order.
+        #
+        # . Returns
+        #   0 always.
+        #
+        # . Usage
+        #   _sgnd_release_list_manifest_history
+    _sgnd_release_list_manifest_history() {
+        [[ -d "$MANIFEST_HISTORY_DIR" ]] || return 0
+        find "$MANIFEST_HISTORY_DIR" -maxdepth 1 -type f -name "${PRODUCT}-*.manifest" -printf '%f\n' 2>/dev/null \
+            | LC_ALL=C sort -V
+    }
+
+    # fn: _sgnd_release_select_previous_manifest - Select the removal-baseline manifest
+        # . Purpose
+        #   Resolve the manifest against which removed paths are calculated.
+        #
+        # . Behavior
+        #   - Honors PREVIOUS_MANIFEST when already supplied by argument/state.
+        #   - In auto mode, requires the stored path to still exist or uses no baseline.
+        #   - In interactive mode, offers manifests from persistent history, an explicit
+        #     custom path, or no baseline.
+        #
+        # . Returns
+        #   0 on success; 1 on invalid/cancelled selection.
+        #
+        # . Usage
+        #   _sgnd_release_select_previous_manifest
+    _sgnd_release_select_previous_manifest() {
+        local choice=""
+        local custom=""
+        local i=0
+        local -a manifests=()
+
+        if [[ -n "${PREVIOUS_MANIFEST:-}" && ! -f "$PREVIOUS_MANIFEST" ]]; then
+            if (( ${FLAG_AUTO:-0} )); then
+                sayfail "Stored removal baseline no longer exists: $PREVIOUS_MANIFEST"
+                return 1
+            fi
+
+            saywarning "Stored removal baseline not found: $PREVIOUS_MANIFEST"
+            PREVIOUS_MANIFEST=""
+        fi
+
+        mapfile -t manifests < <(_sgnd_release_list_manifest_history)
+
+        if (( ${FLAG_AUTO:-0} )); then
+            # Auto mode reuses the stored/argument baseline when present.
+            return 0
+        fi
+
+        sgnd_print
+        sgnd_print_sectionheader "Removal baseline manifest" --padend 0
+
+        if (( ${#manifests[@]} > 0 )); then
+            for (( i=${#manifests[@]}-1; i>=0; i-- )); do
+                printf '    %s%d)%s %s\n' "$CYAN" "$(( ${#manifests[@]} - i ))" "$RESET" "${manifests[$i]}"
+            done
+        else
+            sayinfo "No manifests are currently stored in $MANIFEST_HISTORY_DIR"
+        fi
+
+        printf '    %sP)%s Custom path\n' "$CYAN" "$RESET"
+        printf '    %sN)%s No removal baseline\n' "$CYAN" "$RESET"
+        printf '    %sQ)%s Cancel\n' "$CYAN" "$RESET"
+
+        local default_choice="N"
+        if [[ -n "${PREVIOUS_MANIFEST:-}" ]]; then
+            local previous_base
+            previous_base="$(basename -- "$PREVIOUS_MANIFEST")"
+            for (( i=${#manifests[@]}-1; i>=0; i-- )); do
+                if [[ "${manifests[$i]}" == "$previous_base" ]]; then
+                    default_choice="$(( ${#manifests[@]} - i ))"
+                    break
+                fi
+            done
+            [[ "$default_choice" != "N" ]] || default_choice="P"
+        fi
+
+        ask --label "Select baseline" --var choice --default "$default_choice" --colorize both --labelclr "${CYAN}" --pad 4 --labelwidth 20
+
+        case "${choice^^}" in
+            N|"")
+                PREVIOUS_MANIFEST=""
+                return 0
+                ;;
+            P)
+                ask --label "Manifest path" --var custom --default "" --validate sgnd_validate_file_exists --colorize both --labelclr "${CYAN}" --pad 4 --labelwidth 20
+                PREVIOUS_MANIFEST="$(readlink -f "$custom")"
+                return 0
+                ;;
+            Q)
+                return 1
+                ;;
+        esac
+
+        [[ "$choice" =~ ^[0-9]+$ ]] || {
+            saywarning "Invalid removal baseline selection."
+            return 1
+        }
+
+        (( choice >= 1 && choice <= ${#manifests[@]} )) || {
+            saywarning "Removal baseline selection out of range."
+            return 1
+        }
+
+        i=$(( ${#manifests[@]} - choice ))
+        PREVIOUS_MANIFEST="${MANIFEST_HISTORY_DIR%/}/${manifests[$i]}"
+        return 0
     }
 
     # _sgnd_release_write_checksum
@@ -621,80 +747,29 @@ set -uo pipefail
     }
 
 
-    # fn: _sgnd_release_find_previous_manifest - Find previous release manifest
-        # . Purpose
-        #   Resolve the most recent earlier release manifest for the current product.
-        #
-        # . Behavior
-        #   - Searches STAGING_ROOT for top-level PRODUCT-*.manifest files.
-        #   - Excludes the manifest being generated for the current release.
-        #   - Selects the most recently modified remaining manifest.
-        #   - Returns success without output when no previous manifest is available.
-        #
-        # . Arguments
-        #   $1  CURRENT_MANIFEST - Current release manifest path to exclude.
-        #
-        # . Output
-        #   Writes the previous manifest path to stdout when one is found.
-        #
-        # . Returns
-        #   0 always.
-        #
-        # . Usage
-        #   previous_manifest="$(_sgnd_release_find_previous_manifest "$manifest_path")"
-    _sgnd_release_find_previous_manifest() {
-        local current_manifest="${1:-}"
-        local candidate=""
-        local newest=""
-        local newest_mtime=""
-        local mtime=""
-
-        [[ -d "$STAGING_ROOT" ]] || return 0
-
-        while IFS= read -r -d '' candidate; do
-            [[ "$candidate" != "$current_manifest" ]] || continue
-
-            mtime="$(stat -c '%Y' "$candidate" 2>/dev/null || printf '0')"
-            if [[ -z "$newest" || "$mtime" -gt "$newest_mtime" ]]; then
-                newest="$candidate"
-                newest_mtime="$mtime"
-            fi
-        done < <(find "$STAGING_ROOT" -maxdepth 1 -type f -name "${PRODUCT}-*.manifest" -print0 2>/dev/null)
-
-        [[ -n "$newest" ]] && printf '%s\n' "$newest"
-        return 0
-    }
-
     # fn: _sgnd_release_write_removed_manifest - Write removed-path delta
         # . Purpose
-        #   Create the release removal manifest by comparing the previous and current package manifests.
+        #   Create the release removal manifest by comparing the selected baseline and
+        #   current package manifests.
         #
         # . Behavior
-        #   - Computes paths present in the previous manifest but absent from the current manifest.
+        #   - Uses PREVIOUS_MANIFEST as the explicit removal baseline.
+        #   - Computes paths present in the baseline but absent from the current manifest.
         #   - Writes one removed relative path per line in sorted order.
-        #   - Creates an empty removal manifest when no previous release manifest exists.
-        #   - Does not remove files; it only declares the release delta for the installer.
+        #   - Creates an empty removal manifest when no baseline was selected.
         #
         # . Arguments
         #   $1  CURRENT_MANIFEST - Newly generated release manifest.
         #   $2  REMOVED_MANIFEST - Output path for the removal manifest.
         #
-        # . Output
-        #   Writes status through the standard SolidGroundUX output helpers.
-        #
-        # . Side effects
-        #   Creates or replaces REMOVED_MANIFEST.
-        #
         # . Returns
-        #   0 on success.
-        #   1 when manifest comparison or output creation fails.
+        #   0 on success; 1 when validation, comparison, or output creation fails.
         #
         # . Usage
         #   _sgnd_release_write_removed_manifest "$manifest_path" "$removed_path"
     _sgnd_release_write_removed_manifest() {
         local current_manifest="${1:-}"
         local removed_manifest="${2:-}"
-        local previous_manifest=""
         local previous_sorted=""
         local current_sorted=""
         local removed_count=0
@@ -702,15 +777,18 @@ set -uo pipefail
         [[ -f "$current_manifest" ]] || return 1
         [[ -n "$removed_manifest" ]] || return 1
 
-        previous_manifest="$(_sgnd_release_find_previous_manifest "$current_manifest")"
-
-        if [[ -z "$previous_manifest" ]]; then
+        if [[ -z "${PREVIOUS_MANIFEST:-}" ]]; then
             : > "$removed_manifest" || return 1
-            sayinfo "No previous release manifest found; removal manifest is empty."
+            sayinfo "No removal baseline selected; removal manifest is empty."
             return 0
         fi
 
-        sayinfo "Comparing with previous manifest: $(basename -- "$previous_manifest")"
+        [[ -f "$PREVIOUS_MANIFEST" ]] || {
+            sayfail "Removal baseline manifest does not exist: $PREVIOUS_MANIFEST"
+            return 1
+        }
+
+        sayinfo "Removal baseline: $(basename -- "$PREVIOUS_MANIFEST")"
 
         previous_sorted="$(mktemp)" || return 1
         current_sorted="$(mktemp)" || {
@@ -718,7 +796,7 @@ set -uo pipefail
             return 1
         }
 
-        if ! LC_ALL=C sort -u -- "$previous_manifest" > "$previous_sorted"; then
+        if ! LC_ALL=C sort -u -- "$PREVIOUS_MANIFEST" > "$previous_sorted"; then
             rm -f -- "$previous_sorted" "$current_sorted"
             return 1
         fi
@@ -750,7 +828,7 @@ set -uo pipefail
         #   - Reuses existing staging files when requested and non-empty.
         #   - Creates an uncompressed tar archive from the staged files.
         #   - Generates an uninstall manifest from the tar contents.
-        #   - Compares the new manifest with the previous release manifest and writes a removal delta.
+        #   - Compares the new manifest with the selected removal-baseline manifest and writes a removal delta.
         #   - Embeds the uninstall manifest into the tar archive.
         #   - Compresses the archive to tar.gz.
         #   - Updates SHA256SUMS and writes sidecar .sha256 files.
@@ -848,7 +926,7 @@ set -uo pipefail
         if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
             sayinfo "Would have created tar archive at: $tar_path_tar"
             sayinfo "Would have written manifest to: $manifest_path"
-            sayinfo "Would have compared the previous manifest and written removals to: $removed_path"
+            sayinfo "Would have compared the selected removal baseline and written removals to: $removed_path"
             sayinfo "Would have updated checksums file: $sums_path"
             sayinfo "Would have generated manifest and compressed to: $tar_path_gz"
             sayinfo "Would have written checksum to: ${tar_path_gz}.sha256"
@@ -922,6 +1000,142 @@ set -uo pipefail
         fi
 
         sayend "Done creating release."
+        return 0
+    }
+
+
+    # fn: _find_release_manager_source - Resolve the release-manager source file
+        # . Purpose
+        #   Locate release-manager.sh in the managed source tree.
+        #
+        # . Returns
+        #   0 with the path on stdout when found; 1 otherwise.
+        #
+        # . Usage
+        #   manager="$(_find_release_manager_source)"
+    _find_release_manager_source() {
+        local direct="${SOURCE_DIR%/}/var/lib/solidgroundux/release-manager.sh"
+        local candidate=""
+        local -a candidates=()
+
+        if [[ -f "$direct" ]]; then
+            printf '%s\n' "$direct"
+            return 0
+        fi
+
+        mapfile -t candidates < <(find "$SOURCE_DIR" -type f -name 'release-manager.sh' -not -path '*/releases/*' -print 2>/dev/null)
+        (( ${#candidates[@]} == 1 )) || return 1
+
+        candidate="${candidates[0]}"
+        printf '%s\n' "$candidate"
+    }
+
+    # fn: _create_release_package - Create the complete distributable release ZIP
+        # . Purpose
+        #   Package the standalone release manager and release payload into one ZIP.
+        #
+        # . Behavior
+        #   - Requires the six canonical release artifacts created by _create_tar.
+        #   - Adds release-manager.sh at the ZIP root.
+        #   - Does not include SHA256SUMS; the manager verifies individual sidecars.
+        #
+        # . Returns
+        #   0 on success; 1 on missing artifacts or packaging failure.
+        #
+        # . Usage
+        #   _create_release_package
+    _create_release_package() {
+        local manager=""
+        local package_dir=""
+        local zip_path="${STAGING_ROOT%/}/${RELEASE}-release.zip"
+        local artifact=""
+        local -a artifacts=(
+            "${TAR_FILE}"
+            "${TAR_FILE}.sha256"
+            "${RELEASE}.manifest"
+            "${RELEASE}.manifest.sha256"
+            "${RELEASE}.removed"
+            "${RELEASE}.removed.sha256"
+        )
+
+        manager="$(_find_release_manager_source)" || {
+            sayfail "Could not uniquely locate release-manager.sh beneath $SOURCE_DIR"
+            return 1
+        }
+
+        for artifact in "${artifacts[@]}"; do
+            [[ -f "${STAGING_ROOT%/}/${artifact}" ]] || {
+                sayfail "Missing release artifact for package: ${STAGING_ROOT%/}/${artifact}"
+                return 1
+            }
+        done
+
+        if (( ${FLAG_DRYRUN:-0} )); then
+            sayinfo "Would have created release package: $zip_path"
+            sayinfo "Would have included release-manager.sh and ${#artifacts[@]} release artifacts at ZIP root"
+            return 0
+        fi
+
+        command -v zip >/dev/null 2>&1 || {
+            sayfail "Required command not found: zip"
+            return 1
+        }
+
+        package_dir="$(mktemp -d)" || return 1
+
+        cp -f -- "$manager" "$package_dir/release-manager.sh" || {
+            rm -rf -- "$package_dir"
+            return 1
+        }
+
+        for artifact in "${artifacts[@]}"; do
+            cp -f -- "${STAGING_ROOT%/}/${artifact}" "$package_dir/$artifact" || {
+                rm -rf -- "$package_dir"
+                return 1
+            }
+        done
+
+        rm -f -- "$zip_path"
+        (
+            cd "$package_dir" || exit 1
+            zip -q "$zip_path" "release-manager.sh" "${artifacts[@]}"
+        ) || {
+            rm -rf -- "$package_dir"
+            sayfail "Failed to create release ZIP."
+            return 1
+        }
+
+        rm -rf -- "$package_dir"
+        sayok "Created release package: $zip_path"
+        return 0
+    }
+
+    # fn: _archive_release_manifest - Persist the current manifest for future removal baselines
+        # . Purpose
+        #   Store the successfully packaged release manifest in persistent manifest history.
+        #
+        # . Returns
+        #   0 on success; 1 on copy failure.
+        #
+        # . Usage
+        #   _archive_release_manifest
+    _archive_release_manifest() {
+        local manifest_path="${STAGING_ROOT%/}/${RELEASE}.manifest"
+        local destination="${MANIFEST_HISTORY_DIR%/}/${RELEASE}.manifest"
+
+        [[ -f "$manifest_path" ]] || {
+            sayfail "Cannot archive missing release manifest: $manifest_path"
+            return 1
+        }
+
+        if (( ${FLAG_DRYRUN:-0} )); then
+            sayinfo "Would have archived release manifest to: $destination"
+            return 0
+        fi
+
+        mkdir -p -- "$MANIFEST_HISTORY_DIR" || return 1
+        cp -f -- "$manifest_path" "$destination" || return 1
+        sayinfo "Archived release manifest: $destination"
         return 0
     }
 
@@ -1003,6 +1217,7 @@ set -uo pipefail
         local metadata_changed=0
         local failed=0
         local version_mode="${MODE_UPDATEVERSION:-C}"
+        local -a failed_files=()
         local build_mode="${MODE_UPDATEBUILD:-C}"
 
         version_mode="${version_mode^^}"
@@ -1017,7 +1232,20 @@ set -uo pipefail
         fi
 
         while IFS= read -r -d '' file; do
-            current_checksum="$(sgnd_header_calc_checksum "$file")" || { saywarning "Skipping unmanaged file: $file"; continue; }
+            local existing_version=""
+
+            # Files without a canonical Metadata/Version field are not managed by the
+            # release metadata pass. Warn and continue; they must not block packaging.
+            if ! sgnd_header_get_field "$file" "Metadata" "Version" existing_version; then
+                saywarning "Skipping unmanaged file (missing metadata header): $file"
+                continue
+            fi
+
+            current_checksum="$(sgnd_header_calc_checksum "$file")" || {
+                saywarning "Skipping unmanaged file (checksum unavailable): $file"
+                continue
+            }
+
             sgnd_header_get_field "$file" "Metadata" "Checksum" stored_checksum || stored_checksum=""
             source_changed=0
             metadata_changed=0
@@ -1031,22 +1259,22 @@ set -uo pipefail
             if (( ${FLAG_BUMP_MAJOR:-0} || ${FLAG_BUMP_MINOR:-0} )); then
                 local bump_mode="major"
                 (( ${FLAG_BUMP_MINOR:-0} )) && bump_mode="minor"
-                sgnd_header_bump_version "$file" "$bump_mode" || { saywarning "Could not bump version in $file"; failed=1; continue; }
+                sgnd_header_bump_version "$file" "$bump_mode" || { saywarning "Could not bump version in $file"; failed=1; failed_files+=("$file"); continue; }
                 metadata_changed=1
             else
                 if [[ "$version_mode" == "A" || ( "$version_mode" == "C" && "$source_changed" -eq 1 ) ]]; then
-                    sgnd_header_upsert_field "$file" "Metadata" "Version" "$VERSION" || { saywarning "Could not set version in $file"; failed=1; continue; }
+                    sgnd_header_upsert_field "$file" "Metadata" "Version" "$VERSION" || { saywarning "Could not set version in $file"; failed=1; failed_files+=("$file"); continue; }
                     metadata_changed=1
                 fi
 
                 if [[ "$build_mode" == "A" || ( "$build_mode" == "C" && "$source_changed" -eq 1 ) ]]; then
-                    sgnd_header_upsert_field "$file" "Metadata" "Build" "$BUILD" || { saywarning "Could not set build in $file"; failed=1; continue; }
+                    sgnd_header_upsert_field "$file" "Metadata" "Build" "$BUILD" || { saywarning "Could not set build in $file"; failed=1; failed_files+=("$file"); continue; }
                     metadata_changed=1
                 fi
 
                 if (( source_changed || metadata_changed )); then
-                    current_checksum="$(sgnd_header_calc_checksum "$file")" || { saywarning "Could not calculate checksum for $file"; failed=1; continue; }
-                    sgnd_header_upsert_field "$file" "Metadata" "Checksum" "$current_checksum" || { saywarning "Could not set checksum in $file"; failed=1; continue; }
+                    current_checksum="$(sgnd_header_calc_checksum "$file")" || { saywarning "Could not calculate checksum for $file"; failed=1; failed_files+=("$file"); continue; }
+                    sgnd_header_upsert_field "$file" "Metadata" "Checksum" "$current_checksum" || { saywarning "Could not set checksum in $file"; failed=1; failed_files+=("$file"); continue; }
                 fi
             fi
 
@@ -1071,7 +1299,20 @@ set -uo pipefail
             saydebug "No sgnd-definitions.sh in source tree; skipping framework version identity update."
         fi
 
-        return "$failed"
+        if (( failed )); then
+            sayfail "One or more source files could not be prepared. Release creation aborted."
+            if (( ${#failed_files[@]} > 0 )); then
+                sayinfo "Files requiring attention:"
+                local failed_file=""
+                for failed_file in "${failed_files[@]}"; do
+                    sgnd_print "    $failed_file"
+                done
+            fi
+            return 1
+        fi
+
+        sayok "Source metadata preparation completed."
+        return 0
     }
 
 
@@ -1255,11 +1496,38 @@ set -uo pipefail
 
         # -- Main script logic
 
-        _get_parameters
-        _apply_version_bump || exit $?
-        _ensure_libexec_executables || exit $?
-        _ensure_public_command_wrappers || exit $?
-        _create_tar
+        _get_parameters || exit $?
+
+        _apply_version_bump || {
+            sayfail "Metadata preparation failed; release was not created."
+            exit 1
+        }
+
+        _ensure_libexec_executables || {
+            sayfail "Executable verification failed; release was not created."
+            exit 1
+        }
+
+        _ensure_public_command_wrappers || {
+            sayfail "Wrapper verification failed; release was not created."
+            exit 1
+        }
+
+        _create_tar || {
+            sayfail "Release archive creation failed."
+            exit 1
+        }
+
+        _create_release_package || {
+            sayfail "Release package creation failed."
+            exit 1
+        }
+
+        _archive_release_manifest || {
+            sayfail "Release manifest history update failed."
+            exit 1
+        }
+
         _cleanup_staging
     }
 

@@ -13,16 +13,13 @@
   <div class="doc-breadcrumb">solidground console_preface.sh::SolidGround Console:Design Philosophy:</div>
 </header>
 <div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">The console host deliberately contains no business logic.</p>
+<p class="ct-L2Sectionbody">The console host deliberately contains no business logic and no knowledge of Active Directory, storage, package management, or other functional domains. Its responsibility is to provide a reusable execution and presentation engine.</p>
 <div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">Its responsibilities are limited to:</p>
+<p class="ct-L2Sectionbody">The governing rule is:</p>
 <div class="ct-L2Sectionbody"></div>
-<div class="ct-L2Sectionbody">    • loading modules</div>
-<div class="ct-L2Sectionbody">    • rendering the interface</div>
-<div class="ct-L2Sectionbody">    • dispatching actions</div>
-<div class="ct-L2Sectionbody">    • maintaining runtime state</div>
+<div class="ct-L2Sectionbody">    Modules own menus; the framework owns menu mechanics.</div>
 <div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">Modules define what functionality is available, while standalone executables perform the actual work. This separation keeps the host generic, modules small, and operational logic reusable outside the console itself.</p>
+<p class="ct-L2Sectionbody">This makes submenu support a composition problem rather than a new UI feature. The same host can render the main menu, a functional submenu, or an entirely different console application simply by changing the modules it loads.</p>
 <div class="ct-L2Sectionbody"></div>
 </main>
 </body>

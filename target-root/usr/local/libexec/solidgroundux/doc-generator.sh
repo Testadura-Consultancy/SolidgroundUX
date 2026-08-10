@@ -3,8 +3,8 @@
 # SolidGroundUX - Documentation Generator Script
 # ------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2621201
+#   Version     : 1.9
+#   Build       : 2622203
 #   Checksum    : 8d3a8e95678fb13154c927e9a39ed4421d5ff8f9d6849724af6868b6a5a0b65e
 #   Source      : doc-generator.sh
 #   Type        : script

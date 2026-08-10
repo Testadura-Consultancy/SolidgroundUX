@@ -2,8 +2,8 @@
 # SolidGroundUX - Documentation Renderer
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2621300
+#   Version     : 1.9
+#   Build       : 2622203
 #   Checksum    : 9d7a95a3596f690bb747fdad93ba3d999398912c94b6bc53ba2837b72928853e
 #   Source      : doc-renderer.sh
 #   Type        : library

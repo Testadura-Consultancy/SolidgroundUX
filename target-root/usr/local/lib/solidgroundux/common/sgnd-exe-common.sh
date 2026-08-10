@@ -2,8 +2,8 @@
 # SolidGroundUX - Executable Runtime Support
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2621201
+#   Version     : 1.9
+#   Build       : 2622203
 #   Checksum    : 4d76ba15c4afff37e1a6c690890a8fb74fda2bd0175f8cbabb9ebbcb2094a468
 #   Source      : sgnd-exe-common.sh
 #   Type        : library

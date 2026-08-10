@@ -2,9 +2,9 @@
 # SolidGroundUX - Deployment and Release Management
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2622102
-#   Checksum    : -
+#   Version     : 1.9
+#   Build       : 2622203
+#   Checksum    : 514c799a8175b2ea171aa2a5475e7d94b59947ec5c3dcb0e13765f023e05e190
 #   Source      : deployment_preface.sh
 #   Type        : documentation
 #   Group       : Deployment

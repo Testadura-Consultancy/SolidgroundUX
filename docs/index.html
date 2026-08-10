@@ -267,15 +267,94 @@
 </details>
 <details class="doc-nav-node level-1 type-group doc-nav-special">
 <summary style="padding-left:10px">Deployment</summary>
-<a class="doc-nav-section type-preface doc-nav-special" style="padding-left:20px" href="pages/deployment-preface-sh.html" target="docframe">Deployment and update </a>
+<a class="doc-nav-section type-preface doc-nav-special" style="padding-left:20px" href="pages/deployment-preface-sh.html" target="docframe">Deployment and Release Management</a>
 <details class="doc-nav-node level-2 type-module">
-<summary style="padding-left:20px"><a class="doc-nav-module" href="pages/sgnd-install-sh.html" target="docframe">sgnd-install.sh</a></summary>
-</details>
-<details class="doc-nav-node level-2 type-module">
-<summary style="padding-left:20px"><a class="doc-nav-module" href="pages/sgnd-uninstall-sh.html" target="docframe">sgnd-uninstall.sh</a></summary>
-</details>
-<details class="doc-nav-node level-2 type-module">
-<summary style="padding-left:20px"><a class="doc-nav-module" href="pages/sgnd-update-sh.html" target="docframe">sgnd-update.sh</a></summary>
+<summary style="padding-left:20px"><a class="doc-nav-module" href="pages/release-manager-sh.html" target="docframe">release-manager.sh</a></summary>
+<a class="doc-nav-section type-section" style="padding-left:50px" href="pages/release-manager-sh-standalone-ui.html" target="docframe">Standalone UI</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-standalone-ui-release-terminal-width.html" target="docframe">_release_terminal_width</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-standalone-ui-release-clear.html" target="docframe">_release_clear</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-standalone-ui-release-line.html" target="docframe">_release_line</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-standalone-ui-release-metadata-field.html" target="docframe">_release_metadata_field</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-standalone-ui-release-title.html" target="docframe">_release_title</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-standalone-ui-release-labeled-value.html" target="docframe">_release_labeled_value</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-standalone-ui-release-info.html" target="docframe">_release_info</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-standalone-ui-release-ok.html" target="docframe">_release_ok</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-standalone-ui-release-warn.html" target="docframe">_release_warn</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-standalone-ui-release-fail.html" target="docframe">_release_fail</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-standalone-ui-release-run.html" target="docframe">_release_run</a>
+<a class="doc-nav-section type-section" style="padding-left:50px" href="pages/release-manager-sh-arguments-and-paths.html" target="docframe">Arguments and paths</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-arguments-and-paths-print-usage.html" target="docframe">print_usage</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-arguments-and-paths-set-action.html" target="docframe">_set_action</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-arguments-and-paths-parse-args.html" target="docframe">parse_args</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-arguments-and-paths-normalize-root.html" target="docframe">_normalize_root</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-arguments-and-paths-init-paths.html" target="docframe">init_paths</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-arguments-and-paths-require-command.html" target="docframe">_require_command</a>
+<a class="doc-nav-section type-section" style="padding-left:50px" href="pages/release-manager-sh-bootstrap-housekeeping.html" target="docframe">Bootstrap housekeeping</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-bootstrap-housekeeping-ensure-manager-directories.html" target="docframe">_ensure_manager_directories</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-bootstrap-housekeeping-install-release-manager.html" target="docframe">_install_release_manager</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-bootstrap-housekeeping-detect-bootstrap-release.html" target="docframe">_detect_bootstrap_release</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-bootstrap-housekeeping-admit-bootstrap-release.html" target="docframe">_admit_bootstrap_release</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-bootstrap-housekeeping-cleanup-bootstrap-files.html" target="docframe">_cleanup_bootstrap_files</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-bootstrap-housekeeping-bootstrap-first-install.html" target="docframe">_bootstrap_first_install</a>
+<a class="doc-nav-section type-section" style="padding-left:50px" href="pages/release-manager-sh-release-identity-and-discovery.html" target="docframe">Release identity and discovery</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-release-identity-and-discovery-release-base-from-archive.html" target="docframe">_release_base_from_archive</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-release-identity-and-discovery-release-matches.html" target="docframe">_release_matches</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-release-identity-and-discovery-release-sort.html" target="docframe">_release_sort</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-release-identity-and-discovery-current-release.html" target="docframe">_current_release</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-release-identity-and-discovery-previous-release.html" target="docframe">_previous_release</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-release-identity-and-discovery-list-archived-releases.html" target="docframe">_list_archived_releases</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-release-identity-and-discovery-find-pending-archives.html" target="docframe">_find_pending_archives</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-release-identity-and-discovery-newest-pending-archive.html" target="docframe">_newest_pending_archive</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-release-identity-and-discovery-find-archived-archive.html" target="docframe">_find_archived_archive</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-release-identity-and-discovery-release-location.html" target="docframe">_release_location</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-release-identity-and-discovery-pending-release-base-exists.html" target="docframe">_pending_release_base_exists</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-release-identity-and-discovery-archived-release-base-exists.html" target="docframe">_archived_release_base_exists</a>
+<a class="doc-nav-section type-section" style="padding-left:50px" href="pages/release-manager-sh-release-verification.html" target="docframe">Release verification</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-release-verification-verify-sha256-sidecar.html" target="docframe">_verify_sha256_sidecar</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-release-verification-safe-relative-path.html" target="docframe">_safe_relative_path</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-release-verification-validate-tar-paths.html" target="docframe">_validate_tar_paths</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-release-verification-validate-manifest-paths.html" target="docframe">_validate_manifest_paths</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-release-verification-verify-release-set.html" target="docframe">_verify_release_set</a>
+<a class="doc-nav-section type-section" style="padding-left:50px" href="pages/release-manager-sh-manifest-operations.html" target="docframe">Manifest operations</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-manifest-operations-manifest-paths.html" target="docframe">_manifest_paths</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-manifest-operations-target-path.html" target="docframe">_target_path</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-manifest-operations-remove-paths-from-stream.html" target="docframe">_remove_paths_from_stream</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-manifest-operations-apply-removed-manifest.html" target="docframe">_apply_removed_manifest</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-manifest-operations-remove-release-difference.html" target="docframe">_remove_release_difference</a>
+<a class="doc-nav-section type-section" style="padding-left:50px" href="pages/release-manager-sh-archive-release-movement.html" target="docframe">Archive/release movement</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-archive-release-movement-archive-release-set.html" target="docframe">_archive_release_set</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-archive-release-movement-move-archive-dir-to-releases.html" target="docframe">_move_archive_dir_to_releases</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-archive-release-movement-move-newer-archives-to-releases.html" target="docframe">_move_newer_archives_to_releases</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-archive-release-movement-move-all-archives-to-releases.html" target="docframe">_move_all_archives_to_releases</a>
+<a class="doc-nav-section type-section" style="padding-left:50px" href="pages/release-manager-sh-installation-engine.html" target="docframe">Installation engine</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-installation-engine-extract-release.html" target="docframe">_extract_release</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-installation-engine-install-pending-archive.html" target="docframe">_install_pending_archive</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-installation-engine-rollback-to-archived-release.html" target="docframe">_rollback_to_archived_release</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-installation-engine-remove-installation.html" target="docframe">_remove_installation</a>
+<a class="doc-nav-section type-section" style="padding-left:50px" href="pages/release-manager-sh-github-source-acquisition.html" target="docframe">GitHub/source acquisition</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-github-source-acquisition-download-to.html" target="docframe">_download_to</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-github-source-acquisition-github-latest-tag.html" target="docframe">_github_latest_tag</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-github-source-acquisition-base-from-tag.html" target="docframe">_base_from_tag</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-github-source-acquisition-github-release-asset-url.html" target="docframe">_github_release_asset_url</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-github-source-acquisition-latest-online-release.html" target="docframe">_latest_online_release</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-github-source-acquisition-release-is-local-or-installed.html" target="docframe">_release_is_local_or_installed</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-github-source-acquisition-admit-extracted-release.html" target="docframe">_admit_extracted_release</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-github-source-acquisition-acquire-release.html" target="docframe">_acquire_release</a>
+<a class="doc-nav-section type-section" style="padding-left:50px" href="pages/release-manager-sh-interactive-helpers.html" target="docframe">Interactive helpers</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-interactive-helpers-confirm.html" target="docframe">_confirm</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-interactive-helpers-select-archived-release.html" target="docframe">_select_archived_release</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-interactive-helpers-print-status.html" target="docframe">_print_status</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-interactive-helpers-interactive-menu.html" target="docframe">_interactive_menu</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-interactive-helpers-pause.html" target="docframe">_pause</a>
+<a class="doc-nav-section type-section" style="padding-left:50px" href="pages/release-manager-sh-action-dispatch.html" target="docframe">Action dispatch</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-action-dispatch-action-check.html" target="docframe">_action_check</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-action-dispatch-action-download.html" target="docframe">_action_download</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-action-dispatch-action-update.html" target="docframe">_action_update</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-action-dispatch-action-install.html" target="docframe">_action_install</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-action-dispatch-action-rollback.html" target="docframe">_action_rollback</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-action-dispatch-action-remove.html" target="docframe">_action_remove</a>
+<a class="doc-nav-section type-section" style="padding-left:50px" href="pages/release-manager-sh-main.html" target="docframe">Main</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/release-manager-sh-main-main.html" target="docframe">main</a>
 </details>
 </details>
 <details class="doc-nav-node level-1 type-group doc-nav-special">
@@ -393,7 +472,8 @@
 <a class="doc-nav-item type-function" style="padding-left:50px" href="pages/create-workspace-sh-general-helpers-normalize-project-flags.html" target="docframe">_normalize_project_flags</a>
 <a class="doc-nav-item type-function" style="padding-left:50px" href="pages/create-workspace-sh-general-helpers-copy-template-file.html" target="docframe">_copy_template_file</a>
 <a class="doc-nav-item type-function" style="padding-left:50px" href="pages/create-workspace-sh-general-helpers-get-template-filenames.html" target="docframe">_get_template_filenames</a>
-<a class="doc-nav-item type-function" style="padding-left:50px" href="pages/create-workspace-sh-general-helpers-copy-project-templates.html" target="docframe">_copy_project_templates</a>
+<a class="doc-nav-item type-function" style="padding-left:50px" href="pages/create-workspace-sh-general-helpers-copy-workspace-templates.html" target="docframe">_copy_workspace_templates</a>
+<a class="doc-nav-item type-function" style="padding-left:50px" href="pages/create-workspace-sh-general-helpers-instantiate-project-templates.html" target="docframe">_instantiate_project_templates</a>
 <a class="doc-nav-item type-function" style="padding-left:50px" href="pages/create-workspace-sh-general-helpers-get-project-directories.html" target="docframe">_get_project_directories</a>
 <a class="doc-nav-section type-section" style="padding-left:40px" href="pages/create-workspace-sh-manifest-helpers.html" target="docframe">Manifest helpers</a>
 <a class="doc-nav-item type-function" style="padding-left:50px" href="pages/create-workspace-sh-manifest-helpers-manifest-init.html" target="docframe">_manifest_init</a>
@@ -408,6 +488,20 @@
 <a class="doc-nav-section type-section" style="padding-left:50px" href="pages/create-workspace-sh-main-sequence-main.html" target="docframe">main</a>
 <a class="doc-nav-item type-function" style="padding-left:60px" href="pages/create-workspace-sh-main-sequence-main-main.html" target="docframe">main</a>
 <a class="doc-nav-section type-section" style="padding-left:40px" href="pages/create-workspace-sh-normal-operation.html" target="docframe">&#x27;Normal&#x27; operation</a>
+</details>
+<details class="doc-nav-node level-2 type-module">
+<summary style="padding-left:20px"><a class="doc-nav-module" href="pages/create-wrappers-sh.html" target="docframe">create-wrappers.sh</a></summary>
+<a class="doc-nav-section type-section" style="padding-left:50px" href="pages/create-wrappers-sh-bootstrap.html" target="docframe">Bootstrap</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/create-wrappers-sh-bootstrap-framework-locator.html" target="docframe">_framework_locator</a>
+<a class="doc-nav-section type-section" style="padding-left:50px" href="pages/create-wrappers-sh-helpers.html" target="docframe">Helpers</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/create-wrappers-sh-helpers-application-path.html" target="docframe">_application_path</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/create-wrappers-sh-helpers-relative-to-application-root.html" target="docframe">_relative_to_application_root</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/create-wrappers-sh-helpers-wrapper-name-for-script.html" target="docframe">_wrapper_name_for_script</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/create-wrappers-sh-helpers-write-wrapper.html" target="docframe">_write_wrapper</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/create-wrappers-sh-helpers-get-parameters.html" target="docframe">_get_parameters</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/create-wrappers-sh-helpers-create-wrappers.html" target="docframe">_create_wrappers</a>
+<a class="doc-nav-section type-section" style="padding-left:50px" href="pages/create-wrappers-sh-main.html" target="docframe">Main</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/create-wrappers-sh-main-main.html" target="docframe">main</a>
 </details>
 <details class="doc-nav-node level-2 type-module">
 <summary style="padding-left:20px"><a class="doc-nav-module" href="pages/deploy-workspace-sh.html" target="docframe">deploy-workspace.sh</a></summary>
@@ -480,37 +574,6 @@
 <a class="doc-nav-item type-function" style="padding-left:40px" href="pages/manage-samba-shares-sh-main-main.html" target="docframe">main</a>
 </details>
 <details class="doc-nav-node level-2 type-module">
-<summary style="padding-left:20px"><a class="doc-nav-module" href="pages/metadata-editor-sh.html" target="docframe">metadata-editor.sh</a></summary>
-<a class="doc-nav-section type-section" style="padding-left:50px" href="pages/metadata-editor-sh-bootstrap.html" target="docframe">Bootstrap</a>
-<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/metadata-editor-sh-bootstrap-framework-locator.html" target="docframe">_framework_locator</a>
-<a class="doc-nav-section type-section" style="padding-left:50px" href="pages/metadata-editor-sh-script-metadata-framework-integration.html" target="docframe">Script metadata (framework integration)</a>
-<a class="doc-nav-section type-section" style="padding-left:50px" href="pages/metadata-editor-sh-local-ui.html" target="docframe">Local UI</a>
-<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/metadata-editor-sh-local-ui-show-current-metadata.html" target="docframe">_show_current_metadata</a>
-<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/metadata-editor-sh-local-ui-show-pending-value-buffer.html" target="docframe">_show_pending_value_buffer</a>
-<a class="doc-nav-section type-section" style="padding-left:50px" href="pages/metadata-editor-sh-local-script-functions.html" target="docframe">Local script functions</a>
-<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/metadata-editor-sh-local-script-functions-resolve-source.html" target="docframe">_resolve_source</a>
-<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/metadata-editor-sh-local-script-functions-resolve-bump-mode.html" target="docframe">_resolve_bump_mode</a>
-<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/metadata-editor-sh-local-script-functions-validate-auto-args.html" target="docframe">_validate_auto_args</a>
-<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/metadata-editor-sh-local-script-functions-validate-bump-args.html" target="docframe">_validate_bump_args</a>
-<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/metadata-editor-sh-local-script-functions-auto-update-files.html" target="docframe">_auto_update_files</a>
-<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/metadata-editor-sh-local-script-functions-bump-one-file.html" target="docframe">_bump_one_file</a>
-<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/metadata-editor-sh-local-script-functions-bump-version-files.html" target="docframe">_bump_version_files</a>
-<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/metadata-editor-sh-local-script-functions-collect-changed-fields.html" target="docframe">_collect_changed_fields</a>
-<a class="doc-nav-section type-section" style="padding-left:50px" href="pages/metadata-editor-sh-user-input.html" target="docframe">User input</a>
-<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/metadata-editor-sh-user-input-resolve-source-input.html" target="docframe">_resolve_source_input</a>
-<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/metadata-editor-sh-user-input-build-value-buffer-from-meta.html" target="docframe">_build_value_buffer_from_meta</a>
-<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/metadata-editor-sh-user-input-prompt-value-buffer.html" target="docframe">_prompt_value_buffer</a>
-<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/metadata-editor-sh-user-input-ask-interactive-action.html" target="docframe">_ask_interactive_action</a>
-<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/metadata-editor-sh-user-input-ask-bump-mode.html" target="docframe">_ask_bump_mode</a>
-<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/metadata-editor-sh-user-input-apply-value-buffer-to-file.html" target="docframe">_apply_value_buffer_to_file</a>
-<a class="doc-nav-section type-section" style="padding-left:50px" href="pages/metadata-editor-sh-main.html" target="docframe">Main</a>
-<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/metadata-editor-sh-main-interactive-bump-files.html" target="docframe">_interactive_bump_files</a>
-<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/metadata-editor-sh-main-interactive-edit-current-file.html" target="docframe">_interactive_edit_current_file</a>
-<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/metadata-editor-sh-main-interactive-edit-current-file-with-buffer.html" target="docframe">_interactive_edit_current_file_with_buffer</a>
-<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/metadata-editor-sh-main-interactive-edit-files.html" target="docframe">_interactive_edit_files</a>
-<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/metadata-editor-sh-main-main.html" target="docframe">main</a>
-</details>
-<details class="doc-nav-node level-2 type-module">
 <summary style="padding-left:20px"><a class="doc-nav-module" href="pages/prepare-release-sh.html" target="docframe">prepare-release.sh</a></summary>
 <a class="doc-nav-section type-section" style="padding-left:50px" href="pages/prepare-release-sh-bootstrap.html" target="docframe">Bootstrap</a>
 <a class="doc-nav-item type-function" style="padding-left:60px" href="pages/prepare-release-sh-bootstrap-framework-locator.html" target="docframe">_framework_locator</a>
@@ -518,11 +581,18 @@
 <a class="doc-nav-section type-section" style="padding-left:50px" href="pages/prepare-release-sh-local-script-declarations.html" target="docframe">Local script Declarations</a>
 <a class="doc-nav-section type-section" style="padding-left:50px" href="pages/prepare-release-sh-local-script-functions.html" target="docframe">Local script functions</a>
 <a class="doc-nav-item type-function" style="padding-left:60px" href="pages/prepare-release-sh-local-script-functions-get-parameters.html" target="docframe">_get_parameters</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/prepare-release-sh-local-script-functions-sgnd-release-list-manifest-history.html" target="docframe">_sgnd_release_list_manifest_history</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/prepare-release-sh-local-script-functions-sgnd-release-select-previous-manifest.html" target="docframe">_sgnd_release_select_previous_manifest</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/prepare-release-sh-local-script-functions-sgnd-release-write-removed-manifest.html" target="docframe">_sgnd_release_write_removed_manifest</a>
 <a class="doc-nav-item type-function" style="padding-left:60px" href="pages/prepare-release-sh-local-script-functions-create-tar.html" target="docframe">_create_tar</a>
 <a class="doc-nav-section type-section" style="padding-left:50px" href="pages/prepare-release-sh-update-sha256sums.html" target="docframe">Update SHA256SUMS</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/prepare-release-sh-update-sha256sums-find-release-manager-source.html" target="docframe">_find_release_manager_source</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/prepare-release-sh-update-sha256sums-create-release-package.html" target="docframe">_create_release_package</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/prepare-release-sh-update-sha256sums-archive-release-manifest.html" target="docframe">_archive_release_manifest</a>
 <a class="doc-nav-item type-function" style="padding-left:60px" href="pages/prepare-release-sh-update-sha256sums-cleanup-staging.html" target="docframe">_cleanup_staging</a>
 <a class="doc-nav-item type-function" style="padding-left:60px" href="pages/prepare-release-sh-update-sha256sums-set-script-header-version.html" target="docframe">_set_script_header_version</a>
 <a class="doc-nav-item type-function" style="padding-left:60px" href="pages/prepare-release-sh-update-sha256sums-apply-version-bump.html" target="docframe">_apply_version_bump</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/prepare-release-sh-update-sha256sums-ensure-public-command-wrappers.html" target="docframe">_ensure_public_command_wrappers</a>
 <a class="doc-nav-section type-section" style="padding-left:50px" href="pages/prepare-release-sh-main-sequence.html" target="docframe">Main Sequence</a>
 <a class="doc-nav-item type-function" style="padding-left:60px" href="pages/prepare-release-sh-main-sequence-main.html" target="docframe">main</a>
 </details>
@@ -576,6 +646,9 @@
 <summary style="padding-left:10px">SolidGround Console</summary>
 <a class="doc-nav-section type-preface doc-nav-special" style="padding-left:20px" href="pages/solidground-console-preface-sh.html" target="docframe">Console Host and Management Console Overview</a>
 <details class="doc-nav-node level-2 type-module">
+<summary style="padding-left:20px"><a class="doc-nav-module" href="pages/10-computer-management-sh.html" target="docframe">10-computer-management.sh</a></summary>
+</details>
+<details class="doc-nav-node level-2 type-module">
 <summary style="padding-left:20px"><a class="doc-nav-module" href="pages/10-computer-setup-sh.html" target="docframe">10-computer-setup.sh</a></summary>
 <a class="doc-nav-section type-section" style="padding-left:30px" href="pages/10-computer-setup-sh-module-actions.html" target="docframe">Module actions</a>
 <a class="doc-nav-item type-function" style="padding-left:40px" href="pages/10-computer-setup-sh-module-actions-show-machine-status.html" target="docframe">_show_machine_status</a>
@@ -586,6 +659,9 @@
 <a class="doc-nav-item type-function" style="padding-left:40px" href="pages/10-computer-setup-sh-module-actions-set-dns-server.html" target="docframe">_set_dns_server</a>
 <a class="doc-nav-item type-function" style="padding-left:40px" href="pages/10-computer-setup-sh-module-actions-prep-template.html" target="docframe">_prep_template</a>
 <a class="doc-nav-item type-function" style="padding-left:40px" href="pages/10-computer-setup-sh-module-actions-configure-solidgroundux-sudoers.html" target="docframe">_configure_solidgroundux_sudoers</a>
+</details>
+<details class="doc-nav-node level-2 type-module">
+<summary style="padding-left:20px"><a class="doc-nav-module" href="pages/10-menu-computer-management-sh.html" target="docframe">10-menu-computer-management.sh</a></summary>
 </details>
 <details class="doc-nav-node level-2 type-module">
 <summary style="padding-left:20px"><a class="doc-nav-module" href="pages/15-package-management-sh.html" target="docframe">15-package-management.sh</a></summary>
@@ -648,6 +724,56 @@
 <a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-client-ad-client-leave.html" target="docframe">ad_client_leave</a>
 </details>
 <details class="doc-nav-node level-2 type-module">
+<summary style="padding-left:20px"><a class="doc-nav-module" href="pages/20-active-directory-sh.html" target="docframe">20-active-directory.sh</a></summary>
+<a class="doc-nav-section type-section" style="padding-left:30px" href="pages/20-active-directory-sh-active-directory-server.html" target="docframe">Active Directory server</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-server-samba-validate-realm.html" target="docframe">_samba_validate_realm</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-server-samba-validate-netbios.html" target="docframe">_samba_validate_netbios</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-server-samba-validate-account-name.html" target="docframe">_samba_validate_account_name</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-server-samba-default-gateway.html" target="docframe">_samba_default_gateway</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-server-samba-primary-ipv4.html" target="docframe">_samba_primary_ipv4</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-server-samba-prepare-fqdn.html" target="docframe">_samba_prepare_fqdn</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-server-samba-preflight-domain-provision.html" target="docframe">_samba_preflight_domain_provision</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-server-samba-domain-is-provisioned.html" target="docframe">_samba_domain_is_provisioned</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-server-samba-require-provisioned-domain.html" target="docframe">_samba_require_provisioned_domain</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-server-samba-configure-resolver.html" target="docframe">_samba_configure_resolver</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-server-samba-wait-for-dns-listener.html" target="docframe">_samba_wait_for_dns_listener</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-server-samba-set-dns-forwarder.html" target="docframe">_samba_set_dns_forwarder</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-server-samba-create-domain.html" target="docframe">samba_create_domain</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-server-samba-verify-domain.html" target="docframe">samba_verify_domain</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-server-samba-ad-status.html" target="docframe">samba_ad_status</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-server-samba-add-user.html" target="docframe">samba_add_user</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-server-samba-add-group.html" target="docframe">samba_add_group</a>
+<a class="doc-nav-section type-section" style="padding-left:30px" href="pages/20-active-directory-sh-server-account-management.html" target="docframe">Server account management</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-server-account-management-samba-list-users.html" target="docframe">samba_list_users</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-server-account-management-samba-list-groups.html" target="docframe">samba_list_groups</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-server-account-management-samba-ask-user.html" target="docframe">_samba_ask_user</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-server-account-management-samba-change-user-password.html" target="docframe">samba_change_user_password</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-server-account-management-samba-enable-user.html" target="docframe">samba_enable_user</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-server-account-management-samba-disable-user.html" target="docframe">samba_disable_user</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-server-account-management-samba-set-user-no-expiry.html" target="docframe">samba_set_user_no_expiry</a>
+<a class="doc-nav-section type-section" style="padding-left:30px" href="pages/20-active-directory-sh-account-management-launcher.html" target="docframe">Account management launcher</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-account-management-launcher-samba-manage-accounts.html" target="docframe">samba_manage_accounts</a>
+<a class="doc-nav-section type-section" style="padding-left:30px" href="pages/20-active-directory-sh-active-directory-dns-management.html" target="docframe">Active Directory DNS management</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-dns-management-samba-dns-context.html" target="docframe">_samba_dns_context</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-dns-management-samba-dns-list-zones.html" target="docframe">samba_dns_list_zones</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-dns-management-samba-dns-query-host.html" target="docframe">samba_dns_query_host</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-dns-management-samba-dns-add-host.html" target="docframe">samba_dns_add_host</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-dns-management-samba-dns-delete-host.html" target="docframe">samba_dns_delete_host</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-dns-management-samba-dns-register-dc.html" target="docframe">samba_dns_register_dc</a>
+<a class="doc-nav-section type-section" style="padding-left:30px" href="pages/20-active-directory-sh-active-directory-client.html" target="docframe">Active Directory client</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-client-ad-client-dns-record-matches.html" target="docframe">_ad_client_dns_record_matches</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-client-ad-client-change-dns-record.html" target="docframe">_ad_client_change_dns_record</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-client-ad-client-view-dns-record.html" target="docframe">ad_client_view_dns_record</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-client-ad-client-add-dns-record.html" target="docframe">ad_client_add_dns_record</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-client-ad-client-delete-dns-record.html" target="docframe">ad_client_delete_dns_record</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-client-ad-client-status.html" target="docframe">ad_client_status</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-client-ad-client-join.html" target="docframe">ad_client_join</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/20-active-directory-sh-active-directory-client-ad-client-leave.html" target="docframe">ad_client_leave</a>
+</details>
+<details class="doc-nav-node level-2 type-module">
+<summary style="padding-left:20px"><a class="doc-nav-module" href="pages/20-menu-active-directory-sh.html" target="docframe">20-menu-active-directory.sh</a></summary>
+</details>
+<details class="doc-nav-node level-2 type-module">
 <summary style="padding-left:20px"><a class="doc-nav-module" href="pages/25-samba-file-server-sh.html" target="docframe">25-samba-file-server.sh</a></summary>
 <a class="doc-nav-section type-section" style="padding-left:30px" href="pages/25-samba-file-server-sh-internal-helpers.html" target="docframe">Internal helpers</a>
 <a class="doc-nav-item type-function" style="padding-left:40px" href="pages/25-samba-file-server-sh-internal-helpers-samba-validate-share-name.html" target="docframe">_samba_validate_share_name</a>
@@ -676,11 +802,33 @@
 <a class="doc-nav-item type-function" style="padding-left:40px" href="pages/26-storage-sh-internal-helpers-storage-select-access-target.html" target="docframe">_storage_select_access_target</a>
 </details>
 <details class="doc-nav-node level-2 type-module">
+<summary style="padding-left:20px"><a class="doc-nav-module" href="pages/30-file-services-sh.html" target="docframe">30-file-services.sh</a></summary>
+</details>
+<details class="doc-nav-node level-2 type-module">
+<summary style="padding-left:20px"><a class="doc-nav-module" href="pages/30-menu-file-services-sh.html" target="docframe">30-menu-file-services.sh</a></summary>
+</details>
+<details class="doc-nav-node level-2 type-module">
+<summary style="padding-left:20px"><a class="doc-nav-module" href="pages/40-menu-solidgroundux-setup-sh.html" target="docframe">40-menu-solidgroundux-setup.sh</a></summary>
+</details>
+<details class="doc-nav-node level-2 type-module">
+<summary style="padding-left:20px"><a class="doc-nav-module" href="pages/40-solidgroundux-setup-sh.html" target="docframe">40-solidgroundux-setup.sh</a></summary>
+</details>
+<details class="doc-nav-node level-2 type-module">
+<summary style="padding-left:20px"><a class="doc-nav-module" href="pages/50-development-sh.html" target="docframe">50-development.sh</a></summary>
+</details>
+<details class="doc-nav-node level-2 type-module">
+<summary style="padding-left:20px"><a class="doc-nav-module" href="pages/50-menu-development-sh.html" target="docframe">50-menu-development.sh</a></summary>
+</details>
+<details class="doc-nav-node level-2 type-module">
+<summary style="padding-left:20px"><a class="doc-nav-module" href="pages/60-console-settings-sh.html" target="docframe">60-console-settings.sh</a></summary>
+</details>
+<details class="doc-nav-node level-2 type-module">
+<summary style="padding-left:20px"><a class="doc-nav-module" href="pages/60-menu-console-settings-sh.html" target="docframe">60-menu-console-settings.sh</a></summary>
+</details>
+<details class="doc-nav-node level-2 type-module">
 <summary style="padding-left:20px"><a class="doc-nav-module" href="pages/90-solidgroundux-sh.html" target="docframe">90-solidgroundux.sh</a></summary>
 <a class="doc-nav-section type-section" style="padding-left:30px" href="pages/90-solidgroundux-sh-solidgroundux-installation-actions.html" target="docframe">SolidGroundUX installation actions</a>
-<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/90-solidgroundux-sh-solidgroundux-installation-actions-install-solidgroundux.html" target="docframe">_install_solidgroundux</a>
-<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/90-solidgroundux-sh-solidgroundux-installation-actions-update-solidgroundux.html" target="docframe">_update_solidgroundux</a>
-<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/90-solidgroundux-sh-solidgroundux-installation-actions-uninstall-solidgroundux.html" target="docframe">_uninstall_solidgroundux</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/90-solidgroundux-sh-solidgroundux-installation-actions-release-manager.html" target="docframe">_release_manager</a>
 <a class="doc-nav-section type-section" style="padding-left:30px" href="pages/90-solidgroundux-sh-framework-diagnostics.html" target="docframe">Framework diagnostics</a>
 <a class="doc-nav-item type-function" style="padding-left:40px" href="pages/90-solidgroundux-sh-framework-diagnostics-framework-smoketest.html" target="docframe">_framework_smoketest</a>
 <a class="doc-nav-item type-function" style="padding-left:40px" href="pages/90-solidgroundux-sh-framework-diagnostics-framework-show-environment.html" target="docframe">_framework_show_environment</a>
@@ -717,9 +865,8 @@
 <a class="doc-nav-item type-function" style="padding-left:40px" href="pages/95-development-tools-sh-developer-tool-actions-exe-createworkspace.html" target="docframe">_exe_createworkspace</a>
 <a class="doc-nav-item type-function" style="padding-left:40px" href="pages/95-development-tools-sh-developer-tool-actions-exe-deployworkspace.html" target="docframe">_exe_deployworkspace</a>
 <a class="doc-nav-item type-function" style="padding-left:40px" href="pages/95-development-tools-sh-developer-tool-actions-exe-preparerelease.html" target="docframe">_exe_preparerelease</a>
-<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/95-development-tools-sh-developer-tool-actions-exe-metadata-editor.html" target="docframe">_exe_metadata_editor</a>
-<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/95-development-tools-sh-developer-tool-actions-exe-tar-it.html" target="docframe">_exe_tar_it</a>
-<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/95-development-tools-sh-developer-tool-actions-exe-un-tar-it.html" target="docframe">_exe_un_tar_it</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/95-development-tools-sh-developer-tool-actions-exe-createwrappers.html" target="docframe">_exe_createwrappers</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/95-development-tools-sh-developer-tool-actions-exe-generate-docs.html" target="docframe">_exe_generate_docs</a>
 </details>
 <details class="doc-nav-node level-2 type-module">
 <summary style="padding-left:20px"><a class="doc-nav-module" href="pages/prepare-template-sh.html" target="docframe">prepare-template.sh</a></summary>
@@ -854,6 +1001,7 @@
 <a class="doc-nav-item type-function" style="padding-left:60px" href="pages/sgnd-console-sh-module-loading-sgnd-console-load-modules.html" target="docframe">_sgnd_console_load_modules</a>
 <a class="doc-nav-section type-section" style="padding-left:50px" href="pages/sgnd-console-sh-script-execution.html" target="docframe">Script execution</a>
 <a class="doc-nav-item type-function" style="padding-left:60px" href="pages/sgnd-console-sh-script-execution-sgnd-flag-is-on.html" target="docframe">_sgnd_flag_is_on</a>
+<a class="doc-nav-item type-function" style="padding-left:60px" href="pages/sgnd-console-sh-script-execution-sgnd-console-set-role-awareness.html" target="docframe">_sgnd_console_set_role_awareness</a>
 <a class="doc-nav-item type-function" style="padding-left:60px" href="pages/sgnd-console-sh-script-execution-sgnd-console-open-shell.html" target="docframe">_sgnd_console_open_shell</a>
 <a class="doc-nav-item type-function" style="padding-left:60px" href="pages/sgnd-console-sh-script-execution-sgnd-console-toggle-access.html" target="docframe">_sgnd_console_toggle_access</a>
 <a class="doc-nav-section type-section" style="padding-left:50px" href="pages/sgnd-console-sh-console-loop.html" target="docframe">Console loop</a>
@@ -967,6 +1115,7 @@
 <a class="doc-nav-item type-function" style="padding-left:40px" href="pages/manage-users-n-groups-sh-discovery-and-selection-parse-selection.html" target="docframe">_parse_selection</a>
 <a class="doc-nav-item type-function" style="padding-left:40px" href="pages/manage-users-n-groups-sh-discovery-and-selection-select-items.html" target="docframe">_select_items</a>
 <a class="doc-nav-item type-function" style="padding-left:40px" href="pages/manage-users-n-groups-sh-discovery-and-selection-selected-names.html" target="docframe">_selected_names</a>
+<a class="doc-nav-item type-function" style="padding-left:40px" href="pages/manage-users-n-groups-sh-discovery-and-selection-show-current-selection.html" target="docframe">_show_current_selection</a>
 <a class="doc-nav-section type-section" style="padding-left:30px" href="pages/manage-users-n-groups-sh-information.html" target="docframe">Information</a>
 <a class="doc-nav-item type-function" style="padding-left:40px" href="pages/manage-users-n-groups-sh-information-show-user-info.html" target="docframe">_show_user_info</a>
 <a class="doc-nav-item type-function" style="padding-left:40px" href="pages/manage-users-n-groups-sh-information-show-group-info.html" target="docframe">_show_group_info</a>

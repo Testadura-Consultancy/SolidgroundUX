@@ -3,8 +3,8 @@
 # SolidGroundUX - Framework smoke tester
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2621814
+#   Version     : 1.9
+#   Build       : 2622203
 #   Checksum    : 5ed789d696116653a1d860fba97444857eba3190abcde4d1b9644a7e56f25b7c
 #   Source      : framework-smoketest-v3.sh
 #   Type        : script

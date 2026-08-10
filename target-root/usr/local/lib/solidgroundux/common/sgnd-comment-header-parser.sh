@@ -2,8 +2,8 @@
 # SolidGroundUX - Header Parser
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2621201
+#   Version     : 1.9
+#   Build       : 2622203
 #   Checksum    : 4b633e4824113cec8091d8cdb1749c4925f4093c1d5583aae631c77f2e32a666
 #   Source      : sgnd-comment-header-parser.sh
 #   Type        : library

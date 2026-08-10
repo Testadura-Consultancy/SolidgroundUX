@@ -2,8 +2,8 @@
 # SolidGroundUX - Default UI Style
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.8
-#   Build       : 2621122
+#   Version     : 1.9
+#   Build       : 2622203
 #   Checksum    : 3ce3248fa948d3ab90a440177fbce9c0544d875e944202aebe3611879f69e702
 #   Source      : default-ui-style.sh
 #   Type        : library

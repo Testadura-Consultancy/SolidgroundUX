@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# =====================================================================================
+# SolidGroundUX - Command Wrapper
+# -------------------------------------------------------------------------------------
+# Metadata:
+#   Version     : 1.0
+#   Build       : -
+#   Checksum    : -
+#   Source      : sgnd-create-wrappers
+#   Type        : wrapper
+#   Group       : Generated
+#   Purpose     : Launch a configured SolidGroundUX target beneath the application root.
+#
+# Description:
+#   Resolves the active SolidGroundUX configuration, preferring the invoking user's
+#   configuration over the system configuration, then launches SGND_WRAPPER_TARGET
+#   beneath SGND_APPLICATION_ROOT.
+#
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      : -
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
+# =====================================================================================
+
+set -uo pipefail
+
+SGND_WRAPPER_TARGET="usr/local/libexec/solidgroundux/create-wrappers.sh"
+
+cfg_home="$HOME"
+
+if [[ $EUID -eq 0 && -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]]; then
+    cfg_home="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
+fi
+
+cfg_user="$cfg_home/.config/solidgroundux/solidgroundux.cfg"
+cfg_sys="/etc/solidgroundux/solidgroundux.cfg"
+cfg=""
+
+if [[ -r "$cfg_user" ]]; then
+    cfg="$cfg_user"
+elif [[ -r "$cfg_sys" ]]; then
+    cfg="$cfg_sys"
+else
+    printf 'FATAL: No SolidGroundUX configuration found.\n' >&2
+    exit 126
+fi
+
+# shellcheck source=/dev/null
+source "$cfg"
+
+: "${SGND_APPLICATION_ROOT:=/}"
+
+if [[ "$SGND_APPLICATION_ROOT" == "/" ]]; then
+    target="/${SGND_WRAPPER_TARGET#/}"
+else
+    target="${SGND_APPLICATION_ROOT%/}/${SGND_WRAPPER_TARGET#/}"
+fi
+
+[[ -f "$target" ]] || {
+    printf 'FATAL: Wrapper target not found: %s\n' "$target" >&2
+    exit 127
+}
+
+exec bash "$target" "$@"
