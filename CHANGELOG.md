@@ -11,6 +11,10 @@ practical framework development.
 
 ### Added
 
+-   Generic executable title bars now include the executing script's own
+    canonical metadata Version and Build number when available, making
+    the active script revision immediately visible at runtime.
+
 -   Added `sgnd-definitions.sh` as the canonical source for
     SolidGroundUX framework identity, version/build information, default
     settings, framework registries, and core-library declarations.
@@ -319,6 +323,13 @@ practical framework development.
 
 ### Changed
 
+-   Release-manager identity now follows the same canonical per-script
+    metadata Version/Build mechanism as other SolidGroundUX executables;
+    framework identity remains independently defined by
+    `sgnd-definitions.sh`.
+-   First-install extraction and copy handling now accounts for target
+    directories that do not yet exist while preserving metadata of target
+    directories that already exist.
 -   First-time installation no longer requires manually creating the
     releases directory, copying release files into it, or extracting the
     framework archive directly into `/`.
@@ -353,6 +364,23 @@ practical framework development.
 
 ### Added
 
+-   Added `create-wrappers.sh`, an interactive development utility for
+    generating SolidGroundUX public command wrappers from executable scripts.
+-   Wrapper generation supports source directory, filename or shell-style
+    mask selection, configurable `bin` or `sbin` targets, and optional
+    overwrite of existing wrappers.
+-   Generated wrapper names conventionally use `sgnd-<scriptname>` without
+    the `.sh` extension, while preserving names that already begin with
+    `sgnd-`.
+-   Generated wrappers resolve user-specific and system-wide SolidGroundUX
+    configuration so they remain root-aware across development workspaces
+    and installed systems.
+-   Wrapper script targets are variable rather than tied to
+    `usr/local/libexec/solidgroundux`, allowing wrappers for executables
+    located elsewhere, including release-management tools.
+-   Added **Create wrappers** to the Management Console Development Tools
+    module.
+
 -   `prepare-release.sh` now verifies that executable scripts directly
     beneath `usr/local/libexec/solidgroundux` have corresponding public
     command wrappers in `usr/local/bin`.
@@ -365,6 +393,14 @@ practical framework development.
 
 ### Changed
 
+-   `prepare-release.sh` now supports selecting a historical release
+    manifest as the comparison baseline for generating the `.removed`
+    manifest, allowing removals to be based on a chosen prior release.
+-   Release preparation now writes the complete prepared release artifact
+    set to the release output directory, including the archive, manifest,
+    checksum files, removed manifest, and bundled `release-manager.sh`.
+-   Missing canonical source headers encountered during release preparation
+    are reported as warnings rather than aborting the release.
 -   Consolidated release metadata maintenance into `prepare-release.sh`,
     superseding the separate metadata-editor workflow.
 
