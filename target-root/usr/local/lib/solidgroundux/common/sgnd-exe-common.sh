@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : 4d76ba15c4afff37e1a6c690890a8fb74fda2bd0175f8cbabb9ebbcb2094a468
+#   Build       : 2622402
+#   Checksum    : 254c413e5afde12909b13ab5ecc05bc01143c88eb44028985977bd9d7eda5cc3
 #   Source      : sgnd-exe-common.sh
 #   Type        : library
 #   Group       : Executable Runtime
@@ -365,37 +365,59 @@ set -uo pipefail
         source "$bootstrap"
     }
 
-    # - Public API -------------------------------------------------------------------
-        # fn: sgnd_exe_start - Start a SolidGroundUX executable script
+# - Public API -------------------------------------------------------------------
+    # fn: sgnd_exe_start - Start a SolidGroundUX executable script
         # . Purpose
         #   Run the standard SolidGroundUX executable startup sequence.
         #
         # . Arguments
         #   $@  Command-line arguments passed from the executable main function.
         #
+        # . Options
+        #   --no-title
+        #       Suppress automatic rendering of the standard SolidGroundUX title bar.
+        #
         # . Behavior
+        #   - Processes executable-runtime options before framework bootstrap.
         #   - Loads the framework bootstrapper.
-        #   - Calls sgnd_bootstrap with the supplied arguments.
+        #   - Calls sgnd_bootstrap with the remaining supplied arguments.
         #   - Exits when bootstrap fails.
         #   - Handles built-in framework arguments.
         #   - Updates the run mode.
-        #   - Prints the standard title bar.
+        #   - Prints the standard title bar unless --no-title was supplied.
         #
         # . Side effects
         #   Sources framework libraries, initializes runtime globals, may exit for
-        #   info-only built-ins such as --help or --show.
+        #   info-only built-ins such as --help or --show, and may write the standard
+        #   title bar to the terminal.
         #
         # . Returns
         #   0 when startup completed and script-specific logic may continue.
         #
         # . Usage
         #   sgnd_exe_start "$@"
+        #   sgnd_exe_start --no-title "$@"
     sgnd_exe_start() {
         local rc=0
+        local show_title=1
+        local -a bootstrap_args=()
+
+        while (($#)); do
+            case "$1" in
+                --no-title)
+                    show_title=0
+                    shift
+                    ;;
+                *)
+                    bootstrap_args+=("$1")
+                    shift
+                    ;;
+            esac
+        done
 
         _load_bootstrapper || exit $?
 
-        sgnd_bootstrap "$@"
+        sgnd_bootstrap "${bootstrap_args[@]}"
         rc=$?
 
         saydebug "After bootstrap: $rc"
@@ -404,7 +426,8 @@ set -uo pipefail
         sgnd_builtinarg_handler
 
         sgnd_update_runmode
-        sgnd_print_titlebar
+
+        (( show_title )) && sgnd_print_titlebar
 
         return 0
     }

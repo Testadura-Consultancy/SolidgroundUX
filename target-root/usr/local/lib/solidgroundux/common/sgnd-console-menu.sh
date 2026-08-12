@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : 1308860bf2d5fc45675d01ebff9eb5663256ff75bd7223c5a6a464b2db38e8ba
+#   Build       : 2622402
+#   Checksum    : da6d11d5430b8a8b41032c0154720ae707ca27d4aaebbf3ab3cdb575ba7f87fd
 #   Source      : sgnd-console-menu.sh
 #   Group       : SolidGround Console
 #   Type        : library
@@ -1395,26 +1395,32 @@ set -uo pipefail
         # . Usage
         #   _sgnd_console_render_menu_title
     _sgnd_console_render_menu_title() {
-        #(( ! SGND_CLEAR_ONRENDER )) || 
-        clear
-        #printf '\033[2J\033[H'
+        sgnd_clear
 
         local width=80
         local pad=4
         local inner_width=0
         local hostname_text=""
+        local display_title="$SGND_CONSOLE_TITLE"
         local title_len=0
         local hostname_len=0
         local gap=1
         local title_style=""
         local hostname_style=""
-
+        
         width="$(sgnd_terminal_width)"
+
         inner_width=$(( width - (pad * 2) ))
         (( inner_width < 1 )) && inner_width=1
 
+        if [[ -n "${SGND_SCRIPT_VERSION:-}" && -n "${SGND_SCRIPT_BUILD:-}" ]]; then
+            display_title+=" (v. ${SGND_SCRIPT_VERSION}.${SGND_SCRIPT_BUILD})"
+        elif [[ -n "${SGND_SCRIPT_VERSION:-}" ]]; then
+            display_title+=" (v. ${SGND_SCRIPT_VERSION})"
+        fi
+
         hostname_text="$(hostname 2>/dev/null || printf '%s' "${HOSTNAME:-unknown}")"
-        title_len="$(sgnd_visible_length "$SGND_CONSOLE_TITLE")"
+        title_len="$(sgnd_visible_length "$display_title")"
         hostname_len="$(sgnd_visible_length "$hostname_text")"
         title_style="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")"
         hostname_style="$(sgnd_sgr "$SGND_UI_VALUE" "" "$FX_ITALIC")"
@@ -1425,11 +1431,11 @@ set -uo pipefail
             gap=$(( inner_width - title_len - hostname_len ))
             printf '%*s%s%s%s%*s%s%s%s\n' \
                 "$pad" "" \
-                "$title_style" "$SGND_CONSOLE_TITLE" "$RESET" \
+                "$title_style" "$display_title" "$RESET" \
                 "$gap" "" \
                 "$hostname_style" "$hostname_text" "$RESET"
         else
-            sgnd_print --pad "$pad" "${title_style}${SGND_CONSOLE_TITLE}${RESET}" --maxwidth "$width"
+            sgnd_print --pad "$pad" "${title_style}${display_title}${RESET}" --maxwidth "$width"
         fi
 
         sgnd_print --pad "$pad" "$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_ITALIC")${SGND_CONSOLE_DESC}" --maxwidth "$width"
@@ -1845,14 +1851,11 @@ set -uo pipefail
         local role_value="ON"
         local role_color="$SGND_UI_TEXT"
         local status_text=""
+        local legend_text=""
         local page_text=""
         local visible_len=0
         local left_pad=0
         local page_count="${#SGND_PAGE_STARTS[@]}"
-        local prev_text="<<"
-        local next_text=">>"
-        local prev_color="$DARK_GRAY"
-        local next_color="$DARK_GRAY"
         local -a status_segments=()
         local segment=""
 
@@ -1880,6 +1883,7 @@ set -uo pipefail
             role_color="$DARK_GRAY"
         fi
 
+        # Status text
         theme_value="$(_sgnd_console_theme_name | tr '[:lower:]' '[:upper:]')"
         status_segments+=(
             "$(_sgnd_console_statusword "MODE" "$mode_value" "$mode_color" "M")"
@@ -1897,24 +1901,38 @@ set -uo pipefail
 
         visible_len="$(sgnd_visible_length "$status_text")"
         left_pad=$(( (render_width - visible_len) / 2 ))
-        (( left_pad < pad )) && left_pad="$pad"
-
+        (( left_pad < pad )) && left_pad="$pad"   
+            
         sgnd_print_sectionheader --border "$DL_H" --maxwidth "$render_width"
         printf '%*s%s\n' "$left_pad" "" "$status_text"
 
-        (( SGND_PAGE_INDEX > 0 )) && prev_color="$SGND_UI_TEXT"
-        (( SGND_PAGE_INDEX + 1 < page_count )) && next_color="$SGND_UI_TEXT"
+        # Legend text
+        # Use the same value/italic style as the hostname in the title.
+        legend_text="$(sgnd_sgr "$SGND_UI_FAINT" "" "$FX_ITALIC")Shift+S Shell    Ctrl+R Restart    Q Quit    $KY_LEFT Previous page    $KY_RIGHT Next page${RESET}"
 
-        page_text="$(sgnd_sgr "$prev_color" "" "$FX_BOLD")${prev_text}${RESET}"
-        page_text+="$(sgnd_string_repeat ' ' 5)"
-        page_text+="$(sgnd_sgr "$SILVER" "" "$FX_ITALIC")Page $((SGND_PAGE_INDEX + 1))/$page_count${RESET}"
-        page_text+="$(sgnd_string_repeat ' ' 5)"
-        page_text+="$(sgnd_sgr "$next_color" "" "$FX_BOLD")${next_text}${RESET}"
+        # Page navigation
+        page_text="$(sgnd_sgr "$SGND_UI_BOLD" "" "$FX_ITALIC")Page $((SGND_PAGE_INDEX + 1))/$page_count${RESET}"
 
-        visible_len="$(sgnd_visible_length "$page_text")"
-        left_pad=$(( (render_width - visible_len) / 2 ))
-        (( left_pad < pad )) && left_pad="$pad"
-        printf '%*s%s\n' "$left_pad" "" "$page_text"
+        local legend_len=0
+        local page_len=0
+        local legend_pad=0
+        local page_gap=1
+
+        legend_len="$(sgnd_visible_length "$legend_text")"
+        page_len="$(sgnd_visible_length "$page_text")"
+
+        legend_pad=$(( (render_width - legend_len) / 2 ))
+        (( legend_pad < pad )) && legend_pad="$pad"
+
+        page_gap=$(( render_width - legend_pad - legend_len - page_len - 5))
+
+        (( page_gap < 1 )) && page_gap=1
+
+        printf '%*s%s%*s%s\n' \
+            "$legend_pad" "" \
+            "$legend_text" \
+            "$page_gap" "" \
+            "$page_text"
     }
 
 # --- Menu input and dispatch --------------------------------------------------------
@@ -1962,7 +1980,7 @@ set -uo pipefail
 
         # Framework-owned direct controls remain available without occupying
         # menu rows. Case is significant for forward/reverse cycling.
-        for key in M A c C f F t T R; do
+        for key in M A S c C f F t T R "CTRL-R"; do
             [[ -n "$out" ]] && out+=","
             out+="$key"
         done
@@ -2021,6 +2039,14 @@ set -uo pipefail
                 ;;
             A|a)
                 _sgnd_console_toggle_access
+                return $?
+                ;;
+            S)
+                _sgnd_console_open_shell
+                return $?
+                ;;
+            CTRL-R)
+                _sgnd_console_restart
                 return $?
                 ;;
             c)

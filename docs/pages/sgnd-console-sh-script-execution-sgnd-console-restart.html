@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Restart the current console instance</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Restart the current console instance</div>
+  <div class="doc-breadcrumb">SolidgroundUX / sgnd-console.sh / Script execution / _sgnd_console_restart</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Replace the current console process with a fresh instance using the</div>
+<div class="ct-functionbody">  current console invocation and run mode.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Reuses the original console arguments.</div>
+<div class="ct-functionbody">  - Preserves the current dry-run or commit state.</div>
+<div class="ct-functionbody">  - Replaces the current process with exec instead of nesting a new console.</div>
+<div class="ct-functionbody">  - Reloads framework libraries, console modules, and runtime state.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  Does not return after a successful restart; returns 1 when restart fails.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  _sgnd_console_restart</div>
+</main>
+</body>
+</html>

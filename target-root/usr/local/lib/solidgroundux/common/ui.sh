@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.9
-#   Build       : 2622216
-#   Checksum    : 747a29d53e7eabf741f90e4a59ea8dd905dea3fb7f5e509605c69bac283ba3be
+#   Build       : 2622402
+#   Checksum    : b1a6e6c3b8b7a8a7abdd56082dd1921fdce6e0f952e9d69b455284442b4f01b6
 #   Source      : ui.sh
 #   Type        : library
 #   Group       : UI
@@ -1399,6 +1399,9 @@ set -uo pipefail
         # . Behavior
         #   - Preserves the existing SolidGroundUX console/UI behavior.
         #   - Uses current palette, style, runtime, or logging globals where applicable.
+        #   - Automatically wraps text when its visible width exceeds the available width.
+        #   - --wrap 1 forces wrapping; --wrap 0 disables wrapping.
+        #   - Ignores ANSI escape sequences when measuring text for wrapping and justification.
         #
         # . options
         #   --text VALUE
@@ -1459,8 +1462,9 @@ set -uo pipefail
         (( avail < 1 )) && avail=1
 
         # --- Auto-wrap if not explicitly specified --------------------------------
+        # Use visible width so embedded ANSI styling does not influence layout.
         if (( ! wrap_explicit )); then
-            (( ${#text} > avail )) && wrap=1 || wrap=0
+            (( $(sgnd_visible_len "$text") > avail )) && wrap=1 || wrap=0
         fi
 
         # --- Render ---------------------------------------------------------------
@@ -1540,14 +1544,19 @@ set -uo pipefail
         (( pad < 0 )) && pad=0
         maxwidth="$(sgnd_render_width "$maxwidth")"
 
-        local textlen=${#text}
+        local textlen=0
+        local plain_text=""
 
         local avail=$(( maxwidth - (pad * 2) ))
         (( avail < 1 )) && avail=1
 
+        textlen="$(sgnd_visible_len "$text")"
+
+        # Avoid splitting an ANSI escape sequence when truncation is required.
         if (( textlen > avail )); then
-            text="${text:0:avail}"
-            textlen=${#text}
+            plain_text="$(sgnd_strip_ansi "$text")"
+            text="${plain_text:0:avail}"
+            textlen="${#text}"
         fi
 
         local leftspace=0 rightspace=0
@@ -1799,6 +1808,29 @@ set -uo pipefail
         fi
 
         return 0
+    }
+
+    # fn: sgnd_clear - Clear the visible terminal display
+        #     . Purpose
+        #       Clear the visible terminal display and move the cursor to the home position.
+        #
+        #     . Behavior
+        #       - Uses explicit ANSI escape sequences instead of the external clear command.
+        #       - Clears only the visible display.
+        #       - Leaves the terminal scrollback buffer unchanged.
+        #       - Moves the cursor to row 1, column 1.
+        #
+        #     . Output
+        #       Writes terminal control sequences to stdout.
+        #
+        #     . Returns
+        #       0 always.
+        #
+        #     . Usage
+        #       sgnd_clear
+    sgnd_clear() {
+        #printf '\033[H\033[2J\033[3J'
+        printf '\033[H\033[2J'
     }
  # -- Externals -------------------------------------------------------------------
  # -- Sample/demo renderers -------------------------------------------------------

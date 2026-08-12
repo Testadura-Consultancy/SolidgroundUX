@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.9
-#   Build       : 2622216
-#   Checksum    : 00251b52e2a444673761b60b22beabcf4d0bc928ea3923bac8bf21a756614248
+#   Build       : 2622402
+#   Checksum    : fb0a13564cfeaf3c71c5390ed9b0604b9d2e0fbbc9244336e89636022d144f55
 #   Source      : ui-ask.sh
 #   Type        : library
 #   Group       : UI
@@ -1295,6 +1295,7 @@ set -uo pipefail
         #   - Reads one character at a time from /dev/tty.
         #   - Recognizes left and right arrow escape sequences.
         #   - Maps left/right arrows to < and > when those are configured as instant choices.
+        #   - Maps Ctrl+R to the symbolic instant choice CTRL-R.
         #   - Accepts instant choices without requiring Enter.
         #   - Allows longer typed values to be completed with Enter.
         #   - Supports backspace editing for the typed buffer.
@@ -1423,6 +1424,8 @@ set -uo pipefail
                             continue
                             ;;
                     esac
+                elif [[ "$key" == $'\x12' ]]; then
+                    key="CTRL-R"
                 fi
 
                 case "$key" in

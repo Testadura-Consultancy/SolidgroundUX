@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : d336a40b311000303549d03d85c08df5d02bcb12d24114166f089ba3cef39bc5
+#   Build       : 2622402
+#   Checksum    : 7dc9c3e56936daf73eabbeac4268689146a6f1ec3041e3bdc3210ce309b9aaf8
 #   Source      : sgnd-console.sh
 #   Type        : script
 #   Group       : SolidGround Console
@@ -1245,6 +1245,42 @@ set -uo pipefail
         SGND_LAST_WAITSECS=0
     }
 
+    # fn: _sgnd_console_restart - Restart the current console instance
+        # . Purpose
+        #   Replace the current console process with a fresh instance using the
+        #   current console invocation and run mode.
+        #
+        # . Behavior
+        #   - Reuses the original console arguments.
+        #   - Preserves the current dry-run or commit state.
+        #   - Replaces the current process with exec instead of nesting a new console.
+        #   - Reloads framework libraries, console modules, and runtime state.
+        #
+        # . Returns
+        #   Does not return after a successful restart; returns 1 when restart fails.
+        #
+        # . Usage
+        #   _sgnd_console_restart
+    _sgnd_console_restart() {
+        local arg=""
+        local -a restart_args=()
+
+        for arg in "${SGND_CONSOLE_ORIGINAL_ARGS[@]}"; do
+            case "$arg" in
+                --dryrun) ;;
+                *) restart_args+=("$arg") ;;
+            esac
+        done
+
+        _sgnd_flag_is_on "${FLAG_DRYRUN:-0}" && restart_args=("--dryrun" "${restart_args[@]}")
+
+        saydebug "Restarting console: $SGND_SCRIPT_FILE ${restart_args[*]}"
+        exec "$SGND_SCRIPT_FILE" "${restart_args[@]}"
+
+        sayfail "Failed to restart console"
+        return 1
+    }
+
     # fn: _sgnd_console_toggle_access - Relaunch with the opposite privilege level
         # . Purpose
         #   Replace the current console process with a root or standard-access instance.
@@ -1346,7 +1382,7 @@ set -uo pipefail
             ask_choose_immediate \
                 --label "Select option" \
                 --choices "$valid_choices" \
-                --instantchoices "Q,<,>,M,A,c,C,f,F,t,T,R" \
+                --instantchoices "Q,<,>,M,A,S,c,C,f,F,t,T,R,CTRL-R" \
                 --displaychoices 0 \
                 --keepasking 1 \
                 --preservecase 1 \
@@ -1564,9 +1600,9 @@ set -uo pipefail
 
         # -- Startup
             _framework_locator || exit $?
-            sgnd_exe_start --autostate -- "$@"
+            sgnd_exe_start --no-title --autostate -- "$@"
 
-            sgnd_print
+            sgnd_clear
             sgnd_print "Initializing SolidGroundUX Management Console"
             sgnd_print "Initializing paths" 
             _sgnd_console_init_paths || exit $?
@@ -1596,7 +1632,7 @@ set -uo pipefail
         _sgnd_console_load_modules || exit $?
 
         if (( SGND_CLEAR_ONRENDER )); then
-            printf '\033[2J\033[H'
+            sgnd_clear
         fi
 
         if (( $(sgnd_dt_row_count SGND_ITEM_ROWS) == 0 )); then

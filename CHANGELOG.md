@@ -7,10 +7,18 @@ practical framework development.
 
 # Unreleased
 
-## SolidGround Framework
+## Build 1.9.2622402 - 2026-08-12
+### SolidGround Framework
 
-### Added
+#### Added
 
+-   Added `sgnd_clear` to the shared UI layer as the canonical screen-clear
+    primitive for SolidGroundUX console applications. It clears the visible
+    display and returns the cursor to the home position without attempting to
+    erase terminal scrollback.
+-   `sgnd_exe_start` now supports `--no-title`, allowing executable scripts such
+    as `sgnd-console.sh` to suppress the standard startup title bar when they
+    provide their own full-screen rendering.
 -   Generic executable title bars now include the executing script's own
     canonical metadata Version and Build number when available, making
     the active script revision immediately visible at runtime.
@@ -47,9 +55,21 @@ practical framework development.
 -   Added an interactive `ask_datetime` test to the framework smoke
     test.
 
-## SolidGround Management Console
+#### Changed
 
-### Added
+-   `sgnd_print` and `sgnd_print_single` now calculate alignment and automatic
+    wrapping from visible text width rather than raw string length, so embedded
+    ANSI styling no longer distorts centering and right/left justification.
+-   `sgnd_print` wrapping behavior is now explicit and consistent: long text
+    wraps automatically, `--wrap 1` forces wrapping, and `--wrap 0` disables it.
+-   The standard clear-screen sequence was deliberately reduced to cursor-home
+    plus visible-display erase (`ESC[H ESC[2J]`). Scrollback clearing is no
+    longer attempted because terminal emulators handle saved-line history and
+    resize reflow differently.
+
+### SolidGround Management Console
+
+#### Added
 
 -   Added persistent console-module visibility state, with module
     identifiers derived conventionally from module filenames.
@@ -66,8 +86,15 @@ practical framework development.
 -   Added transient console initialization/progress feedback while
     paths, configuration, built-in menu items, and console modules are
     loaded.
+-   Added `Shift+S` as an immediate shortcut for opening an interactive child
+    shell and returning to the Management Console on `exit`.
+-   Added `Ctrl+R` as an immediate console restart shortcut. Restart uses `exec`
+    so the current process is replaced rather than nested and preserves the
+    original console arguments and current dry-run/commit state.
+-   Added an on-screen shortcut legend for shell, restart, quit, and page
+    navigation controls.
 
-### Changed
+#### Changed
 
 -   Consolidated all package-related actions into a dedicated **Package
     Management** module, including base packages, Active Directory
@@ -84,15 +111,30 @@ practical framework development.
     and VS Code terminals.
 -   Increased the console menu label-width allowance to improve
     readability of longer package-management actions.
+-   Management Console startup now suppresses the generic executable title bar
+    and immediately takes ownership of screen rendering through its own title
+    and menu renderer.
+-   The Management Console title now shows the executing script Version and
+    Build alongside the console title.
+-   The footer layout now separates runtime state from direct actions and page
+    navigation, with the shortcut legend rendered as a centered secondary line
+    and page state kept visually distinct.
+-   Console legend/page text now uses the same value/italic visual treatment as
+    the hostname in the title bar.
 
-### Fixed
+#### Fixed
 
 -   Fixed the duplicate top separator line that could appear in the
     Management Console when running through SSH from PowerShell.
 -   Fixed hidden console groups still allowing their menu items to
     participate in pagination/rendering.
+-   Fixed console redraw width calculations so ANSI-styled text is measured by
+    visible width rather than escape-sequence byte length.
+-   Removed scrollback erase (`ESC[3J]`) from the shared clear-screen behavior
+    after confirming it can produce terminal-dependent stale/reflowed lines and
+    duplicate-looking top rows during redraws and resizes.
 
-### Changed
+#### Changed
 
 -   `sgnd-bootstrap-env.sh` now consumes canonical definitions from
     `sgnd-definitions.sh` while retaining responsibility for
@@ -101,9 +143,9 @@ practical framework development.
 -   `prepare-release.sh` now updates framework version/build identity in
     `sgnd-definitions.sh` instead of `sgnd-bootstrap-env.sh`.
 
-## Machine and Network Configuration
+### Machine and Network Configuration
 
-### Added
+#### Added
 
 -   Added DNS search-domain support to `set-identity.sh`.
 -   Added an interactive **DNS search domain** prompt alongside the DNS
@@ -114,7 +156,7 @@ practical framework development.
 -   Netplan generation now writes the configured DNS search domain
     beneath `nameservers.search`.
 
-### Changed
+#### Changed
 
 -   DNS configuration now treats the DNS server and DNS search domain as
     a single network identity concern.
@@ -124,9 +166,9 @@ practical framework development.
 -   Management console now has a state variable SGND_CONSOLE_ROLE_AWARE
     indicating if only role appropriate menus are displayed
     
-## Active Directory
+### Active Directory
 
-### Added
+#### Added
 
 -   Added an **Active Directory DNS** console group.
 -   Added DNS-zone listing and host-record query actions.
@@ -141,7 +183,7 @@ practical framework development.
 -   Domain join now configures the Active Directory DNS server and
     domain search suffix as part of client network configuration.
 
-### Changed
+#### Changed
 
 -   **Show membership** now provides a consolidated client-domain status
     overview, including:
@@ -162,7 +204,7 @@ practical framework development.
     helpers so the same implementation is available to both console
     actions and domain join.
 
-### Fixed
+#### Fixed
 
 -   Fixed joined clients retaining only a short hostname instead of the
     expected fully qualified domain name.
@@ -175,9 +217,9 @@ practical framework development.
 -   Fixed the domain-join chain so a successful join results in a
     resolvable AD DNS A record for the client.
 
-## Storage
+### Storage
 
-### Added
+#### Added
 
 -   Added storage provisioning for an unused disk, including:
     -   GPT partition creation.
@@ -208,7 +250,7 @@ practical framework development.
     -   `/srv/storage` -- `root:root`, mode `0755`.
     -   `/srv/storage/shares` -- `root:root`, mode `0770`.
 
-### Changed
+#### Changed
 
 -   **Show storage status** now reports:
     -   Mount source.
@@ -227,7 +269,7 @@ practical framework development.
 -   Storage configuration now performs `systemctl daemon-reload` after
     updating `/etc/fstab`.
 
-### Fixed
+#### Fixed
 
 -   Fixed storage mount detection incorrectly treating `/srv/storage` as
     mounted when it was only an ordinary directory on the root
@@ -237,9 +279,9 @@ practical framework development.
 -   Fixed storage provisioning stopping after filesystem creation
     without completing persistent mounting.
 
-## Samba File Server
+### Samba File Server
 
-### Added
+#### Added
 
 -   Added Samba file-server package installation.
 -   Added managed Samba share creation beneath `/srv/storage/shares`.
@@ -275,7 +317,7 @@ practical framework development.
     -   Restore default permissions.
     -   Validate selected shares.
 
-### Changed
+#### Changed
 
 -   Replaced the separate share-permission menu actions with a single
     **Manage shares** action.
@@ -286,9 +328,9 @@ practical framework development.
     while retaining installation, creation, removal, validation, and
     status actions.
 
-## Installation and Release Management
+### Installation and Release Management
 
-### Added
+#### Added
 
 -   Added the standalone `release-manager.sh` as the canonical
     SolidGroundUX installation and release-lifecycle tool, replacing the
@@ -321,7 +363,7 @@ practical framework development.
     updating, rolling back, reinstalling, and removing releases,
     including unattended and dry-run operation.
 
-### Changed
+#### Changed
 
 -   Release-manager identity now follows the same canonical per-script
     metadata Version/Build mechanism as other SolidGroundUX executables;
@@ -352,7 +394,20 @@ practical framework development.
     workflow and distinguish it from direct development deployment
     through `deploy-workspace.sh`.
 
-### Removed
+#### Fixed
+
+-   Fixed the fresh-machine bootstrap path so running `release-manager.sh` from
+    an extracted release package does not stop after installing the manager
+    itself: the bundled prepared release is admitted to the canonical
+    `releases/` location and installation continues from there.
+-   Fixed bootstrap handling so the release manager can relocate itself to
+    `/var/lib/solidgroundux/release-manager.sh` without losing access to the
+    release artifacts that accompanied the temporary bootstrap copy.
+-   Tightened first-run release discovery and staging so a release extracted in
+    a temporary directory follows the same validation and installation path as
+    later downloaded or archived releases.
+
+#### Removed
 
 -   The separate installer/updater/uninstaller architecture is
     superseded by `release-manager.sh`.
@@ -360,9 +415,9 @@ practical framework development.
     current-version marker; release and archive directories now provide
     the required state.
 
-## Development Tools
+### Development Tools
 
-### Added
+#### Added
 
 -   Added `create-wrappers.sh`, an interactive development utility for
     generating SolidGroundUX public command wrappers from executable scripts.
@@ -391,7 +446,7 @@ practical framework development.
     `target-root/usr/local/lib/solidgroundux/templates` and instantiates
     selected starter files from those workspace-local templates.
 
-### Changed
+#### Changed
 
 -   `prepare-release.sh` now supports selecting a historical release
     manifest as the comparison baseline for generating the `.removed`
@@ -464,6 +519,7 @@ practical framework development.
 
 -   Dry-run mode reports which executable permissions would be corrected
     without modifying the source tree.
+
 
 # Version 1.8 (Build 1.8.2621804)
 
