@@ -7,6 +7,29 @@ practical framework development.
 
 # Unreleased
 
+### SolidGround Framework
+
+#### Changed
+- `doc-generator` now derives clean-output behavior from the selected generation
+  mode: Full generation always cleans the output directory, while Selected and
+  Changed generation preserve existing output for incremental updates.
+
+- The default UI palette now uses explicit 24-bit truecolor values instead of
+  terminal-defined ANSI colors, providing consistent SolidGroundUX colors
+  independently of the terminal's configured color palette.
+
+- Width-aware UI primitives now delegate their default width policy to
+  `sgnd_render_width`; when `--maxwidth` is omitted they use the current
+  terminal width, while explicit widths remain honored and capped by
+  `SGND_MAX_RENDER_WIDTH`.
+
+- `sgnd_print_titlebar`, `sgnd_print_sectionheader`, `sgnd_print_fill`,
+  `sgnd_print`, `sgnd_print_single`, `sgnd_print_labeledvalue`, and
+  `sgnd_print_labeledmultivalue` now follow the same dynamic-width behavior.
+
+- `sgnd_print_sectionheader` now extends full-width or trailing borders to the
+  current console width by default unless an explicit `--maxwidth` is supplied.
+
 ## Build 1.9.2622402 - 2026-08-12
 ### SolidGround Framework
 

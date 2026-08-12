@@ -492,17 +492,18 @@ set -uo pipefail
             sgnd_print
             sgnd_print_sectionheader "Behavioral flags" --padend 0
             lw=45
-            (( ${FLAG_CLEAN_OUTPUT:-0} )) && default="Y" || default="N"
-            ask --label "Clean output directory before writing (Y/N)" \
-                --var reply \
-                --type flag \
-                --default "$default" \
-                --validate sgnd_validate_yesno \
-                --colorize both \
-                --labelclr "${CYAN}" \
-                --pad "$lp" \
-                --labelwidth "$lw"
-            [[ "${reply,,}" =~ ^(y|yes)$ ]] && FLAG_CLEAN_OUTPUT=1 || FLAG_CLEAN_OUTPUT=0
+
+            # Cleaning is determined by generation mode:
+            #   full             -> required, because the site is rebuilt from scratch
+            #   selected/changed -> disabled, because incremental generation depends on
+            #                       the existing output/cache
+            if [[ "$VAL_UPDATE_MODE" == "full" ]]; then
+                FLAG_CLEAN_OUTPUT=1
+                sgnd_print "    Clean output directory before writing : Yes (required for Full mode)"
+            else
+                FLAG_CLEAN_OUTPUT=0
+                sgnd_print "    Clean output directory before writing : No (required for incremental mode)"
+            fi
 
             (( ${FLAG_RECURSIVE_SCAN:-0} )) && default="Y" || default="N"
             ask --label "Scan recursively" \
@@ -1189,6 +1190,7 @@ set -uo pipefail
 
         case "$VAL_UPDATE_MODE" in
             full)
+                FLAG_CLEAN_OUTPUT=1
                 _iterate_files "$VAL_SRCDIR" "$VAL_FILESPEC" "$FLAG_RECURSIVE_SCAN" _parse_module_file
                 ;;
             selected)

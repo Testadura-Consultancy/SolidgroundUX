@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.9
-#   Build       : 2622402
-#   Checksum    : b1a6e6c3b8b7a8a7abdd56082dd1921fdce6e0f952e9d69b455284442b4f01b6
+#   Build       : 2622216
+#   Checksum    : 747a29d53e7eabf741f90e4a59ea8dd905dea3fb7f5e509605c69bac283ba3be
 #   Source      : ui.sh
 #   Type        : library
 #   Group       : UI
@@ -764,8 +764,8 @@ set -uo pipefail
         #
         # . Behavior
         #   - Uses an explicit requested width when supplied.
-        #   - Otherwise uses SGND_CONSOLE_WIDTH.
-        #   - Treats a configured or requested width of 0 as the available terminal width.
+        #   - Otherwise uses the current terminal width.
+        #   - Treats a requested width of 0 as the available terminal width.
         #   - Never exceeds the current terminal width or SGND_MAX_RENDER_WIDTH.
         #   - Enforces a minimum usable width of 10 columns.
         #
@@ -781,15 +781,20 @@ set -uo pipefail
         # . Usage
         #   sgnd_render_width "example"
     sgnd_render_width() {
-        local requested="${1:-${SGND_CONSOLE_WIDTH:-80}}"
+        local requested="${1-}"
         local terminal_width
         local max_render="${SGND_MAX_RENDER_WIDTH:-140}"
         local width
 
         terminal_width="$(sgnd_terminal_width)"
 
-        [[ "$requested" =~ ^[0-9]+$ ]] || requested="${SGND_CONSOLE_WIDTH:-80}"
-        [[ "$requested" =~ ^[0-9]+$ ]] || requested=80
+        # No explicit width means: use the current terminal width.
+        # A supplied width of 0 means the same thing.
+        if [[ -z "$requested" ]]; then
+            requested=0
+        fi
+
+        [[ "$requested" =~ ^[0-9]+$ ]] || requested=0
         [[ "$max_render" =~ ^[1-9][0-9]*$ ]] || max_render=140
 
         if (( requested == 0 )); then
@@ -843,7 +848,7 @@ set -uo pipefail
 
         local sep=":"
         local labelwidth=25
-        local maxwidth="${SGND_CONSOLE_WIDTH:-}"
+        local maxwidth=""
         local pad=0
         local labelclr="${SGND_UI_LABEL}"
         local valueclr="${SGND_UI_VALUE}"
@@ -978,7 +983,7 @@ set -uo pipefail
         local sep=":"
         local labelwidth=25
         local valuewidth=""
-        local maxwidth="${SGND_CONSOLE_WIDTH:-}"
+        local maxwidth=""
         local pad=0
         local labelclr="${SGND_UI_LABEL}"
         local valueclr="${SGND_UI_VALUE}"
@@ -1100,6 +1105,7 @@ set -uo pipefail
         # . Behavior
         #   - Preserves the existing SolidGroundUX console/UI behavior.
         #   - Uses current palette, style, runtime, or logging globals where applicable.
+        #   - Uses the current terminal width when --maxwidth is omitted.
         #
         # . options
         #   --left VALUE
@@ -1122,7 +1128,7 @@ set -uo pipefail
         #   sgnd_print_fill "example" "example-2"
     sgnd_print_fill() {
         local left="" right=""
-        local padleft=2 padright=1 maxwidth="${SGND_CONSOLE_WIDTH:-}"
+        local padleft=2 padright=1 maxwidth=""
         local fillchar=" "
         local leftclr="${SGND_UI_TEXT}"
         local rightclr=""
@@ -1228,7 +1234,7 @@ set -uo pipefail
         local border="${SGND_TITLE_BORDER:-$DL_H}"
         local borderclr="${SGND_TITLE_BORDERCLR:-$SGND_UI_BORDER}"
         local padleft=4
-        local maxwidth="${SGND_CONSOLE_WIDTH:-}"
+        local maxwidth=""
 
         # -- Parse options
         while [[ $# -gt 0 ]]; do
@@ -1319,7 +1325,7 @@ set -uo pipefail
         local borderclr="${SGND_SECTION_BORDERCLR:-$SGND_UI_BORDER}"
         local padleft=4
         local padend=1
-        local maxwidth="${SGND_CONSOLE_WIDTH:-}"
+        local maxwidth=""
    
         # -- Parse options
         while [[ $# -gt 0 ]]; do
@@ -1426,7 +1432,7 @@ set -uo pipefail
         local pad=0
         local rightmargin=0
         local justify="L"   # L = left, C = center, R = right
-        local maxwidth="${SGND_CONSOLE_WIDTH:-}"
+        local maxwidth=""
 
         # --- Parse options --------------------------------------------------------
         while [[ $# -gt 0 ]]; do
@@ -1519,7 +1525,7 @@ set -uo pipefail
         local textclr="${SGND_UI_TEXT:-}"
         local pad=0
         local justify="L"
-        local maxwidth="${SGND_CONSOLE_WIDTH:-}"
+        local maxwidth=""
 
         while [[ $# -gt 0 ]]; do
             case "$1" in

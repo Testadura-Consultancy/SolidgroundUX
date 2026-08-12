@@ -15,7 +15,7 @@
 #   SolidGroundUX UI layer.
 #
 #   The library:
-#     - Defines ANSI color variables for labels, input, and message types
+#     - Defines deterministic 24-bit RGB color variables for labels, input, and message types
 #     - Establishes consistent visual identity across console tools
 #     - Supplies defaults for UI modules such as ui.sh, ui-ask, and ui-say
 #     - Allows overriding by alternative palettes or user configuration
@@ -24,7 +24,7 @@
 #   - Centralize all color definitions in one place
 #   - Keep naming semantic (INFO, WARN, LABEL, INPUT, etc.)
 #   - Allow easy customization without touching rendering logic
-#   - Ensure readability across common terminal backgrounds
+#   - Ensure deterministic color rendering across truecolor-capable terminals
 #
 # Role in framework:
 #   - Default styling layer for all console rendering
@@ -91,136 +91,137 @@
         #   are resolved by the active palette when the style is sourced.
 # --- Foreground colors ---------------------------------------------------------------
   # Naming conventions:
-  #   DARK_*    : darker / muted variants (typically faint or lower-intensity)
-  #   *         : normal ANSI base colors
-  #   BRIGHT_*  : high-intensity colors using the 256-color palette
+  #   DARK_*    : darker / muted RGB variants
+  #   *         : normal RGB colors
+  #   BRIGHT_*  : brighter RGB variants
   #
   # Notes:
-  #   - Foreground colors use ANSI SGR codes 30–37 or 38;5;<n>
+  #   - Foreground colors use 24-bit SGR truecolor sequences: 38;2;R;G;B
+  #   - Color values are terminal-palette independent on truecolor-capable terminals
   #   - These MUST NOT be reused as background colors
   #   - Always terminate styled output with $RESET
 
 # var: style_foreground_dark_muted - Foreground: Dark / muted
       # Variables:
-      #   DARK_RED = $'\e[38;5;88m'
-      #   DARK_GREEN = $'\e[38;5;22m'
-      #   DARK_YELLOW = $'\e[38;5;94m'
-      #   DARK_BLUE = $'\e[38;5;18m'
-      #   DARK_MAGENTA = $'\e[38;5;90m'
-      #   DARK_CYAN = $'\e[38;5;23m'
-      #   DARK_WHITE = $'\e[38;5;250m'   # or drop DARK_WHITE entirely
-      #   DARK_GRAY = $'\e[38;5;240m'
-      #   DARK_ORANGE = $'\e[38;5;130m'
-      #   DARK_SILVER = $'\e[38;5;245m'
-      #   DARK_PURPLE = $'\e[38;5;55m'
-      #   DARK_TEAL = $'\e[38;5;29m'
-      #   DARK_PINK = $'\e[38;5;168m'
-      #   DARK_GOLD = $'\e[38;5;178m'
-      #   DARK_BROWN = $'\e[38;5;94m'
+      #   DARK_RED = $'\e[38;2;135;0;0m'
+      #   DARK_GREEN = $'\e[38;2;0;95;0m'
+      #   DARK_YELLOW = $'\e[38;2;135;95;0m'
+      #   DARK_BLUE = $'\e[38;2;0;0;135m'
+      #   DARK_MAGENTA = $'\e[38;2;135;0;135m'
+      #   DARK_CYAN = $'\e[38;2;0;95;95m'
+      #   DARK_WHITE = $'\e[38;2;188;188;188m'   # or drop DARK_WHITE entirely
+      #   DARK_GRAY = $'\e[38;2;88;88;88m'
+      #   DARK_ORANGE = $'\e[38;2;175;95;0m'
+      #   DARK_SILVER = $'\e[38;2;138;138;138m'
+      #   DARK_PURPLE = $'\e[38;2;95;0;175m'
+      #   DARK_TEAL = $'\e[38;2;0;135;95m'
+      #   DARK_PINK = $'\e[38;2;215;95;135m'
+      #   DARK_GOLD = $'\e[38;2;215;175;0m'
+      #   DARK_BROWN = $'\e[38;2;135;95;0m'
       #
       # Notes:
       #   Values are shown as assigned by this file. Referenced palette variables
       #   are resolved by the active palette when the style is sourced.
-  DARK_RED=$'\e[38;5;88m'
-  DARK_GREEN=$'\e[38;5;22m'
-  DARK_YELLOW=$'\e[38;5;94m'
-  DARK_BLUE=$'\e[38;5;18m' 
-  DARK_MAGENTA=$'\e[38;5;90m'
-  DARK_CYAN=$'\e[38;5;23m'
-  DARK_WHITE=$'\e[38;5;250m'   # or drop DARK_WHITE entirely
-  DARK_GRAY=$'\e[38;5;240m'
-  DARK_ORANGE=$'\e[38;5;130m'
-  DARK_SILVER=$'\e[38;5;245m'
-  DARK_PURPLE=$'\e[38;5;55m' 
-  DARK_TEAL=$'\e[38;5;29m' 
-  DARK_PINK=$'\e[38;5;168m'
-  DARK_GOLD=$'\e[38;5;178m'
-  DARK_BROWN=$'\e[38;5;94m'
+  DARK_RED=$'\e[38;2;135;0;0m'
+  DARK_GREEN=$'\e[38;2;0;95;0m'
+  DARK_YELLOW=$'\e[38;2;135;95;0m'
+  DARK_BLUE=$'\e[38;2;0;0;135m' 
+  DARK_MAGENTA=$'\e[38;2;135;0;135m'
+  DARK_CYAN=$'\e[38;2;0;95;95m'
+  DARK_WHITE=$'\e[38;2;188;188;188m'   # or drop DARK_WHITE entirely
+  DARK_GRAY=$'\e[38;2;88;88;88m'
+  DARK_ORANGE=$'\e[38;2;175;95;0m'
+  DARK_SILVER=$'\e[38;2;138;138;138m'
+  DARK_PURPLE=$'\e[38;2;95;0;175m' 
+  DARK_TEAL=$'\e[38;2;0;135;95m' 
+  DARK_PINK=$'\e[38;2;215;95;135m'
+  DARK_GOLD=$'\e[38;2;215;175;0m'
+  DARK_BROWN=$'\e[38;2;135;95;0m'
 
   # var: style_foreground_normal - Foreground: Normal
       # Variables:
-      #   BLACK = $'\e[0;30m'
-      #   RED = $'\e[0;31m'
-      #   GREEN = $'\e[0;32m'
-      #   YELLOW = $'\e[0;33m'
-      #   BLUE = $'\e[38;5;25m'
-      #   MAGENTA = $'\e[0;35m'
-      #   CYAN = $'\e[0;36m'
-      #   WHITE = $'\e[0;37m'
-      #   GRAY = $'\e[38;5;245m'
+      #   BLACK = $'\e[38;2;0;0;0m'
+      #   RED = $'\e[38;2;128;0;0m'
+      #   GREEN = $'\e[38;2;0;128;0m'
+      #   YELLOW = $'\e[38;2;128;128;0m'
+      #   BLUE = $'\e[38;2;0;95;175m'
+      #   MAGENTA = $'\e[38;2;128;0;128m'
+      #   CYAN = $'\e[38;2;0;128;128m'
+      #   WHITE = $'\e[38;2;192;192;192m'
+      #   GRAY = $'\e[38;2;138;138;138m'
       #   ORANGE = $'\e[0;38;5;208m'
       #   SILVER = $'\e[0;38;5;250m'
-      #   PURPLE = $'\e[38;5;93m'
-      #   TEAL = $'\e[38;5;37m'
-      #   PINK = $'\e[38;5;213m'
-      #   GOLD = $'\e[38;5;220m'
-      #   BROWN = $'\e[38;5;130m'
+      #   PURPLE = $'\e[38;2;135;0;255m'
+      #   TEAL = $'\e[38;2;0;175;175m'
+      #   PINK = $'\e[38;2;255;135;255m'
+      #   GOLD = $'\e[38;2;255;215;0m'
+      #   BROWN = $'\e[38;2;175;95;0m'
       #
       # Notes:
       #   Values are shown as assigned by this file. Referenced palette variables
       #   are resolved by the active palette when the style is sourced.
-  BLACK=$'\e[0;30m'
-  RED=$'\e[0;31m'
-  GREEN=$'\e[0;32m'
-  YELLOW=$'\e[0;33m'
-  BLUE=$'\e[38;5;25m'
-  MAGENTA=$'\e[0;35m'
-  CYAN=$'\e[0;36m'
-  WHITE=$'\e[0;37m'
-  GRAY=$'\e[38;5;245m'
+  BLACK=$'\e[38;2;0;0;0m'
+  RED=$'\e[38;2;128;0;0m'
+  GREEN=$'\e[38;2;0;128;0m'
+  YELLOW=$'\e[38;2;128;128;0m'
+  BLUE=$'\e[38;2;0;95;175m'
+  MAGENTA=$'\e[38;2;128;0;128m'
+  CYAN=$'\e[38;2;0;128;128m'
+  WHITE=$'\e[38;2;192;192;192m'
+  GRAY=$'\e[38;2;138;138;138m'
   ORANGE=$'\e[0;38;5;208m'
   SILVER=$'\e[0;38;5;250m'
-  PURPLE=$'\e[38;5;93m'         
-  TEAL=$'\e[38;5;37m'  
-  PINK=$'\e[38;5;213m' 
-  GOLD=$'\e[38;5;220m' 
-  BROWN=$'\e[38;5;130m'
+  PURPLE=$'\e[38;2;135;0;255m'         
+  TEAL=$'\e[38;2;0;175;175m'  
+  PINK=$'\e[38;2;255;135;255m' 
+  GOLD=$'\e[38;2;255;215;0m' 
+  BROWN=$'\e[38;2;175;95;0m'
 
   # var: style_foreground_bright - Foreground: Bright
       # . Purpose
       #   Document the variables assigned in this style section.
       #
       # Variables:
-      #   BRIGHT_RED = $'\e[38;5;196m'
-      #   BRIGHT_GREEN = $'\e[38;5;46m'
-      #   BRIGHT_YELLOW = $'\e[38;5;226m'
-      #   BRIGHT_BLUE = $'\e[38;5;39m'
-      #   BRIGHT_MAGENTA = $'\e[38;5;201m'
-      #   BRIGHT_CYAN = $'\e[38;5;51m'
-      #   BRIGHT_WHITE = $'\e[38;5;15m'
-      #   BRIGHT_ORANGE = $'\e[38;5;214m'
-      #   BRIGHT_PURPLE = $'\e[38;5;135m'
-      #   BRIGHT_TEAL = $'\e[38;5;49m'
-      #   BRIGHT_PINK = $'\e[38;5;219m'
-      #   BRIGHT_GOLD = $'\e[38;5;226m'
-      #   BRIGHT_BROWN = $'\e[38;5;172m'
+      #   BRIGHT_RED = $'\e[38;2;255;0;0m'
+      #   BRIGHT_GREEN = $'\e[38;2;0;255;0m'
+      #   BRIGHT_YELLOW = $'\e[38;2;255;255;0m'
+      #   BRIGHT_BLUE = $'\e[38;2;0;175;255m'
+      #   BRIGHT_MAGENTA = $'\e[38;2;255;0;255m'
+      #   BRIGHT_CYAN = $'\e[38;2;0;255;255m'
+      #   BRIGHT_WHITE = $'\e[38;2;255;255;255m'
+      #   BRIGHT_ORANGE = $'\e[38;2;255;175;0m'
+      #   BRIGHT_PURPLE = $'\e[38;2;175;95;255m'
+      #   BRIGHT_TEAL = $'\e[38;2;0;255;175m'
+      #   BRIGHT_PINK = $'\e[38;2;255;175;255m'
+      #   BRIGHT_GOLD = $'\e[38;2;255;255;0m'
+      #   BRIGHT_BROWN = $'\e[38;2;215;135;0m'
       #
       # Notes:
       #   Values are shown as assigned by this file. Referenced palette variables
       #   are resolved by the active palette when the style is sourced.
-  BRIGHT_RED=$'\e[38;5;196m'
-  BRIGHT_GREEN=$'\e[38;5;46m'
-  BRIGHT_YELLOW=$'\e[38;5;226m'
-  BRIGHT_BLUE=$'\e[38;5;39m'
-  BRIGHT_MAGENTA=$'\e[38;5;201m'
-  BRIGHT_CYAN=$'\e[38;5;51m'
-  BRIGHT_WHITE=$'\e[38;5;15m'
-  BRIGHT_ORANGE=$'\e[38;5;214m' 
-  BRIGHT_PURPLE=$'\e[38;5;135m'
-  BRIGHT_TEAL=$'\e[38;5;49m'
-  BRIGHT_PINK=$'\e[38;5;219m' 
-  BRIGHT_GOLD=$'\e[38;5;226m'  
-  BRIGHT_BROWN=$'\e[38;5;172m'
+  BRIGHT_RED=$'\e[38;2;255;0;0m'
+  BRIGHT_GREEN=$'\e[38;2;0;255;0m'
+  BRIGHT_YELLOW=$'\e[38;2;255;255;0m'
+  BRIGHT_BLUE=$'\e[38;2;0;175;255m'
+  BRIGHT_MAGENTA=$'\e[38;2;255;0;255m'
+  BRIGHT_CYAN=$'\e[38;2;0;255;255m'
+  BRIGHT_WHITE=$'\e[38;2;255;255;255m'
+  BRIGHT_ORANGE=$'\e[38;2;255;175;0m' 
+  BRIGHT_PURPLE=$'\e[38;2;175;95;255m'
+  BRIGHT_TEAL=$'\e[38;2;0;255;175m'
+  BRIGHT_PINK=$'\e[38;2;255;175;255m' 
+  BRIGHT_GOLD=$'\e[38;2;255;255;0m'  
+  BRIGHT_BROWN=$'\e[38;2;215;135;0m'
 
 
 # --- Background colors ---------------------------------------------------------------
   # Naming conventions:
-  #   BG_DARK_*    : darker / muted background shades
-  #   BG_*         : normal ANSI background colors
-  #   BG_BRIGHT_*  : high-intensity backgrounds using the 256-color palette
+  #   BG_DARK_*    : darker / muted RGB background shades
+  #   BG_*         : normal RGB background colors
+  #   BG_BRIGHT_*  : brighter RGB background variants
   #
   # Notes:
-  #   - Background colors use ANSI SGR codes 40–47 or 48;5;<n>
+  #   - Background colors use 24-bit SGR truecolor sequences: 48;2;R;G;B
   #   - Background colors are independent of foreground colors
   #   - Combine with foreground colors by concatenation:
   #       printf "%s%sText%s\n" "$BG_DARK_BLUE" "$BRIGHT_WHITE" "$RESET"
@@ -231,167 +232,167 @@
       #   Document the variables assigned in this style section.
       #
       # Variables:
-      #   BG_DARK_RED = $'\e[48;5;88m'
-      #   BG_DARK_GREEN = $'\e[48;5;22m'
-      #   BG_DARK_YELLOW = $'\e[48;5;94m'
-      #   BG_DARK_BLUE = $'\e[48;5;18m'
-      #   BG_DARK_MAGENTA = $'\e[48;5;90m'
-      #   BG_DARK_CYAN = $'\e[48;5;23m'
-      #   BG_DARK_WHITE = $'\e[48;5;250m'
-      #   BG_DARK_GRAY = $'\e[48;5;234m'
-      #   BG_DARK_ORANGE = $'\e[48;5;130m'
-      #   BG_DARK_SILVER = $'\e[48;5;245m'
-      #   BG_DARK_PURPLE = $'\e[48;5;55m'
-      #   BG_DARK_TEAL = $'\e[48;5;29m'
-      #   BG_DARK_PINK = $'\e[48;5;168m'
-      #   BG_DARK_GOLD = $'\e[48;5;178m'
-      #   BG_DARK_BROWN = $'\e[48;5;94m'
+      #   BG_DARK_RED = $'\e[48;2;135;0;0m'
+      #   BG_DARK_GREEN = $'\e[48;2;0;95;0m'
+      #   BG_DARK_YELLOW = $'\e[48;2;135;95;0m'
+      #   BG_DARK_BLUE = $'\e[48;2;0;0;135m'
+      #   BG_DARK_MAGENTA = $'\e[48;2;135;0;135m'
+      #   BG_DARK_CYAN = $'\e[48;2;0;95;95m'
+      #   BG_DARK_WHITE = $'\e[48;2;188;188;188m'
+      #   BG_DARK_GRAY = $'\e[48;2;28;28;28m'
+      #   BG_DARK_ORANGE = $'\e[48;2;175;95;0m'
+      #   BG_DARK_SILVER = $'\e[48;2;138;138;138m'
+      #   BG_DARK_PURPLE = $'\e[48;2;95;0;175m'
+      #   BG_DARK_TEAL = $'\e[48;2;0;135;95m'
+      #   BG_DARK_PINK = $'\e[48;2;215;95;135m'
+      #   BG_DARK_GOLD = $'\e[48;2;215;175;0m'
+      #   BG_DARK_BROWN = $'\e[48;2;135;95;0m'
       #
       # Notes:
       #   Values are shown as assigned by this file. Referenced palette variables
       #   are resolved by the active palette when the style is sourced.
-  BG_DARK_RED=$'\e[48;5;88m'
-  BG_DARK_GREEN=$'\e[48;5;22m'
-  BG_DARK_YELLOW=$'\e[48;5;94m'
-  BG_DARK_BLUE=$'\e[48;5;18m'
-  BG_DARK_MAGENTA=$'\e[48;5;90m'
-  BG_DARK_CYAN=$'\e[48;5;23m'
-  BG_DARK_WHITE=$'\e[48;5;250m'
-  BG_DARK_GRAY=$'\e[48;5;234m'
-  BG_DARK_ORANGE=$'\e[48;5;130m'
-  BG_DARK_SILVER=$'\e[48;5;245m'
-  BG_DARK_PURPLE=$'\e[48;5;55m'
-  BG_DARK_TEAL=$'\e[48;5;29m'
-  BG_DARK_PINK=$'\e[48;5;168m'
-  BG_DARK_GOLD=$'\e[48;5;178m'
-  BG_DARK_BROWN=$'\e[48;5;94m'
+  BG_DARK_RED=$'\e[48;2;135;0;0m'
+  BG_DARK_GREEN=$'\e[48;2;0;95;0m'
+  BG_DARK_YELLOW=$'\e[48;2;135;95;0m'
+  BG_DARK_BLUE=$'\e[48;2;0;0;135m'
+  BG_DARK_MAGENTA=$'\e[48;2;135;0;135m'
+  BG_DARK_CYAN=$'\e[48;2;0;95;95m'
+  BG_DARK_WHITE=$'\e[48;2;188;188;188m'
+  BG_DARK_GRAY=$'\e[48;2;28;28;28m'
+  BG_DARK_ORANGE=$'\e[48;2;175;95;0m'
+  BG_DARK_SILVER=$'\e[48;2;138;138;138m'
+  BG_DARK_PURPLE=$'\e[48;2;95;0;175m'
+  BG_DARK_TEAL=$'\e[48;2;0;135;95m'
+  BG_DARK_PINK=$'\e[48;2;215;95;135m'
+  BG_DARK_GOLD=$'\e[48;2;215;175;0m'
+  BG_DARK_BROWN=$'\e[48;2;135;95;0m'
 
   # var: style_background_normal - Background: Normal
       # . Purpose
       #   Document the variables assigned in this style section.
       #
       # Variables:
-      #   BG_BLACK = $'\e[40m'
-      #   BG_RED = $'\e[41m'
-      #   BG_GREEN = $'\e[42m'
-      #   BG_YELLOW = $'\e[43m'
-      #   BG_BLUE = $'\e[44m'
-      #   BG_MAGENTA = $'\e[45m'
-      #   BG_CYAN = $'\e[46m'
-      #   BG_WHITE = $'\e[47m'
-      #   BG_GRAY = $'\e[48;5;245m'
-      #   BG_ORANGE = $'\e[48;5;208m'
-      #   BG_SILVER = $'\e[48;5;250m'
-      #   BG_PURPLE = $'\e[48;5;93m'
-      #   BG_TEAL = $'\e[48;5;37m'
-      #   BG_PINK = $'\e[48;5;213m'
-      #   BG_GOLD = $'\e[48;5;220m'
-      #   BG_BROWN = $'\e[48;5;130m'
+      #   BG_BLACK = $'\e[48;2;0;0;0m'
+      #   BG_RED = $'\e[48;2;128;0;0m'
+      #   BG_GREEN = $'\e[48;2;0;128;0m'
+      #   BG_YELLOW = $'\e[48;2;128;128;0m'
+      #   BG_BLUE = $'\e[48;2;0;0;128m'
+      #   BG_MAGENTA = $'\e[48;2;128;0;128m'
+      #   BG_CYAN = $'\e[48;2;0;128;128m'
+      #   BG_WHITE = $'\e[48;2;192;192;192m'
+      #   BG_GRAY = $'\e[48;2;138;138;138m'
+      #   BG_ORANGE = $'\e[48;2;255;135;0m'
+      #   BG_SILVER = $'\e[48;2;188;188;188m'
+      #   BG_PURPLE = $'\e[48;2;135;0;255m'
+      #   BG_TEAL = $'\e[48;2;0;175;175m'
+      #   BG_PINK = $'\e[48;2;255;135;255m'
+      #   BG_GOLD = $'\e[48;2;255;215;0m'
+      #   BG_BROWN = $'\e[48;2;175;95;0m'
       #
       # Notes:
       #   Values are shown as assigned by this file. Referenced palette variables
       #   are resolved by the active palette when the style is sourced.
-  BG_BLACK=$'\e[40m'
-  BG_RED=$'\e[41m'
-  BG_GREEN=$'\e[42m'
-  BG_YELLOW=$'\e[43m'
-  BG_BLUE=$'\e[44m'
-  BG_MAGENTA=$'\e[45m'
-  BG_CYAN=$'\e[46m'
-  BG_WHITE=$'\e[47m'
-  BG_GRAY=$'\e[48;5;245m'
-  BG_ORANGE=$'\e[48;5;208m'
-  BG_SILVER=$'\e[48;5;250m'
-  BG_PURPLE=$'\e[48;5;93m'
-  BG_TEAL=$'\e[48;5;37m'
-  BG_PINK=$'\e[48;5;213m'
-  BG_GOLD=$'\e[48;5;220m'
-  BG_BROWN=$'\e[48;5;130m'
+  BG_BLACK=$'\e[48;2;0;0;0m'
+  BG_RED=$'\e[48;2;128;0;0m'
+  BG_GREEN=$'\e[48;2;0;128;0m'
+  BG_YELLOW=$'\e[48;2;128;128;0m'
+  BG_BLUE=$'\e[48;2;0;0;128m'
+  BG_MAGENTA=$'\e[48;2;128;0;128m'
+  BG_CYAN=$'\e[48;2;0;128;128m'
+  BG_WHITE=$'\e[48;2;192;192;192m'
+  BG_GRAY=$'\e[48;2;138;138;138m'
+  BG_ORANGE=$'\e[48;2;255;135;0m'
+  BG_SILVER=$'\e[48;2;188;188;188m'
+  BG_PURPLE=$'\e[48;2;135;0;255m'
+  BG_TEAL=$'\e[48;2;0;175;175m'
+  BG_PINK=$'\e[48;2;255;135;255m'
+  BG_GOLD=$'\e[48;2;255;215;0m'
+  BG_BROWN=$'\e[48;2;175;95;0m'
 
   # var: style_background_bright - Background: Bright
       # . Purpose
       #   Document the variables assigned in this style section.
       #
       # Variables:
-      #   BG_BRIGHT_RED = $'\e[48;5;196m'
-      #   BG_BRIGHT_GREEN = $'\e[48;5;46m'
-      #   BG_BRIGHT_YELLOW = $'\e[48;5;226m'
-      #   BG_BRIGHT_BLUE = $'\e[48;5;21m'
-      #   BG_BRIGHT_MAGENTA = $'\e[48;5;201m'
-      #   BG_BRIGHT_CYAN = $'\e[48;5;51m'
-      #   BG_BRIGHT_WHITE = $'\e[48;5;15m'
-      #   BG_BRIGHT_ORANGE = $'\e[48;5;214m'
-      #   BG_BRIGHT_PURPLE = $'\e[48;5;135m'
-      #   BG_BRIGHT_TEAL = $'\e[48;5;49m'
-      #   BG_BRIGHT_PINK = $'\e[48;5;219m'
-      #   BG_BRIGHT_GOLD = $'\e[48;5;226m'
-      #   BG_BRIGHT_BROWN = $'\e[48;5;172m'
+      #   BG_BRIGHT_RED = $'\e[48;2;255;0;0m'
+      #   BG_BRIGHT_GREEN = $'\e[48;2;0;255;0m'
+      #   BG_BRIGHT_YELLOW = $'\e[48;2;255;255;0m'
+      #   BG_BRIGHT_BLUE = $'\e[48;2;0;0;255m'
+      #   BG_BRIGHT_MAGENTA = $'\e[48;2;255;0;255m'
+      #   BG_BRIGHT_CYAN = $'\e[48;2;0;255;255m'
+      #   BG_BRIGHT_WHITE = $'\e[48;2;255;255;255m'
+      #   BG_BRIGHT_ORANGE = $'\e[48;2;255;175;0m'
+      #   BG_BRIGHT_PURPLE = $'\e[48;2;175;95;255m'
+      #   BG_BRIGHT_TEAL = $'\e[48;2;0;255;175m'
+      #   BG_BRIGHT_PINK = $'\e[48;2;255;175;255m'
+      #   BG_BRIGHT_GOLD = $'\e[48;2;255;255;0m'
+      #   BG_BRIGHT_BROWN = $'\e[48;2;215;135;0m'
       #
       # Notes:
       #   Values are shown as assigned by this file. Referenced palette variables
       #   are resolved by the active palette when the style is sourced.
-  BG_BRIGHT_RED=$'\e[48;5;196m'
-  BG_BRIGHT_GREEN=$'\e[48;5;46m'
-  BG_BRIGHT_YELLOW=$'\e[48;5;226m'
-  BG_BRIGHT_BLUE=$'\e[48;5;21m'
-  BG_BRIGHT_MAGENTA=$'\e[48;5;201m'
-  BG_BRIGHT_CYAN=$'\e[48;5;51m'
-  BG_BRIGHT_WHITE=$'\e[48;5;15m'
-  BG_BRIGHT_ORANGE=$'\e[48;5;214m'
-  BG_BRIGHT_PURPLE=$'\e[48;5;135m'
-  BG_BRIGHT_TEAL=$'\e[48;5;49m'
-  BG_BRIGHT_PINK=$'\e[48;5;219m'
-  BG_BRIGHT_GOLD=$'\e[48;5;226m'
-  BG_BRIGHT_BROWN=$'\e[48;5;172m'
+  BG_BRIGHT_RED=$'\e[48;2;255;0;0m'
+  BG_BRIGHT_GREEN=$'\e[48;2;0;255;0m'
+  BG_BRIGHT_YELLOW=$'\e[48;2;255;255;0m'
+  BG_BRIGHT_BLUE=$'\e[48;2;0;0;255m'
+  BG_BRIGHT_MAGENTA=$'\e[48;2;255;0;255m'
+  BG_BRIGHT_CYAN=$'\e[48;2;0;255;255m'
+  BG_BRIGHT_WHITE=$'\e[48;2;255;255;255m'
+  BG_BRIGHT_ORANGE=$'\e[48;2;255;175;0m'
+  BG_BRIGHT_PURPLE=$'\e[48;2;175;95;255m'
+  BG_BRIGHT_TEAL=$'\e[48;2;0;255;175m'
+  BG_BRIGHT_PINK=$'\e[48;2;255;175;255m'
+  BG_BRIGHT_GOLD=$'\e[48;2;255;255;0m'
+  BG_BRIGHT_BROWN=$'\e[48;2;215;135;0m'
 
     # var: palette_testadura_brand - Testadura brand colors
         # . Purpose
         #   Define the official Testadura corporate brand colors.
         #
         # Variables:
-        #   TD_MAROON = $'\e[38;5;88m'
-        #   TD_GOLD   = $'\e[38;5;178m'
-        #   TD_SILVER = $'\e[38;5;250m'
-        #   TD_WHITE  = $'\e[38;5;15m'
+        #   TD_MAROON = $'\e[38;2;135;0;0m'
+        #   TD_GOLD   = $'\e[38;2;215;175;0m'
+        #   TD_SILVER = $'\e[38;2;188;188;188m'
+        #   TD_WHITE  = $'\e[38;2;255;255;255m'
         #
         # Notes:
         #   These colors represent the Testadura visual identity and are intended
         #   for use by Testadura themes and branding.
 
-    TD_MAROON=$'\e[38;5;88m'
-    TD_DARK_MAROON=$'\e[38;5;52m'
+    TD_MAROON=$'\e[38;2;135;0;0m'
+    TD_DARK_MAROON=$'\e[38;2;95;0;0m'
 
-    TD_GOLD=$'\e[38;5;178m'
-    TD_DARK_GOLD=$'\e[38;5;136m'
+    TD_GOLD=$'\e[38;2;215;175;0m'
+    TD_DARK_GOLD=$'\e[38;2;175;135;0m'
 
-    TD_SILVER=$'\e[38;5;250m'
-    TD_DARK_SILVER=$'\e[38;5;244m'
+    TD_SILVER=$'\e[38;2;188;188;188m'
+    TD_DARK_SILVER=$'\e[38;2;128;128;128m'
 
-    TD_WHITE=$'\e[38;5;15m'
+    TD_WHITE=$'\e[38;2;255;255;255m'
 
     # var: palette_solidground_brand - SolidGround brand colors
         # . Purpose
         #   Define the SolidGround product brand colors.
         #
         # Variables:
-        #   SGND_BLUE   = $'\e[38;5;19m'
-        #   SGND_GREEN  = $'\e[38;5;34m'
-        #   SGND_RED    = $'\e[38;5;124m'
-        #   SGND_GOLD   = $'\e[38;5;178m'
+        #   SGND_BLUE   = $'\e[38;2;0;0;175m'
+        #   SGND_GREEN  = $'\e[38;2;0;175;0m'
+        #   SGND_RED    = $'\e[38;2;175;0;0m'
+        #   SGND_GOLD   = $'\e[38;2;215;175;0m'
         #
         # Notes:
         #   These colors are sampled from the official SolidGround logo and may
         #   be used by themes, documentation and marketing materials.
 
-    SGND_BLUE=$'\e[38;5;19m'
-    SGND_DARK_BLUE=$'\e[38;5;18m'
+    SGND_BLUE=$'\e[38;2;0;0;175m'
+    SGND_DARK_BLUE=$'\e[38;2;0;0;135m'
 
-    SGND_GREEN=$'\e[38;5;34m'
-    SGND_DARK_GREEN=$'\e[38;5;22m'
+    SGND_GREEN=$'\e[38;2;0;175;0m'
+    SGND_DARK_GREEN=$'\e[38;2;0;95;0m'
 
-    SGND_RED=$'\e[38;5;124m'
-    SGND_DARK_RED=$'\e[38;5;88m'
+    SGND_RED=$'\e[38;2;175;0;0m'
+    SGND_DARK_RED=$'\e[38;2;135;0;0m'
 
-    SGND_GOLD=$'\e[38;5;178m'
-    SGND_DARK_GOLD=$'\e[38;5;136m'
+    SGND_GOLD=$'\e[38;2;215;175;0m'
+    SGND_DARK_GOLD=$'\e[38;2;175;135;0m'
 

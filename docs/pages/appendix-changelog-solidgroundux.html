@@ -16,8 +16,9 @@
 <p class="ct-documentbody">All notable changes to SolidGroundUX are documented in this file.</p>
 <p class="ct-documentbody">The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.</p>
 <h2 class="ct-L1Sectionheader">Unreleased</h2>
-<h3 class="ct-L2Sectionheader">SolidGround Framework</h3>
-<h4 class="ct-L3Sectionheader">Added</h4>
+<h3 class="ct-L2Sectionheader">Build 1.9.2622402 - 2026-08-12</h3>
+<h4 class="ct-L3Sectionheader">SolidGround Framework</h4>
+<h5 class="ct-L3Sectionheader">Added</h5>
 <ul>
 <li>Added `sgnd_clear` to the shared UI layer as the canonical screen-clear</li>
 <p class="ct-documentbody">primitive for SolidGroundUX console applications. It clears the visible display and returns the cursor to the home position without attempting to erase terminal scrollback.</p>
@@ -56,7 +57,7 @@
 <li>Added an interactive `ask_datetime` test to the framework smoke</li>
 <p class="ct-documentbody">test.</p>
 </ul>
-<h4 class="ct-L3Sectionheader">Changed</h4>
+<h5 class="ct-L3Sectionheader">Changed</h5>
 <ul>
 <li>`sgnd_print` and `sgnd_print_single` now calculate alignment and automatic</li>
 <p class="ct-documentbody">wrapping from visible text width rather than raw string length, so embedded ANSI styling no longer distorts centering and right/left justification.</p>
@@ -65,8 +66,8 @@
 <li>The standard clear-screen sequence was deliberately reduced to cursor-home</li>
 <p class="ct-documentbody">plus visible-display erase (`ESC[H ESC[2J]`). Scrollback clearing is no longer attempted because terminal emulators handle saved-line history and resize reflow differently.</p>
 </ul>
-<h3 class="ct-L2Sectionheader">SolidGround Management Console</h3>
-<h4 class="ct-L3Sectionheader">Added</h4>
+<h4 class="ct-L3Sectionheader">SolidGround Management Console</h4>
+<h5 class="ct-L3Sectionheader">Added</h5>
 <ul>
 <li>Added persistent console-module visibility state, with module</li>
 <p class="ct-documentbody">identifiers derived conventionally from module filenames.</p>
@@ -85,7 +86,7 @@
 <li>Added an on-screen shortcut legend for shell, restart, quit, and page</li>
 <p class="ct-documentbody">navigation controls.</p>
 </ul>
-<h4 class="ct-L3Sectionheader">Changed</h4>
+<h5 class="ct-L3Sectionheader">Changed</h5>
 <ul>
 <li>Consolidated all package-related actions into a dedicated **Package</li>
 <p class="ct-documentbody">Management** module, including base packages, Active Directory server/client packages, Samba File Server, XRDP, and Docker.</p>
@@ -106,7 +107,7 @@
 <li>Console legend/page text now uses the same value/italic visual treatment as</li>
 <p class="ct-documentbody">the hostname in the title bar.</p>
 </ul>
-<h4 class="ct-L3Sectionheader">Fixed</h4>
+<h5 class="ct-L3Sectionheader">Fixed</h5>
 <ul>
 <li>Fixed the duplicate top separator line that could appear in the</li>
 <p class="ct-documentbody">Management Console when running through SSH from PowerShell.</p>
@@ -117,15 +118,15 @@
 <li>Removed scrollback erase (`ESC[3J]`) from the shared clear-screen behavior</li>
 <p class="ct-documentbody">after confirming it can produce terminal-dependent stale/reflowed lines and duplicate-looking top rows during redraws and resizes.</p>
 </ul>
-<h4 class="ct-L3Sectionheader">Changed</h4>
+<h5 class="ct-L3Sectionheader">Changed</h5>
 <ul>
 <li>`sgnd-bootstrap-env.sh` now consumes canonical definitions from</li>
 <p class="ct-documentbody">`sgnd-definitions.sh` while retaining responsibility for runtime-derived paths, rebasing, user resolution, and directory construction.</p>
 <li>`prepare-release.sh` now updates framework version/build identity in</li>
 <p class="ct-documentbody">`sgnd-definitions.sh` instead of `sgnd-bootstrap-env.sh`.</p>
 </ul>
-<h3 class="ct-L2Sectionheader">Machine and Network Configuration</h3>
-<h4 class="ct-L3Sectionheader">Added</h4>
+<h4 class="ct-L3Sectionheader">Machine and Network Configuration</h4>
+<h5 class="ct-L3Sectionheader">Added</h5>
 <ul>
 <li>Added DNS search-domain support to `set-identity.sh`.</li>
 <li>Added an interactive **DNS search domain** prompt alongside the DNS</li>
@@ -136,7 +137,7 @@
 <li>Netplan generation now writes the configured DNS search domain</li>
 <p class="ct-documentbody">beneath `nameservers.search`.</p>
 </ul>
-<h4 class="ct-L3Sectionheader">Changed</h4>
+<h5 class="ct-L3Sectionheader">Changed</h5>
 <ul>
 <li>DNS configuration now treats the DNS server and DNS search domain as</li>
 <p class="ct-documentbody">a single network identity concern.</p>
@@ -145,8 +146,8 @@
 <li>Management console now has a state variable SGND_CONSOLE_ROLE_AWARE</li>
 <p class="ct-documentbody">indicating if only role appropriate menus are displayed</p>
 </ul>
-<h3 class="ct-L2Sectionheader">Active Directory</h3>
-<h4 class="ct-L3Sectionheader">Added</h4>
+<h4 class="ct-L3Sectionheader">Active Directory</h4>
+<h5 class="ct-L3Sectionheader">Added</h5>
 <ul>
 <li>Added an **Active Directory DNS** console group.</li>
 <li>Added DNS-zone listing and host-record query actions.</li>
@@ -161,7 +162,7 @@
 <li>Domain join now configures the Active Directory DNS server and</li>
 <p class="ct-documentbody">domain search suffix as part of client network configuration.</p>
 </ul>
-<h4 class="ct-L3Sectionheader">Changed</h4>
+<h5 class="ct-L3Sectionheader">Changed</h5>
 <ul>
 <li>**Show membership** now provides a consolidated client-domain status</li>
 <p class="ct-documentbody">overview, including:</p>
@@ -181,7 +182,7 @@
 <li>DNS host-record creation and deletion use shared non-interactive</li>
 <p class="ct-documentbody">helpers so the same implementation is available to both console actions and domain join.</p>
 </ul>
-<h4 class="ct-L3Sectionheader">Fixed</h4>
+<h5 class="ct-L3Sectionheader">Fixed</h5>
 <ul>
 <li>Fixed joined clients retaining only a short hostname instead of the</li>
 <p class="ct-documentbody">expected fully qualified domain name.</p>
@@ -194,8 +195,8 @@
 <li>Fixed the domain-join chain so a successful join results in a</li>
 <p class="ct-documentbody">resolvable AD DNS A record for the client.</p>
 </ul>
-<h3 class="ct-L2Sectionheader">Storage</h3>
-<h4 class="ct-L3Sectionheader">Added</h4>
+<h4 class="ct-L3Sectionheader">Storage</h4>
+<h5 class="ct-L3Sectionheader">Added</h5>
 <ul>
 <li>Added storage provisioning for an unused disk, including:</li>
 <li>GPT partition creation.</li>
@@ -226,7 +227,7 @@
 <li>`/srv/storage` -- `root:root`, mode `0755`.</li>
 <li>`/srv/storage/shares` -- `root:root`, mode `0770`.</li>
 </ul>
-<h4 class="ct-L3Sectionheader">Changed</h4>
+<h5 class="ct-L3Sectionheader">Changed</h5>
 <ul>
 <li>**Show storage status** now reports:</li>
 <li>Mount source.</li>
@@ -245,7 +246,7 @@
 <li>Storage configuration now performs `systemctl daemon-reload` after</li>
 <p class="ct-documentbody">updating `/etc/fstab`.</p>
 </ul>
-<h4 class="ct-L3Sectionheader">Fixed</h4>
+<h5 class="ct-L3Sectionheader">Fixed</h5>
 <ul>
 <li>Fixed storage mount detection incorrectly treating `/srv/storage` as</li>
 <p class="ct-documentbody">mounted when it was only an ordinary directory on the root filesystem.</p>
@@ -254,8 +255,8 @@
 <li>Fixed storage provisioning stopping after filesystem creation</li>
 <p class="ct-documentbody">without completing persistent mounting.</p>
 </ul>
-<h3 class="ct-L2Sectionheader">Samba File Server</h3>
-<h4 class="ct-L3Sectionheader">Added</h4>
+<h4 class="ct-L3Sectionheader">Samba File Server</h4>
+<h5 class="ct-L3Sectionheader">Added</h5>
 <ul>
 <li>Added Samba file-server package installation.</li>
 <li>Added managed Samba share creation beneath `/srv/storage/shares`.</li>
@@ -291,7 +292,7 @@
 <li>Restore default permissions.</li>
 <li>Validate selected shares.</li>
 </ul>
-<h4 class="ct-L3Sectionheader">Changed</h4>
+<h5 class="ct-L3Sectionheader">Changed</h5>
 <ul>
 <li>Replaced the separate share-permission menu actions with a single</li>
 <p class="ct-documentbody">**Manage shares** action.</p>
@@ -300,8 +301,8 @@
 <li>The Samba module now delegates detailed share-management workflows</li>
 <p class="ct-documentbody">while retaining installation, creation, removal, validation, and status actions.</p>
 </ul>
-<h3 class="ct-L2Sectionheader">Installation and Release Management</h3>
-<h4 class="ct-L3Sectionheader">Added</h4>
+<h4 class="ct-L3Sectionheader">Installation and Release Management</h4>
+<h5 class="ct-L3Sectionheader">Added</h5>
 <ul>
 <li>Added the standalone `release-manager.sh` as the canonical</li>
 <p class="ct-documentbody">SolidGroundUX installation and release-lifecycle tool, replacing the separate install, update, and uninstall workflow.</p>
@@ -330,7 +331,7 @@
 <li>Added command-line operations for checking, downloading, installing,</li>
 <p class="ct-documentbody">updating, rolling back, reinstalling, and removing releases, including unattended and dry-run operation.</p>
 </ul>
-<h4 class="ct-L3Sectionheader">Changed</h4>
+<h5 class="ct-L3Sectionheader">Changed</h5>
 <ul>
 <li>Release-manager identity now follows the same canonical per-script</li>
 <p class="ct-documentbody">metadata Version/Build mechanism as other SolidGroundUX executables; framework identity remains independently defined by `sgnd-definitions.sh`.</p>
@@ -351,7 +352,7 @@
 <li>Updated deployment and installation documentation to describe the</li>
 <p class="ct-documentbody">new `prepare-release.sh` → release artifacts → `release-manager.sh` workflow and distinguish it from direct development deployment through `deploy-workspace.sh`.</p>
 </ul>
-<h4 class="ct-L3Sectionheader">Fixed</h4>
+<h5 class="ct-L3Sectionheader">Fixed</h5>
 <ul>
 <li>Fixed the fresh-machine bootstrap path so running `release-manager.sh` from</li>
 <p class="ct-documentbody">an extracted release package does not stop after installing the manager itself: the bundled prepared release is admitted to the canonical `releases/` location and installation continues from there.</p>
@@ -360,15 +361,15 @@
 <li>Tightened first-run release discovery and staging so a release extracted in</li>
 <p class="ct-documentbody">a temporary directory follows the same validation and installation path as later downloaded or archived releases.</p>
 </ul>
-<h4 class="ct-L3Sectionheader">Removed</h4>
+<h5 class="ct-L3Sectionheader">Removed</h5>
 <ul>
 <li>The separate installer/updater/uninstaller architecture is</li>
 <p class="ct-documentbody">superseded by `release-manager.sh`.</p>
 <li>Removed the requirement for installation metadata or a separate</li>
 <p class="ct-documentbody">current-version marker; release and archive directories now provide the required state.</p>
 </ul>
-<h3 class="ct-L2Sectionheader">Development Tools</h3>
-<h4 class="ct-L3Sectionheader">Added</h4>
+<h4 class="ct-L3Sectionheader">Development Tools</h4>
+<h5 class="ct-L3Sectionheader">Added</h5>
 <ul>
 <li>Added `create-wrappers.sh`, an interactive development utility for</li>
 <p class="ct-documentbody">generating SolidGroundUX public command wrappers from executable scripts.</p>
@@ -391,7 +392,7 @@
 <li>`create-workspace.sh` now copies the canonical SolidGroundUX</li>
 <p class="ct-documentbody">template set into the workspace under `target-root/usr/local/lib/solidgroundux/templates` and instantiates selected starter files from those workspace-local templates.</p>
 </ul>
-<h4 class="ct-L3Sectionheader">Changed</h4>
+<h5 class="ct-L3Sectionheader">Changed</h5>
 <ul>
 <li>`prepare-release.sh` now supports selecting a historical release</li>
 <p class="ct-documentbody">manifest as the comparison baseline for generating the `.removed` manifest, allowing removals to be based on a chosen prior release.</p>
