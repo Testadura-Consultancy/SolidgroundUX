@@ -20,8 +20,11 @@ practical framework development.
 
 - Width-aware UI primitives now delegate their default width policy to
   `sgnd_render_width`; when `--maxwidth` is omitted they use the current
-  terminal width, while explicit widths remain honored and capped by
-  `SGND_MAX_RENDER_WIDTH`.
+  terminal width, while explicit widths remain honored.
+
+- `SGND_MAX_RENDER_WIDTH` is now an optional global render cap: when unset or
+  set to `0`, UI primitives may use the full terminal width; positive values
+  continue to enforce an explicit maximum.
 
 - `sgnd_print_titlebar`, `sgnd_print_sectionheader`, `sgnd_print_fill`,
   `sgnd_print`, `sgnd_print_single`, `sgnd_print_labeledvalue`, and
@@ -45,6 +48,31 @@ practical framework development.
 
 - The `Q` legend is now context-aware: `Quit` is shown in the root console and `Back`
   in submenus.
+
+- Role-awareness state is now persisted immediately through the existing
+  console state file, so nested consoles and submenus inherit the current
+  `SGND_CONSOLE_ROLE_AWARE` setting without requiring process-variable
+  propagation.
+
+- Role-dependent menu visibility is now evaluated dynamically from the current
+  machine package state instead of being fixed when console modules are first
+  loaded. Newly installed roles therefore become available on the next menu
+  redraw without restarting the console.
+
+- Role-backed console groups now declare their required packages in the menu
+  model, allowing the same runtime filtering mechanism to be reused for Active
+  Directory, Active Directory client, and Samba file-server functionality.
+
+#### Repaired
+- Fixed submenu consoles reverting to role-aware mode after ROLE had been
+  switched off in the parent console.
+
+- Fixed newly installed role packages not exposing their corresponding menu
+  groups until the Management Console was restarted.
+
+- The Samba Active Directory package installation now explicitly includes
+  `samba-common-bin`, ensuring the required `samba-tool` command is installed
+  as a direct dependency of the SolidGroundUX AD-server role.
 
 ## Build 1.9.2622402 - 2026-08-12
 ### SolidGround Framework
