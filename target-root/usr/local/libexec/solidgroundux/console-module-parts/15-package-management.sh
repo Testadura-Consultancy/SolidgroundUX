@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : e7323d74be199954cc797517ed667375d73c9699a3114e609a1be54819541d2e
+#   Build       : 2622600
+#   Checksum    : a93001e6a11cd895043313491cf92a397adccc2f974e109915d5afd94515f26a
 #   Source      : 15-package-management.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -258,7 +258,8 @@ set -uo pipefail
         sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y \
             bind9-dnsutils \
             krb5-user \
-            samba-ad-dc || return 1
+            samba-ad-dc \
+            samba-common-bin || return 1
 
         sayinfo "Preparing Samba services for AD/DC provisioning."
         sudo systemctl disable --now smbd.service nmbd.service winbind.service 2>/dev/null || true

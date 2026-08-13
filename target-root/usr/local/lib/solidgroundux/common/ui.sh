@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.9
-#   Build       : 2622403
-#   Checksum    : 89783cacf741f0f1be3711c6c74369e24eb3a93eb03a6fd9b582ba9d92a89787
+#   Build       : 2622600
+#   Checksum    : 1d21f664eff3974a790359342a8592e7018029210315d9dcc1681a207f37619e
 #   Source      : ui.sh
 #   Type        : library
 #   Group       : UI
@@ -766,11 +766,20 @@ set -uo pipefail
         #   - Uses an explicit requested width when supplied.
         #   - Otherwise uses the current terminal width.
         #   - Treats a requested width of 0 as the available terminal width.
-        #   - Never exceeds the current terminal width or SGND_MAX_RENDER_WIDTH.
-        #   - Enforces a minimum usable width of 10 columns.
+        #   - Never exceeds the current terminal width.
+        #   - Applies SGND_MAX_RENDER_WIDTH only when it is greater than 0.
+        #   - Treats an unset or zero SGND_MAX_RENDER_WIDTH as no global render cap.
+        #   - Enforces a minimum usable width of 10 columns where the terminal permits.
         #
         # . Arguments
         #   $1  REQUESTED_WIDTH (optional)
+        #       Requested render width.
+        #       Empty or 0 uses the current terminal width.
+        #
+        # Inputs (globals):
+        #   SGND_MAX_RENDER_WIDTH
+        #       Optional global render-width cap.
+        #       Unset or 0 disables the global cap.
         #
         # . Output
         #   Writes the resolved width to stdout.
@@ -779,23 +788,22 @@ set -uo pipefail
         #   0 always.
         #
         # . Usage
-        #   sgnd_render_width "example"
+        #   sgnd_render_width
+        #   sgnd_render_width 120
     sgnd_render_width() {
         local requested="${1-}"
         local terminal_width
-        local max_render="${SGND_MAX_RENDER_WIDTH:-140}"
+        local max_render="${SGND_MAX_RENDER_WIDTH:-0}"
         local width
 
         terminal_width="$(sgnd_terminal_width)"
 
-        # No explicit width means: use the current terminal width.
-        # A supplied width of 0 means the same thing.
-        if [[ -z "$requested" ]]; then
-            requested=0
-        fi
-
+        # No explicit width, or an explicit width of 0, means:
+        # use the full currently available terminal width.
         [[ "$requested" =~ ^[0-9]+$ ]] || requested=0
-        [[ "$max_render" =~ ^[1-9][0-9]*$ ]] || max_render=140
+
+        # A global maximum of 0 means that no artificial render cap is applied.
+        [[ "$max_render" =~ ^[0-9]+$ ]] || max_render=0
 
         if (( requested == 0 )); then
             width="$terminal_width"
@@ -803,18 +811,28 @@ set -uo pipefail
             width="$requested"
         fi
 
+        # Rendering must never exceed the actual terminal width.
         (( width > terminal_width )) && width="$terminal_width"
-        (( width > max_render )) && width="$max_render"
 
-        # Prefer at least 10 columns, but never violate the terminal or render cap.
+        # Apply the optional global render cap only when explicitly configured.
+        if (( max_render > 0 && width > max_render )); then
+            width="$max_render"
+        fi
+
+        # Prefer at least 10 columns, without exceeding the physical terminal width
+        # or an explicitly configured global render cap.
         if (( width < 10 )); then
             width=10
             (( width > terminal_width )) && width="$terminal_width"
-            (( width > max_render )) && width="$max_render"
+
+            if (( max_render > 0 && width > max_render )); then
+                width="$max_render"
+            fi
         fi
 
         printf '%s\n' "$width"
     }
+
     # fn: sgnd_print_labeledvalue - Print labeledvalue
         # . Purpose
         #   Print a formatted label/value row.

@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : dec6a6d7c5c8a1370a3be8569f0ea8a2d8b55f8ef13afbdf19c11bd685dcb052
+#   Build       : 2622600
+#   Checksum    : ebd7526be775c1f42fd8bad6ff3dd4478c355f2ed2c6ac8c2d71c5e6f1f13abd
 #   Source      : 25-samba-file-server.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -528,16 +528,14 @@ set -uo pipefail
     }
 
 # - Console registration ---------------------------------------------------------
-    SGND_SAMBA_FILE_VISIBLE=0
-    sgnd_console_package_installed "samba" && SGND_SAMBA_FILE_VISIBLE=1
-
     sgnd_console_register_group \
         "$SGND_SAMBA_FILE_MODULE_ID" \
         "$SGND_SAMBA_FILE_MODULE_NAME" \
         "$SGND_SAMBA_FILE_MODULE_DESC" \
         0 \
-        "$SGND_SAMBA_FILE_VISIBLE" \
-        250
+        1 \
+        250 \
+        "samba"
 
 
     sgnd_console_register_item \
@@ -600,4 +598,3 @@ set -uo pipefail
         35 \
         1
 
-unset SGND_SAMBA_FILE_VISIBLE

@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.9
-#   Build       : 2622511
-#   Checksum    : edeb87ba2b13602694c0122eff0418dafb42d59d457c3276a980d33e4f963564
+#   Build       : 2622600
+#   Checksum    : 5feab62a313945048a2fb6e7f9e9058b42b0a0c6523fee8ed42888d8922cb543
 #   Source      : sgnd-console.sh
 #   Type        : script
 #   Group       : SolidGround Console
@@ -333,7 +333,7 @@ set -uo pipefail
 
 # --- Local scripts and definitions ---------------------------------------------------
     # --- Console state
-        SGND_GROUP_SCHEMA="key|label|desc|source|builtin|visible|ord"
+        SGND_GROUP_SCHEMA="key|label|desc|source|builtin|visible|ord|rolepackages"
         declare -ag SGND_GROUP_ROWS=()
 
         SGND_ITEM_SCHEMA="key|group|label|handler|desc|source|builtin|waitsecs|visible"
@@ -364,7 +364,8 @@ set -uo pipefail
         SGND_CONSOLE_MODEL_CACHE_ITEM_COUNT=-1
         SGND_CONSOLE_MODEL_CACHE_GENERATION=0
         SGND_CONSOLE_GROUP_INDEX_CACHE_GENERATION=-1
-        SGND_CONSOLE_VISIBLE_INDEX_CACHE_GENERATION=-1
+        SGND_CONSOLE_VISIBLE_INDEX_CACHE_GENERATION=0
+        SGND_CONSOLE_VISIBLE_INDEX_CACHE_SIGNATURE=""
         SGND_CONSOLE_LABEL_WIDTH_CACHE_GENERATION=-1
         SGND_CONSOLE_LABEL_WIDTH_CACHE_VALUE=0
         declare -ag SGND_GROUP_CACHE_KEY=()
@@ -372,6 +373,7 @@ set -uo pipefail
         declare -ag SGND_GROUP_CACHE_BUILTIN=()
         declare -ag SGND_GROUP_CACHE_VISIBLE=()
         declare -ag SGND_GROUP_CACHE_ORD=()
+        declare -ag SGND_GROUP_CACHE_ROLEPACKAGES=()
         declare -Ag SGND_GROUP_CACHE_INDEX_BY_KEY=()
         declare -ag SGND_ITEM_CACHE_KEY=()
         declare -ag SGND_ITEM_CACHE_GROUP=()
@@ -1161,9 +1163,9 @@ set -uo pipefail
         # . Behavior
         #   - Prompts for the desired role-awareness state.
         #   - Stores the result in SGND_CONSOLE_ROLE_AWARE.
-        #   - The value is persisted through sgnd-console state.
-        #   - Changes take effect on the next console start because role-aware
-        #     module registration has already completed in the current session.
+        #   - Persists SGND_CONSOLE_ROLE_AWARE immediately to sgnd-console state.
+        #   - Role-backed group visibility is evaluated at menu-render time, so
+        #     the change applies immediately in this console and child consoles.
         #
         # Outputs (globals):
         #   SGND_CONSOLE_ROLE_AWARE
@@ -1187,13 +1189,17 @@ set -uo pipefail
             NO)  SGND_CONSOLE_ROLE_AWARE=0 ;;
         esac
 
+        sgnd_state_save_keys SGND_CONSOLE_ROLE_AWARE || {
+            sayfail "Could not save role-awareness state."
+            return 1
+        }
+
         if _sgnd_flag_is_on "$SGND_CONSOLE_ROLE_AWARE"; then
             sayok "Role-aware console visibility enabled."
         else
             saywarning "Role-aware console visibility disabled."
         fi
 
-        sayinfo "The change will take effect after restarting the console."
         SGND_LAST_WAITSECS=0
         return 0
     }
@@ -1214,6 +1220,11 @@ set -uo pipefail
             SGND_CONSOLE_ROLE_AWARE=1
             sayok "Role-aware console visibility enabled."
         fi
+
+        sgnd_state_save_keys SGND_CONSOLE_ROLE_AWARE || {
+            sayfail "Could not save role-awareness state."
+            return 1
+        }
 
         SGND_LAST_WAITSECS=0
         return 0
@@ -1514,6 +1525,9 @@ set -uo pipefail
         #       0 = hidden, 1 = visible/enabled, 2 = visible/disabled.
         #   $6  ORD
         #       Sort/order weight.
+        #   $7  ROLEPACKAGES
+        #       Optional comma-separated Debian packages required when role
+        #       awareness is enabled. All listed packages must be installed.
         #
         # . Returns
         #   0 on success
@@ -1544,6 +1558,7 @@ set -uo pipefail
         local builtin="${4:-0}"
         local visible="${5:-1}"
         local ord="${6:-1000}"
+        local rolepackages="${7:-}"
         local source="${SGND_CURRENT_MODULE:-}"
 
         if sgnd_dt_has_row "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS key "$key"; then
@@ -1551,7 +1566,7 @@ set -uo pipefail
         fi
 
         sgnd_dt_append "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS \
-            "$key" "$label" "$desc" "$source" "$builtin" "$visible" "$ord" || {
+            "$key" "$label" "$desc" "$source" "$builtin" "$visible" "$ord" "$rolepackages" || {
             sayfail "Failed to register group: $key"
             return 1
         }

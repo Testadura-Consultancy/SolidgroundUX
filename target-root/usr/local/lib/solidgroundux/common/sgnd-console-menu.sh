@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.9
-#   Build       : 2622511
-#   Checksum    : fac9a97cb23f80ff75b95bffdecd2420eb9da4c137ca1d8ffae829a75a143f89
+#   Build       : 2622600
+#   Checksum    : c89bef61e480bebe88d9fc97c2cb219e6567c1fa8b3c45ff0abe0cb0b07be818
 #   Source      : sgnd-console-menu.sh
 #   Group       : SolidGround Console
 #   Type        : library
@@ -739,6 +739,7 @@ set -uo pipefail
         local builtin="0"
         local visible="1"
         local ord="1000"
+        local rolepackages=""
         local group=""
         local handler=""
         local waitsecs="15"
@@ -753,17 +754,19 @@ set -uo pipefail
         SGND_GROUP_CACHE_BUILTIN=()
         SGND_GROUP_CACHE_VISIBLE=()
         SGND_GROUP_CACHE_ORD=()
+        SGND_GROUP_CACHE_ROLEPACKAGES=()
         SGND_GROUP_CACHE_INDEX_BY_KEY=()
 
         for (( i=0; i<group_count; i++ )); do
             row="${SGND_GROUP_ROWS[$i]}"
-            IFS='|' read -r key label desc source builtin visible ord <<< "$row"
+            IFS='|' read -r key label desc source builtin visible ord rolepackages <<< "$row"
 
             SGND_GROUP_CACHE_KEY[$i]="$key"
             SGND_GROUP_CACHE_LABEL[$i]="$label"
             SGND_GROUP_CACHE_BUILTIN[$i]="${builtin:-0}"
             SGND_GROUP_CACHE_VISIBLE[$i]="${visible:-1}"
             SGND_GROUP_CACHE_ORD[$i]="${ord:-1000}"
+            SGND_GROUP_CACHE_ROLEPACKAGES[$i]="${rolepackages:-}"
             SGND_GROUP_CACHE_INDEX_BY_KEY["$key"]="$i"
         done
 
@@ -878,10 +881,6 @@ set -uo pipefail
     _sgnd_console_collect_visible_item_indexes() {
         _sgnd_console_refresh_model_cache
 
-        if (( SGND_CONSOLE_VISIBLE_INDEX_CACHE_GENERATION == SGND_CONSOLE_MODEL_CACHE_GENERATION )); then
-            return 0
-        fi
-
         local gi
         local ii
         local item_row_count=0
@@ -891,6 +890,11 @@ set -uo pipefail
         local item_group=""
         local item_builtin="0"
         local item_state="1"
+        local rolepackages=""
+        local rolepackage=""
+        local role_ok=1
+        local visible_signature=""
+        local -a role_packages=()
 
         SGND_VISIBLE_ITEM_INDEXES=()
 
@@ -903,6 +907,25 @@ set -uo pipefail
 
             group_state="${SGND_GROUP_CACHE_VISIBLE[$gi]}"
             (( group_state != 0 )) || continue
+
+            if _sgnd_flag_is_on "${SGND_CONSOLE_ROLE_AWARE:-1}"; then
+                rolepackages="${SGND_GROUP_CACHE_ROLEPACKAGES[$gi]:-}"
+                role_ok=1
+                role_packages=()
+
+                if [[ -n "$rolepackages" ]]; then
+                    IFS=',' read -r -a role_packages <<< "$rolepackages"
+                    for rolepackage in "${role_packages[@]}"; do
+                        rolepackage="$(sgnd_trim "$rolepackage")"
+                        [[ -n "$rolepackage" ]] || continue
+                        if ! sgnd_console_package_installed "$rolepackage"; then
+                            role_ok=0
+                            break
+                        fi
+                    done
+                    (( role_ok )) || continue
+                fi
+            fi
 
             group_key="${SGND_GROUP_CACHE_KEY[$gi]}"
 
@@ -922,7 +945,11 @@ set -uo pipefail
             done
         done
 
-        SGND_CONSOLE_VISIBLE_INDEX_CACHE_GENERATION="$SGND_CONSOLE_MODEL_CACHE_GENERATION"
+        visible_signature="${SGND_VISIBLE_ITEM_INDEXES[*]}"
+        if [[ "$visible_signature" != "$SGND_CONSOLE_VISIBLE_INDEX_CACHE_SIGNATURE" ]]; then
+            SGND_CONSOLE_VISIBLE_INDEX_CACHE_SIGNATURE="$visible_signature"
+            SGND_CONSOLE_VISIBLE_INDEX_CACHE_GENERATION=$(( SGND_CONSOLE_VISIBLE_INDEX_CACHE_GENERATION + 1 ))
+        fi
     }
     # fn: _sgnd_console_visible_item_count - Console visible item count
         # . Purpose

@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : f7b86f86053cc2bc6b530f86dc1911b5211ceca3d603cb3bec0665da93126e1e
+#   Build       : 2622600
+#   Checksum    : 327cafe4a3545f48ae89870993f65d8d7e97c1d447ea64615ea032b8a643bd9c
 #   Source      : 20-active-directory.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -2070,32 +2070,25 @@ set -uo pipefail
     }
 
 # - Console registration ---------------------------------------------------------
-    SGND_AD_SERVER_VISIBLE=0
-    SGND_AD_CLIENT_VISIBLE=0
-
-    sgnd_console_package_installed "samba-ad-dc" && SGND_AD_SERVER_VISIBLE=1
-    sgnd_console_package_installed "realmd" && sgnd_console_package_installed "sssd-ad" && SGND_AD_CLIENT_VISIBLE=1
-
-    sgnd_console_register_group "ad-server" "Active Directory Server" "Provision and inspect a Samba Active Directory Domain Controller" 0 "$SGND_AD_SERVER_VISIBLE" 200
+    sgnd_console_register_group "ad-server" "Active Directory Server" "Provision and inspect a Samba Active Directory Domain Controller" 0 1 200 "samba-ad-dc"
     sgnd_console_register_item "ad-domain" "ad-server" "Create domain" "samba_create_domain" "Provision a new Samba Active Directory domain" 0 5 1
     sgnd_console_register_item "ad-status" "ad-server" "Show AD status" "samba_ad_status" "Show service, DNS, Kerberos, and domain status" 0 15 1
     sgnd_console_register_item "ad-verify" "ad-server" "Verify AD domain" "samba_verify_domain" "Run active DNS, directory, database, and Kerberos verification" 0 15 1
 
-    sgnd_console_register_group "ad-dns" "Active Directory DNS" "Inspect and manage Samba Active Directory DNS records" 0 "$SGND_AD_SERVER_VISIBLE" 210
+    sgnd_console_register_group "ad-dns" "Active Directory DNS" "Inspect and manage Samba Active Directory DNS records" 0 1 210 "samba-ad-dc"
     sgnd_console_register_item "ad-dns-zones" "ad-dns" "List DNS zones" "samba_dns_list_zones" "List DNS zones hosted by the local Samba Active Directory server" 0 5 1
     sgnd_console_register_item "ad-dns-query" "ad-dns" "Query host record" "samba_dns_query_host" "Query an IPv4 host record in the Active Directory DNS zone" 0 5 1
     sgnd_console_register_item "ad-dns-add" "ad-dns" "Add host record" "samba_dns_add_host" "Add an IPv4 host record to the Active Directory DNS zone" 0 5 1
     sgnd_console_register_item "ad-dns-delete" "ad-dns" "Delete host record" "samba_dns_delete_host" "Delete an IPv4 host record from the Active Directory DNS zone" 0 5 1
     sgnd_console_register_item "ad-dns-register" "ad-dns" "Register DC DNS" "samba_dns_register_dc" "Re-run DNS registration for the local domain controller" 0 5 1
 
-    sgnd_console_register_group "ad-accounts" "AD Users and Groups" "Create and manage Active Directory users, groups, memberships, and share access" 0 "$SGND_AD_SERVER_VISIBLE" 220
+    sgnd_console_register_group "ad-accounts" "AD Users and Groups" "Create and manage Active Directory users, groups, memberships, and share access" 0 1 220 "samba-ad-dc"
     sgnd_console_register_item "ad-account-manage" "ad-accounts" "Manage users and groups" "samba_manage_accounts" "Open the interactive Active Directory account manager" 0 5 1
 
-    sgnd_console_register_group "ad-client" "Active Directory Client" "Join, leave, and inspect Active Directory client membership" 0 "$SGND_AD_CLIENT_VISIBLE" 230
+    sgnd_console_register_group "ad-client" "Active Directory Client" "Join, leave, and inspect Active Directory client membership" 0 1 230 "realmd,sssd-ad"
     sgnd_console_register_item "adc-join" "ad-client" "Join domain" "ad_client_join" "Join this computer to an Active Directory realm" 0 5 1
     sgnd_console_register_item "adc-dns-add" "ad-client" "Add client DNS record" "ad_client_add_dns_record" "Register this computer's IPv4 host record in Active Directory DNS" 0 5 1
     sgnd_console_register_item "adc-dns-delete" "ad-client" "Delete client DNS record" "ad_client_delete_dns_record" "Delete this computer's IPv4 host record from Active Directory DNS" 0 5 1
     sgnd_console_register_item "adc-leave" "ad-client" "Leave domain" "ad_client_leave" "Leave the current Active Directory realm" 0 5 1
     sgnd_console_register_item "adc-status" "ad-client" "Show membership" "ad_client_status" "Show current realm membership" 0 15 1
 
-unset SGND_AD_SERVER_VISIBLE SGND_AD_CLIENT_VISIBLE
