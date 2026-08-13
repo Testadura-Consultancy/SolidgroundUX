@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 1.9
 #   Build       : 2622403
-#   Checksum    : 27c1de43596eac0bf4ed6db1cb8841066827d93dc7b1c031d3036d21a8ab199e
+#   Checksum    : pending
 #   Source      : default-ui-palette.sh
 #   Type        : library
 #   Group       : Styles
@@ -109,7 +109,7 @@
       #   DARK_BLUE = $'\e[38;2;0;0;135m'
       #   DARK_MAGENTA = $'\e[38;2;135;0;135m'
       #   DARK_CYAN = $'\e[38;2;0;95;95m'
-      #   DARK_WHITE = $'\e[38;2;188;188;188m'   # or drop DARK_WHITE entirely
+      #   DARK_WHITE = $'\e[38;2;155;155;155m'   # or drop DARK_WHITE entirely
       #   DARK_GRAY = $'\e[38;2;88;88;88m'
       #   DARK_ORANGE = $'\e[38;2;175;95;0m'
       #   DARK_SILVER = $'\e[38;2;138;138;138m'
@@ -128,7 +128,7 @@
   DARK_BLUE=$'\e[38;2;0;0;135m' 
   DARK_MAGENTA=$'\e[38;2;135;0;135m'
   DARK_CYAN=$'\e[38;2;0;95;95m'
-  DARK_WHITE=$'\e[38;2;188;188;188m'   # or drop DARK_WHITE entirely
+  DARK_WHITE=$'\e[38;2;155;155;155m'   # or drop DARK_WHITE entirely
   DARK_GRAY=$'\e[38;2;88;88;88m'
   DARK_ORANGE=$'\e[38;2;175;95;0m'
   DARK_SILVER=$'\e[38;2;138;138;138m'
@@ -141,18 +141,18 @@
   # var: style_foreground_normal - Foreground: Normal
       # Variables:
       #   BLACK = $'\e[38;2;0;0;0m'
-      #   RED = $'\e[38;2;128;0;0m'
-      #   GREEN = $'\e[38;2;0;128;0m'
-      #   YELLOW = $'\e[38;2;128;128;0m'
-      #   BLUE = $'\e[38;2;0;95;175m'
+      #   RED = $'\e[38;2;190;45;45m'
+      #   GREEN = $'\e[38;2;0;190;70m'
+      #   YELLOW = $'\e[38;2;215;190;0m'
+      #   BLUE = $'\e[38;2;40;135;235m'
       #   MAGENTA = $'\e[38;2;128;0;128m'
-      #   CYAN = $'\e[38;2;0;128;128m'
+      #   CYAN = $'\e[38;2;0;190;210m'
       #   WHITE = $'\e[38;2;192;192;192m'
       #   GRAY = $'\e[38;2;138;138;138m'
-      #   ORANGE = $'\e[0;38;5;208m'
+      #   ORANGE = $'\e[38;2;255;145;0m'
       #   SILVER = $'\e[0;38;5;250m'
       #   PURPLE = $'\e[38;2;135;0;255m'
-      #   TEAL = $'\e[38;2;0;175;175m'
+      #   TEAL = $'\e[38;2;0;195;165m'
       #   PINK = $'\e[38;2;255;135;255m'
       #   GOLD = $'\e[38;2;255;215;0m'
       #   BROWN = $'\e[38;2;175;95;0m'
@@ -161,18 +161,18 @@
       #   Values are shown as assigned by this file. Referenced palette variables
       #   are resolved by the active palette when the style is sourced.
   BLACK=$'\e[38;2;0;0;0m'
-  RED=$'\e[38;2;128;0;0m'
-  GREEN=$'\e[38;2;0;128;0m'
-  YELLOW=$'\e[38;2;128;128;0m'
-  BLUE=$'\e[38;2;0;95;175m'
+  RED=$'\e[38;2;190;45;45m'
+  GREEN=$'\e[38;2;0;190;70m'
+  YELLOW=$'\e[38;2;215;190;0m'
+  BLUE=$'\e[38;2;40;135;235m'
   MAGENTA=$'\e[38;2;128;0;128m'
-  CYAN=$'\e[38;2;0;128;128m'
+  CYAN=$'\e[38;2;0;190;210m'
   WHITE=$'\e[38;2;192;192;192m'
   GRAY=$'\e[38;2;138;138;138m'
-  ORANGE=$'\e[0;38;5;208m'
+  ORANGE=$'\e[38;2;255;145;0m'
   SILVER=$'\e[0;38;5;250m'
   PURPLE=$'\e[38;2;135;0;255m'         
-  TEAL=$'\e[38;2;0;175;175m'  
+  TEAL=$'\e[38;2;0;195;165m'  
   PINK=$'\e[38;2;255;135;255m' 
   GOLD=$'\e[38;2;255;215;0m' 
   BROWN=$'\e[38;2;175;95;0m'
@@ -182,16 +182,16 @@
       #   Document the variables assigned in this style section.
       #
       # Variables:
-      #   BRIGHT_RED = $'\e[38;2;255;0;0m'
-      #   BRIGHT_GREEN = $'\e[38;2;0;255;0m'
-      #   BRIGHT_YELLOW = $'\e[38;2;255;255;0m'
-      #   BRIGHT_BLUE = $'\e[38;2;0;175;255m'
+      #   BRIGHT_RED = $'\e[38;2;255;70;70m'
+      #   BRIGHT_GREEN = $'\e[38;2;70;255;110m'
+      #   BRIGHT_YELLOW = $'\e[38;2;255;245;55m'
+      #   BRIGHT_BLUE = $'\e[38;2;80;190;255m'
       #   BRIGHT_MAGENTA = $'\e[38;2;255;0;255m'
-      #   BRIGHT_CYAN = $'\e[38;2;0;255;255m'
+      #   BRIGHT_CYAN = $'\e[38;2;70;255;255m'
       #   BRIGHT_WHITE = $'\e[38;2;255;255;255m'
-      #   BRIGHT_ORANGE = $'\e[38;2;255;175;0m'
+      #   BRIGHT_ORANGE = $'\e[38;2;255;190;45m'
       #   BRIGHT_PURPLE = $'\e[38;2;175;95;255m'
-      #   BRIGHT_TEAL = $'\e[38;2;0;255;175m'
+      #   BRIGHT_TEAL = $'\e[38;2;55;255;205m'
       #   BRIGHT_PINK = $'\e[38;2;255;175;255m'
       #   BRIGHT_GOLD = $'\e[38;2;255;255;0m'
       #   BRIGHT_BROWN = $'\e[38;2;215;135;0m'
@@ -199,16 +199,16 @@
       # Notes:
       #   Values are shown as assigned by this file. Referenced palette variables
       #   are resolved by the active palette when the style is sourced.
-  BRIGHT_RED=$'\e[38;2;255;0;0m'
-  BRIGHT_GREEN=$'\e[38;2;0;255;0m'
-  BRIGHT_YELLOW=$'\e[38;2;255;255;0m'
-  BRIGHT_BLUE=$'\e[38;2;0;175;255m'
+  BRIGHT_RED=$'\e[38;2;255;70;70m'
+  BRIGHT_GREEN=$'\e[38;2;70;255;110m'
+  BRIGHT_YELLOW=$'\e[38;2;255;245;55m'
+  BRIGHT_BLUE=$'\e[38;2;80;190;255m'
   BRIGHT_MAGENTA=$'\e[38;2;255;0;255m'
-  BRIGHT_CYAN=$'\e[38;2;0;255;255m'
+  BRIGHT_CYAN=$'\e[38;2;70;255;255m'
   BRIGHT_WHITE=$'\e[38;2;255;255;255m'
-  BRIGHT_ORANGE=$'\e[38;2;255;175;0m' 
+  BRIGHT_ORANGE=$'\e[38;2;255;190;45m' 
   BRIGHT_PURPLE=$'\e[38;2;175;95;255m'
-  BRIGHT_TEAL=$'\e[38;2;0;255;175m'
+  BRIGHT_TEAL=$'\e[38;2;55;255;205m'
   BRIGHT_PINK=$'\e[38;2;255;175;255m' 
   BRIGHT_GOLD=$'\e[38;2;255;255;0m'  
   BRIGHT_BROWN=$'\e[38;2;215;135;0m'

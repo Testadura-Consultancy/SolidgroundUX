@@ -395,7 +395,7 @@ set -uo pipefail
         SGND_CONSOLE_LAYOUT_CACHE_KEY=""
         SGND_PAGE_HAS_PREV=0
         SGND_PAGE_HAS_NEXT=0
-        : "${SGND_PAGE_MAX_ROWS:=15}"
+        : "${SGND_PAGE_MAX_ROWS:=25}"
             
     # --- Console paths ---------------------------------------------------------------
     # _sgnd_console_init_paths
@@ -450,7 +450,7 @@ set -uo pipefail
 
         : "${SGND_CONSOLE_TITLE:=${SGND_SCRIPT_TITLE}}"
         : "${SGND_CONSOLE_DESC:=${SGND_SCRIPT_DESC}}"
-        : "${SGND_PAGE_MAX_ROWS:=15}"
+        : "${SGND_PAGE_MAX_ROWS:=25}"
 
         if [[ -n "${VAL_TITLE:-}" ]]; then
             SGND_CONSOLE_TITLE="$VAL_TITLE"

@@ -683,6 +683,9 @@ set -uo pipefail
                 continue
             }
 
+            sgnd_print
+            sgnd_print_sectionheader ""
+            
             ask_dlg_autocontinue \
                 --seconds 15 \
                 --message "Select files and start deployment?" \
@@ -755,7 +758,8 @@ set -uo pipefail
             --label "Changed files" \
             --labelwidth 20 \
             --items "${SELECTED_PATHS[@]}"
-
+        sgnd_print
+        sgnd_print_sectionheader ""
         return 0
     }
 
@@ -795,7 +799,48 @@ set -uo pipefail
         }
 
         tar -C "$SRC_ROOT" -cf - -- "${SELECTED_PATHS[@]}" |
-            sudo -n "${receiver_args[@]}"
+            sudo "${receiver_args[@]}"
+    }
+
+    # fn: _ensure_remote_receiver_sudo - Ensure the remote receiver may run without a sudo password
+        # . Purpose
+        #   Create and validate a narrowly scoped sudoers rule for receive-files.sh
+        #   on the remote destination when the rule does not already exist.
+        #
+        # . Returns
+        #   0 when the sudoers rule already exists or was created successfully.
+        #   Non-zero when SSH, sudo, or sudoers validation fails.
+        #
+        # . Usage
+        #   _ensure_remote_receiver_sudo
+    _ensure_remote_receiver_sudo() {
+        local remote_user="${REMOTE_TARGET%@*}"
+        local sudoers_file="/etc/sudoers.d/solidgroundux-receiver"
+        local sudo_rule=""
+        local remote_setup=""
+
+        sudo_rule="$remote_user ALL=(root) NOPASSWD: $RECEIVER_PATH"
+
+        saywarning "Remote deployment may request your password up to three times:"
+        saywarning "  1. SSH authentication for receiver setup"
+        saywarning "  2. Remote sudo authentication if the sudoers rule must be created"
+        saywarning "  3. SSH authentication for the file transfer"
+
+        remote_setup="
+            if [[ ! -f $(_quote_remote_arg "$sudoers_file") ]]; then
+                printf '%s\n' $(_quote_remote_arg "$sudo_rule") |
+                    sudo tee $(_quote_remote_arg "$sudoers_file") >/dev/null &&
+                sudo chmod 0440 $(_quote_remote_arg "$sudoers_file") &&
+                sudo visudo -cf $(_quote_remote_arg "$sudoers_file") >/dev/null
+            fi
+        "
+
+        ssh -t "$REMOTE_TARGET" "$remote_setup" || {
+            sayfail "Unable to configure remote receiver sudo access."
+            return 1
+        }
+
+        return 0
     }
 
     # fn: _stream_remote - Stream selected workspace files to the remote receiver over SSH
@@ -807,7 +852,10 @@ set -uo pipefail
     _stream_remote() {
         local remote_command=""
 
+        _ensure_remote_receiver_sudo || return $?
+
         remote_command="sudo -n $(_quote_remote_arg "$RECEIVER_PATH") --target $(_quote_remote_arg "$DEST_ROOT")"
+
         if [[ "${FLAG_DRYRUN:-0}" -eq 1 ]]; then
             remote_command+=" --dry-run"
         fi

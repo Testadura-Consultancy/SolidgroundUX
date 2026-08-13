@@ -610,7 +610,7 @@ set -uo pipefail
         # . Usage
         #   _sgnd_console_set_lines_per_page
     _sgnd_console_set_lines_per_page() {
-        local lines="${SGND_PAGE_MAX_ROWS:-15}"
+        local lines="${SGND_PAGE_MAX_ROWS:-25}"
 
         ask \
             --label "Lines per page" \
@@ -1096,7 +1096,7 @@ set -uo pipefail
         # . Usage
         #   _sgnd_console_body_height
     _sgnd_console_body_height() {
-        local body_height="${SGND_PAGE_MAX_ROWS:-20}"
+        local body_height="${SGND_PAGE_MAX_ROWS:-25}"
 
         (( body_height < 5 )) && body_height=5
         printf '%s\n' "$body_height"
@@ -1368,6 +1368,7 @@ set -uo pipefail
         SGND_RENDER_LABEL_WIDTH="$(_sgnd_console_calc_label_width)"
 
         _sgnd_console_render_menu_title
+        _sgnd_console_render_page_header
         _sgnd_console_render_menu_body_paged
 
         for idx in "${SGND_GROUP_RENDER_INDEXES[@]}"; do
@@ -1442,6 +1443,50 @@ set -uo pipefail
         sgnd_print_sectionheader --border "$LN_H" --maxwidth "$width"
         sgnd_print
     }
+    # fn: _sgnd_console_render_page_header - Render the current page indicator above the menu body
+        # . Purpose
+        #   Show page navigation state as a centered section header when the menu spans
+        #   more than one page.
+        #
+        # . Behavior
+        #   - Suppresses the page indicator for single-page menus.
+        #   - Centers the page text within the current terminal width.
+        #   - Uses sgnd_print_sectionheader so page navigation follows framework UI styling.
+        #
+        # . Returns
+        #   0 after rendering or when no page indicator is required.
+        #
+        # . Usage
+        #   _sgnd_console_render_page_header
+    _sgnd_console_render_page_header() {
+        local page_count=0
+        local page_text=""
+        local page_text_len=0
+        local render_width=80
+        local padleft=0
+
+        _sgnd_console_build_pages
+
+        page_count="${#SGND_PAGE_STARTS[@]}"
+        (( page_count > 1 )) || return 0
+
+        render_width="$(sgnd_terminal_width)"
+        page_text="Page $((SGND_PAGE_INDEX + 1))/$page_count"
+        page_text_len="$(sgnd_visible_length "$page_text")"
+        padleft=$(( (render_width - page_text_len - 2) / 2 ))
+        (( padleft < 0 )) && padleft=0
+
+        sgnd_print_sectionheader \
+            --text "$page_text" \
+            --textclr "$(sgnd_sgr "$SGND_UI_BOLD" "" "$FX_ITALIC")" \
+            --border "$LN_H" \
+            --padleft "$padleft" \
+            --maxwidth "$render_width"
+        sgnd_print
+
+        return 0
+    }
+
     # fn: _sgnd_console_render_menu_body_paged - Console render menu body paged
         # . Purpose
         #   Render the console menu body paged portion of the current workflow.
@@ -1852,15 +1897,14 @@ set -uo pipefail
         local role_color="$SGND_UI_TEXT"
         local status_text=""
         local legend_text=""
-        local page_text=""
         local visible_len=0
         local left_pad=0
-        local page_count="${#SGND_PAGE_STARTS[@]}"
+        local legend_len=0
+        local legend_pad=0
         local -a status_segments=()
         local segment=""
 
         render_width="$(sgnd_terminal_width)"
-        (( page_count > 0 )) || page_count=1
 
         if ! _sgnd_flag_is_on "${FLAG_DRYRUN:-0}"; then
             mode_value="COMMIT"
@@ -1901,40 +1945,28 @@ set -uo pipefail
 
         visible_len="$(sgnd_visible_length "$status_text")"
         left_pad=$(( (render_width - visible_len) / 2 ))
-        (( left_pad < pad )) && left_pad="$pad"   
-            
+        (( left_pad < pad )) && left_pad="$pad"
+
         sgnd_print_sectionheader --border "$DL_H" --maxwidth "$render_width"
         printf '%*s%s\n' "$left_pad" "" "$status_text"
 
         # Legend text
         # Use the same value/italic style as the hostname in the title.
-        legend_text="$(sgnd_sgr "$SGND_UI_FAINT" "" "$FX_ITALIC")Shift+S Shell    Ctrl+R Restart    Q Quit    $KY_LEFT Previous page    $KY_RIGHT Next page${RESET}"
+        local quit_label="Quit"
 
-        # Page navigation
-        page_text="$(sgnd_sgr "$SGND_UI_BOLD" "" "$FX_ITALIC")Page $((SGND_PAGE_INDEX + 1))/$page_count${RESET}"
+        if _sgnd_flag_is_on "${FLAG_SUBMENU:-0}"; then
+            quit_label="Back"
+        fi
 
-        local legend_len=0
-        local page_len=0
-        local legend_pad=0
-        local page_gap=1
-
+        legend_text="$(sgnd_sgr "$SGND_UI_FAINT" "" "$FX_ITALIC")Shift+S Shell    Ctrl+R Restart    Q $quit_label    $KY_LEFT Previous page    $KY_RIGHT Next page${RESET}"
         legend_len="$(sgnd_visible_length "$legend_text")"
-        page_len="$(sgnd_visible_length "$page_text")"
-
         legend_pad=$(( (render_width - legend_len) / 2 ))
         (( legend_pad < pad )) && legend_pad="$pad"
 
-        page_gap=$(( render_width - legend_pad - legend_len - page_len - 5))
-
-        (( page_gap < 1 )) && page_gap=1
-
-        printf '%*s%s%*s%s\n' \
+        printf '%*s%s\n' \
             "$legend_pad" "" \
-            "$legend_text" \
-            "$page_gap" "" \
-            "$page_text"
+            "$legend_text"
     }
-
 # --- Menu input and dispatch --------------------------------------------------------
     # fn: _sgnd_console_valid_choices_csv - Console valid choices csv
         # . Purpose
