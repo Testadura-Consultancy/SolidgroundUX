@@ -16,6 +16,43 @@
 <p class="ct-documentbody">All notable changes to SolidGroundUX are documented in this file.</p>
 <p class="ct-documentbody">The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.</p>
 <h2 class="ct-L1Sectionheader">Unreleased</h2>
+<h4 class="ct-L3Sectionheader">SolidGround Framework</h4>
+<h5 class="ct-L3Sectionheader">Changed</h5>
+<ul>
+<li>`doc-generator` now derives clean-output behavior from the selected generation</li>
+<p class="ct-documentbody">mode: Full generation always cleans the output directory, while Selected and Changed generation preserve existing output for incremental updates.</p>
+</ul>
+<ul>
+<li>The default UI palette now uses explicit 24-bit truecolor values instead of</li>
+<p class="ct-documentbody">terminal-defined ANSI colors, providing consistent SolidGroundUX colors independently of the terminal&#x27;s configured color palette.</p>
+</ul>
+<ul>
+<li>Width-aware UI primitives now delegate their default width policy to</li>
+<p class="ct-documentbody">`sgnd_render_width`; when `--maxwidth` is omitted they use the current terminal width, while explicit widths remain honored and capped by `SGND_MAX_RENDER_WIDTH`.</p>
+</ul>
+<ul>
+<li>`sgnd_print_titlebar`, `sgnd_print_sectionheader`, `sgnd_print_fill`,</li>
+<p class="ct-documentbody">`sgnd_print`, `sgnd_print_single`, `sgnd_print_labeledvalue`, and `sgnd_print_labeledmultivalue` now follow the same dynamic-width behavior.</p>
+</ul>
+<ul>
+<li>`sgnd_print_sectionheader` now extends full-width or trailing borders to the</li>
+<p class="ct-documentbody">current console width by default unless an explicit `--maxwidth` is supplied.</p>
+</ul>
+<h5 class="ct-L3Sectionheader">Repaired</h5>
+<ul>
+<li>`deploy-workspace.sh` could fail when the remote receiver required `sudo`</li>
+<p class="ct-documentbody">authentication. It now creates a narrowly scoped remote `sudoers` rule for `receive-files.sh`, allowing remote deployments to run non-interactively after the initial setup.</p>
+</ul>
+<h4 class="ct-L3Sectionheader">SolidGround Management Console</h4>
+<h5 class="ct-L3Sectionheader">Changed</h5>
+<ul>
+<li>Moved the paging indicator from the bottom-right corner to a centered position above</li>
+<p class="ct-documentbody">the menu, making additional pages more obvious. The indicator is hidden when only one page is available.</p>
+</ul>
+<ul>
+<li>The `Q` legend is now context-aware: `Quit` is shown in the root console and `Back`</li>
+<p class="ct-documentbody">in submenus.</p>
+</ul>
 <h3 class="ct-L2Sectionheader">Build 1.9.2622402 - 2026-08-12</h3>
 <h4 class="ct-L3Sectionheader">SolidGround Framework</h4>
 <h5 class="ct-L3Sectionheader">Added</h5>

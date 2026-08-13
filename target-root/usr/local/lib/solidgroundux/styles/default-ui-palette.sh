@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.9
-#   Build       : 2622403
-#   Checksum    : pending
+#   Build       : 2622511
+#   Checksum    : 89b46830287b47d3b72b9a8eeb0039116bd7f80fc9f204eb59ec105f4cdfa2e7
 #   Source      : default-ui-palette.sh
 #   Type        : library
 #   Group       : Styles

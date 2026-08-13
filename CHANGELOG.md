@@ -30,6 +30,22 @@ practical framework development.
 - `sgnd_print_sectionheader` now extends full-width or trailing borders to the
   current console width by default unless an explicit `--maxwidth` is supplied.
 
+#### Repaired
+- `deploy-workspace.sh` could fail when the remote receiver required `sudo`
+  authentication. It now creates a narrowly scoped remote `sudoers` rule for
+  `receive-files.sh`, allowing remote deployments to run non-interactively after
+  the initial setup.
+
+### SolidGround Management Console
+
+#### Changed
+- Moved the paging indicator from the bottom-right corner to a centered position above
+  the menu, making additional pages more obvious. The indicator is hidden when only
+  one page is available.
+
+- The `Q` legend is now context-aware: `Quit` is shown in the root console and `Back`
+  in submenus.
+
 ## Build 1.9.2622402 - 2026-08-12
 ### SolidGround Framework
 

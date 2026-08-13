@@ -112,6 +112,7 @@
 <tr><td>_emit_sectionrecord</td><td>Append a documentation section record</td><td>Store the current section context in the module section index.</td><td>doc-processor.sh</td></tr>
 <tr><td>_ensure_manager_directories</td><td>Ensure standalone release-manager directories exist</td><td>Create the state, pending-release, and archive directories required by the standalone release manager. Returns 0 on success; non-zero when a required directory cannot be created. Usage _ensure_manager_directories</td><td>release-manager.sh</td></tr>
 <tr><td>_ensure_public_command_wrappers</td><td>Ensure public wrappers exist for top-level libexec scripts</td><td>Ensure every executable top-level shell script under the SolidGroundUX libexec directory has a matching public command wrapper in /usr/local/bin.</td><td>prepare-release.sh</td></tr>
+<tr><td>_ensure_remote_receiver_sudo</td><td>Ensure the remote receiver may run without a sudo password</td><td>Create and validate a narrowly scoped sudoers rule for receive-files.sh on the remote destination when the rule does not already exist.</td><td>deploy-workspace.sh</td></tr>
 <tr><td>_exe_createworkspace</td><td></td><td></td><td>95-development-tools.sh</td></tr>
 <tr><td>_exe_createwrappers</td><td></td><td></td><td>95-development-tools.sh</td></tr>
 <tr><td>_exe_deployworkspace</td><td></td><td></td><td>95-development-tools.sh</td></tr>
@@ -347,6 +348,7 @@
 <tr><td>_sgnd_console_render_menu</td><td>Console render menu</td><td>Render the console menu portion of the current workflow.</td><td>sgnd-console-menu.sh</td></tr>
 <tr><td>_sgnd_console_render_menu_body_paged</td><td>Console render menu body paged</td><td>Render the console menu body paged portion of the current workflow.</td><td>sgnd-console-menu.sh</td></tr>
 <tr><td>_sgnd_console_render_menu_title</td><td>Console render menu title</td><td>Render the console menu title portion of the current workflow.</td><td>sgnd-console-menu.sh</td></tr>
+<tr><td>_sgnd_console_render_page_header</td><td>Render the current page indicator above the menu body</td><td>Show page navigation state as a centered section header when the menu spans more than one page.</td><td>sgnd-console-menu.sh</td></tr>
 <tr><td>_sgnd_console_render_page_rows</td><td>Console render page rows</td><td>Render the console page rows portion of the current workflow.</td><td>sgnd-console-menu.sh</td></tr>
 <tr><td>_sgnd_console_render_togglebar</td><td>Console render togglebar</td><td>Render the console togglebar portion of the current workflow.</td><td>sgnd-console-menu.sh</td></tr>
 <tr><td>_sgnd_console_restart</td><td>Restart the current console instance</td><td>Replace the current console process with a fresh instance using the current console invocation and run mode.</td><td>sgnd-console.sh</td></tr>
