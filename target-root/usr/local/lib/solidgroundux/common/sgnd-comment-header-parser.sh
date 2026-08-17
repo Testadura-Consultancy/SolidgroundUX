@@ -2,9 +2,9 @@
 # SolidGroundUX - Header Parser
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : 4b633e4824113cec8091d8cdb1749c4925f4093c1d5583aae631c77f2e32a666
+#   Version     : 2.0
+#   Build       : 2622911
+#   Checksum    : f9d77c63709a97abd123421848129e34f0765c08e628d6e2e30bb67964ff6876
 #   Source      : sgnd-comment-header-parser.sh
 #   Type        : library
 #   Group       : Common Core
@@ -31,7 +31,7 @@
 #
 # Role in framework:
 #   - Core header metadata parsing and update layer for script tooling
-#   - Supports metadata-editor, release preparation, and other header-aware utilities
+#   - Supports release preparation and other header-aware development utilities
 #   - Provides the canonical API for header field inspection and mutation
 #
 # Non-goals:

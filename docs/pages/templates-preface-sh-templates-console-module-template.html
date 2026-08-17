@@ -13,11 +13,11 @@
   <div class="doc-breadcrumb">templates_preface.sh::Templates:Console Module Template:</div>
 </header>
 <div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">The module template is used for modules loaded by the SolidGround Console host.</p>
+<p class="ct-L2Sectionbody">The module template is used for page modules loaded by the SolidGround Management Console. A module is source-only and is sourced only when its page is first opened. It registers menu groups and items through the public `sgnd_menu_*` API, but should not perform the actual action until the user selects the corresponding menu item.</p>
 <div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">A console module is source-only. It registers menu groups and menu items when it is loaded, but should not perform the actual action until the user selects the corresponding menu item.</p>
+<p class="ct-L2Sectionbody">The main index discovers pages before sourcing them, so each module must expose its page name and description as literal `*_MODULE_NAME=&quot;...&quot;` and `*_MODULE_DESC=&quot;...&quot;` assignments. Computed values cannot be used for these two discovery fields.</p>
 <div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">This pattern keeps console startup predictable while allowing functionality to be added by dropping modules into the configured module directory.</p>
+<p class="ct-L2Sectionbody">Modules must not depend on another lazy-loaded page having been opened first. A helper required by multiple modules belongs in `console-helpers.sh` or another appropriately scoped common library.</p>
 <div class="ct-L2Sectionbody"></div>
 </main>
 </body>

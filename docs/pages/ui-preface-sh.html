@@ -91,6 +91,8 @@
 <div class="ct-L2Sectionbody"></div>
 <p class="ct-L2Sectionbody">Prompt functions normalize common interaction patterns so applications do not need to reproduce terminal handling, label formatting, default-value behavior, or response validation.</p>
 <div class="ct-L2Sectionbody"></div>
+<p class="ct-L2Sectionbody">Use `ask_decision` for an explicit user decision that should block until a choice is made. Use `ask_dlg_autocontinue` for an interruptible timed continuation where the normal path continues automatically but the operator may intervene, pause, redo, or cancel according to the options supplied. These are distinct interaction patterns.</p>
+<div class="ct-L2Sectionbody"></div>
 <div class="ct-L2Sectionheader">Dialog-Oriented Interaction</div>
 <div class="ct-L2Sectionbody"></div>
 <p class="ct-L2Sectionbody">The dialog layer in `ui-dlg.sh` builds structured decisions on top of the lower prompt primitives. It expands symbolic choices, displays available actions, normalizes keyboard input, translates dialog return codes, and supports timed auto-continue behavior.</p>
@@ -102,6 +104,12 @@
 <p class="ct-L2Sectionbody">`ui-glyphs.sh` centralizes the visual symbols used throughout the framework. Keeping glyphs in one place avoids repeated literal Unicode characters and makes it possible to provide simpler fallbacks for restricted terminals.</p>
 <div class="ct-L2Sectionbody"></div>
 <p class="ct-L2Sectionbody">Rendering code should refer to the shared glyph definitions rather than choosing local arrows, checkmarks, separators, or box-drawing characters. This preserves a recognizable visual language across the framework.</p>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionheader">Rendering Width and Message Routing</div>
+<div class="ct-L2Sectionbody"></div>
+<p class="ct-L2Sectionbody">Width-aware UI primitives derive their default width from the active terminal. An explicit `--maxwidth` is honored when supplied, and `SGND_MAX_RENDER_WIDTH` acts as an optional global cap; an unset or zero cap allows use of the full terminal width.</p>
+<div class="ct-L2Sectionbody"></div>
+<p class="ct-L2Sectionbody">The `say*` family routes semantic messages independently to console and file output. `SGND_CONSOLE_LOG_LEVEL` controls terminal visibility and `SGND_FILE_LOG_LEVEL` controls persistent logging, allowing the two audiences to use different detail levels.</p>
 <div class="ct-L2Sectionbody"></div>
 <div class="ct-L2Sectionheader">Guidance for Applications</div>
 <div class="ct-L2Sectionbody"></div>

@@ -3,9 +3,9 @@
 # SolidGroundUX - Documentation Generator Script
 # ------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622403
-#   Checksum    : 64fcdfd71dda2ffa2a9323a6f9346cd762e0c83aa3ae76f9a6672e68bbf5b0d0
+#   Version     : 2.0
+#   Build       : 2622911
+#   Checksum    : c202a2345c0067d29710954d2180370eb3d18f3d7ee0f997734aba64df5f0456
 #   Source      : doc-generator.sh
 #   Type        : script
 #   Group       : SDK Documentation
@@ -219,7 +219,7 @@ set -uo pipefail
     SGND_ARGS_SPEC=(
         "auto|a|flag|FLAG_AUTO_RUN|Automatically run with last used or default parameters|0|"
         "clean|c|flag|FLAG_CLEAN_OUTPUT|Clear output directory before writing|0|"
-        "file|f|value|VAL_FILESPEC|File mask for source scanning||"
+        "file|f|value|VAL_FILESPEC|Comma-separated file masks for source scanning||"
         "mode|m|enum|VAL_UPDATE_MODE|Generation mode: full, selected, or changed|full|full,selected,changed"
         "update-files|u|value|VAL_UPDATE_FILES|Comma-separated files for selected update mode||"
         "outdir|o|value|VAL_OUTDIR|Output directory for generated docs||"
@@ -297,7 +297,7 @@ set -uo pipefail
         #   - The script does not use persistent state.
     SGND_STATE_VARIABLES=(
         "VAL_SRCDIR|Source Directory||"
-        "VAL_FILESPEC|Filename mask||"
+        "VAL_FILESPEC|Filename masks||"
         "VAL_UPDATE_MODE|Generation mode (full, selected, changed)||"
         "VAL_UPDATE_FILES|Selected update files||"
         "VAL_OUTDIR|Output Directory||"
@@ -372,7 +372,7 @@ set -uo pipefail
         FLAG_RECURSIVE_SCAN="${FLAG_RECURSIVE_SCAN:-1}"
         FLAG_VIEW_RESULTS="${FLAG_VIEW_RESULTS:-1}"
 
-        VAL_FILESPEC="${VAL_FILESPEC:-*.sh}"
+        VAL_FILESPEC="${VAL_FILESPEC:-*.sh,*.py}"
         VAL_UPDATE_MODE="${VAL_UPDATE_MODE:-full}"
         VAL_UPDATE_FILES="${VAL_UPDATE_FILES:-}"
         VAL_OUTDIR="${VAL_OUTDIR:-$SGND_DOCS_DIR}"
@@ -472,7 +472,7 @@ set -uo pipefail
                 --pad "$lp" \
                 --labelwidth "$lw"
 
-            ask --label "Source file" \
+            ask --label "Source file masks" \
                 --var VAL_FILESPEC \
                 --default "$VAL_FILESPEC" \
                 --colorize both \
@@ -709,20 +709,35 @@ set -uo pipefail
         _doc_remove_modules_from_table DOC_CONTENT_LINES 0 "$@"
     }
 
-    # fn: _doc_path_matches_filespec - Test whether a path matches the active source mask
+    # fn: _doc_path_matches_filespec - Test whether a path matches the active source masks
+        # . Purpose
+        #   Match a source path against one or more comma-separated shell-style masks.
+        #
         # . Arguments
         #   $1  Source path.
         #
         # . Returns
-        #   0 when the basename matches VAL_FILESPEC.
+        #   0 when the basename matches at least one mask in VAL_FILESPEC.
         #   1 otherwise.
         #
         # . Usage
-        #   _doc_path_matches_filespec "/srv/project/common/ui-say.sh"
+        #   VAL_FILESPEC="*.sh,*.py"; _doc_path_matches_filespec "/srv/project/tool.py"
     _doc_path_matches_filespec() {
         local path="${1:-}"
         local name="${path##*/}"
-        [[ "$name" == $VAL_FILESPEC ]]
+        local mask=""
+        local -a masks=()
+
+        IFS=',' read -r -a masks <<< "${VAL_FILESPEC:-}"
+
+        for mask in "${masks[@]}"; do
+            mask="${mask#"${mask%%[![:space:]]*}"}"
+            mask="${mask%"${mask##*[![:space:]]}"}"
+            [[ -n "$mask" ]] || continue
+            [[ "$name" == $mask ]] && return 0
+        done
+
+        return 1
     }
 
     # fn: _doc_collect_selected_files - Resolve explicitly selected update files
@@ -911,11 +926,11 @@ set -uo pipefail
 
     # fn: _iterate_files - Iterate source files and collect documentation data
         # . Purpose
-        #   Iterate over files in a directory using a file mask,
+        #   Iterate over files in a directory using comma-separated file masks,
         #   optionally recursing into subdirectories.
         #
         # . Behavior
-        #   - Expands file_spec within source_dir
+        #   - Filters source files against comma-separated file_spec masks
         #   - Supports recursive and non-recursive modes
         #   - Calls a callback function for each matched file
         #   - Skips non-regular files
@@ -931,7 +946,7 @@ set -uo pipefail
         #   1 on invalid input
         #
         # . Usage
-        #   _iterate_files "./src" "*.sh" 1 sgnd_doc_process_file
+        #   _iterate_files "./src" "*.sh,*.py" 1 sgnd_doc_process_file
     # fn: _doc_progress_line - Update active-module line progress
         # . Purpose
         #   Update progress slot 1 for the line currently being parsed inside the
@@ -997,11 +1012,11 @@ set -uo pipefail
 
     # fn: _iterate_files - Iterate source files and collect documentation data
         # . Purpose
-        #   Iterate over files in a directory using a file mask,
+        #   Iterate over files in a directory using comma-separated file masks,
         #   optionally recursing into subdirectories.
         #
         # . Behavior
-        #   - Expands file_spec within source_dir.
+        #   - Filters source files against comma-separated file_spec masks.
         #   - Supports recursive and non-recursive modes.
         #   - Shows two-level progress:
         #       slot 0 = module/file progress
@@ -1020,7 +1035,7 @@ set -uo pipefail
         #   1 on invalid input
         #
         # . Usage
-        #   _iterate_files "./src" "*.sh" 1 _parse_module_file
+        #   _iterate_files "./src" "*.sh,*.py" 1 _parse_module_file
     _iterate_files() {
         local source_dir="$1"
         local file_spec="$2"
@@ -1039,20 +1054,20 @@ set -uo pipefail
         local line_total=0
 
         if (( recursive == 0 )); then
-            shopt -s nullglob
-
-            for file in "$source_dir"/$file_spec; do
+            while IFS= read -r -d '' file; do
                 [[ -f "$file" ]] || continue
+                _doc_path_matches_filespec "$file" || continue
                 files+=("$file")
-            done
-
-            shopt -u nullglob
+            done < <(
+                find "$source_dir" -maxdepth 1 -type f -print0
+            )
         else
             while IFS= read -r -d '' file; do
                 [[ -f "$file" ]] || continue
+                _doc_path_matches_filespec "$file" || continue
                 files+=("$file")
             done < <(
-                find "$source_dir" -type f -name "$file_spec" -print0
+                find "$source_dir" -type f -print0
             )
         fi
 

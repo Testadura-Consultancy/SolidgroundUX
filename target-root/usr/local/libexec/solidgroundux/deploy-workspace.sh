@@ -3,10 +3,10 @@
 # SolidGroundUX - Deploy Workspace
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622511
-#   Checksum    : eba1d5f24286644dc2ebe7016b28000e9f9219ba5b28d233dd76ae035afc96ec
-#   Source      : deploy-workspace-v4.sh
+#   Version     : 2.0
+#   Build       : 2622911
+#   Checksum    : bb46bf1ed45ff6d05161682f2b7fa5f50134495b206ed591f4c4cf909288810e
+#   Source      : deploy-workspace.sh
 #   Type        : script
 #   Group       : SDK Tools
 #   Purpose     : Select workspace files and deploy them through receive-files.sh

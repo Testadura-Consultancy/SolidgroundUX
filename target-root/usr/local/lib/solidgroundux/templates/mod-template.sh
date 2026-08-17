@@ -2,9 +2,9 @@
 # SolidGroundUX - Console Module Template
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : 7e676e7f01a45557d35b3f2bd4bcf6c57eb465f5ac51c71061623e03d12fadc7
+#   Version     : 2.0
+#   Build       : 2622911
+#   Checksum    : 5df4de0823182ce07f64650f6bc82e4736d8e295dad4f0fcdad8a06fba119265
 #   Source      : mod-template.sh
 #   Type        : module
 #   Group       : Templates
@@ -21,18 +21,18 @@
 #
 # Design principles:
 #   - Modules define functions first, then register themselves explicitly
-#   - Registration is data-driven through sgnd_console_register_group/item
+#   - Registration is data-driven through the public sgnd_menu_register_group/item API
 #   - Keep module logic local and menu-facing
 #   - Avoid framework-wide policy decisions inside modules
 #
 # Role in framework:
 #   - Extends sgnd-console with domain-specific actions and menu entries
-#   - Acts as a lightweight plugin layer on top of the console host
-#   - May depend on framework and sgnd-console primitives already being loaded
+#   - Acts as a lazy-loaded page/plugin layer on top of the console host
+#   - May depend on framework and console common libraries declared by the host, but not on another page module having been opened
 #
 # Assumptions:
-#   - Loaded by sgnd-console after framework bootstrap is complete
-#   - sgnd_console_register_group and sgnd_console_register_item are available
+#   - Lazy-loaded by sgnd-console when the module page is first opened
+#   - sgnd_menu_register_group and sgnd_menu_register_item are available
 #   - Framework helpers such as say* and sgnd_print_* may be used
 #
 # Non-goals:
@@ -96,6 +96,8 @@ set -uo pipefail
 
 # - Module metadata -------------------------------------------------------------
     # Replace SAMPLE_MODULE in all variable names and values below.
+    # MODULE_NAME and MODULE_DESC must remain literal quoted assignments because the
+    # main index reads them before sourcing this file.
     SGND_SAMPLE_MODULE_ID="sample-module"
     SGND_SAMPLE_MODULE_NAME="Sample Module"
     SGND_SAMPLE_MODULE_VERSION="1.0.0"
@@ -178,7 +180,7 @@ set -uo pipefail
     }
 
 # - Console registration ---------------------------------------------------------
-    sgnd_console_register_group \
+    sgnd_menu_register_group \
         "$SGND_SAMPLE_MODULE_ID" \
         "$SGND_SAMPLE_MODULE_NAME" \
         "$SGND_SAMPLE_MODULE_DESC" \
@@ -186,7 +188,7 @@ set -uo pipefail
         1 \
         300
 
-    sgnd_console_register_item \
+    sgnd_menu_register_item \
         "sample-action" \
         "$SGND_SAMPLE_MODULE_ID" \
         "Run sample action" \
@@ -196,7 +198,7 @@ set -uo pipefail
         5 \
         1
 
-    sgnd_console_register_item \
+    sgnd_menu_register_item \
         "sample-status" \
         "$SGND_SAMPLE_MODULE_ID" \
         "Show sample status" \

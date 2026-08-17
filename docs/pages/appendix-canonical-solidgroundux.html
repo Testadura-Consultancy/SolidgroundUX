@@ -91,7 +91,7 @@
 <p class="ct-documentbody">The following names are canonical:</p>
 <ul>
 <li>**SolidGroundUX** — the Bash framework and associated runtime.</li>
-<li>**SolidGroundUX Management Studio** — the primary administration application.</li>
+<li>**SolidGround Management Console** — the primary modular administration application built on SolidGroundUX.</li>
 <li>**Testadura Consultancy** — the legal or formal company identity.</li>
 <li>**Testadura** — the preferred public-facing brand name where the legal suffix is unnecessary.</li>
 </ul>
@@ -161,8 +161,10 @@
 <p class="ct-documentbody">The framework and the application MUST remain conceptually separate.</p>
 <p class="ct-documentbody">Canonical relationship:</p>
 <pre class="doc-license-text"><code>SolidGroundUX framework
-└── SolidGroundUX Management Studio
-    └── Console modules</code></pre>
+├── Applications and executables
+├── Development and release tooling
+└── SolidGround Management Console
+    └── Lazy-loaded console pages</code></pre>
 <p class="ct-documentbody">The framework supplies runtime behaviour.</p>
 <p class="ct-documentbody">The application supplies purpose, menus, module discovery, and administration workflows.</p>
 <p class="ct-documentbody">A module MUST NOT assume that it owns framework initialization.</p>
@@ -239,9 +241,18 @@ _sgnd_console_init_paths || exit $?</code></pre>
 <p class="ct-documentbody">Functions MUST perform one coherent responsibility.</p>
 <p class="ct-documentbody">A function SHOULD be short enough that its control flow remains visible, but no arbitrary line limit is imposed.</p>
 <p class="ct-documentbody">Function names MUST communicate action and scope.</p>
+<p class="ct-documentbody">Function naming expresses three practical access levels:</p>
+<ul>
+<li>`sgnd_*` — public framework API intended for applications and tools.</li>
+<li>`_sgnd_*` — framework-internal or protected API shared by cooperating SolidGroundUX libraries and components.</li>
+<li>`_foo` — private implementation detail local to one script, library, or module.</li>
+</ul>
 <p class="ct-documentbody">Private script-local functions SHOULD begin with a single underscore:</p>
 <pre class="doc-license-text"><code>_validate_input
 _apply_network_config</code></pre>
+<p class="ct-documentbody">Framework-internal helpers SHOULD retain the `sgnd` namespace while using a single leading underscore:</p>
+<pre class="doc-license-text"><code>_sgnd_flag_is_on
+_sgnd_console_render_togglebar</code></pre>
 <p class="ct-documentbody">Framework-public functions MUST use the `sgnd_` prefix:</p>
 <pre class="doc-license-text"><code>sgnd_print_labeledvalue
 sgnd_check_license</code></pre>
@@ -262,8 +273,9 @@ FLAG_SAVEPARMS=0</code></pre>
 <h2 class="ct-L1Sectionheader">5. Naming Conventions</h2>
 <h3 class="ct-L2Sectionheader">5.1 Functions</h3>
 <p class="ct-documentbody">Canonical function names:</p>
-<pre class="doc-license-text"><code>sgnd_&lt;verb&gt;_&lt;object&gt;
-_&lt;verb&gt;_&lt;object&gt;</code></pre>
+<pre class="doc-license-text"><code>sgnd_&lt;verb&gt;_&lt;object&gt;     public framework API
+_sgnd_&lt;verb&gt;_&lt;object&gt;   framework-internal / protected API
+_&lt;verb&gt;_&lt;object&gt;        local/private implementation</code></pre>
 <p class="ct-documentbody">Examples:</p>
 <pre class="doc-license-text"><code>sgnd_print_labeledvalue
 sgnd_terminal_width
@@ -401,13 +413,9 @@ set-identity.sh</code></pre>
 <p class="ct-documentbody">Logs serve diagnosis, audit, and evidence.</p>
 <p class="ct-documentbody">The two MAY overlap but are not interchangeable.</p>
 <h3 class="ct-L2Sectionheader">9.2 Canonical Levels</h3>
-<p class="ct-documentbody">Supported logging levels are:</p>
-<pre class="doc-license-text"><code>off
-silent
-quiet
-normal
-debug</code></pre>
-<p class="ct-documentbody">Their semantics MUST remain stable across scripts.</p>
+<p class="ct-documentbody">Supported logging levels MUST be taken from the current framework logging implementation and exposed consistently by framework tools.</p>
+<p class="ct-documentbody">Console and file logging are independent concerns and MAY use different active levels.</p>
+<p class="ct-documentbody">Documentation MUST NOT publish a hard-coded level inventory unless it is synchronized with the implementation. The semantics of a named level MUST remain stable across scripts.</p>
 <h3 class="ct-L2Sectionheader">9.3 Sensitive Data</h3>
 <p class="ct-documentbody">Passwords, private keys, tokens, secrets, and confidential values MUST NOT be written to logs.</p>
 <p class="ct-documentbody">Commands containing sensitive arguments MUST be redacted or logged in a safe descriptive form.</p>
@@ -428,8 +436,9 @@ debug</code></pre>
 <p class="ct-documentbody">Persisted state MUST be deliberate.</p>
 <p class="ct-documentbody">Variables intended for state persistence SHOULD be declared through `SGND_STATE_VARIABLES` or the current canonical state mechanism.</p>
 <p class="ct-documentbody">A script MUST NOT persist every variable merely because persistence is available.</p>
-<h3 class="ct-L2Sectionheader">10.2 Manual Save</h3>
-<p class="ct-documentbody">Where state changes are operator-controlled, manual save through a flag such as `FLAG_SAVEPARMS` is preferred over unconditional automatic persistence.</p>
+<h3 class="ct-L2Sectionheader">10.2 Persistence Policy</h3>
+<p class="ct-documentbody">State persistence MUST follow the execution contract of the owning application or tool.</p>
+<p class="ct-documentbody">Framework-managed automatic state is appropriate for values explicitly declared as persistent and expected to survive between runs. Explicit save controls MAY be used where persistence itself is an operator decision.</p>
 <p class="ct-documentbody">Automatic state MUST NOT cause surprising behaviour on a subsequent run.</p>
 <h3 class="ct-L2Sectionheader">10.3 State Compatibility</h3>
 <p class="ct-documentbody">Changes to stored state names, formats, or meanings MUST consider compatibility.</p>
@@ -479,15 +488,17 @@ SGND_SECTION_BORDERCLR</code></pre>
 <p class="ct-documentbody">Preferred display:</p>
 <pre class="doc-license-text"><code>Use DHCP? [Yes]:</code></pre>
 <p class="ct-documentbody">Internal values MAY remain `0` and `1`, but operator-facing output SHOULD use `Yes` and `No`.</p>
-<h3 class="ct-L2Sectionheader">11.6 Confirmations</h3>
-<p class="ct-documentbody">`ask_continue` SHOULD be used before material changes.</p>
+<h3 class="ct-L2Sectionheader">11.6 Confirmations and Post-Action Pauses</h3>
+<p class="ct-documentbody">Confirmation and post-action viewing are separate interactions and MUST use the dialog primitive intended for that purpose.</p>
+<p class="ct-documentbody">Before a material change, use an explicit decision/confirmation prompt that summarizes the proposed action and requires an operator decision.</p>
+<p class="ct-documentbody">`ask_dlg_autocontinue` is intended for interruptible countdowns and post-action viewing windows. It MUST NOT be used as a substitute for informed confirmation.</p>
 <p class="ct-documentbody">A confirmation SHOULD summarize the proposed action rather than merely asking “Continue?”</p>
 <h3 class="ct-L2Sectionheader">11.7 Menus</h3>
 <p class="ct-documentbody">Menus MAY be large when the structure remains legible.</p>
 <p class="ct-documentbody">Quick keys MUST be unique within their active menu.</p>
 <p class="ct-documentbody">Navigation keys SHOULD be consistent, including support for left and right navigation where the host supports it.</p>
-<p class="ct-documentbody">Canonical instant choices may include:</p>
-<pre class="doc-license-text"><code>C D F T L R Q &lt; &gt;</code></pre>
+<p class="ct-documentbody">Canonical direct controls are application-defined but MUST remain visible and unique within their active context.</p>
+<p class="ct-documentbody">The SolidGround Management Console currently provides direct controls for execution mode, access context, console logging, file logging, theme, lines per page, redraw, shell access, navigation, and exit.</p>
 <p class="ct-documentbody">The interface MUST make the meaning of each key visible.</p>
 <p class="ct-documentbody">---</p>
 <h2 class="ct-L1Sectionheader">12. Output Primitives</h2>
@@ -530,32 +541,41 @@ sgnd_print_labeledvalue --label &quot;License Accepted&quot; \
 <p class="ct-documentbody">for consistent scanning and comparison.</p>
 <p class="ct-documentbody">---</p>
 <h2 class="ct-L1Sectionheader">13. Console and Module Architecture</h2>
-<h3 class="ct-L2Sectionheader">13.1 Management Studio Role</h3>
-<p class="ct-documentbody">The console is the **SolidGroundUX Management Studio**.</p>
-<p class="ct-documentbody">Canonical metadata:</p>
-<pre class="doc-license-text"><code>SGND_SCRIPT_TITLE=&quot;SolidGroundUX Management Studio&quot;
-SGND_SCRIPT_DESC=&quot;Manage SolidGroundUX, development tools, and system configuration&quot;</code></pre>
-<p class="ct-documentbody">It is not merely a framework demonstration or generic menu host.</p>
-<h3 class="ct-L2Sectionheader">13.2 Module Discovery</h3>
-<p class="ct-documentbody">Without an explicit `--appcfg`, the Management Studio MUST scan the canonical module directory.</p>
-<p class="ct-documentbody">In development, the path MUST derive from the application root.</p>
-<p class="ct-documentbody">The console owns and initializes:</p>
-<pre class="doc-license-text"><code>SGND_CONSOLE_BIN_DIRECTORY
-SGND_CONSOLE_SBIN_DIRECTORY
-SGND_CONSOLE_LIBEXEC_DIRECTORY
-SGND_CONSOLE_DEFAULT_MODULE_DIRECTORY</code></pre>
-<h3 class="ct-L2Sectionheader">13.3 Module Contract</h3>
-<p class="ct-documentbody">Each module MUST expose the metadata and entry points required by the host.</p>
-<p class="ct-documentbody">Module metadata is temporary host-facing state and SHOULD NOT leak into unrelated modules.</p>
-<p class="ct-documentbody">A module MUST NOT assume load order unless the host contract explicitly guarantees it.</p>
-<p class="ct-documentbody">A module MUST cleanly decline activation when its dependencies are unavailable.</p>
-<h3 class="ct-L2Sectionheader">13.4 Child Shells</h3>
-<p class="ct-documentbody">A Management Studio option MAY open a child shell.</p>
+<h3 class="ct-L2Sectionheader">13.1 Management Console Role</h3>
+<p class="ct-documentbody">The console is the **SolidGround Management Console**.</p>
+<p class="ct-documentbody">It is a modular administration application built on the SolidGroundUX runtime and the public `sgnd-menu.sh` API. The menu framework is reusable infrastructure; the Management Console is one consumer of it.</p>
+<h3 class="ct-L2Sectionheader">13.2 Index and Lazy Page Loading</h3>
+<p class="ct-documentbody">The Management Console MUST begin from a lightweight index that discovers available pages without sourcing every implementation module.</p>
+<p class="ct-documentbody">Page metadata required by the index SHOULD remain lightweight.</p>
+<p class="ct-documentbody">When a page is selected:</p>
+<ol>
+<li>its implementation module is sourced if it has not already been loaded;</li>
+<li>the module registers its detailed groups and items through the public menu API;</li>
+<li>the selected page is rendered;</li>
+<li>the loaded module remains resident for the lifetime of the console process.</li>
+</ol>
+<p class="ct-documentbody">Returning to the index MUST NOT require unloading the module.</p>
+<p class="ct-documentbody">This architecture exists to reduce initial load time without repeatedly paying the cost of loading functionality already used.</p>
+<h3 class="ct-L2Sectionheader">13.3 Module Discovery and Visibility</h3>
+<p class="ct-documentbody">The canonical module directory is:</p>
+<pre class="doc-license-text"><code>/usr/local/libexec/solidgroundux/console-modules/</code></pre>
+<p class="ct-documentbody">In development, the equivalent path MUST derive from the applicable application root.</p>
+<p class="ct-documentbody">Page visibility MAY be persisted independently of module discovery. Root-only management controls MAY edit this state, but hidden modules MUST remain discoverable to the visibility manager so they can be re-enabled.</p>
+<h3 class="ct-L2Sectionheader">13.4 Module Contract</h3>
+<p class="ct-documentbody">A console module MUST be source-only and MUST register itself through the public menu API expected by the host.</p>
+<p class="ct-documentbody">A module MUST NOT assume that another lazy-loaded page has already been opened.</p>
+<p class="ct-documentbody">Functionality genuinely shared by independent modules belongs in an appropriately scoped common library. Console-specific shared helpers SHOULD live in `lib/common/console-helpers.sh` rather than creating cross-module load dependencies.</p>
+<p class="ct-documentbody">Subject-specific implementation MAY remain in its owning module until reuse, size, or maintenance justifies extraction.</p>
+<h3 class="ct-L2Sectionheader">13.5 Console Settings</h3>
+<p class="ct-documentbody">Frequently used runtime settings SHOULD be exposed through direct quick-access controls rather than a separate settings page when the direct interaction is clearer.</p>
+<p class="ct-documentbody">Persisted console state MAY still back those controls.</p>
+<h3 class="ct-L2Sectionheader">13.6 Child Shells</h3>
+<p class="ct-documentbody">A Management Console option MAY open a child shell.</p>
 <p class="ct-documentbody">The interface MUST make clear that:</p>
 <ul>
 <li>the operator is leaving the menu temporarily;</li>
 <li>the shell inherits the current environment;</li>
-<li>exiting the shell returns to the Management Studio.</li>
+<li>exiting the shell returns to the Management Console.</li>
 </ul>
 <p class="ct-documentbody">---</p>
 <h2 class="ct-L1Sectionheader">14. System Configuration Workflows</h2>
@@ -567,7 +587,7 @@ SGND_CONSOLE_DEFAULT_MODULE_DIRECTORY</code></pre>
 <pre class="doc-license-text"><code>Use DHCP? Yes/No</code></pre>
 <p class="ct-documentbody">When DHCP is enabled, static IPv4 fields SHOULD be omitted.</p>
 <p class="ct-documentbody">When DHCP is disabled, the workflow SHOULD request only relevant IPv4 values and validate address availability before applying where practical.</p>
-<p class="ct-documentbody">Before applying, the workflow MUST summarize the proposed configuration and request confirmation.</p>
+<p class="ct-documentbody">Before applying, the workflow MUST summarize the proposed configuration and request an explicit operator decision.</p>
 <h3 class="ct-L2Sectionheader">14.3 Host Identity</h3>
 <p class="ct-documentbody">Setting host identity MUST be limited to identity-related changes.</p>
 <p class="ct-documentbody">It MUST NOT regenerate SSH host keys unless that action is explicitly part of the selected operation.</p>
@@ -625,16 +645,20 @@ systemctl restart ssh</code></pre>
 </ul>
 <p class="ct-documentbody">---</p>
 <h2 class="ct-L1Sectionheader">16. Installer Behaviour</h2>
-<h3 class="ct-L2Sectionheader">16.1 Integrity</h3>
+<h3 class="ct-L2Sectionheader">16.1 Canonical Release Manager</h3>
+<p class="ct-documentbody">`release-manager.sh` is the canonical SolidGroundUX installation and release-lifecycle tool.</p>
+<p class="ct-documentbody">Separate legacy installer, updater, and uninstaller commands MUST NOT be documented as current interfaces once their responsibilities have been absorbed by the Release Manager.</p>
+<p class="ct-documentbody">Prepared releases are produced by `prepare-release` and consumed by `release-manager`.</p>
+<h3 class="ct-L2Sectionheader">16.2 Integrity</h3>
 <p class="ct-documentbody">Releases SHOULD include manifest or checksum verification.</p>
 <p class="ct-documentbody">Installation MUST stop when integrity verification fails.</p>
-<h3 class="ct-L2Sectionheader">16.2 Existing Directories</h3>
+<h3 class="ct-L2Sectionheader">16.3 Existing Directories</h3>
 <p class="ct-documentbody">Archive extraction MUST NOT overwrite ownership, mode, ACLs, or extended attributes of existing parent system directories unless the installer explicitly owns and manages those directories.</p>
-<h3 class="ct-L2Sectionheader">16.3 Backups</h3>
+<h3 class="ct-L2Sectionheader">16.4 Backups</h3>
 <p class="ct-documentbody">Upgrades SHOULD back up replaced configuration or application files where local changes may exist.</p>
 <p class="ct-documentbody">Backup naming and location MUST be deterministic.</p>
-<h3 class="ct-L2Sectionheader">16.4 Upgrade Detection</h3>
-<p class="ct-documentbody">The installer SHOULD identify whether the operation is:</p>
+<h3 class="ct-L2Sectionheader">16.5 Operation Detection</h3>
+<p class="ct-documentbody">The Release Manager SHOULD identify whether the operation is:</p>
 <ul>
 <li>first installation;</li>
 <li>repair;</li>
@@ -643,9 +667,16 @@ systemctl restart ssh</code></pre>
 <li>downgrade.</li>
 </ul>
 <p class="ct-documentbody">The operator SHOULD be informed when behaviour differs by mode.</p>
-<h3 class="ct-L2Sectionheader">16.5 Release Archives</h3>
+<h3 class="ct-L2Sectionheader">16.6 Release Archives</h3>
 <p class="ct-documentbody">Release tooling MUST set canonical ownership and permissions before packaging.</p>
 <p class="ct-documentbody">Packaging MUST not depend on the local developer account’s ownership being appropriate for installation.</p>
+<h3 class="ct-L2Sectionheader">16.7 Filesystem-Based Release State</h3>
+<p class="ct-documentbody">Canonical release state is represented by the managed release artifacts themselves.</p>
+<p class="ct-documentbody">The Release Manager uses:</p>
+<pre class="doc-license-text"><code>/var/lib/solidgroundux/releases/
+/var/lib/solidgroundux/archive/</code></pre>
+<p class="ct-documentbody">Available prepared releases are retained beneath `releases/`. Installed release history is retained beneath `archive/`.</p>
+<p class="ct-documentbody">The release lifecycle SHOULD remain inspectable with ordinary filesystem tools rather than depending on a separate opaque current-version database.</p>
 <p class="ct-documentbody">---</p>
 <h2 class="ct-L1Sectionheader">17. Security</h2>
 <h3 class="ct-L2Sectionheader">17.1 Least Surprise</h3>
@@ -684,7 +715,7 @@ systemctl restart ssh</code></pre>
 <p class="ct-documentbody">Realm handling MUST make case behaviour explicit.</p>
 <p class="ct-documentbody">Where the consuming component expects an uppercase Kerberos realm, the normalized value SHOULD be shown before application.</p>
 <h3 class="ct-L2Sectionheader">18.3 Confirmation</h3>
-<p class="ct-documentbody">Before provisioning, `ask_continue` MUST present the resolved values and explain that domain provisioning is a material system change.</p>
+<p class="ct-documentbody">Before provisioning, an explicit confirmation dialog MUST present the resolved values and explain that domain provisioning is a material system change.</p>
 <h3 class="ct-L2Sectionheader">18.4 Administrator Password</h3>
 <p class="ct-documentbody">The provisioning flow MUST explicitly collect or establish the domain Administrator password.</p>
 <p class="ct-documentbody">A provisioning workflow is incomplete if it omits this step.</p>
@@ -837,7 +868,8 @@ td_*          → sgnd_*</code></pre>
 <h3 class="ct-L2Sectionheader">24.2 Naming</h3>
 <ul>
 <li>Are public functions prefixed with `sgnd_`?</li>
-<li>Are private functions prefixed with a single underscore?</li>
+<li>Are framework-internal/protected functions named `_sgnd_*` where appropriate?</li>
+<li>Are private/local functions prefixed with a single underscore?</li>
 <li>Are double underscores absent?</li>
 <li>Are obsolete `td_` prefixes removed?</li>
 <li>Are global and local variables named consistently?</li>

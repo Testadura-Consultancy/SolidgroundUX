@@ -13,13 +13,9 @@
   <div class="doc-breadcrumb">sdk tools_preface.sh::SDK Tools:Workspace Deployment:</div>
 </header>
 <div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">Once development reaches a suitable stage, the workspace can be deployed.</p>
+<p class="ct-L2Sectionbody">deploy-workspace.sh is a development and test-deployment tool. It transfers a complete workspace or a filtered/incremental selection into a local or remote target root so the code can be exercised in its intended filesystem layout.</p>
 <div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">The deployment process transforms the development workspace into an installable filesystem structure that follows the framework&#x27;s expected layout.</p>
-<div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">Deployment copies the required executables, libraries, templates, documentation, configuration files, and supporting assets into their target locations while excluding development-only artifacts.</p>
-<div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">The resulting deployment structure closely resembles the environment that end users or administrators will ultimately install.</p>
+<p class="ct-L2Sectionbody">Workspace deployment is deliberately separate from formal release installation. It does not define the installed-release lifecycle and should not be treated as an installer. Formal release creation belongs to prepare-release.sh; installation, update, rollback/reinstallation, and removal belong to release-manager.sh.</p>
 <div class="ct-L2Sectionbody"></div>
 </main>
 </body>

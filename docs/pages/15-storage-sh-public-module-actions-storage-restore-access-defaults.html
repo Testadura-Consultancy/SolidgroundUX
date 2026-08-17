@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>storage_restore_access_defaults</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">storage_restore_access_defaults</div>
+  <div class="doc-breadcrumb">15-storage.sh:::Public module actions:storage_restore_access_defaults</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Restore canonical ownership and permissions for the managed storage roots.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Restores /srv/storage to root:root with mode 0755.</div>
+<div class="ct-functionbody">  - Restores /srv/storage/shares to root:root with mode 0770.</div>
+<div class="ct-functionbody">  - Requires confirmation before changing either directory.</div>
+<div class="ct-functionbody">  - Does not alter share directories beneath /srv/storage/shares.</div>
+<div class="ct-functionbody">  - Honors console dry-run mode.</div>
+<div class="ct-functionbody"></div>
+<p class="ct-functionbody">Inputs (globals):</p>
+<div class="ct-functionbody">  FLAG_DRYRUN</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 when defaults are restored or the action is cancelled.</div>
+<div class="ct-functionbody">  Non-zero when a required directory or filesystem operation fails.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  storage_restore_access_defaults</div>
+</main>
+</body>
+</html>

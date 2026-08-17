@@ -122,7 +122,7 @@ The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **
 The following names are canonical:
 
 - **SolidGroundUX** — the Bash framework and associated runtime.
-- **SolidGroundUX Management Studio** — the primary administration application.
+- **SolidGround Management Console** — the primary modular administration application built on SolidGroundUX.
 - **Testadura Consultancy** — the legal or formal company identity.
 - **Testadura** — the preferred public-facing brand name where the legal suffix is unnecessary.
 
@@ -221,8 +221,10 @@ Canonical relationship:
 
 ```text
 SolidGroundUX framework
-└── SolidGroundUX Management Studio
-    └── Console modules
+├── Applications and executables
+├── Development and release tooling
+└── SolidGround Management Console
+    └── Lazy-loaded console pages
 ```
 
 The framework supplies runtime behaviour.
@@ -361,11 +363,24 @@ A function SHOULD be short enough that its control flow remains visible, but no 
 
 Function names MUST communicate action and scope.
 
+Function naming expresses three practical access levels:
+
+- `sgnd_*` — public framework API intended for applications and tools.
+- `_sgnd_*` — framework-internal or protected API shared by cooperating SolidGroundUX libraries and components.
+- `_foo` — private implementation detail local to one script, library, or module.
+
 Private script-local functions SHOULD begin with a single underscore:
 
 ```bash
 _validate_input
 _apply_network_config
+```
+
+Framework-internal helpers SHOULD retain the `sgnd` namespace while using a single leading underscore:
+
+```bash
+_sgnd_flag_is_on
+_sgnd_console_render_togglebar
 ```
 
 Framework-public functions MUST use the `sgnd_` prefix:
@@ -412,8 +427,9 @@ User-facing output SHOULD render these as meaningful text such as `Yes` and `No`
 Canonical function names:
 
 ```text
-sgnd_<verb>_<object>
-_<verb>_<object>
+sgnd_<verb>_<object>     public framework API
+_sgnd_<verb>_<object>   framework-internal / protected API
+_<verb>_<object>        local/private implementation
 ```
 
 Examples:
@@ -661,17 +677,11 @@ The two MAY overlap but are not interchangeable.
 
 ## 9.2 Canonical Levels
 
-Supported logging levels are:
+Supported logging levels MUST be taken from the current framework logging implementation and exposed consistently by framework tools.
 
-```text
-off
-silent
-quiet
-normal
-debug
-```
+Console and file logging are independent concerns and MAY use different active levels.
 
-Their semantics MUST remain stable across scripts.
+Documentation MUST NOT publish a hard-coded level inventory unless it is synchronized with the implementation. The semantics of a named level MUST remain stable across scripts.
 
 ## 9.3 Sensitive Data
 
@@ -704,9 +714,11 @@ Variables intended for state persistence SHOULD be declared through `SGND_STATE_
 
 A script MUST NOT persist every variable merely because persistence is available.
 
-## 10.2 Manual Save
+## 10.2 Persistence Policy
 
-Where state changes are operator-controlled, manual save through a flag such as `FLAG_SAVEPARMS` is preferred over unconditional automatic persistence.
+State persistence MUST follow the execution contract of the owning application or tool.
+
+Framework-managed automatic state is appropriate for values explicitly declared as persistent and expected to survive between runs. Explicit save controls MAY be used where persistence itself is an operator decision.
 
 Automatic state MUST NOT cause surprising behaviour on a subsequent run.
 
@@ -795,9 +807,13 @@ Use DHCP? [Yes]:
 
 Internal values MAY remain `0` and `1`, but operator-facing output SHOULD use `Yes` and `No`.
 
-## 11.6 Confirmations
+## 11.6 Confirmations and Post-Action Pauses
 
-`ask_continue` SHOULD be used before material changes.
+Confirmation and post-action viewing are separate interactions and MUST use the dialog primitive intended for that purpose.
+
+Before a material change, use an explicit decision/confirmation prompt that summarizes the proposed action and requires an operator decision.
+
+`ask_dlg_autocontinue` is intended for interruptible countdowns and post-action viewing windows. It MUST NOT be used as a substitute for informed confirmation.
 
 A confirmation SHOULD summarize the proposed action rather than merely asking “Continue?”
 
@@ -809,11 +825,9 @@ Quick keys MUST be unique within their active menu.
 
 Navigation keys SHOULD be consistent, including support for left and right navigation where the host supports it.
 
-Canonical instant choices may include:
+Canonical direct controls are application-defined but MUST remain visible and unique within their active context.
 
-```text
-C D F T L R Q < >
-```
+The SolidGround Management Console currently provides direct controls for execution mode, access context, console logging, file logging, theme, lines per page, redraw, shell access, navigation, and exit.
 
 The interface MUST make the meaning of each key visible.
 
@@ -877,53 +891,66 @@ for consistent scanning and comparison.
 
 # 13. Console and Module Architecture
 
-## 13.1 Management Studio Role
+## 13.1 Management Console Role
 
-The console is the **SolidGroundUX Management Studio**.
+The console is the **SolidGround Management Console**.
 
-Canonical metadata:
+It is a modular administration application built on the SolidGroundUX runtime and the public `sgnd-menu.sh` API. The menu framework is reusable infrastructure; the Management Console is one consumer of it.
 
-```bash
-SGND_SCRIPT_TITLE="SolidGroundUX Management Studio"
-SGND_SCRIPT_DESC="Manage SolidGroundUX, development tools, and system configuration"
+## 13.2 Index and Lazy Page Loading
+
+The Management Console MUST begin from a lightweight index that discovers available pages without sourcing every implementation module.
+
+Page metadata required by the index SHOULD remain lightweight.
+
+When a page is selected:
+
+1. its implementation module is sourced if it has not already been loaded;
+2. the module registers its detailed groups and items through the public menu API;
+3. the selected page is rendered;
+4. the loaded module remains resident for the lifetime of the console process.
+
+Returning to the index MUST NOT require unloading the module.
+
+This architecture exists to reduce initial load time without repeatedly paying the cost of loading functionality already used.
+
+## 13.3 Module Discovery and Visibility
+
+The canonical module directory is:
+
+```text
+/usr/local/libexec/solidgroundux/console-modules/
 ```
 
-It is not merely a framework demonstration or generic menu host.
+In development, the equivalent path MUST derive from the applicable application root.
 
-## 13.2 Module Discovery
+Page visibility MAY be persisted independently of module discovery. Root-only management controls MAY edit this state, but hidden modules MUST remain discoverable to the visibility manager so they can be re-enabled.
 
-Without an explicit `--appcfg`, the Management Studio MUST scan the canonical module directory.
+## 13.4 Module Contract
 
-In development, the path MUST derive from the application root.
+A console module MUST be source-only and MUST register itself through the public menu API expected by the host.
 
-The console owns and initializes:
+A module MUST NOT assume that another lazy-loaded page has already been opened.
 
-```bash
-SGND_CONSOLE_BIN_DIRECTORY
-SGND_CONSOLE_SBIN_DIRECTORY
-SGND_CONSOLE_LIBEXEC_DIRECTORY
-SGND_CONSOLE_DEFAULT_MODULE_DIRECTORY
-```
+Functionality genuinely shared by independent modules belongs in an appropriately scoped common library. Console-specific shared helpers SHOULD live in `lib/common/console-helpers.sh` rather than creating cross-module load dependencies.
 
-## 13.3 Module Contract
+Subject-specific implementation MAY remain in its owning module until reuse, size, or maintenance justifies extraction.
 
-Each module MUST expose the metadata and entry points required by the host.
+## 13.5 Console Settings
 
-Module metadata is temporary host-facing state and SHOULD NOT leak into unrelated modules.
+Frequently used runtime settings SHOULD be exposed through direct quick-access controls rather than a separate settings page when the direct interaction is clearer.
 
-A module MUST NOT assume load order unless the host contract explicitly guarantees it.
+Persisted console state MAY still back those controls.
 
-A module MUST cleanly decline activation when its dependencies are unavailable.
+## 13.6 Child Shells
 
-## 13.4 Child Shells
-
-A Management Studio option MAY open a child shell.
+A Management Console option MAY open a child shell.
 
 The interface MUST make clear that:
 
 - the operator is leaving the menu temporarily;
 - the shell inherits the current environment;
-- exiting the shell returns to the Management Studio.
+- exiting the shell returns to the Management Console.
 
 ---
 
@@ -947,7 +974,7 @@ When DHCP is enabled, static IPv4 fields SHOULD be omitted.
 
 When DHCP is disabled, the workflow SHOULD request only relevant IPv4 values and validate address availability before applying where practical.
 
-Before applying, the workflow MUST summarize the proposed configuration and request confirmation.
+Before applying, the workflow MUST summarize the proposed configuration and request an explicit operator decision.
 
 ## 14.3 Host Identity
 
@@ -1038,25 +1065,33 @@ The script SHOULD distinguish between:
 
 # 16. Installer Behaviour
 
-## 16.1 Integrity
+## 16.1 Canonical Release Manager
+
+`release-manager.sh` is the canonical SolidGroundUX installation and release-lifecycle tool.
+
+Separate legacy installer, updater, and uninstaller commands MUST NOT be documented as current interfaces once their responsibilities have been absorbed by the Release Manager.
+
+Prepared releases are produced by `prepare-release` and consumed by `release-manager`.
+
+## 16.2 Integrity
 
 Releases SHOULD include manifest or checksum verification.
 
 Installation MUST stop when integrity verification fails.
 
-## 16.2 Existing Directories
+## 16.3 Existing Directories
 
 Archive extraction MUST NOT overwrite ownership, mode, ACLs, or extended attributes of existing parent system directories unless the installer explicitly owns and manages those directories.
 
-## 16.3 Backups
+## 16.4 Backups
 
 Upgrades SHOULD back up replaced configuration or application files where local changes may exist.
 
 Backup naming and location MUST be deterministic.
 
-## 16.4 Upgrade Detection
+## 16.5 Operation Detection
 
-The installer SHOULD identify whether the operation is:
+The Release Manager SHOULD identify whether the operation is:
 
 - first installation;
 - repair;
@@ -1066,11 +1101,26 @@ The installer SHOULD identify whether the operation is:
 
 The operator SHOULD be informed when behaviour differs by mode.
 
-## 16.5 Release Archives
+## 16.6 Release Archives
 
 Release tooling MUST set canonical ownership and permissions before packaging.
 
 Packaging MUST not depend on the local developer account’s ownership being appropriate for installation.
+
+## 16.7 Filesystem-Based Release State
+
+Canonical release state is represented by the managed release artifacts themselves.
+
+The Release Manager uses:
+
+```text
+/var/lib/solidgroundux/releases/
+/var/lib/solidgroundux/archive/
+```
+
+Available prepared releases are retained beneath `releases/`. Installed release history is retained beneath `archive/`.
+
+The release lifecycle SHOULD remain inspectable with ordinary filesystem tools rather than depending on a separate opaque current-version database.
 
 ---
 
@@ -1137,7 +1187,7 @@ Where the consuming component expects an uppercase Kerberos realm, the normalize
 
 ## 18.3 Confirmation
 
-Before provisioning, `ask_continue` MUST present the resolved values and explain that domain provisioning is a material system change.
+Before provisioning, an explicit confirmation dialog MUST present the resolved values and explain that domain provisioning is a material system change.
 
 ## 18.4 Administrator Password
 
@@ -1368,7 +1418,8 @@ A script or module is canonically aligned when the reviewer can answer **yes** t
 ## 24.2 Naming
 
 - Are public functions prefixed with `sgnd_`?
-- Are private functions prefixed with a single underscore?
+- Are framework-internal/protected functions named `_sgnd_*` where appropriate?
+- Are private/local functions prefixed with a single underscore?
 - Are double underscores absent?
 - Are obsolete `td_` prefixes removed?
 - Are global and local variables named consistently?

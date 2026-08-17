@@ -2,9 +2,9 @@
 # SolidGroundUX - How to?
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : c6461fec463b0033157a52936bd47fce66e973d6fa8cf2d45f1ea0142ffa88ea
+#   Version     : 2.0
+#   Build       : 2622911
+#   Checksum    : 78cc34b74d2783e0d2a3a2ddfc2e3236258cea93b3bd2f73404571f05a470fe4
 #   Source      : solidgroundux_epilogue.sh
 #   Type        : documentation
 #   Group       : SolidGroundUX
@@ -298,7 +298,7 @@
 # >     Persist selected script variables between runs.
 #
 # > Main files
-# >     sgnd-state.sh
+# >     sgnd-cfg.sh
 # >     sgnd-bootstrap.sh
 #
 # > Main functions
@@ -354,7 +354,7 @@
 # >     saydebug
 #
 # > Important globals
-# >     SGND_LOG_LEVEL
+# >     SGND_CONSOLE_LOG_LEVEL
 #
 # > Log levels
 # >     silent
@@ -384,7 +384,7 @@
 # >     ui-say.sh
 #
 # > Important globals
-# >     SGND_LOGFILE_ENABLED
+# >     SGND_FILE_LOG_LEVEL
 # >     SGND_LOG_PATH
 # >     SGND_ALTLOG_PATH
 # >     SGND_LOG_MAX_BYTES
@@ -479,18 +479,48 @@
 # -- 16. Console Host and Modules ----------------------------------------------------
 #
 # > Purpose
-# >     Provide a menu-driven host for independently maintained console modules.
+# >     Provide the SolidGround Management Console as a page-oriented consumer of the
+# >     reusable public menu API.
+#
+# > Main files
+# >     sgnd-console.sh
+# >     sgnd-menu.sh
+# >     console-helpers.sh
+# >     console-modules/*.sh
+#
+# > Runtime model
+# >     The console discovers enabled module files and reads only their literal page
+# >     name/description metadata for the main index. A module is sourced when its page
+# >     is first opened, registers its detailed groups/items through the public
+# >     sgnd_menu_* API, and remains loaded for the lifetime of the console process.
+# >     Returning to the index does not unload it.
+#
+# > Dependency rule
+# >     Lazy-loaded modules must not depend on another page having been opened first.
+# >     Helpers shared by multiple modules belong in console-helpers.sh or another
+# >     appropriately scoped common library. Root sessions can manage persistent page
+# >     visibility from the main index.
 #
 # -- 17. SDK, Workspace, Deployment, and Release Tools -------------------------------
 #
 # > Purpose
-# >     Support the development lifecycle around SolidGroundUX projects.
+# >     Support development, test deployment, documentation, release preparation, and
+# >     the standalone installed-release lifecycle.
 #
 # > Main tools
 # >     create-workspace.sh
 # >     deploy-workspace.sh
-# >     metadata-editor.sh
+# >     create-wrappers.sh
+# >     doc-generator.sh
 # >     prepare-release.sh
-# >     install-release.sh
-# >     update-release.sh
-# >     uninstall-release.sh
+# >     release-manager.sh
+#
+# > Lifecycle
+# >     create/develop workspace -> deploy/test -> generate documentation ->
+# >     prepare-release -> prepared release artifacts -> release-manager
+#
+# >     deploy-workspace.sh is a development/test transfer tool. prepare-release.sh
+# >     creates complete release archives, manifests, removal manifests, and checksums.
+# >     release-manager.sh is framework-independent and owns installation, update,
+# >     rollback/reinstallation, download/check, and removal. Release state is represented
+# >     by /var/lib/solidgroundux/releases and /var/lib/solidgroundux/archive.

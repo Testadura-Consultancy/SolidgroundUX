@@ -7,9 +7,31 @@ practical framework development.
 
 # Unreleased
 
+## Version 2.0 (Build 2.0.2622911)
 ### SolidGround Framework
 
+#### Added
+- Added public `sgnd_menu_dispatch` support so standalone framework tools can
+  execute registered menu actions through the reusable menu API instead of
+  maintaining their own dispatch logic.
+
+- Added optional menu chrome control so consumers such as
+  `framework-smoketest.sh` can use the public menu renderer without the
+  Management Console togglebar and navigation legend.
+
 #### Changed
+- `framework-smoketest.sh` now builds, renders, reads, and dispatches its test
+  menu through the public `sgnd-menu.sh` API while retaining its 30-second
+  inactivity timeout.
+
+- The framework smoke-test progress demo now uses genuinely nested stacked
+  progress levels so lower-level work completes repeatedly while parent levels
+  advance independently.
+
+- Shared console-internal helpers used by more than one module or framework
+  library now live in `lib/common/console-helpers.sh`, avoiding dependencies on
+  another lazy-loaded console module having been opened first.
+
 - `doc-generator` now derives clean-output behavior from the selected generation
   mode: Full generation always cleans the output directory, while Selected and
   Changed generation preserve existing output for incremental updates.
@@ -41,7 +63,58 @@ practical framework development.
 
 ### SolidGround Management Console
 
+#### Added
+- Added a lightweight main index page that discovers available console pages
+  without sourcing their implementation modules.
+
+- Added lazy page loading: a console module is sourced only when its page is
+  opened for the first time, then remains loaded for the rest of the console
+  session.
+
+- Added root-only **Manage visibility** (`V`) on the main index page. Module
+  visibility is persisted through the existing console-module state file and
+  the index is refreshed immediately after changes.
+
+- Added a dedicated **SolidGroundUX** page containing framework information,
+  configuration, state, logging, diagnostics, the interactive Release Manager,
+  and direct release-manager actions for check, download, update, install,
+  rollback, and removal.
+
+- Added **Storage** and **Storage Access** as dedicated Management Console
+  functionality, including provisioning, mount/unmount, expansion, validation,
+  status, ownership, group, and permission management.
+
 #### Changed
+- Management Console startup now loads only lightweight page metadata. Detailed
+  groups, menu items, and implementation functions are registered when the
+  selected page is first opened.
+
+- Previously loaded pages remain resident for the lifetime of the console
+  process instead of being unloaded when leaving a page.
+
+- `Esc` now returns from a loaded page to the main index, allowing direct page
+  navigation without traversing intermediate modules.
+
+- The main index now follows the standard console title and menu-row visual
+  conventions, including hostname display, aligned descriptions, and a
+  dedicated section for console-management actions.
+
+- Removed the separate Console Settings page in favor of the existing direct
+  quick-access controls for mode, access, logging, theme, redraw, page length,
+  and shell access.
+
+- Normal menu actions now restore the interruptible post-action auto-continue
+  window with a minimum wait of 15 seconds, while immediate toggle actions can
+  still redraw without delay.
+
+- Shared helpers required by multiple lazy-loaded console modules are now
+  provided by `lib/common/console-helpers.sh` rather than being owned by one
+  module and implicitly depended on by another.
+
+- The Management Console preface was rewritten for the current index-based,
+  lazy-loading architecture and renamed
+  `solidground-management-console_preface.sh`.
+
 - Moved the paging indicator from the bottom-right corner to a centered position above
   the menu, making additional pages more obvious. The indicator is hidden when only
   one page is available.
@@ -64,6 +137,22 @@ practical framework development.
   Directory, Active Directory client, and Samba file-server functionality.
 
 #### Repaired
+- Fixed cross-module helper dependencies exposed by lazy loading, including DNS
+  configuration helpers used by both Active Directory Server and Active
+  Directory Client pages.
+
+- Fixed the lazy-page event loop no longer honoring registered post-action wait
+  times.
+
+- Fixed smoke-test menu selections being lost because the timed input helper
+  shadowed the caller's output variable.
+
+- Fixed standalone public-menu consumers failing on `_sgnd_flag_is_on` because
+  the helper was defined only by the Management Console host.
+
+- Fixed the Storage Access group visibility value being accidentally changed
+  from enabled (`1`) to `15`.
+
 - Fixed submenu consoles reverting to role-aware mode after ROLE had been
   switched off in the parent console.
 

@@ -2,10 +2,10 @@
 # SolidGroundUX - Script templates 
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : d6049ad905b1342005e3b029b3dc8984777eb20d3f7c31607afdc17c62f4d50b
-#   Source      : deployment_preface.sh
+#   Version     : 2.0
+#   Build       : 2622911
+#   Checksum    : 33ae1cd975c0cb0774f0938db3ad3076be77052407ad4f0bb453891f6b5a35fb
+#   Source      : templates_preface.sh
 #   Type        : documentation
 #   Group       : Templates
 #   Purpose     : Group preface
@@ -38,7 +38,7 @@
 # >         Template for reusable source-only libraries.
 #
 # >     mod-template.sh
-# >         Template for SolidGround Console modules.
+# >         Template for SolidGround Management Console page modules.
 #
 # >     wrapper-template
 # >         Template for lightweight launcher scripts.
@@ -73,14 +73,19 @@
 #
 # -- Console Module Template --------------------------------------------------------
 #
-# > The module template is used for modules loaded by the SolidGround Console host.
+# > The module template is used for page modules loaded by the SolidGround Management
+# > Console. A module is source-only and is sourced only when its page is first opened.
+# > It registers menu groups and items through the public `sgnd_menu_*` API, but should
+# > not perform the actual action until the user selects the corresponding menu item.
 #
-# > A console module is source-only. It registers menu groups and menu items when it
-# > is loaded, but should not perform the actual action until the user selects the
-# > corresponding menu item.
+# > The main index discovers pages before sourcing them, so each module must expose its
+# > page name and description as literal `*_MODULE_NAME="..."` and
+# > `*_MODULE_DESC="..."` assignments. Computed values cannot be used for these two
+# > discovery fields.
 #
-# > This pattern keeps console startup predictable while allowing functionality to be
-# > added by dropping modules into the configured module directory.
+# > Modules must not depend on another lazy-loaded page having been opened first. A
+# > helper required by multiple modules belongs in `console-helpers.sh` or another
+# > appropriately scoped common library.
 #
 # -- Wrapper Template ---------------------------------------------------------------
 #

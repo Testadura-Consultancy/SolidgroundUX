@@ -13,11 +13,11 @@
   <div class="doc-breadcrumb">SolidgroundUX / doc-generator.sh / Local script functions / _iterate_files</div>
 </header>
 <div class="ct-functionbody sh-highlight">Purpose</div>
-<div class="ct-functionbody">  Iterate over files in a directory using a file mask,</div>
+<div class="ct-functionbody">  Iterate over files in a directory using comma-separated file masks,</div>
 <div class="ct-functionbody">  optionally recursing into subdirectories.</div>
 <div class="ct-functionbody"></div>
 <div class="ct-functionbody sh-highlight">Behavior</div>
-<div class="ct-functionbody">  - Expands file_spec within source_dir</div>
+<div class="ct-functionbody">  - Filters source files against comma-separated file_spec masks</div>
 <div class="ct-functionbody">  - Supports recursive and non-recursive modes</div>
 <div class="ct-functionbody">  - Calls a callback function for each matched file</div>
 <div class="ct-functionbody">  - Skips non-regular files</div>
@@ -33,14 +33,14 @@
 <div class="ct-functionbody">  1 on invalid input</div>
 <div class="ct-functionbody"></div>
 <div class="ct-functionbody sh-highlight">Usage</div>
-<div class="ct-functionbody">  _iterate_files &quot;./src&quot; &quot;*.sh&quot; 1 sgnd_doc_process_file</div>
+<div class="ct-functionbody">  _iterate_files &quot;./src&quot; &quot;*.sh,*.py&quot; 1 sgnd_doc_process_file</div>
 <div class="ct-functionheader">_iterate_files - Iterate source files and collect documentation data</div>
 <div class="ct-functionbody sh-highlight">Purpose</div>
-<div class="ct-functionbody">  Iterate over files in a directory using a file mask,</div>
+<div class="ct-functionbody">  Iterate over files in a directory using comma-separated file masks,</div>
 <div class="ct-functionbody">  optionally recursing into subdirectories.</div>
 <div class="ct-functionbody"></div>
 <div class="ct-functionbody sh-highlight">Behavior</div>
-<div class="ct-functionbody">  - Expands file_spec within source_dir.</div>
+<div class="ct-functionbody">  - Filters source files against comma-separated file_spec masks.</div>
 <div class="ct-functionbody">  - Supports recursive and non-recursive modes.</div>
 <div class="ct-functionbody">  - Shows two-level progress:</div>
 <div class="ct-functionbody">      slot 0 = module/file progress</div>
@@ -59,7 +59,7 @@
 <div class="ct-functionbody">  1 on invalid input</div>
 <div class="ct-functionbody"></div>
 <div class="ct-functionbody sh-highlight">Usage</div>
-<div class="ct-functionbody">  _iterate_files &quot;./src&quot; &quot;*.sh&quot; 1 _parse_module_file</div>
+<div class="ct-functionbody">  _iterate_files &quot;./src&quot; &quot;*.sh,*.py&quot; 1 _parse_module_file</div>
 </main>
 </body>
 </html>

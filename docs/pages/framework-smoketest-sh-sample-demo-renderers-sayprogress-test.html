@@ -17,10 +17,11 @@
 <div class="ct-functionbody"></div>
 <div class="ct-functionbody sh-highlight">Behavior</div>
 <div class="ct-functionbody">  - Runs three visual progress scenarios after each other.</div>
-<div class="ct-functionbody">  - Stage 1 uses one progress level: 1..500.</div>
-<div class="ct-functionbody">  - Stage 2 uses two progress levels: outer 1..500, inner 1..150.</div>
-<div class="ct-functionbody">  - Stage 3 uses three progress levels: outer 1..500, middle 1..150,</div>
-<div class="ct-functionbody">    inner 1..80.</div>
+<div class="ct-functionbody">  - Stage 1 uses one progress level: 1..15.</div>
+<div class="ct-functionbody">  - Stage 2 uses true nested progress: outer 1..15, inner 1..70.</div>
+<div class="ct-functionbody">  - Stage 3 uses true nested progress: outer 1..15, middle 1..70,</div>
+<div class="ct-functionbody">    inner 1..125.</div>
+<div class="ct-functionbody">  - Lower levels complete and restart before their parent advances.</div>
 <div class="ct-functionbody">  - Uses explicit slots so stacked progress rendering can be inspected.</div>
 <div class="ct-functionbody"></div>
 <div class="ct-functionbody sh-highlight">Returns</div>

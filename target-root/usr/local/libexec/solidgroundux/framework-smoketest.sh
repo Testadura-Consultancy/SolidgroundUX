@@ -3,10 +3,10 @@
 # SolidGroundUX - Framework smoke tester
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : 5ed789d696116653a1d860fba97444857eba3190abcde4d1b9644a7e56f25b7c
-#   Source      : framework-smoketest-v3.sh
+#   Version     : 2.0
+#   Build       : 2622911
+#   Checksum    : 9da23f64b6c6d88b55931061a5a03984f34c29944c54e3b9a8e508be10f0066c
+#   Source      : framework-smoketest.sh
 #   Type        : script
 #   Purpose     : Exercise and validate core SolidGroundUX framework functionality
 #
@@ -191,6 +191,9 @@ set -uo pipefail
 # --- Script metadata (framework integration) --------------------------------------
     # Libraries to source from SGND_COMMON_LIB
     SGND_USING=(
+        sgnd-datatable.sh
+        console-helpers.sh
+        sgnd-menu.sh
     )
 
     # SGND_ARGS_SPEC
@@ -695,10 +698,11 @@ set -uo pipefail
         #
         # . Behavior
         #   - Runs three visual progress scenarios after each other.
-        #   - Stage 1 uses one progress level: 1..500.
-        #   - Stage 2 uses two progress levels: outer 1..500, inner 1..150.
-        #   - Stage 3 uses three progress levels: outer 1..500, middle 1..150,
-        #     inner 1..80.
+        #   - Stage 1 uses one progress level: 1..15.
+        #   - Stage 2 uses true nested progress: outer 1..15, inner 1..70.
+        #   - Stage 3 uses true nested progress: outer 1..15, middle 1..70,
+        #     inner 1..125.
+        #   - Lower levels complete and restart before their parent advances.
         #   - Uses explicit slots so stacked progress rendering can be inspected.
         #
         # . Returns
@@ -710,14 +714,16 @@ set -uo pipefail
         local outer=0
         local middle=0
         local inner=0
-        local outer_total=10
-        local middle_total=90
+        local outer_total=15
+        local middle_total=70
         local inner_total=125
 
         sgnd_print
         sgnd_print_sectionheader --text "Testing sayprogress() helpers"
+        sgdn_print
         saystart "Progress test 1/3: single level"
 
+        outer_total=150
         sayprogress_begin --slots 1
         for (( outer = 1; outer <= outer_total; outer++ )); do
             sayprogress \
@@ -728,14 +734,16 @@ set -uo pipefail
                 --type 7 \
                 --padleft 0
 
-            (( outer % 5 == 0 )) && sleep 0.01
+            (( outer % 5 == 0 )) && sleep 0.05
         done
-        sayprogress_done
+        
         sayok "Progress test 1/3 complete"
-
-        printf '\n'
+        
+        sgnd_print
         saystart "Progress test 2/3: double level"
 
+        outer_total=5
+        middle_total=125
         sayprogress_begin --slots 2
         for (( outer = 1; outer <= outer_total; outer++ )); do
             sayprogress \
@@ -746,24 +754,28 @@ set -uo pipefail
                 --type 7 \
                 --padleft 0
 
-            middle=$(( ((outer - 1) % middle_total) + 1 ))
-            sayprogress \
-                --slot 1 \
-                --current "$middle" \
-                --total "$middle_total" \
-                --label "Stage 2 inner: $middle/$middle_total" \
-                --type 7 \
-                --padleft 2
+            for (( middle = 1; middle <= middle_total; middle++ )); do
+                sayprogress \
+                    --slot 1 \
+                    --current "$middle" \
+                    --total "$middle_total" \
+                    --label "Stage 2 inner: $middle/$middle_total" \
+                    --type 7 \
+                    --padleft 2
 
-            (( outer % 5 == 0 )) && sleep 0.1
+                (( middle % 5 == 0 )) && sleep 0.05
+            done
         done
-        sayprogress_done
         sayok "Progress test 2/3 complete"
 
-        printf '\n'
+        
+        sgnd_print
         saystart "Progress test 3/3: triple level"
 
         sayprogress_begin --slots 3
+        outer_total=5
+        middle_total=10
+        inner_total=80
         for (( outer = 1; outer <= outer_total; outer++ )); do
             sayprogress \
                 --slot 0 \
@@ -773,28 +785,30 @@ set -uo pipefail
                 --type 7 \
                 --padleft 0
 
-            middle=$(( ((outer - 1) % middle_total) + 1 ))
-            sayprogress \
-                --slot 1 \
-                --current "$middle" \
-                --total "$middle_total" \
-                --label "Stage 3 middle: $middle/$middle_total" \
-                --type 7 \
-                --padleft 2
+            for (( middle = 1; middle <= middle_total; middle++ )); do
+                sayprogress \
+                    --slot 1 \
+                    --current "$middle" \
+                    --total "$middle_total" \
+                    --label "Stage 3 middle: $middle/$middle_total" \
+                    --type 7 \
+                    --padleft 2
 
-            inner=$(( ((outer - 1) % inner_total) + 1 ))
-            sayprogress \
-                --slot 2 \
-                --current "$inner" \
-                --total "$inner_total" \
-                --label "Stage 3 inner: $inner/$inner_total" \
-                --type 7 \
-                --padleft 4
+                for (( inner = 1; inner <= inner_total; inner++ )); do
+                    sayprogress \
+                        --slot 2 \
+                        --current "$inner" \
+                        --total "$inner_total" \
+                        --label "Stage 3 inner: $inner/$inner_total" \
+                        --type 7 \
+                        --padleft 4
 
-            (( outer % 5 == 0 )) && sleep 0.1
+                    (( inner % 10 == 0 )) && sleep 0.01
+                done
+            done
         done
-        sayprogress_done
         sayok "Progress test 3/3 complete"
+        sgnd_print
     }
 
     # fn: show_colorchart - Show colorchart
@@ -930,20 +944,173 @@ set -uo pipefail
         #   - Builtin argument handling is centralized in sgnd_builtinarg_handler.
         #   - Scripts may override builtin handling, but doing so transfers
         #     responsibility for correct behavior to the script author.
-    # fn: main - Run the executable main sequence
+    # fn: _smoketest_show_license - Display the active SolidGroundUX license
+        # Returns:
+        #   Returns the underlying license renderer status.
+        #
+        # Usage:
+        #   _smoketest_show_license
+    _smoketest_show_license() {
+        saydebug "$SGND_DOCS_DIR/$SGND_LICENSE_FILE"
+        sgnd_print_license
+    }
+
+    # fn: _smoketest_run_all_tests - Run the complete smoke-test sequence
         # . Purpose
-        #   Run the executable main sequence.
+        #   Execute the principal framework smoke tests in their normal menu order.
         #
         # . Behavior
-        #   - Public entry point.
-        #   - Preserves existing script runtime behavior.
+        #   - Runs ask, input, say, console log-level, file log-level, MOTD, and
+        #     progress tests sequentially.
+        #   - Leaves display-only license, color-chart, theme, and logfile actions
+        #     available as individual menu choices.
         #
         # . Returns
-        #   Returns the underlying command or workflow status.
+        #   Returns 0 after the sequence completes.
         #
         # . Usage
-        #   main
+        #   _smoketest_run_all_tests
+    _smoketest_run_all_tests() {
+        ask_test
+        input_test
+        say_test
+        loglevel_test
+        file_loglevel_test
+        motd_test
+        sayprogress_test
+        return 0
+    }
+
+    # fn: _smoketest_request_exit - Mark the interactive smoke-test menu for exit
+        # . Purpose
+        #   Request termination of the current smoke-test menu loop.
+        #
+        # Outputs (globals):
+        #   SGND_SMOKETEST_EXIT
+        #
+        # . Returns
+        #   0 always.
+        #
+        # . Usage
+        #   _smoketest_request_exit
+    _smoketest_request_exit() {
+        SGND_SMOKETEST_EXIT=1
+        return 0
+    }
+
+    # fn: _smoketest_register_menu - Register the smoke-test menu through the public menu API
+        # . Purpose
+        #   Build the framework smoke-test menu using the reusable sgnd-menu API.
+        #
+        # . Behavior
+        #   - Disables management-console togglebar chrome for this standalone menu.
+        #   - Creates the menu model once for the current process.
+        #   - Registers the numbered test actions in their historical order.
+        #   - Registers L, V, A, and Q as literal-key utility actions.
+        #
+        # . Returns
+        #   0 when all menu groups and items are registered successfully.
+        #   Non-zero when menu creation or registration fails.
+        #
+        # . Usage
+        #   _smoketest_register_menu
+    _smoketest_register_menu() {
+        SGND_MENU_SHOW_TOGGLEBAR=0
+
+        sgnd_menu_create \
+            "SolidGroundUX - Framework Unit Test Menu" \
+            "Exercise and validate core SolidGroundUX framework functionality" || return $?
+
+        sgnd_menu_register_group \
+            "smoke-tests" \
+            "Framework Tests" \
+            "Run individual framework smoke tests" \
+            0 1 100 || return $?
+
+        sgnd_menu_register_item "ask"      "smoke-tests" "Ask tests"                 "ask_test"               "Exercise ask and dialog helpers" 0 15 1 || return $?
+        sgnd_menu_register_item "input"    "smoke-tests" "Input test"                "input_test"             "Exercise input helpers" 0 15 1 || return $?
+        sgnd_menu_register_item "say"      "smoke-tests" "Say test"                  "say_test"               "Exercise message output helpers" 0 15 1 || return $?
+        sgnd_menu_register_item "loglevel" "smoke-tests" "Log level visibility test" "loglevel_test"          "Verify console log-level filtering" 0 15 1 || return $?
+        sgnd_menu_register_item "motd"     "smoke-tests" "Call MOTD"                  "motd_test"              "Render the SolidGroundUX MOTD" 0 15 1 || return $?
+        sgnd_menu_register_item "progress" "smoke-tests" "Progress dialogue test"     "sayprogress_test"       "Exercise one, two, and three stacked progress lines" 0 15 1 || return $?
+        sgnd_menu_register_item "license"  "smoke-tests" "Show license"               "_smoketest_show_license" "Display the active SolidGroundUX license" 0 15 1 || return $?
+        sgnd_menu_register_item "colors"   "smoke-tests" "Show color chart"           "show_colorchart"        "Display the current terminal color chart" 0 15 1 || return $?
+        sgnd_menu_register_item "theme"    "smoke-tests" "Show theme"                 "show_theme"             "Display the active SolidGroundUX theme" 0 15 1 || return $?
+
+        sgnd_menu_register_group \
+            "smoke-actions" \
+            "Smoke Test Actions" \
+            "Logging and aggregate smoke-test actions" \
+            1 1 900 || return $?
+
+        sgnd_menu_register_item "L" "smoke-actions" "File log level test" "file_loglevel_test"       "Verify file log-level filtering" 1 15 1 || return $?
+        sgnd_menu_register_item "V" "smoke-actions" "View logfile"        "view_log"                 "Display the active SolidGroundUX logfile" 1 15 1 || return $?
+        sgnd_menu_register_item "A" "smoke-actions" "Run all tests"       "_smoketest_run_all_tests" "Run the principal framework smoke-test sequence" 1 15 1 || return $?
+        sgnd_menu_register_item "Q" "smoke-actions" "Quit"                "_smoketest_request_exit"  "Exit the framework smoke tester" 1 0 1 || return $?
+
+        return 0
+    }
+
+    # fn: _smoketest_read_choice - Read one smoke-test choice with auto-exit timeout
+        # . Purpose
+        #   Preserve the smoke test's 30-second inactivity timeout while the menu itself
+        #   is rendered and defined through the public sgnd-menu API.
+        #
+        # . Arguments
+        #   $1  OUTPUT_VAR - Variable receiving the selected single-character choice.
+        #
+        # . Returns
+        #   0 when a key was read.
+        #   1 when the 30-second timeout expires.
+        #
+        # . Usage
+        #   _smoketest_read_choice choice
+    _smoketest_read_choice() {
+        local output_var="${1:?missing output variable}"
+        local key=""
+        local seconds_left=0
+
+        for (( seconds_left=30; seconds_left>=1; seconds_left-- )); do
+            printf '\r\033[K%bSelect option (auto-exit in %2ss): %b' \
+                "${SGND_UI_TEXT:-}" \
+                "$seconds_left" \
+                "${RESET:-}" >/dev/tty
+
+            if IFS= read -r -s -n 1 -t 1 key </dev/tty; then
+                printf '\n' >/dev/tty
+                printf -v "$output_var" '%s' "$key"
+                return 0
+            fi
+        done
+
+        printf '\n' >/dev/tty
+        printf -v "$output_var" '%s' ''
+        return 1
+    }
+
+    # fn: main - Run the SolidGroundUX framework smoke test
+        # . Purpose
+        #   Initialize the framework and run the interactive smoke-test menu.
+        #
+        # . Behavior
+        #   - Starts through the canonical executable framework path.
+        #   - Supports direct logfile viewing through --view-log.
+        #   - Builds and renders the test menu through the public sgnd-menu API.
+        #   - Suppresses management-console status/legend chrome and renders one final
+        #     double separator before the selection prompt.
+        #   - Preserves the historical 30-second inactivity auto-exit behavior.
+        #
+        # . Arguments
+        #   $@  Framework and script-specific command-line arguments.
+        #
+        # . Returns
+        #   Exits with the framework startup status or selected test status.
+        #
+        # . Usage
+        #   main "$@"
     main() {
+        local choice=""
+
         # -- Startup
             _framework_locator || exit $?
             sgnd_exe_start -- "$@"
@@ -954,101 +1121,32 @@ set -uo pipefail
             fi
 
         # -- Main script logic
-            local choice
+            _smoketest_register_menu || return $?
+
+            SGND_SMOKETEST_EXIT=0
 
             while true; do
-                sgnd_print
-                sgnd_print_sectionheader --text "SolidGroundUX — Framework Unit Test Menu\n"
-                
-                sgnd_print " 1) Ask tests"
-                sgnd_print " 2) Input test"
-                sgnd_print " 3) Say test"
-                sgnd_print " 4) Log level visibility test"
-                sgnd_print " 5) Call motd"
-                sgnd_print " 6) Progress dialogue test"
-                sgnd_print " 7) Show license"
-                sgnd_print " 8) Show color chart"
-                sgnd_print " 9) Show theme"
-                sgnd_print " L) File log level test"
-                sgnd_print " V) View logfile"
-                sgnd_print
-                sgnd_print " A) Run all tests"
-                sgnd_print " q) Quit"
-                sgnd_print_sectionheader --maxwidth 25
-                printf "Select option: "
+                sgnd_menu_show_menu
+                sgnd_print_sectionheader --border "$DL_H" --maxwidth "${SGND_MENU_RENDER_WIDTH:-$(sgnd_terminal_width)}"
 
                 choice=""
-
-                for seconds_left in {30..1}; do
-                    printf '\r\033[K%bSelect option (auto-exit in %2ss): %b' \
-                        "${SGND_UI_TEXT:-}" \
-                        "$seconds_left" \
-                        "${RESET:-}" >/dev/tty
-
-                    if read -r -s -n1 -t 1 choice; then
-                        break
-                    fi
-                done
-
-                printf "\n"
-
-                if [[ -z "$choice" ]]; then
+                if ! _smoketest_read_choice choice; then
                     sgnd_print "No selection made. Exiting..."
                     break
                 fi
 
-                case "${choice,,}" in
-                    1)
-                        ask_test
-                        ;;
-                    2)
-                        input_test
-                        ;;
-                    3)
-                        say_test
-                        ;;
-                    4)
-                        loglevel_test
-                        ;;
-                    5)
-                        motd_test
-                        ;;
-                    6)
-                        sayprogress_test
-                        ;;
-                    7) 
-                        saydebug "$SGND_DOCS_DIR/$SGND_LICENSE_FILE"
-                        sgnd_print_license
-                        ;;
-                    8)
-                        show_colorchart
-                        ;;
-                    9)
-                        show_theme
-                        ;;
-                    l)
-                        file_loglevel_test
-                        ;;
-                    v)
-                        view_log
-                        ;;
-                    a)
-                        ask_test
-                        input_test
-                        say_test
-                        loglevel_test
-                        file_loglevel_test
-                        motd_test
-                        sayprogress_test
-                        ;;
-                    q)
-                        sgnd_print "Exiting..."
-                        break
-                        ;;
-                    *)
-                        printf "Invalid option: %s\n" "$choice"
-                        ;;
-                esac
+                # The timed reader is smoke-test-specific input policy; selection execution
+                # is delegated to the public menu dispatcher.
+                SGND_LAST_WAITSECS=0
+                sgnd_menu_dispatch "$choice" || true
+
+                (( SGND_SMOKETEST_EXIT )) && break
+
+                if (( ${SGND_LAST_WAITSECS:-0} > 0 )); then
+                    ask_dlg_autocontinue \
+                        --seconds "$SGND_LAST_WAITSECS" \
+                        --message "Press Enter to continue, or wait to return to the smoke-test menu."
+                fi
             done
     }
 

@@ -16,8 +16,30 @@
 <p class="ct-documentbody">All notable changes to SolidGroundUX are documented in this file.</p>
 <p class="ct-documentbody">The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.</p>
 <h2 class="ct-L1Sectionheader">Unreleased</h2>
+<h3 class="ct-L2Sectionheader">Version 2.0 (Build 2.0.2622911)</h3>
 <h4 class="ct-L3Sectionheader">SolidGround Framework</h4>
+<h5 class="ct-L3Sectionheader">Added</h5>
+<ul>
+<li>Added public `sgnd_menu_dispatch` support so standalone framework tools can</li>
+<p class="ct-documentbody">execute registered menu actions through the reusable menu API instead of maintaining their own dispatch logic.</p>
+</ul>
+<ul>
+<li>Added optional menu chrome control so consumers such as</li>
+<p class="ct-documentbody">`framework-smoketest.sh` can use the public menu renderer without the Management Console togglebar and navigation legend.</p>
+</ul>
 <h5 class="ct-L3Sectionheader">Changed</h5>
+<ul>
+<li>`framework-smoketest.sh` now builds, renders, reads, and dispatches its test</li>
+<p class="ct-documentbody">menu through the public `sgnd-menu.sh` API while retaining its 30-second inactivity timeout.</p>
+</ul>
+<ul>
+<li>The framework smoke-test progress demo now uses genuinely nested stacked</li>
+<p class="ct-documentbody">progress levels so lower-level work completes repeatedly while parent levels advance independently.</p>
+</ul>
+<ul>
+<li>Shared console-internal helpers used by more than one module or framework</li>
+<p class="ct-documentbody">library now live in `lib/common/console-helpers.sh`, avoiding dependencies on another lazy-loaded console module having been opened first.</p>
+</ul>
 <ul>
 <li>`doc-generator` now derives clean-output behavior from the selected generation</li>
 <p class="ct-documentbody">mode: Full generation always cleans the output directory, while Selected and Changed generation preserve existing output for incremental updates.</p>
@@ -28,7 +50,11 @@
 </ul>
 <ul>
 <li>Width-aware UI primitives now delegate their default width policy to</li>
-<p class="ct-documentbody">`sgnd_render_width`; when `--maxwidth` is omitted they use the current terminal width, while explicit widths remain honored and capped by `SGND_MAX_RENDER_WIDTH`.</p>
+<p class="ct-documentbody">`sgnd_render_width`; when `--maxwidth` is omitted they use the current terminal width, while explicit widths remain honored.</p>
+</ul>
+<ul>
+<li>`SGND_MAX_RENDER_WIDTH` is now an optional global render cap: when unset or</li>
+<p class="ct-documentbody">set to `0`, UI primitives may use the full terminal width; positive values continue to enforce an explicit maximum.</p>
 </ul>
 <ul>
 <li>`sgnd_print_titlebar`, `sgnd_print_sectionheader`, `sgnd_print_fill`,</li>
@@ -44,7 +70,60 @@
 <p class="ct-documentbody">authentication. It now creates a narrowly scoped remote `sudoers` rule for `receive-files.sh`, allowing remote deployments to run non-interactively after the initial setup.</p>
 </ul>
 <h4 class="ct-L3Sectionheader">SolidGround Management Console</h4>
+<h5 class="ct-L3Sectionheader">Added</h5>
+<ul>
+<li>Added a lightweight main index page that discovers available console pages</li>
+<p class="ct-documentbody">without sourcing their implementation modules.</p>
+</ul>
+<ul>
+<li>Added lazy page loading: a console module is sourced only when its page is</li>
+<p class="ct-documentbody">opened for the first time, then remains loaded for the rest of the console session.</p>
+</ul>
+<ul>
+<li>Added root-only **Manage visibility** (`V`) on the main index page. Module</li>
+<p class="ct-documentbody">visibility is persisted through the existing console-module state file and the index is refreshed immediately after changes.</p>
+</ul>
+<ul>
+<li>Added a dedicated **SolidGroundUX** page containing framework information,</li>
+<p class="ct-documentbody">configuration, state, logging, diagnostics, the interactive Release Manager, and direct release-manager actions for check, download, update, install, rollback, and removal.</p>
+</ul>
+<ul>
+<li>Added **Storage** and **Storage Access** as dedicated Management Console</li>
+<p class="ct-documentbody">functionality, including provisioning, mount/unmount, expansion, validation, status, ownership, group, and permission management.</p>
+</ul>
 <h5 class="ct-L3Sectionheader">Changed</h5>
+<ul>
+<li>Management Console startup now loads only lightweight page metadata. Detailed</li>
+<p class="ct-documentbody">groups, menu items, and implementation functions are registered when the selected page is first opened.</p>
+</ul>
+<ul>
+<li>Previously loaded pages remain resident for the lifetime of the console</li>
+<p class="ct-documentbody">process instead of being unloaded when leaving a page.</p>
+</ul>
+<ul>
+<li>`Esc` now returns from a loaded page to the main index, allowing direct page</li>
+<p class="ct-documentbody">navigation without traversing intermediate modules.</p>
+</ul>
+<ul>
+<li>The main index now follows the standard console title and menu-row visual</li>
+<p class="ct-documentbody">conventions, including hostname display, aligned descriptions, and a dedicated section for console-management actions.</p>
+</ul>
+<ul>
+<li>Removed the separate Console Settings page in favor of the existing direct</li>
+<p class="ct-documentbody">quick-access controls for mode, access, logging, theme, redraw, page length, and shell access.</p>
+</ul>
+<ul>
+<li>Normal menu actions now restore the interruptible post-action auto-continue</li>
+<p class="ct-documentbody">window with a minimum wait of 15 seconds, while immediate toggle actions can still redraw without delay.</p>
+</ul>
+<ul>
+<li>Shared helpers required by multiple lazy-loaded console modules are now</li>
+<p class="ct-documentbody">provided by `lib/common/console-helpers.sh` rather than being owned by one module and implicitly depended on by another.</p>
+</ul>
+<ul>
+<li>The Management Console preface was rewritten for the current index-based,</li>
+<p class="ct-documentbody">lazy-loading architecture and renamed `solidground-management-console_preface.sh`.</p>
+</ul>
 <ul>
 <li>Moved the paging indicator from the bottom-right corner to a centered position above</li>
 <p class="ct-documentbody">the menu, making additional pages more obvious. The indicator is hidden when only one page is available.</p>
@@ -52,6 +131,51 @@
 <ul>
 <li>The `Q` legend is now context-aware: `Quit` is shown in the root console and `Back`</li>
 <p class="ct-documentbody">in submenus.</p>
+</ul>
+<ul>
+<li>Role-awareness state is now persisted immediately through the existing</li>
+<p class="ct-documentbody">console state file, so nested consoles and submenus inherit the current `SGND_CONSOLE_ROLE_AWARE` setting without requiring process-variable propagation.</p>
+</ul>
+<ul>
+<li>Role-dependent menu visibility is now evaluated dynamically from the current</li>
+<p class="ct-documentbody">machine package state instead of being fixed when console modules are first loaded. Newly installed roles therefore become available on the next menu redraw without restarting the console.</p>
+</ul>
+<ul>
+<li>Role-backed console groups now declare their required packages in the menu</li>
+<p class="ct-documentbody">model, allowing the same runtime filtering mechanism to be reused for Active Directory, Active Directory client, and Samba file-server functionality.</p>
+</ul>
+<h5 class="ct-L3Sectionheader">Repaired</h5>
+<ul>
+<li>Fixed cross-module helper dependencies exposed by lazy loading, including DNS</li>
+<p class="ct-documentbody">configuration helpers used by both Active Directory Server and Active Directory Client pages.</p>
+</ul>
+<ul>
+<li>Fixed the lazy-page event loop no longer honoring registered post-action wait</li>
+<p class="ct-documentbody">times.</p>
+</ul>
+<ul>
+<li>Fixed smoke-test menu selections being lost because the timed input helper</li>
+<p class="ct-documentbody">shadowed the caller&#x27;s output variable.</p>
+</ul>
+<ul>
+<li>Fixed standalone public-menu consumers failing on `_sgnd_flag_is_on` because</li>
+<p class="ct-documentbody">the helper was defined only by the Management Console host.</p>
+</ul>
+<ul>
+<li>Fixed the Storage Access group visibility value being accidentally changed</li>
+<p class="ct-documentbody">from enabled (`1`) to `15`.</p>
+</ul>
+<ul>
+<li>Fixed submenu consoles reverting to role-aware mode after ROLE had been</li>
+<p class="ct-documentbody">switched off in the parent console.</p>
+</ul>
+<ul>
+<li>Fixed newly installed role packages not exposing their corresponding menu</li>
+<p class="ct-documentbody">groups until the Management Console was restarted.</p>
+</ul>
+<ul>
+<li>The Samba Active Directory package installation now explicitly includes</li>
+<p class="ct-documentbody">`samba-common-bin`, ensuring the required `samba-tool` command is installed as a direct dependency of the SolidGroundUX AD-server role.</p>
 </ul>
 <h3 class="ct-L2Sectionheader">Build 1.9.2622402 - 2026-08-12</h3>
 <h4 class="ct-L3Sectionheader">SolidGround Framework</h4>

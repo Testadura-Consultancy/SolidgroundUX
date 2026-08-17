@@ -2,9 +2,9 @@
 # SolidGroundUX - UI Framework
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : c9b98db00ef0c77850d1c611cf4dc0fb00df11044c7b5a49c8ec365e33b3a627
+#   Version     : 2.0
+#   Build       : 2622911
+#   Checksum    : d8d32e150e2fc71b5fd8cb2753d02522f5e2c819f50955a2f2ecd0d31383a69f
 #   Source      : ui_preface.sh
 #   Type        : documentation
 #   Group       : UI
@@ -131,6 +131,11 @@
 # > Prompt functions normalize common interaction patterns so applications do not
 # > need to reproduce terminal handling, label formatting, default-value behavior, or
 # > response validation.
+# >
+# > Use `ask_decision` for an explicit user decision that should block until a choice is
+# > made. Use `ask_dlg_autocontinue` for an interruptible timed continuation where the
+# > normal path continues automatically but the operator may intervene, pause, redo, or
+# > cancel according to the options supplied. These are distinct interaction patterns.
 #
 # -- Dialog-Oriented Interaction -----------------------------------------------------
 #
@@ -152,6 +157,17 @@
 # > Rendering code should refer to the shared glyph definitions rather than choosing
 # > local arrows, checkmarks, separators, or box-drawing characters. This preserves a
 # > recognizable visual language across the framework.
+#
+# -- Rendering Width and Message Routing ---------------------------------------------
+#
+# > Width-aware UI primitives derive their default width from the active terminal. An
+# > explicit `--maxwidth` is honored when supplied, and `SGND_MAX_RENDER_WIDTH` acts as
+# > an optional global cap; an unset or zero cap allows use of the full terminal width.
+#
+# > The `say*` family routes semantic messages independently to console and file output.
+# > `SGND_CONSOLE_LOG_LEVEL` controls terminal visibility and `SGND_FILE_LOG_LEVEL`
+# > controls persistent logging, allowing the two audiences to use different detail
+# > levels.
 #
 # -- Guidance for Applications -------------------------------------------------------
 #

@@ -2,9 +2,9 @@
 # SolidGroundUX - Documentation Generator Overview
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : ce0737b77c9a7222ec15cc735e21f9b7af9d7b1c1855e47b29310136bedeb581
+#   Version     : 2.0
+#   Build       : 2622911
+#   Checksum    : b0188156d7da8006699e4e1f6705d36c07f13d1ff61576973d111dcee319ea41
 #   Source      : sdk documentation_preface.sh
 #   Type        : documentation
 #   Group       : SDK Documentation
@@ -53,6 +53,12 @@
 #
 # > The generator coordinates the overall process and acts as the main entry point
 # > for producing the documentation set.
+# >
+# > Full generation cleans the output directory before rebuilding the complete set.
+# > Selected and Changed generation preserve existing output so they can be used for
+# > fast incremental updates. After files or modules are renamed or removed, use Full
+# > generation so obsolete generated pages are deleted rather than surviving from an
+# > earlier documentation run.
 #
 # -- Module Headers -----------------------------------------------------------------
 #
@@ -161,6 +167,11 @@
 #
 # > The generated documentation consists of an HTML index, content pages, stylesheet
 # > assets, appendices, glossary pages, and integrity information.
+# >
+# > Project-level appendices are supplied from repository/project sources such as the
+# > canonical architecture/conventions document, CHANGELOG, INSTALL guide, and license.
+# > These prose sources should be maintained alongside the project and regenerated into
+# > the HTML set rather than editing generated appendix pages directly.
 #
 # > The output is intentionally static HTML so it can be viewed in any browser
 # > without requiring a web server, database, or application runtime.

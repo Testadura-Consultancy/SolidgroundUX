@@ -2,9 +2,9 @@
 # SolidGroundUX - Framework Introduction
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : dee917965654def0ec722497766852667367b44e2e1ab01cccb2139f8ecf5516
+#   Version     : 2.0
+#   Build       : 2622911
+#   Checksum    : bdfa54c36175147e63573b179636d4cce2a285ec0f68284364550e7f402649fc
 #   Source      : solidgroundux_preface.sh
 #   Type        : documentation
 #   Group       : SolidGroundUX
@@ -182,14 +182,18 @@
 #
 # -- Modular console host ------------------------------------------------------------
 #
-# > The SolidGroundUX console provides a menu-driven host application that can load
-# > independently maintained modules. Modules register menu groups and commands with
-# > the host, allowing the console to grow without hardcoding every action into one
-# > large script.
+# > The SolidGround Management Console is a page-oriented application built on the
+# > reusable public sgnd-menu API. Startup discovers enabled module files and reads
+# > their literal page name and description metadata without sourcing the module body.
 #
-# > Use console modules for administrative or SDK actions that benefit from an
-# > interactive menu, especially when those actions belong to different functional
-# > groups but should remain available from one common entry point.
+# > A selected page is sourced only on first open. The module then registers its groups
+# > and items through sgnd_menu_* and remains loaded for the lifetime of the console
+# > process. Returning to the index does not unload it. This keeps startup lightweight
+# > while preserving self-contained functional modules.
+#
+# > Lazy-loaded modules must not depend on another page having been opened first.
+# > Functionality shared by multiple modules belongs in console-helpers.sh or another
+# > appropriately scoped common library.
 #
 # -- Documentation generator ---------------------------------------------------------
 #
@@ -212,15 +216,17 @@
 # > aligned with the framework conventions and reduces the amount of structural code
 # > that has to be recreated manually.
 #
-# -- Workspace and deployment tools --------------------------------------------------
+# -- Workspace, deployment, and release tools ----------------------------------------
 #
-# > The SDK tools can create workspaces, deploy workspace content, prepare release
-# > packages, install releases, update existing installations, and uninstall installed
-# > releases. Together, these tools provide a simple development-to-deployment flow.
+# > The development lifecycle separates test deployment from formal release management:
 #
-# > The intended release flow is to update the source tree, regenerate documentation,
-# > run the release preparation tool, validate the generated manifest and checksums,
-# > and then install or update from the generated release archive.
+# >     workspace -> deploy/test -> prepare-release -> release artifacts -> release-manager
+#
+# > deploy-workspace.sh transfers complete or filtered workspace content into a local
+# > or remote target root for development and validation. prepare-release.sh creates
+# > the complete versioned archive, manifests, checksums, and bundled release manager.
+# > The standalone release-manager.sh owns installation, update, download/check,
+# > rollback/reinstallation, and removal without depending on a working framework.
 # - Architecture --------------------------------------------------------------------
 #
 # > SolidGroundUX is designed as a framework rather than a collection of unrelated
@@ -248,8 +254,8 @@
 # > documentation generation.
 #   
 # > Above the library layer are executable applications. These are standalone tools
-# > such as workspace generators, deployment utilities, package builders, metadata
-# > editors, and documentation generators.
+# > such as workspace generators, deployment utilities, release preparation, wrapper
+# > generation, release management, and documentation generators.
 #   
 # > The framework also supports modular console applications. Independent modules can
 # > register menu groups and menu items with a common host application, providing a
@@ -277,16 +283,17 @@
 # > SolidGroundUX uses naming conventions to distinguish public APIs from internal
 # > implementation details.
 #   
-# > Public functions use the sgnd_ prefix and are intended for use by framework users
-# > and framework components.
+# > Public framework functions use `sgnd_*` and are intended for application and tool
+# > consumers.
 # >
-# > Internal helper functions use a leading underscore and should be considered
-# > private implementation details. Bash, of course, does not enforce access
-# > restrictions, and I am not going to claim that I have always been perfectly
-# > true to this convention. It is, however, an attempt to at least indicate intent.
-#   
-# > Consumers should avoid relying on internal functions, as their behavior may
-# > change between framework releases.
+# > Framework-internal functions use `_sgnd_*`. They are effectively protected: other
+# > cooperating SolidGroundUX libraries may depend on them, but they are not part of
+# > the supported application-facing API.
+# >
+# > Plain leading-underscore helpers such as `_helper` are local/private implementation
+# > details belonging to one script or module. Bash cannot enforce these access levels,
+# > but the convention communicates intended ownership. Consumers should rely on the
+# > public `sgnd_*` surface unless they are implementing framework internals.
 #
 # -- Convention Over Configuration ---------------------------------------------------
 #

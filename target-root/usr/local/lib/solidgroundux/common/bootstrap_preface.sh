@@ -2,9 +2,9 @@
 # SolidGroundUX - Bootstrap Sequence
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : a023eeb1562c3612796d1cd51126a7c0c9a58bb188041d2d436d460c48779b09
+#   Version     : 2.0
+#   Build       : 2622911
+#   Checksum    : 6d7f4613446f65a3b1216a42027b1e7aa5a7442d50fe262754e86d58bb95607a
 #   Source      : bootstrap_preface.sh
 #   Type        : documentation
 #   Group       : Bootstrap
@@ -111,12 +111,14 @@
 # > other framework components. They may include resolved paths, script metadata,
 # > runtime flags, configuration locations, and other common settings.
 #   
-# > When `SGND_GLOBALS` is populated by a script or library, the bootstrap and
-# > configuration layers can use those definitions to prepare configurable values in
-# > a consistent way.
-#   
-# > This mechanism helps bridge the gap between static script defaults,
-# > configuration files, and command-line overrides.
+# > Configurable values are described through the current scoped registries. Framework
+# > settings use
+# > `SGND_FRAMEWORK_GLOBALS`; application settings use `SGND_SCRIPT_GLOBALS`; runtime
+# > definitions and defaults are supplied by the bootstrap/environment layer.
+# >
+# > These registries bridge static defaults, system/user configuration files, runtime
+# > state, and command-line overrides without requiring each executable to implement
+# > its own configuration model.
 #
 # -- Configuration Management -------------------------------------------------------
 #

@@ -2,10 +2,10 @@
 # SolidGroundUX - Default UI Style
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : 3ce3248fa948d3ab90a440177fbce9c0544d875e944202aebe3611879f69e702
-#   Source      : default-ui-style.sh
+#   Version     : 2.0
+#   Build       : 2622911
+#   Checksum    : ca738d0a3c71246234b5862dda6c6fb509584f7ed00448219ff8ba90f6846ace
+#   Source      : 00-style-default.sh
 #   Type        : library
 #   Group       : Styles
 #   Purpose     : Define default UI layout, spacing, and styling conventions

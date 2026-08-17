@@ -2,9 +2,9 @@
 # SolidGroundUX - SDK Tools Overview
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : 7874b693410ccbde3b06349fede8b2a13e15fd8f244cdf4dc773998c54b71747
+#   Version     : 2.0
+#   Build       : 2622911
+#   Checksum    : 0eb1384b339cb7addd5a74c729f22a2262ea08ff58854a00a922d28f86c8dd41
 #   Source      : sdk tools_preface.sh
 #   Type        : documentation
 #   Group       : SDK Tools
@@ -96,17 +96,17 @@
 #
 # -- Metadata Management ------------------------------------------------------------
 #
-# > Metadata plays an important role within the SolidGroundUX ecosystem.
+# > Metadata plays an important role within the SolidGroundUX ecosystem. Version,
+# > build, checksum, attribution, licensing, and source identity are maintained through
+# > the canonical source-header model.
 #
-# > Version information, build identifiers, checksums, attribution information,
-# > licensing information, and other descriptive properties are maintained through
-# > a standardized metadata model.
+# > Metadata maintenance is consolidated into prepare-release.sh and the shared
+# > header-parser support. Version and Build can be updated for all files, changed files
+# > only, or left untouched, while checksums are refreshed whenever source or release
+# > metadata changes require it.
 #
-# > The metadata editor provides a convenient mechanism for viewing and maintaining
-# > this information without requiring developers to update multiple files manually.
-#
-# > Consistent metadata improves traceability, deployment integrity, and generated
-# > documentation quality.
+# > Keeping this work in release preparation avoids a separate metadata-maintenance tool
+# > and ensures the release artifacts and source headers are synchronized together.
 #
 # -- Documentation Generation -------------------------------------------------------
 #
@@ -124,28 +124,26 @@
 #
 # -- Workspace Deployment -----------------------------------------------------------
 #
-# > Once development reaches a suitable stage, the workspace can be deployed.
+# > deploy-workspace.sh is a development and test-deployment tool. It transfers a
+# > complete workspace or a filtered/incremental selection into a local or remote
+# > target root so the code can be exercised in its intended filesystem layout.
 #
-# > The deployment process transforms the development workspace into an installable
-# > filesystem structure that follows the framework's expected layout.
-#
-# > Deployment copies the required executables, libraries, templates,
-# > documentation, configuration files, and supporting assets into their target
-# > locations while excluding development-only artifacts.
-#
-# > The resulting deployment structure closely resembles the environment that end
-# > users or administrators will ultimately install.
+# > Workspace deployment is deliberately separate from formal release installation.
+# > It does not define the installed-release lifecycle and should not be treated as an
+# > installer. Formal release creation belongs to prepare-release.sh; installation,
+# > update, rollback/reinstallation, and removal belong to release-manager.sh.
 #
 # -- Preparing a Release ------------------------------------------------------------
 #
-# > The final stage of the lifecycle is release preparation.
+# > prepare-release.sh creates the complete release set consumed by the standalone
+# > release manager. It can maintain Version and Build metadata, refresh changed-file
+# > checksums, verify executable wrappers, optionally create missing wrappers, and
+# > generate the archive, manifest, removal manifest, and checksum sidecars.
 #
-# > During this phase, version information, build numbers, checksums, deployment
-# > artifacts, generated documentation, and release packages can be prepared for
-# > distribution.
-#
-# > The goal is to ensure that releases are reproducible, traceable, and
-# > accompanied by the metadata required for future maintenance.
+# > The prepared bundle includes release-manager.sh so a fresh machine can bootstrap
+# > from the same framework-independent lifecycle used for later updates and rollback.
+# > release-manager.sh then owns check, download, install, update, rollback/reinstall,
+# > and removal operations.
 #
 # -- Why These Tools Exist ----------------------------------------------------------
 #
@@ -217,8 +215,10 @@
 #
 # > Public framework functions should use the sgnd_ prefix.
 #
-# > Internal helper functions should use a leading underscore. Bash, of course,
-# > does not enforce access restrictions, but the convention indicates intent.
+# > Framework-public functions use `sgnd_*`. Framework-internal functions shared by
+# > cooperating framework libraries use `_sgnd_*`. A plain leading underscore such as
+# > `_helper` identifies a script- or module-local private implementation detail. Bash
+# > cannot enforce these access levels, but the naming convention communicates intent.
 #
 # > Executable scripts should be based on the executable template.
 # > User-facing executables should normally be exposed through lightweight wrappers

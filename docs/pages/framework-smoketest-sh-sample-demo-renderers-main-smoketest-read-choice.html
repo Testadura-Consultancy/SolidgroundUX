@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Read one smoke-test choice with auto-exit timeout</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<header class="doc-page-header">
+  <div class="doc-title">Read one smoke-test choice with auto-exit timeout</div>
+  <div class="doc-breadcrumb">SolidgroundUX / framework-smoketest.sh / Sample/demo renderers / Main / _smoketest_read_choice</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Preserve the smoke test&#x27;s 30-second inactivity timeout while the menu itself</div>
+<div class="ct-functionbody">  is rendered and defined through the public sgnd-menu API.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Arguments</div>
+<div class="ct-functionbody">  $1  OUTPUT_VAR - Variable receiving the selected single-character choice.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 when a key was read.</div>
+<div class="ct-functionbody">  1 when the 30-second timeout expires.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  _smoketest_read_choice choice</div>
+</main>
+</body>
+</html>

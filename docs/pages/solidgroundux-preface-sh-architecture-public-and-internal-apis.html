@@ -15,11 +15,11 @@
 <div class="ct-L2Sectionbody"></div>
 <p class="ct-L2Sectionbody">SolidGroundUX uses naming conventions to distinguish public APIs from internal implementation details.</p>
 <div class="ct-L2Sectionbody">  </div>
-<p class="ct-L2Sectionbody">Public functions use the sgnd_ prefix and are intended for use by framework users and framework components.</p>
+<p class="ct-L2Sectionbody">Public framework functions use `sgnd_*` and are intended for application and tool consumers.</p>
 <div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">Internal helper functions use a leading underscore and should be considered private implementation details. Bash, of course, does not enforce access restrictions, and I am not going to claim that I have always been perfectly true to this convention. It is, however, an attempt to at least indicate intent.</p>
-<div class="ct-L2Sectionbody">  </div>
-<p class="ct-L2Sectionbody">Consumers should avoid relying on internal functions, as their behavior may change between framework releases.</p>
+<p class="ct-L2Sectionbody">Framework-internal functions use `_sgnd_*`. They are effectively protected: other cooperating SolidGroundUX libraries may depend on them, but they are not part of the supported application-facing API.</p>
+<div class="ct-L2Sectionbody"></div>
+<p class="ct-L2Sectionbody">Plain leading-underscore helpers such as `_helper` are local/private implementation details belonging to one script or module. Bash cannot enforce these access levels, but the convention communicates intended ownership. Consumers should rely on the public `sgnd_*` surface unless they are implementing framework internals.</p>
 <div class="ct-L2Sectionbody"></div>
 </main>
 </body>

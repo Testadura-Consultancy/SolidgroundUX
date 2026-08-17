@@ -14,7 +14,27 @@
 </header>
 <div class="ct-L2Sectionbody"></div>
 <p class="ct-L2Sectionbody">Purpose</p>
-<div class="ct-L2Sectionbody">    Provide a menu-driven host for independently maintained console modules.</div>
+<div class="ct-L2Sectionbody">    Provide the SolidGround Management Console as a page-oriented consumer of the</div>
+<div class="ct-L2Sectionbody">    reusable public menu API.</div>
+<div class="ct-L2Sectionbody"></div>
+<p class="ct-L2Sectionbody">Main files</p>
+<div class="ct-L2Sectionbody">    sgnd-console.sh</div>
+<div class="ct-L2Sectionbody">    sgnd-menu.sh</div>
+<div class="ct-L2Sectionbody">    console-helpers.sh</div>
+<div class="ct-L2Sectionbody">    console-modules/*.sh</div>
+<div class="ct-L2Sectionbody"></div>
+<p class="ct-L2Sectionbody">Runtime model</p>
+<div class="ct-L2Sectionbody">    The console discovers enabled module files and reads only their literal page</div>
+<div class="ct-L2Sectionbody">    name/description metadata for the main index. A module is sourced when its page</div>
+<div class="ct-L2Sectionbody">    is first opened, registers its detailed groups/items through the public</div>
+<div class="ct-L2Sectionbody">    sgnd_menu_* API, and remains loaded for the lifetime of the console process.</div>
+<div class="ct-L2Sectionbody">    Returning to the index does not unload it.</div>
+<div class="ct-L2Sectionbody"></div>
+<p class="ct-L2Sectionbody">Dependency rule</p>
+<div class="ct-L2Sectionbody">    Lazy-loaded modules must not depend on another page having been opened first.</div>
+<div class="ct-L2Sectionbody">    Helpers shared by multiple modules belong in console-helpers.sh or another</div>
+<div class="ct-L2Sectionbody">    appropriately scoped common library. Root sessions can manage persistent page</div>
+<div class="ct-L2Sectionbody">    visibility from the main index.</div>
 <div class="ct-L2Sectionbody"></div>
 </main>
 </body>

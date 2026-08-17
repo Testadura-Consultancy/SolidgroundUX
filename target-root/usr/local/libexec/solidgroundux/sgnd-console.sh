@@ -3,24 +3,25 @@
 # SolidGroundUX - SolidGround Management Console
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622600
-#   Checksum    : 5feab62a313945048a2fb6e7f9e9058b42b0a0c6523fee8ed42888d8922cb543
+#   Version     : 2.0
+#   Build       : 2622911
+#   Checksum    : e127ab62ab3ed5a004518dc9cd2ea8ff997c6683d5eb24f25936b8f7c3726972
 #   Source      : sgnd-console.sh
 #   Type        : script
 #   Group       : SolidGround Console
 #   Purpose     : Provide a modular console interface for SolidGroundUX tooling
 #
 # Description:
-#   Provides a generic, modular console host that dynamically loads modules
-#   and presents their functionality through a structured menu interface.
+#   Provides a generic, modular console host that discovers management pages at
+#   startup and lazy-loads each implementation module when its page is first opened.
 #
 #   The script:
-#     - Loads console modules from a configured module directory
-#     - Allows modules to register menu items dynamically
+#     - Discovers enabled console modules and reads lightweight page metadata
+#     - Renders a top-level index without sourcing module implementations
+#     - Sources each selected page module once and retains it for the console session
+#     - Allows loaded modules to register menu groups and items dynamically
 #     - Builds and renders interactive menus
-#     - Handles user input and dispatches actions
-#     - Supports navigation, paging, and toggle controls
+#     - Handles user input, page navigation, paging, and action dispatch
 #     - Persists console layout and framework UI/logging state
 #
 # Design principles:
@@ -31,7 +32,7 @@
 #
 # Role in framework:
 #   - Generic console engine for module-defined interactive applications
-#   - Hosts and orchestrates functionality provided by ordered console modules
+#   - Hosts functionality registered by ordered console modules
 #
 # Non-goals:
 #   - Implementing business logic directly in the console host
@@ -205,7 +206,8 @@ set -uo pipefail
         # Leave empty if no extra libs are needed.
     SGND_USING=(
         sgnd-datatable.sh
-        sgnd-console-menu.sh
+        sgnd-menu.sh
+        console-helpers.sh
     )
 
     # SGND_ARGS_SPEC 
@@ -229,7 +231,6 @@ set -uo pipefail
         "appcfg||value|VAL_APPCFG|Console module file or module directory|"
         "maxrows||value|VAL_MAXROWS|Maximum menu rows per page|"
         "title||value|VAL_TITLE|Override console title|"
-        "submenu||flag|FLAG_SUBMENU|Run as a submenu console|0|"
     )
 
     # SGND_SCRIPT_EXAMPLES
@@ -295,7 +296,6 @@ set -uo pipefail
         # Leave empty if:
         #   - The script does not use persistent state.
     SGND_STATE_VARIABLES=(
-        SGND_CONSOLE_ROLE_AWARE
         SGND_PAGE_MAX_ROWS
     )
 
@@ -333,7 +333,7 @@ set -uo pipefail
 
 # --- Local scripts and definitions ---------------------------------------------------
     # --- Console state
-        SGND_GROUP_SCHEMA="key|label|desc|source|builtin|visible|ord|rolepackages"
+        SGND_GROUP_SCHEMA="key|label|desc|source|builtin|visible|ord"
         declare -ag SGND_GROUP_ROWS=()
 
         SGND_ITEM_SCHEMA="key|group|label|handler|desc|source|builtin|waitsecs|visible"
@@ -342,17 +342,23 @@ set -uo pipefail
         SGND_MODULE_SCHEMA="id|name|version|desc|source"
         declare -ag SGND_MODULE_ROWS=()
 
-
+        SGND_PAGE_SCHEMA="id|name|desc|source|loaded"
+        declare -ag SGND_CONSOLE_PAGE_ROWS=()
+        declare -Ag SGND_CONSOLE_LOADED_MODULES=()
+        SGND_CONSOLE_VIEW="index"
+        SGND_CONSOLE_ACTIVE_PAGE=""
+        SGND_MENU_ACTIVE_SOURCE=""
 
         SGND_CONSOLE_TITLE="$SGND_SCRIPT_TITLE"
         SGND_CONSOLE_DESC="$SGND_SCRIPT_DESC"
-        : "${SGND_CONSOLE_ROLE_AWARE:=1}"
         SGND_CONSOLE_BIN_DIRECTORY=""
         SGND_CONSOLE_SBIN_DIRECTORY=""
         SGND_CONSOLE_LIBEXEC_DIRECTORY=""
         SGND_CONSOLE_DEFAULT_MODULE_DIRECTORY=""
         SGND_CONSOLE_MODULE_PATH=""
         SGND_CONSOLE_MODULE_STATE_FILE=""
+        SGND_CONSOLE_ACTION_STATE_FILE=""
+        SGND_CONSOLE_SUCCESS_TTL_DAYS=7
         SGND_CURRENT_MODULE=""
         SGND_LAST_WAITSECS=15
         declare -ag SGND_CONSOLE_ORIGINAL_ARGS=()
@@ -373,7 +379,6 @@ set -uo pipefail
         declare -ag SGND_GROUP_CACHE_BUILTIN=()
         declare -ag SGND_GROUP_CACHE_VISIBLE=()
         declare -ag SGND_GROUP_CACHE_ORD=()
-        declare -ag SGND_GROUP_CACHE_ROLEPACKAGES=()
         declare -Ag SGND_GROUP_CACHE_INDEX_BY_KEY=()
         declare -ag SGND_ITEM_CACHE_KEY=()
         declare -ag SGND_ITEM_CACHE_GROUP=()
@@ -420,6 +425,7 @@ set -uo pipefail
         SGND_CONSOLE_LIBEXEC_DIRECTORY="${SGND_APPLICATION_ROOT%/}/usr/local/libexec/solidgroundux"
         SGND_CONSOLE_DEFAULT_MODULE_DIRECTORY="${SGND_CONSOLE_LIBEXEC_DIRECTORY%/}/console-modules"
         SGND_CONSOLE_MODULE_STATE_FILE="${SGND_STATE_DIR%/}/console-modules.state"
+        SGND_CONSOLE_ACTION_STATE_FILE="${SGND_STATE_DIR%/}/console-actions.state"
     }
 
     # --- Console configuration -------------------------------------------------------
@@ -484,91 +490,140 @@ set -uo pipefail
         saydebug "Console title      : $SGND_CONSOLE_TITLE"
         saydebug "Console desc       : $SGND_CONSOLE_DESC"
         saydebug "Module source      : $SGND_CONSOLE_MODULE_PATH"
-        saydebug "Role-aware loading : $SGND_CONSOLE_ROLE_AWARE"
+    }
+
+    # --- Action result tracking ------------------------------------------------------
+    # fn: sgnd_console_action_status - Read persisted status for a menu action
+    sgnd_console_action_status() {
+        local item_key="${1:?missing item key}"
+        local line=""
+        local status="never"
+        local timestamp="0"
+        local now=""
+        local max_age=""
+
+        [[ -r "$SGND_CONSOLE_ACTION_STATE_FILE" ]] || { printf '%s\n' never; return 0; }
+        line="$(awk -F'|' -v key="$item_key" '$1 == key { value=$0 } END { print value }' "$SGND_CONSOLE_ACTION_STATE_FILE")"
+        [[ -n "$line" ]] || { printf '%s\n' never; return 0; }
+        IFS='|' read -r _ status timestamp <<< "$line"
+
+        if [[ "$status" == success && "$timestamp" =~ ^[0-9]+$ ]]; then
+            now="$(date +%s)"
+            max_age=$(( SGND_CONSOLE_SUCCESS_TTL_DAYS * 86400 ))
+            if (( now - timestamp > max_age )); then
+                status="never"
+            fi
+        fi
+
+        printf '%s\n' "$status"
+    }
+
+    # fn: sgnd_console_record_action_result - Persist and display an action result
+    sgnd_console_record_action_result() {
+        local item_key="${1:?missing item key}"
+        local rc="${2:-1}"
+        local status="failed"
+        local timestamp="$(date +%s)"
+        local state_dir=""
+        local temp_file=""
+
+        case "$rc" in
+            0) status="success" ;;
+            2) status="warning" ;;
+            *) status="failed" ;;
+        esac
+
+        state_dir="$(dirname -- "$SGND_CONSOLE_ACTION_STATE_FILE")"
+        mkdir -p -- "$state_dir" || return 1
+        temp_file="$(mktemp "${TMPDIR:-/tmp}/sgnd-console-actions.XXXXXX")" || return 1
+
+        if [[ -r "$SGND_CONSOLE_ACTION_STATE_FILE" ]]; then
+            awk -F'|' -v key="$item_key" '$1 != key { print }' "$SGND_CONSOLE_ACTION_STATE_FILE" > "$temp_file" || {
+                rm -f -- "$temp_file"
+                return 1
+            }
+        fi
+
+        printf '%s|%s|%s\n' "$item_key" "$status" "$timestamp" >> "$temp_file" || {
+            rm -f -- "$temp_file"
+            return 1
+        }
+        mv -- "$temp_file" "$SGND_CONSOLE_ACTION_STATE_FILE" || return 1
+        sgnd_menu_set_item_status "$item_key" "$status" 2>/dev/null || true
+        return 0
+    }
+
+    # fn: sgnd_console_run_tracked - Execute one registered action and track its result
+    sgnd_console_run_tracked() {
+        local item_key="${1:?missing item key}"
+        local handler="${2:?missing handler}"
+        shift 2
+        local rc=0
+
+        "$handler" "$@" || rc=$?
+        sgnd_console_record_action_result "$item_key" "$rc" || true
+        return "$rc"
+    }
+
+    # fn: _sgnd_console_execute_menu_item - Execute a menu item with console result tracking
+        # . Purpose
+        #   Execute menu actions through the console tracking layer while leaving
+        #   builtin console controls untracked.
+        #
+        # . Arguments
+        #   $1  ITEM_KEY - Registered menu item key.
+        #   $2  HANDLER  - Registered handler function.
+        #   $3  BUILTIN  - 1 for console builtin items, otherwise 0.
+        #
+        # . Returns
+        #   Exit status from the executed handler.
+    _sgnd_console_execute_menu_item() {
+        local item_key="${1:?missing item key}"
+        local handler="${2:?missing handler}"
+        local builtin="${3:-0}"
+
+        if (( builtin )); then
+            "$handler"
+            return $?
+        fi
+
+        sgnd_console_run_tracked "$item_key" "$handler"
+    }
+
+    # fn: _sgnd_console_refresh_action_statuses - Apply persisted statuses to menu items
+    _sgnd_console_refresh_action_statuses() {
+        local i
+        local row_count="${#SGND_ITEM_ROWS[@]}"
+        local key=""
+        local builtin="0"
+        local status=""
+
+        for (( i=0; i<row_count; i++ )); do
+            key="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" key)"
+            builtin="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" builtin)"
+            (( builtin )) && continue
+            status="$(sgnd_console_action_status "$key")"
+            sgnd_menu_set_item_status "$key" "$status" || true
+        done
     }
 
     # --- Built-in menu registration -------------------------------------------------
-    # _sgnd_console_register_builtin_items
+    # fn: _sgnd_console_register_builtin_items - Register host-owned navigation items
         # . Purpose
-        #   Register the console's builtin groups and builtin menu actions.
-        #
-        # . Behavior
-        #   - Defines the builtin runtime and session group keys.
-        #   - Registers builtin console groups.
-        #   - Registers builtin menu items for runtime toggles and session actions.
-        #   - Some builtin items may be hidden from the menu body while still
-        #     remaining dispatchable by key.
-        #
-        # Outputs (globals):
-        #   SGND_GROUP_RUNTIME
-        #   SGND_GROUP_SESSION
+        #   Add the hidden previous/next page controls used by the menu dispatcher.
         #
         # . Returns
-        #   0 on success
-        #   Non-zero if group or item registration fails
-        #
-        # . Usage
-        #   _sgnd_console_register_builtin_items
-        #
-        # Examples:
-        #   _sgnd_console_register_builtin_items || exit 1
-        #   non-zero if group/item registration fails
-    # fn: _sgnd_console_register_builtin_items - Register built-in console menu items
-        # . Purpose
-        #   Register built-in console menu items.
-        #
-        # . Behavior
-        #   - Internal helper.
-        #   - Preserves existing script runtime behavior.
-        #
-        # . Returns
-        #   Returns the underlying command or workflow status.
+        #   0 when both built-in navigation items are registered; non-zero on failure.
         #
         # . Usage
         #   _sgnd_console_register_builtin_items
     _sgnd_console_register_builtin_items() {
         SGND_GROUP_NAVIGATION="navigation"
-
-        # Navigation is framework-owned but intentionally hidden from the menu body.
-        # Left/right arrow keys page; Q returns from submenus or exits the root console.
-        sgnd_console_register_group "$SGND_GROUP_NAVIGATION" "Navigation" "" 1 0 990
-        sgnd_console_register_item "<" "$SGND_GROUP_NAVIGATION" "Previous page" "_sgnd_console_prevpage" "Show previous menu page" 1 0 0
-        sgnd_console_register_item ">" "$SGND_GROUP_NAVIGATION" "Next page" "_sgnd_console_nextpage" "Show next menu page" 1 0 0
-        sgnd_console_register_item "Q" "$SGND_GROUP_NAVIGATION" "Return" "_sgnd_console_quit" "Return from the current console" 1 0 0
+        sgnd_menu_register_group "$SGND_GROUP_NAVIGATION" "Navigation" "" 1 0 990
+        sgnd_menu_register_item "<" "$SGND_GROUP_NAVIGATION" "Previous page" "_sgnd_console_prevpage" "Show previous menu page" 1 0 0
+        sgnd_menu_register_item ">" "$SGND_GROUP_NAVIGATION" "Next page" "_sgnd_console_nextpage" "Show next menu page" 1 0 0
     }
 
-    # sgnd_console_open_submenu
-        # Purpose:
-        #   Launch a nested SolidGroundUX console using one submenu module definition.
-        #
-        # Arguments:
-        #   $1  PROFILE_FILE - Filename beneath console-submenus.
-        #   $2  TITLE        - Console title shown by the nested menu.
-        #
-        # Returns:
-        #   Exit status of the nested console process.
-        #
-        # Usage:
-        #   sgnd_console_open_submenu "20-active-directory.sh" "Active Directory"
-    sgnd_console_open_submenu() {
-        local profile_file="${1:?missing submenu profile}"
-        local title="${2:?missing submenu title}"
-        local submenu_directory="${SGND_CONSOLE_DEFAULT_MODULE_DIRECTORY%/}/../console-submenus"
-        local profile_path="${submenu_directory%/}/$profile_file"
-        local -a command_args=()
-
-        [[ -r "$profile_path" ]] || {
-            sayfail "Console submenu not found: $profile_path"
-            return 126
-        }
-
-        _sgnd_build_command_args command_args \
-            --appcfg "$profile_path" \
-            --title "$title" \
-            --submenu
-
-        "$SGND_SCRIPT_FILE" "${command_args[@]}"
-    }
 
     # fn: _sgnd_console_register_fallback_group - Register fallback console group
         # . Purpose
@@ -621,7 +676,7 @@ set -uo pipefail
                 ;;
         esac
 
-        sgnd_console_register_group "$key" "$label" "" 0 1 800
+        sgnd_menu_register_group "$key" "$label" "" 0 1 800
     }
 
     # fn: _sgnd_console_group_exists - Test whether a console group exists
@@ -691,16 +746,25 @@ set -uo pipefail
         #   _sgnd_console_module_enabled "active-directory"
     _sgnd_console_module_enabled() {
         local module_id="${1:?missing module ID}"
-        [[ "$module_id" == "console-settings" ]] && return 0
         [[ "$(_sgnd_console_module_state_get "$module_id")" == "enabled" ]]
     }
 
-    # fn$: _sgnd_console_module_state_set - Persist module visibility state
+    # fn: _sgnd_console_module_state_set - Persist module visibility state
+        # . Purpose
+        #   Save one module's enabled/disabled state without sourcing that module.
+        #
+        # . Arguments
+        #   $1  MODULE_ID - Filename-derived console module ID.
+        #   $2  STATE     - Either enabled or disabled.
+        #
+        # Side effects:
+        #   Rewrites SGND_CONSOLE_MODULE_STATE_FILE atomically.
+        #
         # . Returns
-        #   0 when the state file was updated successfully.
+        #   0 when the state file is updated; 1 on filesystem failure; 2 for an invalid state.
         #
         # . Usage
-        #   _sgnd_console_module_state_set "active-directory" "disabled"
+        #   _sgnd_console_module_state_set "storage" "disabled"
     _sgnd_console_module_state_set() {
         local module_id="${1:?missing module ID}"
         local state="${2:?missing module state}"
@@ -731,6 +795,93 @@ set -uo pipefail
         mv -- "$temp_file" "$SGND_CONSOLE_MODULE_STATE_FILE"
     }
 
+    # fn: _sgnd_console_manage_visibility - Manage index-page module visibility
+        # . Purpose
+        #   Let a root console session enable or disable discovered management pages.
+        #
+        # . Behavior
+        #   - Discovers all module files, including modules currently hidden from the index.
+        #   - Shows each module by its literal display name and current persisted state.
+        #   - Toggles the selected module between enabled and disabled.
+        #   - Does not source module implementation code.
+        #   - The caller rebuilds the lightweight index immediately after this dialog returns.
+        #
+        # . Returns
+        #   0 when the user returns; 1 on discovery or state-write failure; 126 when not root.
+        #
+        # . Usage
+        #   _sgnd_console_manage_visibility
+    _sgnd_console_manage_visibility() {
+        local choice=""
+        local module=""
+        local module_id=""
+        local module_name=""
+        local module_desc=""
+        local state=""
+        local next_state=""
+        local i=0
+        local -a module_files=()
+        local -a module_ids=()
+
+        (( EUID == 0 )) || {
+            saywarning "Module visibility can only be changed from a root console session."
+            return 126
+        }
+
+        mapfile -t module_files < <(_sgnd_console_discover_module_files) || return $?
+        (( ${#module_files[@]} > 0 )) || {
+            saywarning "No console modules were found."
+            return 0
+        }
+
+        while true; do
+            module_ids=()
+            sgnd_clear
+            _sgnd_console_render_menu_title
+            sgnd_print "$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")Manage visibility${RESET}"
+            sgnd_print_sectionheader --border "$LN_H" --maxwidth "${SGND_MENU_RENDER_WIDTH:-$(sgnd_terminal_width)}"
+            sgnd_print
+
+            for i in "${!module_files[@]}"; do
+                module="${module_files[$i]}"
+                module_id="$(_sgnd_console_module_id_from_filename "$module")"
+                _sgnd_console_module_literal_metadata "$module" module_name module_desc
+                state="$(_sgnd_console_module_state_get "$module_id")"
+                module_ids+=("$module_id")
+                sgnd_print_labeledvalue \
+                    --label "$((i + 1))) $module_name" \
+                    --value "${state^}" \
+                    --labelwidth 34
+            done
+
+            sgnd_print
+            sgnd_print_sectionheader --border "$LN_H" --maxwidth "${SGND_MENU_RENDER_WIDTH:-$(sgnd_terminal_width)}"
+            sgnd_print "Q) Return"
+            printf '%s' "Select option : " >/dev/tty
+            sgnd_menu_read_choice choice || return $?
+
+            case "$choice" in
+                EXIT|ESC) return 0 ;;
+            esac
+
+            [[ "$choice" =~ ^[0-9]+$ ]] || continue
+            (( choice >= 1 && choice <= ${#module_ids[@]} )) || continue
+
+            module_id="${module_ids[$((choice - 1))]}"
+            state="$(_sgnd_console_module_state_get "$module_id")"
+            if [[ "$state" == "enabled" ]]; then
+                next_state="disabled"
+            else
+                next_state="enabled"
+            fi
+
+            _sgnd_console_module_state_set "$module_id" "$next_state" || {
+                sayfail "Could not update module visibility for $module_id"
+                return 1
+            }
+        done
+    }
+
     # fn$: _sgnd_console_discover_module_files - Discover configured module files
         # . Returns
         #   Writes sorted module paths to stdout.
@@ -749,131 +900,206 @@ set -uo pipefail
         find "$module_path" -maxdepth 1 -type f -name '*.sh' -print0 | sort -z | tr '\0' '\n'
     }
 
-    # fn: _sgnd_console_manage_modules - Enable or disable console modules
+    # fn: _sgnd_console_module_literal_metadata - Read lightweight module metadata without sourcing the module
         # . Purpose
-        #   Edit persisted module visibility without loading disabled modules.
-        #
-        # . Behavior
-        #   - Discovers modules from the configured module source.
-        #   - Derives each module ID from its ordered filename.
-        #   - Toggles enabled/disabled state in console-modules.state.
-        #   - Applies changes on the next console start.
-        #
-        # . Returns
-        #   0 when the user returns to the console; non-zero on state-write failure.
-        #
-        # . Usage
-        #   _sgnd_console_manage_modules
-    _sgnd_console_manage_modules() {
-        local module_path="${1:-$SGND_CONSOLE_MODULE_PATH}"
-        local choice=""
-        local module=""
-        local module_id=""
-        local state=""
-        local next_state=""
-        local choices="Q"
-        local i=0
-        local -a module_files=()
-        local -a module_ids=()
-
-        local saved_module_path="$SGND_CONSOLE_MODULE_PATH"
-        SGND_CONSOLE_MODULE_PATH="$module_path"
-        mapfile -t module_files < <(_sgnd_console_discover_module_files) || { SGND_CONSOLE_MODULE_PATH="$saved_module_path"; return $?; }
-        SGND_CONSOLE_MODULE_PATH="$saved_module_path"
-        (( ${#module_files[@]} > 0 )) || {
-            saywarning "No console modules were found."
-            return 0
-        }
-
-        while true; do
-            module_ids=()
-            choices="Q"
-
-            sgnd_print
-            sgnd_print_sectionheader "Console Modules"
-            sgnd_print "Select a module to toggle its visibility. Changes apply after restarting the console."
-            sgnd_print
-
-            for i in "${!module_files[@]}"; do
-                module="${module_files[$i]}"
-                module_id="$(_sgnd_console_module_id_from_filename "$module")"
-                module_ids+=("$module_id")
-                state="$(_sgnd_console_module_state_get "$module_id")"
-                choices+=",$((i + 1))"
-                sgnd_print_labeledvalue \
-                    --label "$((i + 1))) $module_id" \
-                    --value "${state^}" \
-                    --labelwidth 34
-            done
-
-            sgnd_print
-            sgnd_print "Q) Return"
-
-            ask_choose_immediate \
-                --label "Select module" \
-                --choices "$choices" \
-                --instantchoices "Q" \
-                --displaychoices 0 \
-                --keepasking 1 \
-                --preservecase 1 \
-                --var choice
-
-            [[ "${choice^^}" != "Q" ]] || return 0
-            [[ "$choice" =~ ^[0-9]+$ ]] || continue
-            (( choice >= 1 && choice <= ${#module_ids[@]} )) || continue
-
-            module_id="${module_ids[$((choice - 1))]}"
-            if [[ "$module_id" == "console-settings" ]]; then
-                sayinfo "Console Settings is always enabled."
-                continue
-            fi
-            state="$(_sgnd_console_module_state_get "$module_id")"
-            if [[ "$state" == "enabled" ]]; then
-                next_state="disabled"
-            else
-                next_state="enabled"
-            fi
-
-            _sgnd_console_module_state_set "$module_id" "$next_state" || {
-                sayfail "Could not update module visibility for $module_id"
-                return 1
-            }
-        done
-    }
-
-    # fn: sgnd_console_package_installed - Test whether a Debian package is installed
-        # . Purpose
-        #   Evaluate a package-backed console role requirement.
-        #
-        # . Behavior
-        #   - When SGND_CONSOLE_ROLE_AWARE is enabled, checks the actual Debian
-        #     package installation state.
-        #   - When SGND_CONSOLE_ROLE_AWARE is disabled, treats the role requirement
-        #     as satisfied so development environments can expose all role-aware
-        #     console functionality.
-        #   - Does not affect persisted module enable/disable state.
-        #
-        # Inputs (globals):
-        #   SGND_CONSOLE_ROLE_AWARE
+        #   Read literal module name and description assignments for the index page.
         #
         # . Arguments
-        #   $1  PACKAGE
-        #       Debian package name used as the role-presence indicator.
+        #   $1  MODULE_FILE - Console module file.
+        #   $2  OUTPUT_NAME - Variable receiving the display name.
+        #   $3  OUTPUT_DESC - Variable receiving the description.
         #
         # . Returns
-        #   0 when role awareness is disabled or the package is installed.
-        #   1 when role awareness is enabled and the package is not installed.
+        #   0 after producing metadata, using filename-derived fallbacks when needed.
         #
         # . Usage
-        #   sgnd_console_package_installed "samba-ad-dc"
-    sgnd_console_package_installed() {
-        local package="${1:?missing package name}"
+        #   _sgnd_console_module_literal_metadata "$module" name desc
+    _sgnd_console_module_literal_metadata() {
+        local module_file="${1:?missing module file}"
+        local output_name="${2:?missing name output variable}"
+        local output_desc="${3:?missing description output variable}"
+        local module_id=""
+        local name=""
+        local desc=""
+        local fallback=""
 
-        if ! _sgnd_flag_is_on "${SGND_CONSOLE_ROLE_AWARE:-1}"; then
-            return 0
+        name="$(sed -nE 's/^[[:space:]]*[A-Z0-9_]+_MODULE_NAME="([^"]*)"[[:space:]]*$/\1/p' "$module_file" | head -n 1)"
+        desc="$(sed -nE 's/^[[:space:]]*[A-Z0-9_]+_MODULE_DESC="([^"]*)"[[:space:]]*$/\1/p' "$module_file" | head -n 1)"
+
+        if [[ -z "$name" ]]; then
+            module_id="$(_sgnd_console_module_id_from_filename "$module_file")"
+            fallback="${module_id//-/ }"
+            name="$(printf '%s\n' "$fallback" | awk '{ for (i=1; i<=NF; i++) $i=toupper(substr($i,1,1)) substr($i,2); print }')"
+            [[ "$module_id" == "solidgroundux" ]] && name="SolidGroundUX"
         fi
 
-        [[ "$(dpkg-query -W -f='${Status}' "$package" 2>/dev/null || true)" == "install ok installed" ]]
+        printf -v "$output_name" '%s' "$name"
+        printf -v "$output_desc" '%s' "$desc"
+    }
+
+    # fn: _sgnd_console_register_pages - Build the lightweight startup page index
+        # . Purpose
+        #   Discover enabled module files and register page metadata without sourcing them.
+        #
+        # . Behavior
+        #   - Keeps startup work limited to file discovery and literal metadata reads.
+        #   - Honors persisted module enabled/disabled state.
+        #   - Defers module parsing and menu registration until the page is opened.
+        #
+        # . Returns
+        #   0 on success; discovery errors are propagated.
+        #
+        # . Usage
+        #   _sgnd_console_register_pages || return $?
+    _sgnd_console_register_pages() {
+        local module=""
+        local module_id=""
+        local module_name=""
+        local module_desc=""
+        local -a discovered_files=()
+
+        SGND_CONSOLE_PAGE_ROWS=()
+        mapfile -t discovered_files < <(_sgnd_console_discover_module_files) || return $?
+
+        for module in "${discovered_files[@]}"; do
+            module_id="$(_sgnd_console_module_id_from_filename "$module")"
+            _sgnd_console_module_enabled "$module_id" || continue
+            _sgnd_console_module_literal_metadata "$module" module_name module_desc
+            sgnd_dt_append "$SGND_PAGE_SCHEMA" SGND_CONSOLE_PAGE_ROWS \
+                "$module_id" "$module_name" "$module_desc" "$module" "0" || return $?
+        done
+
+        return 0
+    }
+
+    # fn: _sgnd_console_open_page - Lazy-load and activate one registered module page
+        # . Purpose
+        #   Source a module the first time its index page is selected and activate its menu rows.
+        #
+        # . Arguments
+        #   $1  PAGE_INDEX - Zero-based row index in SGND_CONSOLE_PAGE_ROWS.
+        #
+        # . Returns
+        #   0 on success; 1 for an invalid page; 126 when module loading fails.
+        #
+        # . Usage
+        #   _sgnd_console_open_page 0
+    _sgnd_console_open_page() {
+        local page_index="${1:?missing page index}"
+        local page_count="${#SGND_CONSOLE_PAGE_ROWS[@]}"
+        local module_id=""
+        local module_file=""
+        local module_source=""
+
+        (( page_index >= 0 && page_index < page_count )) || return 1
+        module_id="$(sgnd_dt_get "$SGND_PAGE_SCHEMA" SGND_CONSOLE_PAGE_ROWS "$page_index" id)"
+        module_file="$(sgnd_dt_get "$SGND_PAGE_SCHEMA" SGND_CONSOLE_PAGE_ROWS "$page_index" source)"
+        module_source="$(basename -- "$module_file" .sh)"
+
+        if [[ "${SGND_CONSOLE_LOADED_MODULES[$module_id]:-0}" != "1" ]]; then
+            _sgnd_console_source_module "$module_file" || return 126
+            SGND_CONSOLE_LOADED_MODULES["$module_id"]=1
+            _sgnd_console_refresh_action_statuses
+        fi
+
+        SGND_CONSOLE_ACTIVE_PAGE="$module_id"
+        SGND_MENU_ACTIVE_SOURCE="$module_source"
+        SGND_CONSOLE_VIEW="module"
+        SGND_PAGE_INDEX=0
+        SGND_CONSOLE_GROUP_INDEX_CACHE_GENERATION=-1
+        SGND_CONSOLE_VISIBLE_INDEX_CACHE_SIGNATURE=""
+        return 0
+    }
+
+    # fn: _sgnd_console_show_index - Render the lightweight module index page
+        # . Purpose
+        #   Show all enabled console pages without loading their implementation modules.
+        #
+        # . Returns
+        #   0 after rendering.
+        #
+        # . Usage
+        #   _sgnd_console_show_index
+    _sgnd_console_show_index() {
+        local i=0
+        local page_count="${#SGND_CONSOLE_PAGE_ROWS[@]}"
+        local name=""
+        local desc=""
+        local left_text=""
+        local wrapped_line=""
+        local first_line=1
+        local left_width_max="${SGND_RENDER_LABEL_WIDTH:-28}"
+        local term_width=80
+        local desc_width=0
+        local gap=3
+        local tpad=3
+        local label_style=""
+        local value_style=""
+
+        term_width="${SGND_MENU_RENDER_WIDTH:-$(sgnd_terminal_width)}"
+        desc_width=$(( term_width - tpad - left_width_max - gap ))
+        (( desc_width < 20 )) && desc_width=20
+
+        label_style="$(sgnd_sgr "$SGND_UI_LABEL")"
+        value_style="$(sgnd_sgr "$SGND_UI_VALUE" "" "$FX_ITALIC")"
+
+        _sgnd_console_render_menu_title
+        sgnd_print "$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")Console pages${RESET}"
+        sgnd_print_sectionheader --border "$LN_H" --maxwidth "$term_width"
+        sgnd_print
+
+        for (( i=0; i<page_count; i++ )); do
+            name="$(sgnd_dt_get "$SGND_PAGE_SCHEMA" SGND_CONSOLE_PAGE_ROWS "$i" name)"
+            desc="$(sgnd_dt_get "$SGND_PAGE_SCHEMA" SGND_CONSOLE_PAGE_ROWS "$i" desc)"
+            left_text="$((i + 1))) · $name"
+
+            if [[ -z "$desc" ]]; then
+                printf '%*s%s' "$tpad" "" "$label_style"
+                sgnd_padded_visible "$left_text" "$left_width_max"
+                printf '%s\n' "$RESET"
+                continue
+            fi
+
+            first_line=1
+            while IFS= read -r wrapped_line; do
+                if (( first_line )); then
+                    printf '%*s%s' "$tpad" "" "$label_style"
+                    sgnd_padded_visible "$left_text" "$left_width_max"
+                    printf '%s%*s%s%s%s\n' \
+                        "$RESET" \
+                        "$gap" "" \
+                        "$value_style" "$wrapped_line" "$RESET"
+                    first_line=0
+                else
+                    printf '%*s%*s%*s%s%s%s\n' \
+                        "$tpad" "" \
+                        "$left_width_max" "" \
+                        "$gap" "" \
+                        "$value_style" "$wrapped_line" "$RESET"
+                fi
+            done < <(sgnd_wrap_words --width "$desc_width" --text "$desc")
+        done
+
+        sgnd_print
+
+        if (( EUID == 0 )); then
+            sgnd_print "$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")Console management${RESET}"
+            sgnd_print_sectionheader --border "$LN_H" --maxwidth "$term_width"
+            sgnd_print
+
+            left_text="V) · Manage visibility"
+            desc="Show or hide management-console pages"
+            printf '%*s%s' "$tpad" "" "$label_style"
+            sgnd_padded_visible "$left_text" "$left_width_max"
+            printf '%s%*s%s%s%s\n' \
+                "$RESET" \
+                "$gap" "" \
+                "$value_style" "$desc" "$RESET"
+            sgnd_print
+        fi
+
+        sgnd_print_sectionheader --border "$LN_H" --maxwidth "$term_width"
+        sgnd_print "$(sgnd_sgr "$SGND_UI_FAINT" "" "$FX_ITALIC")Q/q Exit    Select a page by number${RESET}"
     }
 
     # --- Module loading -------------------------------------------------------------
@@ -903,13 +1129,14 @@ set -uo pipefail
         unset SGND_MODULE_ID SGND_MODULE_NAME SGND_MODULE_VERSION SGND_MODULE_DESC
         unset SGND_CONSOLE_TITLE_OVERRIDE SGND_CONSOLE_DESC_OVERRIDE
         SGND_CURRENT_MODULE="$(_sgnd_console_module_id_from_filename "$module_file")"
+        SGND_CURRENT_MODULE_SOURCE="$(basename -- "$module_file" .sh)"
         SGND_CURRENT_MODULE_DIR="$(dirname "$module_file")"
         saydebug "Loading module: $module_file"
 
         # shellcheck source=/dev/null
         source "$module_file" || {
             sayfail "Failed to load module: $module_file"
-            unset SGND_CURRENT_MODULE SGND_CURRENT_MODULE_DIR
+            unset SGND_CURRENT_MODULE SGND_CURRENT_MODULE_SOURCE SGND_CURRENT_MODULE_DIR
             unset SGND_MODULE_ID SGND_MODULE_NAME SGND_MODULE_VERSION SGND_MODULE_DESC
             unset SGND_CONSOLE_TITLE_OVERRIDE SGND_CONSOLE_DESC_OVERRIDE
             return 126
@@ -922,7 +1149,7 @@ set -uo pipefail
 
         if [[ -z "$module_name" || -z "$module_version" || -z "$module_desc" ]]; then
             sayfail "Module metadata is incomplete: $module_file"
-            unset SGND_CURRENT_MODULE SGND_CURRENT_MODULE_DIR
+            unset SGND_CURRENT_MODULE SGND_CURRENT_MODULE_SOURCE SGND_CURRENT_MODULE_DIR
             unset SGND_MODULE_ID SGND_MODULE_NAME SGND_MODULE_VERSION SGND_MODULE_DESC
             unset SGND_CONSOLE_TITLE_OVERRIDE SGND_CONSOLE_DESC_OVERRIDE
             return 126
@@ -930,7 +1157,7 @@ set -uo pipefail
 
         if sgnd_dt_has_row "$SGND_MODULE_SCHEMA" SGND_MODULE_ROWS id "$module_id"; then
             sayfail "Duplicate module ID rejected: $module_id"
-            unset SGND_CURRENT_MODULE SGND_CURRENT_MODULE_DIR
+            unset SGND_CURRENT_MODULE SGND_CURRENT_MODULE_SOURCE SGND_CURRENT_MODULE_DIR
             unset SGND_MODULE_ID SGND_MODULE_NAME SGND_MODULE_VERSION SGND_MODULE_DESC
             unset SGND_CONSOLE_TITLE_OVERRIDE SGND_CONSOLE_DESC_OVERRIDE
             return 126
@@ -945,86 +1172,24 @@ set -uo pipefail
         sgnd_dt_append "$SGND_MODULE_SCHEMA" SGND_MODULE_ROWS \
             "$module_id" "$module_name" "$module_version" "$module_desc" "$module_file" || {
             sayfail "Failed to record module metadata: $module_id"
-            unset SGND_CURRENT_MODULE SGND_CURRENT_MODULE_DIR
+            unset SGND_CURRENT_MODULE SGND_CURRENT_MODULE_SOURCE SGND_CURRENT_MODULE_DIR
             unset SGND_MODULE_ID SGND_MODULE_NAME SGND_MODULE_VERSION SGND_MODULE_DESC
             unset SGND_CONSOLE_TITLE_OVERRIDE SGND_CONSOLE_DESC_OVERRIDE
             return 126
         }
 
-        unset SGND_CURRENT_MODULE SGND_CURRENT_MODULE_DIR
+        unset SGND_CURRENT_MODULE SGND_CURRENT_MODULE_SOURCE SGND_CURRENT_MODULE_DIR
         unset SGND_MODULE_ID SGND_MODULE_NAME SGND_MODULE_VERSION SGND_MODULE_DESC
         unset SGND_CONSOLE_TITLE_OVERRIDE SGND_CONSOLE_DESC_OVERRIDE
     }
 
-    # fn: _sgnd_console_load_modules - Load configured console modules
-        # . Purpose
-        #   Load enabled modules from the configured module source.
-        #
-        # . Behavior
-        #   - Derives module IDs from filenames before sourcing modules.
-        #   - Treats missing visibility entries as enabled.
-        #   - Skips modules explicitly marked disabled in console-modules.state.
-        #   - Loads enabled modules in sorted filename order.
-        #   - Shows transient progress while enabled modules are loaded.
-        #
-        # . Returns
-        #   0 on success.
-        #   126 when the module source is invalid or an enabled module fails to load.
-        #
-        # . Usage
-        #   _sgnd_console_load_modules || return $?
-    _sgnd_console_load_modules() {
-        local module=""
-        local module_id=""
-        local module_count=0
-        local module_index=0
-        local module_name=""
-        local -a discovered_files=()
-        local -a module_files=()
-
-        mapfile -t discovered_files < <(_sgnd_console_discover_module_files) || return $?
-
-        for module in "${discovered_files[@]}"; do
-            module_id="$(_sgnd_console_module_id_from_filename "$module")"
-            if _sgnd_console_module_enabled "$module_id"; then
-                module_files+=("$module")
-            else
-                saydebug "Skipping disabled console module: $module_id"
-            fi
-        done
-
-        module_count="${#module_files[@]}"
-        if (( module_count == 0 )); then
-            saywarning "No enabled console modules found in: $SGND_CONSOLE_MODULE_PATH"
-            return 0
-        fi
-
-        sayprogress_begin --slots 1
-
-        for module in "${module_files[@]}"; do
-            module_index=$((module_index + 1))
-            module_name="$(basename -- "$module")"
-
-            sayprogress \
-                --slot 0 \
-                --current "$module_index" \
-                --total "$module_count" \
-                --label "Initializing $module_name" \
-                --type 7 \
-                --padleft 0
-
-            _sgnd_console_source_module "$module" || {
-                sayprogress_done
-                return 126
-            }
-        done
-
-        sayprogress_done
-        return 0
-    }
 
 # --- Script execution ----------------------------------------------------------------
-    # _sgnd_build_command_args
+    # fn: _sgnd_build_command_args - Build arguments for a public SolidGroundUX command
+        # . Purpose
+        #   Copy caller arguments into a target array and prepend --dryrun when the console
+        #   is currently in dry-run mode.
+        #
         # . Returns
         #   0 after populating the requested argument array.
         #
@@ -1039,12 +1204,13 @@ set -uo pipefail
         result_ref+=("$@")
     }
 
-    # _sgnd_run_public_command
+    # fn: _sgnd_run_public_command - Resolve and run a SolidGroundUX public command
         # . Purpose
-        #   Sgnd run public command.
+        #   Resolve a command from the console bin/sbin roots or PATH, propagate console
+        #   dry-run state, and execute it with the supplied arguments.
         #
         # . Returns
-        #   Returns the underlying command or workflow status.
+        #   Exit status from the resolved command; 1 when the command cannot be found.
         #
         # . Usage
         #   _sgnd_run_public_command "framework-smoketest"
@@ -1128,108 +1294,6 @@ set -uo pipefail
         "$resolved" "${command_args[@]}"
     }
 
-    # fn: _sgnd_flag_is_on - Interpret a console flag value
-        # . Purpose
-        #   Evaluate whether a value represents a logical "true".
-        #
-        # Accepted values:
-        #   1, true, TRUE, yes, YES, on, ON
-        #
-        # . Arguments
-        #   $1  VALUE
-        #       Value to evaluate.
-        #
-        # . Returns
-        #   0 if VALUE is considered on
-        #   1 otherwise
-        #
-        # . Usage
-        #   _sgnd_flag_is_on 1 && printf 'Flag is enabled\n'
-        #
-        # Examples:
-        #   _sgnd_flag_is_on "${SGND_LOGFILE_ENABLED:-0}"
-    _sgnd_flag_is_on() {
-        case "${1:-}" in
-            1|true|TRUE|yes|YES|on|ON) return 0 ;;
-            *) return 1 ;;
-        esac
-    }
-
-
-    # fn: _sgnd_console_set_role_awareness - Set role-aware console visibility
-        # . Purpose
-        #   Enable or disable package-backed role filtering for console modules.
-        #
-        # . Behavior
-        #   - Prompts for the desired role-awareness state.
-        #   - Stores the result in SGND_CONSOLE_ROLE_AWARE.
-        #   - Persists SGND_CONSOLE_ROLE_AWARE immediately to sgnd-console state.
-        #   - Role-backed group visibility is evaluated at menu-render time, so
-        #     the change applies immediately in this console and child consoles.
-        #
-        # Outputs (globals):
-        #   SGND_CONSOLE_ROLE_AWARE
-        #
-        # . Returns
-        #   0 after the preference is updated or left unchanged.
-        #
-        # . Usage
-        #   _sgnd_console_set_role_awareness
-    _sgnd_console_set_role_awareness() {
-        local decision="YES"
-
-        if ! _sgnd_flag_is_on "${SGND_CONSOLE_ROLE_AWARE:-1}"; then
-            decision="NO"
-        fi
-
-        ask_decision             --label "Role-aware console visibility"             --choices "YES|Y,NO|N"             --default "$decision"             --var decision
-
-        case "$decision" in
-            YES) SGND_CONSOLE_ROLE_AWARE=1 ;;
-            NO)  SGND_CONSOLE_ROLE_AWARE=0 ;;
-        esac
-
-        sgnd_state_save_keys SGND_CONSOLE_ROLE_AWARE || {
-            sayfail "Could not save role-awareness state."
-            return 1
-        }
-
-        if _sgnd_flag_is_on "$SGND_CONSOLE_ROLE_AWARE"; then
-            sayok "Role-aware console visibility enabled."
-        else
-            saywarning "Role-aware console visibility disabled."
-        fi
-
-        SGND_LAST_WAITSECS=0
-        return 0
-    }
-
-    # _sgnd_console_toggle_role_awareness
-        # Returns:
-        #   0 after toggling role-aware console visibility for the current session.
-        #
-        # Usage:
-        #   _sgnd_console_toggle_role_awareness
-    _sgnd_console_toggle_role_awareness() {
-        : "${SGND_CONSOLE_ROLE_AWARE:=1}"
-
-        if _sgnd_flag_is_on "$SGND_CONSOLE_ROLE_AWARE"; then
-            SGND_CONSOLE_ROLE_AWARE=0
-            saywarning "Role-aware console visibility disabled."
-        else
-            SGND_CONSOLE_ROLE_AWARE=1
-            sayok "Role-aware console visibility enabled."
-        fi
-
-        sgnd_state_save_keys SGND_CONSOLE_ROLE_AWARE || {
-            sayfail "Could not save role-awareness state."
-            return 1
-        }
-
-        SGND_LAST_WAITSECS=0
-        return 0
-    }
-
     # fn: _sgnd_console_open_shell - Open an interactive child shell
         # . Purpose
         #   Open a new interactive shell and return to the Management Console on exit.
@@ -1256,41 +1320,6 @@ set -uo pipefail
         SGND_LAST_WAITSECS=0
     }
 
-    # fn: _sgnd_console_restart - Restart the current console instance
-        # . Purpose
-        #   Replace the current console process with a fresh instance using the
-        #   current console invocation and run mode.
-        #
-        # . Behavior
-        #   - Reuses the original console arguments.
-        #   - Preserves the current dry-run or commit state.
-        #   - Replaces the current process with exec instead of nesting a new console.
-        #   - Reloads framework libraries, console modules, and runtime state.
-        #
-        # . Returns
-        #   Does not return after a successful restart; returns 1 when restart fails.
-        #
-        # . Usage
-        #   _sgnd_console_restart
-    _sgnd_console_restart() {
-        local arg=""
-        local -a restart_args=()
-
-        for arg in "${SGND_CONSOLE_ORIGINAL_ARGS[@]}"; do
-            case "$arg" in
-                --dryrun) ;;
-                *) restart_args+=("$arg") ;;
-            esac
-        done
-
-        _sgnd_flag_is_on "${FLAG_DRYRUN:-0}" && restart_args=("--dryrun" "${restart_args[@]}")
-
-        saydebug "Restarting console: $SGND_SCRIPT_FILE ${restart_args[*]}"
-        exec "$SGND_SCRIPT_FILE" "${restart_args[@]}"
-
-        sayfail "Failed to restart console"
-        return 1
-    }
 
     # fn: _sgnd_console_toggle_access - Relaunch with the opposite privilege level
         # . Purpose
@@ -1359,6 +1388,207 @@ set -uo pipefail
     }
 
 # --- Console loop --------------------------------------------------------------------
+
+# --- Console execution-context controls ---------------------------------------------
+    # fn: _sgnd_console_toggle_dryrun - Toggle dry-run/commit mode
+        # . Purpose
+        #   Switch FLAG_DRYRUN between dry-run and commit mode and redraw immediately.
+        #
+        # . Outputs (globals)
+        #   FLAG_DRYRUN
+        #   SGND_LAST_WAITSECS=0
+        #
+        # . Returns
+        #   0 after toggling the current mode.
+        #
+        # . Usage
+        #   _sgnd_console_toggle_dryrun
+    _sgnd_console_toggle_dryrun() {
+        : "${FLAG_DRYRUN:=0}"
+
+        if (( FLAG_DRYRUN )); then
+            FLAG_DRYRUN=0
+            sayinfo "Dry-run disabled"
+        else
+            FLAG_DRYRUN=1
+            sayinfo "Dry-run enabled"
+        fi
+        SGND_LAST_WAITSECS=0
+    }
+    # fn: _sgnd_console_cycle_loglevel_value - Resolve the adjacent framework log level
+        # . Arguments
+        #   $1  Current log level.
+        #   $2  Direction: 1 forward, -1 backward.
+        #
+        # . Returns
+        #   Prints the selected log-level name.
+        #
+        # . Usage
+        #   _sgnd_console_cycle_loglevel_value normal 1
+    _sgnd_console_cycle_loglevel_value() {
+        local current="${1:-silent}"
+        local direction="${2:-1}"
+        local i=0
+        local current_index=0
+        local -a levels=(silent quiet normal verbose debug trace)
+
+        for i in "${!levels[@]}"; do
+            if [[ "${levels[$i]}" == "$current" ]]; then
+                current_index="$i"
+                break
+            fi
+        done
+
+        i=$(( (current_index + direction + ${#levels[@]}) % ${#levels[@]} ))
+        printf '%s' "${levels[$i]}"
+    }
+    # fn: _sgnd_console_persist_framework_value - Persist one framework state value
+        # . Purpose
+        #   Save a quick-access setting to SGND_FRAMEWORK_STATEFILE when framework state
+        #   persistence is available.
+        #
+        # . Returns
+        #   0 when no state file is configured; otherwise the sgnd_state_set status.
+        #
+        # . Usage
+        #   _sgnd_console_persist_framework_value
+    _sgnd_console_persist_framework_value() {
+        local key="${1:?missing key}"
+        local value="${2-}"
+
+        [[ -n "${SGND_FRAMEWORK_STATEFILE:-}" ]] || return 0
+        sgnd_state_set --file "$SGND_FRAMEWORK_STATEFILE" "$key" "$value"
+    }
+    # fn: _sgnd_console_cycle_console_loglevel - Cycle and persist console log level
+        # . Purpose
+        #   Select the adjacent console log level, persist it, and redraw immediately.
+        #
+        # . Returns
+        #   0 unless persistence fails.
+        #
+        # . Usage
+        #   _sgnd_console_cycle_console_loglevel
+    _sgnd_console_cycle_console_loglevel() {
+        local direction="${1:-1}"
+
+        SGND_CONSOLE_LOG_LEVEL="$(_sgnd_console_cycle_loglevel_value             "${SGND_CONSOLE_LOG_LEVEL:-silent}"             "$direction")"
+        _sgnd_console_persist_framework_value SGND_CONSOLE_LOG_LEVEL "$SGND_CONSOLE_LOG_LEVEL"
+        SGND_LAST_WAITSECS=0
+    }
+    # fn: _sgnd_console_cycle_file_loglevel - Cycle and persist file log level
+        # . Purpose
+        #   Select the adjacent file log level, persist it, and redraw immediately.
+        #
+        # . Returns
+        #   0 unless persistence fails.
+        #
+        # . Usage
+        #   _sgnd_console_cycle_file_loglevel
+    _sgnd_console_cycle_file_loglevel() {
+        local direction="${1:-1}"
+
+        SGND_FILE_LOG_LEVEL="$(_sgnd_console_cycle_loglevel_value             "${SGND_FILE_LOG_LEVEL:-silent}"             "$direction")"
+        _sgnd_console_persist_framework_value SGND_FILE_LOG_LEVEL "$SGND_FILE_LOG_LEVEL"
+        SGND_LAST_WAITSECS=0
+    }
+    # fn: _sgnd_console_cycle_theme - Cycle the active console theme
+        # . Purpose
+        #   Select the adjacent installed style file, apply it through sgnd_theme, and
+        #   redraw immediately.
+        #
+        # . Returns
+        #   0 when the theme is applied; non-zero when no themes exist or loading fails.
+        #
+        # . Usage
+        #   _sgnd_console_cycle_theme
+    _sgnd_console_cycle_theme() {
+        local direction="${1:-1}"
+        local current_file="${SGND_UI_STYLE##*/}"
+        local candidate=""
+        local theme_file=""
+        local i=0
+        local current_index=-1
+        local next_index=0
+        local -a theme_paths=()
+        local -a theme_files=()
+
+        shopt -s nullglob
+        theme_paths=("${SGND_STYLE_DIR%/}"/[0-9][0-9]-style-*.sh)
+        shopt -u nullglob
+
+        (( ${#theme_paths[@]} > 0 )) || return 1
+
+        mapfile -t theme_paths < <(
+            printf '%s\n' "${theme_paths[@]}" | LC_ALL=C sort
+        )
+
+        for candidate in "${theme_paths[@]}"; do
+            theme_files+=("${candidate##*/}")
+        done
+
+        if [[ ! "$current_file" =~ ^[0-9][0-9]-style-.+\.sh$ ]]; then
+            current_file="${current_file%.sh}"
+            current_file="${current_file#style-}"
+            [[ "$current_file" == "default-ui-style" ]] && current_file="default"
+
+            for candidate in "${theme_files[@]}"; do
+                if [[ "$candidate" == [0-9][0-9]-style-"${current_file}".sh ]]; then
+                    current_file="$candidate"
+                    break
+                fi
+            done
+        fi
+
+        for i in "${!theme_files[@]}"; do
+            if [[ "${theme_files[$i]}" == "$current_file" ]]; then
+                current_index="$i"
+                break
+            fi
+        done
+
+        if (( current_index < 0 )); then
+            if (( direction < 0 )); then
+                current_index=0
+            else
+                current_index=-1
+            fi
+        fi
+
+        next_index=$(( (current_index + direction + ${#theme_files[@]}) % ${#theme_files[@]} ))
+        theme_file="${theme_files[$next_index]}"
+
+        sgnd_theme "$theme_file" || return $?
+        SGND_LAST_WAITSECS=0
+    }
+
+    # fn: _sgnd_console_handle_control - Handle console-owned direct controls
+        # . Purpose
+        #   Apply execution-context controls that belong to sgnd-console rather than
+        #   the reusable menu library.
+        #
+        # . Arguments
+        #   $1  CONTROL - Normalized key returned by sgnd_menu_read_choice.
+        #
+        # . Returns
+        #   0 when handled.
+        #   2 when the key is not a console execution-context control.
+    _sgnd_console_handle_control() {
+        local control="${1:-}"
+
+        case "$control" in
+            M|m) _sgnd_console_toggle_dryrun ;;
+            A|a) _sgnd_console_toggle_access ;;
+            S)   _sgnd_console_open_shell ;;
+            c)   _sgnd_console_cycle_console_loglevel 1 ;;
+            C)   _sgnd_console_cycle_console_loglevel -1 ;;
+            f)   _sgnd_console_cycle_file_loglevel 1 ;;
+            F)   _sgnd_console_cycle_file_loglevel -1 ;;
+            t)   _sgnd_console_cycle_theme 1 ;;
+            T)   _sgnd_console_cycle_theme -1 ;;
+            *)   return 2 ;;
+        esac
+    }
+
     # fn: _sgnd_console_run - Run the console interaction loop
         # . Purpose
         #   Run the interactive console event loop.
@@ -1366,10 +1596,11 @@ set -uo pipefail
         # . Behavior
         #   - Renders the menu.
         #   - Builds the valid choice list for the current menu state.
-        #   - Reads a choice via ask_choose_immediate.
+        #   - Reads normalized keyboard input through sgnd_menu_read_choice.
         #   - Dispatches the selected handler.
         #   - Exits when a handler returns sentinel value 200.
-        #   - Optionally pauses after actions according to SGND_LAST_WAITSECS.
+        #   - Shows an interruptible post-action countdown when SGND_LAST_WAITSECS is non-zero.
+        #   - Normal registered actions use at least 15 seconds; host controls may set the wait to 0.
         #
         # . Returns
         #   0 on normal console exit
@@ -1382,234 +1613,100 @@ set -uo pipefail
         #   _sgnd_console_run
     _sgnd_console_run() {
         local choice=""
-        local valid_choices=""
         local rc=0
 
         while true; do
-            _sgnd_console_render_menu
-            valid_choices="$(_sgnd_console_valid_choices_csv)"
-            
-            sgnd_print_sectionheader --border "$DL_H" --maxwidth "$(sgnd_terminal_width)"
-            ask_choose_immediate \
-                --label "Select option" \
-                --choices "$valid_choices" \
-                --instantchoices "Q,<,>,M,A,S,c,C,f,F,t,T,R,CTRL-R" \
-                --displaychoices 0 \
-                --keepasking 1 \
-                --preservecase 1 \
-                --var choice
-
-            _sgnd_console_dispatch "$choice"
-            rc=$?
-            if (( rc == 200 )); then
-                sayinfo "Exiting console"
-                return 0
+            if [[ "$SGND_CONSOLE_VIEW" == "index" ]]; then
+                _sgnd_console_show_index
+            else
+                sgnd_menu_show_menu
             fi
 
-            saydebug "Calling ask_continue with $SGND_LAST_WAITSECS ?"
+            sgnd_print_sectionheader --border "$DL_H" --maxwidth "${SGND_MENU_RENDER_WIDTH:-$(sgnd_terminal_width)}"
+            printf '%s' "Select option : " >/dev/tty
+            sgnd_menu_read_choice choice || return $?
+
+            case "$choice" in
+                EXIT)
+                    sayinfo "Exiting console"
+                    return 0
+                    ;;
+                REDRAW)
+                    continue
+                    ;;
+                ESC)
+                    if [[ "$SGND_CONSOLE_VIEW" == "module" ]]; then
+                        SGND_CONSOLE_VIEW="index"
+                        SGND_CONSOLE_ACTIVE_PAGE=""
+                        SGND_MENU_ACTIVE_SOURCE=""
+                        SGND_PAGE_INDEX=0
+                    fi
+                    continue
+                    ;;
+            esac
+
+            if [[ "$SGND_CONSOLE_VIEW" == "index" && ( "$choice" == "V" || "$choice" == "v" ) ]]; then
+                if (( EUID == 0 )); then
+                    _sgnd_console_manage_visibility || true
+                    _sgnd_console_register_pages || true
+                fi
+                continue
+            fi
+
+            _sgnd_console_handle_control "$choice"
+            rc=$?
+            if (( rc == 0 )); then
+                continue
+            fi
+
+            if [[ "$SGND_CONSOLE_VIEW" == "index" ]]; then
+                if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= ${#SGND_CONSOLE_PAGE_ROWS[@]} )); then
+                    _sgnd_console_open_page "$((choice - 1))" || true
+                else
+                    saywarning "Invalid page selection: $choice"
+                fi
+                continue
+            fi
+
+            _sgnd_console_dispatch "$choice" || true
+
             if (( ${SGND_LAST_WAITSECS:-0} > 0 )); then
-                saydebug "Calling ask_continue with $SGND_LAST_WAITSECS"
-                ask_dlg_autocontinue --seconds "$SGND_LAST_WAITSECS" --message "" --cancel --pause
+                ask_dlg_autocontinue \
+                    --seconds "$SGND_LAST_WAITSECS" \
+                    --message "" \
+                    --cancel \
+                    --pause || true
             fi
         done
     }
 
-# --- Public API ----------------------------------------------------------------------
-    # sgnd_console_register_item
-        # . Purpose
-        #   Register one menu item in the console item model.
-        #
-        # . Behavior
-        #   - Validates key uniqueness.
-        #   - Verifies that the handler function exists.
-        #   - Assigns a default module-based group when GROUP is empty.
-        #   - Auto-registers a fallback group when needed.
-        #   - Captures source ownership from SGND_CURRENT_MODULE.
-        #   - Appends the item row to SGND_ITEM_ROWS.
-        #
-        # . Arguments
-        #   $1  KEY
-        #       Unique item key.
-        #   $2  GROUP
-        #       Target group key (optional).
-        #   $3  LABEL
-        #       Display label.
-        #   $4  HANDLER
-        #       Function name to invoke.
-        #   $5  DESC
-        #       Optional description.
-        #   $6  BUILTIN
-        #       1 = builtin item, 0 = normal item.
-        #   $7  WAITSECS
-        #       Post-action wait duration.
-        #   $8  VISIBLE
-        #       0 = hidden, 1 = visible/enabled, 2 = visible/disabled.
-        #
-        # . Returns
-        #   0 on success
-        #   1 on validation or append failure
-        #
-        # . Usage
-        #   sgnd_console_register_item "Q" "session" "Quit" "_sgnd_console_quit" "Exit console" 1 0 1
-        #
-        # Examples:
-        #   sgnd_console_register_item "sys-status" "system" "System status" "sys_status" "Show system status" 0 15 1
-    # fn: sgnd_console_register_item - Register a console menu item
-        # . Purpose
-        #   Register a console menu item.
-        #
-        # . Behavior
-        #   - Public entry point.
-        #   - Preserves existing script runtime behavior.
-        #
-        # . Returns
-        #   Returns the underlying command or workflow status.
-        #
-        # . Usage
-        #   sgnd_console_register_item
-    sgnd_console_register_item() {
-        local key="${1:?missing key}"
-        local group="${2:-}"
-        local label="${3:?missing label}"
-        local handler="${4:?missing handler}"
-        local desc="${5:-}"
-        local builtin="${6:-0}"
-        local waitsecs="${7:-15}"
-        local visible="${8:-1}"
-        local source="${SGND_CURRENT_MODULE:-}"
+# --- Console module API ---------------------------------------------------------------
+    # Public menu registration functions are defined by sgnd-menu.sh.
+    # Modules should use sgnd_menu_register_group/item; the public
+    # sgnd_console_register_group/item compatibility API remains available there.
 
-        if sgnd_dt_has_row "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS key "$key"; then
-            sayfail "Duplicate menu key: $key"
-            return 1
-        fi
-
-        declare -F "$handler" >/dev/null || {
-            sayfail "Handler not defined for menu key '$key': $handler"
-            return 1
-        }
-
-        if [[ -z "$group" ]]; then
-            group="module:${SGND_CURRENT_MODULE:-default}"
-        fi
-
-        if ! _sgnd_console_group_exists "$group"; then
-            _sgnd_console_register_fallback_group "$group"
-        fi
-
-        sgnd_dt_append "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS \
-            "$key" "$group" "$label" "$handler" "$desc" "$source" "$builtin" "$waitsecs" "$visible" || {
-            sayfail "Failed to register item: $key"
-            return 1
-        }
-    }
-
-    # sgnd_console_register_group
-        # . Purpose
-        #   Register one menu group in the console group model.
-        #
-        # . Behavior
-        #   - Ignores duplicate group keys.
-        #   - Captures source ownership from SGND_CURRENT_MODULE.
-        #   - Appends a new group row to SGND_GROUP_ROWS when absent.
-        #
-        # . Arguments
-        #   $1  KEY
-        #       Unique group key.
-        #   $2  LABEL
-        #       Display label.
-        #   $3  DESC
-        #       Optional description.
-        #   $4  BUILTIN
-        #       1 = builtin group, 0 = normal group.
-        #   $5  VISIBLE
-        #       0 = hidden, 1 = visible/enabled, 2 = visible/disabled.
-        #   $6  ORD
-        #       Sort/order weight.
-        #   $7  ROLEPACKAGES
-        #       Optional comma-separated Debian packages required when role
-        #       awareness is enabled. All listed packages must be installed.
-        #
-        # . Returns
-        #   0 on success
-        #   1 on append failure
-        #
-        # . Usage
-        #   sgnd_console_register_group "system" "System tools" "" 0 1 100
-        #
-        # Examples:
-        #   sgnd_console_register_group "runtime" "Runtime toggles" "" 1 0 980
-    # fn: sgnd_console_register_group - Register a console menu group
-        # . Purpose
-        #   Register a console menu group.
-        #
-        # . Behavior
-        #   - Public entry point.
-        #   - Preserves existing script runtime behavior.
-        #
-        # . Returns
-        #   Returns the underlying command or workflow status.
-        #
-        # . Usage
-        #   sgnd_console_register_group
-    sgnd_console_register_group() {
-        local key="${1:?missing group key}"
-        local label="${2-}"
-        local desc="${3:-}"
-        local builtin="${4:-0}"
-        local visible="${5:-1}"
-        local ord="${6:-1000}"
-        local rolepackages="${7:-}"
-        local source="${SGND_CURRENT_MODULE:-}"
-
-        if sgnd_dt_has_row "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS key "$key"; then
-            return 0
-        fi
-
-        sgnd_dt_append "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS \
-            "$key" "$label" "$desc" "$source" "$builtin" "$visible" "$ord" "$rolepackages" || {
-            sayfail "Failed to register group: $key"
-            return 1
-        }
-    }
 # --- Main ----------------------------------------------------------------------------
-    # main
+    # fn: main - Run the SolidGround management console
         # . Purpose
-        #   Execute the sgnd-console startup and interactive runtime flow.
+        #   Initialize the framework, discover console pages, and run the interactive host.
         #
         # . Behavior
-        #   - Resolves and loads the framework bootstrap library.
-        #   - Initializes framework runtime via sgnd_bootstrap.
-        #   - Executes builtin framework argument handling.
-        #   - Updates run-mode UI state.
-        #   - Loads console configuration.
-        #   - Registers builtin groups and items.
-        #   - Loads console modules.
-        #   - Starts the interactive console loop.
+        #   - Resolves and starts the SolidGroundUX framework runtime.
+        #   - Loads console configuration and persisted console state.
+        #   - Creates the menu model and registers built-in navigation items.
+        #   - Discovers enabled module files and registers lightweight index-page metadata.
+        #   - Does not source a page module until that page is first opened.
+        #   - Retains loaded page modules for the remainder of the console session.
+        #   - Runs the interactive index/page navigation and action-dispatch loop.
         #
         # . Arguments
-        #   $@  Framework and script-specific command-line arguments.
+        #   $@  Framework and console command-line arguments.
         #
         # . Returns
-        #   Exits with the resulting status from bootstrap or console logic.
+        #   Exits with the resulting status from framework startup or console execution.
         #
         # . Usage
         #   main "$@"
-        #
-        # Examples:
-        #   main "$@"
-    # fn: main - Run the executable main sequence
-        # . Purpose
-        #   Run the executable main sequence.
-        #
-        # . Behavior
-        #   - Public entry point.
-        #   - Preserves existing script runtime behavior.
-        #
-        # . Returns
-        #   Returns the underlying command or workflow status.
-        #
-        # . Usage
-        #   main
     main() {
         SGND_CONSOLE_ORIGINAL_ARGS=("$@")
 
@@ -1639,12 +1736,14 @@ set -uo pipefail
         fi
 
         SGND_PAGE_INDEX=0
+        sgnd_menu_create "$SGND_CONSOLE_TITLE" "$SGND_CONSOLE_DESC" || exit $?
+        SGND_MENU_ITEM_EXECUTOR="_sgnd_console_execute_menu_item"
 
         sgnd_print "Registering builtin menu items"
         _sgnd_console_register_builtin_items || exit $?
 
-        sgnd_print "Loading console modules"
-        _sgnd_console_load_modules || exit $?
+        sgnd_print "Registering console pages"
+        _sgnd_console_register_pages || exit $?
 
         if (( SGND_CLEAR_ONRENDER )); then
             sgnd_clear

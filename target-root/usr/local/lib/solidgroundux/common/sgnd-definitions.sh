@@ -2,9 +2,9 @@
 # SolidGroundUX - Framework Definitions
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622511
-#   Checksum    : 3674bcb3105375ca4adf8c1c2ce5a57ade9128f4e1f594e252617eebd2d5b795
+#   Version     : 2.0
+#   Build       : 2623001
+#   Checksum    : 0b1def1776983cec6c264702a5744d86937c41799cf1ac825043802eebe0efd5
 #   Source      : sgnd-definitions.sh
 #   Type        : library
 #   Group       : Bootstrap
@@ -50,8 +50,8 @@ set -uo pipefail
 
 # --- Framework identity --------------------------------------------------------------
     SGND_PRODUCT="SolidGroundUX"
-    SGND_VERSION="1.9"
-    SGND_BUILD="2622601"
+    SGND_VERSION="2.0"
+    SGND_BUILD="2623001"
     SGND_COMPANY="Testadura Consultancy"
     SGND_COPYRIGHT="© 2025 - 2026 Testadura Consultancy"
     SGND_LICENSE="Testadura Non-Commercial License (TD-NC) v1.1."

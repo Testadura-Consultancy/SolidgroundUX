@@ -2,9 +2,9 @@
 # SolidGroundUX - Framework Services Overview
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : e200aac99ed20ec670214866399444f12f748505e652085c12dbce216d353344
+#   Version     : 2.0
+#   Build       : 2622911
+#   Checksum    : 575b30a2fa1c15a2e60d8deacf912e58af16c50e585a80e13f4183e5e4f3f63d
 #   Source      : common core_preface.sh
 #   Type        : documentation
 #   Group       : Common Core
@@ -43,13 +43,11 @@
 #  
 # -- Command-Line Arguments ----------------------------------------------------------
 #  
-# > The argument subsystem provides standardized command-line processing. Each exectable
-# > after the bootstrapper is complete the script's own arguments as well as framework-supplied options.
-# > This include built-in support for version reporting, help output, tracing, debugging, and configuration overrides.
-#   
-# > Applications may define custom arguments while also benefiting from framework
-# > supplied options such as version reporting, help output, tracing, debugging,
-# > and configuration overrides.
+# > The argument subsystem provides standardized command-line processing. After the
+# > bootstrap separates framework options from script arguments, applications can
+# > define their own declarative argument specification while retaining framework
+# > built-ins such as help, version reporting, tracing, debugging, and configuration
+# > overrides.
 #
 # -- User Interface Services ---------------------------------------------------------
 #
@@ -62,12 +60,13 @@
 #
 # -- Console Applications ------------------------------------------------------------
 #
-# > The console framework allows applications to expose functionality through a
-# > menu-driven interface.
-#   
-# > Functionality is organized into groups and menu items. Individual modules can
-# > register their own functionality, allowing menu structures to be assembled
-# > dynamically at runtime.
+# > `sgnd-menu.sh` provides a reusable public menu service independent of the SolidGround
+# > Management Console host. Applications can create menu models, register groups and
+# > items, render pages, read selections, and dispatch registered actions through the
+# > public `sgnd_menu_*` API.
+# >
+# > The Management Console is one consumer of that API. Its page modules are discovered
+# > from lightweight metadata and sourced lazily when first opened.
 #
 # -- Documentation Generation --------------------------------------------------------
 #

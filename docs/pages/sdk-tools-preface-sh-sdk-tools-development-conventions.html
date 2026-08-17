@@ -17,7 +17,7 @@
 <div class="ct-L2Sectionbody"></div>
 <p class="ct-L2Sectionbody">Public framework functions should use the sgnd_ prefix.</p>
 <div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">Internal helper functions should use a leading underscore. Bash, of course, does not enforce access restrictions, but the convention indicates intent.</p>
+<p class="ct-L2Sectionbody">Framework-public functions use `sgnd_*`. Framework-internal functions shared by cooperating framework libraries use `_sgnd_*`. A plain leading underscore such as `_helper` identifies a script- or module-local private implementation detail. Bash cannot enforce these access levels, but the naming convention communicates intent.</p>
 <div class="ct-L2Sectionbody"></div>
 <p class="ct-L2Sectionbody">Executable scripts should be based on the executable template. User-facing executables should normally be exposed through lightweight wrappers in bin or sbin. The actual implementation script should live in the appropriate product subfolder, usually below libexec, and be invoked by the wrapper.</p>
 <div class="ct-L2Sectionbody"></div>

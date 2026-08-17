@@ -14,16 +14,26 @@
 </header>
 <div class="ct-L2Sectionbody"></div>
 <p class="ct-L2Sectionbody">Purpose</p>
-<div class="ct-L2Sectionbody">    Support the development lifecycle around SolidGroundUX projects.</div>
+<div class="ct-L2Sectionbody">    Support development, test deployment, documentation, release preparation, and</div>
+<div class="ct-L2Sectionbody">    the standalone installed-release lifecycle.</div>
 <div class="ct-L2Sectionbody"></div>
 <p class="ct-L2Sectionbody">Main tools</p>
 <div class="ct-L2Sectionbody">    create-workspace.sh</div>
 <div class="ct-L2Sectionbody">    deploy-workspace.sh</div>
-<div class="ct-L2Sectionbody">    metadata-editor.sh</div>
+<div class="ct-L2Sectionbody">    create-wrappers.sh</div>
+<div class="ct-L2Sectionbody">    doc-generator.sh</div>
 <div class="ct-L2Sectionbody">    prepare-release.sh</div>
-<div class="ct-L2Sectionbody">    install-release.sh</div>
-<div class="ct-L2Sectionbody">    update-release.sh</div>
-<div class="ct-L2Sectionbody">    uninstall-release.sh</div>
+<div class="ct-L2Sectionbody">    release-manager.sh</div>
+<div class="ct-L2Sectionbody"></div>
+<p class="ct-L2Sectionbody">Lifecycle</p>
+<div class="ct-L2Sectionbody">    create/develop workspace -&gt; deploy/test -&gt; generate documentation -&gt;</div>
+<div class="ct-L2Sectionbody">    prepare-release -&gt; prepared release artifacts -&gt; release-manager</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">    deploy-workspace.sh is a development/test transfer tool. prepare-release.sh</div>
+<div class="ct-L2Sectionbody">    creates complete release archives, manifests, removal manifests, and checksums.</div>
+<div class="ct-L2Sectionbody">    release-manager.sh is framework-independent and owns installation, update,</div>
+<div class="ct-L2Sectionbody">    rollback/reinstallation, download/check, and removal. Release state is represented</div>
+<div class="ct-L2Sectionbody">    by /var/lib/solidgroundux/releases and /var/lib/solidgroundux/archive.</div>
 </main>
 </body>
 </html>
