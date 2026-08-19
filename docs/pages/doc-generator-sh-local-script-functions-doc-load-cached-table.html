@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Load a cached PSV table into a named array</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<div class="doc-page-branding"><span class="doc-page-branding-title">SolidGroundUX Documentation</span><img src="../assets/branding/doc-header-logo.png" alt="SolidGroundUX"></div>
+<header class="doc-page-header">
+  <div class="doc-title">Load a cached PSV table into a named array</div>
+  <div class="doc-breadcrumb">SolidgroundUX / doc-generator.sh / Local script functions / _doc_load_cached_table</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Restore one parser table from the persistent documentation cache.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Arguments</div>
+<div class="ct-functionbody">  $1  Cached PSV filename.</div>
+<div class="ct-functionbody">  $2  Destination array name.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 when the table was loaded.</div>
+<div class="ct-functionbody">  1 when the cache file is missing or unreadable.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  _doc_load_cached_table &quot;$VAL_OUTDIR/.sgnd-doc-cache/mod_table.psv&quot; MOD_TABLE</div>
+</main>
+</body>
+</html>

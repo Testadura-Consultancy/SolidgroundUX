@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Documentation Workflow</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<div class="doc-page-branding"><span class="doc-page-branding-title">SolidGroundUX Documentation</span><img src="../assets/branding/doc-header-logo.png" alt="SolidGroundUX"></div>
+<header class="doc-page-header">
+  <div class="doc-title">Documentation Workflow</div>
+  <div class="doc-breadcrumb">sdk-documentation_preface.sh::Documentation Generator:Documentation Workflow:</div>
+</header>
+<div class="ct-L2Sectionbody"></div>
+<p class="ct-L2Sectionbody">The documentation pipeline consists of several stages.</p>
+<div class="ct-L2Sectionbody"></div>
+<div class="doc-image-group images-1">
+<figure class="doc-image">
+<img src="../assets/images/doc-generation-process.png" alt="Document generation process" loading="lazy">
+<figcaption>Document generation process</figcaption>
+</figure>
+</div>
+<p class="ct-L2Sectionbody">The processor reads source files and extracts module metadata, sections, items, documentation lines, attribution data, and integrity information.</p>
+<div class="ct-L2Sectionbody"></div>
+<p class="ct-L2Sectionbody">The renderer receives the normalized tables produced by the processor and turns them into HTML pages, navigation, appendices, glossary entries, and supporting assets.</p>
+<div class="ct-L2Sectionbody"></div>
+<p class="ct-L2Sectionbody">The generator coordinates the overall process and acts as the main entry point for producing the documentation set.</p>
+<div class="ct-L2Sectionbody"></div>
+<p class="ct-L2Sectionbody">Four generation modes are available:</p>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">    1  Full              Reparse all matching source files and rebuild the complete set</div>
+<div class="ct-L2Sectionbody">    2  Selected          Reparse only explicitly selected matching files</div>
+<div class="ct-L2Sectionbody">    3  Changed           Reparse matching files changed since the selected baseline</div>
+<div class="ct-L2Sectionbody">    4  Render existing   Rebuild HTML from the persisted renderer data only</div>
+<div class="ct-L2Sectionbody"></div>
+<p class="ct-L2Sectionbody">Full generation cleans the output directory before rebuilding the complete set. Selected and Changed generation preserve existing output so they can be used for incremental updates. Successful parse modes persist the normalized renderer input data, allowing Render existing data mode to regenerate HTML, navigation, CSS, branding, and other renderer-owned output without rescanning source files.</p>
+<div class="ct-L2Sectionbody"></div>
+<p class="ct-L2Sectionbody">After files or modules are renamed or removed, use Full generation so obsolete generated pages are deleted rather than surviving from an earlier documentation run. Render existing data does not re-read source comments or metadata.</p>
+<div class="ct-L2Sectionbody"></div>
+</main>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Bootstrap Architecture</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<div class="doc-page-branding"><span class="doc-page-branding-title">SolidGroundUX Documentation</span><img src="../assets/branding/doc-header-logo.png" alt="SolidGroundUX"></div>
+<header class="doc-page-header">
+  <div class="doc-title">Bootstrap Architecture</div>
+  <div class="doc-breadcrumb">solidgroundux_preface.sh::Architecture:Bootstrap Architecture:</div>
+</header>
+<div class="ct-L2Sectionbody"></div>
+<p class="ct-L2Sectionbody">The bootstrap system is the heart of the framework.</p>
+<div class="ct-L2Sectionbody">  </div>
+<p class="ct-L2Sectionbody">Rather than requiring every script to discover filesystem locations, load libraries, initialize configuration, and prepare runtime variables independently, the bootstrap libraries provide a standardized initialization sequence.</p>
+<div class="ct-L2Sectionbody">  </div>
+<p class="ct-L2Sectionbody">A typical startup sequence consists of:</p>
+<div class="ct-L2Sectionbody">  </div>
+<div class="doc-image-group images-1">
+<figure class="doc-image">
+<img src="../assets/images/Bootstrap-Sequence.png" alt="Figure 3 – SolidGroundUX bootstrap sequence." loading="lazy">
+<figcaption>Figure 3 – SolidGroundUX bootstrap sequence.</figcaption>
+</figure>
+</div>
+<div class="ct-L2Sectionbody">  </div>
+<p class="ct-L2Sectionbody">By centralizing initialization logic, application scripts remain focused on their actual purpose rather than infrastructure concerns.</p>
+<div class="ct-L2Sectionbody"></div>
+</main>
+</body>
+</html>

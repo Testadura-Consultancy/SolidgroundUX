@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SolidGroundUX - Create Wrappers</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<div class="doc-page-branding"><span class="doc-page-branding-title">SolidGroundUX Documentation</span><img src="../assets/branding/doc-header-logo.png" alt="SolidGroundUX"></div>
+<header class="doc-page-header">
+  <div class="doc-title">SolidGroundUX - Create Wrappers</div>
+  <div class="doc-breadcrumb">SolidgroundUX / create-wrappers.sh</div>
+</header>
+<div class="ct-modulebody sh-label">Description</div>
+<div class="ct-modulebody">  Creates one or more command wrappers from SolidGroundUX scripts. Source files are</div>
+<div class="ct-modulebody">  selected from a source directory using a filename or shell mask. Generated wrappers</div>
+<div class="ct-modulebody">  resolve SGND_APPLICATION_ROOT at runtime from the active SolidGroundUX configuration,</div>
+<div class="ct-modulebody">  so the same wrapper works on development, test, and installed systems.</div>
+<div class="ct-modulebody"></div>
+<div class="ct-modulebody sh-label">Wrapper names</div>
+<div class="ct-modulebody">    - script.sh       -&gt; sgnd-script</div>
+<div class="ct-modulebody">    - sgnd-script.sh  -&gt; sgnd-script</div>
+<div class="ct-modulebody"></div>
+<div class="ct-modulebody sh-label">Wrapper target directories</div>
+<div class="ct-modulebody">    - /usr/local/bin  (default)</div>
+<div class="ct-modulebody">    - /usr/local/sbin</div>
+<div class="ct-modulebody"></div>
+<div class="ct-modulebody sh-label">Configuration precedence used by generated wrappers</div>
+<div class="ct-modulebody">  1. ~/.config/solidgroundux/solidgroundux.cfg</div>
+<div class="ct-modulebody">  2. /etc/solidgroundux/solidgroundux.cfg</div>
+<div class="ct-modulebody"></div>
+<div class="ct-modulebody sh-label">Design principles</div>
+<div class="ct-modulebody">  - Generated wrappers remain environment-independent.</div>
+<div class="ct-modulebody">  - Wrapper targets are stored relative to SGND_APPLICATION_ROOT.</div>
+<div class="ct-modulebody">  - Existing wrappers are not overwritten without confirmation.</div>
+<div class="ct-modulebody">  - A filename or mask may select one or multiple source scripts.</div>
+<div class="ct-modulebody"></div>
+</main>
+</body>
+</html>

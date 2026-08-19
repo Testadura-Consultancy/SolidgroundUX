@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>storage_set_permissions</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<div class="doc-page-branding"><span class="doc-page-branding-title">SolidGroundUX Documentation</span><img src="../assets/branding/doc-header-logo.png" alt="SolidGroundUX"></div>
+<header class="doc-page-header">
+  <div class="doc-title">storage_set_permissions</div>
+  <div class="doc-breadcrumb">15-storage.sh:::Public module actions:storage_set_permissions</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Set Unix permissions on a managed storage directory.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Lets the administrator select the storage root or shares root.</div>
+<div class="ct-functionbody">  - Uses the current mode as the editable default.</div>
+<div class="ct-functionbody">  - Accepts a three- or four-digit octal mode.</div>
+<div class="ct-functionbody">  - Changes only the selected directory, not its descendants.</div>
+<div class="ct-functionbody">  - Honors console dry-run mode.</div>
+<div class="ct-functionbody"></div>
+<p class="ct-functionbody">Inputs (globals):</p>
+<div class="ct-functionbody">  FLAG_DRYRUN</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 when permissions are updated, otherwise non-zero.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  storage_set_permissions</div>
+</main>
+</body>
+</html>
