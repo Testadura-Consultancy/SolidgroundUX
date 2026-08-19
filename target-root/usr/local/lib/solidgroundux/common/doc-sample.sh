@@ -27,12 +27,13 @@
 #   used for developer comments or module-level prose.
 #
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : 4b20351c3431bd7ad30f0f87560ed9aaae45974783188942564fe821f0d78add
+#   Version     : 2.0
+#   Build       : 2623103
+#   Checksum    : 16e41a4c96a9de031dd80597adb320e5b4c2d9fe06df0fadf3808fda8440e183
 #   Source      : doc-sample.sh
 #   Type        : documentation
-#   Group       : SDK Documentation
+#   Group       : SDK
+#   Subgroup    : Documentation Generator
 #   Purpose     : Demonstrate all supported SolidGroundUX documentation comment
 #                 conventions, content labels, item markers, and style hints.
 #

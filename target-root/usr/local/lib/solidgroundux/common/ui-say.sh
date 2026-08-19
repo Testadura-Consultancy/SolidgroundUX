@@ -2,7 +2,7 @@
 # SolidGroundUX - UI Messaging
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
+#   Version     : 2.0
 #   Build       : 2622203
 #   Checksum    : 8d116236614ebb61f01d98c96617712c2b0434632308bdc54225676016b727b1
 #   Source      : ui-say.sh

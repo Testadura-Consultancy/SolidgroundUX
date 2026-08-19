@@ -4,11 +4,11 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2622911
-#   Checksum    : bb46bf1ed45ff6d05161682f2b7fa5f50134495b206ed591f4c4cf909288810e
+#   Build       : 2623103
+#   Checksum    : 0f1b13dc8a22499d1d0d1523df267e653aa50545ba908b0f650ad7627ee46713
 #   Source      : deploy-workspace.sh
 #   Type        : script
-#   Group       : SDK Tools
+#   Group       : SDK
 #   Purpose     : Select workspace files and deploy them through receive-files.sh
 #
 # Description:
@@ -33,7 +33,7 @@
 set -uo pipefail
 
 # --- Bootstrap ----------------------------------------------------------------------
-    # fn: _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
+    # fn$ _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
         # . Purpose
         #   Locate, create, and load the SolidGroundUX bootstrap configuration, then
         #   load the executable runtime support library.

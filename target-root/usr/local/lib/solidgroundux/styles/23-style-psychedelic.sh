@@ -2,12 +2,13 @@
 # SolidGroundUX - Psychedelic UI Style
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : eb9b5f565657aeff5508b864d4f7b611b154a8370ad47902c2a4cc5db067b010
+#   Version     : 2.0
+#   Build       : 2623103
+#   Checksum    : 7fb2ba9ba2f8a850e06c386e97de3d85897326afec1799c39a63e998137ddd84
 #   Source      : 23-style-psychedelic.sh
 #   Type        : library
-#   Group       : Styles
+#   Group       : UI
+#   Subgroup    : Styles
 #   Purpose     : Define the Psychedelic semantic UI theme
 #
 # Description:

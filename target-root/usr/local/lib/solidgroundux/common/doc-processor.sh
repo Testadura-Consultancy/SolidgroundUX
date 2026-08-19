@@ -2,12 +2,13 @@
 # SolidGroundUX - Document processor
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : 569941872a71a7ce58c79d9bf1f7387109c4181ee07c0ed358efb9e671ab5a78
+#   Version     : 2.0
+#   Build       : 2623103
+#   Checksum    : 80cdaa7bc8b95c9d0bba11a362f8781c0524220d79b779b93513b620181ac753
 #   Source      : doc-processor.sh
 #   Type        : library
-#   Group       : SDK Documentation
+#   Group       : SDK
+#   Subgroup    : Documentation Generator
 #   Purpose     : Parse source files for structured comments and assemble normalized
 #                 documentation data
 #
@@ -106,7 +107,7 @@ set -uo pipefail
         # Tables:
         #   MOD_TABLE
         #     One row per parsed source module.
-        #     Holds module identity, title, type, purpose, version, build, group, and product.
+        #     Holds module identity, title, type, purpose, version, build, group, subgroup, and product.
         #
         #   MOD_ATTRIBUTION
         #     One row per parsed source module.
@@ -122,7 +123,7 @@ set -uo pipefail
         #
         #   MOD_ITEMS
         #     One row per detected documented item.
-        #     Holds module, section context, item type, visibility, role, name, and title.
+        #     Holds module, section context, item type (including fn/cls/var/doc), visibility, role, name, and title.
         #
         #   DOC_CONTENT_LINES
         #     One row per normalized emitted documentation line.
@@ -132,7 +133,7 @@ set -uo pipefail
         # Notes:
         #   - These tables are collection/output contracts, not class definitions.
         #   - Rendering code should consume these tables instead of reparsing source files.
-        MOD_TABLE_SCHEMA="file|name|title|type|purpose|version|build|checksum|group|product"
+        MOD_TABLE_SCHEMA="file|name|title|type|purpose|version|build|checksum|group|subgroup|product"
         MOD_TABLE=()
 
         MOD_ATTRIBUTION_SCHEMA="modulename|developers|company|client|copyright|license"
@@ -198,6 +199,8 @@ set -uo pipefail
         mod_product=""
         mod_title=""
         mod_name=""
+        mod_group=""
+        mod_subgroup=""
         
         doc_section=""
         doc_sectionlevel=0
@@ -628,7 +631,7 @@ set -uo pipefail
 
         # fn: _detect_items - Detect documented items
             # . Purpose
-            #   Detect structured item markers such as functions, variables, and general documentation blocks.
+            #   Detect structured item markers such as functions, classes, variables, and general documentation blocks.
             #
             # . Behavior
             #   - Matches item declaration lines using _rgx_docitem.
@@ -655,7 +658,7 @@ set -uo pipefail
 
             saydebug "Detecting items"
             if [[ "$src_line" =~ $_rgx_docitem ]]; then
-                local item_type="${BASH_REMATCH[1]}"      # fn, var, doc
+                local item_type="${BASH_REMATCH[1]}"      # fn, cls, var, doc
                 local item_marker="${BASH_REMATCH[2]}"    # : or $
                 local item_name="${BASH_REMATCH[3]}"
                 local item_title="${BASH_REMATCH[5]}"
@@ -682,6 +685,10 @@ set -uo pipefail
                     fn)
                         doc_contenttype="functionheader"
                         doc_itemtype="function"
+                        ;;
+                    cls)
+                        doc_contenttype="classheader"
+                        doc_itemtype="class"
                         ;;
                     var)
                         doc_contenttype="variableheader"
@@ -1028,7 +1035,7 @@ set -uo pipefail
             #   - Clears pending content emission for the header marker line.
             #
             # Inputs (globals):
-            #   src_file, mod_name, mod_title, mod_type, mod_purpose, mod_version, mod_build, mod_group, mod_product
+            #   src_file, mod_name, mod_title, mod_type, mod_purpose, mod_version, mod_build, mod_group, mod_subgroup, mod_product
             #   mod_developers, mod_company, mod_client, mod_copyright, mod_license
             #
             # Outputs (globals):
@@ -1041,7 +1048,7 @@ set -uo pipefail
             #   _action_headerend
         _action_headerend() {
 
-            saydebug "Adding module: ${src_file:-}, ${mod_name:-}, ${mod_title:-}, ${mod_type:-}, ${mod_purpose:-}, ${mod_version:-}, ${mod_build:-}, ${mod_group:-}, ${mod_product:-}"
+            saydebug "Adding module: ${src_file:-}, ${mod_name:-}, ${mod_title:-}, ${mod_type:-}, ${mod_purpose:-}, ${mod_version:-}, ${mod_build:-}, ${mod_group:-}, ${mod_subgroup:-}, ${mod_product:-}"
 
             sgnd_dt_append \
                 "$MOD_TABLE_SCHEMA" \
@@ -1055,6 +1062,7 @@ set -uo pipefail
                 "${mod_build:-}" \
                 "${mod_checksum:-}" \
                 "${mod_group:-}" \
+                "${mod_subgroup:-}" \
                 "${mod_product:-}"
 
             saydebug "Adding module attribution: ${MOD_ATTRIBUTION_SCHEMA:-}, ${mod_name:-}, ${mod_developers:-}, ${mod_company:-}, ${mod_client:-}, ${mod_copyright:-}, ${mod_license:-}"
@@ -1099,6 +1107,7 @@ set -uo pipefail
                 "L2Sectionheader" ) doc_contenttype="L2Sectionbody";;
                 "L3Sectionheader" ) doc_contenttype="L3Sectionbody";;
                 "functionheader" ) doc_contenttype="functionbody";;
+                "classheader" ) doc_contenttype="classbody";;
                 "variableheader" ) doc_contenttype="variablebody";;
                 "gendocheader" ) doc_contenttype="gendocbody";;
             esac

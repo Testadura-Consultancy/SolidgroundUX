@@ -3,12 +3,13 @@
 # SolidGroundUX - Executable Script Template
 # ------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : 433259d05abd0e417299b9a4e4e48ddc230ba1764e10793f1c0995494612e9b6
+#   Version     : 2.0
+#   Build       : 2623103
+#   Checksum    : 517fe36dba1672c5956e62755673e854329907c6ef30687c27f50a10c9e05850
 #   Source      : exe-template.sh
 #   Type        : script
-#   Group       : Templates
+#   Group       : SDK
+#   Subgroup    : Templates
 #   Purpose     : Canonical executable template for SolidGroundUX scripts.
 #
 # Description:

@@ -3,12 +3,12 @@
 # SolidGroundUX - Create Workspace
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : 1e3945545718136095ede93cc04bbb224ef37111d65819660a935778aa7e9cb4
+#   Version     : 2.0
+#   Build       : 2623103
+#   Checksum    : 409d6656dfe98abd128a75de3650d6bf9818d30452069a1b39245abad1f8f269
 #   Source      : create-workspace.sh
 #   Type        : script
-#   Group       : SDK Tools
+#   Group       : SDK
 #   Purpose     : Create a new development workspace from templates
 #
 # Description:
@@ -45,7 +45,7 @@
 # =====================================================================================
 set -uo pipefail
 # --- Bootstrap ----------------------------------------------------------------------
-    # fn: _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
+    # fn$ _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
         # . Purpose
         #   Locate, create, and load the SolidGroundUX bootstrap configuration, then
         #   load the executable runtime support library.

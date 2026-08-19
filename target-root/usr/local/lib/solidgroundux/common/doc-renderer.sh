@@ -2,12 +2,13 @@
 # SolidGroundUX - Documentation Renderer
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : 9d7a95a3596f690bb747fdad93ba3d999398912c94b6bc53ba2837b72928853e
+#   Version     : 2.0
+#   Build       : 2623103
+#   Checksum    : e39d7fbb5b4df009240233939c654051a26b430fe3568939dd83905f86b73a2e
 #   Source      : doc-renderer.sh
 #   Type        : library
-#   Group       : SDK Documentation
+#   Group       : SDK
+#   Subgroup    : Documentation Generator
 #   Purpose     : Prepare normalized parser data and invoke the documentation renderer
 #
 # Description:
@@ -78,16 +79,15 @@ set -uo pipefail
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
 # - Local definitions -------------------------------------------------------------
-    # var: DOC_RENDER_CACHE_DIR - Optional renderer cache directory
+    # var: DOC_RENDER_CACHE_DIR - Persistent renderer input cache directory
         # . Purpose
-        #   Reserve a shared variable for renderer cache location configuration.
+        #   Hold the complete exported renderer input set for fast HTML-only rebuilds.
         #
         # . Behavior
-        #   - Defaults to an empty value.
-        #   - May be populated by future renderer/cache logic.
-        #
-        # Notes:
-        #   - The current renderer hand-off does not actively use this value.
+        #   - Defaults to a hidden directory beneath VAL_OUTDIR.
+        #   - Is refreshed after Full, Selected, and Changed generation.
+        #   - Is consumed directly by Render mode without reparsing source files.
+        #   - May be overridden by callers before rendering.
         DOC_RENDER_CACHE_DIR=""
 
     # var: Postprocess datamodel - Renderer-side documentation indexes
@@ -335,7 +335,7 @@ set -uo pipefail
 
         # fn: _export_render_tables - Export parser tables for the Python renderer
             # . Purpose
-            #   Persist normalized documentation tables into a temporary render hand-off directory.
+            #   Persist normalized documentation tables into a renderer hand-off directory.
             #
             # . Behavior
             #   - Creates the export directory when needed.
@@ -434,6 +434,98 @@ set -uo pipefail
                 || return 1
         }
 
+        # fn: _doc_render_cache_dir - Resolve the persistent renderer cache directory
+            # . Purpose
+            #   Return the active renderer cache directory for the current output tree.
+            #
+            # . Output
+            #   Writes the resolved path to stdout.
+        _doc_render_cache_dir() {
+            printf '%s\n' "${DOC_RENDER_CACHE_DIR:-$VAL_OUTDIR/.sgnd-render-cache}"
+        }
+
+        # fn: _clear_render_cache - Remove cached renderer input data
+            # . Purpose
+            #   Delete the persistent renderer cache when explicitly requested.
+            #
+            # . Returns
+            #   0 when the cache is absent or removed successfully.
+        _clear_render_cache() {
+            local cache_dir=""
+            cache_dir="$(_doc_render_cache_dir)"
+
+            [[ -n "$cache_dir" ]] || return 1
+            [[ -d "$cache_dir" ]] || return 0
+
+            rm -rf -- "$cache_dir" || {
+                sayfail "Failed to clear renderer cache: $cache_dir"
+                return 1
+            }
+
+            sayinfo "Cleared renderer cache: $cache_dir"
+            return 0
+        }
+
+        # fn: _persist_render_cache - Persist a complete renderer export set
+            # . Purpose
+            #   Replace the persistent renderer cache with a validated export directory.
+            #
+            # . Arguments
+            #   $1  Source export directory.
+            #
+            # . Returns
+            #   0 when the cache is replaced successfully.
+        _persist_render_cache() {
+            local source_dir="${1:?missing source render directory}"
+            local cache_dir=""
+            local staging_dir=""
+
+            cache_dir="$(_doc_render_cache_dir)"
+            staging_dir="${cache_dir}.new"
+
+            rm -rf -- "$staging_dir" || return 1
+            mkdir -p "$staging_dir" || return 1
+            cp -a "$source_dir/." "$staging_dir/" || return 1
+
+            rm -rf -- "$cache_dir" || return 1
+            mv "$staging_dir" "$cache_dir" || return 1
+
+            sayinfo "Renderer cache updated: $cache_dir"
+            return 0
+        }
+
+        # fn: _validate_render_cache - Validate cached renderer input
+            # . Purpose
+            #   Verify that Render mode has the complete minimum PSV input set.
+            #
+            # . Arguments
+            #   $1  Renderer cache directory.
+            #
+            # . Returns
+            #   0 when all required files exist and are readable.
+            #   1 otherwise.
+        _validate_render_cache() {
+            local cache_dir="${1:?missing renderer cache directory}"
+            local required_file=""
+            local -a required_files=(
+                mod_table.psv
+                mod_sections.psv
+                mod_items.psv
+                mod_attribution.psv
+                mod_globals.psv
+                doc_content_lines.psv
+                render_config.psv
+            )
+
+            [[ -d "$cache_dir" ]] || return 1
+
+            for required_file in "${required_files[@]}"; do
+                [[ -r "$cache_dir/$required_file" ]] || return 1
+            done
+
+            return 0
+        }
+
         # fn: _cleanup_old_render_exports - Clean old renderer export folders
             # . Purpose
             # > Remove stale temporary documentation renderer export folders from /tmp.
@@ -475,7 +567,8 @@ set -uo pipefail
         #   - Validates the output folder argument.
         #   - Prepares and optionally cleans the output directory.
         #   - Initializes document-level metadata.
-        #   - Exports parser tables and renderer configuration to a temporary directory.
+        #   - Exports parser tables and renderer configuration to a temporary hand-off directory.
+        #   - Persists the complete hand-off set for future Render-mode runs.
         #   - Invokes the Python HTML renderer.
         #   - Verifies that index.html was created.
         #
@@ -519,17 +612,27 @@ set -uo pipefail
             return 1
         }
 
-        local cache_dir="$VAL_OUTDIR/.sgnd-doc-cache"
-        mkdir -p "$cache_dir" || {
-            sayfail "Failed to create documentation cache directory: $cache_dir"
+        # Parser cache remains the source for Selected/Changed generation.
+        local parser_cache_dir="$VAL_OUTDIR/.sgnd-doc-cache"
+        mkdir -p "$parser_cache_dir" || {
+            sayfail "Failed to create documentation cache directory: $parser_cache_dir"
             return 1
         }
 
-        cp -f "$export_dir"/*.psv "$cache_dir/" || {
-            sayfail "Failed to update documentation cache: $cache_dir"
+        cp -f "$export_dir"/*.psv "$parser_cache_dir/" || {
+            sayfail "Failed to update documentation cache: $parser_cache_dir"
             return 1
         }
-        sayinfo "Documentation cache updated: $cache_dir"
+        sayinfo "Documentation cache updated: $parser_cache_dir"
+
+        if (( ${FLAG_CLEAR_RENDER_CACHE:-0} )); then
+            _clear_render_cache || return 1
+        fi
+
+        _persist_render_cache "$export_dir" || {
+            sayfail "Failed to update persistent renderer cache"
+            return 1
+        }
 
         sayinfo "Python renderer input : $export_dir"
         sayinfo "Python renderer output: $output_folder"
@@ -552,6 +655,64 @@ set -uo pipefail
 
         return 0
     } 
+
+    # fn: _render_cached_site - Render HTML from the persistent renderer cache
+        # . Purpose
+        #   Rebuild the generated site without rescanning or reparsing source files.
+        #
+        # . Behavior
+        #   - Uses the complete renderer input set saved by a previous generation.
+        #   - Preserves the parser cache and source tables unchanged.
+        #   - Prepares the output directory without cleaning it.
+        #   - Fails explicitly when no valid renderer cache exists.
+        #
+        # . Arguments
+        #   $1  Output folder for generated documentation.
+        #
+        # . Returns
+        #   0 when rendering completes and index.html exists.
+        #   1 when the cache is missing/invalid or rendering fails.
+    _render_cached_site() {
+        local output_folder="${1:-}"
+        local cache_dir=""
+
+        [[ -n "$output_folder" ]] || {
+            sayfail "No output folder was passed"
+            return 1
+        }
+
+        cache_dir="$(_doc_render_cache_dir)"
+        _validate_render_cache "$cache_dir" || {
+            sayfail "No valid renderer cache is available: $cache_dir"
+            sayinfo "Run Full, Selected, or Changed generation before using Render mode"
+            return 1
+        }
+
+        FLAG_CLEAN_OUTPUT=0
+        _prepare_output_directory || {
+            sayfail "Failed to prepare output directory"
+            return 1
+        }
+
+        sayinfo "Python renderer input : $cache_dir"
+        sayinfo "Python renderer output: $output_folder"
+        sayinfo "Python renderer script: $SGND_PYTHON_DIR/sgnd_doc_renderer.py"
+
+        python3 "$SGND_PYTHON_DIR/sgnd_doc_renderer.py" \
+            "$cache_dir" \
+            "$output_folder" || {
+                sayfail "Python documentation renderer failed"
+                return 1
+            }
+
+        [[ -f "$output_folder/index.html" ]] || {
+            sayfail "Python renderer completed, but index.html was not created in: $output_folder"
+            return 1
+        }
+
+        sayinfo "Documentation rendering complete. Output available at: $output_folder"
+        return 0
+    }
     
 
 

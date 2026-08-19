@@ -1,13 +1,13 @@
 # ==================================================================================
-# SolidGroundUX - SDK Tools Overview
+# SolidGroundUX - SDK Overview
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2622911
-#   Checksum    : 0eb1384b339cb7addd5a74c729f22a2262ea08ff58854a00a922d28f86c8dd41
+#   Build       : 2623103
+#   Checksum    : 94b838575f927391f7e8612b5544dfb1bcecfba59ff52731768bb893ed95063e
 #   Source      : sdk tools_preface.sh
 #   Type        : documentation
-#   Group       : SDK Tools
+#   Group       : SDK
 #   Purpose     : Group preface
 #
 # Attribution:
@@ -18,9 +18,9 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # ==================================================================================
 
-# - SDK Tools -----------------------------------------------------------------------
+# - SDK -----------------------------------------------------------------------
 #
-# > The SDK Tools group contains the utilities used to create, maintain, deploy,
+# > The SDK group contains the utilities used to create, maintain, deploy,
 # > document, package, and release SolidGroundUX-based projects.
 #
 # > While the framework itself provides the runtime foundation for applications,
@@ -33,24 +33,8 @@
 #
 # > A typical SolidGroundUX project follows an iterative lifecycle:
 #
-# >     Create workspace
-# >         ↓
-# >     Develop application
-# >         ↓
-# >     Deploy to development environment
-# >         ↓
-# >     Test and debug
-# >         ↓
-# >     Return to development as needed
-# >         ↺
-#
-# >     Repeat until satisfied
-# >         ↓
-# >     Generate documentation
-# >         ↓
-# >     Prepare release
-# >         ↓
-# >     Distribute package
+# . Images
+#   dev-lifecycle.png :: A typical development lifecycle for a SolidGroundUX project.  
 #
 # > The SDK tools automate much of the repetitive work involved in these stages,
 # > allowing developers to focus primarily on application functionality.
@@ -172,36 +156,8 @@
 #
 # ! Deviate at your own peril.
 #
-# >     <project-root>/
-# >     ├── etc
-# >     │   ├── solidgroundux                       Product or company configuration
-# >     │   ├── testadura                           Testadura-specific configuration
-# >     │   └── update-motd.d                       MOTD scripts, such as ##-<product>
-# >     │                                           SolidGroundUX uses 90 as its prefix
-# >     ├── usr
-# >     │   └── local
-# >     │       ├── bin                             User-facing executable applications
-# >     │       ├── sbin                            System administration tools
-# >     │       ├── lib
-# >     │       │   └── solidgroundux               Reusable libraries and shared code
-# >     │       │       ├── common                  Common framework libraries
-# >     │       │       ├── py                      Python support code
-# >     │       │       ├── styles                  Documentation and UI style assets
-# >     │       │       └── templates               Script and project templates
-# >     │       ├── libexec
-# >     │       │   └── solidgroundux               Internal executable helpers
-# >     │       │       └── console-modules         Console application modules
-# >     │       └── share
-# >     │           └── doc
-# >     │               └── solidgroundux           Generated HTML documentation
-# >     │                   ├── assets
-# >     │                   └── pages
-# >     ├── var
-# >     │   └── lib
-# >     │       └── solidgroundux                   Runtime data and generated artifacts
-# >     │           └── releases                    Release archives and deployment output
-# >     └── home
-# >         └── .config                             User-local configuration and logs
+# . Images
+#   project-structure.png :: Folder structure of a typical SolidGroundUX project workspace. 
 #
 # > Executable applications are typically placed in bin and sbin, reusable
 # > libraries in lib, and internal implementation helpers in libexec.

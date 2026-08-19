@@ -2,12 +2,13 @@
 # SolidGroundUX - Monochrome Blue UI Style
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : 13b37eea2e17c77e36520815431532c7113876e60652bdefd224d4ad0d1fade9
+#   Version     : 2.0
+#   Build       : 2623103
+#   Checksum    : 2c1550920dd81fe41e60f6b966ec1162527b6e3732c711cda45bab7465f10560
 #   Source      : 32-style-mono-blue.sh
 #   Type        : library
-#   Group       : Styles
+#   Group       : UI
+#   Subgroup    : Styles
 #   Purpose     : Define the Monochrome Blue semantic UI theme
 #
 # Description:

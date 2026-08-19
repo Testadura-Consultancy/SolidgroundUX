@@ -3,11 +3,12 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2622911
-#   Checksum    : 808900ca43755f9163f38dd0cae2941d92a12523dca699b858c710fe6d98b590
+#   Build       : 2623103
+#   Checksum    : 1f8aa11c75c4196ff09fa760bdf947222b79fea39ca4928ed95aa02c91c1a30b
 #   Source      : 25-active-directory-client.sh
 #   Type        : module
 #   Group       : SolidGround Console
+#   Subgroup    : Console Modules
 #   Purpose     : Install, join, validate, and inspect an Active Directory client
 # ==================================================================================
 set -uo pipefail

@@ -3,12 +3,13 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2622911
-#   Checksum    : b0188156d7da8006699e4e1f6705d36c07f13d1ff61576973d111dcee319ea41
+#   Build       : 2623103
+#   Checksum    : 4eb4582c73f6af4867f930f3896867844df40fccaffa4d3e5d1abe5c7203bf19
 #   Source      : sdk documentation_preface.sh
 #   Type        : documentation
-#   Group       : SDK Documentation
-#   Purpose     : Group preface
+#   Group       : SDK
+#   Subgroup    : Documentation Generator
+#   Purpose     : Subgroup preface
 #
 # Attribution:
 #   Developers  : Mark Fieten
@@ -17,9 +18,9 @@
 #   Copyright   : © 2025 - 2026 Testadura Consultancy
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # ==================================================================================
-# - SDK Documentation ---------------------------------------------------------------
+# - Documentation Generator ---------------------------------------------------------------
 #
-# > The SDK Documentation group contains the tools used to extract, process, render,
+# > The Documentation Generator subgroup contains the tools used to extract, process, render,
 # > and generate SolidGroundUX documentation.
 #
 # > The documentation system is built around the idea that documentation should live

@@ -7,10 +7,40 @@ practical framework development.
 
 # Unreleased
 
-## Version 2.0 (Build 2.0.2622911)
 ### SolidGround Framework
 
 #### Added
+- `doc-generator` now supports comma-separated source masks, with the default
+  expanded to `*.sh,*.py` so Bash and Python modules can participate in the
+  same documentation generation workflow.
+
+- Added an optional documentation `Subgroup` level beneath Group. Modules
+  without a subgroup remain direct children of their Group, while subgroup
+  prefaces and epilogues render around the subgroup's modules.
+
+- Added persistent renderer export data beneath the documentation output so
+  HTML can be regenerated without reparsing the full source tree.
+
+- Added **Render existing data** as generation mode 4 and CLI mode
+  `--mode render`. This mode validates the persisted renderer cache, skips
+  source scanning/parsing, and reruns only the HTML renderer.
+
+- Added generated-site branding support to the Python renderer, including
+  SolidGroundUX documentation branding on content pages and Testadura
+  publisher branding above the navigation index.
+
+- Added functional documentation branding asset names:
+  `doc-index-logo.png`, `doc-header-logo.png`, and `doc-index-hero.png`,
+  decoupling renderer placement from a specific brand filename.
+
+- Added generated semantic theme specimens for documented SolidGroundUX style
+  modules. Theme previews are derived from the actual style and palette
+  assignments rather than maintained as static screenshots.
+
+- Added `cls:` as a first-class documentation item marker for Python classes.
+  Python methods continue to use the existing language-neutral `fn:` marker.
+
+#### Changed
 - Added public `sgnd_menu_dispatch` support so standalone framework tools can
   execute registered menu actions through the reusable menu API instead of
   maintaining their own dispatch logic.
@@ -19,7 +49,6 @@ practical framework development.
   `framework-smoketest.sh` can use the public menu renderer without the
   Management Console togglebar and navigation legend.
 
-#### Changed
 - `framework-smoketest.sh` now builds, renders, reads, and dispatches its test
   menu through the public `sgnd-menu.sh` API while retaining its 30-second
   inactivity timeout.
@@ -35,6 +64,33 @@ practical framework development.
 - `doc-generator` now derives clean-output behavior from the selected generation
   mode: Full generation always cleans the output directory, while Selected and
   Changed generation preserve existing output for incremental updates.
+
+- Documentation file matching now uses one comma-separated mask contract across
+  Full, Selected, and Changed generation modes.
+
+- The documentation hierarchy now supports Group → optional Subgroup → Module,
+  with navigation depth derived from the module's actual hierarchy level.
+
+- `sgnd_doc_renderer.py` is now documented as part of the
+  **SDK → Documentation Generator** subgroup alongside the Bash generator,
+  processor, and renderer wrapper.
+
+- Renderer exports are no longer purely temporary: successful parse modes
+  persist the normalized PSV dataset for fast renderer-only iteration.
+
+- Documentation branding assets are copied into the generated site so the HTML
+  output remains self-contained.
+
+- The documentation dialect is now shared between Bash and Python: both use
+  `#`-prefixed `fn:`, `var:`, `doc:`, and `cls:` markers and feed the same
+  normalized renderer data model.
+
+- Documentation page branding now acts as a sticky page header and remains
+  visible while scrolling generated content.
+
+- Documentation diagrams are being moved from ASCII-only prose toward
+  dedicated visual figures while retaining the source-authored technical
+  content and hierarchy.
 
 - The default UI palette now uses explicit 24-bit truecolor values instead of
   terminal-defined ANSI colors, providing consistent SolidGroundUX colors
@@ -56,6 +112,16 @@ practical framework development.
   current console width by default unless an explicit `--maxwidth` is supplied.
 
 #### Repaired
+- Fixed documentation navigation depth for modules inside a subgroup so module
+  sections and items render one level deeper than direct Group modules.
+
+- Corrected the SolidGround Management Console preface grouping so its
+  architecture/lifecycle documentation renders under the
+  **SolidGround Console** group instead of **Common Core**.
+
+- Renderer-only generation now fails explicitly when no valid persisted render
+  dataset is available instead of silently falling back to a full parse.
+
 - `deploy-workspace.sh` could fail when the remote receiver required `sudo`
   authentication. It now creates a narrowly scoped remote `sudoers` rule for
   `receive-files.sh`, allowing remote deployments to run non-interactively after
@@ -122,19 +188,9 @@ practical framework development.
 - The `Q` legend is now context-aware: `Quit` is shown in the root console and `Back`
   in submenus.
 
-- Role-awareness state is now persisted immediately through the existing
-  console state file, so nested consoles and submenus inherit the current
-  `SGND_CONSOLE_ROLE_AWARE` setting without requiring process-variable
-  propagation.
-
-- Role-dependent menu visibility is now evaluated dynamically from the current
-  machine package state instead of being fixed when console modules are first
-  loaded. Newly installed roles therefore become available on the next menu
-  redraw without restarting the console.
-
-- Role-backed console groups now declare their required packages in the menu
-  model, allowing the same runtime filtering mechanism to be reused for Active
-  Directory, Active Directory client, and Samba file-server functionality.
+- Removed the experimental role-aware menu filtering/toggle from the current
+  console architecture; page visibility is now controlled explicitly through
+  the persistent root-only **Manage visibility** action.
 
 #### Repaired
 - Fixed cross-module helper dependencies exposed by lazy loading, including DNS
@@ -152,12 +208,6 @@ practical framework development.
 
 - Fixed the Storage Access group visibility value being accidentally changed
   from enabled (`1`) to `15`.
-
-- Fixed submenu consoles reverting to role-aware mode after ROLE had been
-  switched off in the parent console.
-
-- Fixed newly installed role packages not exposing their corresponding menu
-  groups until the Management Console was restarted.
 
 - The Samba Active Directory package installation now explicitly includes
   `samba-common-bin`, ensuring the required `samba-tool` command is installed

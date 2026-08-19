@@ -2,9 +2,9 @@
 # SolidGroundUX - Deployment and Release Management
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : 514c799a8175b2ea171aa2a5475e7d94b59947ec5c3dcb0e13765f023e05e190
+#   Version     : 2.0
+#   Build       : 2623104
+#   Checksum    : 8f3389d0e99891eac8348979c08a752056237b24299aad226ed1f2b9fe0651e4
 #   Source      : deployment_preface.sh
 #   Type        : documentation
 #   Group       : Deployment
@@ -266,40 +266,8 @@
 #
 # -- How the Three Tools Relate -------------------------------------------------------
 #
-# > The complete deployment model can be summarized as:
-#
-# >     Development:
-# >
-# >         workspace
-# >             ↓
-# >         deploy-workspace.sh
-# >             ↓
-# >         selected files streamed directly to target
-#
-# >     Formal release:
-# >
-# >         workspace
-# >             ↓
-# >         prepare-release.sh
-# >             ↓
-# >         complete versioned release set
-# >             ↓
-# >         GitHub / local transfer / releases/
-# >             ↓
-# >         release-manager.sh
-# >             ↓
-# >         validate → install/update/rollback/remove
-#
-# > The responsibilities remain deliberately separate:
-#
-# >     prepare-release.sh
-# >         Produces releases.
-#
-# >     deploy-workspace.sh
-# >         Moves development files quickly.
-#
-# >     release-manager.sh
-# >         Manages installed releases.
+# . Images
+#   deployment-model :: SolidGroundUX Deployment Model
 #
 # > This keeps the deployment architecture small, deterministic, and easy to inspect
 # > or manipulate directly when necessary.

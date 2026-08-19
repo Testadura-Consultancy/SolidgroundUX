@@ -4,11 +4,12 @@
 # ------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2622911
-#   Checksum    : c202a2345c0067d29710954d2180370eb3d18f3d7ee0f997734aba64df5f0456
+#   Build       : 2623103
+#   Checksum    : b99101052d8a6e7e94b6173dee19a3edfb060ad5a1ea54964ad86bc19e45830c
 #   Source      : doc-generator.sh
 #   Type        : script
-#   Group       : SDK Documentation
+#   Group       : SDK
+#   Subgroup    : Documentation Generator
 #   Purpose     : Collect and prepare documentation data from source files using the SolidGroundUX framework.
 #
 # Description:
@@ -45,7 +46,7 @@
 # =====================================================================================
 set -uo pipefail
 # --- Bootstrap ----------------------------------------------------------------------
-    # fn: _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
+    # fn& _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
         # . Purpose
         #   Locate, create, and load the SolidGroundUX bootstrap configuration, then
         #   load the executable runtime support library.
@@ -219,8 +220,9 @@ set -uo pipefail
     SGND_ARGS_SPEC=(
         "auto|a|flag|FLAG_AUTO_RUN|Automatically run with last used or default parameters|0|"
         "clean|c|flag|FLAG_CLEAN_OUTPUT|Clear output directory before writing|0|"
+        "clear-render-cache||flag|FLAG_CLEAR_RENDER_CACHE|Clear cached renderer input before rebuilding it|0|"
         "file|f|value|VAL_FILESPEC|Comma-separated file masks for source scanning||"
-        "mode|m|enum|VAL_UPDATE_MODE|Generation mode: full, selected, or changed|full|full,selected,changed"
+        "mode|m|enum|VAL_UPDATE_MODE|Generation mode: full, selected, changed, or render|full|full,selected,changed,render"
         "update-files|u|value|VAL_UPDATE_FILES|Comma-separated files for selected update mode||"
         "outdir|o|value|VAL_OUTDIR|Output directory for generated docs||"
         "recursive|r|flag|FLAG_RECURSIVE_SCAN|Recursively scan source directory|1|"
@@ -249,6 +251,9 @@ set -uo pipefail
         ""
         "Update files changed in Git:"
         "  $SGND_SCRIPT_NAME --mode changed"
+        ""
+        "Render HTML again from the existing renderer cache:"
+        "  $SGND_SCRIPT_NAME --mode render"
     ) 
 
 
@@ -298,11 +303,12 @@ set -uo pipefail
     SGND_STATE_VARIABLES=(
         "VAL_SRCDIR|Source Directory||"
         "VAL_FILESPEC|Filename masks||"
-        "VAL_UPDATE_MODE|Generation mode (full, selected, changed)||"
+        "VAL_UPDATE_MODE|Generation mode (full, selected, changed, render)||"
         "VAL_UPDATE_FILES|Selected update files||"
         "VAL_OUTDIR|Output Directory||"
         "FLAG_RECURSIVE_SCAN|Recursive Scan||"
         "FLAG_CLEAN_OUTPUT|Clean Output Directory||"
+        "FLAG_CLEAR_RENDER_CACHE|Clear cached renderer input before rebuilding||"
         "FLAG_REVIEW|Automatically open generated docs in browser after generation (desktop mode only)||"
         "VAL_DOCUMENT_TITLE|Document title||"
         "VAL_DOCUMENT_SUBTITLE|Document subtitle||"
@@ -369,6 +375,7 @@ set -uo pipefail
 
         FLAG_AUTO_RUN="${FLAG_AUTO_RUN:-0}"
         FLAG_CLEAN_OUTPUT="${FLAG_CLEAN_OUTPUT:-1}"
+        FLAG_CLEAR_RENDER_CACHE="${FLAG_CLEAR_RENDER_CACHE:-0}"
         FLAG_RECURSIVE_SCAN="${FLAG_RECURSIVE_SCAN:-1}"
         FLAG_VIEW_RESULTS="${FLAG_VIEW_RESULTS:-1}"
 
@@ -429,11 +436,12 @@ set -uo pipefail
                 full)     mode_reply="1" ;;
                 selected) mode_reply="2" ;;
                 changed)  mode_reply="3" ;;
+                render)   mode_reply="4" ;;
                 *)        mode_reply="1" ;;
             esac
 
             while true; do
-                ask --label "Mode: 1 Full, 2 Selected, 3 Changed" \
+                ask --label "Mode: 1 Full, 2 Selected, 3 Changed, 4 Render existing data" \
                     --var mode_reply \
                     --default "$mode_reply" \
                     --colorize both \
@@ -445,7 +453,8 @@ set -uo pipefail
                     1) VAL_UPDATE_MODE="full"; break ;;
                     2) VAL_UPDATE_MODE="selected"; break ;;
                     3) VAL_UPDATE_MODE="changed"; break ;;
-                    *) saywarning "Choose generation mode 1, 2, or 3" ;;
+                    4) VAL_UPDATE_MODE="render"; break ;;
+                    *) saywarning "Choose generation mode 1, 2, 3, or 4" ;;
                 esac
             done
 
@@ -460,25 +469,30 @@ set -uo pipefail
             fi
 
             sgnd_print
-            sgnd_print_sectionheader "Source and destination" --padend 0
+            if [[ "$VAL_UPDATE_MODE" == "render" ]]; then
+                sgnd_print_sectionheader "Destination" --padend 0
+            else
+                sgnd_print_sectionheader "Source and destination" --padend 0
+            fi
 
-            # Basic parameters
-            ask --label "Source directory" \
-                --var VAL_SRCDIR \
-                --default "$VAL_SRCDIR" \
-                --validate sgnd_validate_dir_exists \
-                --colorize both \
-                --labelclr "${CYAN}" \
-                --pad "$lp" \
-                --labelwidth "$lw"
+            if [[ "$VAL_UPDATE_MODE" != "render" ]]; then
+                ask --label "Source directory" \
+                    --var VAL_SRCDIR \
+                    --default "$VAL_SRCDIR" \
+                    --validate sgnd_validate_dir_exists \
+                    --colorize both \
+                    --labelclr "${CYAN}" \
+                    --pad "$lp" \
+                    --labelwidth "$lw"
 
-            ask --label "Source file masks" \
-                --var VAL_FILESPEC \
-                --default "$VAL_FILESPEC" \
-                --colorize both \
-                --labelclr "${CYAN}" \
-                --pad "$lp" \
-                --labelwidth "$lw"
+                ask --label "Source file masks" \
+                    --var VAL_FILESPEC \
+                    --default "$VAL_FILESPEC" \
+                    --colorize both \
+                    --labelclr "${CYAN}" \
+                    --pad "$lp" \
+                    --labelwidth "$lw"
+            fi
 
             ask --label "Output directory" \
                 --var VAL_OUTDIR \
@@ -488,50 +502,67 @@ set -uo pipefail
                 --labelclr "${CYAN}" \
                 --pad "$lp" \
                 --labelwidth "$lw"
-            
+
             sgnd_print
             sgnd_print_sectionheader "Behavioral flags" --padend 0
             lw=45
 
-            # Cleaning is determined by generation mode:
-            #   full             -> required, because the site is rebuilt from scratch
-            #   selected/changed -> disabled, because incremental generation depends on
-            #                       the existing output/cache
             if [[ "$VAL_UPDATE_MODE" == "full" ]]; then
                 FLAG_CLEAN_OUTPUT=1
                 sgnd_print "    Clean output directory before writing : Yes (required for Full mode)"
             else
                 FLAG_CLEAN_OUTPUT=0
-                sgnd_print "    Clean output directory before writing : No (required for incremental mode)"
+                sgnd_print "    Clean output directory before writing : No"
             fi
 
-            (( ${FLAG_RECURSIVE_SCAN:-0} )) && default="Y" || default="N"
-            ask --label "Scan recursively" \
-                --var reply \
-                --type flag \
-                --default "$default" \
-                --validate sgnd_validate_yesno \
-                --colorize both \
-                --labelclr "${CYAN}" \
-                --pad "$lp" \
-                --labelwidth "$lw"
-            [[ "${reply,,}" =~ ^(y|yes)$ ]] && FLAG_RECURSIVE_SCAN=1 || FLAG_RECURSIVE_SCAN=0
-        
-            (( ${FLAG_REVIEW:-0} )) && default="Y" || default="N"
-            ask --label "View parsed data" \
-                --var reply \
-                --type flag \
-                --default "$default" \
-                --validate sgnd_validate_yesno \
-                --colorize both \
-                --labelclr "${CYAN}" \
-                --pad "$lp" \
-                --labelwidth "$lw"
-            [[ "${reply,,}" =~ ^(y|yes)$ ]] && FLAG_REVIEW=1 || FLAG_REVIEW=0
+            if [[ "$VAL_UPDATE_MODE" == "render" ]]; then
+                FLAG_CLEAR_RENDER_CACHE=0
+                FLAG_REVIEW=0
+                sgnd_print "    Clear cached render data             : No (Render mode uses the cache)"
+                sgnd_print "    Scan recursively                     : Not applicable"
+                sgnd_print "    View parsed data                     : Not applicable"
+            else
+                [[ "$VAL_UPDATE_MODE" == "full" ]] && default="Y" || default="N"
+                ask --label "Clear cached render data" \
+                    --var reply \
+                    --type flag \
+                    --default "$default" \
+                    --validate sgnd_validate_yesno \
+                    --colorize both \
+                    --labelclr "${CYAN}" \
+                    --pad "$lp" \
+                    --labelwidth "$lw"
+                [[ "${reply,,}" =~ ^(y|yes)$ ]] && FLAG_CLEAR_RENDER_CACHE=1 || FLAG_CLEAR_RENDER_CACHE=0
 
-            sgnd_print
-            sgnd_print_sectionheader "Documentation metadata" --padend 0
-            ask --label "Document title" \
+                (( ${FLAG_RECURSIVE_SCAN:-0} )) && default="Y" || default="N"
+                ask --label "Scan recursively" \
+                    --var reply \
+                    --type flag \
+                    --default "$default" \
+                    --validate sgnd_validate_yesno \
+                    --colorize both \
+                    --labelclr "${CYAN}" \
+                    --pad "$lp" \
+                    --labelwidth "$lw"
+                [[ "${reply,,}" =~ ^(y|yes)$ ]] && FLAG_RECURSIVE_SCAN=1 || FLAG_RECURSIVE_SCAN=0
+
+                (( ${FLAG_REVIEW:-0} )) && default="Y" || default="N"
+                ask --label "View parsed data" \
+                    --var reply \
+                    --type flag \
+                    --default "$default" \
+                    --validate sgnd_validate_yesno \
+                    --colorize both \
+                    --labelclr "${CYAN}" \
+                    --pad "$lp" \
+                    --labelwidth "$lw"
+                [[ "${reply,,}" =~ ^(y|yes)$ ]] && FLAG_REVIEW=1 || FLAG_REVIEW=0
+            fi
+
+            if [[ "$VAL_UPDATE_MODE" != "render" ]]; then
+                sgnd_print
+                sgnd_print_sectionheader "Documentation metadata" --padend 0
+                ask --label "Document title" \
                 --var VAL_DOCUMENT_TITLE \
                 --default "$VAL_DOCUMENT_TITLE" \
                 --colorize both \
@@ -562,6 +593,7 @@ set -uo pipefail
                 --labelclr "${CYAN}" \
                 --pad "$lp" \
                 --labelwidth "$lw"
+            fi
 
             (( ${SGND_STATE_SAVE:-0} )) && default="Y" || default="N"
             ask --label "Save these answers" \
@@ -611,6 +643,17 @@ set -uo pipefail
         local line=""
 
         [[ -r "$cache_file" && -n "$array_name" ]] || return 1
+
+        # A schema change (for example adding Subgroup to MOD_TABLE) invalidates
+        # incremental cache rows because positional PSV fields would otherwise shift.
+        if [[ "$array_name" == "MOD_TABLE" ]]; then
+            local cached_schema=""
+            IFS= read -r cached_schema < "$cache_file" || return 1
+            [[ "$cached_schema" == "$MOD_TABLE_SCHEMA" ]] || {
+                saywarning "Documentation cache schema changed; run a full documentation rebuild"
+                return 1
+            }
+        fi
 
         local -n table_ref="$array_name"
         table_ref=()
@@ -1127,13 +1170,18 @@ set -uo pipefail
         sgnd_print
         sgnd_print_sectionheader "Documentation Summary" --padend 1
         sgnd_print
-        sgnd_print  "  Modules processed: ${#MOD_TABLE[@]}"
-        sgnd_print  "  Sections processed: ${#MOD_SECTIONS[@]}"
-        sgnd_print  "  Items documented: ${#MOD_ITEMS[@]}"
-        sgnd_print  "  Comments extracted: ${#DOC_CONTENT_LINES[@]}"
+        if [[ "$VAL_UPDATE_MODE" == "render" ]]; then
+            sgnd_print "  Source parsing: skipped (existing renderer cache reused)"
+            sgnd_print "  Renderer cache: ${DOC_RENDER_CACHE_DIR:-$VAL_OUTDIR/.sgnd-render-cache}"
+        else
+            sgnd_print  "  Modules processed: ${#MOD_TABLE[@]}"
+            sgnd_print  "  Sections processed: ${#MOD_SECTIONS[@]}"
+            sgnd_print  "  Items documented: ${#MOD_ITEMS[@]}"
+            sgnd_print  "  Comments extracted: ${#DOC_CONTENT_LINES[@]}"
+        fi
         sgnd_print
         sgnd_print "  Generation mode: $VAL_UPDATE_MODE"
-        sgnd_print "  Source directory: $VAL_SRCDIR"
+        [[ "$VAL_UPDATE_MODE" == "render" ]] || sgnd_print "  Source directory: $VAL_SRCDIR"
         sgnd_print "  Output directory: $VAL_OUTDIR"
         sgnd_print
         sgnd_print "  Starttime: $(date -d "@$main_start" '+%H:%M:%S')"
@@ -1222,6 +1270,10 @@ set -uo pipefail
                 _doc_remove_modules "${SGND_DOC_REMOVE_MODULES[@]}"
                 _doc_iterate_explicit_files _parse_module_file "${SGND_DOC_UPDATE_FILES[@]}"
                 ;;
+            render)
+                FLAG_CLEAN_OUTPUT=0
+                FLAG_CLEAR_RENDER_CACHE=0
+                ;;
             *)
                 sayfail "Unknown generation mode: $VAL_UPDATE_MODE"
                 return 1
@@ -1231,10 +1283,14 @@ set -uo pipefail
         local end_time
         end_time="$(date +%s)"
 
-        display_time="$(date +%H:%M:%S)"
-        sayok "Done parsing source files (duration: $(( end_time - start_time )) seconds)"
+        if [[ "$VAL_UPDATE_MODE" != "render" ]]; then
+            display_time="$(date +%H:%M:%S)"
+            sayok "Done parsing source files (duration: $(( end_time - start_time )) seconds)"
+        else
+            sayinfo "Render mode selected; source parsing skipped"
+        fi
 
-        if (( FLAG_REVIEW )); then
+        if [[ "$VAL_UPDATE_MODE" != "render" ]] && (( FLAG_REVIEW )); then
             sgnd_dt_print_table "$MOD_TABLE_SCHEMA" MOD_TABLE 1
             sgnd_dt_print_table "$MOD_ATTRIBUTION_SCHEMA" MOD_ATTRIBUTION  1  
             sgnd_dt_print_table "$MOD_SECTIONS_SCHEMA" MOD_SECTIONS  1  
@@ -1248,18 +1304,25 @@ set -uo pipefail
                --anykey
         fi
         
-        if (( FLAG_REVIEW )); then
+        if [[ "$VAL_UPDATE_MODE" != "render" ]] && (( FLAG_REVIEW )); then
            sgnd_dt_print_table "$DOC_CONTENT_LINES_SCHEMA" DOC_CONTENT_LINES 1
         fi
 
         if (( FLAG_DRYRUN )); then
-            sayinfo "Would have rendered site to $VAL_OUTDIR"
+            if [[ "$VAL_UPDATE_MODE" == "render" ]]; then
+                sayinfo "Would have rendered existing cached data to $VAL_OUTDIR"
+            else
+                sayinfo "Would have rendered site to $VAL_OUTDIR"
+            fi
         else
-            #_render_site "$VAL_OUTDIR"
             saystart "Rendering html documentation"
             start_time="$(date +%s)"
 
-            _render_site "$VAL_OUTDIR"
+            if [[ "$VAL_UPDATE_MODE" == "render" ]]; then
+                _render_cached_site "$VAL_OUTDIR" || return 1
+            else
+                _render_site "$VAL_OUTDIR" || return 1
+            fi
 
             end_time="$(date +%s)"
             sayok "Done rendering documentation hierarchy (duration: $(( end_time - start_time )) seconds)"

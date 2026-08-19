@@ -3,11 +3,12 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2622911
-#   Checksum    : 2240bfa730cec000c03519a31e9916daf3b0a2a9c5c05db16fcd6ad8d2099980
+#   Build       : 2623103
+#   Checksum    : 3589b8f4a80b71d2bd2dc06f28ba6c6c02734a5e5d96451d296d344ec62f8af9
 #   Source      : 90-development.sh
 #   Type        : module
 #   Group       : SolidGround Console
+#   Subgroup    : Console Modules
 #   Purpose     : Provide SolidGroundUX workspace, deployment, release, and documentation tools
 # ==================================================================================
 set -uo pipefail

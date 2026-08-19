@@ -2,12 +2,13 @@
 # SolidGroundUX - Testadura UI Style
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : 4e7043068529a492b6eeac52502ebb4c0ea5cd1069cf8d44690105fb26ac9a7d
+#   Version     : 2.0
+#   Build       : 2623103
+#   Checksum    : efe22167092d6acf0ea971f802574f9539e272f9a9008a4f542463f340ed7683
 #   Source      : 20-style-testadura.sh
 #   Type        : library
-#   Group       : Styles
+#   Group       : UI
+#   Subgroup    : Styles
 #   Purpose     : Define the Testadura semantic UI theme
 #
 # Description:

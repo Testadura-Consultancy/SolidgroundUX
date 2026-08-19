@@ -2,12 +2,13 @@
 # SolidGroundUX - Monochrome Green UI Style
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : 8cdc0b2c0eeaa80f2209cd16415ff0ddfdcf0b3dfbdf5311ce1b8778d927d52d
+#   Version     : 2.0
+#   Build       : 2623103
+#   Checksum    : ae78cd0095ac2ea0ea10b2fb967b71290afadc7beb23178a6ede27b75e201133
 #   Source      : 30-style-mono-green.sh
 #   Type        : library
-#   Group       : Styles
+#   Group       : UI
+#   Subgroup    : Styles
 #   Purpose     : Define the Monochrome Green semantic UI theme
 #
 # Description:

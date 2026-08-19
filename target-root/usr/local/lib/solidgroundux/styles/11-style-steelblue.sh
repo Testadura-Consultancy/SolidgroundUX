@@ -2,12 +2,13 @@
 # SolidGroundUX - Steel Blue UI Style
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : e3bcdae2b2630a0e5fd824d19744471b71cb118f7c5f279a83adf9084c6bee13
+#   Version     : 2.0
+#   Build       : 2623103
+#   Checksum    : cc450f18ce4d0653333b708ef437669e313ea9828ce247402e0543e48628e9bb
 #   Source      : 11-style-steelblue.sh
 #   Type        : library
-#   Group       : Styles
+#   Group       : UI
+#   Subgroup    : Styles
 #   Purpose     : Define the Steel Blue semantic UI theme
 #
 # Description:

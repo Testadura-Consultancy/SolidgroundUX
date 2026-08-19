@@ -3,11 +3,12 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2622911
-#   Checksum    : 7ed153bb16721a2539257f7d522a06c1000efd0375d3e4a8b166c5ee50640b5d
+#   Build       : 2623103
+#   Checksum    : 1759af79d3d031e24f661cc08a1e8e2c6935712551223d790f003fce2b0ccf3b
 #   Source      : 40-solidgroundux.sh
 #   Type        : module
 #   Group       : SolidGround Console
+#   Subgroup    : Console Modules
 #   Purpose     : Manage the SolidGroundUX framework and release lifecycle
 #
 # Description:

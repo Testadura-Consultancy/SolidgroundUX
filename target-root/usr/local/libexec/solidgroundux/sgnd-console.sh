@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2622911
-#   Checksum    : e127ab62ab3ed5a004518dc9cd2ea8ff997c6683d5eb24f25936b8f7c3726972
+#   Build       : 2623103
+#   Checksum    : b63350d3b63ce029366f47c21ee153dd7808bbeae70859309509ede3f6f6bd1f
 #   Source      : sgnd-console.sh
 #   Type        : script
 #   Group       : SolidGround Console
@@ -48,7 +48,7 @@
 # =====================================================================================
 set -uo pipefail
 # --- Bootstrap ----------------------------------------------------------------------
-    # fn: _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
+    # fn$ _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
         # . Purpose
         #   Locate, create, and load the SolidGroundUX bootstrap configuration, then
         #   load the executable runtime support library.

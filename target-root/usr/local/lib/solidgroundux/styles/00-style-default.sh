@@ -3,11 +3,12 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2622911
-#   Checksum    : ca738d0a3c71246234b5862dda6c6fb509584f7ed00448219ff8ba90f6846ace
+#   Build       : 2623103
+#   Checksum    : 55d0a0330873e7f118b8ccd383139b30e6f722befd3971c3db280b625473de96
 #   Source      : 00-style-default.sh
 #   Type        : library
-#   Group       : Styles
+#   Group       : UI
+#   Subgroup    : Styles
 #   Purpose     : Define default UI layout, spacing, and styling conventions
 #
 # Description:

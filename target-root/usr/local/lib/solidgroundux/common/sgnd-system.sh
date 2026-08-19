@@ -2,7 +2,7 @@
 # SolidGroundUX - System Utilities
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
+#   Version     : 2.0
 #   Build       : 2622203
 #   Checksum    : 3789d3bc5dccaba59b0b96b40c26ac0e1276fc647c7a9ee780a9eae4243b1d7c
 #   Source      : sgnd-system.sh

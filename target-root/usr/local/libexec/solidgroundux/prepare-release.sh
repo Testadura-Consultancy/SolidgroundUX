@@ -3,12 +3,12 @@
 # SolidGroundUX - Prepare Release
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622214
-#   Checksum    : d140f7484e5375c97237ec90e565b341f2f5ab0e8ab336201572489bb0d4f83a
+#   Version     : 2.0
+#   Build       : 2623103
+#   Checksum    : 0f9afe9e918f25037a2526e604c954e59576f6f53991ae55c38e2f3d92d0803f
 #   Source      : prepare-release.sh
 #   Type        : script
-#   Group       : SDK Tools
+#   Group       : SDK
 #   Purpose     : Prepare framework scripts for release
 #
 # Description:
@@ -49,7 +49,7 @@
 
 set -uo pipefail
 # --- Bootstrap ----------------------------------------------------------------------
-    # fn: _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
+    # fn$ _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
         # . Purpose
         #   Locate, create, and load the SolidGroundUX bootstrap configuration, then
         #   load the executable runtime support library.

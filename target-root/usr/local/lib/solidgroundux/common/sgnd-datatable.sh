@@ -2,12 +2,12 @@
 # SolidGroundUX - Datatable
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : a54bd9ba6399874b500b60159ef77a8b6a77c304062a5a3668b8f89fae2737cb
+#   Version     : 2.0
+#   Build       : 2623103
+#   Checksum    : 61c3b8dd70eb34bade19d89578739cc7262bf2cdb1e87cf07e677d4e0b4e7909
 #   Source      : sgnd-datatable.sh
 #   Type        : library
-#   Group       : Common Extensions
+#   Group       : Common Core
 #   Purpose     : Provide lightweight tabular data structures and utilities
 #
 # Description:
@@ -83,6 +83,8 @@ set -uo pipefail
     unset -f _sgnd_lib_guard
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
+    
+# --- DDL functions -----------------------------------------------------------------
     # fn: sgnd_dt_array_length - Dt array length
         # . Purpose
         #   Return the number of items in an indexed Bash array.
@@ -325,6 +327,8 @@ set -uo pipefail
         sgnd_dt_split_schema "$schema"
         printf '%s\n' "${#SGND_DT_SPLIT[@]}"
     }
+
+# --- DML functions -----------------------------------------------------------------
     # fn: sgnd_dt_make_row - Dt make row
         # . Purpose
         #   Build a pipe-separated datatable row from field values.

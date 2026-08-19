@@ -3,12 +3,12 @@
 # SolidGroundUX - Receive Files
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : f316e321a4463c5efd61d59e59ea37be9feef6a1b1ac56d2ec60e7daf336766d
+#   Version     : 2.0
+#   Build       : 2623103
+#   Checksum    : 7b7b8f43751bb439fac8145a22eaa61c1d9a6b2a2d5587b9e1e9267d6b2f60c2
 #   Source      : receive-files.sh
 #   Type        : script
-#   Group       : SDK Tools
+#   Group       : SDK
 #   Purpose     : Receive a workspace tar stream and extract it beneath a target root
 #
 # Description:
@@ -32,7 +32,7 @@
 set -uo pipefail
 
 # --- Bootstrap ----------------------------------------------------------------------
-    # fn: _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
+    # fn$ _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
         # . Purpose
         #   Resolve the SolidGroundUX framework root and load executable runtime support.
         #

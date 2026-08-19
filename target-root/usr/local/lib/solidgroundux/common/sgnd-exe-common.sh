@@ -2,12 +2,12 @@
 # SolidGroundUX - Executable Runtime Support
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622402
-#   Checksum    : 254c413e5afde12909b13ab5ecc05bc01143c88eb44028985977bd9d7eda5cc3
+#   Version     : 2.0
+#   Build       : 2623103
+#   Checksum    : 96072ea85849f440dcc2a444de80d8987d0ddff31d04e5877cb48ea3c22f96a0
 #   Source      : sgnd-exe-common.sh
 #   Type        : library
-#   Group       : Executable Runtime
+#   Group       : Bootstrap
 #   Purpose     : Provide shared startup helpers for SolidGroundUX executable scripts
 #
 # Description:

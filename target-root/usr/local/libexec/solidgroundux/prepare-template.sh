@@ -3,9 +3,9 @@
 # SolidGroundUX - Executable Script Template
 # ------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : 900dd08d724fe39cfa15e1a46356efe2b7d5b2f674d251e5729a920458c91756
+#   Version     : 2.0
+#   Build       : 2623103
+#   Checksum    : 677574c7048f6b63bcad843b29a3a391cc2e7b0e22c9efb86dec6efb04c3fca7
 #   Source      : prepare-template.sh
 #   Type        : script
 #   Group       : SolidGround Console
@@ -188,7 +188,7 @@ set -uo pipefail
         # Script basename without the .sh extension; used for help and display text.
     SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
 
-# --- Framework integration ----------------------------------------------------------
+# - Framework integration ----------------------------------------------------------
     # var: SGND_USING - Optional framework libraries to source after core bootstrap
         # Libraries to source from SGND_COMMON_LIB.
         # These are loaded automatically by sgnd_bootstrap AFTER core libraries.

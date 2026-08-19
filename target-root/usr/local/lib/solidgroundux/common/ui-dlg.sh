@@ -2,7 +2,7 @@
 # SolidGroundUX - UI Dialogs
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
+#   Version     : 2.0
 #   Build       : 2622203
 #   Checksum    : 6dbff974282b42c0503222e7dbc1eff8ddb940fd00b2727a471b15d481153de9
 #   Source      : ui-dlg.sh

@@ -3,12 +3,12 @@
 # SolidGroundUX - Create Wrappers
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622216
-#   Checksum    : 280e4e45fd1ce6b18d127d78fcd88303470c7561dcb06085c0b4c682e4e8cce2
+#   Version     : 2.0
+#   Build       : 2623103
+#   Checksum    : 65218101aec5242de8f8267fa482932ba8bec11bfacf971c00f7b0e24ba297da
 #   Source      : create-wrappers.sh
 #   Type        : script
-#   Group       : SDK Tools
+#   Group       : SDK
 #   Purpose     : Create root-aware command wrappers for SolidGroundUX scripts.
 #
 # Description:
@@ -46,7 +46,7 @@
 set -uo pipefail
 
 # --- Bootstrap ----------------------------------------------------------------------
-    # fn: _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
+    # fn$ _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
         # . Purpose
         #   Resolve the active SolidGroundUX configuration and load executable support.
         # . Returns

@@ -3,11 +3,12 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2622911
-#   Checksum    : 5df4de0823182ce07f64650f6bc82e4736d8e295dad4f0fcdad8a06fba119265
+#   Build       : 2623103
+#   Checksum    : 8fd9bb35d17bdd7a832c1c74b19d6ded31ef14cf6ed506343db68ab1bf5904a9
 #   Source      : mod-template.sh
 #   Type        : module
-#   Group       : Templates
+#   Group       : SDK
+#   Subgroup    : Templates
 #   Purpose     : Canonical template for sgnd-console modules
 #
 # Description:

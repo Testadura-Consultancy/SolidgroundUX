@@ -2,9 +2,9 @@
 # SolidGroundUX - UI Rendering
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622600
-#   Checksum    : 1d21f664eff3974a790359342a8592e7018029210315d9dcc1681a207f37619e
+#   Version     : 2.0
+#   Build       : 2623103
+#   Checksum    : 41ea8caf87a35cc688ebe446ab42e24eccb72d84ba360ccd986d06ace085da8e
 #   Source      : ui.sh
 #   Type        : library
 #   Group       : UI
@@ -366,14 +366,14 @@ set -uo pipefail
             fi
         fi
 
-        # --- resolve palette/style -------------------------------------------------
+        # resolve palette/style -------------------------------------------------
         local palette_file
         local style_file
 
         palette_file="$(_sgnd_ui_resolve_theme_file "palettes" "$palette_spec")" || return $?
         style_file="$(_sgnd_ui_resolve_theme_file "styles"   "$style_spec")"   || return $?
 
-        # --- load palette first, then style ---------------------------------------
+        # load palette first, then style ---------------------------------------
         # shellcheck disable=SC1090
         source "$palette_file" || {
             printf 'sgnd_ui_set_theme: failed to load palette: %s\n' "$palette_file" >&2
@@ -871,7 +871,7 @@ set -uo pipefail
         local labelclr="${SGND_UI_LABEL}"
         local valueclr="${SGND_UI_VALUE}"
 
-        # --- Parse options
+        # Parse options
         while [[ $# -gt 0 ]]; do
             case "$1" in
                 --label)
@@ -942,7 +942,7 @@ set -uo pipefail
             "${valueclr}${value}${RESET}"
     }
 
-    # fn$ sgnd_print_labeledmultivalue
+    # fn: sgnd_print_labeledmultivalue
         # . Purpose
         #   Print one label followed by a value that may span multiple aligned lines.
         #
@@ -1151,7 +1151,7 @@ set -uo pipefail
         local leftclr="${SGND_UI_TEXT}"
         local rightclr=""
 
-        # --- Parse options (with positional fallback)
+        # Parse options (with positional fallback)
         while [[ $# -gt 0 ]]; do
             case "$1" in
                 --left)     left="$2"; shift 2 ;;
@@ -1174,7 +1174,7 @@ set -uo pipefail
             esac
         done
 
-        # --- Defaults / safety
+        # Defaults / safety
         [[ "$padleft"  =~ ^[0-9]+$ ]] || padleft=2
         [[ "$padright" =~ ^[0-9]+$ ]] || padright=1
         maxwidth="$(sgnd_render_width "$maxwidth")"
@@ -1194,7 +1194,7 @@ set -uo pipefail
 
         (( fill < 0 )) && fill=0
 
-        # --- Render (colors applied last)
+        # Render (colors applied last)
         printf '%s%s%s%s%s%s\n' \
             "$(sgnd_string_repeat "$fillchar" "$padleft")" \
             "${leftclr}${left}${RESET}" \
@@ -1254,7 +1254,7 @@ set -uo pipefail
         local padleft=4
         local maxwidth=""
 
-        # -- Parse options
+        # Parse options
         while [[ $# -gt 0 ]]; do
             case "$1" in
                 --left)      left="$2"; shift 2 ;;
@@ -1276,7 +1276,7 @@ set -uo pipefail
             esac
         done
 
-        # -- Numeric safety
+        # Numeric safety
         [[ "$padleft"  =~ ^[0-9]+$ ]] || padleft=4
         maxwidth="$(sgnd_render_width "$maxwidth")"
         (( padleft < 0 )) && padleft=0
@@ -1345,7 +1345,7 @@ set -uo pipefail
         local padend=1
         local maxwidth=""
    
-        # -- Parse options
+        # Parse options
         while [[ $# -gt 0 ]]; do
             case "$1" in
                 --text)      text="$2"; shift 2 ;;
@@ -1364,13 +1364,13 @@ set -uo pipefail
             esac
         done
 
-        # -- Numeric safety
+        # Numeric safety
         [[ "$padleft"  =~ ^[0-9]+$ ]] || padleft=4
         [[ "$padend"   =~ ^(0|1)$   ]] || padend=1
         maxwidth="$(sgnd_render_width "$maxwidth")"
         (( padleft < 0 )) && padleft=0
 
-        # -- Assemble line (PLAIN parts first; add color last)
+        # Assemble line (PLAIN parts first; add color last)
         local left_plain="" mid_plain="" right_plain="" fnl=""
         local remaining=0
 
@@ -1452,7 +1452,7 @@ set -uo pipefail
         local justify="L"   # L = left, C = center, R = right
         local maxwidth=""
 
-        # --- Parse options --------------------------------------------------------
+        # Parse options --------------------------------------------------------
         while [[ $# -gt 0 ]]; do
             case "$1" in
                 --text)         text="$2"; shift 2 ;;
@@ -1476,22 +1476,22 @@ set -uo pipefail
             return 0
         fi
 
-        # --- Safety defaults ------------------------------------------------------
+        # Safety defaults ------------------------------------------------------
         (( pad < 0 )) && pad=0
         (( rightmargin < 0 )) && rightmargin=0
         maxwidth="$(sgnd_render_width "$maxwidth")"
 
-        # --- Available width for auto-wrap decision -------------------------------
+        # Available width for auto-wrap decision -------------------------------
         local avail=$(( maxwidth - (pad * 2) - rightmargin ))
         (( avail < 1 )) && avail=1
 
-        # --- Auto-wrap if not explicitly specified --------------------------------
+        # Auto-wrap if not explicitly specified --------------------------------
         # Use visible width so embedded ANSI styling does not influence layout.
         if (( ! wrap_explicit )); then
             (( $(sgnd_visible_len "$text") > avail )) && wrap=1 || wrap=0
         fi
 
-        # --- Render ---------------------------------------------------------------
+        # Render ---------------------------------------------------------------
         if (( wrap )); then
             local mw_eff=$(( maxwidth - rightmargin ))
             (( mw_eff < 1 )) && mw_eff=1
@@ -1776,7 +1776,7 @@ set -uo pipefail
         local v_copyright=""
         local v_license=""
 
-        # --- Resolve module prefix ----------------------------------------------------
+        # Resolve module prefix ----------------------------------------------------
         if [[ "$module_ref" == SGND_* ]]; then
             prefix="$module_ref"
         else
@@ -1787,7 +1787,7 @@ set -uo pipefail
             prefix="SGND_${key^^}"
         fi
 
-        # --- Resolve variables --------------------------------------------------------
+        # Resolve variables --------------------------------------------------------
         var_name="${prefix}_FILE";       v_file="${!var_name-}"
         var_name="${prefix}_DIR";        v_dir="${!var_name-}"
         var_name="${prefix}_BASE";       v_base="${!var_name-}"
@@ -1807,7 +1807,7 @@ set -uo pipefail
         var_name="${prefix}_COPYRIGHT";  v_copyright="${!var_name-}"
         var_name="${prefix}_LICENSE";    v_license="${!var_name-}"
 
-        # --- Output -------------------------------------------------------------------
+        # Output -------------------------------------------------------------------
         sgnd_print_labeled_value "Module"      "$prefix"
         sgnd_print_labeled_value "File"        "$v_file"
         sgnd_print_labeled_value "Directory"   "$v_dir"

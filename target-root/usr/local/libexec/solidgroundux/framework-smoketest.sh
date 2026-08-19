@@ -4,10 +4,11 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2622911
-#   Checksum    : 9da23f64b6c6d88b55931061a5a03984f34c29944c54e3b9a8e508be10f0066c
+#   Build       : 2623103
+#   Checksum    : a93e37f5184b57d27d60685bfc4074e6ef6f262e362c03546b69a94a94d57eba
 #   Source      : framework-smoketest.sh
 #   Type        : script
+#   Group       : SDK
 #   Purpose     : Exercise and validate core SolidGroundUX framework functionality
 #
 # Description:
@@ -40,7 +41,7 @@
 # ==================================================================================
 set -uo pipefail
 # --- Bootstrap ----------------------------------------------------------------------
-    # fn: _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
+    # fn$ _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
         # . Purpose
         #   Locate, create, and load the SolidGroundUX bootstrap configuration, then
         #   load the executable runtime support library.

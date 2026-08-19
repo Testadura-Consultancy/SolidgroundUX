@@ -3,11 +3,12 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2622911
-#   Checksum    : 6552d22efd8945d3bb51c8c0a197df8578ba645ff225bf6e22d0a83efe9323d3
+#   Build       : 2623103
+#   Checksum    : 390edd719ad35bc5df3a8b66406e1006fd9c2476d92aa97c4c027dc73e5bf565
 #   Source      : 20-active-directory-server.sh
 #   Type        : module
 #   Group       : SolidGround Console
+#   Subgroup    : Console Modules
 #   Purpose     : Install, provision, validate, and inspect a Samba Active Directory server
 # ==================================================================================
 set -uo pipefail

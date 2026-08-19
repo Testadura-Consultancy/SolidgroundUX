@@ -3,13 +3,13 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2622911
+#   Build       : 2623104
 #   Source      : solidground console_preface.sh
 #   Type        : documentation
-#   Group       : Common Core
+#   Group       : SolidGround Console
 #   Purpose     : Describe the SolidGround Management Console architecture and module contract
 #
-#   Checksum : 190bb7f74d857fada971987e793034aefbd2ccaa137f6885bb905734aaff1e73
+#   Checksum : a74db09467686ebb24b60c658da46cab8b37761fb9f1f03dab6992bf0db308ad
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
@@ -34,22 +34,10 @@
 # > process. Returning to the index does not unload it, and opening the page again does
 # > not source it a second time.
 #
-# -- Architecture -------------------------------------------------------------------
+# -- Console Module Lifecycle ---------------------------------------------------------
 #
-# >     sgnd-console
-# >         │
-# >         ├─ discovers enabled module files
-# >         │      │
-# >         │      └─ reads literal page metadata only
-# >         │
-# >         ├─ renders main index
-# >         │
-# >         └─ selected page
-# >                │
-# >                ├─ source module once when first opened
-# >                ├─ module registers groups and items
-# >                ├─ render only registrations from that module
-# >                └─ Esc returns to the main index
+# . Images
+#   module-lifecycle.png :: Management ConsoleModule Lifecycle.
 #
 # > This page-level lazy-loading model keeps initial console startup small while
 # > preserving self-contained functional modules. Implementation code is parsed only
@@ -270,17 +258,8 @@
 #
 # -- Creating a New Console Module --------------------------------------------------
 #
-# > The normal workflow is:
-#
-# >     create an ordered source-only module file
-# >         ↓
-# >     define literal module name and description metadata
-# >         ↓
-# >     define helpers and menu action functions
-# >         ↓
-# >     register groups and items with sgnd_menu_*
-# >         ↓
-# >     place the file in the configured console module directory
+# . Images
+#   new-consolemodule.png :: Workflow for creating a new console module.
 #
 # > No change to sgnd-console is required for a normal new page. On the next start the
 # > module appears in the index and is loaded only if selected.

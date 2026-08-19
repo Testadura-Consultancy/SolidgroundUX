@@ -3,12 +3,12 @@
 # SolidGroundUX - Tar It
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : 890296dee369e80da643c7a36db493460acae3f1fdcd08bb1753faa4c02ab8a2
+#   Version     : 2.0
+#   Build       : 2623103
+#   Checksum    : c225849142bd2e316d8a37d71ee25d59e1b4471b5f477cb3e4dd4bfc09d4030a
 #   Source      : tar-it.sh
 #   Type        : script
-#   Group       : SDK Tools
+#   Group       : SDK
 #   Purpose     : Create a timestamped archive of a SolidGroundUX framework tree
 #
 # Description:

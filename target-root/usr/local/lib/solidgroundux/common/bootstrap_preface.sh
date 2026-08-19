@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2622911
-#   Checksum    : 6d7f4613446f65a3b1216a42027b1e7aa5a7442d50fe262754e86d58bb95607a
+#   Build       : 2623103
+#   Checksum    : dc459ce30420d36ed93bb79fea2a983d48a873419eacce16fac6b9ed92d8356b
 #   Source      : bootstrap_preface.sh
 #   Type        : documentation
 #   Group       : Bootstrap
@@ -40,33 +40,8 @@
 #   
 # > Conceptually, the startup sequence is:
 #   
-# >     Script starts
-# >         ↓
-# >     Bootstrap file is located
-# >        ↓
-# >     Bootstrap environment is initialized
-# >        ↓
-# >     Standard SolidGroundUX globals are prepared
-#          ↓
-# >     Built-in command-line arguments are registered
-# >         ↓
-# >     Script-declared dependencies are resolved
-#          ↓
-# >     Core and requested libraries are sourced
-#          ↓
-# >     Configuration definitions are processed
-#          ↓
-# >     Command-line arguments are parsed
-#          ↓
-# >     Configuration values are loaded and applied
-#          ↓
-# >     User framework state is loaded or created
-#          ↓
-# >     The active UI palette and style are loaded
-#          ↓
-# >     Command-line overrides are applied
-#          ↓
-# >     Application code runs
+# . Images
+#   Bootstrap-Sequence.png :: Bootstrap Sequence.  
 #   
 # > The exact implementation is intentionally hidden behind the bootstrap API. The
 # > important point is that every bootstrapped script enters its main logic with the

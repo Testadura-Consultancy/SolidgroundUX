@@ -3,12 +3,12 @@
 # SolidGroundUX - Untar It
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.9
-#   Build       : 2622203
-#   Checksum    : 369e5f2b45f26cbdc473d1580cce4f3c5776e62cbfbbc4140dd71802b606d46e
+#   Version     : 2.0
+#   Build       : 2623103
+#   Checksum    : 80584fc74ac941dc780b699fe36e12be5707944bf16fc97fcf3c9cf626792952
 #   Source      : untar-it.sh
 #   Type        : script
-#   Group       : SDK Tools
+#   Group       : SDK
 #   Purpose     : Restore selected files from a SolidGroundUX framework archive
 #
 # Description:

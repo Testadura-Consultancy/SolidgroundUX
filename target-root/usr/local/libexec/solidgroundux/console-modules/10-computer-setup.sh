@@ -3,11 +3,12 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2622911
-#   Checksum    : 16c279150e7cb39d663f00f732fc918f567ff7dd4d8ec0593da3ea2c8a5ab862
+#   Build       : 2623103
+#   Checksum    : 2c2d4d2eab3de1cccb60857b6f4ff7e70209f76eee5b2a1aaf313183c8f062fc
 #   Source      : 10-computer-setup.sh
 #   Type        : module
 #   Group       : SolidGround Console
+#   Subgroup    : Console Modules
 #   Purpose     : Configure and validate the base computer
 #
 # Description:

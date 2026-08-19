@@ -8,7 +8,8 @@
 #   Checksum    : -
 #   Source      : wrapper-template
 #   Type        : wrapper
-#   Group       : Templates
+#   Group       : SDK
+#   Subgroup    : Templates
 #   Purpose     : Launch a configured SolidGroundUX target beneath the application root.
 #
 # Description:

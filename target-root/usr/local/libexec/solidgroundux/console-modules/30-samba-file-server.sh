@@ -3,11 +3,12 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2622911
-#   Checksum    : b05c8f366008dc6d17cd591693dc3f08bcb3645c39cc1d075e1e2e59d355a68f
+#   Build       : 2623103
+#   Checksum    : d6b0de720768dc85e54ceaa81ded55e812721cb3a3fad65fa593e76cf9257d37
 #   Source      : 30-samba-file-server.sh
 #   Type        : module
 #   Group       : SolidGround Console
+#   Subgroup    : Console Modules
 #   Purpose     : Install, prepare, validate, and manage Samba file services
 #
 # Description:

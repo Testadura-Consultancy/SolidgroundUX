@@ -12,7 +12,7 @@ The SolidGround Management Console has been redesigned around a lightweight main
 
 At startup, the console discovers available pages without sourcing their full implementation modules. A page is loaded only when it is opened for the first time and remains resident for the rest of the console session. This reduces initial startup work while avoiding repeated loading once functionality has been used.
 
-Root users can manage page visibility directly from the index, and role-dependent functionality is evaluated dynamically from the current machine package state.
+Root users can manage page visibility directly from the index.
 
 ### Reworked for reuse
 
@@ -30,6 +30,12 @@ UI primitives now share the same dynamic-width behavior. They can use the full t
 
 Paging, legends, post-action behavior, and console navigation have also been refined.
 
+### Documentation pipeline
+
+The documentation system now supports a deeper but still deliberately bounded hierarchy: **Group → optional Subgroup → Module**. This allows related tooling such as the Documentation Generator components to be collected under one SDK group without flattening everything into a single level.
+
+Source selection now accepts comma-separated masks and defaults to `*.sh,*.py`, so Bash and Python modules follow the same collection path. Parsed renderer data is persisted after normal generation, enabling **Render existing data** mode to rebuild the HTML site in seconds without rescanning the entire source tree.
+
 ### Storage and access management
 
 Storage is now a first-class Management Console function.
@@ -38,11 +44,6 @@ SolidGroundUX can provision unused disks using GPT with EXT4 or XFS, configure p
 
 Storage Access provides ownership, group, and Unix permission management for the canonical storage and share roots.
 
-### Role-aware, persistent console state
-
-Role-awareness is now persisted immediately through console state and inherited by nested consoles.
-
-Role-backed groups declare their required packages and are evaluated against the current machine state when the menu is rendered. Installing a role therefore makes its functionality available on the next redraw without restarting the Management Console.
 
 ## What's New in 2.0
 
@@ -54,7 +55,6 @@ Role-backed groups declare their required packages and are evaluated against the
 - Root-only **Manage visibility** control.
 - Dedicated **SolidGroundUX** page for framework information, configuration, state, logging, diagnostics, and release management.
 - Dedicated **Storage** and **Storage Access** functionality.
-- Dynamic role-aware menu visibility.
 - Context-aware navigation legends.
 - Direct quick-access controls replace the former Console Settings page.
 - Normal actions provide an interruptible post-action viewing window of at least 15 seconds.
@@ -111,7 +111,12 @@ Prepared release bundles are self-contained bootstrap packages and include the R
 - Checksums are refreshed automatically for changed files.
 - Workspace creation follows the repository-shaped `target-root` layout.
 - `deploy-workspace.sh` provides improved remote deployment, date filtering, redo behavior, and deployment summaries.
-- Documentation generation supports incremental workflows while Full generation guarantees clean output.
+- Documentation generation supports Full, Selected, Changed, and **Render existing data** modes.
+- Source masks are comma-separated and default to `*.sh,*.py`, allowing Bash and Python modules to be documented by the same pipeline.
+- The documentation model now supports one optional **Subgroup** level beneath Group, including subgroup prefaces and epilogues.
+- The Python renderer itself is documented under **SDK → Documentation Generator**.
+- Successful parse modes persist normalized renderer data so HTML, CSS, navigation, and branding changes can be regenerated without reparsing the complete source tree.
+- Generated documentation can now carry SolidGroundUX content-page branding and Testadura publisher branding while remaining self-contained.
 
 ## Framework at a Glance
 
@@ -126,7 +131,7 @@ Statistics reported by the documentation generator for this release:
 
 ## Reliability and fixes
 
-Version 2.0 also resolves issues uncovered while moving to the new architecture, including cross-module dependencies exposed by lazy loading, post-action wait handling, timed-input selection propagation, standalone menu helper dependencies, role-awareness persistence, dynamic role discovery, remote deployment through `sudo`, Release Manager bootstrap behavior, storage mount detection and capacity reporting, and Active Directory DNS/FQDN handling.
+Version 2.0 also resolves issues uncovered while moving to the new architecture, including cross-module dependencies exposed by lazy loading, post-action wait handling, timed-input selection propagation, standalone menu helper dependencies, remote deployment through `sudo`, Release Manager bootstrap behavior, storage mount detection and capacity reporting, Active Directory DNS/FQDN handling, and documentation subgroup navigation depth.
 
 ## SolidGroundUX 2.0
 

@@ -1,4 +1,31 @@
 #!/usr/bin/env python3
+# ==================================================================================
+# SolidGroundUX - Documentation HTML Renderer Backend
+# ----------------------------------------------------------------------------------
+# Metadata:
+#   Version     : 2.0
+#   Build       : 2622911
+#   Source      : sgnd_doc_renderer.py
+#   Type        : python
+#   Group       : SDK
+#   Subgroup    : Documentation Generator
+#   Purpose     : Render normalized SolidGroundUX documentation tables as HTML
+#
+# Attribution:
+#   Developers  : Mark Fieten
+#   Company     : Testadura Consultancy
+#   Client      : -
+#   Copyright   : © 2025 - 2026 Testadura Consultancy
+#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
+# ==================================================================================
+# - Python Renderer Backend ---------------------------------------------------------
+#
+# > Python backend used by the SolidGroundUX documentation pipeline to transform the
+# > normalized PSV tables emitted by the Bash processor into the navigable HTML site.
+#
+# > The module is intentionally standard-library only and uses the same SolidGroundUX
+# > `# fn:`, `# cls:`, `# var:`, and section-comment dialect as Bash source files.
+
 """
 SolidgroundUX - Documentation HTML Renderer Backend
 ---------------------------------------------------
@@ -32,9 +59,24 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Sequence
+from typing import Dict, List, Sequence, Tuple
 
 RENDERER_BUILD = "2026154"
+
+# var: DOC_INDEX_LOGO - Documentation index branding asset
+# . Purpose
+#   Name of the image displayed above the documentation navigation index.
+DOC_INDEX_LOGO = "doc-index-logo.png"
+
+# var: DOC_HEADER_LOGO - Documentation page header branding asset
+# . Purpose
+#   Name of the compact image displayed beside the documentation site title.
+DOC_HEADER_LOGO = "doc-header-logo.png"
+
+# var: DOC_INDEX_HERO - Documentation landing-page hero asset
+# . Purpose
+#   Name of the current release/showcase image displayed on the documentation home page.
+DOC_INDEX_HERO = "doc-index-hero.png"
 
 Row = Dict[str, str]
 CANONICAL_PREFIX = "appendix:canonical:"
@@ -48,6 +90,13 @@ CHANGELOG_PREFIX = "appendix:changelog:"
 INSTALL_PREFIX = "appendix:install:"
 
 
+# fn: read_psv - Read psv
+# . Purpose
+#   Read a pipe-separated table with a schema/header row.
+#
+# . Arguments
+#   path  Value consumed by this function; see the typed Python signature for its contract.
+#   required  Value consumed by this function; see the typed Python signature for its contract.
 def read_psv(path: Path, *, required: bool = True) -> List[Row]:
     """Read a pipe-separated table with a schema/header row."""
     if not path.exists():
@@ -79,6 +128,12 @@ def read_psv(path: Path, *, required: bool = True) -> List[Row]:
     return rows
 
 
+# fn: read_config - Read config
+# . Purpose
+#   Read config for the documentation rendering workflow.
+#
+# . Arguments
+#   path  Value consumed by this function; see the typed Python signature for its contract.
 def read_config(path: Path) -> Dict[str, str]:
     rows = read_psv(path, required=False)
     config: Dict[str, str] = {}
@@ -92,10 +147,22 @@ def read_config(path: Path) -> Dict[str, str]:
     return config
 
 
+# fn: esc - Esc
+# . Purpose
+#   Esc for the documentation rendering workflow.
+#
+# . Arguments
+#   value  Value consumed by this function; see the typed Python signature for its contract.
 def esc(value: str | None) -> str:
     return html.escape(value or "", quote=True)
 
 
+# fn: slugify - Create slug for
+# . Purpose
+#   Create slug for for the documentation rendering workflow.
+#
+# . Arguments
+#   value  Value consumed by this function; see the typed Python signature for its contract.
 def slugify(value: str | None) -> str:
     text = (value or "").lower()
     text = re.sub(r"[^a-z0-9]+", "-", text)
@@ -103,6 +170,12 @@ def slugify(value: str | None) -> str:
     return text or "page"
 
 
+# fn: normalize_key - Normalize key
+# . Purpose
+#   Normalize key for the documentation rendering workflow.
+#
+# . Arguments
+#   value  Value consumed by this function; see the typed Python signature for its contract.
 def normalize_key(value: str | None) -> str:
     text = (value or "").lower()
     text = re.sub(r"[^a-z0-9]+", "_", text)
@@ -110,6 +183,16 @@ def normalize_key(value: str | None) -> str:
     return text
 
 
+# fn: content_ref - Build content ref
+# . Purpose
+#   Build content ref for the documentation rendering workflow.
+#
+# . Arguments
+#   module_name  Value consumed by this function; see the typed Python signature for its contract.
+#   grandparent_section  Value consumed by this function; see the typed Python signature for its contract.
+#   parent_section  Value consumed by this function; see the typed Python signature for its contract.
+#   section_name  Value consumed by this function; see the typed Python signature for its contract.
+#   item_name  Value consumed by this function; see the typed Python signature for its contract.
 def content_ref(
     module_name: str,
     grandparent_section: str = "",
@@ -120,50 +203,123 @@ def content_ref(
     return f"{module_name}:{grandparent_section}:{parent_section}:{section_name}:{item_name}"
 
 
+# fn: canonical_ref - Build canonical ref
+# . Purpose
+#   Build canonical ref for the documentation rendering workflow.
+#
+# . Arguments
+#   product_name  Value consumed by this function; see the typed Python signature for its contract.
 def canonical_ref(product_name: str) -> str:
     return f"{CANONICAL_PREFIX}{product_name}"
 
 
+# fn: attribution_ref - Build attribution ref
+# . Purpose
+#   Build attribution ref for the documentation rendering workflow.
+#
+# . Arguments
+#   product_name  Value consumed by this function; see the typed Python signature for its contract.
 def attribution_ref(product_name: str) -> str:
     return f"{ATTRIBUTION_PREFIX}{product_name}"
 
 
+# fn: glossary_ref - Build glossary ref
+# . Purpose
+#   Build glossary ref for the documentation rendering workflow.
+#
+# . Arguments
+#   product_name  Value consumed by this function; see the typed Python signature for its contract.
 def glossary_ref(product_name: str) -> str:
     return f"{GLOSSARY_PREFIX}{product_name}"
 
 
+# fn: integrity_ref - Build integrity ref
+# . Purpose
+#   Build integrity ref for the documentation rendering workflow.
+#
+# . Arguments
+#   product_name  Value consumed by this function; see the typed Python signature for its contract.
 def integrity_ref(product_name: str) -> str:
     return f"{INTEGRITY_PREFIX}{product_name}"
 
 
+# fn: globals_ref - Build globals ref
+# . Purpose
+#   Build globals ref for the documentation rendering workflow.
+#
+# . Arguments
+#   product_name  Value consumed by this function; see the typed Python signature for its contract.
 def globals_ref(product_name: str) -> str:
     return f"{GLOBALS_PREFIX}{product_name}"
 
 
+# fn: license_ref - Build license ref
+# . Purpose
+#   Build license ref for the documentation rendering workflow.
+#
+# . Arguments
+#   product_name  Value consumed by this function; see the typed Python signature for its contract.
 def license_ref(product_name: str) -> str:
     return f"{LICENSE_PREFIX}{product_name}"
 
 
+# fn: enums_ref - Build enums ref
+# . Purpose
+#   Build enums ref for the documentation rendering workflow.
+#
+# . Arguments
+#   product_name  Value consumed by this function; see the typed Python signature for its contract.
 def enums_ref(product_name: str) -> str:
     return f"{ENUMS_PREFIX}{product_name}"
 
 
+# fn: changelog_ref - Build changelog ref
+# . Purpose
+#   Build changelog ref for the documentation rendering workflow.
+#
+# . Arguments
+#   product_name  Value consumed by this function; see the typed Python signature for its contract.
 def changelog_ref(product_name: str) -> str:
     return f"{CHANGELOG_PREFIX}{product_name}"
 
 
+# fn: install_ref - Build install ref
+# . Purpose
+#   Build install ref for the documentation rendering workflow.
+#
+# . Arguments
+#   product_name  Value consumed by this function; see the typed Python signature for its contract.
 def install_ref(product_name: str) -> str:
     return f"{INSTALL_PREFIX}{product_name}"
 
 
+# fn: page_href_from_contentref - Build page href from contentref
+# . Purpose
+#   Build page href from contentref for the documentation rendering workflow.
+#
+# . Arguments
+#   ref  Value consumed by this function; see the typed Python signature for its contract.
 def page_href_from_contentref(ref: str) -> str:
     return f"pages/{slugify(ref)}.html"
 
 
+# fn: is_item_node - Determine whether item node
+# . Purpose
+#   Determine whether item node for the documentation rendering workflow.
+#
+# . Arguments
+#   node_type  Value consumed by this function; see the typed Python signature for its contract.
 def is_item_node(node_type: str) -> bool:
-    return node_type in {"function", "variable", "general documentation"}
+    return node_type in {"function", "class", "variable", "general documentation"}
 
 
+# fn: display_name_with_title - Resolve display name with title
+# . Purpose
+#   Resolve display name with title for the documentation rendering workflow.
+#
+# . Arguments
+#   name  Value consumed by this function; see the typed Python signature for its contract.
+#   title  Value consumed by this function; see the typed Python signature for its contract.
 def display_name_with_title(name: str, title: str) -> str:
     clean_name = name or ""
     clean_title = title or ""
@@ -174,6 +330,9 @@ def display_name_with_title(name: str, title: str) -> str:
     return clean_name
 
 
+# cls: AppendixSpec - Appendix specification
+# . Purpose
+#   Describe one generated documentation appendix and its renderer binding.
 @dataclass(frozen=True)
 class AppendixSpec:
     key: str
@@ -196,6 +355,9 @@ APPENDIX_SPECS: tuple[AppendixSpec, ...] = (
 )
 
 
+# cls: NavNode - Navigation node
+# . Purpose
+#   Represent one node in the generated documentation navigation hierarchy.
 @dataclass
 class NavNode:
     nodeid: str
@@ -211,7 +373,17 @@ class NavNode:
     istemplate: bool = False
 
 
+# cls: DocRenderer - Documentation HTML renderer
+# . Purpose
+#   Transform normalized SolidGroundUX documentation tables into the generated HTML site.
 class DocRenderer:
+    # fn: __init__ - Initialize renderer instance
+    # . Purpose
+    #   Initialize renderer instance for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   input_dir  Value consumed by this function; see the typed Python signature for its contract.
+    #   output_dir  Value consumed by this function; see the typed Python signature for its contract.
     def __init__(self, input_dir: Path, output_dir: Path) -> None:
         self.input_dir = input_dir
         self.output_dir = output_dir
@@ -237,6 +409,9 @@ class DocRenderer:
         self.doc_product = ""
         self.doc_render_date = ""
 
+    # fn: run - Run
+    # . Purpose
+    #   Run for the documentation rendering workflow.
     def run(self) -> None:
         self.load_input()
         self.prepare_output()
@@ -247,6 +422,9 @@ class DocRenderer:
         self.render_content_pages()
         self.render_index_page()
 
+    # fn: load_input - Load input
+    # . Purpose
+    #   Load input for the documentation rendering workflow.
     def load_input(self) -> None:
         self.mod_table = read_psv(self.input_dir / "mod_table.psv")
         self.mod_sections = read_psv(self.input_dir / "mod_sections.psv")
@@ -258,6 +436,9 @@ class DocRenderer:
         self.doc_content_lines = read_psv(self.input_dir / "doc_content_lines.psv")
         self.config = read_config(self.input_dir / "render_config.psv")
 
+    # fn: prepare_output - Prepare output
+    # . Purpose
+    #   Prepare output for the documentation rendering workflow.
     def prepare_output(self) -> None:
         clean_output = self.config.get("FLAG_CLEAN_OUTPUT", "1") == "1"
 
@@ -268,6 +449,9 @@ class DocRenderer:
         self.asset_dir.mkdir(parents=True, exist_ok=True)
         self.page_dir.mkdir(parents=True, exist_ok=True)
 
+    # fn: init_metadata - Initialize metadata
+    # . Purpose
+    #   Initialize metadata for the documentation rendering workflow.
     def init_metadata(self) -> None:
         self.doc_title = self.config.get("VAL_DOCUMENT_TITLE", "SolidGroundUX Documentation")
         self.doc_subtitle = self.config.get("VAL_DOCUMENT_SUBTITLE", "")
@@ -279,6 +463,9 @@ class DocRenderer:
     # Hierarchy construction
     # ----------------------------------------------------------------------
 
+    # fn: build_doc_hierarchy - Build doc hierarchy
+    # . Purpose
+    #   Build doc hierarchy for the documentation rendering workflow.
     def build_doc_hierarchy(self) -> None:
         self.nav = []
 
@@ -356,19 +543,114 @@ class DocRenderer:
                         nodetype="preface",
                     )
 
-                group_modules = sorted(
-                    [module for module in normal_modules if (module.get("group", "") or "Ungrouped") == group_name],
+                group_modules = [
+                    module for module in normal_modules
+                    if (module.get("group", "") or "Ungrouped") == group_name
+                ]
+
+                subgroup_names = sorted(
+                    {module.get("subgroup", "") for module in group_modules if module.get("subgroup", "")},
+                    key=str.casefold,
+                )
+
+                # Subgroups render before direct group modules so a focused collection such as
+                # SDK / Documentation Generator stays together beneath the group overview.
+                for subgroup_name in subgroup_names:
+                    group_sequence_index += 1
+                    subgroup_docindex = f"{group_docindex}.{group_sequence_index}"
+                    subgroup_node_id = f"subgroup:{product_name}:{group_name}:{subgroup_name}"
+
+                    self.nav.append(
+                        NavNode(
+                            nodeid=subgroup_node_id,
+                            parentnodeid=group_node_id,
+                            nodetype="subgroup",
+                            node_name=subgroup_name,
+                            node_title=subgroup_name,
+                            hierarchy_level=2,
+                            docindex=subgroup_docindex,
+                            contentref="",
+                        )
+                    )
+
+                    subgroup_sequence_index = 0
+                    subgroup_modules = [
+                        module for module in group_modules
+                        if module.get("subgroup", "") == subgroup_name
+                    ]
+
+                    for module in subgroup_modules:
+                        role = self.subgroup_comment_role(
+                            normalize_key(Path(module.get("name", "")).stem),
+                            normalize_key(subgroup_name),
+                            module.get("purpose", ""),
+                        )
+                        if role == "preface":
+                            subgroup_sequence_index += 1
+                            self.add_standalone_doc_node(
+                                module=module,
+                                parent_node_id=subgroup_node_id,
+                                hierarchy_level=3,
+                                docindex=f"{subgroup_docindex}.{subgroup_sequence_index}",
+                                fallback_name="Subgroup Preface",
+                                nodetype="preface",
+                            )
+
+                    for module in sorted(
+                        subgroup_modules,
+                        key=lambda module: (
+                            (module.get("name", "") or module.get("title", "")).casefold(),
+                            module.get("title", "").casefold(),
+                        ),
+                    ):
+                        role = self.subgroup_comment_role(
+                            normalize_key(Path(module.get("name", "")).stem),
+                            normalize_key(subgroup_name),
+                            module.get("purpose", ""),
+                        )
+                        if role:
+                            continue
+                        subgroup_sequence_index += 1
+                        self.add_module_node(
+                            module=module,
+                            parent_node_id=subgroup_node_id,
+                            hierarchy_level=3,
+                            module_docindex=f"{subgroup_docindex}.{subgroup_sequence_index}",
+                            section_rows=section_rows,
+                            item_rows=item_rows,
+                        )
+
+                    for module in subgroup_modules:
+                        role = self.subgroup_comment_role(
+                            normalize_key(Path(module.get("name", "")).stem),
+                            normalize_key(subgroup_name),
+                            module.get("purpose", ""),
+                        )
+                        if role == "epilogue":
+                            subgroup_sequence_index += 1
+                            self.add_standalone_doc_node(
+                                module=module,
+                                parent_node_id=subgroup_node_id,
+                                hierarchy_level=3,
+                                docindex=f"{subgroup_docindex}.{subgroup_sequence_index}",
+                                fallback_name="Subgroup Epilogue",
+                                nodetype="epilogue",
+                            )
+
+                direct_modules = sorted(
+                    [module for module in group_modules if not module.get("subgroup", "")],
                     key=lambda module: (
                         (module.get("name", "") or module.get("title", "")).casefold(),
                         module.get("title", "").casefold(),
                     ),
                 )
 
-                for module in group_modules:
+                for module in direct_modules:
                     group_sequence_index += 1
                     self.add_module_node(
                         module=module,
-                        group_node_id=group_node_id,
+                        parent_node_id=group_node_id,
+                        hierarchy_level=2,
                         module_docindex=f"{group_docindex}.{group_sequence_index}",
                         section_rows=section_rows,
                         item_rows=item_rows,
@@ -429,6 +711,9 @@ class DocRenderer:
                     )
                 )
 
+    # fn: modules_by_product - Modules by product
+    # . Purpose
+    #   Modules by product for the documentation rendering workflow.
     def modules_by_product(self) -> Dict[str, List[Row]]:
         result: Dict[str, List[Row]] = defaultdict(list)
 
@@ -441,6 +726,13 @@ class DocRenderer:
 
         return result
 
+    # fn: split_special_comment_modules - Split special comment modules
+    # . Purpose
+    #   Split special comment modules for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   product_name  Value consumed by this function; see the typed Python signature for its contract.
+    #   modules  Value consumed by this function; see the typed Python signature for its contract.
     def split_special_comment_modules(
         self,
         product_name: str,
@@ -463,7 +755,14 @@ class DocRenderer:
                 product_specials[role].append(module)
                 continue
 
-            role = self.group_comment_role(module_key, group_key)
+            purpose_key = normalize_key(module.get("purpose", ""))
+            role = ""
+            if purpose_key == "group_preface" and not module.get("subgroup", ""):
+                role = "preface"
+            elif purpose_key == "group_epilogue" and not module.get("subgroup", ""):
+                role = "epilogue"
+            else:
+                role = self.group_comment_role(module_key, group_key)
             if role:
                 group_specials[group_name][role].append(module)
                 continue
@@ -479,6 +778,13 @@ class DocRenderer:
 
         return product_specials, group_specials, normal_modules
 
+    # fn: product_comment_role - Product comment role
+    # . Purpose
+    #   Product comment role for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   module_key  Value consumed by this function; see the typed Python signature for its contract.
+    #   product_key  Value consumed by this function; see the typed Python signature for its contract.
     def product_comment_role(self, module_key: str, product_key: str) -> str:
         pre_names = {
             f"{product_key}_pref_comment",
@@ -501,6 +807,13 @@ class DocRenderer:
             return "epilogue"
         return ""
 
+    # fn: group_comment_role - Group comment role
+    # . Purpose
+    #   Group comment role for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   module_key  Value consumed by this function; see the typed Python signature for its contract.
+    #   group_key  Value consumed by this function; see the typed Python signature for its contract.
     def group_comment_role(self, module_key: str, group_key: str) -> str:
         pre_names = {
             f"{group_key}_comment",
@@ -522,6 +835,49 @@ class DocRenderer:
             return "epilogue"
         return ""
 
+    # fn: subgroup_comment_role - Subgroup comment role
+    # . Purpose
+    #   Subgroup comment role for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   module_key  Value consumed by this function; see the typed Python signature for its contract.
+    #   subgroup_key  Value consumed by this function; see the typed Python signature for its contract.
+    #   purpose  Value consumed by this function; see the typed Python signature for its contract.
+    def subgroup_comment_role(self, module_key: str, subgroup_key: str, purpose: str = "") -> str:
+        purpose_key = normalize_key(purpose)
+        if purpose_key == "subgroup_preface":
+            return "preface"
+        if purpose_key == "subgroup_epilogue":
+            return "epilogue"
+
+        pre_names = {
+            f"{subgroup_key}_comment",
+            f"{subgroup_key}_pref_comment",
+            f"{subgroup_key}_pre_comment",
+            f"{subgroup_key}_preface",
+            f"subgroup_{subgroup_key}_preface",
+        }
+        epilogue_names = {
+            f"{subgroup_key}_epilogue",
+            f"subgroup_{subgroup_key}_epilogue",
+        }
+        if module_key in pre_names:
+            return "preface"
+        if module_key in epilogue_names:
+            return "epilogue"
+        return ""
+
+    # fn: add_standalone_doc_node - Add standalone doc node
+    # . Purpose
+    #   Add standalone doc node for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   module  Value consumed by this function; see the typed Python signature for its contract.
+    #   parent_node_id  Value consumed by this function; see the typed Python signature for its contract.
+    #   hierarchy_level  Value consumed by this function; see the typed Python signature for its contract.
+    #   docindex  Value consumed by this function; see the typed Python signature for its contract.
+    #   fallback_name  Value consumed by this function; see the typed Python signature for its contract.
+    #   nodetype  Value consumed by this function; see the typed Python signature for its contract.
     def add_standalone_doc_node(
         self,
         module: Row,
@@ -548,10 +904,23 @@ class DocRenderer:
             )
         )
 
+    # fn: is_template_module - Determine whether template module
+    # . Purpose
+    #   Determine whether template module for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   module  Value consumed by this function; see the typed Python signature for its contract.
     def is_template_module(self, module: Row) -> bool:
         source_file = Path(module.get("file", "") or "").name
         return "template" in source_file.casefold()
 
+    # fn: should_render_item - Determine whether render item
+    # . Purpose
+    #   Determine whether render item for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   module  Value consumed by this function; see the typed Python signature for its contract.
+    #   item  Value consumed by this function; see the typed Python signature for its contract.
     def should_render_item(self, module: Row, item: Row) -> bool:
         # ':' items are always documented. '$' items describe template scaffolding
         # and are documented only when the source script itself is a template.
@@ -560,6 +929,12 @@ class DocRenderer:
 
         return self.is_template_module(module)
 
+    # fn: section_key - Section key
+    # . Purpose
+    #   Section key for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   section  Value consumed by this function; see the typed Python signature for its contract.
     def section_key(self, section: Row) -> tuple[str, str, str]:
         return (
             section.get("section", ""),
@@ -567,12 +942,25 @@ class DocRenderer:
             section.get("grandparent", ""),
         )
 
+    # fn: section_level - Section level
+    # . Purpose
+    #   Section level for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   section  Value consumed by this function; see the typed Python signature for its contract.
     def section_level(self, section: Row) -> int:
         try:
             return int(section.get("level", "1") or "1")
         except ValueError:
             return 1
 
+    # fn: is_direct_child_section - Determine whether direct child section
+    # . Purpose
+    #   Determine whether direct child section for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   parent_section  Value consumed by this function; see the typed Python signature for its contract.
+    #   child_section  Value consumed by this function; see the typed Python signature for its contract.
     def is_direct_child_section(self, parent_section: Row, child_section: Row) -> bool:
         parent_name = parent_section.get("section", "")
         parent_parent = parent_section.get("parent", "")
@@ -588,6 +976,13 @@ class DocRenderer:
 
         return False
 
+    # fn: section_has_body_content - Section has body content
+    # . Purpose
+    #   Section has body content for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   module_name  Value consumed by this function; see the typed Python signature for its contract.
+    #   section  Value consumed by this function; see the typed Python signature for its contract.
     def section_has_body_content(self, module_name: str, section: Row) -> bool:
         section_name = section.get("section", "")
         parent_section = section.get("parent", "")
@@ -611,6 +1006,14 @@ class DocRenderer:
 
         return False
 
+    # fn: section_has_visible_direct_items - Section has visible direct items
+    # . Purpose
+    #   Section has visible direct items for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   module  Value consumed by this function; see the typed Python signature for its contract.
+    #   section  Value consumed by this function; see the typed Python signature for its contract.
+    #   module_items  Value consumed by this function; see the typed Python signature for its contract.
     def section_has_visible_direct_items(self, module: Row, section: Row, module_items: List[Row]) -> bool:
         section_name = section.get("section", "")
         parent_section = section.get("parent", "")
@@ -628,6 +1031,16 @@ class DocRenderer:
 
         return False
 
+    # fn: should_render_section - Determine whether render section
+    # . Purpose
+    #   Determine whether render section for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   module  Value consumed by this function; see the typed Python signature for its contract.
+    #   section  Value consumed by this function; see the typed Python signature for its contract.
+    #   module_sections  Value consumed by this function; see the typed Python signature for its contract.
+    #   module_items  Value consumed by this function; see the typed Python signature for its contract.
+    #   cache  Value consumed by this function; see the typed Python signature for its contract.
     def should_render_section(
         self,
         module: Row,
@@ -662,10 +1075,22 @@ class DocRenderer:
         cache[key] = False
         return False
 
+    # fn: add_module_node - Add module node
+    # . Purpose
+    #   Add module node for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   module  Value consumed by this function; see the typed Python signature for its contract.
+    #   parent_node_id  Value consumed by this function; see the typed Python signature for its contract.
+    #   hierarchy_level  Value consumed by this function; see the typed Python signature for its contract.
+    #   module_docindex  Value consumed by this function; see the typed Python signature for its contract.
+    #   section_rows  Value consumed by this function; see the typed Python signature for its contract.
+    #   item_rows  Value consumed by this function; see the typed Python signature for its contract.
     def add_module_node(
         self,
         module: Row,
-        group_node_id: str,
+        parent_node_id: str,
+        hierarchy_level: int,
         module_docindex: str,
         section_rows: List[Row],
         item_rows: List[Row],
@@ -678,11 +1103,11 @@ class DocRenderer:
         self.nav.append(
             NavNode(
                 nodeid=module_node_id,
-                parentnodeid=group_node_id,
+                parentnodeid=parent_node_id,
                 nodetype="module",
                 node_name=module_name,
                 node_title=module_title,
-                hierarchy_level=2,
+                hierarchy_level=hierarchy_level,
                 docindex=module_docindex,
                 contentref=module_ref,
             )
@@ -743,7 +1168,7 @@ class DocRenderer:
             section_docindex_by_id[node_id] = docindex
 
             section_ref = content_ref(module_name, grandparent_section, parent_section, section_name, "")
-            nav_level = 2 + section_level
+            nav_level = hierarchy_level + section_level
 
             self.nav.append(
                 NavNode(
@@ -797,6 +1222,9 @@ class DocRenderer:
                     )
                 )
 
+    # fn: build_content_index - Build content index
+    # . Purpose
+    #   Build content index for the documentation rendering workflow.
     def build_content_index(self) -> None:
         rows = sorted(
             self.doc_content_lines,
@@ -815,10 +1243,498 @@ class DocRenderer:
     # Rendering
     # ----------------------------------------------------------------------
 
+    # fn: render_assets - Render assets
+    # . Purpose
+    #   Render assets for the documentation rendering workflow.
     def render_assets(self) -> None:
         self.render_layout_css()
         self.ensure_theme_css()
+        self.copy_branding_assets()
 
+    # fn: copy_branding_assets - Copy branding assets
+    # . Purpose
+    #   Copy optional documentation branding images into the generated site.
+    def copy_branding_assets(self) -> None:
+        """Copy optional documentation branding images into the generated site."""
+        branding_dir = self.asset_dir / "branding"
+        branding_dir.mkdir(parents=True, exist_ok=True)
+
+        candidates = {
+            DOC_HEADER_LOGO: (
+                self.input_dir / DOC_HEADER_LOGO,
+                self.input_dir / "assets" / DOC_HEADER_LOGO,
+                Path(__file__).resolve().parent.parent / "assets" / DOC_HEADER_LOGO,
+            ),
+            DOC_INDEX_LOGO: (
+                self.input_dir / DOC_INDEX_LOGO,
+                self.input_dir / "assets" / DOC_INDEX_LOGO,
+                Path(__file__).resolve().parent.parent / "assets" / DOC_INDEX_LOGO,
+            ),
+        }
+
+        for target_name, source_candidates in candidates.items():
+            for source_file in source_candidates:
+                if source_file.is_file():
+                    shutil.copy2(source_file, branding_dir / target_name)
+                    break
+
+    # fn: branding_asset_exists - Branding asset exists
+    # . Purpose
+    #   Branding asset exists for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   name  Value consumed by this function; see the typed Python signature for its contract.
+    def branding_asset_exists(self, name: str) -> bool:
+        return (self.asset_dir / "branding" / name).is_file()
+
+    # fn: render_page_branding - Render page branding
+    # . Purpose
+    #   Render the compact SolidGroundUX identity used on documentation pages.
+    def render_page_branding(self) -> str:
+        """Render the compact SolidGroundUX identity used on documentation pages."""
+        if not self.branding_asset_exists(DOC_HEADER_LOGO):
+            return ""
+
+        return (
+            '<div class="doc-page-branding">'
+            '<span class="doc-page-branding-title">SolidGroundUX Documentation</span>'
+            f'<img src="../assets/branding/{esc(DOC_HEADER_LOGO)}" alt="SolidGroundUX">'
+            '</div>'
+        )
+
+    # fn: render_nav_branding - Render nav branding
+    # . Purpose
+    #   Render the Testadura publisher identity above the navigation index.
+    def render_nav_branding(self) -> str:
+        """Render the Testadura publisher identity above the navigation index."""
+        if not self.branding_asset_exists(DOC_INDEX_LOGO):
+            return ""
+
+        return (
+            '<div class="doc-nav-branding">'
+            f'<img src="assets/branding/{esc(DOC_INDEX_LOGO)}" alt="Documentation publisher">'
+            '</div>'
+        )
+
+    # ----------------------------------------------------------------------
+    # Theme specimen rendering
+    # ----------------------------------------------------------------------
+
+    # fn: is_theme_module - Determine whether theme module
+    # . Purpose
+    #   Return True for numbered SolidGroundUX semantic style modules.
+    #
+    # . Arguments
+    #   module  Value consumed by this function; see the typed Python signature for its contract.
+    def is_theme_module(self, module: Row) -> bool:
+        """Return True for numbered SolidGroundUX semantic style modules."""
+        source_name = Path(module.get("file", "") or module.get("name", "")).name
+        subgroup = (module.get("subgroup", "") or "").casefold()
+
+        return bool(
+            re.match(r"^\d+-style-[a-z0-9_-]+\.sh$", source_name, flags=re.IGNORECASE)
+            and subgroup == "styles"
+        )
+
+    # fn: parse_shell_assignments - Parse shell assignments
+    # . Purpose
+    #   Read simple top-level shell assignments without executing the file.
+    #
+    # . Arguments
+    #   path  Value consumed by this function; see the typed Python signature for its contract.
+    def parse_shell_assignments(self, path: Path) -> Dict[str, str]:
+        """Read simple top-level shell assignments without executing the file."""
+        assignments: Dict[str, str] = {}
+
+        if not path.is_file():
+            return assignments
+
+        assignment_re = re.compile(r"^\s*([A-Z][A-Z0-9_]*)=(.*)$")
+
+        for raw_line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+            match = assignment_re.match(raw_line)
+            if not match:
+                continue
+
+            name = match.group(1)
+            value = self.strip_shell_inline_comment(match.group(2).strip())
+            assignments[name] = value.strip()
+
+        return assignments
+
+    # fn: strip_shell_inline_comment - Strip shell inline comment
+    # . Purpose
+    #   Strip an unquoted shell comment from an assignment value.
+    #
+    # . Arguments
+    #   value  Value consumed by this function; see the typed Python signature for its contract.
+    def strip_shell_inline_comment(self, value: str) -> str:
+        """Strip an unquoted shell comment from an assignment value."""
+        single = False
+        double = False
+        escaped = False
+
+        for index, char in enumerate(value):
+            if escaped:
+                escaped = False
+                continue
+
+            if char == "\\":
+                escaped = True
+                continue
+
+            if char == "'" and not double:
+                single = not single
+                continue
+
+            if char == '"' and not single:
+                double = not double
+                continue
+
+            if char == "#" and not single and not double:
+                if index == 0 or value[index - 1].isspace():
+                    return value[:index].rstrip()
+
+        return value
+
+    # fn: xterm_256_rgb - Xterm 256 rgb
+    # . Purpose
+    #   Convert an xterm 256-color index to an RGB tuple.
+    #
+    # . Arguments
+    #   index  Value consumed by this function; see the typed Python signature for its contract.
+    def xterm_256_rgb(self, index: int) -> Tuple[int, int, int]:
+        """Convert an xterm 256-color index to an RGB tuple."""
+        basic = (
+            (0, 0, 0), (128, 0, 0), (0, 128, 0), (128, 128, 0),
+            (0, 0, 128), (128, 0, 128), (0, 128, 128), (192, 192, 192),
+            (128, 128, 128), (255, 0, 0), (0, 255, 0), (255, 255, 0),
+            (0, 0, 255), (255, 0, 255), (0, 255, 255), (255, 255, 255),
+        )
+
+        if 0 <= index < 16:
+            return basic[index]
+
+        if 16 <= index <= 231:
+            value = index - 16
+            red = value // 36
+            green = (value % 36) // 6
+            blue = value % 6
+            levels = (0, 95, 135, 175, 215, 255)
+            return levels[red], levels[green], levels[blue]
+
+        if 232 <= index <= 255:
+            gray = 8 + ((index - 232) * 10)
+            return gray, gray, gray
+
+        return 192, 192, 192
+
+    # fn: parse_sgr_color - Parse sgr color
+    # . Purpose
+    #   Extract a CSS foreground color from a literal SGR assignment.
+    #
+    # . Arguments
+    #   value  Value consumed by this function; see the typed Python signature for its contract.
+    def parse_sgr_color(self, value: str) -> str:
+        """Extract a CSS foreground color from a literal SGR assignment."""
+        rgb_match = re.search(r"38;2;(\d+);(\d+);(\d+)m", value)
+        if rgb_match:
+            red, green, blue = (int(part) for part in rgb_match.groups())
+            return f"rgb({red}, {green}, {blue})"
+
+        indexed_match = re.search(r"38;5;(\d+)m", value)
+        if indexed_match:
+            red, green, blue = self.xterm_256_rgb(int(indexed_match.group(1)))
+            return f"rgb({red}, {green}, {blue})"
+
+        return ""
+
+    # fn: resolve_theme_style - Resolve theme style
+    # . Purpose
+    #   Resolve a semantic style variable to CSS without sourcing shell code.
+    #
+    # . Arguments
+    #   variable_name  Value consumed by this function; see the typed Python signature for its contract.
+    #   assignments  Value consumed by this function; see the typed Python signature for its contract.
+    #   palette  Value consumed by this function; see the typed Python signature for its contract.
+    #   seen  Value consumed by this function; see the typed Python signature for its contract.
+    def resolve_theme_style(
+        self,
+        variable_name: str,
+        assignments: Dict[str, str],
+        palette: Dict[str, str],
+        seen: set[str] | None = None,
+    ) -> Dict[str, str]:
+        """Resolve a semantic style variable to CSS without sourcing shell code."""
+        if seen is None:
+            seen = set()
+
+        if variable_name in seen:
+            return {}
+
+        seen.add(variable_name)
+        raw = assignments.get(variable_name, palette.get(variable_name, "")).strip()
+        if not raw:
+            return {}
+
+        # Direct variable alias: $NAME or ${NAME}
+        alias_match = re.fullmatch(r"\$(?:\{)?([A-Z][A-Z0-9_]*)(?:\})?", raw)
+        if alias_match:
+            return self.resolve_theme_style(alias_match.group(1), assignments, palette, seen)
+
+        # sgnd_sgr "$BASE" "" "$FX_*"
+        sgr_match = re.search(
+            r'sgnd_sgr\s+"\$(?:\{)?([A-Z][A-Z0-9_]*)(?:\})?"\s+""\s+"\$(?:\{)?([A-Z][A-Z0-9_]*)(?:\})?"',
+            raw,
+        )
+        if sgr_match:
+            style = self.resolve_theme_style(sgr_match.group(1), assignments, palette, seen)
+            effect_name = sgr_match.group(2)
+            self.apply_theme_effect(style, effect_name, assignments, palette)
+            return style
+
+        color = self.parse_sgr_color(raw)
+        if color:
+            return {"color": color}
+
+        return {}
+
+    # fn: apply_theme_effect - Apply theme effect
+    # . Purpose
+    #   Map the SolidGroundUX SGR effect constants used by themes to CSS.
+    #
+    # . Arguments
+    #   style  Value consumed by this function; see the typed Python signature for its contract.
+    #   effect_name  Value consumed by this function; see the typed Python signature for its contract.
+    #   assignments  Value consumed by this function; see the typed Python signature for its contract.
+    #   palette  Value consumed by this function; see the typed Python signature for its contract.
+    def apply_theme_effect(
+        self,
+        style: Dict[str, str],
+        effect_name: str,
+        assignments: Dict[str, str],
+        palette: Dict[str, str],
+    ) -> None:
+        """Map the SolidGroundUX SGR effect constants used by themes to CSS."""
+        effect_value = assignments.get(effect_name, palette.get(effect_name, "")).strip()
+
+        if effect_name == "FX_BOLD" or effect_value == "1":
+            style["font-weight"] = "700"
+        elif effect_name == "FX_FAINT" or effect_value == "2":
+            style["opacity"] = "0.62"
+        elif effect_name == "FX_ITALIC" or effect_value == "3":
+            style["font-style"] = "italic"
+        elif effect_name == "FX_UNDERLINE" or effect_value == "4":
+            style["text-decoration"] = "underline"
+        elif effect_name == "FX_STRIKE" or effect_value == "9":
+            style["text-decoration"] = "line-through"
+
+    # fn: css_style_attr - Css style attr
+    # . Purpose
+    #   Css style attr for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   style  Value consumed by this function; see the typed Python signature for its contract.
+    def css_style_attr(self, style: Dict[str, str]) -> str:
+        if not style:
+            return ""
+        return "; ".join(f"{name}: {value}" for name, value in style.items())
+
+    # fn: theme_sample - Theme sample
+    # . Purpose
+    #   Theme sample for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   label  Value consumed by this function; see the typed Python signature for its contract.
+    #   variable_name  Value consumed by this function; see the typed Python signature for its contract.
+    #   assignments  Value consumed by this function; see the typed Python signature for its contract.
+    #   palette  Value consumed by this function; see the typed Python signature for its contract.
+    #   sample_text  Value consumed by this function; see the typed Python signature for its contract.
+    def theme_sample(
+        self,
+        label: str,
+        variable_name: str,
+        assignments: Dict[str, str],
+        palette: Dict[str, str],
+        sample_text: str = "",
+    ) -> str:
+        style = self.resolve_theme_style(variable_name, assignments, palette)
+        style_attr = self.css_style_attr(style)
+        text = sample_text or label
+
+        return (
+            '<div class="theme-sample-row">'
+            f'<code>{esc(variable_name)}</code>'
+            f'<span class="theme-sample-label">{esc(label)}</span>'
+            f'<span class="theme-sample-value" style="{esc(style_attr)}">{esc(text)}</span>'
+            '</div>'
+        )
+
+    # fn: theme_pair - Theme pair
+    # . Purpose
+    #   Theme pair for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   left_label  Value consumed by this function; see the typed Python signature for its contract.
+    #   left_variable  Value consumed by this function; see the typed Python signature for its contract.
+    #   right_label  Value consumed by this function; see the typed Python signature for its contract.
+    #   right_variable  Value consumed by this function; see the typed Python signature for its contract.
+    #   assignments  Value consumed by this function; see the typed Python signature for its contract.
+    #   palette  Value consumed by this function; see the typed Python signature for its contract.
+    def theme_pair(
+        self,
+        left_label: str,
+        left_variable: str,
+        right_label: str,
+        right_variable: str,
+        assignments: Dict[str, str],
+        palette: Dict[str, str],
+    ) -> str:
+        left_style = self.css_style_attr(self.resolve_theme_style(left_variable, assignments, palette))
+        right_style = self.css_style_attr(self.resolve_theme_style(right_variable, assignments, palette))
+
+        return (
+            '<div class="theme-pair">'
+            f'<span style="{esc(left_style)}">{esc(left_label)}</span>'
+            '<span class="theme-pair-separator">/</span>'
+            f'<span style="{esc(right_style)}">{esc(right_label)}</span>'
+            '</div>'
+        )
+
+    # fn: render_theme_specimen - Render theme specimen
+    # . Purpose
+    #   Render a live HTML specimen derived from a SolidGroundUX style file.
+    #
+    # . Arguments
+    #   module  Value consumed by this function; see the typed Python signature for its contract.
+    def render_theme_specimen(self, module: Row) -> str:
+        """Render a live HTML specimen derived from a SolidGroundUX style file."""
+        source_file = Path(module.get("file", "") or "")
+        if not source_file.is_file():
+            return ""
+
+        palette_file = source_file.parent / "default-ui-palette.sh"
+        assignments = self.parse_shell_assignments(source_file)
+        palette = self.parse_shell_assignments(palette_file)
+
+        if not assignments or not palette:
+            return ""
+
+        source_name = source_file.name
+        theme_key = re.sub(r"^\d+-style-", "", source_file.stem, flags=re.IGNORECASE)
+        theme_name = theme_key.replace("-", " ").replace("_", " ").title()
+
+        title_style = self.css_style_attr(
+            self.resolve_theme_style("SGND_TITLE_TEXTCLR", assignments, palette)
+        )
+        subtitle_style = self.css_style_attr(
+            self.resolve_theme_style("SGND_TITLE_SUBTEXTCLR", assignments, palette)
+        )
+        border_style = self.css_style_attr(
+            self.resolve_theme_style("SGND_TITLE_BORDERCLR", assignments, palette)
+        )
+        section_style = self.css_style_attr(
+            self.resolve_theme_style("SGND_SECTION_TEXTCLR", assignments, palette)
+        )
+        section_border_style = self.css_style_attr(
+            self.resolve_theme_style("SGND_SECTION_BORDERCLR", assignments, palette)
+        )
+        progress_bar_style = self.css_style_attr(
+            self.resolve_theme_style("PROG_BAR_CLR", assignments, palette)
+        )
+        progress_ind_style = self.css_style_attr(
+            self.resolve_theme_style("PROG_IND_CLR", assignments, palette)
+        )
+        progress_text_style = self.css_style_attr(
+            self.resolve_theme_style("PROG_TEXT_CLR", assignments, palette)
+        )
+
+        message_rows = (
+            ("START", "MSG_CLR_STRT", "START"),
+            ("INFO", "MSG_CLR_INFO", "Informational message"),
+            ("WARNING", "MSG_CLR_WARN", "Warning message"),
+            ("ERROR", "MSG_CLR_FAIL", "Failure message"),
+            ("SUCCESS", "MSG_CLR_OK", "Successful operation"),
+            ("CANCEL", "MSG_CLR_CNCL", "Cancelled operation"),
+            ("END", "MSG_CLR_END", "Completed operation"),
+            ("DEBUG", "MSG_CLR_DEBUG", "Diagnostic message"),
+            ("EMPTY", "MSG_CLR_EMPTY", "Neutral / empty message"),
+        )
+
+        ui_rows = (
+            ("Border", "SGND_UI_BORDER", "────────────"),
+            ("Label", "SGND_UI_LABEL", "SGND_UI_LABEL"),
+            ("Value", "SGND_UI_VALUE", "SGND_UI_VALUE"),
+            ("Text", "SGND_UI_TEXT", "Normal themed interface text"),
+            ("Default", "SGND_UI_DEFAULT", "Default / secondary value"),
+            ("Bold", "SGND_UI_BOLD", "Bold themed text"),
+            ("Faint", "SGND_UI_FAINT", "Faint themed text"),
+            ("Italic", "SGND_UI_ITALIC", "Italic themed text"),
+        )
+
+        lines: List[str] = [
+            '<section class="theme-specimen">',
+            '<div class="theme-specimen-heading">',
+            '<div>',
+            f'<div class="theme-specimen-title">{esc(theme_name)} Theme</div>',
+            f'<div class="theme-specimen-source">{esc(source_name)} · generated from semantic assignments</div>',
+            '</div>',
+            '<div class="theme-specimen-badge">Live specimen</div>',
+            '</div>',
+            '<div class="theme-terminal">',
+            f'<div class="theme-titlebar" style="border-color:{esc(self.resolve_theme_style("SGND_TITLE_BORDERCLR", assignments, palette).get("color", "currentColor"))}">',
+            f'<span style="{esc(title_style)}">SolidGroundUX Theme Showcase</span>',
+            f'<span style="{esc(title_style)}">{esc(source_file.stem)}</span>',
+            '</div>',
+            f'<div class="theme-subtitle" style="{esc(subtitle_style)}">Semantic UI colors and framework components</div>',
+            '<div class="theme-specimen-grid">',
+            '<section>',
+            f'<h3 style="{esc(section_style)}; border-color:{esc(self.resolve_theme_style("SGND_SECTION_BORDERCLR", assignments, palette).get("color", "currentColor"))}">Message output</h3>',
+        ]
+
+        for label, variable_name, sample in message_rows:
+            lines.append(self.theme_sample(label, variable_name, assignments, palette, sample))
+
+        lines.extend([
+            '</section>',
+            '<section>',
+            f'<h3 style="{esc(section_style)}; border-color:{esc(self.resolve_theme_style("SGND_SECTION_BORDERCLR", assignments, palette).get("color", "currentColor"))}">General UI elements</h3>',
+        ])
+
+        for label, variable_name, sample in ui_rows:
+            lines.append(self.theme_sample(label, variable_name, assignments, palette, sample))
+
+        lines.extend([
+            '</section>',
+            '<section>',
+            f'<h3 style="{esc(section_style)}; border-color:{esc(self.resolve_theme_style("SGND_SECTION_BORDERCLR", assignments, palette).get("color", "currentColor"))}">Run modes</h3>',
+            self.theme_pair("COMMIT", "SGND_UI_COMMIT", "DRY-RUN", "SGND_UI_DRYRUN", assignments, palette),
+            f'<h3 style="{esc(section_style)}; border-color:{esc(self.resolve_theme_style("SGND_SECTION_BORDERCLR", assignments, palette).get("color", "currentColor"))}">States and validation</h3>',
+            self.theme_pair("ENABLED", "SGND_UI_ENABLED", "DISABLED", "SGND_UI_DISABLED", assignments, palette),
+            self.theme_pair("ON", "SGND_UI_ON", "OFF", "SGND_UI_OFF", assignments, palette),
+            self.theme_pair("VALID", "SGND_UI_VALID", "INVALID", "SGND_UI_INVALID", assignments, palette),
+            self.theme_pair("SUCCESS", "SGND_UI_SUCCESS", "ERROR", "SGND_UI_ERROR", assignments, palette),
+            '</section>',
+            '<section>',
+            f'<h3 style="{esc(section_style)}; border-color:{esc(self.resolve_theme_style("SGND_SECTION_BORDERCLR", assignments, palette).get("color", "currentColor"))}">Prompt and input</h3>',
+            self.theme_pair("Prompt", "SGND_UI_PROMPT", "Input value", "SGND_UI_INPUT", assignments, palette),
+            f'<h3 style="{esc(section_style)}; border-color:{esc(self.resolve_theme_style("SGND_SECTION_BORDERCLR", assignments, palette).get("color", "currentColor"))}">Progress display</h3>',
+            '<div class="theme-progress-row">',
+            f'<span class="theme-progress-bar" style="{esc(progress_bar_style)}">[##############........]</span>',
+            f'<span style="{esc(progress_ind_style)}">65%</span>',
+            f'<span style="{esc(progress_text_style)}">65/100</span>',
+            '</div>',
+            '</section>',
+            '</div>',
+            '</div>',
+            '</section>',
+        ])
+
+        return "\n".join(lines)
+
+    # fn: render_layout_css - Render layout css
+    # . Purpose
+    #   Render layout css for the documentation rendering workflow.
     def render_layout_css(self) -> None:
         css_file = self.asset_dir / "doc.css"
         css_file.write_text("""html, body {
@@ -851,6 +1767,49 @@ body {
     margin: 0 0 14px;
     padding-bottom: 8px;
     border-bottom: 1px solid var(--doc-border);
+}
+
+.doc-nav-branding {
+    margin: -12px 0 22px;
+    text-align: center;
+}
+
+.doc-nav-branding img {
+    display: block;
+    width: min(100%, 220px);
+    height: auto;
+    max-height: 72px;
+    object-fit: contain;
+    margin: 0 auto;
+}
+
+.doc-page-branding {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    min-height: 46px;
+    margin: -18px -48px 20px;
+    padding: 10px 48px;
+    color: var(--doc-muted);
+    background: var(--doc-page-background, #ffffff);
+    border-bottom: 1px solid var(--doc-border);
+}
+
+.doc-page-branding-title {
+    font-size: 11pt;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.doc-page-branding img {
+    display: block;
+    width: auto;
+    height: 46px;
+    object-fit: contain;
 }
 
 .doc-nav-node {
@@ -893,6 +1852,9 @@ body {
 .type-group,
 .type-group a,
 .type-group > summary,
+.type-subgroup,
+.type-subgroup a,
+.type-subgroup > summary,
 .type-appendices,
 .type-appendices a,
 .type-appendices > summary,
@@ -1029,6 +1991,120 @@ body {
     font-size: 9.5pt;
 }
 
+.theme-specimen {
+    margin: 0 0 28px;
+    border: 1px solid var(--doc-border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--doc-panel);
+}
+
+.theme-specimen-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--doc-border);
+}
+
+.theme-specimen-title {
+    font-size: 13pt;
+    font-weight: 700;
+}
+
+.theme-specimen-source {
+    margin-top: 3px;
+    color: var(--doc-muted);
+    font-size: 9pt;
+}
+
+.theme-specimen-badge {
+    padding: 4px 9px;
+    border: 1px solid var(--doc-border);
+    border-radius: 999px;
+    color: var(--doc-muted);
+    font-size: 8.5pt;
+    white-space: nowrap;
+}
+
+.theme-terminal {
+    padding: 18px;
+    background: #242424;
+    color: #c8c8c8;
+    font-family: "Cascadia Mono", "Cascadia Code", Consolas, monospace;
+    font-size: 9pt;
+}
+
+.theme-titlebar {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 4px 2px 8px;
+    border-top: 1px solid;
+    border-bottom: 1px solid;
+}
+
+.theme-subtitle {
+    padding: 6px 2px 14px;
+    text-align: center;
+}
+
+.theme-specimen-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 28px;
+}
+
+.theme-specimen-grid h3 {
+    margin: 10px 0 8px;
+    padding: 0 0 4px;
+    border-bottom: 1px solid;
+    font-family: inherit;
+    font-size: 9.5pt;
+}
+
+.theme-sample-row {
+    display: grid;
+    grid-template-columns: 165px 90px minmax(0, 1fr);
+    gap: 10px;
+    align-items: baseline;
+    min-height: 22px;
+}
+
+.theme-sample-row code {
+    color: #8a8a8a;
+    font-family: inherit;
+    font-size: 8pt;
+}
+
+.theme-sample-label {
+    color: #aaa;
+}
+
+.theme-pair {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    min-height: 25px;
+}
+
+.theme-pair-separator {
+    color: #666;
+}
+
+.theme-progress-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: baseline;
+    padding: 6px 0;
+}
+
+.theme-progress-bar {
+    white-space: pre;
+}
+
 @media (max-width: 900px) {
     .doc-shell {
         grid-template-columns: 270px 1fr;
@@ -1038,9 +2114,20 @@ body {
         padding: 32px 28px 48px;
     }
 
+    .doc-page-branding {
+        margin-left: -28px;
+        margin-right: -28px;
+        padding-left: 28px;
+        padding-right: 28px;
+    }
+
     .doc-summary-tiles,
     .doc-image-group.images-3 {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .theme-specimen-grid {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -1054,6 +2141,9 @@ body {
 }
 """, encoding="utf-8")
 
+    # fn: ensure_theme_css - Ensure theme css
+    # . Purpose
+    #   Ensure theme css for the documentation rendering workflow.
     def ensure_theme_css(self) -> None:
         theme_file = self.asset_dir / "theme.css"
 
@@ -1062,8 +2152,12 @@ body {
 
         theme_file.write_text(self.default_theme_css(), encoding="utf-8")
 
+    # fn: default_theme_css - Provide default theme css
+    # . Purpose
+    #   Provide default theme css for the documentation rendering workflow.
     def default_theme_css(self) -> str:
         return """:root {
+    --doc-page-background: #ffffff;
     --doc-text: #1f2933;
     --doc-muted: #667085;
     --doc-border: #d9dee7;
@@ -1158,6 +2252,7 @@ body {
 }
 
 .ct-functionheader,
+.ct-classheader,
 .ct-variableheader,
 .ct-gendocheader {
     font-size: 11.5pt;
@@ -1174,6 +2269,7 @@ body {
 .ct-L2Sectionbody,
 .ct-L3Sectionbody,
 .ct-functionbody,
+.ct-classbody,
 .ct-variablebody,
 .ct-gendocbody,
 .ct-documentbody {
@@ -1289,6 +2385,13 @@ body {
 }
 """
 
+    # fn: title_from_rows - Title from rows
+    # . Purpose
+    #   Title from rows for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   ref  Value consumed by this function; see the typed Python signature for its contract.
+    #   fallback  Value consumed by this function; see the typed Python signature for its contract.
     def title_from_rows(self, ref: str, fallback: str) -> str:
         for row in self.content_by_ref.get(ref, []):
             if row.get("suppress", "0") == "1":
@@ -1298,6 +2401,9 @@ body {
                 return row.get("content", "") or fallback
         return fallback
 
+    # fn: regular_module_rows - Regular module rows
+    # . Purpose
+    #   Regular module rows for the documentation rendering workflow.
     def regular_module_rows(self) -> List[Row]:
         rows: List[Row] = []
 
@@ -1310,6 +2416,12 @@ body {
 
         return rows
 
+    # fn: count_source_lines - Count source lines
+    # . Purpose
+    #   Count source lines for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   source_path  Value consumed by this function; see the typed Python signature for its contract.
     def count_source_lines(self, source_path: str) -> tuple[int, int]:
         if not source_path:
             return (0, 0)
@@ -1336,6 +2448,9 @@ body {
 
         return (line_count, code_line_count)
 
+    # fn: collect_landing_summary - Collect landing summary
+    # . Purpose
+    #   Collect landing summary for the documentation rendering workflow.
     def collect_landing_summary(self) -> Dict[str, int]:
         module_rows = self.regular_module_rows()
         source_files = {row.get("file", "") for row in module_rows if row.get("file", "")}
@@ -1364,6 +2479,9 @@ body {
             "functions": function_count,
         }
 
+    # fn: render_landing_summary - Render landing summary
+    # . Purpose
+    #   Render landing summary for the documentation rendering workflow.
     def render_landing_summary(self) -> str:
         summary = self.collect_landing_summary()
 
@@ -1394,6 +2512,9 @@ body {
 
         return "\n".join(lines)
 
+    # fn: render_title_page - Render title page
+    # . Purpose
+    #   Render title page for the documentation rendering workflow.
     def render_title_page(self) -> None:
         output_file = self.page_dir / "title.html"
         output_file.parent.mkdir(parents=True, exist_ok=True)
@@ -1401,7 +2522,7 @@ body {
         product = self.doc_product or "SolidGroundUX"
         brand = "SolidGroundUX" if product.lower() == "solidgroundux" else product
         subtitle = "Professional Bash Framework"
-        release_image = self.output_dir / "assets" / "images" / "release.png"
+        release_image = self.output_dir / "assets" / "images" / DOC_INDEX_HERO
 
         meta_lines = []
         if self.doc_version:
@@ -1412,7 +2533,7 @@ body {
         if release_image.is_file():
             hero_html = "\n".join([
                 '<figure class="doc-title-page-hero">',
-                f'<img src="../assets/images/release.png" alt="{esc(brand)} release overview">',
+                f'<img src="../assets/images/{esc(DOC_INDEX_HERO)}" alt="{esc(brand)} release overview">',
                 '</figure>',
             ])
 
@@ -1429,6 +2550,7 @@ body {
             "</head>",
             "<body>",
             '<main class="doc-page doc-title-page">',
+            self.render_page_branding(),
             f'<h1 class="doc-title-page-title">{esc(brand)}</h1>',
             f'<div class="doc-title-page-subtitle">{esc(subtitle)}</div>',
             hero_html,
@@ -1444,6 +2566,9 @@ body {
 
         output_file.write_text("\n".join(line for line in html_lines if line), encoding="utf-8")
 
+    # fn: render_index_page - Render index page
+    # . Purpose
+    #   Render index page for the documentation rendering workflow.
     def render_index_page(self) -> None:
         first_page = "pages/title.html"
         index_file = self.output_dir / "index.html"
@@ -1459,6 +2584,7 @@ body {
             "<body>",
             '<div class="doc-shell">',
             '<nav class="doc-nav">',
+            self.render_nav_branding(),
             '  <div class="doc-nav-title">Index</div>',
             self.render_navigation(),
             "</nav>",
@@ -1470,6 +2596,12 @@ body {
 
         index_file.write_text("\n".join(html_lines), encoding="utf-8")
 
+    # fn: is_appendix_ref - Determine whether appendix ref
+    # . Purpose
+    #   Determine whether appendix ref for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   ref  Value consumed by this function; see the typed Python signature for its contract.
     def is_appendix_ref(self, ref: str) -> bool:
         return any(ref.startswith(prefix) for prefix in (
             CANONICAL_PREFIX,
@@ -1483,19 +2615,28 @@ body {
             INSTALL_PREFIX,
         ))
 
+    # fn: has_renderable_page - Determine whether renderable page
+    # . Purpose
+    #   Determine whether renderable page for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   ref  Value consumed by this function; see the typed Python signature for its contract.
     def has_renderable_page(self, ref: str) -> bool:
         return self.is_appendix_ref(ref) or ref in self.content_by_ref
     
+    # fn: render_navigation - Render navigation
+    # . Purpose
+    #   Render navigation for the documentation rendering workflow.
     def render_navigation(self) -> str:
         lines: List[str] = []
         open_detail_levels: List[int] = []
-        container_types = {"group", "module", "appendices"}
+        container_types = {"group", "subgroup", "module", "appendices"}
 
         for node in self.nav:
             label = node.node_name
             current_level = node.hierarchy_level
             indent = current_level * 10
-            special_nav_types = {"product", "group", "appendices", "appendix", "preface", "epilogue"}
+            special_nav_types = {"product", "group", "subgroup", "appendices", "appendix", "preface", "epilogue"}
             style = f"padding-left:{indent}px"
             href = page_href_from_contentref(node.contentref) if node.contentref else ""
             if node.nodetype == "product":
@@ -1548,6 +2689,9 @@ body {
 
         return "\n".join(lines)
 
+    # fn: get_first_item_page - Get first item page
+    # . Purpose
+    #   Get first item page for the documentation rendering workflow.
     def get_first_item_page(self) -> str:
         for node in self.nav:
             if node.contentref and node.contentref in self.content_by_ref:
@@ -1559,6 +2703,9 @@ body {
 
         return "about:blank"
 
+    # fn: render_content_pages - Render content pages
+    # . Purpose
+    #   Render content pages for the documentation rendering workflow.
     def render_content_pages(self) -> None:
         rendered_refs: set[str] = set()
 
@@ -1585,6 +2732,12 @@ body {
                 continue
             self.render_content_page_for_ref(ref, rows)
 
+    # fn: render_attribution_page - Render attribution page
+    # . Purpose
+    #   Render attribution page for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   product_name  Value consumed by this function; see the typed Python signature for its contract.
     def render_attribution_page(self, product_name: str) -> None:
         ref = attribution_ref(product_name)
         href = page_href_from_contentref(ref)
@@ -1604,6 +2757,7 @@ body {
             "</head>",
             "<body>",
             '<main class="doc-page">',
+            self.render_page_branding(),
             '<header class="doc-page-header">',
             '  <div class="doc-title">Appendix A: Attribution</div>',
             f'  <div class="doc-breadcrumb">{esc(product_name)} / Appendices / Appendix A: Attribution</div>',
@@ -1616,6 +2770,12 @@ body {
 
         output_file.write_text("\n".join(html_lines), encoding="utf-8")
 
+    # fn: render_attribution_body - Render attribution body
+    # . Purpose
+    #   Render attribution body for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   product_name  Value consumed by this function; see the typed Python signature for its contract.
     def render_attribution_body(self, product_name: str) -> str:
         modules_by_name: Dict[str, Row] = {
             module.get("name", ""): module
@@ -1691,6 +2851,12 @@ body {
 
         return "\n".join(lines)
 
+    # fn: render_glossary_page - Render glossary page
+    # . Purpose
+    #   Render glossary page for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   product_name  Value consumed by this function; see the typed Python signature for its contract.
     def render_glossary_page(self, product_name: str) -> None:
         ref = glossary_ref(product_name)
         href = page_href_from_contentref(ref)
@@ -1710,6 +2876,7 @@ body {
             "</head>",
             "<body>",
             '<main class="doc-page">',
+            self.render_page_branding(),
             '<header class="doc-page-header">',
             '  <div class="doc-title">Appendix B: Glossary</div>',
             f'  <div class="doc-breadcrumb">{esc(product_name)} / Appendices / Appendix B: Glossary</div>',
@@ -1722,6 +2889,12 @@ body {
 
         output_file.write_text("\n".join(html_lines), encoding="utf-8")
 
+    # fn: render_glossary_body - Render glossary body
+    # . Purpose
+    #   Render glossary body for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   product_name  Value consumed by this function; see the typed Python signature for its contract.
     def render_glossary_body(self, product_name: str) -> str:
         function_rows = self.collect_glossary_rows(product_name, "function")
         variable_rows = self.collect_glossary_rows(product_name, "variable")
@@ -1734,6 +2907,13 @@ body {
 
         return "\n".join(lines)
 
+    # fn: collect_glossary_rows - Collect glossary rows
+    # . Purpose
+    #   Collect glossary rows for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   product_name  Value consumed by this function; see the typed Python signature for its contract.
+    #   item_type  Value consumed by this function; see the typed Python signature for its contract.
     def collect_glossary_rows(self, product_name: str, item_type: str) -> List[Row]:
         modules_by_name: Dict[str, Row] = {
             module.get("name", ""): module
@@ -1777,6 +2957,12 @@ body {
         rows.sort(key=lambda row: (row.get("name", "").casefold(), row.get("module", "").casefold()))
         return rows
 
+    # fn: extract_item_purpose - Extract item purpose
+    # . Purpose
+    #   Extract item purpose for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   ref  Value consumed by this function; see the typed Python signature for its contract.
     def extract_item_purpose(self, ref: str) -> str:
         rows = self.content_by_ref.get(ref, [])
 
@@ -1820,6 +3006,14 @@ body {
 
         return " ".join(purpose_lines)
 
+    # fn: render_glossary_table - Render glossary table
+    # . Purpose
+    #   Render glossary table for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   title  Value consumed by this function; see the typed Python signature for its contract.
+    #   name_header  Value consumed by this function; see the typed Python signature for its contract.
+    #   rows  Value consumed by this function; see the typed Python signature for its contract.
     def render_glossary_table(self, title: str, name_header: str, rows: List[Row]) -> str:
         lines: List[str] = [
             '<section class="doc-glossary-block">',
@@ -1856,6 +3050,12 @@ body {
         ])
         return "\n".join(lines)
 
+    # fn: render_integrity_page - Render integrity page
+    # . Purpose
+    #   Render integrity page for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   product_name  Value consumed by this function; see the typed Python signature for its contract.
     def render_integrity_page(self, product_name: str) -> None:
         ref = integrity_ref(product_name)
         href = page_href_from_contentref(ref)
@@ -1875,6 +3075,7 @@ body {
             "</head>",
             "<body>",
             '<main class="doc-page">',
+            self.render_page_branding(),
             '<header class="doc-page-header">',
             '  <div class="doc-title">Appendix C: Integrity Information</div>',
             f'  <div class="doc-breadcrumb">{esc(product_name)} / Appendices / Appendix C: Integrity Information</div>',
@@ -1887,6 +3088,12 @@ body {
 
         output_file.write_text("\n".join(html_lines), encoding="utf-8")
 
+    # fn: render_integrity_body - Render integrity body
+    # . Purpose
+    #   Render integrity body for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   product_name  Value consumed by this function; see the typed Python signature for its contract.
     def render_integrity_body(self, product_name: str) -> str:
         rows: List[Row] = []
 
@@ -1940,6 +3147,12 @@ body {
 
         return "\n".join(lines)
 
+    # fn: render_license_page - Render license page
+    # . Purpose
+    #   Render license page for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   product_name  Value consumed by this function; see the typed Python signature for its contract.
     def render_license_page(self, product_name: str) -> None:
         ref = license_ref(product_name)
         href = page_href_from_contentref(ref)
@@ -1959,6 +3172,7 @@ body {
             "</head>",
             "<body>",
             '<main class="doc-page">',
+            self.render_page_branding(),
             '<header class="doc-page-header">',
             '  <div class="doc-title">Appendix X: License</div>',
             f'  <div class="doc-breadcrumb">{esc(product_name)} / Appendices / Appendix X: License</div>',
@@ -1971,6 +3185,9 @@ body {
 
         output_file.write_text("\n".join(html_lines), encoding="utf-8")
 
+    # fn: render_license_body - Render license body
+    # . Purpose
+    #   Render license body for the documentation rendering workflow.
     def render_license_body(self) -> str:
         lines: List[str] = [
             '<div class="ct-documentbody">This appendix contains the active SolidGroundUX license text exported by the Bash renderer hand-off.</div>',
@@ -1986,6 +3203,12 @@ body {
         lines.append('</pre>')
         return "\n".join(lines)
 
+    # fn: render_enums_page - Render enums page
+    # . Purpose
+    #   Render enums page for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   product_name  Value consumed by this function; see the typed Python signature for its contract.
     def render_enums_page(self, product_name: str) -> None:
         ref = enums_ref(product_name)
         href = page_href_from_contentref(ref)
@@ -2005,6 +3228,7 @@ body {
             "</head>",
             "<body>",
             '<main class="doc-page">',
+            self.render_page_branding(),
             '<header class="doc-page-header">',
             '  <div class="doc-title">Appendix E: Framework Value Sets</div>',
             f'  <div class="doc-breadcrumb">{esc(product_name)} / Appendices / Appendix E: Framework Value Sets</div>',
@@ -2017,6 +3241,9 @@ body {
 
         output_file.write_text("\n".join(html_lines), encoding="utf-8")
 
+    # fn: render_enums_body - Render enums body
+    # . Purpose
+    #   Render enums body for the documentation rendering workflow.
     def render_enums_body(self) -> str:
         grouped: Dict[str, List[Row]] = defaultdict(list)
 
@@ -2060,6 +3287,12 @@ body {
 
         return "\n".join(lines)
 
+    # fn: render_globals_page - Render globals page
+    # . Purpose
+    #   Render globals page for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   product_name  Value consumed by this function; see the typed Python signature for its contract.
     def render_globals_page(self, product_name: str) -> None:
         ref = globals_ref(product_name)
         href = page_href_from_contentref(ref)
@@ -2079,6 +3312,7 @@ body {
             "</head>",
             "<body>",
             '<main class="doc-page">',
+            self.render_page_branding(),
             '<header class="doc-page-header">',
             '  <div class="doc-title">Appendix D: Global Variables</div>',
             f'  <div class="doc-breadcrumb">{esc(product_name)} / Appendices / Appendix D: Global Variables</div>',
@@ -2091,6 +3325,12 @@ body {
 
         output_file.write_text("\n".join(html_lines), encoding="utf-8")
 
+    # fn: render_globals_body - Render globals body
+    # . Purpose
+    #   Render globals body for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   product_name  Value consumed by this function; see the typed Python signature for its contract.
     def render_globals_body(self, product_name: str) -> str:
         modules_by_name: Dict[str, Row] = {
             module.get("name", ""): module
@@ -2140,6 +3380,13 @@ body {
 
         return "\n".join(lines)
 
+    # fn: render_globals_table - Render globals table
+    # . Purpose
+    #   Render globals table for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   title  Value consumed by this function; see the typed Python signature for its contract.
+    #   rows  Value consumed by this function; see the typed Python signature for its contract.
     def render_globals_table(self, title: str, rows: List[Row]) -> str:
         lines: List[str] = [
             '<section class="doc-globals-block">',
@@ -2188,6 +3435,12 @@ body {
         ])
         return "\n".join(lines)
 
+    # fn: read_optional_project_document - Read optional project document
+    # . Purpose
+    #   Read optional project document for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   candidates  Value consumed by this function; see the typed Python signature for its contract.
     def read_optional_project_document(self, candidates: Sequence[str]) -> tuple[str, str]:
         for name in candidates:
             path = self.input_dir / name
@@ -2195,6 +3448,12 @@ body {
                 return name, path.read_text(encoding="utf-8", errors="replace")
         return candidates[0], ""
 
+    # fn: render_markdown_document - Render markdown document
+    # . Purpose
+    #   Render markdown document for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   markdown_text  Value consumed by this function; see the typed Python signature for its contract.
     def render_markdown_document(self, markdown_text: str) -> str:
         if not markdown_text.strip():
             return ""
@@ -2205,11 +3464,17 @@ body {
         in_code = False
         code_lines: List[str] = []
 
+        # fn: flush_paragraph - Flush paragraph
+        # . Purpose
+        #   Flush paragraph for the documentation rendering workflow.
         def flush_paragraph() -> None:
             if paragraph:
                 lines.append(f'<p class="ct-documentbody">{esc(" ".join(paragraph))}</p>')
                 paragraph.clear()
 
+        # fn: close_list - Close list
+        # . Purpose
+        #   Close list for the documentation rendering workflow.
         def close_list() -> None:
             nonlocal list_type
             if list_type:
@@ -2269,6 +3534,16 @@ body {
 
         return "\n".join(lines)
 
+    # fn: render_project_document_page - Render project document page
+    # . Purpose
+    #   Render project document page for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   product_name  Value consumed by this function; see the typed Python signature for its contract.
+    #   ref  Value consumed by this function; see the typed Python signature for its contract.
+    #   letter  Value consumed by this function; see the typed Python signature for its contract.
+    #   title  Value consumed by this function; see the typed Python signature for its contract.
+    #   candidates  Value consumed by this function; see the typed Python signature for its contract.
     def render_project_document_page(
         self,
         product_name: str,
@@ -2300,6 +3575,7 @@ body {
             "</head>",
             "<body>",
             '<main class="doc-page">',
+            self.render_page_branding(),
             '<header class="doc-page-header">',
             f'  <div class="doc-title">{esc(label)}</div>',
             f'  <div class="doc-breadcrumb">{esc(product_name)} / Appendices / {esc(label)}</div>',
@@ -2311,6 +3587,12 @@ body {
         ]
         output_file.write_text("\n".join(html_lines), encoding="utf-8")
 
+    # fn: render_canonical_page - Render canonical page
+    # . Purpose
+    #   Render canonical page for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   product_name  Value consumed by this function; see the typed Python signature for its contract.
     def render_canonical_page(self, product_name: str) -> None:
         self.render_project_document_page(
             product_name,
@@ -2324,6 +3606,12 @@ body {
             ),
         )
 
+    # fn: render_changelog_page - Render changelog page
+    # . Purpose
+    #   Render changelog page for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   product_name  Value consumed by this function; see the typed Python signature for its contract.
     def render_changelog_page(self, product_name: str) -> None:
         self.render_project_document_page(
             product_name,
@@ -2333,6 +3621,12 @@ body {
             ("CHANGELOG.md", "Changelog.md", "changelog.md"),
         )
 
+    # fn: render_install_page - Render install page
+    # . Purpose
+    #   Render install page for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   product_name  Value consumed by this function; see the typed Python signature for its contract.
     def render_install_page(self, product_name: str) -> None:
         self.render_project_document_page(
             product_name,
@@ -2342,6 +3636,12 @@ body {
             ("INSTALL.md", "Install.md", "install.md"),
         )
 
+    # fn: render_content_page - Render content page
+    # . Purpose
+    #   Render content page for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   node  Value consumed by this function; see the typed Python signature for its contract.
     def render_content_page(self, node: NavNode) -> None:
         href = page_href_from_contentref(node.contentref)
         output_file = self.output_dir / href
@@ -2360,6 +3660,16 @@ body {
         else:
             body = self.render_content_for_ref(node.contentref, skip_first_header=True)
 
+        if node.nodetype == "module":
+            module_row = next(
+                (module for module in self.mod_table if module.get("name", "") == node.node_name),
+                None,
+            )
+            if module_row is not None and self.is_theme_module(module_row):
+                specimen = self.render_theme_specimen(module_row)
+                if specimen:
+                    body = specimen + "\n" + body
+
         html_lines = [
             "<!doctype html>",
             "<html>",
@@ -2371,6 +3681,7 @@ body {
             "</head>",
             "<body>",
             '<main class="doc-page">',
+            self.render_page_branding(),
             '<header class="doc-page-header">',
             f'  <div class="doc-title">{esc(title)}</div>',
             f'  <div class="doc-breadcrumb">{esc(breadcrumb)}</div>',
@@ -2383,6 +3694,13 @@ body {
 
         output_file.write_text("\n".join(html_lines), encoding="utf-8")
 
+    # fn: render_content_page_for_ref - Render content page for ref
+    # . Purpose
+    #   Render content page for ref for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   ref  Value consumed by this function; see the typed Python signature for its contract.
+    #   rows  Value consumed by this function; see the typed Python signature for its contract.
     def render_content_page_for_ref(self, ref: str, rows: List[Row]) -> None:
         href = page_href_from_contentref(ref)
         output_file = self.output_dir / href
@@ -2408,6 +3726,7 @@ body {
             "</head>",
             "<body>",
             '<main class="doc-page">',
+            self.render_page_branding(),
             '<header class="doc-page-header">',
             f'  <div class="doc-title">{esc(title)}</div>',
             f'  <div class="doc-breadcrumb">{esc(ref)}</div>',
@@ -2420,6 +3739,12 @@ body {
 
         output_file.write_text("\n".join(html_lines), encoding="utf-8")
 
+    # fn: breadcrumb_from_contentref - Breadcrumb from contentref
+    # . Purpose
+    #   Breadcrumb from contentref for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   ref  Value consumed by this function; see the typed Python signature for its contract.
     def breadcrumb_from_contentref(self, ref: str) -> str:
         parts = ref.split(":")
         while len(parts) < 5:
@@ -2438,6 +3763,12 @@ body {
 
         return " / ".join(part for part in breadcrumb_parts if part)
 
+    # fn: is_module_level_special_page - Determine whether module level special page
+    # . Purpose
+    #   Determine whether module level special page for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   node  Value consumed by this function; see the typed Python signature for its contract.
     def is_module_level_special_page(self, node: NavNode) -> bool:
         if node.nodetype not in {"preface", "epilogue", "documentation"}:
             return False
@@ -2448,6 +3779,13 @@ body {
 
         return bool(parts[0]) and not any(parts[1:5])
 
+    # fn: render_module_content - Render module content
+    # . Purpose
+    #   Render module content for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   module_name  Value consumed by this function; see the typed Python signature for its contract.
+    #   skip_first_header  Value consumed by this function; see the typed Python signature for its contract.
     def render_module_content(self, module_name: str, skip_first_header: bool = False) -> str:
         rows = sorted(
             [row for row in self.doc_content_lines if row.get("file", "") == module_name],
@@ -2459,11 +3797,23 @@ body {
 
         return self.render_rows(rows, skip_first_header=skip_first_header)
 
+    # fn: is_images_marker - Determine whether images marker
+    # . Purpose
+    #   Determine whether images marker for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   row  Value consumed by this function; see the typed Python signature for its contract.
     def is_images_marker(self, row: Row) -> bool:
         if (row.get("content", "") or "").strip().casefold() not in {"image", "images"}:
             return False
         return (row.get("stylehint", "normal") or "normal") in {"label", "highlight"}
 
+    # fn: parse_image_entry - Parse image entry
+    # . Purpose
+    #   Parse image entry for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   value  Value consumed by this function; see the typed Python signature for its contract.
     def parse_image_entry(self, value: str) -> tuple[str, str]:
         text = (value or "").strip()
 
@@ -2473,6 +3823,12 @@ body {
 
         return text, ""
 
+    # fn: image_source - Image source
+    # . Purpose
+    #   Image source for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   source  Value consumed by this function; see the typed Python signature for its contract.
     def image_source(self, source: str) -> str:
         clean_source = source.strip().replace("\\", "/")
         if re.match(r"^(?:https?:|data:|/)" , clean_source, flags=re.IGNORECASE):
@@ -2481,6 +3837,12 @@ body {
             return f"../{clean_source}"
         return f"../assets/images/{clean_source}"
 
+    # fn: render_image_group - Render image group
+    # . Purpose
+    #   Render image group for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   entries  Value consumed by this function; see the typed Python signature for its contract.
     def render_image_group(self, entries: Sequence[tuple[str, str]]) -> str:
         valid_entries = [(source, caption) for source, caption in entries if source]
         if not valid_entries:
@@ -2502,6 +3864,12 @@ body {
         lines.append('</div>')
         return "\n".join(lines)
 
+    # fn: is_flowing_prose_row - Determine whether flowing prose row
+    # . Purpose
+    #   Return True when a row may be reflowed into a logical paragraph.
+    #
+    # . Arguments
+    #   row  Value consumed by this function; see the typed Python signature for its contract.
     def is_flowing_prose_row(self, row: Row) -> bool:
         """Return True when a row may be reflowed into a logical paragraph."""
         if row.get("suppress", "0") == "1":
@@ -2530,6 +3898,13 @@ body {
 
         return True
 
+    # fn: render_rows - Render rows
+    # . Purpose
+    #   Render rows for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   rows  Value consumed by this function; see the typed Python signature for its contract.
+    #   skip_first_header  Value consumed by this function; see the typed Python signature for its contract.
     def render_rows(self, rows: Sequence[Row], skip_first_header: bool = False) -> str:
         lines: List[str] = []
         skipped_first_header = False
@@ -2613,10 +3988,23 @@ body {
 
         return "\n".join(lines)
 
+    # fn: render_content_for_ref - Render content for ref
+    # . Purpose
+    #   Render content for ref for the documentation rendering workflow.
+    #
+    # . Arguments
+    #   ref  Value consumed by this function; see the typed Python signature for its contract.
+    #   skip_first_header  Value consumed by this function; see the typed Python signature for its contract.
     def render_content_for_ref(self, ref: str, skip_first_header: bool = False) -> str:
         return self.render_rows(self.content_by_ref.get(ref, []), skip_first_header=skip_first_header)
 
 
+# fn: main - Run documentation renderer
+# . Purpose
+#   Run documentation renderer for the documentation rendering workflow.
+#
+# . Arguments
+#   argv  Value consumed by this function; see the typed Python signature for its contract.
 def main(argv: Sequence[str]) -> int:
     if len(argv) != 3:
         print("Usage: python3 sgnd_doc_renderer.py <input-dir> <output-dir>", file=sys.stderr)

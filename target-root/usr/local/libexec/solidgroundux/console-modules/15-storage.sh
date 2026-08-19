@@ -3,11 +3,12 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2622911
-#   Checksum    : 2d3c36a82ce44dabff12e40441bf68ad8608eff6a8b068d36761da4d4b6877bb
+#   Build       : 2623103
+#   Checksum    : 2b9d7207794bcc219a1cf85a54a6b9f8de516014966793e97a896e8bf8839419
 #   Source      : 15-storage.sh
 #   Type        : module
 #   Group       : SolidGround Console
+#   Subgroup    : Console Modules
 #   Purpose     : Configure and inspect local storage volumes
 #
 # Description:

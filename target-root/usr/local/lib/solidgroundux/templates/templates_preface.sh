@@ -3,11 +3,12 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2622911
-#   Checksum    : 33ae1cd975c0cb0774f0938db3ad3076be77052407ad4f0bb453891f6b5a35fb
+#   Build       : 2623103
+#   Checksum    : 5233714c7ee00376394e95196b9f0c3fdb3d5de49bf0cfea3b261db1abd70d59
 #   Source      : templates_preface.sh
 #   Type        : documentation
-#   Group       : Templates
+#   Group       : SDK
+#   Subgroup    : Templates
 #   Purpose     : Group preface
 #
 # Attribution:
