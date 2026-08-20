@@ -4,8 +4,8 @@
 # ------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623103
-#   Checksum    : b99101052d8a6e7e94b6173dee19a3edfb060ad5a1ea54964ad86bc19e45830c
+#   Build       : 2623116
+#   Checksum    : b12493bbf4f587df211e6d9d6a3f78e9f7a10fa279544c7c15cb24ad0ecdefc8
 #   Source      : doc-generator.sh
 #   Type        : script
 #   Group       : SDK
@@ -221,6 +221,7 @@ set -uo pipefail
         "auto|a|flag|FLAG_AUTO_RUN|Automatically run with last used or default parameters|0|"
         "clean|c|flag|FLAG_CLEAN_OUTPUT|Clear output directory before writing|0|"
         "clear-render-cache||flag|FLAG_CLEAR_RENDER_CACHE|Clear cached renderer input before rebuilding it|0|"
+        "copy-to-git||flag|FLAG_COPY_TO_GIT|Copy generated documentation to the Git repository docs directory|0|"
         "file|f|value|VAL_FILESPEC|Comma-separated file masks for source scanning||"
         "mode|m|enum|VAL_UPDATE_MODE|Generation mode: full, selected, changed, or render|full|full,selected,changed,render"
         "update-files|u|value|VAL_UPDATE_FILES|Comma-separated files for selected update mode||"
@@ -309,6 +310,7 @@ set -uo pipefail
         "FLAG_RECURSIVE_SCAN|Recursive Scan||"
         "FLAG_CLEAN_OUTPUT|Clean Output Directory||"
         "FLAG_CLEAR_RENDER_CACHE|Clear cached renderer input before rebuilding||"
+        "FLAG_COPY_TO_GIT|Copy generated documentation to the Git repository docs directory||"
         "FLAG_REVIEW|Automatically open generated docs in browser after generation (desktop mode only)||"
         "VAL_DOCUMENT_TITLE|Document title||"
         "VAL_DOCUMENT_SUBTITLE|Document subtitle||"
@@ -376,6 +378,7 @@ set -uo pipefail
         FLAG_AUTO_RUN="${FLAG_AUTO_RUN:-0}"
         FLAG_CLEAN_OUTPUT="${FLAG_CLEAN_OUTPUT:-1}"
         FLAG_CLEAR_RENDER_CACHE="${FLAG_CLEAR_RENDER_CACHE:-0}"
+        FLAG_COPY_TO_GIT="${FLAG_COPY_TO_GIT:-0}"
         FLAG_RECURSIVE_SCAN="${FLAG_RECURSIVE_SCAN:-1}"
         FLAG_VIEW_RESULTS="${FLAG_VIEW_RESULTS:-1}"
 
@@ -558,6 +561,18 @@ set -uo pipefail
                     --labelwidth "$lw"
                 [[ "${reply,,}" =~ ^(y|yes)$ ]] && FLAG_REVIEW=1 || FLAG_REVIEW=0
             fi
+
+            (( ${FLAG_COPY_TO_GIT:-0} )) && default="Y" || default="N"
+            ask --label "Copy generated site to Git docs" \
+                --var reply \
+                --type flag \
+                --default "$default" \
+                --validate sgnd_validate_yesno \
+                --colorize both \
+                --labelclr "${CYAN}" \
+                --pad "$lp" \
+                --labelwidth "$lw"
+            [[ "${reply,,}" =~ ^(y|yes)$ ]] && FLAG_COPY_TO_GIT=1 || FLAG_COPY_TO_GIT=0
 
             if [[ "$VAL_UPDATE_MODE" != "render" ]]; then
                 sgnd_print
@@ -1154,6 +1169,72 @@ set -uo pipefail
         return 0
     }
 
+    # fn: _copy_docs_to_git - Copy generated documentation into the repository docs directory
+        # . Purpose
+        #   Publish the generated documentation tree into the Git repository's
+        #   top-level docs directory without relying on symbolic links.
+        #
+        # . Behavior
+        #   - Resolves the Git repository root from VAL_SRCDIR.
+        #   - Uses <repo-root>/docs as the destination.
+        #   - Replaces the previous published copy so removed pages do not remain stale.
+        #   - Excludes internal documentation cache directories from the Git copy.
+        #   - Does nothing when FLAG_COPY_TO_GIT is disabled.
+        #
+        # . Returns
+        #   0 when copying is disabled or completes successfully.
+        #   1 when the repository or source documentation directory cannot be resolved.
+        #
+        # . Usage
+        #   _copy_docs_to_git
+    _copy_docs_to_git() {
+        (( ${FLAG_COPY_TO_GIT:-0} )) || return 0
+
+        local repo_root=""
+        local git_docs_dir=""
+
+        repo_root="$(git -C "$VAL_SRCDIR" rev-parse --show-toplevel 2>/dev/null)" || {
+            sayfail "Cannot resolve Git repository from source directory: $VAL_SRCDIR"
+            return 1
+        }
+
+        git_docs_dir="${repo_root%/}/docs"
+
+        [[ -d "$VAL_OUTDIR" ]] || {
+            sayfail "Generated documentation directory does not exist: $VAL_OUTDIR"
+            return 1
+        }
+
+        [[ -n "$git_docs_dir" && "$git_docs_dir" != "/" && "$git_docs_dir" != "$VAL_OUTDIR" ]] || {
+            sayfail "Refusing unsafe Git docs destination: $git_docs_dir"
+            return 1
+        }
+
+        saystart "Copying generated documentation to Git docs directory"
+
+        mkdir -p "$git_docs_dir" || {
+            sayfail "Cannot create Git docs directory: $git_docs_dir"
+            return 1
+        }
+
+        find "$git_docs_dir" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} + || {
+            sayfail "Cannot clear Git docs directory: $git_docs_dir"
+            return 1
+        }
+
+        cp -a "$VAL_OUTDIR/." "$git_docs_dir/" || {
+            sayfail "Cannot copy generated documentation to: $git_docs_dir"
+            return 1
+        }
+
+        rm -rf -- \
+            "$git_docs_dir/.sgnd-doc-cache" \
+            "$git_docs_dir/.sgnd-render-cache"
+
+        sayok "Copied generated documentation to: $git_docs_dir"
+        return 0
+    }
+
     # fn: _summary - Print documentation generation summary
         # . Purpose
         #   Generate a summary of the documentation data collected.
@@ -1314,6 +1395,9 @@ set -uo pipefail
             else
                 sayinfo "Would have rendered site to $VAL_OUTDIR"
             fi
+            if (( FLAG_COPY_TO_GIT )); then
+                sayinfo "Would have copied the generated site to the Git repository docs directory"
+            fi
         else
             saystart "Rendering html documentation"
             start_time="$(date +%s)"
@@ -1326,6 +1410,8 @@ set -uo pipefail
 
             end_time="$(date +%s)"
             sayok "Done rendering documentation hierarchy (duration: $(( end_time - start_time )) seconds)"
+
+            _copy_docs_to_git || return 1
         fi
 
         end_time="$(date +%s)"

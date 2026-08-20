@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623104
-#   Checksum    : 8f3389d0e99891eac8348979c08a752056237b24299aad226ed1f2b9fe0651e4
+#   Build       : 2623201
+#   Checksum    : df6f9f5759c2e0f5ab9853877a8980da5230d3fe13ca3ef1e8a6875c6e0fe880
 #   Source      : deployment_preface.sh
 #   Type        : documentation
 #   Group       : Deployment
@@ -267,7 +267,7 @@
 # -- How the Three Tools Relate -------------------------------------------------------
 #
 # . Images
-#   deployment-model :: SolidGroundUX Deployment Model
+#   deployment-model.png :: SolidGroundUX Deployment Model
 #
 # > This keeps the deployment architecture small, deterministic, and easy to inspect
 # > or manipulate directly when necessary.

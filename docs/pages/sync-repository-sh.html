@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SolidGroundUX - Repository Synchronizer</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<div class="doc-page-branding"><span class="doc-page-branding-title">SolidGroundUX Documentation</span><img src="../assets/branding/doc-header-logo.png" alt="SolidGroundUX"></div>
+<header class="doc-page-header">
+  <div class="doc-title">SolidGroundUX - Repository Synchronizer</div>
+  <div class="doc-breadcrumb">SolidgroundUX / sync-repository.sh</div>
+</header>
+<div class="ct-modulebody sh-label">Description</div>
+<div class="ct-modulebody">  Copies a repository from the development machine to a remote workstation. The</div>
+<div class="ct-modulebody">  destination connection settings and source directory are stored as persistent</div>
+<div class="ct-modulebody">  SolidGroundUX state so repeated synchronization requires no re-entry.</div>
+<div class="ct-modulebody"></div>
+<div class="ct-modulebody sh-label">Design principles</div>
+<div class="ct-modulebody">  - The development tree remains authoritative.</div>
+<div class="ct-modulebody">  - SSH connectivity is verified before any destination is replaced.</div>
+<div class="ct-modulebody">  - Files are copied to a temporary destination first.</div>
+<div class="ct-modulebody">  - The existing destination is replaced only after a successful copy.</div>
+<div class="ct-modulebody">  - An unchanged source tree is skipped unless --force is specified.</div>
+<div class="ct-modulebody"></div>
+</main>
+</body>
+</html>

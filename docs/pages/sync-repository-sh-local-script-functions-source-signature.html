@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Calculate a metadata signature for the source tree</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<div class="doc-page-branding"><span class="doc-page-branding-title">SolidGroundUX Documentation</span><img src="../assets/branding/doc-header-logo.png" alt="SolidGroundUX"></div>
+<header class="doc-page-header">
+  <div class="doc-title">Calculate a metadata signature for the source tree</div>
+  <div class="doc-breadcrumb">SolidgroundUX / sync-repository.sh / Local script functions / _source_signature</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Detect whether the repository tree has changed since the last successful sync</div>
+<div class="ct-functionbody">  without reading and hashing the complete contents of every file.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  Includes relative path, object type, size and modification timestamp for files,</div>
+<div class="ct-functionbody">  directories and links. Directory metadata is included so file removals are also</div>
+<div class="ct-functionbody">  detected.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Output</div>
+<div class="ct-functionbody">  Writes a SHA-256 signature for the current source tree.</div>
+</main>
+</body>
+</html>

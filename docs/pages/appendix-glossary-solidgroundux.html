@@ -110,6 +110,7 @@
 <tr><td>_computer_set_identity</td><td></td><td>Run the canonical SolidGroundUX identity workflow.</td><td>10-computer-setup.sh</td></tr>
 <tr><td>_computer_validate</td><td></td><td>Validate the principal Computer Setup outcomes without changing the machine.</td><td>10-computer-setup.sh</td></tr>
 <tr><td>_confirm</td><td>Request a standalone yes/no confirmation</td><td>Request a standalone yes/no confirmation. Returns 0 for confirmation; 1 for rejection or unavailable interaction. Usage _confirm &quot;Continue?&quot;</td><td>release-manager.sh</td></tr>
+<tr><td>_copy_docs_to_git</td><td>Copy generated documentation into the repository docs directory</td><td>Publish the generated documentation tree into the Git repository&#x27;s top-level docs directory without relying on symbolic links.</td><td>doc-generator.sh</td></tr>
 <tr><td>_copy_template_file</td><td>Copy one template file into the workspace</td><td>Copy a single template file to a target location.</td><td>create-workspace.sh</td></tr>
 <tr><td>_copy_workspace_templates</td><td>Copy canonical templates into the workspace</td><td>Seed the repository-shaped workspace with the installed SolidGroundUX templates.</td><td>create-workspace.sh</td></tr>
 <tr><td>_create_archive</td><td>Create the compressed framework archive</td><td></td><td>tar-it.sh</td></tr>
@@ -135,6 +136,7 @@
 <tr><td>_detect_noncommentline</td><td>Detect non-comment source lines</td><td>Stop documentation parsing for source lines that are not structured comments.</td><td>doc-processor.sh</td></tr>
 <tr><td>_detect_primary_iface</td><td>Detect primary iface</td><td>Detect primary iface.</td><td>set-identity.sh</td></tr>
 <tr><td>_detect_section</td><td>Detect documentation section headers</td><td>Detect structured level 1, 2, and 3 documentation section headers.</td><td>doc-processor.sh</td></tr>
+<tr><td>_detect_source_default</td><td>Determine a useful default repository source path</td><td></td><td>sync-repository.sh</td></tr>
 <tr><td>_dev_create_workspace</td><td></td><td>Launch the canonical SolidGroundUX workspace-creation tool.</td><td>90-development.sh</td></tr>
 <tr><td>_dev_create_wrappers</td><td></td><td>Launch the canonical SolidGroundUX wrapper-creation tool.</td><td>90-development.sh</td></tr>
 <tr><td>_dev_deploy_workspace</td><td></td><td>Launch the canonical SolidGroundUX workspace-deployment tool.</td><td>90-development.sh</td></tr>
@@ -196,6 +198,7 @@
 <tr><td>_get_section_comments</td><td>Get section comments</td><td>Internal helper for get section comments.</td><td>doc-processor.sh</td></tr>
 <tr><td>_get_template_filenames</td><td>Resolve template filenames for workspace creation</td><td>Determine output filenames for selected template types.</td><td>create-workspace.sh</td></tr>
 <tr><td>_get_userinput</td><td>Collect documentation generator input</td><td>Interactively collect and confirm documentation generator parameters.</td><td>doc-generator.sh</td></tr>
+<tr><td>_get_userinput</td><td>Ask for synchronization settings</td><td></td><td>sync-repository.sh</td></tr>
 <tr><td>_get_usr_input</td><td>Get usr input</td><td>Get usr input.</td><td>set-identity.sh</td></tr>
 <tr><td>_getparameters</td><td>Collect deployment parameters from CLI values, state, and ask</td><td>Resolve command-line overrides first, use saved state as prompt defaults, and combine directory, filename/mask, and changed-after filters.</td><td>deploy-workspace.sh</td></tr>
 <tr><td>_getparameters</td><td>Resolve and confirm archive settings</td><td></td><td>tar-it.sh</td></tr>
@@ -236,6 +239,7 @@
 <tr><td>_pause</td><td>Wait for Enter after an interactive operation</td><td>Wait for Enter after an interactive operation. Returns 0 always. Usage _pause</td><td>release-manager.sh</td></tr>
 <tr><td>_pending_release_base_exists</td><td>Test whether a release is available in releases/</td><td>Test whether a release is available in releases/. Returns 0 when present; 1 otherwise. Usage _pending_release_base_exists &quot;$release&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_persist_render_cache</td><td>Persist a complete renderer export set</td><td>Replace the persistent renderer cache with a validated export directory.</td><td>doc-renderer.sh</td></tr>
+<tr><td>_powershell_quote</td><td>Escape a string for a PowerShell single-quoted literal</td><td></td><td>sync-repository.sh</td></tr>
 <tr><td>_prepare_output_directory</td><td>Create and optionally clean the documentation output directory</td><td>Ensure the configured output directory exists and is ready for rendering.</td><td>doc-renderer.sh</td></tr>
 <tr><td>_previous_release</td><td>Return the archived release immediately preceding current</td><td>Return the archived release immediately preceding current. Returns 0 when a previous release exists; non-zero otherwise. Usage previous=&quot;$(_previous_release)&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_print_deployment_summary</td><td>Display the completed deployment details</td><td>Show which workspace files were selected and where they were sent.</td><td>deploy-workspace.sh</td></tr>
@@ -266,6 +270,7 @@
 <tr><td>_release_terminal_width</td><td>Return the usable terminal width</td><td></td><td>release-manager.sh</td></tr>
 <tr><td>_release_title</td><td>Render the standalone release-manager title</td><td>Display the release-manager identity and current hostname without using framework UI libraries. Returns 0 always. Usage _release_title</td><td>release-manager.sh</td></tr>
 <tr><td>_release_warn</td><td>Write a warning message</td><td>Write a warning message. Returns 0 always. Usage _release_warn &quot;message&quot;</td><td>release-manager.sh</td></tr>
+<tr><td>_remote_powershell</td><td>Execute a PowerShell command on the destination machine</td><td></td><td>sync-repository.sh</td></tr>
 <tr><td>_remove_installation</td><td>Remove the active SolidGroundUX installation while retaining release packages</td><td>Remove the active SolidGroundUX installation while retaining release packages. Returns 0 on success; non-zero when removal or release movement fails. Usage _remove_installation</td><td>release-manager.sh</td></tr>
 <tr><td>_remove_other_netplan_files</td><td>Remove other netplan files</td><td>Remove other netplan files.</td><td>set-identity.sh</td></tr>
 <tr><td>_remove_paths_from_stream</td><td>Remove streamed release paths conservatively from the target</td><td>Remove streamed release paths conservatively from the target. Returns 0 on success; non-zero when file removal fails. Usage</td><td>release-manager.sh</td></tr>
@@ -417,6 +422,7 @@
 <tr><td>_smoketest_run_all_tests</td><td>Run the complete smoke-test sequence</td><td>Execute the principal framework smoke tests in their normal menu order.</td><td>framework-smoketest.sh</td></tr>
 <tr><td>_smoketest_show_license</td><td>Display the active SolidGroundUX license</td><td></td><td>framework-smoketest.sh</td></tr>
 <tr><td>_source_corelibs</td><td>Source required core libraries</td><td>Load the fixed set of framework core libraries in bootstrap order.</td><td>sgnd-bootstrap.sh</td></tr>
+<tr><td>_source_signature</td><td>Calculate a metadata signature for the source tree</td><td>Detect whether the repository tree has changed since the last successful sync without reading and hashing the complete contents of every file.</td><td>sync-repository.sh</td></tr>
 <tr><td>_source_usinglibs</td><td>Source declared optional libraries</td><td>Load script-declared framework libraries listed in SGND_USING.</td><td>sgnd-bootstrap.sh</td></tr>
 <tr><td>_static_ip_conflict_check</td><td>Static ip conflict check</td><td>Static ip conflict check.</td><td>set-identity.sh</td></tr>
 <tr><td>_storage_list_unused_disks</td><td></td><td>List whole disks that do not currently contain mounted filesystems.</td><td>15-storage.sh</td></tr>
@@ -430,6 +436,8 @@
 <tr><td>_stream_local</td><td>Stream selected workspace files to the local receiver</td><td></td><td>deploy-workspace.sh</td></tr>
 <tr><td>_stream_remote</td><td>Stream selected workspace files to the remote receiver over SSH</td><td></td><td>deploy-workspace.sh</td></tr>
 <tr><td>_summary</td><td>Print documentation generation summary</td><td>Generate a summary of the documentation data collected.</td><td>doc-generator.sh</td></tr>
+<tr><td>_sync_repository</td><td></td><td>Launch the canonical SolidGroundUX repository synchronization tool.</td><td>90-development.sh</td></tr>
+<tr><td>_sync_repository</td><td>Copy the repository and atomically replace the destination</td><td></td><td>sync-repository.sh</td></tr>
 <tr><td>_target_path</td><td>Map a release-relative path beneath the configured target root</td><td>Map a release-relative path beneath the configured target root. Returns 0 always. Usage target=&quot;$(_target_path &quot;$rel&quot;)&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_uncreate_from_manifest</td><td>Remove artifacts recorded in the create manifest</td><td>Remove files and directories listed in a workspace manifest.</td><td>create-workspace.sh</td></tr>
 <tr><td>_validate_archive</td><td>Validate all received archive entries</td><td>Reject unsafe paths and non-regular archive entry types before extraction.</td><td>receive-files.sh</td></tr>
@@ -439,6 +447,7 @@
 <tr><td>_validate_parameters</td><td>Validate archive source and destination settings</td><td></td><td>tar-it.sh</td></tr>
 <tr><td>_validate_parameters</td><td>Validate restore settings</td><td></td><td>untar-it.sh</td></tr>
 <tr><td>_validate_render_cache</td><td>Validate cached renderer input</td><td>Verify that Render mode has the complete minimum PSV input set.</td><td>doc-renderer.sh</td></tr>
+<tr><td>_validate_settings</td><td>Validate source and destination settings</td><td></td><td>sync-repository.sh</td></tr>
 <tr><td>_validate_tar_paths</td><td>Reject unsafe paths contained in a release tarball</td><td>Reject unsafe paths contained in a release tarball. Returns 0 when all paths are safe; 1 otherwise. Usage _validate_tar_paths &quot;$archive&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_validate_target</td><td>Validate and prepare the destination root</td><td>Ensure the destination is an absolute directory path suitable for extraction.</td><td>receive-files.sh</td></tr>
 <tr><td>_verify_release_set</td><td>Verify checksums and path safety for a complete release set</td><td>Verify checksums and path safety for a complete release set. Returns 0 when the release set is valid; 1 otherwise. Usage _verify_release_set &quot;$archive&quot;</td><td>release-manager.sh</td></tr>
@@ -517,6 +526,7 @@
 <tr><td>main</td><td>Run the executable main sequence</td><td>Run the standard executable startup sequence and then execute script-specific logic.</td><td>set-identity.sh</td></tr>
 <tr><td>main</td><td>Run the SolidGround management console</td><td>Initialize the framework, discover console pages, and run the interactive host.</td><td>sgnd-console.sh</td></tr>
 <tr><td>main</td><td>Run documentation renderer</td><td>Run documentation renderer for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>main</td><td>Run the repository synchronization sequence</td><td></td><td>sync-repository.sh</td></tr>
 <tr><td>main</td><td>Run the archive workflow</td><td></td><td>tar-it.sh</td></tr>
 <tr><td>main</td><td>Run the selective restore workflow</td><td></td><td>untar-it.sh</td></tr>
 <tr><td>modules_by_product</td><td>Modules by product</td><td>Modules by product for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>

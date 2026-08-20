@@ -1,6 +1,6 @@
 # SolidGroundUX 2.0 Release Notes
 
-**Version 2.0 — Build 2.0.2622911**
+**Version 2.0 — Build 2.0.2623103**
 
 SolidGroundUX 2.0 is a major architectural release focused on bringing the framework, Management Console, system-administration tools, development tooling, documentation, and release management together as a coherent and reusable platform.
 
@@ -34,7 +34,11 @@ Paging, legends, post-action behavior, and console navigation have also been ref
 
 The documentation system now supports a deeper but still deliberately bounded hierarchy: **Group → optional Subgroup → Module**. This allows related tooling such as the Documentation Generator components to be collected under one SDK group without flattening everything into a single level.
 
-Source selection now accepts comma-separated masks and defaults to `*.sh,*.py`, so Bash and Python modules follow the same collection path. Parsed renderer data is persisted after normal generation, enabling **Render existing data** mode to rebuild the HTML site in seconds without rescanning the entire source tree.
+Source selection accepts comma-separated masks and defaults to `*.sh,*.py`, so Bash and Python modules follow the same collection path. The documentation comment dialect is shared across both languages, including `fn:`, `var:`, `doc:`, and the new `cls:` marker for Python classes.
+
+Parsed renderer data is persisted after normal generation, enabling **Render existing data** mode to rebuild the HTML site in seconds without rescanning the complete source tree. This makes renderer, CSS, navigation, branding, and documentation-layout work dramatically faster.
+
+The generated site has also become more self-contained and presentation-ready: it supports functional branding assets, sticky page headers, generated semantic theme specimens based on the actual style definitions, and dedicated documentation images for workflows, architecture, deployment, and other visual explanations.
 
 ### Storage and access management
 
@@ -114,9 +118,25 @@ Prepared release bundles are self-contained bootstrap packages and include the R
 - Documentation generation supports Full, Selected, Changed, and **Render existing data** modes.
 - Source masks are comma-separated and default to `*.sh,*.py`, allowing Bash and Python modules to be documented by the same pipeline.
 - The documentation model now supports one optional **Subgroup** level beneath Group, including subgroup prefaces and epilogues.
+- The source documentation dialect is shared across Bash and Python. Python classes can now be documented with `cls:` while functions and methods continue to use `fn:`.
 - The Python renderer itself is documented under **SDK → Documentation Generator**.
-- Successful parse modes persist normalized renderer data so HTML, CSS, navigation, and branding changes can be regenerated without reparsing the complete source tree.
-- Generated documentation can now carry SolidGroundUX content-page branding and Testadura publisher branding while remaining self-contained.
+- Successful parse modes persist normalized renderer data so HTML, CSS, navigation, branding, and layout changes can be regenerated without reparsing the complete source tree.
+- The renderer uses functional documentation asset names rather than brand-specific filenames, including `doc-index-logo.png`, `doc-header-logo.png`, and `doc-index-hero.png`.
+- Generated documentation now includes sticky page branding so the documentation identity remains visible while scrolling.
+- Semantic theme specimens are generated from the actual SolidGroundUX style and palette assignments instead of relying on manually maintained screenshots.
+- Documentation images are copied into the generated site and can be referenced directly from source documentation comments, allowing ASCII workflows and architecture sketches to be replaced by richer visual figures while keeping the source documentation authoritative.
+- Project-level sources such as the Canonical document, CHANGELOG, INSTALL guide, and license continue to feed the generated appendices and reference pages.
+
+
+
+### Generated documentation experience
+
+The generated HTML documentation is now a much more complete part of the framework rather than a passive code dump.
+
+Navigation reflects the framework hierarchy, pages carry persistent SolidGroundUX documentation branding, the index includes publisher branding and a release hero, and visual figures can be embedded directly from the framework assets. Theme documentation can show live semantic specimens derived from the real style definitions, keeping visual documentation aligned with the source.
+
+Renderer-only rebuilds make this presentation layer practical to iterate on without waiting for a complete documentation parse.
+
 
 ## Framework at a Glance
 
@@ -124,14 +144,14 @@ Statistics reported by the documentation generator for this release:
 
 | Metric | Count |
 | --- | ---: |
-| Modules | **55** |
-| Functions | **732** |
-| Source lines | **40,252** |
-| Code lines | **19,071** |
+| Modules | **59** |
+| Functions | **736** |
+| Source lines | **44,028** |
+| Code lines | **21,588** |
 
 ## Reliability and fixes
 
-Version 2.0 also resolves issues uncovered while moving to the new architecture, including cross-module dependencies exposed by lazy loading, post-action wait handling, timed-input selection propagation, standalone menu helper dependencies, remote deployment through `sudo`, Release Manager bootstrap behavior, storage mount detection and capacity reporting, Active Directory DNS/FQDN handling, and documentation subgroup navigation depth.
+Version 2.0 also resolves issues uncovered while moving to the new architecture, including cross-module dependencies exposed by lazy loading, post-action wait handling, timed-input selection propagation, standalone menu helper dependencies, remote deployment through `sudo`, Release Manager bootstrap behavior, storage mount detection and capacity reporting, Active Directory DNS/FQDN handling, documentation subgroup navigation depth, stale renderer-cache handling, and incorrect Management Console documentation grouping.
 
 ## SolidGroundUX 2.0
 

@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623103
-#   Checksum    : 3589b8f4a80b71d2bd2dc06f28ba6c6c02734a5e5d96451d296d344ec62f8af9
+#   Build       : 2623201
+#   Checksum    : 380a2bde657a89e1ed6b25bd0df878205af945382bb832a5696fdd39b395774c
 #   Source      : 90-development.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -121,6 +121,20 @@ set -uo pipefail
         _sgnd_run_public_command "sgnd-generate-docs"
     }
 
+    # fn: _sync_repository
+        # . Purpose
+        #   Launch the canonical SolidGroundUX repository synchronization tool.
+        #
+        # . Returns
+        #   Returns the underlying public-command status.
+        #
+        # . Usage
+        #   _sync_repository
+    _sync_repository() {
+        _sgnd_run_public_command "sgnd-sync-repository"
+    }
+
+
 # - Console registration ----------------------------------------------------------
     sgnd_menu_register_group \
         "$SGND_DEVELOPMENT_MODULE_ID" \
@@ -133,5 +147,6 @@ set -uo pipefail
     sgnd_menu_register_item "dev-preprel" "$SGND_DEVELOPMENT_MODULE_ID" "Prepare release" "_dev_prepare_release" "Create a release archive with checksums and manifests" 0 15 1 0
     sgnd_menu_register_item "dev-wrappers" "$SGND_DEVELOPMENT_MODULE_ID" "Create wrappers" "_dev_create_wrappers" "Create root-aware bin or sbin wrappers for selected scripts" 0 20 1 0
     sgnd_menu_register_item "dev-gendocs" "$SGND_DEVELOPMENT_MODULE_ID" "Generate documentation" "_dev_generate_docs" "Generate SolidGroundUX source documentation" 0 25 1 0
+    sgnd_menu_register_item "dev-syncrepo" "$SGND_DEVELOPMENT_MODULE_ID" "Sync repository" "_sync_repository" "Synchronize the SolidGroundUX repository with the remote source" 0 30 1 0
 
     sayinfo "Development module registered with the console."
