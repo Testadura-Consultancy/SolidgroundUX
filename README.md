@@ -18,7 +18,7 @@
 <table>
 <tr>
 <td width="25%" align="center">
-  <a href="target-root/usr/local/assets/SolidGround UX.png"><strong>Documentation</strong></a><br>
+  <a href="docs/index.html"><strong>Documentation</strong></a><br>
   Framework reference and guides
 </td>
 <td width="25%" align="center">
