@@ -18,7 +18,7 @@
 set -uo pipefail
 
 # - Library guard ------------------------------------------------------------------
-    # fn: _sgnd_lib_guard
+    # fn$ _sgnd_lib_guard
         # . Purpose
         #   Ensure the module is sourced and initialized only once.
         #
@@ -321,6 +321,16 @@ set -uo pipefail
         return 1
     }
 
+    # fn: _prepare-template.sh
+        # . Purpose
+        #   Prepare a template computer for cloning.
+        #
+        # . Returns
+        #   0 on success; non-zero on failure.
+    _prepare_template() {
+        _sgnd_run_public_command "sgnd-prepare-template"
+    }
+
 # - Console registration ---------------------------------------------------------
     sgnd_menu_register_group \
         "$SGND_COMPUTER_SETUP_MODULE_ID" \
@@ -334,5 +344,6 @@ set -uo pipefail
     sgnd_menu_register_item "sshkeys" "$SGND_COMPUTER_SETUP_MODULE_ID" "Generate SSH host keys" "_computer_generate_ssh_keys" "Generate missing host keys, validate sshd, and restart SSH" 0 15 1 1
     sgnd_menu_register_item "sudoers" "$SGND_COMPUTER_SETUP_MODULE_ID" "Setup SolidGround sudo access" "_computer_configure_sudoers" "Allow the administrator to run trusted SolidGroundUX tools without a password" 0 15 1 1
     sgnd_menu_register_item "pcvalidate" "$SGND_COMPUTER_SETUP_MODULE_ID" "Validate computer setup" "_computer_validate" "Validate identity, SSH, host keys, and SolidGround sudo access" 0 15 1 0
+    sgnd_menu_register_item "preptemplate" "$SGND_COMPUTER_SETUP_MODULE_ID" "Prepare for cloning" "_prepare_template" "Prepare a template computer for cloning" 0 15 1 0
 
     sayinfo "Computer Setup module registered with the console."
