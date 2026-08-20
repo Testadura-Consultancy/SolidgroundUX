@@ -1,8 +1,12 @@
 # SolidGroundUX 2.0 Release Notes
 
-**Version 2.0 — Build 2.0.2623103**
+**Version 2.0 — Build 2.0.2623211**
 
-SolidGroundUX 2.0 is a major architectural release focused on bringing the framework, Management Console, system-administration tools, development tooling, documentation, and release management together as a coherent and reusable platform.
+![SolidGroundUX 2.0](assets/solidgroundux-social-preview.png)
+
+> **Modular • Extensible • Bash & Python • Built for real-world automation**
+
+SolidGroundUX 2.0 is a major architectural release that consolidates the framework, Management Console, system-administration tools, development workflow, documentation, deployment, and release management into a coherent and reusable platform. The final 2.0 work also sharpens the console interaction model, adds repository synchronization, and turns the runtime theme specimen into a practical showcase of the framework UI.
 
 ## Highlights
 
@@ -49,6 +53,46 @@ SolidGroundUX can provision unused disks using GPT with EXT4 or XFS, configure p
 Storage Access provides ownership, group, and Unix permission management for the canonical storage and share roots.
 
 
+
+### Repository synchronization
+
+Development repositories can now be synchronized directly from the development
+server to a configured workstation or backup machine through `sync-repository.sh`.
+
+Destination machine, user, and directory settings are persisted. Transfers are
+staged remotely and replace the existing copy only after a successful transfer,
+so source-side deletions and renames are reflected without first destroying the
+last good destination copy. A lightweight source-tree signature allows unchanged
+repositories to be skipped, while a force option remains available when a full
+refresh is wanted.
+
+### Refined console interaction
+
+The Management Console host is now `management-console.sh`, while `sgnd-console`
+remains the public command.
+
+The main index uses the same standard control bar as loaded console pages, so
+the visible keyboard legend matches the controls that are actually active.
+Selection handling is also more forgiving: invalid input is reported, cleared,
+and followed by a fresh selection prompt rather than disrupting the console
+flow. Numeric selections are interpreted explicitly as base 10.
+
+### Runtime theme showcase
+
+`sgnd_style_samples` is now the canonical runtime showcase for an active theme.
+
+Message labels are rendered directly with their corresponding `LBL_*` and
+`MSG_CLR_*` semantics. The General UI Elements section demonstrates the actual
+rendering primitives by name, including `sgnd_print`, `sgnd_print_single`,
+`sgnd_print_labeledvalue`, `sgnd_print_labeledmultivalue`, `sgnd_print_fill`,
+`sgnd_print_sectionheader`, and `sgnd_print_titlebar`.
+
+The specimen retains the run-mode, state, validation, and progress examples,
+adds a non-interactive `ask` simulation, and lists Message, Progress, and UI
+semantic colors together with their resolved palette name, RGB hex value, or
+indexed-color value.
+
+
 ## What's New in 2.0
 
 ### Management Console evolution
@@ -62,6 +106,9 @@ Storage Access provides ownership, group, and Unix permission management for the
 - Context-aware navigation legends.
 - Direct quick-access controls replace the former Console Settings page.
 - Normal actions provide an interruptible post-action viewing window of at least 15 seconds.
+- The main index now uses the same standard bottom control bar as normal console pages.
+- Invalid selections are reported and cleared before waiting for a new selection.
+- Numeric menu selections are handled explicitly as base-10 values.
 
 ### Framework and API improvements
 
@@ -72,6 +119,9 @@ Storage Access provides ownership, group, and Unix permission management for the
 - UI rendering primitives use common dynamic-width behavior.
 - `SGND_MAX_RENDER_WIDTH=0` or an unset value allows full terminal-width rendering.
 - The framework smoke-test progress demonstration now uses genuinely nested progress levels.
+- `sgnd_style_samples` now acts as the canonical runtime theme and UI-primitives showcase.
+- Theme color specimens report the resolved palette name, RGB hex value, or indexed color.
+- The theme showcase includes a non-interactive simulation of the framework ask styling.
 
 ### Storage and Samba
 
@@ -108,6 +158,8 @@ Prepared release bundles are self-contained bootstrap packages and include the R
 
 ### Development and documentation tooling
 
+- Added `sync-repository.sh` for direct development-server to workstation/backup synchronization over SSH/SCP.
+- Repository synchronization persists destination settings, stages transfers safely, reflects removals and renames, and can skip unchanged source trees.
 - Added `create-wrappers.sh` for generating public SolidGroundUX command wrappers.
 - `prepare-release.sh` verifies executable wrappers and can create missing ones.
 - Release preparation supports historical manifests when generating `.removed`.
@@ -151,7 +203,7 @@ Statistics reported by the documentation generator for this release:
 
 ## Reliability and fixes
 
-Version 2.0 also resolves issues uncovered while moving to the new architecture, including cross-module dependencies exposed by lazy loading, post-action wait handling, timed-input selection propagation, standalone menu helper dependencies, remote deployment through `sudo`, Release Manager bootstrap behavior, storage mount detection and capacity reporting, Active Directory DNS/FQDN handling, documentation subgroup navigation depth, stale renderer-cache handling, and incorrect Management Console documentation grouping.
+Version 2.0 also resolves issues uncovered while moving to the new architecture, including cross-module dependencies exposed by lazy loading, post-action wait handling, timed-input selection propagation, invalid and empty console selections, base-10 numeric menu handling, standalone menu helper dependencies, remote deployment through `sudo`, Release Manager bootstrap behavior, storage mount detection and capacity reporting, Active Directory DNS/FQDN handling, documentation subgroup navigation depth, stale renderer-cache handling, and incorrect Management Console documentation grouping.
 
 ## SolidGroundUX 2.0
 
