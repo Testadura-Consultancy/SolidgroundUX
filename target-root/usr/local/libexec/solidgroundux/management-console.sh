@@ -4,9 +4,9 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623103
-#   Checksum    : b63350d3b63ce029366f47c21ee153dd7808bbeae70859309509ede3f6f6bd1f
-#   Source      : sgnd-console.sh
+#   Build       : 2623211
+#   Checksum    : 64ef5e3d7c33634d96283be99d63288f0157a8238f7467acb8b0413d0e747ce0
+#   Source      : management-console.sh
 #   Type        : script
 #   Group       : SolidGround Console
 #   Purpose     : Provide a modular console interface for SolidGroundUX tooling
@@ -247,9 +247,9 @@ set -uo pipefail
         # Leave empty if no examples are needed.
     SGND_SCRIPT_EXAMPLES=(
         "Examples:"
-        "  sgnd-console.sh"
-        "  sgnd-console.sh --appcfg ./10-sgnd-config.sh"
-        "  sgnd-console.sh --appcfg ./20-machine-config.sh"
+        "  sgnd-console"
+        "  sgnd-console --appcfg ./10-sgnd-config.sh"
+        "  sgnd-console --appcfg ./20-machine-config.sh"
     ) 
 
     # SGND_SCRIPT_GLOBALS
@@ -435,7 +435,7 @@ set -uo pipefail
         #
         # . Behavior
         #   - Without --appcfg, loads the standard console-modules directory beside
-        #     sgnd-console.sh.
+        #     management-console.sh.
         #   - With --appcfg pointing to a .sh file, loads only that module.
         #   - With --appcfg pointing to a directory, loads every .sh file in it.
         #   - Normalizes the selected path to an absolute path.
@@ -535,7 +535,7 @@ set -uo pipefail
 
         state_dir="$(dirname -- "$SGND_CONSOLE_ACTION_STATE_FILE")"
         mkdir -p -- "$state_dir" || return 1
-        temp_file="$(mktemp "${TMPDIR:-/tmp}/sgnd-console-actions.XXXXXX")" || return 1
+        temp_file="$(mktemp "${TMPDIR:-/tmp}/management-console-actions.XXXXXX")" || return 1
 
         if [[ -r "$SGND_CONSOLE_ACTION_STATE_FILE" ]]; then
             awk -F'|' -v key="$item_key" '$1 != key { print }' "$SGND_CONSOLE_ACTION_STATE_FILE" > "$temp_file" || {
@@ -858,16 +858,25 @@ set -uo pipefail
             sgnd_print_sectionheader --border "$LN_H" --maxwidth "${SGND_MENU_RENDER_WIDTH:-$(sgnd_terminal_width)}"
             sgnd_print "Q) Return"
             printf '%s' "Select option : " >/dev/tty
+            SGND_LAST_WAITSECS=0
             sgnd_menu_read_choice choice || return $?
 
             case "$choice" in
                 EXIT|ESC) return 0 ;;
             esac
 
-            [[ "$choice" =~ ^[0-9]+$ ]] || continue
-            (( choice >= 1 && choice <= ${#module_ids[@]} )) || continue
+            if [[ ! "$choice" =~ ^[0-9]+$ ]]; then
+                saywarning "Invalid selection: $choice"
+                continue
+            fi
 
-            module_id="${module_ids[$((choice - 1))]}"
+            local choice_number=$((10#$choice))
+            if (( choice_number < 1 || choice_number > ${#module_ids[@]} )); then
+                saywarning "Invalid selection: $choice"
+                continue
+            fi
+
+            module_id="${module_ids[$((choice_number - 1))]}"
             state="$(_sgnd_console_module_state_get "$module_id")"
             if [[ "$state" == "enabled" ]]; then
                 next_state="disabled"
@@ -1097,9 +1106,8 @@ set -uo pipefail
                 "$value_style" "$desc" "$RESET"
             sgnd_print
         fi
-
-        sgnd_print_sectionheader --border "$LN_H" --maxwidth "$term_width"
-        sgnd_print "$(sgnd_sgr "$SGND_UI_FAINT" "" "$FX_ITALIC")Q/q Exit    Select a page by number${RESET}"
+        
+        _sgnd_console_render_togglebar
     }
 
     # --- Module loading -------------------------------------------------------------
@@ -1563,7 +1571,7 @@ set -uo pipefail
 
     # fn: _sgnd_console_handle_control - Handle console-owned direct controls
         # . Purpose
-        #   Apply execution-context controls that belong to sgnd-console rather than
+        #   Apply execution-context controls that belong to management-console rather than
         #   the reusable menu library.
         #
         # . Arguments
@@ -1624,6 +1632,7 @@ set -uo pipefail
 
             sgnd_print_sectionheader --border "$DL_H" --maxwidth "${SGND_MENU_RENDER_WIDTH:-$(sgnd_terminal_width)}"
             printf '%s' "Select option : " >/dev/tty
+            SGND_LAST_WAITSECS=0
             sgnd_menu_read_choice choice || return $?
 
             case "$choice" in
@@ -1660,10 +1669,15 @@ set -uo pipefail
             fi
 
             if [[ "$SGND_CONSOLE_VIEW" == "index" ]]; then
-                if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= ${#SGND_CONSOLE_PAGE_ROWS[@]} )); then
-                    _sgnd_console_open_page "$((choice - 1))" || true
+                if [[ "$choice" =~ ^[0-9]+$ ]]; then
+                    local choice_number=$((10#$choice))
+                    if (( choice_number >= 1 && choice_number <= ${#SGND_CONSOLE_PAGE_ROWS[@]} )); then
+                        _sgnd_console_open_page "$((choice_number - 1))" || true
+                    else
+                        saywarning "Invalid selection: $choice"
+                    fi
                 else
-                    saywarning "Invalid page selection: $choice"
+                    saywarning "Invalid selection: $choice"
                 fi
                 continue
             fi
@@ -1729,7 +1743,7 @@ set -uo pipefail
         sgnd_print "Loading console configuration"
         _sgnd_console_load_config || exit $?
 
-        # Console preferences have already been restored from sgnd-console state.
+        # Console preferences have already been restored from management-console state.
         # An explicitly supplied command-line value has the highest precedence.
         if [[ -n "${VAL_MAXROWS:-}" ]]; then
             SGND_PAGE_MAX_ROWS="$VAL_MAXROWS"

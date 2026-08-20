@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623201
-#   Checksum    : 380a2bde657a89e1ed6b25bd0df878205af945382bb832a5696fdd39b395774c
+#   Build       : 2623211
+#   Checksum    : ba35c14b4e0e6320c6a1ae237f63c20ba30abc55c6f405b90c2f30840824f4d1
 #   Source      : 90-development.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -147,6 +147,6 @@ set -uo pipefail
     sgnd_menu_register_item "dev-preprel" "$SGND_DEVELOPMENT_MODULE_ID" "Prepare release" "_dev_prepare_release" "Create a release archive with checksums and manifests" 0 15 1 0
     sgnd_menu_register_item "dev-wrappers" "$SGND_DEVELOPMENT_MODULE_ID" "Create wrappers" "_dev_create_wrappers" "Create root-aware bin or sbin wrappers for selected scripts" 0 20 1 0
     sgnd_menu_register_item "dev-gendocs" "$SGND_DEVELOPMENT_MODULE_ID" "Generate documentation" "_dev_generate_docs" "Generate SolidGroundUX source documentation" 0 25 1 0
-    sgnd_menu_register_item "dev-syncrepo" "$SGND_DEVELOPMENT_MODULE_ID" "Sync repository" "_sync_repository" "Synchronize the SolidGroundUX repository with the remote source" 0 30 1 0
+    sgnd_menu_register_item "dev-syncrepo" "$SGND_DEVELOPMENT_MODULE_ID" "Mirror repository" "_sync_repository" "Mirror the SolidGroundUX repository with a remote source" 0 30 1 0
 
     sayinfo "Development module registered with the console."

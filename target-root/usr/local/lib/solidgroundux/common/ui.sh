@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623103
-#   Checksum    : 41ea8caf87a35cc688ebe446ab42e24eccb72d84ba360ccd986d06ace085da8e
+#   Build       : 2623211
+#   Checksum    : ba78cad0f65258fb3f6d947941d439c1206b1242a4a478d148bb8bca20b74614
 #   Source      : ui.sh
 #   Type        : library
 #   Group       : UI
@@ -1961,19 +1961,96 @@ set -uo pipefail
         printf "\n"
     }
 
-    # fn: sgnd_style_samples - Display the active UI theme
+    # fn$: _sgnd_style_color_description - Resolve a semantic color to a palette name or RGB value
         # . Purpose
-        #   Demonstrate every semantic color defined by the active SolidGroundUX theme.
+        #   Return a readable description for an already resolved ANSI color value.
         #
         # . Behavior
-        #   - Shows the current theme name.
-        #   - Exercises the message colors through the public say* functions.
-        #   - Exercises title bars, section headers, labeled values, run modes,
-        #     prompts, status values, and progress colors.
-        #   - Prints every semantic style variable at least once.
+        #   - Prefers a matching named foreground palette variable when available.
+        #   - Falls back to #RRGGBB for 24-bit foreground colors.
+        #   - Falls back to xterm-N for indexed foreground colors.
+        #   - Returns "custom" when the value cannot be recognized.
+        #
+        # . Arguments
+        #   $1  COLOR_VALUE - Resolved ANSI foreground color sequence.
         #
         # . Output
-        #   Writes a visual theme showcase to the terminal.
+        #   Writes the palette name, RGB hex value, indexed color, or "custom".
+        #
+        # . Returns
+        #   0 always.
+        #
+        # . Usage
+        #   color_name="$(_sgnd_style_color_description "$SGND_UI_BORDER")"
+    _sgnd_style_color_description() {
+        local color_value="${1:-}"
+        local palette_name=""
+        local palette_value=""
+        local params=""
+        local r=""
+        local g=""
+        local b=""
+        local index=""
+        local -a palette_names=(
+            BLACK RED GREEN YELLOW BLUE MAGENTA CYAN WHITE GRAY ORANGE SILVER PURPLE TEAL PINK GOLD BROWN
+            DARK_RED DARK_GREEN DARK_YELLOW DARK_BLUE DARK_MAGENTA DARK_CYAN DARK_WHITE DARK_GRAY
+            DARK_ORANGE DARK_SILVER DARK_PURPLE DARK_TEAL DARK_PINK DARK_GOLD DARK_BROWN
+            BRIGHT_RED BRIGHT_GREEN BRIGHT_YELLOW BRIGHT_BLUE BRIGHT_MAGENTA BRIGHT_CYAN BRIGHT_WHITE
+            BRIGHT_ORANGE BRIGHT_PURPLE BRIGHT_TEAL BRIGHT_PINK BRIGHT_GOLD BRIGHT_BROWN
+            TD_MAROON TD_DARK_MAROON TD_GOLD TD_DARK_GOLD TD_SILVER TD_DARK_SILVER TD_WHITE
+            SGND_BLUE SGND_DARK_BLUE SGND_GREEN SGND_DARK_GREEN SGND_RED SGND_DARK_RED SGND_GOLD SGND_DARK_GOLD
+        )
+
+        for palette_name in "${palette_names[@]}"; do
+            [[ -v "$palette_name" ]] || continue
+            palette_value="${!palette_name}"
+
+            if [[ "$palette_value" == "$color_value" ]]; then
+                printf '%s\n' "$palette_name"
+                return 0
+            fi
+        done
+
+        if [[ "$color_value" == $'\e['*m ]]; then
+            params="${color_value#$'\e['}"
+            params="${params%m}"
+
+            if [[ "$params" =~ (^|;)38\;2\;([0-9]+)\;([0-9]+)\;([0-9]+)($|;) ]]; then
+                r="${BASH_REMATCH[2]}"
+                g="${BASH_REMATCH[3]}"
+                b="${BASH_REMATCH[4]}"
+                printf '#%02X%02X%02X\n' "$r" "$g" "$b"
+                return 0
+            fi
+
+            if [[ "$params" =~ (^|;)38\;5\;([0-9]+)($|;) ]]; then
+                index="${BASH_REMATCH[2]}"
+                printf 'xterm-%s\n' "$index"
+                return 0
+            fi
+        fi
+
+        printf 'custom\n'
+        return 0
+    }
+
+    # fn: sgnd_style_samples - Display the active UI theme
+        # . Purpose
+        #   Demonstrate the active SolidGroundUX theme and the rendering primitives
+        #   used by framework console applications.
+        #
+        # . Behavior
+        #   - Shows the current theme name through sgnd_print_titlebar.
+        #   - Renders every message label directly through sgnd_print using its
+        #     corresponding MSG_CLR_* semantic color.
+        #   - Demonstrates the principal sgnd_print* rendering primitives by name.
+        #   - Includes a non-interactive simulation of ask prompt/input styling.
+        #   - Preserves the run-mode and validation/state specimens.
+        #   - Shows message, progress, and UI semantic colors with their resolved
+        #     palette name or RGB/indexed fallback.
+        #
+        # . Output
+        #   Writes a visual theme and rendering showcase to the terminal.
         #
         # . Returns
         #   0 on success.
@@ -1982,47 +2059,81 @@ set -uo pipefail
         #   sgnd_style_samples
     sgnd_style_samples() {
         local current_theme="${SGND_UI_STYLE##*/}"
+        local message_type=""
+        local label_var=""
+        local color_var=""
+        local label_value=""
+        local color_value=""
+        local color_description=""
+        local group_spec=""
+        local group_name=""
+        local group_vars=""
+        local theme_var=""
+        local -a message_types=(STRT INFO OK WARN FAIL CNCL END DEBUG EMPTY)
+        local -a theme_color_groups=(
+            "Message colors|MSG_CLR_INFO MSG_CLR_STRT MSG_CLR_OK MSG_CLR_WARN MSG_CLR_FAIL MSG_CLR_CNCL MSG_CLR_END MSG_CLR_EMPTY MSG_CLR_DEBUG"
+            "Progress colors|PROG_BAR_CLR PROG_IND_CLR PROG_TEXT_CLR"
+            "UI colors|SGND_UI_BORDER SGND_UI_LABEL SGND_UI_VALUE SGND_UI_COMMIT SGND_UI_DRYRUN SGND_UI_ENABLED SGND_UI_DISABLED SGND_UI_ON SGND_UI_OFF SGND_UI_INPUT SGND_UI_PROMPT SGND_UI_INVALID SGND_UI_VALID SGND_UI_SUCCESS SGND_UI_ERROR SGND_UI_TEXT SGND_UI_DEFAULT"
+        )
 
-        current_theme="${current_theme#style-}"
         current_theme="${current_theme%.sh}"
+        if [[ "$current_theme" =~ ^[0-9][0-9]-style-(.+)$ ]]; then
+            current_theme="${BASH_REMATCH[1]}"
+        else
+            current_theme="${current_theme#style-}"
+        fi
 
         sgnd_print_titlebar \
-            --left "SolidGroundUX Theme Showcase" \
+            --left "sgnd_print_titlebar - SolidGroundUX Theme Showcase" \
             --right "$current_theme" \
-            --sub "Semantic UI colors and framework components"
+            --sub "Semantic UI colors and framework rendering primitives"
 
         # Message styles
-        sgnd_print_sectionheader --text "Message output"
+        sgnd_print
+        sgnd_print_sectionheader --text "Message labels"
 
-        saystart   "MSG_CLR_STRT - starting an operation"
-        sayinfo    "MSG_CLR_INFO - informational message"
-        sayok      "MSG_CLR_OK - operation completed successfully"
-        saywarning "MSG_CLR_WARN - warning message"
-        sayfail    "MSG_CLR_FAIL - failure message"
-        saycancel  "MSG_CLR_CNCL - operation cancelled"
-        sayend     "MSG_CLR_END - operation finished"
-        saydebug   "MSG_CLR_DEBUG - diagnostic message"
+        for message_type in "${message_types[@]}"; do
+            label_var="LBL_${message_type}"
+            color_var="MSG_CLR_${message_type}"
+            label_value="${!label_var:-}"
+            color_value="${!color_var:-$SGND_UI_TEXT}"
 
-        printf '%s\n' "${MSG_CLR_EMPTY}MSG_CLR_EMPTY - neutral or empty message style${RESET}"
+            sgnd_print \
+                --text "${label_var} = ${label_value}" \
+                --textclr "$color_value" \
+                --pad 2
+        done
 
-        # General TUI styles
+        # Rendering primitives
+        sgnd_print
         sgnd_print_sectionheader --text "General UI elements"
 
+        sgnd_print \
+            --text "sgnd_print - wrapped or styled text output" \
+            --pad 2
+
+        sgnd_print_single \
+            --text "sgnd_print_single - one non-wrapped rendered line" \
+            --pad 2
+
         sgnd_print_labeledvalue \
-            --label "SGND_UI_LABEL" \
-            --value "SGND_UI_VALUE"
+            --label "sgnd_print_labeledvalue" \
+            --value "Label / value rendering" \
+            --pad 2
 
-        printf '%s%s%s\n' \
-            "$SGND_UI_TEXT" \
-            "SGND_UI_TEXT - normal themed interface text" \
-            "$RESET"
-
-        printf '%s%s%s\n' \
-            "$SGND_UI_DEFAULT" \
-            "SGND_UI_DEFAULT - default or secondary value" \
-            "$RESET"
+        sgnd_print_labeledmultivalue \
+            --label "sgnd_print_labeledmultivalue" \
+            --pad 2 \
+            --items \
+                "First aligned value" \
+                "Second aligned value" \
+                "A longer value demonstrates wrapping while continuation lines remain aligned"
+        printf '  %sask (simulated)%s : %sSolidGroundUX%s\n' \
+            "$SGND_UI_PROMPT" "$RESET" \
+            "$SGND_UI_INPUT" "$RESET"
 
         # Run modes
+        sgnd_print
         sgnd_print_sectionheader --text "Run modes"
 
         printf '  %sCOMMIT%s    %sDRY-RUN%s\n' \
@@ -2044,21 +2155,9 @@ set -uo pipefail
             "$SGND_UI_SUCCESS" "$RESET" \
             "$SGND_UI_ERROR" "$RESET"
 
-        # Prompt/input styles
-        sgnd_print_sectionheader --text "Prompt and input"
-
-        printf '  %sTheme name%s : %s%s%s\n' \
-            "$SGND_UI_PROMPT" "$RESET" \
-            "$SGND_UI_INPUT" "$SGND_UI_STYLE" "$RESET"
-
-        # Border style
-        sgnd_print_sectionheader \
-            --text "SGND_UI_BORDER" \
-            --borderclr "$SGND_UI_BORDER"
-
         # Progress styles
-        sgnd_print_sectionheader --text "Progress display"
-
+        sgnd_print
+        
         sayprogress_begin --slots 1
 
         sayprogress \
@@ -2069,14 +2168,36 @@ set -uo pipefail
             --barcolor "$PROG_BAR_CLR" \
             --labelcolor "$PROG_TEXT_CLR" \
             --indicatorcolor "$PROG_IND_CLR"
-
         sleep 1
-        sayprogress_done
 
-        sgnd_print_sectionheader \
-            --text "End of theme showcase" \
-            --borderclr "$SGND_UI_BORDER"
+        # Resolved semantic colors
+        sgnd_print
+        sgnd_print
+        sgnd_print_sectionheader --text "Theme colors"
 
+        for group_spec in "${theme_color_groups[@]}"; do
+            IFS='|' read -r group_name group_vars <<< "$group_spec"
+
+            sgnd_print
+            sgnd_print_sectionheader \
+                --text "$group_name" \
+                --textclr "$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")"
+
+            for theme_var in $group_vars; do
+                color_value="${!theme_var:-}"
+                [[ -n "$color_value" ]] || continue
+                color_description="$(_sgnd_style_color_description "$color_value")"
+
+                sgnd_print_labeledvalue \
+                    --label "$theme_var" \
+                    --value "$color_description" \
+                    --labelwidth 24 \
+                    --pad 2 \
+                    --valueclr "$color_value"
+            done
+        done
+
+       
         return 0
     }
 

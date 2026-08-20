@@ -3,15 +3,15 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623103
-#   Checksum    : 9e7b5e7115a95ab63d83c074cad673e649ed83219210019dc908502ec7e2a90f
+#   Build       : 2623211
+#   Checksum    : fda1dc8a52eb35332d85c26adb0070f77448161bfec28060fe5bf9ebce24cb82
 #   Source      : sgnd-menu.sh
 #   Group       : SolidGround Console
 #   Type        : library
 #   Purpose     : Provide reusable menu definition, rendering, navigation, and dispatch
 #
 # Description:
-#   Provides the reusable menu system used by sgnd-console and other SolidGroundUX applications.
+#   Provides the reusable menu system used by the management console and other SolidGroundUX applications.
 #
 #   The library:
 #     - Defines menu structures and item registration mechanisms
@@ -2108,7 +2108,7 @@ set -uo pipefail
         # . Behavior
         #   - Calls the function named by SGND_MENU_ITEM_EXECUTOR when configured.
         #   - Falls back to calling the registered handler directly.
-        #   - Keeps sgnd-menu independent from sgnd-console and other host applications.
+        #   - Keeps sgnd-menu independent from management-console and other host applications.
         #
         # . Returns
         #   Exit status from the host executor or registered handler.
@@ -2145,7 +2145,12 @@ set -uo pipefail
     _sgnd_console_dispatch() {
         _sgnd_console_refresh_model_cache
 
-        local choice="${1:?missing choice}"
+        SGND_LAST_WAITSECS=0
+        local choice="${1:-}"
+        if [[ -z "$choice" ]]; then
+            saywarning "Invalid selection"
+            return 1
+        fi
         local handler=""
         local label=""
         local state="1"

@@ -4,8 +4,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623103
-#   Checksum    : a93e37f5184b57d27d60685bfc4074e6ef6f262e362c03546b69a94a94d57eba
+#   Build       : 2623211
+#   Checksum    : 038364b2a0b918c98738b6384b2acf0b41ced18ae5c084efd64c70ed7e565c4e
 #   Source      : framework-smoketest.sh
 #   Type        : script
 #   Group       : SDK
@@ -845,6 +845,11 @@ set -uo pipefail
     show_theme() {
         local -a theme_files=()
         local -a theme_names=()
+        local -a theme_color_groups=(
+            "Message colors|MSG_CLR_INFO MSG_CLR_STRT MSG_CLR_OK MSG_CLR_WARN MSG_CLR_FAIL MSG_CLR_CNCL MSG_CLR_END MSG_CLR_EMPTY MSG_CLR_DEBUG"
+            "Progress colors|PROG_BAR_CLR PROG_IND_CLR PROG_TEXT_CLR"
+            "UI colors|SGND_UI_BORDER SGND_UI_LABEL SGND_UI_VALUE SGND_UI_COMMIT SGND_UI_DRYRUN SGND_UI_ENABLED SGND_UI_DISABLED SGND_UI_ON SGND_UI_OFF SGND_UI_INPUT SGND_UI_PROMPT SGND_UI_INVALID SGND_UI_VALID SGND_UI_SUCCESS SGND_UI_ERROR SGND_UI_TEXT SGND_UI_DEFAULT"
+        )
         local theme_file=""
         local theme_name=""
         local current_file="${SGND_UI_STYLE##*/}"
@@ -852,6 +857,11 @@ set -uo pipefail
         local key_tail=""
         local index=0
         local i=0
+        local group_spec=""
+        local group_name=""
+        local group_vars=""
+        local color_var=""
+        local color_value=""
 
         while IFS= read -r -d '' theme_file; do
             theme_files+=("$(basename -- "$theme_file")")
@@ -892,7 +902,12 @@ set -uo pipefail
             printf 'Use Left/Right arrows to browse; Q returns to the menu.\n\n'
 
             sgnd_style_samples
+            sgnd_print
 
+            sgnd_print_sectionheader --border $DL_H
+
+            sgnd_print "Press  $KY_LEFT or $KY_RIGHT to switch themes, or Q to return to the menu.\n"
+            
             IFS= read -r -s -n1 key
 
             case "$key" in

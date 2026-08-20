@@ -26,7 +26,7 @@
 
 set -uo pipefail
 
-SGND_WRAPPER_TARGET="usr/local/libexec/solidgroundux/sgnd-console.sh"
+SGND_WRAPPER_TARGET="usr/local/libexec/solidgroundux/management-console.sh"
 
 cfg_home="$HOME"
 

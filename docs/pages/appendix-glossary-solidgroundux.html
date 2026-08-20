@@ -303,49 +303,49 @@
 <tr><td>_sgnd_arg_init_defaults</td><td>Initialize argument defaults</td><td>Initialize argument target variables from builtin and/or script argument specs.</td><td>sgnd-args.sh</td></tr>
 <tr><td>_sgnd_arg_split</td><td>Split one argument specification</td><td>Parse a pipe-separated argument specification into parser fields.</td><td>sgnd-args.sh</td></tr>
 <tr><td>_sgnd_arg_validate_enum</td><td>Validate an enum argument value</td><td>Test whether a supplied value is present in a comma-separated choice list.</td><td>sgnd-args.sh</td></tr>
-<tr><td>_sgnd_build_command_args</td><td>Build arguments for a public SolidGroundUX command</td><td>Copy caller arguments into a target array and prepend --dryrun when the console is currently in dry-run mode.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_build_command_args</td><td>Build arguments for a public SolidGroundUX command</td><td>Copy caller arguments into a target array and prepend --dryrun when the console is currently in dry-run mode.</td><td>management-console.sh</td></tr>
 <tr><td>_sgnd_cfg_write_template_header</td><td>Cfg write template header</td><td>Internal helper for cfg write template header.</td><td>sgnd-cfg.sh</td></tr>
 <tr><td>_sgnd_console_body_height</td><td>Return the usable menu-body height</td><td>Determine how many rendered lines may be allocated to one menu page.</td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_build_pages</td><td>Build cached menu page boundaries</td><td>Partition visible menu rows into pages that fit the current terminal and configured line limit.</td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_calc_label_width</td><td>Calculate the shared menu label width</td><td>Find the widest visible item prefix so labels and descriptions align consistently.</td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_collect_group_render_indexes</td><td>Build ordered group indexes for the active source</td><td>Build the cached group order used by the renderer for the currently active module source.</td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_collect_visible_item_indexes</td><td>Build visible item indexes for the active source</td><td>Cache menu rows that may be rendered or selected on the active module page.</td><td>sgnd-menu.sh</td></tr>
-<tr><td>_sgnd_console_cycle_console_loglevel</td><td>Cycle and persist console log level</td><td>Select the adjacent console log level, persist it, and redraw immediately.</td><td>sgnd-console.sh</td></tr>
-<tr><td>_sgnd_console_cycle_file_loglevel</td><td>Cycle and persist file log level</td><td>Select the adjacent file log level, persist it, and redraw immediately.</td><td>sgnd-console.sh</td></tr>
-<tr><td>_sgnd_console_cycle_loglevel_value</td><td>Resolve the adjacent framework log level</td><td></td><td>sgnd-console.sh</td></tr>
-<tr><td>_sgnd_console_cycle_theme</td><td>Cycle the active console theme</td><td>Select the adjacent installed style file, apply it through sgnd_theme, and redraw immediately.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_console_cycle_console_loglevel</td><td>Cycle and persist console log level</td><td>Select the adjacent console log level, persist it, and redraw immediately.</td><td>management-console.sh</td></tr>
+<tr><td>_sgnd_console_cycle_file_loglevel</td><td>Cycle and persist file log level</td><td>Select the adjacent file log level, persist it, and redraw immediately.</td><td>management-console.sh</td></tr>
+<tr><td>_sgnd_console_cycle_loglevel_value</td><td>Resolve the adjacent framework log level</td><td></td><td>management-console.sh</td></tr>
+<tr><td>_sgnd_console_cycle_theme</td><td>Cycle the active console theme</td><td>Select the adjacent installed style file, apply it through sgnd_theme, and redraw immediately.</td><td>management-console.sh</td></tr>
 <tr><td>_sgnd_console_dispatch</td><td>Dispatch a normalized menu choice</td><td>Resolve navigation, lines-per-page, numeric, or direct-key choices against the current cached menu model and execute the selected handler.</td><td>sgnd-menu.sh</td></tr>
-<tr><td>_sgnd_console_execute_menu_item</td><td>Execute a menu item with console result tracking</td><td>Execute menu actions through the console tracking layer while leaving builtin console controls untracked.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_console_execute_menu_item</td><td>Execute a menu item with console result tracking</td><td>Execute menu actions through the console tracking layer while leaving builtin console controls untracked.</td><td>management-console.sh</td></tr>
 <tr><td>_sgnd_console_find_visible_pos_for_row</td><td>Find a model row in the visible index</td><td></td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_get_visible_display_number</td><td>Return an item&#x27;s chapter-local display number</td><td>Convert a model row index into the numeric key shown to the user, resetting numbering when the module chapter changes.</td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_get_visible_row_index</td><td>Resolve a visible position to its model row</td><td></td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_group_continues_after_visible_pos</td><td>Test whether a group continues later in the visible list</td><td></td><td>sgnd-menu.sh</td></tr>
-<tr><td>_sgnd_console_group_exists</td><td>Test whether a console group exists</td><td>Test whether a group key already exists in the console group model.</td><td>sgnd-console.sh</td></tr>
-<tr><td>_sgnd_console_handle_control</td><td>Handle console-owned direct controls</td><td>Apply execution-context controls that belong to sgnd-console rather than the reusable menu library.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_console_group_exists</td><td>Test whether a console group exists</td><td>Test whether a group key already exists in the console group model.</td><td>management-console.sh</td></tr>
+<tr><td>_sgnd_console_handle_control</td><td>Handle console-owned direct controls</td><td>Apply execution-context controls that belong to management-console rather than the reusable menu library.</td><td>management-console.sh</td></tr>
 <tr><td>_sgnd_console_label_clearonrender</td><td>Build the clear-on-render label</td><td></td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_label_debug</td><td>Build the debug label</td><td></td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_label_dryrun</td><td>Build the dry-run label</td><td></td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_label_logfile</td><td>Build the logfile label</td><td></td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_label_verbose</td><td>Build the verbose label</td><td></td><td>sgnd-menu.sh</td></tr>
-<tr><td>_sgnd_console_load_config</td><td>Resolve the console module source</td><td>Resolve the module file or directory used by this console instance.</td><td>sgnd-console.sh</td></tr>
-<tr><td>_sgnd_console_manage_visibility</td><td>Manage index-page module visibility</td><td>Let a root console session enable or disable discovered management pages.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_console_load_config</td><td>Resolve the console module source</td><td>Resolve the module file or directory used by this console instance.</td><td>management-console.sh</td></tr>
+<tr><td>_sgnd_console_manage_visibility</td><td>Manage index-page module visibility</td><td>Let a root console session enable or disable discovered management pages.</td><td>management-console.sh</td></tr>
 <tr><td>_sgnd_console_measure_group_header_lines</td><td>Return group-header height</td><td></td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_measure_item_lines</td><td>Measure one rendered menu item</td><td></td><td>sgnd-menu.sh</td></tr>
-<tr><td>_sgnd_console_module_literal_metadata</td><td>Read lightweight module metadata without sourcing the module</td><td>Read literal module name and description assignments for the index page.</td><td>sgnd-console.sh</td></tr>
-<tr><td>_sgnd_console_module_state_set</td><td>Persist module visibility state</td><td>Save one module&#x27;s enabled/disabled state without sourcing that module.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_console_module_literal_metadata</td><td>Read lightweight module metadata without sourcing the module</td><td>Read literal module name and description assignments for the index page.</td><td>management-console.sh</td></tr>
+<tr><td>_sgnd_console_module_state_set</td><td>Persist module visibility state</td><td>Save one module&#x27;s enabled/disabled state without sourcing that module.</td><td>management-console.sh</td></tr>
 <tr><td>_sgnd_console_nextpage</td><td>Move to the next menu page</td><td></td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_onoff</td><td>Render a colored On/Off state</td><td></td><td>sgnd-menu.sh</td></tr>
-<tr><td>_sgnd_console_open_page</td><td>Lazy-load and activate one registered module page</td><td>Source a module the first time its index page is selected and activate its menu rows.</td><td>sgnd-console.sh</td></tr>
-<tr><td>_sgnd_console_open_shell</td><td>Open an interactive child shell</td><td>Open a new interactive shell and return to the Management Console on exit.</td><td>sgnd-console.sh</td></tr>
-<tr><td>_sgnd_console_persist_framework_value</td><td>Persist one framework state value</td><td>Save a quick-access setting to SGND_FRAMEWORK_STATEFILE when framework state persistence is available.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_console_open_page</td><td>Lazy-load and activate one registered module page</td><td>Source a module the first time its index page is selected and activate its menu rows.</td><td>management-console.sh</td></tr>
+<tr><td>_sgnd_console_open_shell</td><td>Open an interactive child shell</td><td>Open a new interactive shell and return to the Management Console on exit.</td><td>management-console.sh</td></tr>
+<tr><td>_sgnd_console_persist_framework_value</td><td>Persist one framework state value</td><td>Save a quick-access setting to SGND_FRAMEWORK_STATEFILE when framework state persistence is available.</td><td>management-console.sh</td></tr>
 <tr><td>_sgnd_console_prevpage</td><td>Move to the previous menu page</td><td></td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_quit</td><td>Request menu termination</td><td></td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_redraw</td><td>Request a menu redraw</td><td></td><td>sgnd-menu.sh</td></tr>
-<tr><td>_sgnd_console_refresh_action_statuses</td><td>Apply persisted statuses to menu items</td><td></td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_console_refresh_action_statuses</td><td>Apply persisted statuses to menu items</td><td></td><td>management-console.sh</td></tr>
 <tr><td>_sgnd_console_refresh_model_cache</td><td>Materialize menu datatables into indexed caches</td><td>Convert registered group/item rows into direct-index arrays used by layout and rendering.</td><td>sgnd-menu.sh</td></tr>
-<tr><td>_sgnd_console_register_builtin_items</td><td>Register host-owned navigation items</td><td>Add the hidden previous/next page controls used by the menu dispatcher.</td><td>sgnd-console.sh</td></tr>
-<tr><td>_sgnd_console_register_fallback_group</td><td>Register fallback console group</td><td>Register a fallback group for an item that references an unknown group key.</td><td>sgnd-console.sh</td></tr>
-<tr><td>_sgnd_console_register_pages</td><td>Build the lightweight startup page index</td><td>Discover enabled module files and register page metadata without sourcing them.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_console_register_builtin_items</td><td>Register host-owned navigation items</td><td>Add the hidden previous/next page controls used by the menu dispatcher.</td><td>management-console.sh</td></tr>
+<tr><td>_sgnd_console_register_fallback_group</td><td>Register fallback console group</td><td>Register a fallback group for an item that references an unknown group key.</td><td>management-console.sh</td></tr>
+<tr><td>_sgnd_console_register_pages</td><td>Build the lightweight startup page index</td><td>Discover enabled module files and register page metadata without sourcing them.</td><td>management-console.sh</td></tr>
 <tr><td>_sgnd_console_render_group</td><td>Render one complete menu group</td><td>Render a group and all of its currently renderable items, primarily for builtin groups outside normal paging.</td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_render_menu</td><td>Render the active menu page</td><td>Render the title, page indicator, paged module rows, builtin groups, and toggle bar.</td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_render_menu_body_paged</td><td>Render the current page body</td><td>Select the current page&#x27;s cached rows/groups and pass them to the row renderer.</td><td>sgnd-menu.sh</td></tr>
@@ -353,16 +353,16 @@
 <tr><td>_sgnd_console_render_page_header</td><td>Render the current page indicator above the menu body</td><td>Show page navigation state as a centered section header when the menu spans more than one page.</td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_render_page_rows</td><td>Render selected groups and item rows</td><td>Render one page using the supplied group keys and model row indexes.</td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_render_togglebar</td><td>Render runtime status and keyboard legend</td><td>Show the current mode, access level, log levels, theme, and direct-key legend beneath the menu.</td><td>sgnd-menu.sh</td></tr>
-<tr><td>_sgnd_console_run</td><td>Run the console interaction loop</td><td>Run the interactive console event loop.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_console_run</td><td>Run the console interaction loop</td><td>Run the interactive console event loop.</td><td>management-console.sh</td></tr>
 <tr><td>_sgnd_console_set_lines_per_page</td><td>Set lines per page</td><td>Prompt for and apply the number of menu lines available per page.</td><td>sgnd-menu.sh</td></tr>
-<tr><td>_sgnd_console_show_index</td><td>Render the lightweight module index page</td><td>Show all enabled console pages without loading their implementation modules.</td><td>sgnd-console.sh</td></tr>
-<tr><td>_sgnd_console_source_module</td><td>Source one console module</td><td></td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_console_show_index</td><td>Render the lightweight module index page</td><td>Show all enabled console pages without loading their implementation modules.</td><td>management-console.sh</td></tr>
+<tr><td>_sgnd_console_source_module</td><td>Source one console module</td><td></td><td>management-console.sh</td></tr>
 <tr><td>_sgnd_console_statusword</td><td>Render one status-bar fragment</td><td></td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_theme_name</td><td>Return the active theme name</td><td>Derive a human-readable theme name from SGND_UI_STYLE.</td><td>sgnd-menu.sh</td></tr>
-<tr><td>_sgnd_console_toggle_access</td><td>Relaunch with the opposite privilege level</td><td>Replace the current console process with a root or standard-access instance.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_console_toggle_access</td><td>Relaunch with the opposite privilege level</td><td>Replace the current console process with a root or standard-access instance.</td><td>management-console.sh</td></tr>
 <tr><td>_sgnd_console_toggle_clearonrender</td><td>Toggle clear-on-render</td><td>Switch SGND_CLEAR_ONRENDER between enabled and disabled for the current session.</td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_toggle_debug</td><td>Toggle debug mode</td><td>Toggle FLAG_DEBUG and refresh the framework run mode.</td><td>sgnd-menu.sh</td></tr>
-<tr><td>_sgnd_console_toggle_dryrun</td><td>Toggle dry-run/commit mode</td><td>Switch FLAG_DRYRUN between dry-run and commit mode and redraw immediately.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_console_toggle_dryrun</td><td>Toggle dry-run/commit mode</td><td>Switch FLAG_DRYRUN between dry-run and commit mode and redraw immediately.</td><td>management-console.sh</td></tr>
 <tr><td>_sgnd_console_toggle_verbose</td><td>Toggle verbose mode</td><td>Switch FLAG_VERBOSE for the current console session.</td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_toggleword</td><td>Render a toggle word with an emphasized hotkey</td><td>Format one toggle label using the enabled/disabled color and underline its hotkey.</td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_valid_choices_csv</td><td>Build the current valid-choice list</td><td>Emit a comma-separated list containing visible numeric selections and active built-in keys for the current menu state.</td><td>sgnd-menu.sh</td></tr>
@@ -397,7 +397,7 @@
 <tr><td>_sgnd_release_select_previous_manifest</td><td>Select the removal-baseline manifest</td><td>Resolve the manifest against which removed paths are calculated.</td><td>prepare-release.sh</td></tr>
 <tr><td>_sgnd_release_write_removed_manifest</td><td>Write removed-path delta</td><td>Create the release removal manifest by comparing the selected baseline and current package manifests.</td><td>prepare-release.sh</td></tr>
 <tr><td>_sgnd_rotate_logs</td><td>Rotate logs</td><td>Rotate log files when log retention settings require it.</td><td>ui-say.sh</td></tr>
-<tr><td>_sgnd_run_public_command</td><td>Resolve and run a SolidGroundUX public command</td><td>Resolve a command from the console bin/sbin roots or PATH, propagate console dry-run state, and execute it with the supplied arguments.</td><td>sgnd-console.sh</td></tr>
+<tr><td>_sgnd_run_public_command</td><td>Resolve and run a SolidGroundUX public command</td><td>Resolve a command from the console bin/sbin roots or PATH, propagate console dry-run state, and execute it with the supplied arguments.</td><td>management-console.sh</td></tr>
 <tr><td>_sgnd_save_state_dispatch</td><td>Save state on clean exit</td><td>Conditionally persist framework state from the exit-handler stack.</td><td>sgnd-bootstrap.sh</td></tr>
 <tr><td>_sgnd_ui_resolve_theme_file</td><td>Ui resolve theme file</td><td>Resolve a palette or style name to a readable theme file path.</td><td>ui.sh</td></tr>
 <tr><td>_sh_err</td><td>Sh err</td><td>Write an error message through say when available, otherwise stderr.</td><td>ui.sh</td></tr>
@@ -520,11 +520,11 @@
 <tr><td>main</td><td>Run the workspace deployment workflow</td><td></td><td>deploy-workspace.sh</td></tr>
 <tr><td>main</td><td>Run the executable main sequence - Run the executable main sequence</td><td>Provide the canonical executable entry point for the documentation generator.</td><td>doc-generator.sh</td></tr>
 <tr><td>main</td><td>Run the SolidGroundUX framework smoke test</td><td>Initialize the framework and run the interactive smoke-test menu.</td><td>framework-smoketest.sh</td></tr>
+<tr><td>main</td><td>Run the SolidGround management console</td><td>Initialize the framework, discover console pages, and run the interactive host.</td><td>management-console.sh</td></tr>
 <tr><td>main</td><td>Run the executable main sequence - Run the executable main sequence</td><td>Execute the release preparation workflow.</td><td>prepare-release.sh</td></tr>
 <tr><td>main</td><td>Receive, validate, and extract a streamed workspace archive</td><td></td><td>receive-files.sh</td></tr>
 <tr><td>main</td><td>Run standalone release-manager initialization and dispatch</td><td>Run standalone release-manager initialization and dispatch. Returns Exit status of the selected interactive or command-line action. Usage main &quot;$@&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>main</td><td>Run the executable main sequence</td><td>Run the standard executable startup sequence and then execute script-specific logic.</td><td>set-identity.sh</td></tr>
-<tr><td>main</td><td>Run the SolidGround management console</td><td>Initialize the framework, discover console pages, and run the interactive host.</td><td>sgnd-console.sh</td></tr>
 <tr><td>main</td><td>Run documentation renderer</td><td>Run documentation renderer for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>main</td><td>Run the repository synchronization sequence</td><td></td><td>sync-repository.sh</td></tr>
 <tr><td>main</td><td>Run the archive workflow</td><td></td><td>tar-it.sh</td></tr>
@@ -628,11 +628,11 @@
 <tr><td>sgnd_check_license</td><td>Check license</td><td>Validate the current SolidGroundUX license state when licensing is enabled.</td><td>sgnd-bootstrap.sh</td></tr>
 <tr><td>sgnd_clear</td><td>Clear the visible terminal display</td><td></td><td>ui.sh</td></tr>
 <tr><td>sgnd_color_samples</td><td>Color samples</td><td>Print sample output for the currently loaded color palette.</td><td>ui.sh</td></tr>
-<tr><td>sgnd_console_action_status</td><td>Read persisted status for a menu action</td><td></td><td>sgnd-console.sh</td></tr>
-<tr><td>sgnd_console_record_action_result</td><td>Persist and display an action result</td><td></td><td>sgnd-console.sh</td></tr>
+<tr><td>sgnd_console_action_status</td><td>Read persisted status for a menu action</td><td></td><td>management-console.sh</td></tr>
+<tr><td>sgnd_console_record_action_result</td><td>Persist and display an action result</td><td></td><td>management-console.sh</td></tr>
 <tr><td>sgnd_console_register_group</td><td>Compatibility alias for sgnd_menu_register_group</td><td></td><td>sgnd-menu.sh</td></tr>
 <tr><td>sgnd_console_register_item</td><td>Compatibility alias for sgnd_menu_register_item</td><td></td><td>sgnd-menu.sh</td></tr>
-<tr><td>sgnd_console_run_tracked</td><td>Execute one registered action and track its result</td><td></td><td>sgnd-console.sh</td></tr>
+<tr><td>sgnd_console_run_tracked</td><td>Execute one registered action and track its result</td><td></td><td>management-console.sh</td></tr>
 <tr><td>sgnd_decision_display_choices</td><td>Decision display choices</td><td>Build a compact display string from a decision choice specification.</td><td>ui-dlg.sh</td></tr>
 <tr><td>sgnd_decision_expand_choices</td><td>Decision expand choices</td><td>Expand decision aliases into canonical/alias records.</td><td>ui-dlg.sh</td></tr>
 <tr><td>sgnd_decision_from_dialog_rc</td><td>Decision from dialog rc</td><td>Map a dialog return code to a canonical decision value.</td><td>ui-dlg.sh</td></tr>
@@ -776,7 +776,7 @@
 <tr><td>sgnd_stack_trace</td><td>Stack trace</td><td>Print a Bash call stack for diagnostics.</td><td>sgnd-core.sh</td></tr>
 <tr><td>sgnd_string_repeat</td><td>String repeat</td><td>Repeat a string a fixed number of times.</td><td>sgnd-core.sh</td></tr>
 <tr><td>sgnd_strip_ansi</td><td>Strip ansi</td><td>Remove ANSI escape sequences from text.</td><td>ui.sh</td></tr>
-<tr><td>sgnd_style_samples</td><td>Display the active UI theme</td><td>Demonstrate every semantic color defined by the active SolidGroundUX theme.</td><td>ui.sh</td></tr>
+<tr><td>sgnd_style_samples</td><td>Display the active UI theme</td><td>Demonstrate the active SolidGroundUX theme and the rendering primitives used by framework console applications.</td><td>ui.sh</td></tr>
 <tr><td>sgnd_terminal_width</td><td>Terminal width</td><td>Return the active terminal width or a configured fallback.</td><td>sgnd-core.sh</td></tr>
 <tr><td>sgnd_terminal_width</td><td>Return the current terminal width</td><td>Return the number of columns available to console rendering.</td><td>ui.sh</td></tr>
 <tr><td>sgnd_theme</td><td>Display or switch the active UI theme</td><td>Display the current theme or switch the semantic UI style used by the current SolidGroundUX session.</td><td>ui.sh</td></tr>

@@ -8,6 +8,71 @@ practical framework development.
 # Unreleased
 
 
+# Release 2.0.2623211
+
+### SolidGround Framework
+
+#### Changed
+- `sgnd_style_samples` is now the canonical runtime showcase for the active
+  theme, combining semantic theme colors with examples of the framework's
+  rendering primitives.
+- Theme message samples now use `sgnd_print` directly with the corresponding
+  `LBL_*` and `MSG_CLR_*` values instead of invoking the `say*` message
+  functions.
+- The General UI Elements specimen now explicitly demonstrates
+  `sgnd_print`, `sgnd_print_single`, `sgnd_print_labeledvalue`,
+  `sgnd_print_labeledmultivalue`, `sgnd_print_fill`,
+  `sgnd_print_sectionheader`, and `sgnd_print_titlebar`.
+- The theme showcase now includes a non-interactive `ask` simulation using the
+  active prompt and input colors without waiting for user input.
+- The existing run-mode, state, validation, and progress specimens are retained
+  as part of the consolidated theme showcase.
+- The theme-color specimen now lists Message, Progress, and UI semantic color
+  variables together with their resolved palette color name, RGB hex value, or
+  indexed-color value.
+
+### SolidGround Management Console
+
+#### Changed
+- The Management Console host script was renamed to `management-console.sh`
+  while retaining `sgnd-console` as the public command.
+- The Management Console index now uses the same standard bottom control bar as
+  normal console pages, accurately reflecting that the direct keyboard controls
+  remain active on the index.
+- Console selection handling is now more forgiving: invalid selections are
+  reported and input is cleared before waiting for a new selection rather than
+  allowing invalid input to terminate or disrupt the console flow.
+- Manage Visibility selection now reports invalid entries explicitly instead of
+  silently restarting the selection cycle.
+
+#### Repaired
+- Numeric menu selections are interpreted explicitly as base-10 values,
+  preventing Bash octal interpretation from affecting selections such as `08`.
+- Console dispatch no longer treats an empty or invalid user selection as a
+  shell-level missing-argument error.
+- Post-action wait state is cleared before a new selection is dispatched so an
+  invalid selection cannot inherit the wait interval from a previous action.
+
+### Development Tools
+
+#### Added
+- Added `sync-repository.sh` for synchronizing the development repository from
+  the development server to a configured backup or workstation over SSH/SCP.
+- Repository synchronization settings for destination machine, user, and
+  directory are persisted through SolidGroundUX state for reuse on subsequent
+  runs.
+
+#### Changed
+- Repository synchronization now stages the incoming copy in a temporary
+  destination and replaces the existing repository only after a successful
+  transfer, so files removed from the source are also removed from the
+  synchronized copy without deleting the last good copy first.
+- `sync-repository.sh` now records a lightweight source-tree signature and the
+  last successful synchronization time, allowing unchanged repositories to be
+  skipped while still detecting additions, changes, renames, and removals.
+- Added a force option to repository synchronization for explicitly refreshing
+  the destination even when the stored source-tree signature is unchanged.
+
 # Release 2.0.2623201
 
 ### SolidGround Framework
