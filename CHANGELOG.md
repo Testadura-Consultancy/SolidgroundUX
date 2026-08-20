@@ -8,11 +8,12 @@ practical framework development.
 # Unreleased
 
 
-# Releae 2.0.2623201
+# Release 2.0.2623201
 
 ### SolidGround Framework
 
 #### Added
+- `sync-repository.sh` was added to facilitate cloning reporsitories to (backup) machines
 - `doc-generator` now supports comma-separated source masks, with the default
   expanded to `*.sh,*.py` so Bash and Python modules can participate in the
   same documentation generation workflow.
