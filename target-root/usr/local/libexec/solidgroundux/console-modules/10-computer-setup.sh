@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623103
-#   Checksum    : 2c2d4d2eab3de1cccb60857b6f4ff7e70209f76eee5b2a1aaf313183c8f062fc
+#   Build       : 2623215
+#   Checksum    : 5b0a238c1f9abbd0696539a5c5657cb604152a1205b0c87a82d328f8da275c34
 #   Source      : 10-computer-setup.sh
 #   Type        : module
 #   Group       : SolidGround Console
