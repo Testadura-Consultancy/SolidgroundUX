@@ -2,7 +2,7 @@
 
 **Version 2.0 — Build 2.0.2623211**
 
-![SolidGroundUX 2.0](assets/solidgroundux-social-preview.png)
+![SolidGroundUX 2.0](resources/solidgroundux-social-preview.png)
 
 > **Modular • Extensible • Bash & Python • Built for real-world automation**
 
