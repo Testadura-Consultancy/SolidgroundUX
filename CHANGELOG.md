@@ -7,12 +7,56 @@ practical framework development.
 
 # Unreleased
 
+## SolidGround Management Console
+
+### Changed
+- Changed automated computer setup script's sequence generate host eys first then enable ssh
+- Changed YES/NO rendering to Yes/No in console modules
+- Corrected paragraph levels in changelog
+- Adjusted width calculation in sgnd_print_sectionheader
+- ask_dlg_continue now always gets preceded by a blank line
+
+### Added
+- Added ask_selection as a 'pull down' alternative
+  Implemented ask_selection in prepare-release.sh and untar-it.sh
+
+## Findings
+- Computer setup
+    - Change sequence: generate SSH host keys before enabling/starting SSH.
+    - Restore/add a Status option.
+    - Re-examine sgnd_printsectionheader width calculation; hostname placement is correct, but section/header lines are too short on wide consoles.
+- Active Directory
+    - AD server provisioning works.
+    - Domain join works.
+    - Add an AD Management script/module for users, groups, computers, etc.
+    - Consider integrating AD group/user selection into share management.
+- Storage
+    - Storage configuration works.
+- Samba
+    - Samba file-server configuration works.
+    - Validation fails on default printers / print$; remove/disable those or exclude them from validation.
+    - Manage Shares errors out.
+- New server roles
+    - Add SQL Server.
+    - Add Web Server.
+    - Add a reusable ask_selection control in ui-ask.sh
+        Takes an array of options.
+        Single-select by default.
+        Optional multi-select mode for selecting multiple values.
+        Intended for things like AD groups, releases, disks, interfaces, themes, etc.
+- ask_dlg_continue
+    Always print an empty line above the prompt.
+    So the dialog is visually separated from the preceding output.
+- Yes/No prompt styling
+    Stop rendering YES / NO in all caps.
+    Use Yes / No instead; the current capitalization feels too harsh.
+- Check paragraph markers in changelog
 
 # Release 2.0.2623211
 
-### SolidGround Framework
+## SolidGround Framework
 
-#### Changed
+### Changed
 - `sgnd_style_samples` is now the canonical runtime showcase for the active
   theme, combining semantic theme colors with examples of the framework's
   rendering primitives.
@@ -31,9 +75,9 @@ practical framework development.
   variables together with their resolved palette color name, RGB hex value, or
   indexed-color value.
 
-### SolidGround Management Console
+## SolidGround Management Console
 
-#### Changed
+### Changed
 - The Management Console host script was renamed to `management-console.sh`
   while retaining `sgnd-console` as the public command.
 - The Management Console index now uses the same standard bottom control bar as
@@ -45,7 +89,7 @@ practical framework development.
 - Manage Visibility selection now reports invalid entries explicitly instead of
   silently restarting the selection cycle.
 
-#### Repaired
+### Repaired
 - Numeric menu selections are interpreted explicitly as base-10 values,
   preventing Bash octal interpretation from affecting selections such as `08`.
 - Console dispatch no longer treats an empty or invalid user selection as a
@@ -53,16 +97,16 @@ practical framework development.
 - Post-action wait state is cleared before a new selection is dispatched so an
   invalid selection cannot inherit the wait interval from a previous action.
 
-### Development Tools
+## Development Tools
 
-#### Added
+### Added
 - Added `sync-repository.sh` for synchronizing the development repository from
   the development server to a configured backup or workstation over SSH/SCP.
 - Repository synchronization settings for destination machine, user, and
   directory are persisted through SolidGroundUX state for reuse on subsequent
   runs.
 
-#### Changed
+### Changed
 - Repository synchronization now stages the incoming copy in a temporary
   destination and replaces the existing repository only after a successful
   transfer, so files removed from the source are also removed from the
@@ -75,9 +119,9 @@ practical framework development.
 
 # Release 2.0.2623201
 
-### SolidGround Framework
+## SolidGround Framework
 
-#### Added
+### Added
 - `sync-repository.sh` was added to facilitate cloning reporsitories to (backup) machines
 - `doc-generator` now supports comma-separated source masks, with the default
   expanded to `*.sh,*.py` so Bash and Python modules can participate in the
@@ -109,7 +153,7 @@ practical framework development.
 - Added `cls:` as a first-class documentation item marker for Python classes.
   Python methods continue to use the existing language-neutral `fn:` marker.
 
-#### Changed
+### Changed
 - Added public `sgnd_menu_dispatch` support so standalone framework tools can
   execute registered menu actions through the reusable menu API instead of
   maintaining their own dispatch logic.
@@ -180,7 +224,7 @@ practical framework development.
 - `sgnd_print_sectionheader` now extends full-width or trailing borders to the
   current console width by default unless an explicit `--maxwidth` is supplied.
 
-#### Repaired
+### Repaired
 - Fixed documentation navigation depth for modules inside a subgroup so module
   sections and items render one level deeper than direct Group modules.
 
@@ -196,9 +240,9 @@ practical framework development.
   `receive-files.sh`, allowing remote deployments to run non-interactively after
   the initial setup.
 
-### SolidGround Management Console
+## SolidGround Management Console
 
-#### Added
+### Added
 - Added a lightweight main index page that discovers available console pages
   without sourcing their implementation modules.
 
@@ -219,7 +263,7 @@ practical framework development.
   functionality, including provisioning, mount/unmount, expansion, validation,
   status, ownership, group, and permission management.
 
-#### Changed
+### Changed
 - Management Console startup now loads only lightweight page metadata. Detailed
   groups, menu items, and implementation functions are registered when the
   selected page is first opened.
@@ -261,7 +305,7 @@ practical framework development.
   console architecture; page visibility is now controlled explicitly through
   the persistent root-only **Manage visibility** action.
 
-#### Repaired
+### Repaired
 - Fixed cross-module helper dependencies exposed by lazy loading, including DNS
   configuration helpers used by both Active Directory Server and Active
   Directory Client pages.
@@ -282,10 +326,10 @@ practical framework development.
   `samba-common-bin`, ensuring the required `samba-tool` command is installed
   as a direct dependency of the SolidGroundUX AD-server role.
 
-## Build 1.9.2622402 - 2026-08-12
-### SolidGround Framework
+# Build 1.9.2622402 - 2026-08-12
+## SolidGround Framework
 
-#### Added
+### Added
 
 -   Added `sgnd_clear` to the shared UI layer as the canonical screen-clear
     primitive for SolidGroundUX console applications. It clears the visible
@@ -330,7 +374,7 @@ practical framework development.
 -   Added an interactive `ask_datetime` test to the framework smoke
     test.
 
-#### Changed
+### Changed
 
 -   `sgnd_print` and `sgnd_print_single` now calculate alignment and automatic
     wrapping from visible text width rather than raw string length, so embedded
@@ -342,9 +386,9 @@ practical framework development.
     longer attempted because terminal emulators handle saved-line history and
     resize reflow differently.
 
-### SolidGround Management Console
+## SolidGround Management Console
 
-#### Added
+### Added
 
 -   Added persistent console-module visibility state, with module
     identifiers derived conventionally from module filenames.
@@ -369,7 +413,7 @@ practical framework development.
 -   Added an on-screen shortcut legend for shell, restart, quit, and page
     navigation controls.
 
-#### Changed
+### Changed
 
 -   Consolidated all package-related actions into a dedicated **Package
     Management** module, including base packages, Active Directory
@@ -397,7 +441,7 @@ practical framework development.
 -   Console legend/page text now uses the same value/italic visual treatment as
     the hostname in the title bar.
 
-#### Fixed
+### Fixed
 
 -   Fixed the duplicate top separator line that could appear in the
     Management Console when running through SSH from PowerShell.
@@ -409,7 +453,7 @@ practical framework development.
     after confirming it can produce terminal-dependent stale/reflowed lines and
     duplicate-looking top rows during redraws and resizes.
 
-#### Changed
+### Changed
 
 -   `sgnd-bootstrap-env.sh` now consumes canonical definitions from
     `sgnd-definitions.sh` while retaining responsibility for
@@ -418,9 +462,9 @@ practical framework development.
 -   `prepare-release.sh` now updates framework version/build identity in
     `sgnd-definitions.sh` instead of `sgnd-bootstrap-env.sh`.
 
-### Machine and Network Configuration
+## Machine and Network Configuration
 
-#### Added
+### Added
 
 -   Added DNS search-domain support to `set-identity.sh`.
 -   Added an interactive **DNS search domain** prompt alongside the DNS
@@ -431,7 +475,7 @@ practical framework development.
 -   Netplan generation now writes the configured DNS search domain
     beneath `nameservers.search`.
 
-#### Changed
+### Changed
 
 -   DNS configuration now treats the DNS server and DNS search domain as
     a single network identity concern.
@@ -441,9 +485,9 @@ practical framework development.
 -   Management console now has a state variable SGND_CONSOLE_ROLE_AWARE
     indicating if only role appropriate menus are displayed
     
-### Active Directory
+## Active Directory
 
-#### Added
+### Added
 
 -   Added an **Active Directory DNS** console group.
 -   Added DNS-zone listing and host-record query actions.
@@ -458,7 +502,7 @@ practical framework development.
 -   Domain join now configures the Active Directory DNS server and
     domain search suffix as part of client network configuration.
 
-#### Changed
+### Changed
 
 -   **Show membership** now provides a consolidated client-domain status
     overview, including:
@@ -479,7 +523,7 @@ practical framework development.
     helpers so the same implementation is available to both console
     actions and domain join.
 
-#### Fixed
+### Fixed
 
 -   Fixed joined clients retaining only a short hostname instead of the
     expected fully qualified domain name.
@@ -492,9 +536,9 @@ practical framework development.
 -   Fixed the domain-join chain so a successful join results in a
     resolvable AD DNS A record for the client.
 
-### Storage
+## Storage
 
-#### Added
+### Added
 
 -   Added storage provisioning for an unused disk, including:
     -   GPT partition creation.
@@ -525,7 +569,7 @@ practical framework development.
     -   `/srv/storage` -- `root:root`, mode `0755`.
     -   `/srv/storage/shares` -- `root:root`, mode `0770`.
 
-#### Changed
+### Changed
 
 -   **Show storage status** now reports:
     -   Mount source.
@@ -544,7 +588,7 @@ practical framework development.
 -   Storage configuration now performs `systemctl daemon-reload` after
     updating `/etc/fstab`.
 
-#### Fixed
+### Fixed
 
 -   Fixed storage mount detection incorrectly treating `/srv/storage` as
     mounted when it was only an ordinary directory on the root
@@ -554,9 +598,9 @@ practical framework development.
 -   Fixed storage provisioning stopping after filesystem creation
     without completing persistent mounting.
 
-### Samba File Server
+## Samba File Server
 
-#### Added
+### Added
 
 -   Added Samba file-server package installation.
 -   Added managed Samba share creation beneath `/srv/storage/shares`.
@@ -592,7 +636,7 @@ practical framework development.
     -   Restore default permissions.
     -   Validate selected shares.
 
-#### Changed
+### Changed
 
 -   Replaced the separate share-permission menu actions with a single
     **Manage shares** action.
@@ -603,9 +647,9 @@ practical framework development.
     while retaining installation, creation, removal, validation, and
     status actions.
 
-### Installation and Release Management
+## Installation and Release Management
 
-#### Added
+### Added
 
 -   Added the standalone `release-manager.sh` as the canonical
     SolidGroundUX installation and release-lifecycle tool, replacing the
@@ -638,7 +682,7 @@ practical framework development.
     updating, rolling back, reinstalling, and removing releases,
     including unattended and dry-run operation.
 
-#### Changed
+### Changed
 
 -   Release-manager identity now follows the same canonical per-script
     metadata Version/Build mechanism as other SolidGroundUX executables;
@@ -669,7 +713,7 @@ practical framework development.
     workflow and distinguish it from direct development deployment
     through `deploy-workspace.sh`.
 
-#### Fixed
+### Fixed
 
 -   Fixed the fresh-machine bootstrap path so running `release-manager.sh` from
     an extracted release package does not stop after installing the manager
@@ -682,7 +726,7 @@ practical framework development.
     a temporary directory follows the same validation and installation path as
     later downloaded or archived releases.
 
-#### Removed
+### Removed
 
 -   The separate installer/updater/uninstaller architecture is
     superseded by `release-manager.sh`.
@@ -690,9 +734,9 @@ practical framework development.
     current-version marker; release and archive directories now provide
     the required state.
 
-### Development Tools
+## Development Tools
 
-#### Added
+### Added
 
 -   Added `create-wrappers.sh`, an interactive development utility for
     generating SolidGroundUX public command wrappers from executable scripts.
@@ -721,7 +765,7 @@ practical framework development.
     `target-root/usr/local/lib/solidgroundux/templates` and instantiates
     selected starter files from those workspace-local templates.
 
-#### Changed
+### Changed
 
 -   `prepare-release.sh` now supports selecting a historical release
     manifest as the comparison baseline for generating the `.removed`

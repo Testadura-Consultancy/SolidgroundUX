@@ -255,9 +255,9 @@ set -uo pipefail
     _smb_create_share() {
         local share_name=""
         local comment=""
-        local browsable="YES"
-        local read_only="NO"
-        local decision="NO"
+        local browsable="Yes"
+        local read_only="No"
+        local decision="No"
         local share_path=""
         local config_backup=""
 
@@ -287,11 +287,11 @@ set -uo pipefail
 
         comment="$share_name share"
         ask --label "Description" --var comment --default "$comment" || return $?
-        ask_decision --label "Browsable" --choices "YES|Y,NO|N" --default "YES" --var browsable || return $?
-        ask_decision --label "Read only" --choices "YES|Y,NO|N" --default "NO" --var read_only || return $?
+        ask_decision --label "Browsable" --choices "Yes|Y,No|N" --default "Yes" --var browsable || return $?
+        ask_decision --label "Read only" --choices "Yes|Y,No|N" --default "No" --var read_only || return $?
 
-        ask_decision --label "Create share '$share_name'?" --choices "YES|Y,NO|N" --default "NO" --var decision || return $?
-        [[ "$decision" == "YES" ]] || return 0
+        ask_decision --label "Create share '$share_name'?" --choices "Yes|Y,No|N" --default "No" --var decision || return $?
+        [[ "$decision" == "Yes" ]] || return 0
 
         if (( ${FLAG_DRYRUN:-0} == 1 )); then
             sayinfo "Dry run: Would create Samba share '$share_name' at $share_path."
@@ -357,8 +357,8 @@ set -uo pipefail
     _smb_remove_share() {
         local share_name=""
         local share_path=""
-        local remove_data="NO"
-        local decision="NO"
+        local remove_data="No"
+        local decision="No"
         local temp_file=""
         local config_backup=""
 
@@ -375,9 +375,9 @@ set -uo pipefail
             return 1
         }
 
-        ask_decision --label "Delete share data" --choices "YES|Y,NO|N" --default "NO" --var remove_data || return $?
-        ask_decision --label "Remove share '$share_name'?" --choices "YES|Y,NO|N" --default "NO" --var decision || return $?
-        [[ "$decision" == "YES" ]] || return 0
+        ask_decision --label "Delete share data" --choices "Yes|Y,No|N" --default "No" --var remove_data || return $?
+        ask_decision --label "Remove share '$share_name'?" --choices "Yes|Y,No|N" --default "No" --var decision || return $?
+        [[ "$decision" == "Yes" ]] || return 0
 
         if (( ${FLAG_DRYRUN:-0} == 1 )); then
             sayinfo "Dry run: Would remove Samba share '$share_name'."
@@ -416,7 +416,7 @@ set -uo pipefail
             return 1
         fi
 
-        if [[ "$remove_data" == "YES" ]]; then
+        if [[ "$remove_data" == "Yes" ]]; then
             sudo rm -rf -- "$share_path" || return 1
         fi
 

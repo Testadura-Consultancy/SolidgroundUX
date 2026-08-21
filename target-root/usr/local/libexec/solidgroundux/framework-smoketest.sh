@@ -295,6 +295,72 @@ set -uo pipefail
         ask_prompt_form --autoalign "${SGND_STATE_VARIABLES[@]}" 
     }
 
+
+    # fn: ask_selection_test - Run interactive ask_selection tests
+        # . Purpose
+        #   Exercise single-select and multi-select ask_selection behavior.
+        #
+        # . Behavior
+        #   - Presents one single-select list and reports the selected value.
+        #   - Presents one multi-select list and reports all selected values.
+        #   - Allows Q to return from either selection prompt.
+        #
+        # . Returns
+        #   0 after both selection tests complete or are cancelled.
+        #
+        # . Usage
+        #   ask_selection_test
+    ask_selection_test() {
+        local selected_theme=""
+        local -a selected_groups=()
+        local -a themes=(
+            "Default"
+            "Dark"
+            "Testadura"
+            "Steel Blue"
+        )
+        local -a groups=(
+            "Domain Admins"
+            "File Server Users"
+            "Accounting"
+            "Operations"
+            "Developers"
+        )
+
+        sgnd_print
+        sgnd_print_sectionheader --text "Testing ask_selection()"
+
+        sgnd_print "Single-select test"
+        ask_selection \
+            --label "Theme" \
+            --var selected_theme \
+            --items "${themes[@]}"
+
+        if [[ -n "$selected_theme" ]]; then
+            sgnd_print "Result: selected_theme='$selected_theme'"
+        else
+            sgnd_print "Result: single-select cancelled"
+        fi
+
+        sgnd_print
+        sgnd_print "Multi-select test (try 1,3,5 or 2-4)"
+        ask_selection \
+            --label "Groups" \
+            --var selected_groups \
+            --multi \
+            --items "${groups[@]}"
+
+        if (( ${#selected_groups[@]} > 0 )); then
+            sgnd_print_labeledmultivalue \
+                --label "Selected groups" \
+                --items "${selected_groups[@]}"
+        else
+            sgnd_print "Result: multi-select cancelled"
+        fi
+
+        return 0
+    }
+
     # fn: ask_test - Run interactive ask helper tests
         # . Purpose
         #   Run interactive ask helper tests.
@@ -1044,6 +1110,7 @@ set -uo pipefail
             0 1 100 || return $?
 
         sgnd_menu_register_item "ask"      "smoke-tests" "Ask tests"                 "ask_test"               "Exercise ask and dialog helpers" 0 15 1 || return $?
+        sgnd_menu_register_item "selection" "smoke-tests" "Selection test"             "ask_selection_test"     "Exercise single and multiple ask_selection behavior" 0 15 1 || return $?
         sgnd_menu_register_item "input"    "smoke-tests" "Input test"                "input_test"             "Exercise input helpers" 0 15 1 || return $?
         sgnd_menu_register_item "say"      "smoke-tests" "Say test"                  "say_test"               "Exercise message output helpers" 0 15 1 || return $?
         sgnd_menu_register_item "loglevel" "smoke-tests" "Log level visibility test" "loglevel_test"          "Verify console log-level filtering" 0 15 1 || return $?

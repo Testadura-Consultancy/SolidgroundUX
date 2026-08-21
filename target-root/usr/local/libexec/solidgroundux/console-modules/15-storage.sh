@@ -312,7 +312,7 @@ set -uo pipefail
         local device=""
         local filesystem="EXT4"
         local mountpoint="$SGND_STORAGE_DEFAULT_MOUNTPOINT"
-        local decision="NO"
+        local decision="No"
         local partition=""
         local uuid=""
         local fstab_backup=""
@@ -360,11 +360,11 @@ set -uo pipefail
 
         ask_decision \
             --label "Configure this disk?" \
-            --choices "YES|Y,NO|N" \
-            --default "NO" \
+            --choices "Yes|Y,No|N" \
+            --default "No" \
             --var decision || return $?
 
-        [[ "$decision" == "YES" ]] || {
+        [[ "$decision" == "Yes" ]] || {
             sayinfo "Storage configuration cancelled."
             return 0
         }
@@ -823,7 +823,7 @@ set -uo pipefail
         # . Usage
         #   storage_restore_access_defaults
     storage_restore_access_defaults() {
-        local decision="NO"
+        local decision="No"
 
         [[ -d "$SGND_STORAGE_DEFAULT_MOUNTPOINT" ]] || {
             sayfail "Storage root does not exist: $SGND_STORAGE_DEFAULT_MOUNTPOINT"
@@ -841,11 +841,11 @@ set -uo pipefail
 
         ask_decision \
             --label "Restore these defaults?" \
-            --choices "YES|Y,NO|N" \
-            --default "NO" \
+            --choices "Yes|Y,No|N" \
+            --default "No" \
             --var decision || return $?
 
-        [[ "$decision" == "YES" ]] || {
+        [[ "$decision" == "Yes" ]] || {
             sayinfo "Storage access reset cancelled."
             return 0
         }

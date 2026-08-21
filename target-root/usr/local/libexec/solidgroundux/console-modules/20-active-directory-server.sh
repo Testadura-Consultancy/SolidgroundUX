@@ -471,11 +471,11 @@ set -uo pipefail
         # . Usage
         #   _adsvr_provision_domain
     _adsvr_provision_domain() {
-        local decision="NO"
+        local decision="No"
         sgnd_console_run_tracked "adsvr-install" _adsvr_step_install_packages || return $?
         sgnd_console_run_tracked "adsvr-preflight" _adsvr_step_preflight || return $?
-        ask_decision --label "Provision $SGND_AD_REALM on $SGND_AD_HOSTNAME_SHORT?" --choices "YES|Y,NO|N" --default "NO" --var decision
-        [[ "$decision" == YES ]] || { sayinfo "Domain provisioning cancelled."; return 0; }
+        ask_decision --label "Provision $SGND_AD_REALM on $SGND_AD_HOSTNAME_SHORT?" --choices "Yes|Y,No|N" --default "No" --var decision
+        [[ "$decision" == Yes ]] || { sayinfo "Domain provisioning cancelled."; return 0; }
         sgnd_console_run_tracked "adsvr-identity" _adsvr_step_identity || return $?
         sgnd_console_run_tracked "adsvr-domain" _adsvr_step_provision || return $?
         sgnd_console_run_tracked "adsvr-settings" _adsvr_step_domain_settings || return $?

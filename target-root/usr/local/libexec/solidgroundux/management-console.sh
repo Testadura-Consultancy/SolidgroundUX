@@ -1037,15 +1037,33 @@ set -uo pipefail
         local left_text=""
         local wrapped_line=""
         local first_line=1
-        local left_width_max="${SGND_RENDER_LABEL_WIDTH:-28}"
+        local left_width_max=28
         local term_width=80
         local desc_width=0
+        local candidate_width=0
         local gap=3
         local tpad=3
         local label_style=""
         local value_style=""
 
         term_width="${SGND_MENU_RENDER_WIDTH:-$(sgnd_terminal_width)}"
+
+        # The lightweight console index is rendered outside the normal sgnd-menu
+        # item model, so determine its label column from the page names directly.
+        for (( i=0; i<page_count; i++ )); do
+            name="$(sgnd_dt_get "$SGND_PAGE_SCHEMA" SGND_CONSOLE_PAGE_ROWS "$i" name)"
+            left_text="$((i + 1))) · $name"
+            candidate_width="$(sgnd_visible_length "$left_text")"
+            (( candidate_width > left_width_max )) && left_width_max="$candidate_width"
+        done
+
+        if (( EUID == 0 )); then
+            candidate_width="$(sgnd_visible_length "V) · Manage visibility")"
+            (( candidate_width > left_width_max )) && left_width_max="$candidate_width"
+        fi
+
+        (( left_width_max > 45 )) && left_width_max=45
+
         desc_width=$(( term_width - tpad - left_width_max - gap ))
         (( desc_width < 20 )) && desc_width=20
 

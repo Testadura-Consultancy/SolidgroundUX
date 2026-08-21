@@ -162,7 +162,7 @@ set -uo pipefail
         local admin_user="${SUDO_USER:-${USER:-sysadmin}}"
         local sudoers_file="/etc/sudoers.d/solidgroundux"
         local temp_file=""
-        local decision="NO"
+        local decision="No"
 
         ask --label "SolidGroundUX administrator" --var admin_user --default "$admin_user" --labelwidth 32
 
@@ -179,11 +179,11 @@ set -uo pipefail
 
         ask_decision \
             --label "Configure SolidGroundUX sudo access for $admin_user?" \
-            --choices "YES|Y,NO|N" \
-            --default "NO" \
+            --choices "Yes|Y,No|N" \
+            --default "No" \
             --var decision || return $?
 
-        [[ "$decision" == "YES" ]] || {
+        [[ "$decision" == "Yes" ]] || {
             saycancel "Sudo configuration cancelled."
             return 0
         }
@@ -243,11 +243,82 @@ set -uo pipefail
         #   0 when all steps succeed; otherwise the failing step status.
     _computer_prepare() {
         sgnd_console_run_tracked "setnetid" _computer_set_identity || return $?
-        sgnd_console_run_tracked "sshcfg" _computer_configure_ssh_service || return $?
         sgnd_console_run_tracked "sshkeys" _computer_generate_ssh_keys || return $?
+        sgnd_console_run_tracked "sshcfg" _computer_configure_ssh_service || return $?
         sgnd_console_run_tracked "sudoers" _computer_configure_sudoers || return $?
 
         sayok "Computer preparation completed successfully."
+        return 0
+    }
+
+
+    # fn: _computer_status
+        # . Purpose
+        #   Display the current Computer Setup state without changing the machine.
+        #
+        # . Returns
+        #   0 after displaying available status information.
+    _computer_status() {
+        local hostname_short=""
+        local fqdn=""
+        local primary_ip=""
+        local default_route=""
+        local dns_servers=""
+        local search_domain=""
+        local ssh_unit="ssh.service"
+        local ssh_enabled="not installed"
+        local ssh_active="not installed"
+        local host_key_count=0
+        local sudoers_file="/etc/sudoers.d/solidgroundux"
+        local sudo_state="not configured"
+
+        hostname_short="$(hostname -s 2>/dev/null || true)"
+        fqdn="$(hostname -f 2>/dev/null || true)"
+        primary_ip="$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{ for (i = 1; i <= NF; i++) if ($i == "src") { print $(i + 1); exit } }')"
+        default_route="$(ip -4 route show default 2>/dev/null | awk 'NR==1 { print $0 }')"
+
+        if command -v resolvectl >/dev/null 2>&1; then
+            dns_servers="$(resolvectl dns 2>/dev/null | awk '{$1=$1; print}' | paste -sd '; ' -)"
+            search_domain="$(resolvectl domain 2>/dev/null | awk '{$1=$1; print}' | paste -sd '; ' -)"
+        elif [[ -r /etc/resolv.conf ]]; then
+            dns_servers="$(awk '/^[[:space:]]*nameserver[[:space:]]+/ {print $2}' /etc/resolv.conf | paste -sd ', ' -)"
+            search_domain="$(awk '/^[[:space:]]*(search|domain)[[:space:]]+/ {$1=""; sub(/^[[:space:]]+/, ""); print; exit}' /etc/resolv.conf)"
+        fi
+
+        if ! systemctl cat "$ssh_unit" >/dev/null 2>&1; then
+            ssh_unit="sshd.service"
+        fi
+
+        if systemctl cat "$ssh_unit" >/dev/null 2>&1; then
+            ssh_enabled="$(systemctl is-enabled "$ssh_unit" 2>/dev/null || true)"
+            ssh_active="$(systemctl is-active "$ssh_unit" 2>/dev/null || true)"
+            [[ -n "$ssh_enabled" ]] || ssh_enabled="unknown"
+            [[ -n "$ssh_active" ]] || ssh_active="unknown"
+        fi
+
+        host_key_count="$(find /etc/ssh -maxdepth 1 -type f -name 'ssh_host_*_key' 2>/dev/null | wc -l)"
+
+        if [[ -s "$sudoers_file" ]]; then
+            if command -v visudo >/dev/null 2>&1 && sudo visudo -cf "$sudoers_file" >/dev/null 2>&1; then
+                sudo_state="configured / valid"
+            else
+                sudo_state="configured / invalid"
+            fi
+        fi
+
+        sgnd_print
+        sgnd_print_sectionheader "Computer Setup Status"
+        sgnd_print_labeledvalue --label "Hostname" --value "${hostname_short:-unknown}" --labelwidth 24
+        sgnd_print_labeledvalue --label "FQDN" --value "${fqdn:-unknown}" --labelwidth 24
+        sgnd_print_labeledvalue --label "Primary IPv4" --value "${primary_ip:-unknown}" --labelwidth 24
+        sgnd_print_labeledvalue --label "Default route" --value "${default_route:-none}" --labelwidth 24
+        sgnd_print_labeledvalue --label "DNS servers" --value "${dns_servers:-unknown}" --labelwidth 24
+        sgnd_print_labeledvalue --label "Search domain" --value "${search_domain:-none}" --labelwidth 24
+        sgnd_print_labeledvalue --label "SSH unit" --value "$ssh_unit" --labelwidth 24
+        sgnd_print_labeledvalue --label "SSH enabled" --value "$ssh_enabled" --labelwidth 24
+        sgnd_print_labeledvalue --label "SSH active" --value "$ssh_active" --labelwidth 24
+        sgnd_print_labeledvalue --label "SSH host keys" --value "$host_key_count" --labelwidth 24
+        sgnd_print_labeledvalue --label "SolidGround sudo" --value "$sudo_state" --labelwidth 24
         return 0
     }
 
@@ -340,9 +411,12 @@ set -uo pipefail
 
     sgnd_menu_register_item "preparepc" "$SGND_COMPUTER_SETUP_MODULE_ID" "Prepare computer" "_computer_prepare" "Run the normal post-clone setup sequence" 0 15 1 0
     sgnd_menu_register_item "setnetid" "$SGND_COMPUTER_SETUP_MODULE_ID" "Set computer identity" "_computer_set_identity" "Configure hostname, network identity, DNS, and search domain" 0 15 1 1
-    sgnd_menu_register_item "sshcfg" "$SGND_COMPUTER_SETUP_MODULE_ID" "Configure SSH service" "_computer_configure_ssh_service" "Enable or disable the SSH service" 0 15 1 1
+   
     sgnd_menu_register_item "sshkeys" "$SGND_COMPUTER_SETUP_MODULE_ID" "Generate SSH host keys" "_computer_generate_ssh_keys" "Generate missing host keys, validate sshd, and restart SSH" 0 15 1 1
+    sgnd_menu_register_item "sshcfg" "$SGND_COMPUTER_SETUP_MODULE_ID" "Configure SSH service" "_computer_configure_ssh_service" "Enable or disable the SSH service" 0 15 1 1
+   
     sgnd_menu_register_item "sudoers" "$SGND_COMPUTER_SETUP_MODULE_ID" "Setup SolidGround sudo access" "_computer_configure_sudoers" "Allow the administrator to run trusted SolidGroundUX tools without a password" 0 15 1 1
+    sgnd_menu_register_item "pcstatus" "$SGND_COMPUTER_SETUP_MODULE_ID" "Show computer status" "_computer_status" "Show identity, network, SSH, host-key, and SolidGround sudo state" 0 30 1 0
     sgnd_menu_register_item "pcvalidate" "$SGND_COMPUTER_SETUP_MODULE_ID" "Validate computer setup" "_computer_validate" "Validate identity, SSH, host keys, and SolidGround sudo access" 0 15 1 0
     sgnd_menu_register_item "preptemplate" "$SGND_COMPUTER_SETUP_MODULE_ID" "Prepare for cloning" "_prepare_template" "Prepare a template computer for cloning" 0 15 1 0
 

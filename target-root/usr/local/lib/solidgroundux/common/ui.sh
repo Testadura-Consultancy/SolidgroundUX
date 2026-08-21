@@ -859,7 +859,10 @@ set -uo pipefail
         #   Non-zero when validation, resolution, I/O, or user cancellation fails.
         #
         # . Usage
-        #   sgnd_print_labeledvalue "example" "example-2"
+        #   labelwidth="$(printf '%s\n' "Hostname" "Primary IPv4" "SolidGround sudo" | awk '{ if (length > max) max = length } END { print max }')"
+        #   sgnd_print_labeledvalue --label "Hostname" --value "$hostname" --labelwidth "$labelwidth"
+        #   sgnd_print_labeledvalue --label "Primary IPv4" --value "$primary_ip" --labelwidth "$labelwidth"
+        #   sgnd_print_labeledvalue --label "SolidGround sudo" --value "$sudo_state" --labelwidth "$labelwidth"
     sgnd_print_labeledvalue() {
         local label=""
         local value=""
@@ -986,13 +989,15 @@ set -uo pipefail
         #   2 when no label is supplied or a numeric option is invalid.
         #
         # . Usage
+        #   labelwidth="$(printf '%s\n' "Changed files" "Warnings" "Description" | awk '{ if (length > max) max = length } END { print max }')"
         #   sgnd_print_labeledmultivalue \
         #       --label "Changed files" \
-        #       --labelwidth 20 \
+        #       --labelwidth "$labelwidth" \
         #       --items "file-one.sh" "file-two.sh"
         #
         #   sgnd_print_labeledmultivalue \
         #       --label "Description" \
+        #       --labelwidth "$labelwidth" \
         #       --value "$description" \
         #       --valuewidth 60
     sgnd_print_labeledmultivalue() {
@@ -1390,12 +1395,12 @@ set -uo pipefail
         mid_plain="$(sgnd_strip_ansi "$text")"
 
         if (( padend )); then
-            # We will output: left_plain + mid_plain + space + right_plain
-            # So count exactly those visible chars.
+            # Use the same visible-width calculation as sgnd_print_fill so section
+            # headers terminate at exactly the same render edge as titlebar rows.
             local spent=0
-            spent=$(( spent + ${#left_plain} ))
-            spent=$(( spent + ${#mid_plain} ))
-            spent=$(( spent + 1 ))   # space before right fill
+            spent=$(( $(sgnd_visible_len "$left_plain")
+                    + $(sgnd_visible_len "$text")
+                    + 1 ))   # space before right fill
 
             remaining=$(( maxwidth - spent ))
             (( remaining < 0 )) && remaining=0

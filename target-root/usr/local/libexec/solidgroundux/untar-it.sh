@@ -281,36 +281,17 @@ set -uo pipefail
         # . Usage
         #   _select_archive || return $?
     _select_archive() {
-        local selection="1"
-        local index=0
-        local count=0
+        local selection=""
 
         _list_archives || return $?
-        count=${#AVAILABLE_ARCHIVES[@]}
 
-        sgnd_print "Available archives in $ARCHIVE_DIRECTORY:"
-        sgnd_print
+        ask_selection \
+            --label "Available archives in $ARCHIVE_DIRECTORY" \
+            --var selection \
+            --items "${AVAILABLE_ARCHIVES[@]}" || return 1
 
-        for (( index=0; index<count; index++ )); do
-            sgnd_print "  $((index + 1))) ${AVAILABLE_ARCHIVES[$index]}"
-        done
-
-        sgnd_print
-        while true; do
-            ask \
-                --label "Archive number" \
-                --var selection \
-                --default "1" \
-                --colorize both
-
-            if [[ "$selection" =~ ^[0-9]+$ ]] && \
-               (( selection >= 1 && selection <= count )); then
-                ARCHIVE_FILE="${AVAILABLE_ARCHIVES[$((selection - 1))]}"
-                return 0
-            fi
-
-            saywarning "Enter a number between 1 and $count."
-        done
+        ARCHIVE_FILE="$selection"
+        return 0
     }
 
     # fn: _validate_archive_entries - Reject unsafe archive entry paths

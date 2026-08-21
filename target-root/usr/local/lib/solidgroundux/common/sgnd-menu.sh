@@ -931,7 +931,9 @@ set -uo pipefail
     _sgnd_console_calc_label_width() {
         _sgnd_console_collect_visible_item_indexes
 
-        if (( SGND_CONSOLE_LABEL_WIDTH_CACHE_GENERATION == SGND_CONSOLE_MODEL_CACHE_GENERATION )); then
+        local cache_signature="${SGND_CONSOLE_MODEL_CACHE_GENERATION}|${SGND_CONSOLE_VISIBLE_INDEX_CACHE_GENERATION}|${SGND_MENU_ACTIVE_SOURCE:-}"
+
+        if [[ "${SGND_CONSOLE_LABEL_WIDTH_CACHE_SIGNATURE:-}" == "$cache_signature" ]]; then
             printf '%s\n' "$SGND_CONSOLE_LABEL_WIDTH_CACHE_VALUE"
             return 0
         fi
@@ -977,7 +979,7 @@ set -uo pipefail
 
         (( max_width > 45 )) && max_width=45
         SGND_CONSOLE_LABEL_WIDTH_CACHE_VALUE="$max_width"
-        SGND_CONSOLE_LABEL_WIDTH_CACHE_GENERATION="$SGND_CONSOLE_MODEL_CACHE_GENERATION"
+        SGND_CONSOLE_LABEL_WIDTH_CACHE_SIGNATURE="$cache_signature"
         printf '%s\n' "$max_width"
     }
 # --- Menu pagination ----------------------------------------------------------------
@@ -1756,6 +1758,7 @@ set -uo pipefail
         SGND_CONSOLE_VISIBLE_INDEX_CACHE_GENERATION=0
         SGND_CONSOLE_VISIBLE_INDEX_CACHE_SIGNATURE=""
         SGND_CONSOLE_LABEL_WIDTH_CACHE_GENERATION=-1
+        SGND_CONSOLE_LABEL_WIDTH_CACHE_SIGNATURE=""
         SGND_CONSOLE_LABEL_WIDTH_CACHE_VALUE=0
         : "${SGND_PAGE_MAX_ROWS:=25}"
         : "${SGND_MENU_SHOW_TOGGLEBAR:=1}"

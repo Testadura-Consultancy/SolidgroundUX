@@ -306,11 +306,11 @@ set -uo pipefail
         # . Usage
         #   _adc_join_domain
     _adc_join_domain() {
-        local decision="NO"
+        local decision="No"
         sgnd_console_run_tracked "adc-install" _adc_step_install_packages || return $?
         sgnd_console_run_tracked "adc-preflight" _adc_step_preflight || return $?
-        ask_decision --label "Join $SGND_ADC_FQDN to $SGND_ADC_REALM?" --choices "YES|Y,NO|N" --default "NO" --var decision
-        [[ "$decision" == YES ]] || { sayinfo "Domain join cancelled."; return 0; }
+        ask_decision --label "Join $SGND_ADC_FQDN to $SGND_ADC_REALM?" --choices "Yes|Y,No|N" --default "No" --var decision
+        [[ "$decision" == Yes ]] || { sayinfo "Domain join cancelled."; return 0; }
         sgnd_console_run_tracked "adc-dns" _adc_step_dns || return $?
         sgnd_console_run_tracked "adc-identity" _adc_step_identity || return $?
         sgnd_console_run_tracked "adc-discover" _adc_step_discover || return $?
@@ -370,11 +370,11 @@ set -uo pipefail
         # . Usage
         #   _adc_leave
     _adc_leave() {
-        local realm="" decision="NO"
+        local realm="" decision="No"
         realm="$(realm list --name-only 2>/dev/null | head -n 1)"
         [[ -n "$realm" ]] || { sayinfo "This machine is not joined to a realm."; return 0; }
-        ask_decision --label "Leave $realm?" --choices "YES|Y,NO|N" --default "NO" --var decision
-        [[ "$decision" == YES ]] || return 0
+        ask_decision --label "Leave $realm?" --choices "Yes|Y,No|N" --default "No" --var decision
+        [[ "$decision" == Yes ]] || return 0
         (( ${FLAG_DRYRUN:-0} == 1 )) && { sayinfo "Dry run: Would leave $realm."; return 0; }
         sudo realm leave "$realm"
     }

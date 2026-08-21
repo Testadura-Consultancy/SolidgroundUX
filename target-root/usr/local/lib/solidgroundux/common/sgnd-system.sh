@@ -82,6 +82,8 @@ set -uo pipefail
     unset -f _sgnd_lib_guard
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
+
+# -- Public API ---------------------------------------------------------------------
     # fn: sgnd_need_root - Need root
         # . Purpose
         #   Require the current process to run as root.

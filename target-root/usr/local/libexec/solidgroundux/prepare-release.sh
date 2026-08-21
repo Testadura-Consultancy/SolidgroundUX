@@ -600,10 +600,11 @@ set -uo pipefail
         # . Usage
         #   _sgnd_release_select_previous_manifest
     _sgnd_release_select_previous_manifest() {
-        local choice=""
+        local selection=""
         local custom=""
         local i=0
         local -a manifests=()
+        local -a options=()
 
         if [[ -n "${PREVIOUS_MANIFEST:-}" && ! -f "$PREVIOUS_MANIFEST" ]]; then
             if (( ${FLAG_AUTO:-0} )); then
@@ -622,63 +623,43 @@ set -uo pipefail
             return 0
         fi
 
-        sgnd_print
-        sgnd_print_sectionheader "Removal baseline manifest" --padend 0
-
         if (( ${#manifests[@]} > 0 )); then
             for (( i=${#manifests[@]}-1; i>=0; i-- )); do
-                printf '    %s%d)%s %s\n' "$CYAN" "$(( ${#manifests[@]} - i ))" "$RESET" "${manifests[$i]}"
+                options+=("${manifests[$i]}")
             done
         else
             sayinfo "No manifests are currently stored in $MANIFEST_HISTORY_DIR"
         fi
 
-        printf '    %sP)%s Custom path\n' "$CYAN" "$RESET"
-        printf '    %sN)%s No removal baseline\n' "$CYAN" "$RESET"
-        printf '    %sQ)%s Cancel\n' "$CYAN" "$RESET"
+        options+=("Custom path" "No removal baseline")
 
-        local default_choice="N"
-        if [[ -n "${PREVIOUS_MANIFEST:-}" ]]; then
-            local previous_base
-            previous_base="$(basename -- "$PREVIOUS_MANIFEST")"
-            for (( i=${#manifests[@]}-1; i>=0; i-- )); do
-                if [[ "${manifests[$i]}" == "$previous_base" ]]; then
-                    default_choice="$(( ${#manifests[@]} - i ))"
-                    break
-                fi
-            done
-            [[ "$default_choice" != "N" ]] || default_choice="P"
-        fi
+        ask_selection \
+            --label "Removal baseline manifest" \
+            --var selection \
+            --items "${options[@]}" || return 1
 
-        ask --label "Select baseline" --var choice --default "$default_choice" --colorize both --labelclr "${CYAN}" --pad 4 --labelwidth 20
-
-        case "${choice^^}" in
-            N|"")
+        case "$selection" in
+            "No removal baseline")
                 PREVIOUS_MANIFEST=""
                 return 0
                 ;;
-            P)
-                ask --label "Manifest path" --var custom --default "" --validate sgnd_validate_file_exists --colorize both --labelclr "${CYAN}" --pad 4 --labelwidth 20
+            "Custom path")
+                ask \
+                    --label "Manifest path" \
+                    --var custom \
+                    --default "" \
+                    --validate sgnd_validate_file_exists \
+                    --colorize both \
+                    --labelclr "${CYAN}" \
+                    --pad 4 \
+                    --labelwidth 20
+
                 PREVIOUS_MANIFEST="$(readlink -f "$custom")"
                 return 0
                 ;;
-            Q)
-                return 1
-                ;;
         esac
 
-        [[ "$choice" =~ ^[0-9]+$ ]] || {
-            saywarning "Invalid removal baseline selection."
-            return 1
-        }
-
-        (( choice >= 1 && choice <= ${#manifests[@]} )) || {
-            saywarning "Removal baseline selection out of range."
-            return 1
-        }
-
-        i=$(( ${#manifests[@]} - choice ))
-        PREVIOUS_MANIFEST="${MANIFEST_HISTORY_DIR%/}/${manifests[$i]}"
+        PREVIOUS_MANIFEST="${MANIFEST_HISTORY_DIR%/}/$selection"
         return 0
     }
 

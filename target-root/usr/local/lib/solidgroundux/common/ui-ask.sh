@@ -28,7 +28,8 @@
 #   - ask_datetime
 #   - ask_decision
 #   - ask_dlg_autocontinue
-#   - ask_choose./
+#   - ask_selection
+#   - ask_choose
 #   - ask_choose_immediate
 #   - ask_prompt_form
 #
@@ -1086,6 +1087,9 @@ set -uo pipefail
 
         clr="$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_ITALIC")"
 
+        # Visually separate the dialog from preceding output.
+        printf '\n' >"$tty"
+
         [[ -n "$message" ]] && (( line_count++ ))
         (( ! hide_legend )) && (( line_count++ ))
 
@@ -1173,6 +1177,162 @@ set -uo pipefail
                     return 1
                 fi
             fi
+        done
+    }
+
+    # fn: ask_selection - Select one or more values from a numbered list
+        # . Purpose
+        #   Display a reusable numbered selection list and return the selected value or values.
+        #
+        # . Behavior
+        #   - Accepts the supplied items directly, making normal Bash array expansion usable.
+        #   - Uses single-select mode by default.
+        #   - Supports multi-select mode with comma-separated numbers and numeric ranges.
+        #   - Returns actual item values rather than list indexes.
+        #   - Accepts Q to cancel and return to the caller.
+        #   - Re-prompts after invalid selections.
+        #
+        # . options
+        #   --label TEXT
+        #       Heading displayed above the selection list. Defaults to "Select an option".
+        #   --var NAME
+        #       Variable that receives the selected value. In --multi mode NAME receives
+        #       an indexed array of selected values. Defaults to selection.
+        #   --multi
+        #       Enable selection of multiple values using entries such as 1,3,5-7.
+        #   --items ITEM...
+        #       Values to display. This option must be the final option in the call.
+        #
+        # Outputs (globals):
+        #   Variable named by --var. Scalar in single-select mode; indexed array in multi-select mode.
+        #
+        # . Returns
+        #   0 when a valid selection was stored.
+        #   1 when the user selects Q to cancel.
+        #   2 when no items are supplied or --var is not a valid shell identifier.
+        #
+        # . Usage
+        #   options=("Default" "Dark" "Testadura")
+        #   ask_selection --label "Theme" --var theme --items "${options[@]}"
+        #
+        #   groups=("Domain Admins" "File Server Users" "Accounting")
+        #   ask_selection --label "Groups" --var selected_groups --multi --items "${groups[@]}"
+    ask_selection() {
+        local label="Select an option"
+        local var_name="selection"
+        local multi=0
+        local input=""
+        local token=""
+        local start=0
+        local end=0
+        local index=0
+        local value=""
+        local i=0
+        local invalid=0
+        local -a items=()
+        local -a selected_values=()
+        local -A selected_indexes=()
+
+        while [[ $# -gt 0 ]]; do
+            case "$1" in
+                --label) label="$2"; shift 2 ;;
+                --var)   var_name="$2"; shift 2 ;;
+                --multi) multi=1; shift ;;
+                --items)
+                    shift
+                    items=("$@")
+                    break
+                    ;;
+                --)
+                    shift
+                    break
+                    ;;
+                *)
+                    items+=("$1")
+                    shift
+                    ;;
+            esac
+        done
+
+        _ask_is_ident "$var_name" || return 2
+        (( ${#items[@]} > 0 )) || return 2
+
+        sgnd_print
+        sgnd_print_sectionheader --text "$label"
+
+        for (( i=0; i<${#items[@]}; i++ )); do
+            sgnd_print --text "$((i + 1)). ${items[i]}" --pad 2
+        done
+        sgnd_print --text "Q. Back" --pad 2
+
+        while :; do
+            input=""
+            if (( multi )); then
+                ask --label "Selection (comma/range)" --var input
+            else
+                ask --label "Selection" --var input
+            fi
+
+            input="${input#"${input%%[![:space:]]*}"}"
+            input="${input%"${input##*[![:space:]]}"}"
+
+            if [[ "${input^^}" == "Q" ]]; then
+                return 1
+            fi
+
+            if (( ! multi )); then
+                if [[ "$input" =~ ^[1-9][0-9]*$ ]] && (( input <= ${#items[@]} )); then
+                    printf -v "$var_name" '%s' "${items[input - 1]}"
+                    return 0
+                fi
+
+                saywarning "Invalid selection: $input"
+                continue
+            fi
+
+            selected_values=()
+            selected_indexes=()
+            invalid=0
+
+            IFS=',' read -r -a tokens <<< "$input"
+            for token in "${tokens[@]}"; do
+                token="${token#"${token%%[![:space:]]*}"}"
+                token="${token%"${token##*[![:space:]]}"}"
+
+                if [[ "$token" =~ ^([1-9][0-9]*)-([1-9][0-9]*)$ ]]; then
+                    start="${BASH_REMATCH[1]}"
+                    end="${BASH_REMATCH[2]}"
+
+                    if (( start > end || end > ${#items[@]} )); then
+                        invalid=1
+                        break
+                    fi
+
+                    for (( index=start; index<=end; index++ )); do
+                        selected_indexes["$index"]=1
+                    done
+                elif [[ "$token" =~ ^[1-9][0-9]*$ ]] && (( token <= ${#items[@]} )); then
+                    selected_indexes["$token"]=1
+                else
+                    invalid=1
+                    break
+                fi
+            done
+
+            if (( invalid || ${#selected_indexes[@]} == 0 )); then
+                saywarning "Invalid selection: $input"
+                continue
+            fi
+
+            for (( index=1; index<=${#items[@]}; index++ )); do
+                [[ -n "${selected_indexes[$index]-}" ]] || continue
+                value="${items[index - 1]}"
+                selected_values+=("$value")
+            done
+
+            local -n output_ref="$var_name"
+            output_ref=("${selected_values[@]}")
+            return 0
         done
     }
 
