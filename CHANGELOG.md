@@ -7,50 +7,28 @@ practical framework development.
 
 # Unreleased
 
+# Release 2.0.2623316
+
 ## SolidGround Management Console
 
 ### Changed
-- Changed automated computer setup script's sequence generate host eys first then enable ssh
-- Changed YES/NO rendering to Yes/No in console modules
-- Corrected paragraph levels in changelog
-- Adjusted width calculation in sgnd_print_sectionheader
-- ask_dlg_continue now always gets preceded by a blank line
+
+- Reordered automated Computer Setup to generate SSH host keys before enabling and starting SSH.
+- Changed Yes/No prompts in console modules from `YES/NO` to `Yes/No`.
+- Corrected heading levels in the changelog.
+- Corrected `sgnd_print_sectionheader` width calculation to use visible render width consistently.
+- Added consistent visual separation before `ask_dlg_continue` prompts.
+- Added automatic label-column sizing to console menu pages and the management-console index.
 
 ### Added
-- Added ask_selection as a 'pull down' alternative
-  Implemented ask_selection in prepare-release.sh and untar-it.sh
 
-## Findings
-- Computer setup
-    - Change sequence: generate SSH host keys before enabling/starting SSH.
-    - Restore/add a Status option.
-    - Re-examine sgnd_printsectionheader width calculation; hostname placement is correct, but section/header lines are too short on wide consoles.
-- Active Directory
-    - AD server provisioning works.
-    - Domain join works.
-    - Add an AD Management script/module for users, groups, computers, etc.
-    - Consider integrating AD group/user selection into share management.
-- Storage
-    - Storage configuration works.
-- Samba
-    - Samba file-server configuration works.
-    - Validation fails on default printers / print$; remove/disable those or exclude them from validation.
-    - Manage Shares errors out.
-- New server roles
-    - Add SQL Server.
-    - Add Web Server.
-    - Add a reusable ask_selection control in ui-ask.sh
-        Takes an array of options.
-        Single-select by default.
-        Optional multi-select mode for selecting multiple values.
-        Intended for things like AD groups, releases, disks, interfaces, themes, etc.
-- ask_dlg_continue
-    Always print an empty line above the prompt.
-    So the dialog is visually separated from the preceding output.
-- Yes/No prompt styling
-    Stop rendering YES / NO in all caps.
-    Use Yes / No instead; the current capitalization feels too harsh.
-- Check paragraph markers in changelog
+- Added `ask_selection`, a reusable single- and multi-selection ask primitive.
+- Migrated selection workflows in `prepare-release.sh` and `untar-it.sh` to `ask_selection`.
+- Added `manage-samba-shares.sh` for assigning Active Directory group access to Samba shares.
+- Added `27-active-directory-management.sh` for managing Active Directory users, groups, memberships, and computer accounts.
+- Added `50-web-server.sh` for preparing, validating, and inspecting an Nginx web-server role.
+- Added `60-sqlserver.sh` for preparing, validating, and inspecting a Microsoft SQL Server role.
+- Added `50-SolidGroundUX` to display SolidGroundUX version, license, documentation, and management information in the system MOTD.
 
 # Release 2.0.2623211
 

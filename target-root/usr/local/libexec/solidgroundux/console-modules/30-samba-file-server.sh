@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623103
-#   Checksum    : d6b0de720768dc85e54ceaa81ded55e812721cb3a3fad65fa593e76cf9257d37
+#   Build       : 2623316
+#   Checksum    : c660a811daf500b19c8e4ea937bec405f319fce34fbdb7db3122fa719b095c4a
 #   Source      : 30-samba-file-server.sh
 #   Type        : module
 #   Group       : SolidGround Console

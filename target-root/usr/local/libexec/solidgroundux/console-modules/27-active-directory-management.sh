@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623215
-#   Checksum    :
+#   Build       : 2623316
+#   Checksum    :256a1b988fd963ac3f24a2ca473aa40b6cb329e5e1e33f579031c31e861f3963
 #   Source      : 27-active-directory-management.sh
 #   Type        : module
 #   Group       : SolidGround Console

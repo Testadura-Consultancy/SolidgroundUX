@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623215
-#   Checksum    : 2464ac01dd25e91ff5dc5e41ee0691a209b6b830bfde1b1d41669135799b544a
+#   Build       : 2623316
+#   Checksum    : a1208876d21588087cd8238c58e401dbe0caff3e502ce0c0db0d204ad201105f
 #   Source      : management-console.sh
 #   Type        : script
 #   Group       : SolidGround Console
@@ -186,14 +186,6 @@ set -uo pipefail
     SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"
     SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
     SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
-    SGND_SCRIPT_TITLE="SolidGround Management Console"
-    : "${SGND_SCRIPT_DESC:=Collection of scripts and tools for managing SolidGroundUX environments}"
-    : "${SGND_SCRIPT_VERSION:=2.0}"
-    : "${SGND_SCRIPT_BUILD:=2623211}"
-    : "${SGND_SCRIPT_DEVELOPERS:=Mark Fieten}"
-    : "${SGND_SCRIPT_COMPANY:=Testadura Consultancy}"
-    : "${SGND_SCRIPT_COPYRIGHT:=© 2025 - 2026 Testadura Consultancy}"
-    : "${SGND_SCRIPT_LICENSE:=Testadura Non-Commercial License (TD-NC) v1.1.}"
 
 # --- Script metadata (framework integration) -----------------------------------------
     # SGND_USING
@@ -349,8 +341,8 @@ set -uo pipefail
         SGND_CONSOLE_ACTIVE_PAGE=""
         SGND_MENU_ACTIVE_SOURCE=""
 
-        SGND_CONSOLE_TITLE="$SGND_SCRIPT_TITLE"
-        SGND_CONSOLE_DESC="$SGND_SCRIPT_DESC"
+        SGND_CONSOLE_TITLE=""
+        SGND_CONSOLE_DESC=""
         SGND_CONSOLE_BIN_DIRECTORY=""
         SGND_CONSOLE_SBIN_DIRECTORY=""
         SGND_CONSOLE_LIBEXEC_DIRECTORY=""

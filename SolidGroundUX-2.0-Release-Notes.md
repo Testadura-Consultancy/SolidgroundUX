@@ -1,6 +1,6 @@
 # SolidGroundUX 2.0 Release Notes
 
-**Version 2.0 — Build 2.0.2623211**
+**Version 2.0 — Build 2.0.2623316**
 
 ![SolidGroundUX 2.0](resources/solidgroundux-social-preview.png)
 
@@ -109,6 +109,26 @@ indexed-color value.
 - The main index now uses the same standard bottom control bar as normal console pages.
 - Invalid selections are reported and cleared before waiting for a new selection.
 - Numeric menu selections are handled explicitly as base-10 values.
+- Computer Setup generates SSH host keys before enabling and starting SSH.
+- Restored the Computer Setup status view.
+- Menu label columns automatically size to the longest visible entry on both the main index and loaded console pages.
+- Yes/No prompts now use the less aggressive `Yes` / `No` presentation.
+- Continue dialogs are visually separated from preceding output.
+- Added dedicated Active Directory Management for users, groups, memberships, and computer accounts.
+- Added an Nginx Web Server role.
+- Added a Microsoft SQL Server role.
+
+### Final console and administration refinements
+
+The final 2.0 stabilization pass focused on details exposed by end-to-end Management Console testing. Computer Setup now generates SSH host keys before enabling and starting SSH, and its status view has been restored. Console presentation has been tightened with consistent visible-width section headers, automatic menu label-column sizing on both the main index and normal module pages, softer `Yes` / `No` prompt styling, and consistent spacing before continue dialogs.
+
+A new reusable `ask_selection` primitive provides single- and multi-selection from arrays and is already used by release preparation, archive restoration, Active Directory administration, and Samba share-management workflows.
+
+Active Directory administration is now available as a dedicated console module for users, groups, memberships, and computer accounts. Samba share management can assign Active Directory groups to shares, while validation no longer treats default printer shares as managed file shares.
+
+Two additional server roles round out the initial 2.0 administration set: an Nginx Web Server role and a Microsoft SQL Server role.
+
+SolidGroundUX also once again identifies itself at login through a lightweight `50-SolidGroundUX` MOTD. The banner reads framework identity from the canonical definitions, reports license information and acceptance state, links to the documentation, and points administrators to `sgnd-console`.
 
 ### Framework and API improvements
 
@@ -122,6 +142,9 @@ indexed-color value.
 - `sgnd_style_samples` now acts as the canonical runtime theme and UI-primitives showcase.
 - Theme color specimens report the resolved palette name, RGB hex value, or indexed color.
 - The theme showcase includes a non-interactive simulation of the framework ask styling.
+- Added `ask_selection`, a reusable array-based selection primitive supporting single- and multi-selection.
+- `prepare-release.sh` and `untar-it.sh` now use the shared selection primitive.
+- Section-header and menu-label width calculations consistently use visible render width.
 
 ### Storage and Samba
 
@@ -133,6 +156,8 @@ indexed-color value.
 - Managed Samba share creation and removal.
 - Dedicated interactive Samba share manager.
 - Share configuration validation and rollback on invalid configuration.
+- Added `manage-samba-shares.sh` for assigning Active Directory group access to managed shares.
+- Samba validation excludes default printer shares such as `printers` and `print$` from managed file-share validation.
 
 ### Active Directory and networking
 
@@ -180,6 +205,14 @@ Prepared release bundles are self-contained bootstrap packages and include the R
 - Project-level sources such as the Canonical document, CHANGELOG, INSTALL guide, and license continue to feed the generated appendices and reference pages.
 
 
+
+### System identity and login
+
+- Added the lightweight `50-SolidGroundUX` dynamic MOTD.
+- The MOTD reports the installed SolidGroundUX version/build, company, copyright, license, license-acceptance state, and documentation location.
+- Login guidance points directly to `sgnd-console` for system management.
+- Framework identity is sourced from canonical `sgnd-definitions.sh` rather than duplicated in the MOTD.
+- Management Console runtime version/build metadata now follows canonical script-header metadata initialized by bootstrap, removing a separate hard-coded version/build source.
 
 ### Generated documentation experience
 

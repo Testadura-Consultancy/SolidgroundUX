@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SolidGroundUX - Active Directory Management</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<div class="doc-page-branding"><span class="doc-page-branding-title">SolidGroundUX Documentation</span><img src="../assets/branding/doc-header-logo.png" alt="SolidGroundUX"></div>
+<header class="doc-page-header">
+  <div class="doc-title">SolidGroundUX - Active Directory Management</div>
+  <div class="doc-breadcrumb">SolidgroundUX / 27-active-directory-management.sh</div>
+</header>
+<div class="ct-modulebody sh-label">Description</div>
+<div class="ct-modulebody">  Provides day-to-day administration of a provisioned Samba Active Directory</div>
+<div class="ct-modulebody">  domain controller. The module manages directory users, groups, memberships,</div>
+<div class="ct-modulebody">  and computer accounts through samba-tool and uses ask_selection for object</div>
+<div class="ct-modulebody">  selection throughout.</div>
+<div class="ct-modulebody"></div>
+<div class="ct-modulebody sh-label">Design principles</div>
+<div class="ct-modulebody">  - Keep provisioning and directory administration separate</div>
+<div class="ct-modulebody">  - Use samba-tool as the canonical directory-management backend</div>
+<div class="ct-modulebody">  - Reuse one membership implementation from both user and group workflows</div>
+<div class="ct-modulebody">  - Prefer selection from live directory objects over typed object names</div>
+<div class="ct-modulebody">  - Keep advanced AD concerns such as OUs, GPOs, trusts, and replication out of scope</div>
+<div class="ct-modulebody"></div>
+</main>
+</body>
+</html>

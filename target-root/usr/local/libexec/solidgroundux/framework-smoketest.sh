@@ -4,8 +4,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623211
-#   Checksum    : 038364b2a0b918c98738b6384b2acf0b41ced18ae5c084efd64c70ed7e565c4e
+#   Build       : 2623316
+#   Checksum    : ad5a9de67c940402ddf6de76c6327c4fc16b512fcc4edfa4d4b48ce36427a3b6
 #   Source      : framework-smoketest.sh
 #   Type        : script
 #   Group       : SDK

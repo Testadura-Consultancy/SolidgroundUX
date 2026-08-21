@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+# =====================================================================================
+# SolidGroundUX - MOTD
+# -------------------------------------------------------------------------------------
+# Purpose: Display the installed SolidGroundUX identity and management entry point.
+# =====================================================================================
+set -uo pipefail
+
+SGND_DEFINITIONS="/usr/local/lib/solidgroundux/common/sgnd-definitions.sh"
+
+# Support execution from an uninstalled target-root during development.
+if [[ ! -r "$SGND_DEFINITIONS" ]]; then
+    script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    target_root="$(readlink -f "$script_dir/../..")"
+    SGND_DEFINITIONS="${target_root%/}/usr/local/lib/solidgroundux/common/sgnd-definitions.sh"
+fi
+
+[[ -r "$SGND_DEFINITIONS" ]] || exit 0
+
+# sgnd-definitions.sh normally runs inside the framework bootstrap, where this
+# metadata initializer already exists. The MOTD only needs the static definitions.
+sgnd_module_init_metadata() { :; }
+
+# shellcheck source=/usr/local/lib/solidgroundux/common/sgnd-definitions.sh
+source "$SGND_DEFINITIONS"
+
+unset -f sgnd_module_init_metadata 2>/dev/null || true
+
+product_dir="$(printf '%s' "${SGND_PRODUCT:-solidgroundux}" | tr '[:upper:]' '[:lower:]')"
+
+# Resolve the actual login user/home using the same convention as the framework.
+login_user="${PAM_USER:-${SUDO_USER:-${USER:-}}}"
+login_home="${HOME:-}"
+
+if [[ -n "$login_user" ]] && command -v getent >/dev/null 2>&1; then
+    resolved_home="$(getent passwd "$login_user" 2>/dev/null | cut -d: -f6)"
+    [[ -n "$resolved_home" ]] && login_home="$resolved_home"
+fi
+
+SGND_USER_HOME="$login_home"
+SGND_STATE_DIR="${SGND_USER_HOME%/}/.state/${product_dir}"
+
+license_file="/usr/local/share/testadura/${product_dir}/LICENSE"
+
+# Support target-root execution during development.
+if [[ ! -r "$license_file" && -n "${target_root:-}" ]]; then
+    license_file="${target_root%/}/usr/local/share/testadura/${product_dir}/LICENSE"
+fi
+
+SGND_LICENSE_ACCEPTED=0
+
+if [[ -n "$SGND_USER_HOME" && -r "$license_file" ]]; then
+    accepted_file="${SGND_STATE_DIR%/}/$(basename -- "$license_file").accepted"
+
+    if [[ -r "$accepted_file" ]] && command -v sha256sum >/dev/null 2>&1; then
+        stored_hash="$(cat -- "$accepted_file" 2>/dev/null || true)"
+        current_hash="$(sha256sum -- "$license_file" 2>/dev/null | awk '{print $1}')"
+
+        if [[ -n "$current_hash" && "$stored_hash" == "$current_hash" ]]; then
+            SGND_LICENSE_ACCEPTED=1
+        fi
+    fi
+fi
+
+CYAN=$'\e[38;2;0;220;255m'
+YELLOW=$'\e[38;2;255;220;0m'
+GREEN=$'\e[38;2;80;220;120m'
+ORANGE=$'\e[38;2;255;165;0m'
+RESET=$'\e[0m'
+
+printf '\n'
+
+printf '%s%s %s.%s installed%s\n' \
+    "$CYAN" \
+    "$SGND_PRODUCT" \
+    "$SGND_VERSION" \
+    "$SGND_BUILD" \
+    "$RESET"
+
+printf '%sCompany          : %s%s%s\n' \
+    "$CYAN" "$YELLOW" "$SGND_COMPANY" "$RESET"
+
+printf '%sCopyright        : %s%s%s\n' \
+    "$CYAN" "$YELLOW" "$SGND_COPYRIGHT" "$RESET"
+
+printf '%sLicense          : %s%s%s\n' \
+    "$CYAN" "$YELLOW" "$SGND_LICENSE" "$RESET"
+
+if (( SGND_LICENSE_ACCEPTED )); then
+    printf '%sLicense accepted : %sYes%s\n' \
+        "$CYAN" "$GREEN" "$RESET"
+else
+    printf '%sLicense accepted : %sNo%s\n' \
+        "$CYAN" "$ORANGE_RED" "$RESET"
+fi
+
+printf '%sDocumentation    : %s%s%s\n' \
+    "$CYAN" "$YELLOW" "$SGND_ONLINE_DOC" "$RESET"
+
+printf '\n'
+printf '%sRun %ssgnd-console%s%s to manage this system.%s\n' \
+    "$CYAN" "$YELLOW" "$RESET" "$CYAN" "$RESET"

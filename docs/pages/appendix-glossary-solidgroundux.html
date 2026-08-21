@@ -20,6 +20,7 @@
 <thead><tr><th>Function</th><th>Title</th><th>Purpose</th><th>Module</th></tr></thead>
 <tbody>
 <tr><td>__init__</td><td>Initialize renderer instance</td><td>Initialize renderer instance for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>_acl_groups_for_share</td><td>Return named group ACL entries for one share</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_acquire_release</td><td>Acquire, stage, validate, and admit a release ZIP</td><td>Acquire, stage, validate, and admit a release ZIP. Returns 0 on success; non-zero on discovery, transfer, extraction, or validation failure. Usage _acquire_release &quot;$expected_base&quot; &quot;$source&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_action_check</td><td>Report the latest GitHub release and its local state</td><td>Report the latest GitHub release and its local state. Returns 0 on success; non-zero when online discovery fails. Usage _action_check</td><td>release-manager.sh</td></tr>
 <tr><td>_action_download</td><td>Acquire the latest or explicitly sourced release without installing it</td><td>Acquire the latest or explicitly sourced release without installing it. Returns 0 on success; non-zero on acquisition failure. Usage _action_download</td><td>release-manager.sh</td></tr>
@@ -48,6 +49,24 @@
 <tr><td>_adc_validate_account</td><td></td><td>Validate the account name used for the domain join.</td><td>25-active-directory-client.sh</td></tr>
 <tr><td>_adc_validate_realm</td><td></td><td>Validate an Active Directory realm name.</td><td>25-active-directory-client.sh</td></tr>
 <tr><td>_add_selected_file</td><td>Add one deployable file to the normalized selection</td><td></td><td>deploy-workspace.sh</td></tr>
+<tr><td>_admg_create_group</td><td>Create an Active Directory group</td><td>Create a new AD group after confirmation.</td><td>27-active-directory-management.sh</td></tr>
+<tr><td>_admg_create_user</td><td>Create an Active Directory user</td><td>Create a new directory user and let samba-tool securely prompt for its password.</td><td>27-active-directory-management.sh</td></tr>
+<tr><td>_admg_delete_computer</td><td>Delete an Active Directory computer account</td><td>Remove a selected stale computer account after confirmation.</td><td>27-active-directory-management.sh</td></tr>
+<tr><td>_admg_delete_group</td><td>Delete an Active Directory group</td><td>Delete a selected non-protected AD group after confirmation.</td><td>27-active-directory-management.sh</td></tr>
+<tr><td>_admg_delete_user</td><td>Delete an Active Directory user</td><td>Delete a selected non-protected user account after confirmation.</td><td>27-active-directory-management.sh</td></tr>
+<tr><td>_admg_group_add_users</td><td>Add one or more users to a selected AD group</td><td>Select a group and users, then add memberships through the shared helper.</td><td>27-active-directory-management.sh</td></tr>
+<tr><td>_admg_group_remove_members</td><td>Remove selected direct members from an AD group</td><td>Select a group and remove one or more of its current direct members.</td><td>27-active-directory-management.sh</td></tr>
+<tr><td>_admg_list_computers</td><td>List Active Directory computer accounts</td><td>Display all directory computer accounts.</td><td>27-active-directory-management.sh</td></tr>
+<tr><td>_admg_list_groups</td><td>List Active Directory groups</td><td>Display all directory groups.</td><td>27-active-directory-management.sh</td></tr>
+<tr><td>_admg_list_users</td><td>List Active Directory users</td><td>Display all directory user accounts.</td><td>27-active-directory-management.sh</td></tr>
+<tr><td>_admg_reset_user_password</td><td>Reset an Active Directory user&#x27;s password</td><td>Reset the selected user&#x27;s password using samba-tool&#x27;s interactive secure prompt.</td><td>27-active-directory-management.sh</td></tr>
+<tr><td>_admg_show_computer</td><td>Show one Active Directory computer account</td><td>Display the selected computer AD object.</td><td>27-active-directory-management.sh</td></tr>
+<tr><td>_admg_show_group</td><td>Show one Active Directory group</td><td>Display the selected group object and its direct members.</td><td>27-active-directory-management.sh</td></tr>
+<tr><td>_admg_show_user</td><td>Show one Active Directory user</td><td>Display the selected user object, account state, and direct group memberships.</td><td>27-active-directory-management.sh</td></tr>
+<tr><td>_admg_status</td><td>Show Active Directory management summary</td><td>Display realm, controller, service state, and directory object counts.</td><td>27-active-directory-management.sh</td></tr>
+<tr><td>_admg_toggle_user</td><td>Enable or disable an Active Directory user</td><td>Toggle the selected account between enabled and disabled states.</td><td>27-active-directory-management.sh</td></tr>
+<tr><td>_admg_user_add_groups</td><td>Add a selected user to one or more AD groups</td><td>Select a user and one or more groups, then add that user through the shared membership helper.</td><td>27-active-directory-management.sh</td></tr>
+<tr><td>_admg_user_remove_groups</td><td>Remove a selected user from direct group memberships</td><td>Select from the user&#x27;s current direct groups and remove selected memberships.</td><td>27-active-directory-management.sh</td></tr>
 <tr><td>_admit_bootstrap_release</td><td>Validate and move an adjacent bootstrap release into releases/</td><td>Validate the release set shipped beside release-manager.sh and move its known artifacts into the canonical pending-release directory. Returns 0 when no bootstrap release is present or admission succeeds; non-zero on ambiguity, validation failure, or filesystem failure. Usage _admit_bootstrap_release</td><td>release-manager.sh</td></tr>
 <tr><td>_admit_extracted_release</td><td>Validate an extracted release ZIP and admit its artifacts to releases/</td><td>Validate an extracted release ZIP and admit its artifacts to releases/. Returns 0 on success; non-zero when validation or movement fails. Usage _admit_extracted_release &quot;$root&quot; &quot;$expected_base&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_adsvr_collect_context</td><td></td><td>Collect and validate the realm, NetBIOS, DNS forwarder, host, and server-address provisioning context.</td><td>20-active-directory-server.sh</td></tr>
@@ -75,6 +94,7 @@
 <tr><td>_adsvr_wait_configured</td><td></td><td>Wait for Samba is-configured to report the service ready.</td><td>20-active-directory-server.sh</td></tr>
 <tr><td>_adsvr_wait_dns</td><td></td><td>Wait until Samba owns IPv4 TCP and UDP port 53 on the domain controller.</td><td>20-active-directory-server.sh</td></tr>
 <tr><td>_application_path</td><td>Resolve a path beneath SGND_APPLICATION_ROOT</td><td>Convert an application-relative path to an absolute path. Returns 0 always. Usage path=&quot;$(_application_path &quot;usr/local/bin&quot;)&quot;</td><td>create-wrappers.sh</td></tr>
+<tr><td>_apply_group_access</td><td>Apply read or write ACLs to selected shares</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_apply_removed_manifest</td><td>Apply the incoming release removal manifest</td><td>Apply the incoming release removal manifest. Returns 0 when complete; non-zero on removal failure. Usage _apply_removed_manifest &quot;$removed&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_apply_version_bump</td><td>Apply release metadata policy to managed source files</td><td>Apply Version and Build according to A/C/N policy and always refresh Checksum for files whose source or metadata changed.</td><td>prepare-release.sh</td></tr>
 <tr><td>_archive_release_manifest</td><td>Persist the current manifest for future removal baselines</td><td>Store the successfully packaged release manifest in persistent manifest history.</td><td>prepare-release.sh</td></tr>
@@ -108,6 +128,7 @@
 <tr><td>_computer_generate_ssh_keys</td><td></td><td>Generate missing SSH host keys, validate sshd, and restart SSH.</td><td>10-computer-setup.sh</td></tr>
 <tr><td>_computer_prepare</td><td></td><td>Run the normal post-clone computer setup sequence.</td><td>10-computer-setup.sh</td></tr>
 <tr><td>_computer_set_identity</td><td></td><td>Run the canonical SolidGroundUX identity workflow.</td><td>10-computer-setup.sh</td></tr>
+<tr><td>_computer_status</td><td></td><td>Display the current Computer Setup state without changing the machine.</td><td>10-computer-setup.sh</td></tr>
 <tr><td>_computer_validate</td><td></td><td>Validate the principal Computer Setup outcomes without changing the machine.</td><td>10-computer-setup.sh</td></tr>
 <tr><td>_confirm</td><td>Request a standalone yes/no confirmation</td><td>Request a standalone yes/no confirmation. Returns 0 for confirmation; 1 for rejection or unavailable interaction. Usage _confirm &quot;Continue?&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_copy_docs_to_git</td><td>Copy generated documentation into the repository docs directory</td><td>Publish the generated documentation tree into the Git repository&#x27;s top-level docs directory without relying on symbolic links.</td><td>doc-generator.sh</td></tr>
@@ -142,6 +163,7 @@
 <tr><td>_dev_deploy_workspace</td><td></td><td>Launch the canonical SolidGroundUX workspace-deployment tool.</td><td>90-development.sh</td></tr>
 <tr><td>_dev_generate_docs</td><td></td><td>Launch the canonical SolidGroundUX documentation generator.</td><td>90-development.sh</td></tr>
 <tr><td>_dev_prepare_release</td><td></td><td>Launch the canonical SolidGroundUX release-preparation tool.</td><td>90-development.sh</td></tr>
+<tr><td>_discover_ad_groups</td><td>Discover domain groups visible through NSS</td><td>Prefer AD groups exposed by the existing realmd/SSSD identity stack and include groups already present on selected share ACLs.</td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_dlg_keymap</td><td>Dlg keymap</td><td>Return the dialog key/action mapping used by custom dialog controls.</td><td>ui-dlg.sh</td></tr>
 <tr><td>_doc_collect_changed_files</td><td>Collect Git additions, modifications, deletions, and renames</td><td>Build incremental parse/removal lists from changes relative to HEAD plus untracked files.</td><td>doc-generator.sh</td></tr>
 <tr><td>_doc_collect_selected_files</td><td>Resolve explicitly selected update files</td><td>Convert the comma-separated selected-file argument into parse and removal lists.</td><td>doc-generator.sh</td></tr>
@@ -180,6 +202,7 @@
 <tr><td>_framework_config_view_system</td><td></td><td>View the system-wide SolidGroundUX framework configuration file.</td><td>40-solidgroundux.sh</td></tr>
 <tr><td>_framework_config_view_user</td><td></td><td>View the current user SolidGroundUX framework configuration file.</td><td>40-solidgroundux.sh</td></tr>
 <tr><td>_framework_config_write_value</td><td></td><td>Replace or append one KEY=VALUE assignment in a cfg file.</td><td>40-solidgroundux.sh</td></tr>
+<tr><td>_framework_locator</td><td>Locate and load the SolidGroundUX executable bootstrap context</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_framework_locator</td><td>Locate and load the SolidGroundUX executable bootstrap context</td><td></td><td>tar-it.sh</td></tr>
 <tr><td>_framework_locator</td><td>Locate and load the SolidGroundUX executable bootstrap context</td><td></td><td>untar-it.sh</td></tr>
 <tr><td>_framework_log_follow</td><td></td><td>Follow new entries appended to the active framework logfile.</td><td>40-solidgroundux.sh</td></tr>
@@ -220,6 +243,7 @@
 <tr><td>_latest_online_release</td><td>Resolve the canonical base name of the latest GitHub release</td><td>Resolve the canonical base name of the latest GitHub release. Returns 0 on success; non-zero when GitHub lookup fails. Usage _latest_online_release</td><td>release-manager.sh</td></tr>
 <tr><td>_list_archived_releases</td><td>List archived releases in ascending version order</td><td>List archived releases in ascending version order. Returns 0 always. Usage _list_archived_releases</td><td>release-manager.sh</td></tr>
 <tr><td>_list_archives</td><td>Build the available archive list, newest first</td><td>Find readable .tar.gz archives in ARCHIVE_DIRECTORY and store their basenames.</td><td>untar-it.sh</td></tr>
+<tr><td>_list_managed_shares</td><td>Discover shares beneath the SolidGroundUX share root</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_load_bootstrapper</td><td>Load the SolidGroundUX bootstrap library</td><td>Resolve and source the main SolidGroundUX bootstrap library.</td><td>sgnd-exe-common.sh</td></tr>
 <tr><td>_load_current_values</td><td>Load current values</td><td>Load current values.</td><td>set-identity.sh</td></tr>
 <tr><td>_manifest_init</td><td>Initialize the workspace creation manifest</td><td>Initialize the workspace creation manifest.</td><td>create-workspace.sh</td></tr>
@@ -240,6 +264,7 @@
 <tr><td>_pending_release_base_exists</td><td>Test whether a release is available in releases/</td><td>Test whether a release is available in releases/. Returns 0 when present; 1 otherwise. Usage _pending_release_base_exists &quot;$release&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_persist_render_cache</td><td>Persist a complete renderer export set</td><td>Replace the persistent renderer cache with a validated export directory.</td><td>doc-renderer.sh</td></tr>
 <tr><td>_powershell_quote</td><td>Escape a string for a PowerShell single-quoted literal</td><td></td><td>sync-repository.sh</td></tr>
+<tr><td>_prepare-template.sh</td><td></td><td>Prepare a template computer for cloning.</td><td>10-computer-setup.sh</td></tr>
 <tr><td>_prepare_output_directory</td><td>Create and optionally clean the documentation output directory</td><td>Ensure the configured output directory exists and is ready for rendering.</td><td>doc-renderer.sh</td></tr>
 <tr><td>_previous_release</td><td>Return the archived release immediately preceding current</td><td>Return the archived release immediately preceding current. Returns 0 when a previous release exists; non-zero otherwise. Usage previous=&quot;$(_previous_release)&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_print_deployment_summary</td><td>Display the completed deployment details</td><td>Show which workspace files were selected and where they were sent.</td><td>deploy-workspace.sh</td></tr>
@@ -271,6 +296,7 @@
 <tr><td>_release_title</td><td>Render the standalone release-manager title</td><td>Display the release-manager identity and current hostname without using framework UI libraries. Returns 0 always. Usage _release_title</td><td>release-manager.sh</td></tr>
 <tr><td>_release_warn</td><td>Write a warning message</td><td>Write a warning message. Returns 0 always. Usage _release_warn &quot;message&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_remote_powershell</td><td>Execute a PowerShell command on the destination machine</td><td></td><td>sync-repository.sh</td></tr>
+<tr><td>_remove_group_access</td><td>Remove one AD/NSS group&#x27;s access from selected shares</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_remove_installation</td><td>Remove the active SolidGroundUX installation while retaining release packages</td><td>Remove the active SolidGroundUX installation while retaining release packages. Returns 0 on success; non-zero when removal or release movement fails. Usage _remove_installation</td><td>release-manager.sh</td></tr>
 <tr><td>_remove_other_netplan_files</td><td>Remove other netplan files</td><td>Remove other netplan files.</td><td>set-identity.sh</td></tr>
 <tr><td>_remove_paths_from_stream</td><td>Remove streamed release paths conservatively from the target</td><td>Remove streamed release paths conservatively from the target. Returns 0 on success; non-zero when file removal fails. Usage</td><td>release-manager.sh</td></tr>
@@ -282,6 +308,7 @@
 <tr><td>_restore_files</td><td>Restore selected staged files beneath the target root</td><td></td><td>untar-it.sh</td></tr>
 <tr><td>_rollback_to_archived_release</td><td>Make the installed framework match a selected archived release</td><td>Make the installed framework match a selected archived release. Returns 0 on success; non-zero when rollback cannot be completed. Usage _rollback_to_archived_release &quot;$target_base&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_safe_relative_path</td><td>Validate and normalize a release-relative path</td><td>Validate and normalize a release-relative path. Returns 0 when safe; 1 for absolute or traversing paths. Usage path=&quot;$(_safe_relative_path &quot;$raw&quot;)&quot;</td><td>release-manager.sh</td></tr>
+<tr><td>_samba_principal</td><td>Format an NSS group for a Samba user-list parameter</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_sample_internal_function</td><td>Internal function documentation</td><td>Demonstrate an internal function.</td><td>doc-sample.sh</td></tr>
 <tr><td>_say_caller</td><td>Say caller</td><td>Determine the script or function context that emitted a say message.</td><td>ui-say.sh</td></tr>
 <tr><td>_say_normalize_log_level</td><td>Normalize a log level name</td><td>Convert aliases and legacy log-level names into a canonical SolidGroundUX log-level value.</td><td>ui-say.sh</td></tr>
@@ -295,6 +322,8 @@
 <tr><td>_select_archived_release</td><td>Select an archived release or the remove operation from a submenu</td><td>Select an archived release or the remove operation from a submenu. Returns 0 with the selected target on stdout; 1 when returning/cancelling. Usage target=&quot;$(_select_archived_release)&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_select_files</td><td>Resolve the combined workspace filters into a concrete file list</td><td>Select deployable files by optional directory, filename or mask, and modification time.</td><td>deploy-workspace.sh</td></tr>
 <tr><td>_select_files</td><td>Select staged files using directory and filename mask</td><td></td><td>untar-it.sh</td></tr>
+<tr><td>_select_group</td><td>Select or enter an AD/NSS group</td><td></td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_select_shares</td><td>Select one or more managed shares</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_set_action</td><td>Set and validate the requested release-manager action</td><td>Set and validate the requested release-manager action. Returns 0 on success; 1 when conflicting actions are supplied. Usage _set_action update</td><td>release-manager.sh</td></tr>
 <tr><td>_set_defaults</td><td>Set defaults</td><td>Set defaults.</td><td>set-identity.sh</td></tr>
 <tr><td>_set_hostname</td><td>Set hostname</td><td>Set hostname.</td><td>set-identity.sh</td></tr>
@@ -378,7 +407,6 @@
 <tr><td>_sgnd_kv_reset_file</td><td></td><td>Hard-delete a KEY=VALUE file.</td><td>sgnd-cfg.sh</td></tr>
 <tr><td>_sgnd_kv_set</td><td>Kv set</td><td>Internal helper for kv set.</td><td>sgnd-cfg.sh</td></tr>
 <tr><td>_sgnd_kv_unset</td><td>Kv unset</td><td>Internal helper for kv unset.</td><td>sgnd-cfg.sh</td></tr>
-<tr><td>_sgnd_lib_guard</td><td></td><td>Ensure the module is sourced and initialized only once.</td><td>10-computer-setup.sh</td></tr>
 <tr><td>_sgnd_lib_guard</td><td></td><td>Ensure the module is sourced and initialized only once.</td><td>20-active-directory-server.sh</td></tr>
 <tr><td>_sgnd_lib_guard</td><td></td><td>Ensure the module is sourced and initialized only once.</td><td>25-active-directory-client.sh</td></tr>
 <tr><td>_sgnd_lib_guard</td><td></td><td>Ensure the module is sourced and initialized only once.</td><td>30-samba-file-server.sh</td></tr>
@@ -401,6 +429,8 @@
 <tr><td>_sgnd_save_state_dispatch</td><td>Save state on clean exit</td><td>Conditionally persist framework state from the exit-handler stack.</td><td>sgnd-bootstrap.sh</td></tr>
 <tr><td>_sgnd_ui_resolve_theme_file</td><td>Ui resolve theme file</td><td>Resolve a palette or style name to a readable theme file path.</td><td>ui.sh</td></tr>
 <tr><td>_sh_err</td><td>Sh err</td><td>Write an error message through say when available, otherwise stderr.</td><td>ui.sh</td></tr>
+<tr><td>_share_path</td><td>Resolve the configured path for a Samba share</td><td></td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_show_access</td><td>Display current share paths and named group ACLs</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_smb_create_share</td><td></td><td>Interactively create a managed share directory and publish it in smb.conf.</td><td>30-samba-file-server.sh</td></tr>
 <tr><td>_smb_list_shares</td><td></td><td>Display configured Samba shares from the active configuration.</td><td>30-samba-file-server.sh</td></tr>
 <tr><td>_smb_manage_shares</td><td></td><td>Open the interactive manager for creating, listing, and removing managed Samba shares.</td><td>30-samba-file-server.sh</td></tr>
@@ -424,6 +454,13 @@
 <tr><td>_source_corelibs</td><td>Source required core libraries</td><td>Load the fixed set of framework core libraries in bootstrap order.</td><td>sgnd-bootstrap.sh</td></tr>
 <tr><td>_source_signature</td><td>Calculate a metadata signature for the source tree</td><td>Detect whether the repository tree has changed since the last successful sync without reading and hashing the complete contents of every file.</td><td>sync-repository.sh</td></tr>
 <tr><td>_source_usinglibs</td><td>Source declared optional libraries</td><td>Load script-declared framework libraries listed in SGND_USING.</td><td>sgnd-bootstrap.sh</td></tr>
+<tr><td>_sqlserver_prepare</td><td>Run the tracked SQL Server preparation sequence</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_status</td><td>Show Microsoft SQL Server role status</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_step_configure</td><td>Run the canonical SQL Server setup workflow</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_step_install_engine</td><td>Install Microsoft SQL Server 2025</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_step_install_tools</td><td>Install sqlcmd and bcp</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_step_repository</td><td>Configure Microsoft SQL Server repositories</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_validate</td><td>Validate the Microsoft SQL Server role</td><td></td><td>60-sqlserver.sh</td></tr>
 <tr><td>_static_ip_conflict_check</td><td>Static ip conflict check</td><td>Static ip conflict check.</td><td>set-identity.sh</td></tr>
 <tr><td>_storage_list_unused_disks</td><td></td><td>List whole disks that do not currently contain mounted filesystems.</td><td>15-storage.sh</td></tr>
 <tr><td>_storage_partition_path</td><td></td><td>Return the first partition belonging to a disk after partitioning.</td><td>15-storage.sh</td></tr>
@@ -438,6 +475,7 @@
 <tr><td>_summary</td><td>Print documentation generation summary</td><td>Generate a summary of the documentation data collected.</td><td>doc-generator.sh</td></tr>
 <tr><td>_sync_repository</td><td></td><td>Launch the canonical SolidGroundUX repository synchronization tool.</td><td>90-development.sh</td></tr>
 <tr><td>_sync_repository</td><td>Copy the repository and atomically replace the destination</td><td></td><td>sync-repository.sh</td></tr>
+<tr><td>_sync_share_samba_access</td><td>Synchronize Samba access lists from POSIX ACLs</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_target_path</td><td>Map a release-relative path beneath the configured target root</td><td>Map a release-relative path beneath the configured target root. Returns 0 always. Usage target=&quot;$(_target_path &quot;$rel&quot;)&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_uncreate_from_manifest</td><td>Remove artifacts recorded in the create manifest</td><td>Remove files and directories listed in a workspace manifest.</td><td>create-workspace.sh</td></tr>
 <tr><td>_validate_archive</td><td>Validate all received archive entries</td><td>Reject unsafe paths and non-regular archive entry types before extraction.</td><td>receive-files.sh</td></tr>
@@ -447,11 +485,18 @@
 <tr><td>_validate_parameters</td><td>Validate archive source and destination settings</td><td></td><td>tar-it.sh</td></tr>
 <tr><td>_validate_parameters</td><td>Validate restore settings</td><td></td><td>untar-it.sh</td></tr>
 <tr><td>_validate_render_cache</td><td>Validate cached renderer input</td><td>Verify that Render mode has the complete minimum PSV input set.</td><td>doc-renderer.sh</td></tr>
+<tr><td>_validate_selected</td><td>Validate selected share paths, ACLs, and Samba configuration</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_validate_settings</td><td>Validate source and destination settings</td><td></td><td>sync-repository.sh</td></tr>
 <tr><td>_validate_tar_paths</td><td>Reject unsafe paths contained in a release tarball</td><td>Reject unsafe paths contained in a release tarball. Returns 0 when all paths are safe; 1 otherwise. Usage _validate_tar_paths &quot;$archive&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_validate_target</td><td>Validate and prepare the destination root</td><td>Ensure the destination is an absolute directory path suitable for extraction.</td><td>receive-files.sh</td></tr>
 <tr><td>_verify_release_set</td><td>Verify checksums and path safety for a complete release set</td><td>Verify checksums and path safety for a complete release set. Returns 0 when the release set is valid; 1 otherwise. Usage _verify_release_set &quot;$archive&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_verify_sha256_sidecar</td><td>Verify one release artifact against its SHA256 sidecar</td><td>Verify one release artifact against its SHA256 sidecar. Returns 0 when valid; 1 on missing or mismatched data. Usage _verify_sha256_sidecar &quot;$file&quot; &quot;$file.sha256&quot;</td><td>release-manager.sh</td></tr>
+<tr><td>_web_server_list_sites</td><td>List enabled Nginx sites</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_prepare</td><td>Run the tracked web-server preparation sequence</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_status</td><td>Show Nginx role status</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_step_install_packages</td><td>Install Nginx</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_step_start</td><td>Enable and start Nginx</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_validate</td><td>Validate the Nginx web-server role</td><td></td><td>50-web-server.sh</td></tr>
 <tr><td>_wrapper_name_for_script</td><td>Return the canonical wrapper command name</td><td>Prefix script basenames with sgnd- unless already present. Returns 0 always. Usage name=&quot;$(_wrapper_name_for_script &quot;$file&quot;)&quot;</td><td>create-wrappers.sh</td></tr>
 <tr><td>_write_wrapper</td><td>Create one root-aware wrapper</td><td>Generate a wrapper whose target is stored relative to SGND_APPLICATION_ROOT. Returns 0 on success; 1 on failure or declined overwrite. Usage _write_wrapper &quot;$source&quot; &quot;$wrapper&quot;</td><td>create-wrappers.sh</td></tr>
 <tr><td>add_module_node</td><td>Add module node</td><td>Add module node for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
@@ -463,6 +508,8 @@
 <tr><td>ask_decision</td><td>Ask for a canonical symbolic decision</td><td>Prompt the user for a constrained decision and store the canonical result.</td><td>ui-ask.sh</td></tr>
 <tr><td>ask_dlg_autocontinue</td><td>Show an interruptible auto-continue countdown</td><td>Display a short countdown prompt that continues automatically unless the user intervenes.</td><td>ui-ask.sh</td></tr>
 <tr><td>ask_prompt_form</td><td>Prompt for multiple named fields</td><td>Prompt the user for a list of field specifications and assign each response to its target variable.</td><td>ui-ask.sh</td></tr>
+<tr><td>ask_selection</td><td>Select one or more values from a numbered list</td><td>Display a reusable numbered selection list and return the selected value or values.</td><td>ui-ask.sh</td></tr>
+<tr><td>ask_selection_test</td><td>Run interactive ask_selection tests</td><td>Exercise single-select and multi-select ask_selection behavior.</td><td>framework-smoketest.sh</td></tr>
 <tr><td>ask_test</td><td>Run interactive ask helper tests</td><td>Run interactive ask helper tests.</td><td>framework-smoketest.sh</td></tr>
 <tr><td>attribution_ref</td><td>Build attribution ref</td><td>Build attribution ref for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>branding_asset_exists</td><td>Branding asset exists</td><td>Branding asset exists for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
@@ -520,6 +567,7 @@
 <tr><td>main</td><td>Run the workspace deployment workflow</td><td></td><td>deploy-workspace.sh</td></tr>
 <tr><td>main</td><td>Run the executable main sequence - Run the executable main sequence</td><td>Provide the canonical executable entry point for the documentation generator.</td><td>doc-generator.sh</td></tr>
 <tr><td>main</td><td>Run the SolidGroundUX framework smoke test</td><td>Initialize the framework and run the interactive smoke-test menu.</td><td>framework-smoketest.sh</td></tr>
+<tr><td>main</td><td>Run interactive Samba share access management</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>main</td><td>Run the SolidGround management console</td><td>Initialize the framework, discover console pages, and run the interactive host.</td><td>management-console.sh</td></tr>
 <tr><td>main</td><td>Run the executable main sequence - Run the executable main sequence</td><td>Execute the release preparation workflow.</td><td>prepare-release.sh</td></tr>
 <tr><td>main</td><td>Receive, validate, and extract a streamed workspace archive</td><td></td><td>receive-files.sh</td></tr>
