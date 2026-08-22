@@ -32,6 +32,9 @@
 <div class="ct-functionbody">  --validate FUNCTION</div>
 <div class="ct-functionbody">      Optional validator callback. FUNCTION receives the value as $1 and</div>
 <div class="ct-functionbody">      must return 0 for valid input and non-zero for invalid input.</div>
+<div class="ct-functionbody">  --back</div>
+<div class="ct-functionbody">      Treat a lone Q (case-insensitive) as &quot;back&quot; and return 1 without</div>
+<div class="ct-functionbody">      assigning the target variable.</div>
 <div class="ct-functionbody">  --echo</div>
 <div class="ct-functionbody">      Echo the accepted value and validation marker to the terminal.</div>
 <div class="ct-functionbody">  --labelwidth WIDTH</div>
@@ -73,6 +76,7 @@
 <div class="ct-functionbody"></div>
 <div class="ct-functionbody sh-highlight">Returns</div>
 <div class="ct-functionbody">  0 when a valid value was accepted.</div>
+<div class="ct-functionbody">  1 when --back is enabled and Q is entered.</div>
 <div class="ct-functionbody">  2 when /dev/tty is not available.</div>
 <div class="ct-functionbody"></div>
 <div class="ct-functionbody sh-highlight">Usage</div>

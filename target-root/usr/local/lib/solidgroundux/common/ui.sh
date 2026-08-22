@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623316
-#   Checksum    : b089cc732e0acfd247c48f86239596a31e7f3d7f6239e199d311b710e075bbf4
+#   Build       : 2623401
+#   Checksum    : de6e4a1adce9682fa06e356029c3766ef68c95febb961286d46c6e9540ca4ccc
 #   Source      : ui.sh
 #   Type        : library
 #   Group       : UI
@@ -746,13 +746,30 @@ set -uo pipefail
         #   sgnd_terminal_width "example"
     sgnd_terminal_width() {
         local width=""
+        local tty_fd=""
 
-        if [[ -t 1 ]] && command -v tput >/dev/null 2>&1; then
+        # Prefer the controlling terminal when one is actually available.
+        # Opening /dev/tty is the reliable test; merely testing whether the path
+        # exists/readable is insufficient for non-interactive processes.
+        if { exec {tty_fd}</dev/tty; } 2>/dev/null; then
+            if command -v stty >/dev/null 2>&1; then
+                width="$(stty size <&"$tty_fd" 2>/dev/null | awk '{ print $2 }')"
+            fi
+
+            if [[ ! "$width" =~ ^[1-9][0-9]*$ ]] && command -v tput >/dev/null 2>&1; then
+                width="$(tput cols <&"$tty_fd" 2>/dev/null || true)"
+            fi
+
+            exec {tty_fd}<&-
+        fi
+
+        # When no controlling terminal exists (for example receiver/non-interactive
+        # execution), fall back without touching /dev/tty.
+        if [[ ! "$width" =~ ^[1-9][0-9]*$ ]] && [[ -t 1 ]] && command -v tput >/dev/null 2>&1; then
             width="$(tput cols 2>/dev/null || true)"
         fi
 
         [[ "$width" =~ ^[1-9][0-9]*$ ]] || width="${COLUMNS:-}"
-        [[ "$width" =~ ^[1-9][0-9]*$ ]] || width="${SGND_CONSOLE_WIDTH:-80}"
         [[ "$width" =~ ^[1-9][0-9]*$ ]] || width=80
 
         printf '%s\n' "$width"
@@ -763,23 +780,16 @@ set -uo pipefail
         #   Resolve the width used by SolidGroundUX console rendering primitives.
         #
         # . Behavior
-        #   - Uses an explicit requested width when supplied.
-        #   - Otherwise uses the current terminal width.
-        #   - Treats a requested width of 0 as the available terminal width.
+        #   - Measures the current terminal width whenever the function is called.
+        #   - Uses an explicit requested width when supplied and smaller than the terminal.
+        #   - Otherwise uses the full current terminal width.
+        #   - Treats a requested width of 0 as the current terminal width.
         #   - Never exceeds the current terminal width.
-        #   - Applies SGND_MAX_RENDER_WIDTH only when it is greater than 0.
-        #   - Treats an unset or zero SGND_MAX_RENDER_WIDTH as no global render cap.
-        #   - Enforces a minimum usable width of 10 columns where the terminal permits.
         #
         # . Arguments
         #   $1  REQUESTED_WIDTH (optional)
         #       Requested render width.
         #       Empty or 0 uses the current terminal width.
-        #
-        # Inputs (globals):
-        #   SGND_MAX_RENDER_WIDTH
-        #       Optional global render-width cap.
-        #       Unset or 0 disables the global cap.
         #
         # . Output
         #   Writes the resolved width to stdout.
@@ -791,46 +801,20 @@ set -uo pipefail
         #   sgnd_render_width
         #   sgnd_render_width 120
     sgnd_render_width() {
-        local requested="${1-}"
+        local requested="${1:-0}"
         local terminal_width
-        local max_render="${SGND_MAX_RENDER_WIDTH:-0}"
-        local width
 
         terminal_width="$(sgnd_terminal_width)"
 
         # No explicit width, or an explicit width of 0, means:
-        # use the full currently available terminal width.
+        # use the full terminal width measured for this draw.
         [[ "$requested" =~ ^[0-9]+$ ]] || requested=0
 
-        # A global maximum of 0 means that no artificial render cap is applied.
-        [[ "$max_render" =~ ^[0-9]+$ ]] || max_render=0
-
-        if (( requested == 0 )); then
-            width="$terminal_width"
+        if (( requested > 0 && requested < terminal_width )); then
+            printf '%s\n' "$requested"
         else
-            width="$requested"
+            printf '%s\n' "$terminal_width"
         fi
-
-        # Rendering must never exceed the actual terminal width.
-        (( width > terminal_width )) && width="$terminal_width"
-
-        # Apply the optional global render cap only when explicitly configured.
-        if (( max_render > 0 && width > max_render )); then
-            width="$max_render"
-        fi
-
-        # Prefer at least 10 columns, without exceeding the physical terminal width
-        # or an explicitly configured global render cap.
-        if (( width < 10 )); then
-            width=10
-            (( width > terminal_width )) && width="$terminal_width"
-
-            if (( max_render > 0 && width > max_render )); then
-                width="$max_render"
-            fi
-        fi
-
-        printf '%s\n' "$width"
     }
 
     # fn: sgnd_print_labeledvalue - Print labeledvalue

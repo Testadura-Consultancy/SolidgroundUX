@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623316
-#   Checksum    : c660a811daf500b19c8e4ea937bec405f319fce34fbdb7db3122fa719b095c4a
+#   Build       : 2623404
+#   Checksum    : a6124e415e16b32bc607554fab46cfc018e3c1e7f6c867fbb4c5f141e625a84f
 #   Source      : 30-samba-file-server.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -89,6 +89,61 @@ set -uo pipefail
         local share_name="${1:-}"
         [[ -r "$SGND_SAMBA_CONFIG" ]] || return 1
         grep -Eqi "^[[:space:]]*\\[$share_name\\][[:space:]]*$" "$SGND_SAMBA_CONFIG"
+    }
+
+    # fn$ _smb_list_managed_shares_raw - Return SolidGroundUX-managed Samba shares
+        # . Output
+        #   Writes one managed share name per line.
+        #
+        # . Returns
+        #   0 after listing.
+    _smb_list_managed_shares_raw() {
+        local share_name=""
+        local share_path=""
+
+        command -v testparm >/dev/null 2>&1 || return 0
+
+        while IFS= read -r share_name; do
+            [[ -n "$share_name" ]] || continue
+
+            case "${share_name,,}" in
+                global|printers|print\$) continue ;;
+            esac
+
+            share_path="$(sudo testparm -s --section-name "$share_name" --parameter-name path 2>/dev/null || true)"
+            [[ "$share_path" == "$SGND_SAMBA_SHARE_ROOT/"* ]] || continue
+
+            printf '%s\n' "$share_name"
+        done < <(
+            sudo testparm -s 2>/dev/null | \
+                awk '/^\[[^]]+\]$/ { name=$0; gsub(/^\[|\]$/, "", name); print name }'
+        )
+    }
+
+    # fn$ _smb_select_managed_share - Select one managed Samba share
+        # . Arguments
+        #   $1 OUTPUT_VAR - Variable receiving the selected share name.
+        #
+        # . Returns
+        #   0 on selection; 1 when no share is available or the user returns.
+    _smb_select_managed_share() {
+        local output_var="${1:?missing output variable}"
+        local selected=""
+        local -a shares=()
+
+        mapfile -t shares < <(_smb_list_managed_shares_raw)
+        (( ${#shares[@]} > 0 )) || {
+            saywarning "No managed Samba shares were found."
+            return 1
+        }
+
+        ask_selection \
+            --label "Select Samba share" \
+            --var selected \
+            --items "${shares[@]}" || return 1
+
+        printf -v "$output_var" '%s' "$selected"
+        return 0
     }
 
     # fn: _smb_require_storage
@@ -260,6 +315,7 @@ set -uo pipefail
         local decision="No"
         local share_path=""
         local config_backup=""
+        local dlg_rc=0
 
         _smb_require_storage || return 1
         [[ -d "$SGND_SAMBA_SHARE_ROOT" ]] || {
@@ -272,56 +328,89 @@ set -uo pipefail
             return 1
         }
 
-        ask --label "Share name" --var share_name --validate _smb_validate_share_name || return $?
+        while :; do
+            share_name=""
+            comment=""
+            browsable="Yes"
+            read_only="No"
+            decision="No"
+            share_path=""
+            config_backup=""
 
-        _smb_share_exists "$share_name" && {
-            sayfail "A Samba share named '$share_name' already exists."
-            return 1
-        }
+            ask \
+                --label "Share name (Q=Back)" \
+                --var share_name \
+                --validate _smb_validate_share_name \
+                --back || return 0
 
-        share_path="$SGND_SAMBA_SHARE_ROOT/$share_name"
-        [[ ! -e "$share_path" ]] || {
-            sayfail "The share directory already exists: $share_path"
-            return 1
-        }
+            _smb_share_exists "$share_name" && {
+                sayfail "A Samba share named '$share_name' already exists."
+                continue
+            }
 
-        comment="$share_name share"
-        ask --label "Description" --var comment --default "$comment" || return $?
-        ask_decision --label "Browsable" --choices "Yes|Y,No|N" --default "Yes" --var browsable || return $?
-        ask_decision --label "Read only" --choices "Yes|Y,No|N" --default "No" --var read_only || return $?
+            share_path="$SGND_SAMBA_SHARE_ROOT/$share_name"
+            [[ ! -e "$share_path" ]] || {
+                sayfail "The share directory already exists: $share_path"
+                continue
+            }
 
-        ask_decision --label "Create share '$share_name'?" --choices "Yes|Y,No|N" --default "No" --var decision || return $?
-        [[ "$decision" == "Yes" ]] || return 0
+            comment="$share_name share"
+            ask --label "Description (Q=Back)" --var comment --default "$comment" --back || return 0
 
-        if (( ${FLAG_DRYRUN:-0} == 1 )); then
-            sayinfo "Dry run: Would create Samba share '$share_name' at $share_path."
-            return 0
-        fi
+            ask_decision \
+                --label "Browsable" \
+                --choices "Yes|Y,No|N,Quit|Q" \
+                --default "Yes" \
+                --var browsable || return $?
+            [[ "${browsable^^}" == "QUIT" || "${browsable^^}" == "Q" ]] && return 0
 
-        config_backup="$SGND_SAMBA_CONFIG.pre-share.$(date +%Y%m%d%H%M%S)"
-        sudo cp -a "$SGND_SAMBA_CONFIG" "$config_backup" || return 1
-        sudo install -d -m 0770 "$share_path" || return 1
+            ask_decision \
+                --label "Read only" \
+                --choices "Yes|Y,No|N,Quit|Q" \
+                --default "No" \
+                --var read_only || return $?
+            [[ "${read_only^^}" == "QUIT" || "${read_only^^}" == "Q" ]] && return 0
 
-        printf '%s\n' \
-            '' \
-            "# SolidGroundUX managed share: $share_name" \
-            "[$share_name]" \
-            "    path = $share_path" \
-            "    comment = $comment" \
-            "    browseable = ${browsable,,}" \
-            "    read only = ${read_only,,}" \
-            '    guest ok = no' \
-            '    create mask = 0660' \
-            '    directory mask = 0770' | \
-            sudo tee -a "$SGND_SAMBA_CONFIG" >/dev/null || return 1
+            if (( ${FLAG_DRYRUN:-0} == 1 )); then
+                sayinfo "Dry run: Would create Samba share '$share_name' at $share_path."
+            else
+                config_backup="$SGND_SAMBA_CONFIG.pre-share.$(date +%Y%m%d%H%M%S)"
+                sudo cp -a "$SGND_SAMBA_CONFIG" "$config_backup" || return 1
+                sudo install -d -m 0770 "$share_path" || return 1
 
-        if ! _smb_reload; then
-            sudo cp -a "$config_backup" "$SGND_SAMBA_CONFIG"
-            sudo rm -rf -- "$share_path"
-            return 1
-        fi
+                printf '%s\n' \
+                    '' \
+                    "# SolidGroundUX managed share: $share_name" \
+                    "[$share_name]" \
+                    "    path = $share_path" \
+                    "    comment = $comment" \
+                    "    browseable = ${browsable,,}" \
+                    "    read only = ${read_only,,}" \
+                    '    guest ok = no' \
+                    '    create mask = 0660' \
+                    '    directory mask = 0770' | \
+                    sudo tee -a "$SGND_SAMBA_CONFIG" >/dev/null || return 1
 
-        sayok "Samba share '$share_name' created."
+                if ! _smb_reload; then
+                    sudo cp -a "$config_backup" "$SGND_SAMBA_CONFIG"
+                    sudo rm -rf -- "$share_path"
+                    return 1
+                fi
+
+                sayok "Samba share '$share_name' created."
+            fi
+
+            dlg_rc=0
+            ask_dlg_autocontinue \
+                --seconds 5 \
+                --legend "Enter=return to menu; timeout=create another share" \
+                || dlg_rc=$?
+
+            case "$dlg_rc" in
+                1) continue ;;
+                *) return 0 ;;
+            esac
+        done
     }
 
     # fn: _smb_list_shares
@@ -361,66 +450,83 @@ set -uo pipefail
         local decision="No"
         local temp_file=""
         local config_backup=""
+        local dlg_rc=0
 
-        ask --label "Share name" --var share_name --validate _smb_validate_share_name || return $?
+        while :; do
+            share_name=""
+            share_path=""
+            remove_data="No"
+            decision="No"
+            temp_file=""
+            config_backup=""
 
-        _smb_share_exists "$share_name" || {
-            sayfail "No Samba share named '$share_name' exists."
-            return 1
-        }
+            _smb_select_managed_share share_name || return 0
 
-        share_path="$(sudo testparm -s --section-name "$share_name" --parameter-name path 2>/dev/null || true)"
-        [[ "$share_path" == "$SGND_SAMBA_SHARE_ROOT/"* ]] || {
-            sayfail "The share is not managed beneath $SGND_SAMBA_SHARE_ROOT."
-            return 1
-        }
-
-        ask_decision --label "Delete share data" --choices "Yes|Y,No|N" --default "No" --var remove_data || return $?
-        ask_decision --label "Remove share '$share_name'?" --choices "Yes|Y,No|N" --default "No" --var decision || return $?
-        [[ "$decision" == "Yes" ]] || return 0
-
-        if (( ${FLAG_DRYRUN:-0} == 1 )); then
-            sayinfo "Dry run: Would remove Samba share '$share_name'."
-            return 0
-        fi
-
-        temp_file="$(mktemp)" || return 1
-        config_backup="$SGND_SAMBA_CONFIG.pre-remove.$(date +%Y%m%d%H%M%S)"
-        sudo cp -a "$SGND_SAMBA_CONFIG" "$config_backup" || {
-            rm -f "$temp_file"
-            return 1
-        }
-
-        sudo awk -v section="$share_name" '
-            BEGIN { skip = 0 }
-            /^\[[^]]+\][[:space:]]*$/ {
-                current = $0
-                gsub(/^\[|\][[:space:]]*$/, "", current)
-                skip = (tolower(current) == tolower(section))
+            share_path="$(sudo testparm -s --section-name "$share_name" --parameter-name path 2>/dev/null || true)"
+            [[ "$share_path" == "$SGND_SAMBA_SHARE_ROOT/"* ]] || {
+                sayfail "The share is not managed beneath $SGND_SAMBA_SHARE_ROOT."
+                return 1
             }
-            !skip { print }
-        ' "$SGND_SAMBA_CONFIG" > "$temp_file" || {
-            rm -f "$temp_file"
-            return 1
-        }
 
-        sudo install -o root -g root -m 0644 "$temp_file" "$SGND_SAMBA_CONFIG" || {
-            rm -f "$temp_file"
-            return 1
-        }
+            ask_decision \
+                --label "Delete share data" \
+                --choices "Yes|Y,No|N,Quit|Q" \
+                --default "No" \
+                --var remove_data || return $?
+            [[ "${remove_data^^}" == "QUIT" || "${remove_data^^}" == "Q" ]] && return 0
 
-        rm -f "$temp_file"
+            if (( ${FLAG_DRYRUN:-0} == 1 )); then
+                sayinfo "Dry run: Would remove Samba share '$share_name'."
+            else
+                temp_file="$(mktemp)" || return 1
+                config_backup="$SGND_SAMBA_CONFIG.pre-remove.$(date +%Y%m%d%H%M%S)"
+                sudo cp -a "$SGND_SAMBA_CONFIG" "$config_backup" || {
+                    rm -f "$temp_file"
+                    return 1
+                }
 
-        if ! _smb_reload; then
-            sudo cp -a "$config_backup" "$SGND_SAMBA_CONFIG"
-            return 1
-        fi
+                sudo awk -v section="$share_name" '
+                    BEGIN { skip = 0 }
+                    /^\[[^]]+\][[:space:]]*$/ {
+                        current = $0
+                        gsub(/^\[|\][[:space:]]*$/, "", current)
+                        skip = (tolower(current) == tolower(section))
+                    }
+                    !skip { print }
+                ' "$SGND_SAMBA_CONFIG" > "$temp_file" || {
+                    rm -f "$temp_file"
+                    return 1
+                }
 
-        if [[ "$remove_data" == "Yes" ]]; then
-            sudo rm -rf -- "$share_path" || return 1
-        fi
+                sudo install -o root -g root -m 0644 "$temp_file" "$SGND_SAMBA_CONFIG" || {
+                    rm -f "$temp_file"
+                    return 1
+                }
+                rm -f "$temp_file"
 
-        sayok "Samba share '$share_name' removed."
+                if ! _smb_reload; then
+                    sudo cp -a "$config_backup" "$SGND_SAMBA_CONFIG"
+                    return 1
+                fi
+
+                if [[ "${remove_data^^}" == "YES" ]]; then
+                    sudo rm -rf -- "$share_path" || return 1
+                fi
+
+                sayok "Samba share '$share_name' removed."
+            fi
+
+            dlg_rc=0
+            ask_dlg_autocontinue \
+                --seconds 5 \
+                --legend "Enter=return to menu; timeout=remove another share" \
+                || dlg_rc=$?
+
+            case "$dlg_rc" in
+                1) continue ;;
+                *) return 0 ;;
+            esac
+        done
     }
 
     # fn: _smb_manage_shares
@@ -511,6 +617,9 @@ set -uo pipefail
         if command -v testparm >/dev/null 2>&1; then
             while IFS= read -r share_name; do
                 [[ -n "$share_name" ]] || continue
+                case "${share_name,,}" in
+                    printers|print\$) continue ;;
+                esac
                 share_count=$((share_count + 1))
                 share_path="$(sudo testparm -s --section-name "$share_name" --parameter-name path 2>/dev/null || true)"
 
@@ -600,9 +709,9 @@ set -uo pipefail
         "Create, inspect, remove, and manage Samba shares" \
         0 1 310
 
-    sgnd_menu_register_item "smb-share-create" "samba-shares" "Create share" "_smb_create_share" "Create and publish a directory beneath the managed share root" 0 15 1 0
+    sgnd_menu_register_item "smb-share-create" "samba-shares" "Create share" "_smb_create_share" "Create and publish a directory beneath the managed share root" 0 0 1 0
     sgnd_menu_register_item "smb-share-list" "samba-shares" "List shares" "_smb_list_shares" "List configured Samba shares" 0 15 1 0
-    sgnd_menu_register_item "smb-share-remove" "samba-shares" "Remove share" "_smb_remove_share" "Remove a managed Samba share and optionally its data" 0 15 1 0
+    sgnd_menu_register_item "smb-share-remove" "samba-shares" "Remove share" "_smb_remove_share" "Remove a managed Samba share and optionally its data" 0 0 1 0
     sgnd_menu_register_item "smb-share-manage" "samba-shares" "Manage shares" "_smb_manage_shares" "Open the interactive Samba share manager" 0 15 1 0
 
     sayinfo "Samba File Server module registered with the console."

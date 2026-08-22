@@ -14,8 +14,9 @@
   <div class="doc-breadcrumb">SolidgroundUX / manage-samba-shares.sh / Helpers / _discover_ad_groups</div>
 </header>
 <div class="ct-functionbody sh-highlight">Purpose</div>
-<div class="ct-functionbody">  Prefer AD groups exposed by the existing realmd/SSSD identity stack and</div>
-<div class="ct-functionbody">  include groups already present on selected share ACLs.</div>
+<div class="ct-functionbody">  Query Active Directory directly for group names and include groups already</div>
+<div class="ct-functionbody">  present on selected share ACLs. NSS is used only to resolve the selected</div>
+<div class="ct-functionbody">  group to the local fully-qualified identity required for ACL operations.</div>
 <div class="ct-functionbody"></div>
 <p class="ct-functionbody">Outputs (globals):</p>
 <div class="ct-functionbody">  DISCOVERED_GROUPS</div>

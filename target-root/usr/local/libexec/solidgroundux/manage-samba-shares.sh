@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623316
-#   Checksum    : 9d3191d1e6dfb883be5a1f4a6ac6b16cae1c2ca52059d211f24a08c4c0912454
+#   Build       : 2623404
+#   Checksum    : b154185dfa12ddf728e3a043d2e6c2db2c53299638637e98e8098e76e8a56252
 #   Source      : manage-samba-shares.sh
 #   Type        : script
 #   Group       : System Administration
@@ -219,10 +219,59 @@ set -uo pipefail
             awk -F: '$1 == "group" && $2 != "" { print $2 "|" $3 }'
     }
 
+    # fn: _ensure_kerberos_ticket - Ensure an authenticated Kerberos ticket is available
+        # . Purpose
+        #   Require an existing Kerberos TGT before querying Active Directory through LDAP/GSSAPI.
+        #
+        # . Returns
+        #   0 when a valid ticket cache exists; 1 otherwise.
+    _ensure_kerberos_ticket() {
+        local realm=""
+        local principal=""
+        local username="Administrator"
+
+        if klist -s 2>/dev/null; then
+            return 0
+        fi
+
+        realm="$(realm list --name-only 2>/dev/null | head -n 1 || true)"
+        realm="${realm^^}"
+        [[ -n "$realm" ]] || {
+            saywarning "No joined Active Directory realm was found."
+            return 1
+        }
+
+        saywarning "No valid Kerberos ticket is available."
+
+        ask \
+            --label "AD user (Q=Back)" \
+            --var username \
+            --default "Administrator" \
+            --back || return 1
+
+        [[ "$username" == *"@"* ]] && username="${username%@*}"
+        principal="${username}@${realm}"
+
+        sayinfo "Authenticate as $principal."
+        if ! kinit "$principal"; then
+            sayfail "Kerberos authentication failed for $principal."
+            return 1
+        fi
+
+        if ! klist -s 2>/dev/null; then
+            sayfail "Kerberos authentication completed without a usable ticket."
+            return 1
+        fi
+
+        sayok "Kerberos authentication succeeded."
+        return 0
+    }
+
     # fn: _discover_ad_groups - Discover domain groups visible through NSS
         # . Purpose
-        #   Prefer AD groups exposed by the existing realmd/SSSD identity stack and
-        #   include groups already present on selected share ACLs.
+        #   Query Active Directory directly for group names and include groups already
+        #   present on selected share ACLs. NSS is used only to resolve the selected
+        #   group to the local fully-qualified identity required for ACL operations.
         #
         # Outputs (globals):
         #   DISCOVERED_GROUPS
@@ -234,36 +283,95 @@ set -uo pipefail
         #   _discover_ad_groups
     _discover_ad_groups() {
         local realm=""
+        local realm_lower=""
+        local dc=""
+        local base_dn=""
         local group=""
         local share=""
         local acl_record=""
         local -A seen=()
 
         DISCOVERED_GROUPS=()
-        realm="$(realm list --name-only 2>/dev/null | head -n 1 || true)"
 
-        while IFS=: read -r group _; do
+        realm="$(realm list --name-only 2>/dev/null | head -n 1 || true)"
+        [[ -n "$realm" ]] || {
+            saywarning "No joined Active Directory realm was found."
+            return 1
+        }
+        realm="${realm^^}"
+        realm_lower="${realm,,}"
+
+        dc="$(
+            host -t SRV "_ldap._tcp.${realm_lower}" 2>/dev/null |
+                awk '{ print $NF }' |
+                sed 's/\.$//' |
+                head -n 1
+        )"
+        [[ -n "$dc" ]] || {
+            saywarning "No LDAP domain controller could be discovered for $realm."
+            return 1
+        }
+
+        base_dn="$(
+            awk -v realm="$realm_lower" 'BEGIN {
+                n=split(realm, parts, ".")
+                for (i=1; i<=n; i++) {
+                    if (i > 1) printf ","
+                    printf "DC=%s", parts[i]
+                }
+                printf "\n"
+            }'
+        )"
+
+        _ensure_kerberos_ticket || return 1
+
+        command -v ldapsearch >/dev/null 2>&1 || {
+            saywarning "ldapsearch is not installed."
+            return 1
+        }
+
+        # LDAP group discovery uses the existing Kerberos ticket. -N is required
+        # so SASL does not canonicalize the DC hostname away from its registered SPN.
+        while IFS= read -r group; do
             [[ -n "$group" ]] || continue
-            if [[ -n "$realm" ]]; then
-                [[ "${group,,}" == *"@${realm,,}" || "${group,,}" == *"\\${realm,,}"* ]] || continue
-            fi
             [[ -n "${seen[$group]-}" ]] && continue
             seen["$group"]=1
             DISCOVERED_GROUPS+=("$group")
-        done < <(getent group 2>/dev/null || true)
+        done < <(
+            ldapsearch -N -Y GSSAPI \
+                -H "ldap://$dc" \
+                -b "$base_dn" \
+                '(objectClass=group)' \
+                sAMAccountName 2>/dev/null |
+            awk -F': ' '/^sAMAccountName: / { print $2 }' |
+            LC_ALL=C sort -fu
+        )
 
+        # Preserve groups already assigned on selected share ACLs.
         for share in "${SELECTED_SHARES[@]}"; do
             while IFS= read -r acl_record; do
                 group="${acl_record%%|*}"
-                [[ -n "$group" && -z "${seen[$group]-}" ]] || continue
+                [[ -n "$group" ]] || continue
+
+                if [[ "${group,,}" == *"@${realm_lower}" ]]; then
+                    group="${group%@*}"
+                fi
+
+                [[ -n "${seen[$group]-}" ]] && continue
                 seen["$group"]=1
                 DISCOVERED_GROUPS+=("$group")
             done < <(_acl_groups_for_share "$share" || true)
         done
 
-        if (( ${#DISCOVERED_GROUPS[@]} > 1 )); then
-            mapfile -t DISCOVERED_GROUPS < <(printf '%s\n' "${DISCOVERED_GROUPS[@]}" | LC_ALL=C sort -fu)
-        fi
+        (( ${#DISCOVERED_GROUPS[@]} > 0 )) || {
+            saywarning "No Active Directory groups could be discovered."
+            return 1
+        }
+
+        mapfile -t DISCOVERED_GROUPS < <(
+            printf '%s\n' "${DISCOVERED_GROUPS[@]}" | LC_ALL=C sort -fu
+        )
+
         return 0
     }
 
@@ -280,9 +388,20 @@ set -uo pipefail
         local output_var="$1"
         local selected=""
         local entered=""
+        local realm=""
+        local realm_lower=""
+        local qualified=""
         local -a choices=()
 
-        _discover_ad_groups
+        realm="$(realm list --name-only 2>/dev/null | head -n 1 || true)"
+        [[ -n "$realm" ]] || {
+            saywarning "No joined Active Directory realm was found."
+            return 1
+        }
+        realm="${realm^^}"
+        realm_lower="${realm,,}"
+
+        _discover_ad_groups || return 1
         choices=("${DISCOVERED_GROUPS[@]}" "Enter group manually")
 
         ask_selection \
@@ -291,16 +410,22 @@ set -uo pipefail
             --items "${choices[@]}" || return 1
 
         if [[ "$selected" == "Enter group manually" ]]; then
-            ask --label "AD/NSS group" --var entered || return $?
+            ask --label "AD group (Q=Back)" --var entered --back || return 1
             selected="$entered"
         fi
 
-        if ! getent group "$selected" >/dev/null 2>&1; then
-            sayfail "Group cannot be resolved through NSS: $selected"
+        if [[ "$selected" == *"@"* ]]; then
+            qualified="$selected"
+        else
+            qualified="${selected}@${realm_lower}"
+        fi
+
+        if ! getent group "$qualified" >/dev/null 2>&1; then
+            sayfail "Group cannot be resolved through NSS: $qualified"
             return 1
         fi
 
-        printf -v "$output_var" '%s' "$selected"
+        printf -v "$output_var" '%s' "$qualified"
         return 0
     }
 
@@ -438,6 +563,49 @@ set -uo pipefail
         return 0
     }
 
+    # fn: _select_assigned_group - Select a group currently assigned to the selected shares
+        # . Arguments
+        #   $1 OUTPUT_VAR
+        #
+        # . Returns
+        #   0 with a selected group; 1 when none are assigned or the user returns.
+    _select_assigned_group() {
+        local output_var="${1:?missing output variable}"
+        local share=""
+        local record=""
+        local group=""
+        local selected=""
+        local -A seen=()
+        local -a groups=()
+
+        for share in "${SELECTED_SHARES[@]}"; do
+            while IFS= read -r record; do
+                group="${record%%|*}"
+                [[ -n "$group" ]] || continue
+                [[ -n "${seen[$group]-}" ]] && continue
+                seen["$group"]=1
+                groups+=("$group")
+            done < <(_acl_groups_for_share "$share" || true)
+        done
+
+        (( ${#groups[@]} > 0 )) || {
+            saywarning "No AD/NSS groups are assigned to the selected shares."
+            return 1
+        }
+
+        if (( ${#groups[@]} > 1 )); then
+            mapfile -t groups < <(printf '%s\n' "${groups[@]}" | LC_ALL=C sort -fu)
+        fi
+
+        ask_selection \
+            --label "Select assigned AD/NSS group" \
+            --var selected \
+            --items "${groups[@]}" || return 1
+
+        printf -v "$output_var" '%s' "$selected"
+        return 0
+    }
+
     # fn: _remove_group_access - Remove one AD/NSS group's access from selected shares
         # . Returns
         #   0 after all selected shares are updated; non-zero on failure.
@@ -451,7 +619,7 @@ set -uo pipefail
         local group_count=0
         local group_present=0
 
-        _select_group group || return $?
+        _select_assigned_group group || return $?
 
         for share in "${SELECTED_SHARES[@]}"; do
             path="$(_share_path "$share")"

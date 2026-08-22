@@ -17,6 +17,103 @@
 <p class="ct-documentbody">All notable changes to SolidGroundUX are documented in this file.</p>
 <p class="ct-documentbody">The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.</p>
 <h2 class="ct-L1Sectionheader">Unreleased</h2>
+<h3 class="ct-L2Sectionheader">Changed</h3>
+<ul>
+<li>Improved Samba File Server and share-management usability:</li>
+<li>Removed printer-share validation from the Samba file-server validation path.</li>
+<li>Added repeat-operation flows for creating and removing Samba shares.</li>
+<li>Added share selection when removing managed shares.</li>
+<li>Updated the Samba share manager to use `ask_selection` for share and Active Directory group selection.</li>
+<li>Active Directory groups are now discovered directly from the directory through LDAP instead of relying on NSS group enumeration.</li>
+<li>LDAP group discovery uses Kerberos/GSSAPI authentication and disables SASL hostname canonicalization so the registered domain-controller LDAP service principal is used correctly.</li>
+<li>Active Directory realm names are normalized to uppercase for Kerberos authentication while NSS group identities retain their resolvable `group@domain` form.</li>
+<li>The share manager now detects a missing Kerberos ticket and interactively authenticates an Active Directory user before querying directory groups.</li>
+</ul>
+<ul>
+<li>Added `R Reset` to the management console, allowing last-run result markers to be cleared for the current module page without affecting results on other pages.</li>
+</ul>
+<ul>
+<li>Moved manual console redraw from `R` to `Ctrl+R`; redraw continues to re-measure the terminal and invalidate layout-dependent caches.</li>
+</ul>
+<ul>
+<li>Updated the console key legend to show `R Reset` and `Ctrl+R Redraw`.</li>
+</ul>
+<ul>
+<li>Added a `--legend` argument to `ask_dlg_autocontinue`, allowing callers to replace the generic key legend with workflow-specific instructions.</li>
+</ul>
+<ul>
+<li>Improved Active Directory Management usability:</li>
+<li>Added consistent `Q` / Quit handling to framework-owned prompts.</li>
+<li>Added `--back` support to `ask` so free-text prompts can return cleanly without assigning or validating the entered value.</li>
+<li>Removed redundant confirmation prompts from user and group creation/deletion flows where choosing the action and selecting/entering the object already expresses intent.</li>
+<li>Added optional “password never expires” handling during user creation.</li>
+<li>Added a dedicated “Set password never expires” user action.</li>
+<li>Added repeat-operation loops for:</li>
+<li>Create user</li>
+<li>Delete user</li>
+<li>Remove user from groups</li>
+<li>Create group</li>
+<li>Add users to group</li>
+<li>Remove group members</li>
+<li>Delete group</li>
+<li>Repeat-operation dialogs now use custom legends so timeout and Enter behavior are described accurately.</li>
+<li>Disabled the normal menu post-action wait for actions that now manage their own repeat/return flow.</li>
+</ul>
+<ul>
+<li>Improved console width handling:</li>
+<li>Terminal width is re-measured on redraw.</li>
+<li>Rendering no longer relies on a separately cached menu width.</li>
+<li>Layout caches are invalidated on redraw so resized terminals are recalculated correctly.</li>
+<li>Non-interactive processes no longer fail when `/dev/tty` is unavailable.</li>
+</ul>
+<h3 class="ct-L2Sectionheader">Repaired</h3>
+<ul>
+<li>Repaired Storage provisioning confirmation handling:</li>
+<li>Fixed remaining Yes/No comparisons that expected mixed-case values instead of the canonical `YES` / `NO` responses returned by `ask_decision`.</li>
+<li>Verified storage provisioning now completes partitioning, filesystem creation, persistent `/etc/fstab` configuration, mounting, and creation of `/srv/storage/shares`.</li>
+<li>Verified storage status correctly reports the configured source, filesystem, UUID, mount state, persistence, read/write state, capacity, and available space.</li>
+</ul>
+<ul>
+<li>Repaired Samba File Server provisioning and validation:</li>
+<li>Removed validation of Samba printer shares, which are not part of the managed SolidGroundUX file-server configuration.</li>
+<li>Verified the Samba preparation sequence completes successfully against provisioned SolidGroundUX storage.</li>
+<li>Repaired managed share creation and removal workflows.</li>
+</ul>
+<ul>
+<li>Repaired Active Directory group handling in the Samba share manager:</li>
+<li>Fixed AD group discovery on realmd/SSSD domain members where `getent group` cannot enumerate directory groups even though direct qualified-name lookups work.</li>
+<li>Replaced unsuitable `samba-tool group list` discovery, which expects a local Active Directory database when run on a member server.</li>
+<li>Avoided `net ads group`, which requires Samba ADS membership configuration not present on the realmd/SSSD client.</li>
+<li>Added authenticated LDAP group discovery using the domain controller advertised through the Active Directory LDAP SRV record.</li>
+<li>Fixed Kerberos authentication failures caused by using a lowercase realm; authentication now uses the canonical uppercase realm such as `TESTADURA.HQ`.</li>
+<li>Fixed LDAP/GSSAPI service-ticket lookup by disabling SASL hostname canonicalization with `ldapsearch -N`.</li>
+<li>Verified LDAP group enumeration against the domain controller and NSS resolution of selected qualified AD groups.</li>
+</ul>
+<ul>
+<li>Repaired Computer Setup validation:</li>
+<li>Corrected the sudoers file path used for SolidGroundUX receiver access.</li>
+<li>Centralized the sudoers filename in `SGND_COMPUTER_SUDOERS_FILE`.</li>
+<li>Verified setup, status, and validation all reference the same sudoers policy file.</li>
+</ul>
+<ul>
+<li>Fully tested and repaired the Computer Setup workflow, including the automated preparation sequence.</li>
+</ul>
+<ul>
+<li>Fully tested and repaired Active Directory provisioning:</li>
+<li>Fixed `ask_decision` case handling where canonical responses are returned in uppercase.</li>
+<li>Restored the automated provisioning sequence so it continues beyond preflight validation.</li>
+<li>Verified the remaining provisioning steps can complete successfully.</li>
+</ul>
+<ul>
+<li>Repaired Active Directory Management confirmation handling:</li>
+<li>Fixed Yes/No comparisons so canonical `YES` / `NO` values are handled correctly.</li>
+<li>Fixed Quit handling so `Q` actually exits the current action instead of falling through.</li>
+<li>Fixed timeout handling in repeat-operation dialogs so timeout repeats the action instead of returning to the menu.</li>
+</ul>
+<ul>
+<li>Repaired terminal-width detection for non-interactive receiver execution:</li>
+<li>Fixed `/dev/tty` probing so receiver-side operations no longer emit `No such device or address`.</li>
+</ul>
 <h2 class="ct-L1Sectionheader">Release 2.0.2623316</h2>
 <h3 class="ct-L2Sectionheader">SolidGround Management Console</h3>
 <h4 class="ct-L3Sectionheader">Changed</h4>

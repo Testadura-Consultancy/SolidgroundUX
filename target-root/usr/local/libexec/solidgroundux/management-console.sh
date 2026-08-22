@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623316
-#   Checksum    : a1208876d21588087cd8238c58e401dbe0caff3e502ce0c0db0d204ad201105f
+#   Build       : 2623404
+#   Checksum    : 62c292195720597c1bc9b1fba3ee3df1008f80fce701ccbc1d7d723c2724360c
 #   Source      : management-console.sh
 #   Type        : script
 #   Group       : SolidGround Console
@@ -597,6 +597,84 @@ set -uo pipefail
             status="$(sgnd_console_action_status "$key")"
             sgnd_menu_set_item_status "$key" "$status" || true
         done
+    }
+
+    # fn: _sgnd_console_reset_page_results - Clear tracked action results for the active management page
+        # . Purpose
+        #   Reset the persisted last-run status for every non-builtin action belonging
+        #   to the currently active management page.
+        #
+        # . Behavior
+        #   - Removes matching action rows from the console action-state file.
+        #   - Resets the corresponding in-memory menu status to never.
+        #   - Leaves result state for all other management pages untouched.
+        #   - Performs no configuration or business-logic changes.
+        #
+        # . Returns
+        #   0 when reset or when no module page is active.
+        #   1 when the action-state file cannot be rewritten.
+        #
+        # . Usage
+        #   _sgnd_console_reset_page_results
+    _sgnd_console_reset_page_results() {
+        local active_source="${SGND_MENU_ACTIVE_SOURCE:-}"
+        local i=0
+        local row_count="${#SGND_ITEM_ROWS[@]}"
+        local key=""
+        local source=""
+        local builtin="0"
+        local state_dir=""
+        local temp_file=""
+        local key_file=""
+        local reset_count=0
+
+        [[ "$SGND_CONSOLE_VIEW" == "module" && -n "$active_source" ]] || return 0
+
+        state_dir="$(dirname -- "$SGND_CONSOLE_ACTION_STATE_FILE")"
+        mkdir -p -- "$state_dir" || return 1
+
+        key_file="$(mktemp "${TMPDIR:-/tmp}/management-console-reset-keys.XXXXXX")" || return 1
+        temp_file="$(mktemp "${TMPDIR:-/tmp}/management-console-actions.XXXXXX")" || {
+            rm -f -- "$key_file"
+            return 1
+        }
+
+        for (( i=0; i<row_count; i++ )); do
+            builtin="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" builtin)"
+            (( builtin )) && continue
+
+            source="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" source)"
+            [[ "$source" == "$active_source" ]] || continue
+
+            key="$(sgnd_dt_get "$SGND_ITEM_SCHEMA" SGND_ITEM_ROWS "$i" key)"
+            printf '%s\n' "$key" >> "$key_file"
+            sgnd_menu_set_item_status "$key" "never" 2>/dev/null || true
+            reset_count=$(( reset_count + 1 ))
+        done
+
+        if (( reset_count > 0 )) && [[ -r "$SGND_CONSOLE_ACTION_STATE_FILE" ]]; then
+            awk -F'|' '
+                NR==FNR { reset[$1]=1; next }
+                !($1 in reset) { print }
+            ' "$key_file" "$SGND_CONSOLE_ACTION_STATE_FILE" > "$temp_file" || {
+                rm -f -- "$key_file" "$temp_file"
+                return 1
+            }
+
+            mv -- "$temp_file" "$SGND_CONSOLE_ACTION_STATE_FILE" || {
+                rm -f -- "$key_file" "$temp_file"
+                return 1
+            }
+        else
+            rm -f -- "$temp_file"
+        fi
+
+        rm -f -- "$key_file"
+
+        SGND_CONSOLE_LAYOUT_CACHE_KEY=""
+        SGND_CONSOLE_LABEL_WIDTH_CACHE_SIGNATURE=""
+        SGND_LAST_WAITSECS=0
+        return 0
     }
 
     # --- Built-in menu registration -------------------------------------------------
@@ -1651,6 +1729,11 @@ set -uo pipefail
                     return 0
                     ;;
                 REDRAW)
+                    _sgnd_console_redraw
+                    continue
+                    ;;
+                RESET)
+                    _sgnd_console_reset_page_results || true
                     continue
                     ;;
                 ESC)

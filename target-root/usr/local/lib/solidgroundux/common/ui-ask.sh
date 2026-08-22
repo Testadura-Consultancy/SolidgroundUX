@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623316
-#   Checksum    : 037ae21d81e264a678d0005852a95821201db74c74ff9297220fe087788c05ff
+#   Build       : 2623401
+#   Checksum    : cfde898b7dbfb2dacaef18ab9ab9576aaeeb4494413ae4a115c070ea165cc22c
 #   Source      : ui-ask.sh
 #   Type        : library
 #   Group       : UI
@@ -615,6 +615,9 @@ set -uo pipefail
         #   --validate FUNCTION
         #       Optional validator callback. FUNCTION receives the value as $1 and
         #       must return 0 for valid input and non-zero for invalid input.
+        #   --back
+        #       Treat a lone Q (case-insensitive) as "back" and return 1 without
+        #       assigning the target variable.
         #   --echo
         #       Echo the accepted value and validation marker to the terminal.
         #   --labelwidth WIDTH
@@ -656,6 +659,7 @@ set -uo pipefail
         #
         # . Returns
         #   0 when a valid value was accepted.
+        #   1 when --back is enabled and Q is entered.
         #   2 when /dev/tty is not available.
         #
         # . Usage
@@ -667,6 +671,7 @@ set -uo pipefail
         local validate_fn=""
         local def_value=""
         local echo_input=0
+        local allow_back=0
         local labelwidth=25
         local pad=0
         local labelclr="${SGND_UI_LABEL}"
@@ -690,6 +695,7 @@ set -uo pipefail
                 --colorize)    colorize="$2"; shift 2 ;;
                 --validate)    validate_fn="$2"; shift 2 ;;
                 --default)     def_value="$2"; shift 2 ;;
+                --back)        allow_back=1; shift ;;
                 --echo)        echo_input=1; shift ;;
                 --)            shift; break ;;
                 *)             [[ -z "$label" ]] && label="$1"; shift ;;
@@ -715,6 +721,10 @@ set -uo pipefail
 
         exec {tty_fd}<&-
         printf "%b" "$RESET" >/dev/tty
+
+        if (( allow_back )) && [[ "${value^^}" == "Q" ]]; then
+            return 1
+        fi
 
         if _ask_validate "$validate_fn" "$value"; then
             ok=1
@@ -1026,6 +1036,9 @@ set -uo pipefail
         #       Countdown length in seconds. Defaults to 5.
         #   --message TEXT
         #       Message displayed above the countdown.
+        #   --legend TEXT
+        #       Custom legend text. When omitted, the standard key legend is built
+        #       from the enabled interaction options.
         #   --redo
         #       Enables R as redo, returning 3.
         #   --cancel
@@ -1056,6 +1069,7 @@ set -uo pipefail
         local allow_pause=0
         local allow_anykey=0
         local hide_legend=0
+        local custom_legend=""
 
         local tty="/dev/tty"
         local paused=0
@@ -1069,6 +1083,7 @@ set -uo pipefail
             case "$1" in
                 --seconds)    seconds="$2"; shift 2 ;;
                 --message)    message="$2"; shift 2 ;;
+                --legend)     custom_legend="$2"; shift 2 ;;
                 --redo)       allow_redo=1; shift ;;
                 --cancel)     allow_cancel=1; shift ;;
                 --pause)      allow_pause=1; shift ;;
@@ -1094,22 +1109,26 @@ set -uo pipefail
         (( ! hide_legend )) && (( line_count++ ))
 
         while true; do
-            legend=""
-            if (( allow_anykey )); then
-                legend+="Any key=continue; "
+            if [[ -n "$custom_legend" ]]; then
+                legend="$custom_legend"
             else
-                legend+="Enter=continue; "
-            fi
-            (( allow_redo )) && legend+="R=redo; "
-            (( allow_cancel )) && legend+="C/Esc=cancel; "
-            if (( allow_pause )); then
-                if (( paused )); then
-                    legend+="P/Space=resume; "
+                legend=""
+                if (( allow_anykey )); then
+                    legend+="Any key=continue; "
                 else
-                    legend+="P/Space=pause; "
+                    legend+="Enter=continue; "
                 fi
+                (( allow_redo )) && legend+="R=redo; "
+                (( allow_cancel )) && legend+="C/Esc=cancel; "
+                if (( allow_pause )); then
+                    if (( paused )); then
+                        legend+="P/Space=resume; "
+                    else
+                        legend+="P/Space=pause; "
+                    fi
+                fi
+                legend="${legend%; }"
             fi
-            legend="${legend%; }"
 
             if [[ -n "$message" ]]; then
                 printf '\r\033[K%s%s%s\n' "$SGND_UI_TEXT" "$message" "$RESET" >"$tty"

@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623316
-#   Checksum    : 2dcecb8da3d5ead42d2b7ac131ae454fa3db0edfc67e34bbc518de72c31ef03f
+#   Build       : 2623322
+#   Checksum    : 3f075279c606c54cc40bea431c3926151a3ae592ac1acc9cb7b61ebc63b4191e
 #   Source      : 20-active-directory-server.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -475,7 +475,7 @@ set -uo pipefail
         sgnd_console_run_tracked "adsvr-install" _adsvr_step_install_packages || return $?
         sgnd_console_run_tracked "adsvr-preflight" _adsvr_step_preflight || return $?
         ask_decision --label "Provision $SGND_AD_REALM on $SGND_AD_HOSTNAME_SHORT?" --choices "Yes|Y,No|N" --default "No" --var decision
-        [[ "$decision" == Yes ]] || { sayinfo "Domain provisioning cancelled."; return 0; }
+        [[ "${decision^^}" == "YES" ]] || { sayinfo "Domain provisioning cancelled."; return 0; }
         sgnd_console_run_tracked "adsvr-identity" _adsvr_step_identity || return $?
         sgnd_console_run_tracked "adsvr-domain" _adsvr_step_provision || return $?
         sgnd_console_run_tracked "adsvr-settings" _adsvr_step_domain_settings || return $?

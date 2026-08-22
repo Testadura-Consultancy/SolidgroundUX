@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623316
-#   Checksum    : 0f40c7665bba2e9d8a9ee54579b5d75f8723eb152f0af48475bcab3e02dd7990
+#   Build       : 2623404
+#   Checksum    : 5f4c6e26b564e5ac657e8ce6f2dcc643dcea0d1adc0e7d3602ffb75301363442
 #   Source      : 25-active-directory-client.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -310,7 +310,7 @@ set -uo pipefail
         sgnd_console_run_tracked "adc-install" _adc_step_install_packages || return $?
         sgnd_console_run_tracked "adc-preflight" _adc_step_preflight || return $?
         ask_decision --label "Join $SGND_ADC_FQDN to $SGND_ADC_REALM?" --choices "Yes|Y,No|N" --default "No" --var decision
-        [[ "$decision" == Yes ]] || { sayinfo "Domain join cancelled."; return 0; }
+        [[ "${decision^^}" == "YES" ]] || { sayinfo "Domain join cancelled."; return 0; }
         sgnd_console_run_tracked "adc-dns" _adc_step_dns || return $?
         sgnd_console_run_tracked "adc-identity" _adc_step_identity || return $?
         sgnd_console_run_tracked "adc-discover" _adc_step_discover || return $?
@@ -374,7 +374,7 @@ set -uo pipefail
         realm="$(realm list --name-only 2>/dev/null | head -n 1)"
         [[ -n "$realm" ]] || { sayinfo "This machine is not joined to a realm."; return 0; }
         ask_decision --label "Leave $realm?" --choices "Yes|Y,No|N" --default "No" --var decision
-        [[ "$decision" == Yes ]] || return 0
+        [[ "${decision^^}" == "YES" ]] || return 0
         (( ${FLAG_DRYRUN:-0} == 1 )) && { sayinfo "Dry run: Would leave $realm."; return 0; }
         sudo realm leave "$realm"
     }

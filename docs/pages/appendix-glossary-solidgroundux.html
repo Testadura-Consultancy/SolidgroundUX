@@ -50,7 +50,7 @@
 <tr><td>_adc_validate_realm</td><td></td><td>Validate an Active Directory realm name.</td><td>25-active-directory-client.sh</td></tr>
 <tr><td>_add_selected_file</td><td>Add one deployable file to the normalized selection</td><td></td><td>deploy-workspace.sh</td></tr>
 <tr><td>_admg_create_group</td><td>Create an Active Directory group</td><td>Create a new AD group after confirmation.</td><td>27-active-directory-management.sh</td></tr>
-<tr><td>_admg_create_user</td><td>Create an Active Directory user</td><td>Create a new directory user and let samba-tool securely prompt for its password.</td><td>27-active-directory-management.sh</td></tr>
+<tr><td>_admg_create_user</td><td>Create an Active Directory user</td><td>Create directory users, optionally disable password expiry, and optionally continue creating users.</td><td>27-active-directory-management.sh</td></tr>
 <tr><td>_admg_delete_computer</td><td>Delete an Active Directory computer account</td><td>Remove a selected stale computer account after confirmation.</td><td>27-active-directory-management.sh</td></tr>
 <tr><td>_admg_delete_group</td><td>Delete an Active Directory group</td><td>Delete a selected non-protected AD group after confirmation.</td><td>27-active-directory-management.sh</td></tr>
 <tr><td>_admg_delete_user</td><td>Delete an Active Directory user</td><td>Delete a selected non-protected user account after confirmation.</td><td>27-active-directory-management.sh</td></tr>
@@ -60,6 +60,7 @@
 <tr><td>_admg_list_groups</td><td>List Active Directory groups</td><td>Display all directory groups.</td><td>27-active-directory-management.sh</td></tr>
 <tr><td>_admg_list_users</td><td>List Active Directory users</td><td>Display all directory user accounts.</td><td>27-active-directory-management.sh</td></tr>
 <tr><td>_admg_reset_user_password</td><td>Reset an Active Directory user&#x27;s password</td><td>Reset the selected user&#x27;s password using samba-tool&#x27;s interactive secure prompt.</td><td>27-active-directory-management.sh</td></tr>
+<tr><td>_admg_set_user_password_noexpiry</td><td>Set a user&#x27;s password to never expire</td><td>Disable password expiry for the selected Active Directory user.</td><td>27-active-directory-management.sh</td></tr>
 <tr><td>_admg_show_computer</td><td>Show one Active Directory computer account</td><td>Display the selected computer AD object.</td><td>27-active-directory-management.sh</td></tr>
 <tr><td>_admg_show_group</td><td>Show one Active Directory group</td><td>Display the selected group object and its direct members.</td><td>27-active-directory-management.sh</td></tr>
 <tr><td>_admg_show_user</td><td>Show one Active Directory user</td><td>Display the selected user object, account state, and direct group memberships.</td><td>27-active-directory-management.sh</td></tr>
@@ -163,7 +164,7 @@
 <tr><td>_dev_deploy_workspace</td><td></td><td>Launch the canonical SolidGroundUX workspace-deployment tool.</td><td>90-development.sh</td></tr>
 <tr><td>_dev_generate_docs</td><td></td><td>Launch the canonical SolidGroundUX documentation generator.</td><td>90-development.sh</td></tr>
 <tr><td>_dev_prepare_release</td><td></td><td>Launch the canonical SolidGroundUX release-preparation tool.</td><td>90-development.sh</td></tr>
-<tr><td>_discover_ad_groups</td><td>Discover domain groups visible through NSS</td><td>Prefer AD groups exposed by the existing realmd/SSSD identity stack and include groups already present on selected share ACLs.</td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_discover_ad_groups</td><td>Discover domain groups visible through NSS</td><td>Query Active Directory directly for group names and include groups already present on selected share ACLs. NSS is used only to resolve the selected group to the local fully-qualified identity required for ACL operations.</td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_dlg_keymap</td><td>Dlg keymap</td><td>Return the dialog key/action mapping used by custom dialog controls.</td><td>ui-dlg.sh</td></tr>
 <tr><td>_doc_collect_changed_files</td><td>Collect Git additions, modifications, deletions, and renames</td><td>Build incremental parse/removal lists from changes relative to HEAD plus untracked files.</td><td>doc-generator.sh</td></tr>
 <tr><td>_doc_collect_selected_files</td><td>Resolve explicitly selected update files</td><td>Convert the comma-separated selected-file argument into parse and removal lists.</td><td>doc-generator.sh</td></tr>
@@ -182,6 +183,7 @@
 <tr><td>_emit_globalrecord</td><td>Append a framework/runtime/script global declaration record</td><td>Store a detected global variable declaration in the module globals table.</td><td>doc-processor.sh</td></tr>
 <tr><td>_emit_itemrecord</td><td>Append a documented item record</td><td>Store the current documented item in the module item index.</td><td>doc-processor.sh</td></tr>
 <tr><td>_emit_sectionrecord</td><td>Append a documentation section record</td><td>Store the current section context in the module section index.</td><td>doc-processor.sh</td></tr>
+<tr><td>_ensure_kerberos_ticket</td><td>Ensure an authenticated Kerberos ticket is available</td><td>Require an existing Kerberos TGT before querying Active Directory through LDAP/GSSAPI.</td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_ensure_manager_directories</td><td>Ensure standalone release-manager directories exist</td><td>Create the state, pending-release, and archive directories required by the standalone release manager. Returns 0 on success; non-zero when a required directory cannot be created. Usage _ensure_manager_directories</td><td>release-manager.sh</td></tr>
 <tr><td>_ensure_public_command_wrappers</td><td>Ensure public wrappers exist for top-level libexec scripts</td><td>Ensure every executable top-level shell script under the SolidGroundUX libexec directory has a matching public command wrapper in /usr/local/bin.</td><td>prepare-release.sh</td></tr>
 <tr><td>_ensure_remote_receiver_sudo</td><td>Ensure the remote receiver may run without a sudo password</td><td>Create and validate a narrowly scoped sudoers rule for receive-files.sh on the remote destination when the rule does not already exist.</td><td>deploy-workspace.sh</td></tr>
@@ -320,6 +322,7 @@
 <tr><td>_scan_cli_args</td><td>Record which restore settings were supplied explicitly</td><td></td><td>untar-it.sh</td></tr>
 <tr><td>_select_archive</td><td>Select an archive from the numbered archive list</td><td>Display available archives and resolve a numeric user selection.</td><td>untar-it.sh</td></tr>
 <tr><td>_select_archived_release</td><td>Select an archived release or the remove operation from a submenu</td><td>Select an archived release or the remove operation from a submenu. Returns 0 with the selected target on stdout; 1 when returning/cancelling. Usage target=&quot;$(_select_archived_release)&quot;</td><td>release-manager.sh</td></tr>
+<tr><td>_select_assigned_group</td><td>Select a group currently assigned to the selected shares</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_select_files</td><td>Resolve the combined workspace filters into a concrete file list</td><td>Select deployable files by optional directory, filename or mask, and modification time.</td><td>deploy-workspace.sh</td></tr>
 <tr><td>_select_files</td><td>Select staged files using directory and filename mask</td><td></td><td>untar-it.sh</td></tr>
 <tr><td>_select_group</td><td>Select or enter an AD/NSS group</td><td></td><td>manage-samba-shares.sh</td></tr>
@@ -382,6 +385,7 @@
 <tr><td>_sgnd_console_render_page_header</td><td>Render the current page indicator above the menu body</td><td>Show page navigation state as a centered section header when the menu spans more than one page.</td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_render_page_rows</td><td>Render selected groups and item rows</td><td>Render one page using the supplied group keys and model row indexes.</td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_render_togglebar</td><td>Render runtime status and keyboard legend</td><td>Show the current mode, access level, log levels, theme, and direct-key legend beneath the menu.</td><td>sgnd-menu.sh</td></tr>
+<tr><td>_sgnd_console_reset_page_results</td><td>Clear tracked action results for the active management page</td><td>Reset the persisted last-run status for every non-builtin action belonging to the currently active management page.</td><td>management-console.sh</td></tr>
 <tr><td>_sgnd_console_run</td><td>Run the console interaction loop</td><td>Run the interactive console event loop.</td><td>management-console.sh</td></tr>
 <tr><td>_sgnd_console_set_lines_per_page</td><td>Set lines per page</td><td>Prompt for and apply the number of menu lines available per page.</td><td>sgnd-menu.sh</td></tr>
 <tr><td>_sgnd_console_show_index</td><td>Render the lightweight module index page</td><td>Show all enabled console pages without loading their implementation modules.</td><td>management-console.sh</td></tr>

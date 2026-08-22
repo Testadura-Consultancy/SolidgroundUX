@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623316
-#   Checksum    : aaca96f51c21185077b906c6f2badc37d97cc5f6d782abce14a347d5f37df900
+#   Build       : 2623404
+#   Checksum    : f488936773e36a852b4475e4c268a1a9e80327aabc5f221d8d180ad2c6eaf431
 #   Source      : 15-storage.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -364,7 +364,7 @@ set -uo pipefail
             --default "No" \
             --var decision || return $?
 
-        [[ "$decision" == "Yes" ]] || {
+        [[ "${decision^^}" == "YES" ]] || {
             sayinfo "Storage configuration cancelled."
             return 0
         }
@@ -845,7 +845,7 @@ set -uo pipefail
             --default "No" \
             --var decision || return $?
 
-        [[ "$decision" == "Yes" ]] || {
+        [[ "${decision^^}" == "YES" ]] || {
             sayinfo "Storage access reset cancelled."
             return 0
         }

@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623316
-#   Checksum    :256a1b988fd963ac3f24a2ca473aa40b6cb329e5e1e33f579031c31e861f3963
+#   Build       : 2623401
+#   Checksum    :ab78d01600aa4ff5b93128942cb8b2f83c6fb4db489131721fde345e969e088e
 #   Source      : 27-active-directory-management.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -352,6 +352,13 @@ set -uo pipefail
         esac
     }
 
+    # fn$ _admg_decision_is_quit - Test whether a canonical decision means quit/back
+        # . Returns
+        #   0 when the value is Quit/Q (case-insensitive); 1 otherwise.
+    _admg_decision_is_quit() {
+        [[ "${1^^}" == "QUIT" || "${1^^}" == "Q" ]]
+    }
+
 # - Directory overview -------------------------------------------------------------
     # fn: _admg_status - Show Active Directory management summary
         # . Purpose
@@ -443,7 +450,7 @@ set -uo pipefail
 
     # fn: _admg_create_user - Create an Active Directory user
         # . Purpose
-        #   Create a new directory user and let samba-tool securely prompt for its password.
+        #   Create directory users, optionally disable password expiry, and optionally continue creating users.
         #
         # . Returns
         #   0 on success, dry-run, or cancellation; non-zero on creation failure.
@@ -452,26 +459,57 @@ set -uo pipefail
         #   _admg_create_user
     _admg_create_user() {
         local username=""
-        local decision="No"
+        local password_never_expires="No"
+        local dlg_rc=0
 
         _admg_require_dc || return 1
-        ask --label "User name" --var username --validate _admg_validate_sam_name || return $?
 
-        if _admg_list_users_raw | grep -Fxiq -- "$username"; then
-            sayfail "User already exists: $username"
-            return 1
-        fi
+        while :; do
+            username=""
+            password_never_expires="No"
 
-        ask_decision --label "Create user '$username'?" --choices "Yes|Y,No|N" --default "No" --var decision || return $?
-        [[ "$decision" == "Yes" ]] || return 0
+            ask --label "User name (Q=Back)" --var username --validate _admg_validate_sam_name --back || return 0
 
-        if (( ${FLAG_DRYRUN:-0} == 1 )); then
-            sayinfo "Dry run: Would create Active Directory user '$username'."
-            return 0
-        fi
+            if _admg_list_users_raw | grep -Fxiq -- "$username"; then
+                sayfail "User already exists: $username"
+                return 1
+            fi
 
-        sudo samba-tool user add "$username" </dev/tty || return $?
-        sayok "Active Directory user '$username' created."
+            ask_decision \
+                --label "Password never expires for '$username'?" \
+                --choices "Yes|Y,No|N,Quit|Q" \
+                --default "No" \
+                --var password_never_expires || return $?
+            _admg_decision_is_quit "$password_never_expires" && return 0
+
+            if (( ${FLAG_DRYRUN:-0} == 1 )); then
+                sayinfo "Dry run: Would create Active Directory user '$username'."
+                if [[ "${password_never_expires^^}" == "YES" ]]; then
+                    sayinfo "Dry run: Would set the password for '$username' to never expire."
+                fi
+            else
+                sudo samba-tool user add "$username" </dev/tty || return $?
+
+                if [[ "${password_never_expires^^}" == "YES" ]]; then
+                    sudo samba-tool user setexpiry "$username" --noexpiry || return $?
+                fi
+
+                sayok "Active Directory user '$username' created."
+            fi
+
+            # Timeout continues the creation loop; Enter returns to the menu.
+            dlg_rc=0
+
+            ask_dlg_autocontinue \
+                --seconds 5 \
+                --legend "Enter=return to menu; timeout=create another user" \
+                || dlg_rc=$?
+
+            case "$dlg_rc" in
+                1) continue ;;
+                *) return 0 ;;
+            esac
+        done
     }
 
     # fn: _admg_toggle_user - Enable or disable an Active Directory user
@@ -498,8 +536,9 @@ set -uo pipefail
             return 0
         fi
 
-        ask_decision --label "${action^} user '$user'?" --choices "Yes|Y,No|N" --default "No" --var decision || return $?
-        [[ "$decision" == "Yes" ]] || return 0
+        ask_decision --label "${action^} user '$user'?" --choices "Yes|Y,No|N,Quit|Q" --default "No" --var decision || return $?
+        _admg_decision_is_quit "$decision" && return 0
+        [[ "${decision^^}" == "YES" ]] || return 0
 
         if (( ${FLAG_DRYRUN:-0} == 1 )); then
             sayinfo "Dry run: Would $action Active Directory user '$user'."
@@ -530,8 +569,9 @@ set -uo pipefail
 
         _admg_require_dc || return 1
         _admg_select_user user || return 0
-        ask_decision --label "Reset password for '$user'?" --choices "Yes|Y,No|N" --default "No" --var decision || return $?
-        [[ "$decision" == "Yes" ]] || return 0
+        ask_decision --label "Reset password for '$user'?" --choices "Yes|Y,No|N,Quit|Q" --default "No" --var decision || return $?
+        _admg_decision_is_quit "$decision" && return 0
+        [[ "${decision^^}" == "YES" ]] || return 0
 
         if (( ${FLAG_DRYRUN:-0} == 1 )); then
             sayinfo "Dry run: Would reset password for '$user'."
@@ -540,6 +580,36 @@ set -uo pipefail
 
         sudo samba-tool user setpassword "$user" </dev/tty || return $?
         sayok "Password reset for '$user'."
+    }
+
+    # fn: _admg_set_user_password_noexpiry - Set a user's password to never expire
+        # . Purpose
+        #   Disable password expiry for the selected Active Directory user.
+        #
+        # . Returns
+        #   0 on success, dry-run, or cancellation; non-zero on update failure.
+        #
+        # . Usage
+        #   _admg_set_user_password_noexpiry
+    _admg_set_user_password_noexpiry() {
+        local user=""
+        local decision="No"
+
+        _admg_require_dc || return 1
+        _admg_select_user user || return 0
+
+        ask_decision             --label "Set password for '$user' to never expire?"             --choices "Yes|Y,No|N,Quit|Q"             --default "No"             --var decision || return $?
+        _admg_decision_is_quit "$decision" && return 0
+
+        [[ "${decision^^}" == "YES" ]] || return 0
+
+        if (( ${FLAG_DRYRUN:-0} == 1 )); then
+            sayinfo "Dry run: Would set password for '$user' to never expire."
+            return 0
+        fi
+
+        sudo samba-tool user setexpiry "$user" --noexpiry || return $?
+        sayok "Password for '$user' set to never expire."
     }
 
     # fn: _admg_delete_user - Delete an Active Directory user
@@ -553,26 +623,38 @@ set -uo pipefail
         #   _admg_delete_user
     _admg_delete_user() {
         local user=""
-        local decision="No"
+        local dlg_rc=0
 
         _admg_require_dc || return 1
-        _admg_select_user user || return 0
 
-        if _admg_user_is_protected "$user"; then
-            saywarning "Core account '$user' cannot be deleted from SolidGroundUX."
-            return 0
-        fi
+        while :; do
+            user=""
 
-        ask_decision --label "Delete user '$user'?" --choices "Yes|Y,No|N" --default "No" --var decision || return $?
-        [[ "$decision" == "Yes" ]] || return 0
+            _admg_select_user user || return 0
 
-        if (( ${FLAG_DRYRUN:-0} == 1 )); then
-            sayinfo "Dry run: Would delete Active Directory user '$user'."
-            return 0
-        fi
+            if _admg_user_is_protected "$user"; then
+                saywarning "Core account '$user' cannot be deleted from SolidGroundUX."
+                return 0
+            fi
 
-        sudo samba-tool user delete "$user" || return $?
-        sayok "Active Directory user '$user' deleted."
+            if (( ${FLAG_DRYRUN:-0} == 1 )); then
+                sayinfo "Dry run: Would delete Active Directory user '$user'."
+            else
+                sudo samba-tool user delete "$user" || return $?
+                sayok "Active Directory user '$user' deleted."
+            fi
+
+            dlg_rc=0
+            ask_dlg_autocontinue \
+                --seconds 5 \
+                --legend "Enter=return to menu; timeout=delete another user" \
+                || dlg_rc=$?
+
+            case "$dlg_rc" in
+                1) continue ;;
+                *) return 0 ;;
+            esac
+        done
     }
 
     # fn: _admg_user_add_groups - Add a selected user to one or more AD groups
@@ -622,25 +704,45 @@ set -uo pipefail
         local user=""
         local group=""
         local failures=0
+        local dlg_rc=0
         local -a groups=()
         local -a selected_groups=()
 
         _admg_require_dc || return 1
-        _admg_select_user user || return 0
-        mapfile -t groups < <(sudo samba-tool user getgroups "$user" 2>/dev/null | LC_ALL=C sort)
-        (( ${#groups[@]} > 0 )) || { sayinfo "'$user' has no direct group memberships to remove."; return 0; }
 
-        ask_selection --label "Remove '$user' from groups" --var selected_groups --multi --items "${groups[@]}" || return 0
-        for group in "${selected_groups[@]}"; do
-            if _admg_remove_member_from_group "$group" "$user"; then
-                sayok "Removed '$user' from '$group'."
-            else
-                failures=$((failures + 1))
-                saywarning "Could not remove '$user' from '$group'."
-            fi
+        while :; do
+            user=""
+            failures=0
+            groups=()
+            selected_groups=()
+
+            _admg_select_user user || return 0
+            mapfile -t groups < <(sudo samba-tool user getgroups "$user" 2>/dev/null | LC_ALL=C sort)
+            (( ${#groups[@]} > 0 )) || { sayinfo "'$user' has no direct group memberships to remove."; return 0; }
+
+            ask_selection --label "Remove '$user' from groups" --var selected_groups --multi --items "${groups[@]}" || return 0
+            for group in "${selected_groups[@]}"; do
+                if _admg_remove_member_from_group "$group" "$user"; then
+                    sayok "Removed '$user' from '$group'."
+                else
+                    failures=$((failures + 1))
+                    saywarning "Could not remove '$user' from '$group'."
+                fi
+            done
+
+            (( failures == 0 )) || return 1
+
+            dlg_rc=0
+            ask_dlg_autocontinue \
+                --seconds 5 \
+                --legend "Enter=return to menu; timeout=remove another user from groups" \
+                || dlg_rc=$?
+
+            case "$dlg_rc" in
+                1) continue ;;
+                *) return 0 ;;
+            esac
         done
-
-        (( failures == 0 ))
     }
 
 # - Group actions ------------------------------------------------------------------
@@ -705,26 +807,38 @@ set -uo pipefail
         #   _admg_create_group
     _admg_create_group() {
         local group=""
-        local decision="No"
+        local dlg_rc=0
 
         _admg_require_dc || return 1
-        ask --label "Group name" --var group --validate sgnd_validate_text || return $?
 
-        if _admg_list_groups_raw | grep -Fxiq -- "$group"; then
-            sayfail "Group already exists: $group"
-            return 1
-        fi
+        while :; do
+            group=""
 
-        ask_decision --label "Create group '$group'?" --choices "Yes|Y,No|N" --default "No" --var decision || return $?
-        [[ "$decision" == "Yes" ]] || return 0
+            ask --label "Group name (Q=Back)" --var group --validate sgnd_validate_text --back || return 0
 
-        if (( ${FLAG_DRYRUN:-0} == 1 )); then
-            sayinfo "Dry run: Would create Active Directory group '$group'."
-            return 0
-        fi
+            if _admg_list_groups_raw | grep -Fxiq -- "$group"; then
+                sayfail "Group already exists: $group"
+                return 1
+            fi
 
-        sudo samba-tool group add "$group" || return $?
-        sayok "Active Directory group '$group' created."
+            if (( ${FLAG_DRYRUN:-0} == 1 )); then
+                sayinfo "Dry run: Would create Active Directory group '$group'."
+            else
+                sudo samba-tool group add "$group" || return $?
+                sayok "Active Directory group '$group' created."
+            fi
+
+            dlg_rc=0
+            ask_dlg_autocontinue \
+                --seconds 5 \
+                --legend "Enter=return to menu; timeout=create another group" \
+                || dlg_rc=$?
+
+            case "$dlg_rc" in
+                1) continue ;;
+                *) return 0 ;;
+            esac
+        done
     }
 
     # fn: _admg_delete_group - Delete an Active Directory group
@@ -739,25 +853,47 @@ set -uo pipefail
     _admg_delete_group() {
         local group=""
         local decision="No"
+        local dlg_rc=0
 
         _admg_require_dc || return 1
-        _admg_select_group group || return 0
 
-        if _admg_group_is_protected "$group"; then
-            saywarning "Core group '$group' cannot be deleted from SolidGroundUX."
-            return 0
-        fi
+        while :; do
+            group=""
+            decision="No"
 
-        ask_decision --label "Delete group '$group'?" --choices "Yes|Y,No|N" --default "No" --var decision || return $?
-        [[ "$decision" == "Yes" ]] || return 0
+            _admg_select_group group || return 0
 
-        if (( ${FLAG_DRYRUN:-0} == 1 )); then
-            sayinfo "Dry run: Would delete Active Directory group '$group'."
-            return 0
-        fi
+            if _admg_group_is_protected "$group"; then
+                saywarning "Core group '$group' cannot be deleted from SolidGroundUX."
+                return 0
+            fi
 
-        sudo samba-tool group delete "$group" || return $?
-        sayok "Active Directory group '$group' deleted."
+            ask_decision \
+                --label "Delete group '$group'?" \
+                --choices "Yes|Y,No|N,Quit|Q" \
+                --default "No" \
+                --var decision || return $?
+            _admg_decision_is_quit "$decision" && return 0
+            [[ "${decision^^}" == "YES" ]] || return 0
+
+            if (( ${FLAG_DRYRUN:-0} == 1 )); then
+                sayinfo "Dry run: Would delete Active Directory group '$group'."
+            else
+                sudo samba-tool group delete "$group" || return $?
+                sayok "Active Directory group '$group' deleted."
+            fi
+
+            dlg_rc=0
+            ask_dlg_autocontinue \
+                --seconds 5 \
+                --legend "Enter=return to menu; timeout=delete another group" \
+                || dlg_rc=$?
+
+            case "$dlg_rc" in
+                1) continue ;;
+                *) return 0 ;;
+            esac
+        done
     }
 
     # fn: _admg_group_add_users - Add one or more users to a selected AD group
@@ -773,25 +909,45 @@ set -uo pipefail
         local group=""
         local user=""
         local failures=0
+        local dlg_rc=0
         local -a users=()
         local -a selected_users=()
 
         _admg_require_dc || return 1
-        _admg_select_group group || return 0
-        mapfile -t users < <(_admg_list_users_raw)
-        (( ${#users[@]} > 0 )) || { saywarning "No users found."; return 0; }
 
-        ask_selection --label "Add users to '$group'" --var selected_users --multi --items "${users[@]}" || return 0
-        for user in "${selected_users[@]}"; do
-            if _admg_add_member_to_group "$group" "$user"; then
-                sayok "Added '$user' to '$group'."
-            else
-                failures=$((failures + 1))
-                saywarning "Could not add '$user' to '$group'."
-            fi
+        while :; do
+            group=""
+            failures=0
+            users=()
+            selected_users=()
+
+            _admg_select_group group || return 0
+            mapfile -t users < <(_admg_list_users_raw)
+            (( ${#users[@]} > 0 )) || { saywarning "No users found."; return 0; }
+
+            ask_selection --label "Add users to '$group'" --var selected_users --multi --items "${users[@]}" || return 0
+            for user in "${selected_users[@]}"; do
+                if _admg_add_member_to_group "$group" "$user"; then
+                    sayok "Added '$user' to '$group'."
+                else
+                    failures=$((failures + 1))
+                    saywarning "Could not add '$user' to '$group'."
+                fi
+            done
+
+            (( failures == 0 )) || return 1
+
+            dlg_rc=0
+            ask_dlg_autocontinue \
+                --seconds 5 \
+                --legend "Enter=return to menu; timeout=add users to another group" \
+                || dlg_rc=$?
+
+            case "$dlg_rc" in
+                1) continue ;;
+                *) return 0 ;;
+            esac
         done
-
-        (( failures == 0 ))
     }
 
     # fn: _admg_group_remove_members - Remove selected direct members from an AD group
@@ -807,25 +963,45 @@ set -uo pipefail
         local group=""
         local member=""
         local failures=0
+        local dlg_rc=0
         local -a members=()
         local -a selected_members=()
 
         _admg_require_dc || return 1
-        _admg_select_group group || return 0
-        mapfile -t members < <(sudo samba-tool group listmembers "$group" 2>/dev/null | LC_ALL=C sort)
-        (( ${#members[@]} > 0 )) || { sayinfo "'$group' has no direct members."; return 0; }
 
-        ask_selection --label "Remove members from '$group'" --var selected_members --multi --items "${members[@]}" || return 0
-        for member in "${selected_members[@]}"; do
-            if _admg_remove_member_from_group "$group" "$member"; then
-                sayok "Removed '$member' from '$group'."
-            else
-                failures=$((failures + 1))
-                saywarning "Could not remove '$member' from '$group'."
-            fi
+        while :; do
+            group=""
+            failures=0
+            members=()
+            selected_members=()
+
+            _admg_select_group group || return 0
+            mapfile -t members < <(sudo samba-tool group listmembers "$group" 2>/dev/null | LC_ALL=C sort)
+            (( ${#members[@]} > 0 )) || { sayinfo "'$group' has no direct members."; return 0; }
+
+            ask_selection --label "Remove members from '$group'" --var selected_members --multi --items "${members[@]}" || return 0
+            for member in "${selected_members[@]}"; do
+                if _admg_remove_member_from_group "$group" "$member"; then
+                    sayok "Removed '$member' from '$group'."
+                else
+                    failures=$((failures + 1))
+                    saywarning "Could not remove '$member' from '$group'."
+                fi
+            done
+
+            (( failures == 0 )) || return 1
+
+            dlg_rc=0
+            ask_dlg_autocontinue \
+                --seconds 5 \
+                --legend "Enter=return to menu; timeout=remove members from another group" \
+                || dlg_rc=$?
+
+            case "$dlg_rc" in
+                1) continue ;;
+                *) return 0 ;;
+            esac
         done
-
-        (( failures == 0 ))
     }
 
 # - Computer actions ---------------------------------------------------------------
@@ -884,8 +1060,9 @@ set -uo pipefail
 
         _admg_require_dc || return 1
         _admg_select_computer computer || return 0
-        ask_decision --label "Delete computer account '$computer'?" --choices "Yes|Y,No|N" --default "No" --var decision || return $?
-        [[ "$decision" == "Yes" ]] || return 0
+        ask_decision --label "Delete computer account '$computer'?" --choices "Yes|Y,No|N,Quit|Q" --default "No" --var decision || return $?
+        _admg_decision_is_quit "$decision" && return 0
+        [[ "${decision^^}" == "YES" ]] || return 0
 
         if (( ${FLAG_DRYRUN:-0} == 1 )); then
             sayinfo "Dry run: Would delete Active Directory computer '$computer'."
@@ -913,12 +1090,13 @@ set -uo pipefail
 
     sgnd_menu_register_item "admg-user-list" "admg-users" "List users" "_admg_list_users" "List Active Directory users" 0 15 1 0
     sgnd_menu_register_item "admg-user-show" "admg-users" "Show user" "_admg_show_user" "Show user details and direct group memberships" 0 15 1 0
-    sgnd_menu_register_item "admg-user-create" "admg-users" "Create user" "_admg_create_user" "Create an Active Directory user" 0 15 1 0
+    sgnd_menu_register_item "admg-user-create" "admg-users" "Create user" "_admg_create_user" "Create an Active Directory user" 0 0 1 0
     sgnd_menu_register_item "admg-user-toggle" "admg-users" "Enable / disable user" "_admg_toggle_user" "Toggle the selected user account state" 0 15 1 0
     sgnd_menu_register_item "admg-user-password" "admg-users" "Reset user password" "_admg_reset_user_password" "Reset the selected user's password" 0 15 1 0
+    sgnd_menu_register_item "admg-user-noexpiry" "admg-users" "Set password never expires" "_admg_set_user_password_noexpiry" "Disable password expiry for the selected user" 0 15 1 0
     sgnd_menu_register_item "admg-user-addgroups" "admg-users" "Add user to groups" "_admg_user_add_groups" "Add a selected user to one or more groups" 0 15 1 0
-    sgnd_menu_register_item "admg-user-removegroups" "admg-users" "Remove user from groups" "_admg_user_remove_groups" "Remove selected direct group memberships" 0 15 1 0
-    sgnd_menu_register_item "admg-user-delete" "admg-users" "Delete user" "_admg_delete_user" "Delete a selected non-protected user account" 0 15 1 0
+    sgnd_menu_register_item "admg-user-removegroups" "admg-users" "Remove user from groups" "_admg_user_remove_groups" "Remove selected direct group memberships" 0 0 1 0
+    sgnd_menu_register_item "admg-user-delete" "admg-users" "Delete user" "_admg_delete_user" "Delete a selected non-protected user account" 0 0 1 0
 
     sgnd_menu_register_group \
         "admg-groups" \
@@ -928,10 +1106,10 @@ set -uo pipefail
 
     sgnd_menu_register_item "admg-group-list" "admg-groups" "List groups" "_admg_list_groups" "List Active Directory groups" 0 15 1 0
     sgnd_menu_register_item "admg-group-show" "admg-groups" "Show group" "_admg_show_group" "Show group details and direct members" 0 15 1 0
-    sgnd_menu_register_item "admg-group-create" "admg-groups" "Create group" "_admg_create_group" "Create an Active Directory group" 0 15 1 0
-    sgnd_menu_register_item "admg-group-addusers" "admg-groups" "Add users to group" "_admg_group_add_users" "Add one or more users to a selected group" 0 15 1 0
-    sgnd_menu_register_item "admg-group-removemembers" "admg-groups" "Remove group members" "_admg_group_remove_members" "Remove one or more direct members from a selected group" 0 15 1 0
-    sgnd_menu_register_item "admg-group-delete" "admg-groups" "Delete group" "_admg_delete_group" "Delete a selected non-protected group" 0 15 1 0
+    sgnd_menu_register_item "admg-group-create" "admg-groups" "Create group" "_admg_create_group" "Create an Active Directory group" 0 0 1 0
+    sgnd_menu_register_item "admg-group-addusers" "admg-groups" "Add users to group" "_admg_group_add_users" "Add one or more users to a selected group" 0 0 1 0
+    sgnd_menu_register_item "admg-group-removemembers" "admg-groups" "Remove group members" "_admg_group_remove_members" "Remove one or more direct members from a selected group" 0 0 1 0
+    sgnd_menu_register_item "admg-group-delete" "admg-groups" "Delete group" "_admg_delete_group" "Delete a selected non-protected group" 0 0 1 0
 
     sgnd_menu_register_group \
         "admg-computers" \

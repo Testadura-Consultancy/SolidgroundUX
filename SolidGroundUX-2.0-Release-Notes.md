@@ -104,6 +104,7 @@ indexed-color value.
 - Dedicated **SolidGroundUX** page for framework information, configuration, state, logging, diagnostics, and release management.
 - Dedicated **Storage** and **Storage Access** functionality.
 - Context-aware navigation legends.
+- Added `R Reset` to clear last-run result markers on the current module page without affecting other pages; manual redraw moved to `Ctrl+R`.
 - Direct quick-access controls replace the former Console Settings page.
 - Normal actions provide an interruptible post-action viewing window of at least 15 seconds.
 - The main index now uses the same standard bottom control bar as normal console pages.
@@ -117,12 +118,17 @@ indexed-color value.
 - Added dedicated Active Directory Management for users, groups, memberships, and computer accounts.
 - Added an Nginx Web Server role.
 - Added a Microsoft SQL Server role.
+- Computer Setup, AD Server provisioning, and user and group management have now been fully tested end-to-end: from a fresh Ubuntu clone to a provisioned Active Directory server with two users and a group took approximately six minutes.
+- The final file-server test covered storage provisioning, Samba preparation, managed share creation/removal, and Active Directory-backed share access from a freshly prepared NAS role.
 
 ### Final console and administration refinements
 
 The final 2.0 stabilization pass focused on details exposed by end-to-end Management Console testing. Computer Setup now generates SSH host keys before enabling and starting SSH, and its status view has been restored. Console presentation has been tightened with consistent visible-width section headers, automatic menu label-column sizing on both the main index and normal module pages, softer `Yes` / `No` prompt styling, and consistent spacing before continue dialogs.
 
 A new reusable `ask_selection` primitive provides single- and multi-selection from arrays and is already used by release preparation, archive restoration, Active Directory administration, and Samba share-management workflows.
+
+Active Directory Management received a final usability pass with consistent back/quit handling, repeat-operation loops for common user/group membership actions, removal of redundant confirmations, and workflow-specific auto-continue legends. The console can also clear last-run result markers for the current page with `R Reset`; redraw is now explicitly available as `Ctrl+R`.
+
 
 Active Directory administration is now available as a dedicated console module for users, groups, memberships, and computer accounts. Samba share management can assign Active Directory groups to shares, while validation no longer treats default printer shares as managed file shares.
 
@@ -158,6 +164,12 @@ SolidGroundUX also once again identifies itself at login through a lightweight `
 - Share configuration validation and rollback on invalid configuration.
 - Added `manage-samba-shares.sh` for assigning Active Directory group access to managed shares.
 - Samba validation excludes default printer shares such as `printers` and `print$` from managed file-share validation.
+- Storage confirmation handling now honors the canonical `YES` / `NO` values returned by `ask_decision`; provisioning was verified through partitioning, filesystem creation, persistent mounting, and creation of `/srv/storage/shares`.
+- Samba share creation and removal now support repeat-operation workflows, with share selection used for removal.
+- Samba share management discovers Active Directory groups directly through authenticated LDAP/GSSAPI instead of relying on NSS enumeration.
+- The share manager discovers the LDAP domain controller through the Active Directory SRV record, uses the canonical uppercase Kerberos realm, and disables SASL hostname canonicalization so the registered LDAP service principal is used.
+- When no valid Kerberos ticket exists, the share manager prompts for an Active Directory account, obtains a ticket with `kinit`, verifies it, and continues directly to group selection.
+- Selected AD groups are resolved through NSS in qualified `group@domain` form before ACL assignment.
 
 ### Active Directory and networking
 
@@ -236,7 +248,7 @@ Statistics reported by the documentation generator for this release:
 
 ## Reliability and fixes
 
-Version 2.0 also resolves issues uncovered while moving to the new architecture, including cross-module dependencies exposed by lazy loading, post-action wait handling, timed-input selection propagation, invalid and empty console selections, base-10 numeric menu handling, standalone menu helper dependencies, remote deployment through `sudo`, Release Manager bootstrap behavior, storage mount detection and capacity reporting, Active Directory DNS/FQDN handling, documentation subgroup navigation depth, stale renderer-cache handling, and incorrect Management Console documentation grouping.
+Version 2.0 also resolves issues uncovered while moving to the new architecture, including cross-module dependencies exposed by lazy loading, post-action wait and repeat-operation handling, timed-input selection propagation, invalid and empty console selections, base-10 numeric menu handling, standalone menu helper dependencies, non-interactive `/dev/tty` width detection, remote deployment through `sudo`, Release Manager bootstrap behavior, storage confirmation/mount/capacity handling, Samba printer-share validation, Active Directory DNS/FQDN handling, AD-group discovery on realmd/SSSD member servers, Kerberos realm casing and LDAP/GSSAPI hostname canonicalization, documentation subgroup navigation depth, stale renderer-cache handling, and incorrect Management Console documentation grouping.
 
 ## SolidGroundUX 2.0
 

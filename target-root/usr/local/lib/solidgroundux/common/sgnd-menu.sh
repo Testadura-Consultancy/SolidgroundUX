@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623316
-#   Checksum    : 6774b58f7ac69b59f42e34b11142133769a6683ebb9e5f304f808f0e5a245be3
+#   Build       : 2623404
+#   Checksum    : 95cdd8178a05e344dbd603f541b9f4bc00d0b718af17d4f62c32890afedc107f
 #   Source      : sgnd-menu.sh
 #   Group       : SolidGround Console
 #   Type        : library
@@ -402,6 +402,10 @@ set -uo pipefail
         # . Usage
         #   _sgnd_console_redraw
     _sgnd_console_redraw() {
+        # Force layout-dependent caches to be recalculated on the next draw.
+        # Terminal width itself is re-read from /dev/tty by sgnd_terminal_width.
+        SGND_CONSOLE_LAYOUT_CACHE_KEY=""
+        SGND_CONSOLE_LABEL_WIDTH_CACHE_SIGNATURE=""
         return 0
     }
     # fn: _sgnd_console_quit - Request menu termination
@@ -887,7 +891,7 @@ set -uo pipefail
             return 0
         fi
 
-        term_width="${SGND_MENU_RENDER_WIDTH:-$(sgnd_terminal_width)}"
+        term_width="$(sgnd_terminal_width)"
         desc_width=$(( term_width - tpad - left_width_max - gap ))
         (( desc_width < 20 )) && desc_width=20
 
@@ -1025,7 +1029,7 @@ set -uo pipefail
 
         visible_count="${#SGND_VISIBLE_ITEM_INDEXES[@]}"
         body_height="$(_sgnd_console_body_height)"
-        term_width="${SGND_MENU_RENDER_WIDTH:-$(sgnd_terminal_width)}"
+        term_width="$(sgnd_terminal_width)"
         label_width="${SGND_RENDER_LABEL_WIDTH:-28}"
         layout_cache_key="${SGND_CONSOLE_MODEL_CACHE_GENERATION}|${SGND_CONSOLE_VISIBLE_INDEX_CACHE_GENERATION}|${body_height}|${term_width}|${label_width}"
 
@@ -1113,7 +1117,7 @@ set -uo pipefail
         #   Render the title, page indicator, paged module rows, builtin groups, and toggle bar.
         #
         # Outputs (globals):
-        #   SGND_MENU_RENDER_WIDTH and SGND_RENDER_LABEL_WIDTH.
+        #   SGND_RENDER_LABEL_WIDTH.
         #
         # . Returns
         #   0 after rendering.
@@ -1121,7 +1125,6 @@ set -uo pipefail
         # . Usage
         #   _sgnd_console_render_menu
     _sgnd_console_render_menu() {
-        SGND_MENU_RENDER_WIDTH="$(sgnd_terminal_width)"
         _sgnd_console_refresh_model_cache
         local idx=""
         local group_key=""
@@ -1175,7 +1178,7 @@ set -uo pipefail
         local title_style=""
         local hostname_style=""
         
-        width="${SGND_MENU_RENDER_WIDTH:-$(sgnd_terminal_width)}"
+        width="$(sgnd_terminal_width)"
 
         inner_width=$(( width - (pad * 2) ))
         (( inner_width < 1 )) && inner_width=1
@@ -1236,7 +1239,7 @@ set -uo pipefail
         page_count="${#SGND_PAGE_STARTS[@]}"
         (( page_count > 1 )) || return 0
 
-        render_width="${SGND_MENU_RENDER_WIDTH:-$(sgnd_terminal_width)}"
+        render_width="$(sgnd_terminal_width)"
         page_text="Page $((SGND_PAGE_INDEX + 1))/$page_count"
         page_text_len="$(sgnd_visible_length "$page_text")"
         padleft=$(( (render_width - page_text_len - 2) / 2 ))
@@ -1363,7 +1366,7 @@ set -uo pipefail
         local group_last_row_index=-1
         local group_last_visible_pos=-1
 
-        term_width="${SGND_MENU_RENDER_WIDTH:-$(sgnd_terminal_width)}"
+        term_width="$(sgnd_terminal_width)"
         desc_width=$(( term_width - tpad - left_width_max - gap ))
         (( desc_width < 20 )) && desc_width=20
 
@@ -1536,7 +1539,7 @@ set -uo pipefail
 
         (( has_renderable_items )) || return 0
 
-        term_width="${SGND_MENU_RENDER_WIDTH:-$(sgnd_terminal_width)}"
+        term_width="$(sgnd_terminal_width)"
         desc_width=$(( term_width - _tpad - left_width_max - gap ))
         (( desc_width < 20 )) && desc_width=20
 
@@ -1648,7 +1651,7 @@ set -uo pipefail
         local -a status_segments=()
         local segment=""
 
-        render_width="${SGND_MENU_RENDER_WIDTH:-$(sgnd_terminal_width)}"
+        render_width="$(sgnd_terminal_width)"
 
         if ! _sgnd_flag_is_on "${FLAG_DRYRUN:-0}"; then
             mode_value="COMMIT"
@@ -1690,7 +1693,7 @@ set -uo pipefail
         printf '%*s%s\n' "$left_pad" "" "$status_text"
 
         # Legend text
-        legend_text="$(sgnd_sgr "$SGND_UI_FAINT" "" "$FX_ITALIC")Shift+S Shell    Q/q Exit    Esc Previous menu    L Lines/page   R Redraw    $KY_LEFT Previous page    $KY_RIGHT Next page${RESET}"
+        legend_text="$(sgnd_sgr "$SGND_UI_FAINT" "" "$FX_ITALIC")Shift+S Shell    Q/q Exit    Esc Previous menu    L Lines/page   R Reset    Ctrl+R Redraw    $KY_LEFT Previous page    $KY_RIGHT Next page${RESET}"
         legend_len="$(sgnd_visible_length "$legend_text")"
         legend_pad=$(( (render_width - legend_len) / 2 ))
         (( legend_pad < pad )) && legend_pad="$pad"
@@ -1976,6 +1979,8 @@ set -uo pipefail
         #
         # . Behavior
         #   - Q, q, and Ctrl+Q return EXIT.
+        #   - R/r return RESET.
+        #   - Ctrl+R returns REDRAW.
         #   - Esc returns ESC unless followed by a recognized arrow sequence.
         #   - Left/right arrows return < and >.
         #   - Single-character controls are returned immediately.
@@ -1999,7 +2004,8 @@ set -uo pipefail
             IFS= read -r -s -n 1 key </dev/tty || return 1
 
             case "$key" in
-                r|R) printf '%s%s%s\n' "$(sgnd_sgr "$SGND_UI_VALUE")" "$key" "$RESET" >/dev/tty; printf -v "$output_var" '%s' 'REDRAW'; return 0 ;;
+                $'\x12') printf -v "$output_var" '%s' 'REDRAW'; printf '\n' >/dev/tty; return 0 ;;
+                r|R) printf '%s%s%s\n' "$(sgnd_sgr "$SGND_UI_VALUE")" "$key" "$RESET" >/dev/tty; printf -v "$output_var" '%s' 'RESET'; return 0 ;;
                 $'\x11') printf -v "$output_var" '%s' 'EXIT'; printf '\n' >/dev/tty; return 0 ;;
                 q|Q) printf '%s%s%s\n' "$(sgnd_sgr "$SGND_UI_VALUE")" "$key" "$RESET" >/dev/tty; printf -v "$output_var" '%s' 'EXIT'; return 0 ;;
                 $'\e')

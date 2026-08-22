@@ -3,13 +3,13 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623104
-#   Source      : solidground console_preface.sh
+#   Build       : 2623404
+#   Source      : solidground-console_preface.sh
 #   Type        : documentation
 #   Group       : SolidGround Console
 #   Purpose     : Describe the SolidGround Management Console architecture and module contract
 #
-#   Checksum : a74db09467686ebb24b60c658da46cab8b37761fb9f1f03dab6992bf0db308ad
+#   Checksum : 3d0a1ee88d964f14005e666693e726df0bb26715aa4c4c77bf0567a91cdde2bd
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
@@ -45,8 +45,8 @@
 #
 # -- Main Components ----------------------------------------------------------------
 #
-# >     sgnd-console.sh
-# >         Executable console host. Resolves the framework runtime, loads console
+# >     management-console.sh
+# >         Executable console host behind the public `sgnd-console` command. Resolves the framework runtime, loads console
 # >         configuration and state, discovers page modules, renders the main index,
 # >         lazy-loads selected modules, owns direct console controls, and runs the
 # >         interaction loop.
@@ -94,13 +94,16 @@
 # > The initial screen is an index of enabled module pages. The current standard
 # > collection is:
 #
-# >     1) Computer Setup
-# >     2) Storage
-# >     3) Active Directory Server
-# >     4) Active Directory Client
-# >     5) Samba File Server
-# >     6) SolidGroundUX
-# >     7) Development
+# >     Computer Setup
+# >     Storage
+# >     Active Directory Server
+# >     Active Directory Client
+# >     Active Directory Management
+# >     Samba File Server
+# >     SolidGroundUX
+# >     Web Server
+# >     SQL Server
+# >     Development
 #
 # > The index is intentionally lightweight. It does not source each module in order to
 # > discover its menu contents. Instead, sgnd-console reads literal assignments matching
@@ -157,8 +160,11 @@
 # >     15-storage.sh
 # >     20-active-directory-server.sh
 # >     25-active-directory-client.sh
+# >     27-active-directory-management.sh
 # >     30-samba-file-server.sh
 # >     40-solidgroundux.sh
+# >     50-web-server.sh
+# >     60-sqlserver.sh
 # >     90-development.sh
 #
 # > Group order values are local to the page being rendered. They only need to express
@@ -179,6 +185,8 @@
 # >         Esc         Return to the main index
 # >         Left/Right  Previous or next menu page when the active module spans pages
 # >         Q/q         Exit
+# >         R           Clear last-run result markers for the current module page
+# >         Ctrl+R      Re-measure the terminal, invalidate layout caches, and redraw
 #
 # > A module page can therefore be reached directly from the index without traversing
 # > the pages that precede it.
@@ -204,7 +212,8 @@
 # >     t / T      Cycle installed theme forward / backward
 # >     Shift+S    Open a shell
 # >     L          Set lines per page
-# >     R          Redraw the current page
+# >     R          Reset last-run result markers for the current module page
+# >     Ctrl+R     Re-measure the terminal, invalidate layout caches, and redraw
 #
 # > The toggle bar is status; the legend is navigation/help. These direct controls
 # > replace the former Console Settings menu/module. Functional modules should not
@@ -237,7 +246,8 @@
 #
 # > Menu actions can record a transient/persisted result state such as never, success,
 # > warning, or failed. sgnd-menu renders the corresponding status decoration while the
-# > host owns the action-tracking lifecycle.
+# > host owns the action-tracking lifecycle. R Reset clears the recorded result markers
+# > for the current module page only; results belonging to other pages are left intact.
 #
 # -- SolidGroundUX Page -------------------------------------------------------------
 #
@@ -255,6 +265,24 @@
 # > provisioning, mounting, expansion, validation, status, ownership, group, and Unix
 # > permission operations. File-service modules may depend on the resulting storage but
 # > do not own its provisioning logic.
+#
+# -- Active Directory and Samba Share Management -----------------------------------
+#
+# > Active Directory Management is a dedicated functional page for users, groups,
+# > memberships, and computer accounts. Repeated administration actions manage their
+# > own continue/return flow so common bulk work can be performed without repeatedly
+# > returning through the module menu.
+#
+# > Samba share management is implemented by the standalone manage-samba-shares.sh
+# > executable. On realmd/SSSD domain members it does not depend on `getent group`
+# > enumeration. Active Directory groups are discovered directly through LDAP/GSSAPI
+# > using the domain controller advertised by the realm's LDAP SRV record.
+#
+# > Kerberos authentication uses the canonical uppercase realm. If no valid ticket is
+# > available, the share manager interactively obtains one with kinit before querying
+# > LDAP. LDAP discovery disables SASL hostname canonicalization so the query uses the
+# > registered domain-controller LDAP service principal. The selected group is then
+# > resolved through NSS in qualified `group@domain` form before ACL assignment.
 #
 # -- Creating a New Console Module --------------------------------------------------
 #

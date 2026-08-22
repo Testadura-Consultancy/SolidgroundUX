@@ -7,6 +7,91 @@ practical framework development.
 
 # Unreleased
 
+# Build 2.0.2623404
+
+## Changed
+- Improved Samba File Server and share-management usability:
+  - Removed printer-share validation from the Samba file-server validation path.
+  - Added repeat-operation flows for creating and removing Samba shares.
+  - Added share selection when removing managed shares.
+  - Updated the Samba share manager to use `ask_selection` for share and Active Directory group selection.
+  - Active Directory groups are now discovered directly from the directory through LDAP instead of relying on NSS group enumeration.
+  - LDAP group discovery uses Kerberos/GSSAPI authentication and disables SASL hostname canonicalization so the registered domain-controller LDAP service principal is used correctly.
+  - Active Directory realm names are normalized to uppercase for Kerberos authentication while NSS group identities retain their resolvable `group@domain` form.
+  - The share manager now detects a missing Kerberos ticket and interactively authenticates an Active Directory user before querying directory groups.
+
+- Added `R Reset` to the management console, allowing last-run result markers to be cleared for the current module page without affecting results on other pages.
+
+- Moved manual console redraw from `R` to `Ctrl+R`; redraw continues to re-measure the terminal and invalidate layout-dependent caches.
+
+- Updated the console key legend to show `R Reset` and `Ctrl+R Redraw`.
+
+- Added a `--legend` argument to `ask_dlg_autocontinue`, allowing callers to replace the generic key legend with workflow-specific instructions.
+
+- Improved Active Directory Management usability:
+  - Added consistent `Q` / Quit handling to framework-owned prompts.
+  - Added `--back` support to `ask` so free-text prompts can return cleanly without assigning or validating the entered value.
+  - Removed redundant confirmation prompts from user and group creation/deletion flows where choosing the action and selecting/entering the object already expresses intent.
+  - Added optional “password never expires” handling during user creation.
+  - Added a dedicated “Set password never expires” user action.
+  - Added repeat-operation loops for:
+    - Create user
+    - Delete user
+    - Remove user from groups
+    - Create group
+    - Add users to group
+    - Remove group members
+    - Delete group
+  - Repeat-operation dialogs now use custom legends so timeout and Enter behavior are described accurately.
+  - Disabled the normal menu post-action wait for actions that now manage their own repeat/return flow.
+
+- Improved console width handling:
+  - Terminal width is re-measured on redraw.
+  - Rendering no longer relies on a separately cached menu width.
+  - Layout caches are invalidated on redraw so resized terminals are recalculated correctly.
+  - Non-interactive processes no longer fail when `/dev/tty` is unavailable.
+
+## Repaired
+- Repaired Storage provisioning confirmation handling:
+  - Fixed remaining Yes/No comparisons that expected mixed-case values instead of the canonical `YES` / `NO` responses returned by `ask_decision`.
+  - Verified storage provisioning now completes partitioning, filesystem creation, persistent `/etc/fstab` configuration, mounting, and creation of `/srv/storage/shares`.
+  - Verified storage status correctly reports the configured source, filesystem, UUID, mount state, persistence, read/write state, capacity, and available space.
+
+- Repaired Samba File Server provisioning and validation:
+  - Removed validation of Samba printer shares, which are not part of the managed SolidGroundUX file-server configuration.
+  - Verified the Samba preparation sequence completes successfully against provisioned SolidGroundUX storage.
+  - Repaired managed share creation and removal workflows.
+
+- Repaired Active Directory group handling in the Samba share manager:
+  - Fixed AD group discovery on realmd/SSSD domain members where `getent group` cannot enumerate directory groups even though direct qualified-name lookups work.
+  - Replaced unsuitable `samba-tool group list` discovery, which expects a local Active Directory database when run on a member server.
+  - Avoided `net ads group`, which requires Samba ADS membership configuration not present on the realmd/SSSD client.
+  - Added authenticated LDAP group discovery using the domain controller advertised through the Active Directory LDAP SRV record.
+  - Fixed Kerberos authentication failures caused by using a lowercase realm; authentication now uses the canonical uppercase realm such as `TESTADURA.HQ`.
+  - Fixed LDAP/GSSAPI service-ticket lookup by disabling SASL hostname canonicalization with `ldapsearch -N`.
+  - Verified LDAP group enumeration against the domain controller and NSS resolution of selected qualified AD groups.
+
+- Repaired Computer Setup validation:
+  - Corrected the sudoers file path used for SolidGroundUX receiver access.
+  - Centralized the sudoers filename in `SGND_COMPUTER_SUDOERS_FILE`.
+  - Verified setup, status, and validation all reference the same sudoers policy file.
+
+- Fully tested and repaired the Computer Setup workflow, including the automated preparation sequence.
+
+- Fully tested and repaired Active Directory provisioning:
+  - Fixed `ask_decision` case handling where canonical responses are returned in uppercase.
+  - Restored the automated provisioning sequence so it continues beyond preflight validation.
+  - Verified the remaining provisioning steps can complete successfully.
+
+- Repaired Active Directory Management confirmation handling:
+  - Fixed Yes/No comparisons so canonical `YES` / `NO` values are handled correctly.
+  - Fixed Quit handling so `Q` actually exits the current action instead of falling through.
+  - Fixed timeout handling in repeat-operation dialogs so timeout repeats the action instead of returning to the menu.
+
+- Repaired terminal-width detection for non-interactive receiver execution:
+  - Fixed `/dev/tty` probing so receiver-side operations no longer emit `No such device or address`.
+
+
 # Release 2.0.2623316
 
 ## SolidGround Management Console

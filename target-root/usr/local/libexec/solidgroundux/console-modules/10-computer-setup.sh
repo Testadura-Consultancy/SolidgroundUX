@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623316
-#   Checksum    : c8177e78831e2d01938376ef0120c758ad54d1c9be219848ba7ebd372687750a
+#   Build       : 2623401
+#   Checksum    : 74b214cf664965b774d98857bb0c8e3320f9d7a6817f846b7185c4fb432f6916
 #   Source      : 10-computer-setup.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -54,6 +54,8 @@ set -uo pipefail
     SGND_COMPUTER_SETUP_MODULE_NAME="Computer Setup"
     SGND_COMPUTER_SETUP_MODULE_VERSION="2.0.0"
     SGND_COMPUTER_SETUP_MODULE_DESC="Prepare and validate the base computer"
+    
+    SGND_COMPUTER_SUDOERS_FILE="/etc/sudoers.d/solidgroundux-receiver"
 
     SGND_MODULE_NAME="$SGND_COMPUTER_SETUP_MODULE_NAME"
     SGND_MODULE_VERSION="$SGND_COMPUTER_SETUP_MODULE_VERSION"
@@ -160,7 +162,6 @@ set -uo pipefail
         #   0 on success; non-zero on failure or cancellation.
     _computer_configure_sudoers() {
         local admin_user="${SUDO_USER:-${USER:-sysadmin}}"
-        local sudoers_file="/etc/sudoers.d/solidgroundux"
         local temp_file=""
         local decision="No"
 
@@ -183,13 +184,13 @@ set -uo pipefail
             --default "No" \
             --var decision || return $?
 
-        [[ "$decision" == "Yes" ]] || {
+        [[ "${decision^^}" == "YES" ]] || {
             saycancel "Sudo configuration cancelled."
             return 0
         }
 
         if (( ${FLAG_DRYRUN:-0} == 1 )); then
-            sayinfo "Dry run: Would create $sudoers_file for $admin_user."
+            sayinfo "Dry run: Would create $SGND_COMPUTER_SUDOERS_FILE for $admin_user."
             return 0
         fi
 
@@ -216,13 +217,13 @@ set -uo pipefail
             return 1
         }
 
-        sudo install -m 0440 -o root -g root "$temp_file" "$sudoers_file" || {
+        sudo install -m 0440 -o root -g root "$temp_file" "$SGND_COMPUTER_SUDOERS_FILE" || {
             rm -f -- "$temp_file"
             return 1
         }
         rm -f -- "$temp_file"
 
-        sudo visudo -cf "$sudoers_file" >/dev/null || {
+        sudo visudo -cf "$SGND_COMPUTER_SUDOERS_FILE" >/dev/null || {
             sayfail "Installed sudoers configuration failed validation."
             return 1
         }
@@ -269,7 +270,6 @@ set -uo pipefail
         local ssh_enabled="not installed"
         local ssh_active="not installed"
         local host_key_count=0
-        local sudoers_file="/etc/sudoers.d/solidgroundux"
         local sudo_state="not configured"
 
         hostname_short="$(hostname -s 2>/dev/null || true)"
@@ -298,8 +298,8 @@ set -uo pipefail
 
         host_key_count="$(find /etc/ssh -maxdepth 1 -type f -name 'ssh_host_*_key' 2>/dev/null | wc -l)"
 
-        if [[ -s "$sudoers_file" ]]; then
-            if command -v visudo >/dev/null 2>&1 && sudo visudo -cf "$sudoers_file" >/dev/null 2>&1; then
+        if [[ -s "$SGND_COMPUTER_SUDOERS_FILE" ]]; then
+            if command -v visudo >/dev/null 2>&1 && sudo visudo -cf "$SGND_COMPUTER_SUDOERS_FILE" >/dev/null 2>&1; then
                 sudo_state="configured / valid"
             else
                 sudo_state="configured / invalid"
@@ -334,7 +334,6 @@ set -uo pipefail
         local primary_ip=""
         local ssh_unit="ssh.service"
         local host_key_count=0
-        local sudoers_file="/etc/sudoers.d/solidgroundux"
 
         hostname_short="$(hostname -s 2>/dev/null || true)"
         primary_ip="$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{ for (i = 1; i <= NF; i++) if ($i == "src") { print $(i + 1); exit } }')"
@@ -375,7 +374,7 @@ set -uo pipefail
             failures=$((failures + 1))
         fi
 
-        if [[ -s "$sudoers_file" ]] && sudo visudo -cf "$sudoers_file" >/dev/null 2>&1; then
+        if [[ -s "$SGND_COMPUTER_SUDOERS_FILE" ]] && sudo visudo -cf "$SGND_COMPUTER_SUDOERS_FILE" >/dev/null 2>&1; then
             sgnd_print_labeledvalue --label "SolidGround sudo" --value "Passed"
         else
             sgnd_print_labeledvalue --label "SolidGround sudo" --value "Failed"
