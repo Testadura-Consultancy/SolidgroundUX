@@ -3,7 +3,7 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2622911
+#   Build       : 2623415
 #   Checksum    : f9d77c63709a97abd123421848129e34f0765c08e628d6e2e30bb67964ff6876
 #   Source      : sgnd-comment-header-parser.sh
 #   Type        : library

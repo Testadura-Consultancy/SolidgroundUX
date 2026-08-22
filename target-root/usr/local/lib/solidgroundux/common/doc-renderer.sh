@@ -3,7 +3,7 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623103
+#   Build       : 2623415
 #   Checksum    : e39d7fbb5b4df009240233939c654051a26b430fe3568939dd83905f86b73a2e
 #   Source      : doc-renderer.sh
 #   Type        : library

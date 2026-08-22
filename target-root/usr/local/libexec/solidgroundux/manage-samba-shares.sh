@@ -4,18 +4,17 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623404
-#   Checksum    : b154185dfa12ddf728e3a043d2e6c2db2c53299638637e98e8098e76e8a56252
+#   Build       : 2623415
+#   Checksum    : ad628c6e9194adeb027e5e0b88767ee9019866c92cd1d895ad7ed0105f920f1a
 #   Source      : manage-samba-shares.sh
 #   Type        : script
 #   Group       : System Administration
 #   Purpose     : Manage Active Directory access to SolidGroundUX Samba shares
 #
 # Description:
-#   Provides interactive access management for existing SolidGroundUX Samba shares.
-#   Share creation and removal remain owned by the Samba File Server console module.
-#   This tool assigns AD/NSS groups read-only or read/write access by synchronizing
-#   POSIX ACLs with Samba valid-users and write-list restrictions.
+#   Provides complete interactive management of SolidGroundUX Samba shares, including
+#   share creation/removal, backing-directory structure, validation, and AD/NSS access
+#   control synchronized through POSIX ACLs and Samba valid-users/write-list settings.
 #
 # Attribution:
 #   Developers  : Mark Fieten
@@ -213,10 +212,233 @@ set -uo pipefail
     _acl_groups_for_share() {
         local path=""
         path="$(_share_path "$1")"
-        [[ -d "$path" ]] || return 1
+        sudo test -d "$path" || return 1
 
         sudo getfacl -cp -- "$path" 2>/dev/null | \
             awk -F: '$1 == "group" && $2 != "" { print $2 "|" $3 }'
+    }
+
+    # fn: _validate_share_name - Validate a managed Samba share name
+    _validate_share_name() {
+        [[ "${1:-}" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$ ]]
+    }
+
+    # fn: _validate_relative_path - Validate a relative path beneath a share root
+    _validate_relative_path() {
+        local relative_path="${1:-}"
+        local part=""
+        local -a parts=()
+
+        [[ -n "$relative_path" ]] || return 1
+        [[ "$relative_path" != /* ]] || return 1
+        [[ "$relative_path" != *$'\n'* ]] || return 1
+
+        IFS='/' read -r -a parts <<< "$relative_path"
+        for part in "${parts[@]}"; do
+            [[ -n "$part" && "$part" != "." && "$part" != ".." ]] || return 1
+        done
+        return 0
+    }
+
+    # fn: _share_exists - Test whether a Samba share exists
+    _share_exists() {
+        local share_name="${1:-}"
+        [[ -r "$SGND_SAMBA_CONFIG" ]] || return 1
+        grep -Eqi "^[[:space:]]*\\[$share_name\\][[:space:]]*$" "$SGND_SAMBA_CONFIG"
+    }
+
+    # fn: _reload_samba - Validate and reload Samba configuration
+    _reload_samba() {
+        sudo testparm -s >/dev/null 2>&1 || {
+            sayfail "The Samba configuration is invalid."
+            return 1
+        }
+        sudo systemctl reload smbd.service 2>/dev/null || sudo systemctl restart smbd.service
+    }
+
+    # fn: _create_share - Create a managed share and backing directory
+    _create_share() {
+        local share_name=""
+        local comment=""
+        local browsable="Yes"
+        local read_only="No"
+        local share_path=""
+        local backup=""
+        local dlg_rc=0
+
+        while :; do
+            share_name=""
+            ask --label "Share name (Q=Back)" --var share_name --validate _validate_share_name --back || return 0
+
+            _share_exists "$share_name" && {
+                sayfail "A Samba share named '$share_name' already exists."
+                continue
+            }
+
+            share_path="$SGND_SAMBA_SHARE_ROOT/$share_name"
+            [[ ! -e "$share_path" ]] || {
+                sayfail "The backing directory already exists: $share_path"
+                continue
+            }
+
+            comment="$share_name share"
+            ask --label "Description (Q=Back)" --var comment --default "$comment" --back || return 0
+
+            ask_decision --label "Browsable" --choices "Yes|Y,No|N,Quit|Q" --default "Yes" --var browsable || return $?
+            [[ "${browsable^^}" == "QUIT" || "${browsable^^}" == "Q" ]] && return 0
+
+            ask_decision --label "Read only" --choices "Yes|Y,No|N,Quit|Q" --default "No" --var read_only || return $?
+            [[ "${read_only^^}" == "QUIT" || "${read_only^^}" == "Q" ]] && return 0
+
+            if (( ${FLAG_DRYRUN:-0} == 1 )); then
+                sayinfo "Dry run: Would create Samba share '$share_name' at $share_path."
+            else
+                backup="$SGND_SAMBA_CONFIG.pre-share.$(date +%Y%m%d%H%M%S)"
+                sudo cp -a "$SGND_SAMBA_CONFIG" "$backup" || return 1
+                sudo install -d -m 0770 "$share_path" || return 1
+
+                printf '%s\n' \
+                    '' \
+                    "# SolidGroundUX managed share: $share_name" \
+                    "[$share_name]" \
+                    "    path = $share_path" \
+                    "    comment = $comment" \
+                    "    browseable = ${browsable,,}" \
+                    "    read only = ${read_only,,}" \
+                    '    guest ok = no' \
+                    '    create mask = 0660' \
+                    '    directory mask = 0770' | \
+                    sudo tee -a "$SGND_SAMBA_CONFIG" >/dev/null || return 1
+
+                if ! _reload_samba; then
+                    sudo cp -a "$backup" "$SGND_SAMBA_CONFIG"
+                    sudo rm -rf -- "$share_path"
+                    return 1
+                fi
+
+                sayok "Samba share '$share_name' created."
+                sgnd_print_labeledvalue --label "Directory" --value "$share_path" --labelwidth 18
+            fi
+
+            dlg_rc=0
+            ask_dlg_autocontinue --seconds 5 --legend "Enter=return to manager; timeout=create another share" || dlg_rc=$?
+            case "$dlg_rc" in
+                1) continue ;;
+                *) return 0 ;;
+            esac
+        done
+    }
+
+    # fn: _remove_share - Remove a managed share and optionally its directory
+    _remove_share() {
+        local share_name=""
+        local share_path=""
+        local remove_data="No"
+        local temp_file=""
+        local backup=""
+        local dlg_rc=0
+
+        while :; do
+            _list_managed_shares || return 0
+            ask_selection --label "Select Samba share to remove" --var share_name --items "${MANAGED_SHARES[@]}" || return 0
+            share_path="$(_share_path "$share_name")"
+
+            ask_decision --label "Delete share data" --choices "Yes|Y,No|N,Quit|Q" --default "No" --var remove_data || return $?
+            [[ "${remove_data^^}" == "QUIT" || "${remove_data^^}" == "Q" ]] && return 0
+
+            if (( ${FLAG_DRYRUN:-0} == 1 )); then
+                sayinfo "Dry run: Would remove Samba share '$share_name'."
+            else
+                temp_file="$(mktemp)" || return 1
+                backup="$SGND_SAMBA_CONFIG.pre-remove.$(date +%Y%m%d%H%M%S)"
+                sudo cp -a "$SGND_SAMBA_CONFIG" "$backup" || { rm -f "$temp_file"; return 1; }
+
+                sudo awk -v section="$share_name" '
+                    BEGIN { skip = 0 }
+                    /^\[[^]]+\][[:space:]]*$/ {
+                        current = $0
+                        gsub(/^\[|\][[:space:]]*$/, "", current)
+                        skip = (tolower(current) == tolower(section))
+                    }
+                    !skip { print }
+                ' "$SGND_SAMBA_CONFIG" > "$temp_file" || { rm -f "$temp_file"; return 1; }
+
+                sudo install -o root -g root -m 0644 "$temp_file" "$SGND_SAMBA_CONFIG" || { rm -f "$temp_file"; return 1; }
+                rm -f "$temp_file"
+
+                if ! _reload_samba; then
+                    sudo cp -a "$backup" "$SGND_SAMBA_CONFIG"
+                    return 1
+                fi
+
+                if [[ "${remove_data^^}" == "YES" ]]; then
+                    sudo rm -rf -- "$share_path" || return 1
+                fi
+
+                sayok "Samba share '$share_name' removed."
+            fi
+
+            SELECTED_SHARES=()
+            dlg_rc=0
+            ask_dlg_autocontinue --seconds 5 --legend "Enter=return to manager; timeout=remove another share" || dlg_rc=$?
+            case "$dlg_rc" in
+                1) continue ;;
+                *) return 0 ;;
+            esac
+        done
+    }
+
+    # fn: _select_single_share - Select exactly one managed share
+    _select_single_share() {
+        local output_var="${1:?missing output variable}"
+        local selected=""
+
+        _list_managed_shares || return 1
+        ask_selection --label "Select Samba share" --var selected --items "${MANAGED_SHARES[@]}" || return 1
+        printf -v "$output_var" '%s' "$selected"
+        return 0
+    }
+
+    # fn: _create_subdirectory - Create one or more subdirectories within a selected share
+    _create_subdirectory() {
+        local share=""
+        local share_path=""
+        local relative_path=""
+        local full_path=""
+        local dlg_rc=0
+
+        _select_single_share share || return 0
+        share_path="$(_share_path "$share")"
+        [[ -d "$share_path" ]] || {
+            sayfail "Share backing directory does not exist: $share_path"
+            return 1
+        }
+
+        while :; do
+            relative_path=""
+            ask \
+                --label "Subdirectory in '$share' (Q=Back)" \
+                --var relative_path \
+                --validate _validate_relative_path \
+                --back || return 0
+
+            full_path="$share_path/$relative_path"
+            if [[ -e "$full_path" ]]; then
+                saywarning "Path already exists: $full_path"
+            elif (( ${FLAG_DRYRUN:-0} == 1 )); then
+                sayinfo "Dry run: Would create $full_path."
+            else
+                sudo install -d -m 0770 "$full_path" || return 1
+                sayok "Created subdirectory '$relative_path' in '$share'."
+            fi
+
+            dlg_rc=0
+            ask_dlg_autocontinue --seconds 5 --legend "Enter=return to manager; timeout=create another subdirectory" || dlg_rc=$?
+            case "$dlg_rc" in
+                1) continue ;;
+                *) return 0 ;;
+            esac
+        done
     }
 
     # fn: _ensure_kerberos_ticket - Ensure an authenticated Kerberos ticket is available
@@ -242,6 +464,7 @@ set -uo pipefail
         }
 
         saywarning "No valid Kerberos ticket is available."
+        sgnd_print --text "AD Admin rights are needed to query Active Directory. Please enter the AD administrator account."
 
         ask \
             --label "AD user (Q=Back)" \
@@ -547,7 +770,7 @@ set -uo pipefail
 
         for share in "${SELECTED_SHARES[@]}"; do
             path="$(_share_path "$share")"
-            [[ -d "$path" ]] || { sayfail "Share path not found: $path"; return 1; }
+            sudo test -d "$path" || { sayfail "Share path not found: $path"; return 1; }
 
             if (( ${FLAG_DRYRUN:-0} == 1 )); then
                 sayinfo "Dry run: Would grant $mode access to '$group' on '$share'."
@@ -623,7 +846,7 @@ set -uo pipefail
 
         for share in "${SELECTED_SHARES[@]}"; do
             path="$(_share_path "$share")"
-            [[ -d "$path" ]] || { sayfail "Share path not found: $path"; return 1; }
+            sudo test -d "$path" || { sayfail "Share path not found: $path"; return 1; }
 
             group_count=0
             group_present=0
@@ -701,25 +924,69 @@ set -uo pipefail
         local share=""
         local path=""
         local failures=0
+        local result=""
 
-        sudo testparm -s >/dev/null 2>&1 || { sayfail "Samba configuration is invalid."; failures=$((failures + 1)); }
+        sgnd_print
+        sgnd_print_sectionheader --text "Validate selected Samba shares"
+
+        if sudo testparm -s >/dev/null 2>&1; then
+            result="Passed"
+        else
+            result="Failed"
+            failures=$((failures + 1))
+        fi
+        sgnd_print_labeledvalue --label "Samba configuration" --value "$result" --labelwidth 24
 
         for share in "${SELECTED_SHARES[@]}"; do
             path="$(_share_path "$share")"
-            if [[ "$path" == "$SGND_SAMBA_SHARE_ROOT/"* && -d "$path" ]]; then
-                sayok "Share '$share' path is available."
+
+            sgnd_print
+            sgnd_print_sectionheader --text "$share"
+
+            if [[ "$path" == "$SGND_SAMBA_SHARE_ROOT/"* ]] && sudo test -d "$path"; then
+                result="Passed"
             else
-                sayfail "Share '$share' path is invalid: $path"
+                result="Failed"
                 failures=$((failures + 1))
             fi
+            sgnd_print_labeledvalue --label "Managed path" --value "$result" --labelwidth 24
+            sgnd_print_labeledvalue --label "Path" --value "${path:-Unavailable}" --labelwidth 24
 
-            sudo getfacl -cp -- "$path" >/dev/null 2>&1 || {
-                sayfail "ACL cannot be read for '$share'."
+            if [[ -n "$path" ]] && sudo getfacl -cp -- "$path" >/dev/null 2>&1; then
+                result="Passed"
+            else
+                result="Failed"
                 failures=$((failures + 1))
-            }
+            fi
+            sgnd_print_labeledvalue --label "ACL readable" --value "$result" --labelwidth 24
+
+            if [[ -n "$path" ]] && sudo test -d "$path"; then
+                result="Passed"
+            else
+                result="Failed"
+                failures=$((failures + 1))
+            fi
+            sgnd_print_labeledvalue --label "Backing directory" --value "$result" --labelwidth 24
         done
 
-        (( failures == 0 ))
+        local validation_rc=0
+
+        sgnd_print
+        if (( failures == 0 )); then
+            sgnd_print_labeledvalue --label "Result" --value "Passed" --labelwidth 24
+            validation_rc=0
+        else
+            sgnd_print_labeledvalue --label "Result" --value "Failed ($failures check(s))" --labelwidth 24
+            validation_rc=1
+        fi
+
+        # Keep the validation report visible before the manager redraws.
+        ask_dlg_autocontinue \
+            --seconds 15 \
+            --message "Press Enter to return to share management." \
+            --pause || true
+
+        return "$validation_rc"
     }
 
 # --- Main ---------------------------------------------------------------------------
@@ -731,13 +998,17 @@ set -uo pipefail
         #   main "$@"
     main() {
         local action=""
+        local selected_share=""
         local -a actions=(
+            "Create share"
+            "Remove share"
+            "Create subdirectory"
+            "Select shares"
             "Show access"
             "Grant read-only access to AD group"
             "Grant read/write access to AD group"
             "Remove AD group access"
             "Validate selected shares"
-            "Select different shares"
         )
 
         _framework_locator || return $?
@@ -749,34 +1020,62 @@ set -uo pipefail
         [[ -d "$SGND_SAMBA_SHARE_ROOT" ]] || { sayfail "Share root not found: $SGND_SAMBA_SHARE_ROOT"; return 1; }
 
         while :; do
-            if (( ${#SELECTED_SHARES[@]} == 0 )); then
-                _select_shares || return 0
+            sgnd_clear
+            action=""
+
+            if (( ${#SELECTED_SHARES[@]} > 0 )); then
+                sgnd_print
+                sgnd_print_sectionheader --text "Selected Samba shares"
+                for selected_share in "${SELECTED_SHARES[@]}"; do
+                    sgnd_print --text "$selected_share" --pad 2
+                done
+            else
+                sgnd_print
+                sgnd_print_sectionheader --text "Selected Samba shares"
+                sgnd_print --text "None selected" --pad 2
             fi
 
-            action=""
             ask_selection \
-                --label "Manage selected Samba shares" \
+                --label "Manage Samba shares" \
                 --var action \
                 --items "${actions[@]}" || return 0
 
             case "$action" in
+                "Create share")
+                    _create_share || true
+                    ;;
+                "Remove share")
+                    _remove_share || true
+                    ;;
+                "Create subdirectory")
+                    _create_subdirectory || true
+                    ;;
+                "Select shares")
+                    _select_shares || true
+                    ;;
                 "Show access")
+                    (( ${#SELECTED_SHARES[@]} > 0 )) || { saywarning "Select one or more shares first."; ask_dlg_autocontinue --seconds 5 || true; continue; }
                     _show_access
+                    ask_dlg_autocontinue --seconds 15 --message "Press Enter to return to share management." --pause || true
                     ;;
                 "Grant read-only access to AD group")
+                    (( ${#SELECTED_SHARES[@]} > 0 )) || { saywarning "Select one or more shares first."; ask_dlg_autocontinue --seconds 5 || true; continue; }
                     _apply_group_access read || true
                     ;;
                 "Grant read/write access to AD group")
+                    (( ${#SELECTED_SHARES[@]} > 0 )) || { saywarning "Select one or more shares first."; ask_dlg_autocontinue --seconds 5 || true; continue; }
                     _apply_group_access write || true
                     ;;
                 "Remove AD group access")
+                    (( ${#SELECTED_SHARES[@]} > 0 )) || { saywarning "Select one or more shares first."; ask_dlg_autocontinue --seconds 5 || true; continue; }
                     _remove_group_access || true
                     ;;
                 "Validate selected shares")
+                    (( ${#SELECTED_SHARES[@]} > 0 )) || { saywarning "Select one or more shares first."; ask_dlg_autocontinue --seconds 5 || true; continue; }
                     _validate_selected || true
                     ;;
-                "Select different shares")
-                    SELECTED_SHARES=()
+                *)
+                    saywarning "Unknown share-management action: $action"
                     ;;
             esac
         done

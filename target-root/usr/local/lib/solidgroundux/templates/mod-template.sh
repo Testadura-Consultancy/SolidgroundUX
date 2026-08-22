@@ -3,7 +3,7 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623103
+#   Build       : 2623415
 #   Checksum    : 8fd9bb35d17bdd7a832c1c74b19d6ded31ef14cf6ed506343db68ab1bf5904a9
 #   Source      : mod-template.sh
 #   Type        : module

@@ -3,7 +3,7 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623404
+#   Build       : 2623415
 #   Source      : solidground-console_preface.sh
 #   Type        : documentation
 #   Group       : SolidGround Console

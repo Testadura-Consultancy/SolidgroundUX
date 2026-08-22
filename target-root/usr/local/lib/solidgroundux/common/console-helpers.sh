@@ -3,7 +3,7 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2622911
+#   Build       : 2623415
 #   Checksum    : ab3471db97fbd16baff98b1593b4b5778c48a5310ec910427cdf2b60fd8fc02e
 #   Source      : console-helpers.sh
 #   Type        : library
