@@ -140,6 +140,8 @@
 <tr><td>_create_mod_appcfg</td><td>Create the module application configuration file</td><td>Create a console-module application configuration file.</td><td>create-workspace.sh</td></tr>
 <tr><td>_create_release_package</td><td>Create the complete distributable release ZIP</td><td>Package the standalone release manager and release payload into one ZIP.</td><td>prepare-release.sh</td></tr>
 <tr><td>_create_repository</td><td>Create the repository directory structure</td><td>Create the project repository structure and copy template files.</td><td>create-workspace.sh</td></tr>
+<tr><td>_create_share</td><td>Create a managed share and backing directory</td><td></td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_create_subdirectory</td><td>Create one or more subdirectories within a selected share</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_create_tar</td><td>Create the release tar archive</td><td>Create the release tar archive.</td><td>prepare-release.sh</td></tr>
 <tr><td>_create_workspace_file</td><td>Create the VS Code workspace file</td><td>Create the VS Code workspace file.</td><td>create-workspace.sh</td></tr>
 <tr><td>_create_wrappers</td><td>Create wrappers for selected scripts</td><td>Match selected scripts and create canonical sgnd-* wrappers. Returns 0 when all matching wrappers are handled successfully; 1 otherwise. Usage _create_wrappers</td><td>create-wrappers.sh</td></tr>
@@ -297,12 +299,14 @@
 <tr><td>_release_terminal_width</td><td>Return the usable terminal width</td><td></td><td>release-manager.sh</td></tr>
 <tr><td>_release_title</td><td>Render the standalone release-manager title</td><td>Display the release-manager identity and current hostname without using framework UI libraries. Returns 0 always. Usage _release_title</td><td>release-manager.sh</td></tr>
 <tr><td>_release_warn</td><td>Write a warning message</td><td>Write a warning message. Returns 0 always. Usage _release_warn &quot;message&quot;</td><td>release-manager.sh</td></tr>
+<tr><td>_reload_samba</td><td>Validate and reload Samba configuration</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_remote_powershell</td><td>Execute a PowerShell command on the destination machine</td><td></td><td>sync-repository.sh</td></tr>
 <tr><td>_remove_group_access</td><td>Remove one AD/NSS group&#x27;s access from selected shares</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_remove_installation</td><td>Remove the active SolidGroundUX installation while retaining release packages</td><td>Remove the active SolidGroundUX installation while retaining release packages. Returns 0 on success; non-zero when removal or release movement fails. Usage _remove_installation</td><td>release-manager.sh</td></tr>
 <tr><td>_remove_other_netplan_files</td><td>Remove other netplan files</td><td>Remove other netplan files.</td><td>set-identity.sh</td></tr>
 <tr><td>_remove_paths_from_stream</td><td>Remove streamed release paths conservatively from the target</td><td>Remove streamed release paths conservatively from the target. Returns 0 on success; non-zero when file removal fails. Usage</td><td>release-manager.sh</td></tr>
 <tr><td>_remove_release_difference</td><td>Remove paths present in one release manifest but absent from another</td><td>Remove paths present in one release manifest but absent from another. Returns 0 on success; non-zero on comparison/removal failure. Usage _remove_release_difference &quot;$current_manifest&quot; &quot;$target_manifest&quot;</td><td>release-manager.sh</td></tr>
+<tr><td>_remove_share</td><td>Remove a managed share and optionally its directory</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_render_cached_site</td><td>Render HTML from the persistent renderer cache</td><td>Rebuild the generated site without rescanning or reparsing source files.</td><td>doc-renderer.sh</td></tr>
 <tr><td>_render_site</td><td>Render collected documentation data</td><td>Provide the renderer hand-off point for collected documentation tables.</td><td>doc-renderer.sh</td></tr>
 <tr><td>_require_command</td><td>Verify that a required system command is available</td><td>Verify that a required system command is available. Returns 0 when available; 1 otherwise. Usage _require_command tar</td><td>release-manager.sh</td></tr>
@@ -327,6 +331,7 @@
 <tr><td>_select_files</td><td>Select staged files using directory and filename mask</td><td></td><td>untar-it.sh</td></tr>
 <tr><td>_select_group</td><td>Select or enter an AD/NSS group</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_select_shares</td><td>Select one or more managed shares</td><td></td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_select_single_share</td><td>Select exactly one managed share</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_set_action</td><td>Set and validate the requested release-manager action</td><td>Set and validate the requested release-manager action. Returns 0 on success; 1 when conflicting actions are supplied. Usage _set_action update</td><td>release-manager.sh</td></tr>
 <tr><td>_set_defaults</td><td>Set defaults</td><td>Set defaults.</td><td>set-identity.sh</td></tr>
 <tr><td>_set_hostname</td><td>Set hostname</td><td>Set hostname.</td><td>set-identity.sh</td></tr>
@@ -433,14 +438,12 @@
 <tr><td>_sgnd_save_state_dispatch</td><td>Save state on clean exit</td><td>Conditionally persist framework state from the exit-handler stack.</td><td>sgnd-bootstrap.sh</td></tr>
 <tr><td>_sgnd_ui_resolve_theme_file</td><td>Ui resolve theme file</td><td>Resolve a palette or style name to a readable theme file path.</td><td>ui.sh</td></tr>
 <tr><td>_sh_err</td><td>Sh err</td><td>Write an error message through say when available, otherwise stderr.</td><td>ui.sh</td></tr>
+<tr><td>_share_exists</td><td>Test whether a Samba share exists</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_share_path</td><td>Resolve the configured path for a Samba share</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_show_access</td><td>Display current share paths and named group ACLs</td><td></td><td>manage-samba-shares.sh</td></tr>
-<tr><td>_smb_create_share</td><td></td><td>Interactively create a managed share directory and publish it in smb.conf.</td><td>30-samba-file-server.sh</td></tr>
-<tr><td>_smb_list_shares</td><td></td><td>Display configured Samba shares from the active configuration.</td><td>30-samba-file-server.sh</td></tr>
 <tr><td>_smb_manage_shares</td><td></td><td>Open the interactive manager for creating, listing, and removing managed Samba shares.</td><td>30-samba-file-server.sh</td></tr>
 <tr><td>_smb_prepare_file_server</td><td></td><td>Run the tracked Samba file-server preparation sequence.</td><td>30-samba-file-server.sh</td></tr>
 <tr><td>_smb_reload</td><td></td><td>Validate smb.conf and reload Samba configuration.</td><td>30-samba-file-server.sh</td></tr>
-<tr><td>_smb_remove_share</td><td></td><td>Remove a managed Samba share definition and optionally its data directory.</td><td>30-samba-file-server.sh</td></tr>
 <tr><td>_smb_require_storage</td><td></td><td>Verify that the managed storage and share-root paths are available.</td><td>30-samba-file-server.sh</td></tr>
 <tr><td>_smb_share_exists</td><td></td><td>Test whether a named Samba share already exists in the active configuration.</td><td>30-samba-file-server.sh</td></tr>
 <tr><td>_smb_status</td><td></td><td>Display Samba service, configuration, storage, and managed share-root status.</td><td>30-samba-file-server.sh</td></tr>
@@ -488,9 +491,11 @@
 <tr><td>_validate_parameters</td><td>Validate the resolved deployment settings</td><td></td><td>deploy-workspace.sh</td></tr>
 <tr><td>_validate_parameters</td><td>Validate archive source and destination settings</td><td></td><td>tar-it.sh</td></tr>
 <tr><td>_validate_parameters</td><td>Validate restore settings</td><td></td><td>untar-it.sh</td></tr>
+<tr><td>_validate_relative_path</td><td>Validate a relative path beneath a share root</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_validate_render_cache</td><td>Validate cached renderer input</td><td>Verify that Render mode has the complete minimum PSV input set.</td><td>doc-renderer.sh</td></tr>
 <tr><td>_validate_selected</td><td>Validate selected share paths, ACLs, and Samba configuration</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_validate_settings</td><td>Validate source and destination settings</td><td></td><td>sync-repository.sh</td></tr>
+<tr><td>_validate_share_name</td><td>Validate a managed Samba share name</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_validate_tar_paths</td><td>Reject unsafe paths contained in a release tarball</td><td>Reject unsafe paths contained in a release tarball. Returns 0 when all paths are safe; 1 otherwise. Usage _validate_tar_paths &quot;$archive&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_validate_target</td><td>Validate and prepare the destination root</td><td>Ensure the destination is an absolute directory path suitable for extraction.</td><td>receive-files.sh</td></tr>
 <tr><td>_verify_release_set</td><td>Verify checksums and path safety for a complete release set</td><td>Verify checksums and path safety for a complete release set. Returns 0 when the release set is valid; 1 otherwise. Usage _verify_release_set &quot;$archive&quot;</td><td>release-manager.sh</td></tr>

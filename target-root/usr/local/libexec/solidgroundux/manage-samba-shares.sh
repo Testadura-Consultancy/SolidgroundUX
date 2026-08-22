@@ -5,7 +5,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : ad628c6e9194adeb027e5e0b88767ee9019866c92cd1d895ad7ed0105f920f1a
+#   Checksum    : 2b6e7fabcb012695709569c8e0ebd7812191f3689a4c974fd0509f3ed78a15e7
 #   Source      : manage-samba-shares.sh
 #   Type        : script
 #   Group       : System Administration
@@ -26,7 +26,7 @@
 set -uo pipefail
 
 # --- Bootstrap ----------------------------------------------------------------------
-    # fn: _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
+    # fn$ _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
         # . Returns
         #   0 when the executable common library was loaded.
         #   126 or 127 when bootstrap configuration cannot be resolved.
