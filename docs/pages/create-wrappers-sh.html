@@ -16,8 +16,8 @@
 <div class="ct-modulebody sh-label">Description</div>
 <div class="ct-modulebody">  Creates one or more command wrappers from SolidGroundUX scripts. Source files are</div>
 <div class="ct-modulebody">  selected from a source directory using a filename or shell mask. Generated wrappers</div>
-<div class="ct-modulebody">  resolve SGND_APPLICATION_ROOT at runtime from the active SolidGroundUX configuration,</div>
-<div class="ct-modulebody">  so the same wrapper works on development, test, and installed systems.</div>
+<div class="ct-modulebody">  are rendered from the canonical wrapper-template and resolve or create the active</div>
+<div class="ct-modulebody">  SolidGroundUX bootstrap configuration before launching their configured target.</div>
 <div class="ct-modulebody"></div>
 <div class="ct-modulebody sh-label">Wrapper names</div>
 <div class="ct-modulebody">    - script.sh       -&gt; sgnd-script</div>
@@ -30,6 +30,7 @@
 <div class="ct-modulebody sh-label">Configuration precedence used by generated wrappers</div>
 <div class="ct-modulebody">  1. ~/.config/solidgroundux/solidgroundux.cfg</div>
 <div class="ct-modulebody">  2. /etc/solidgroundux/solidgroundux.cfg</div>
+<div class="ct-modulebody">  3. Auto-create the appropriate user/system configuration when neither exists</div>
 <div class="ct-modulebody"></div>
 <div class="ct-modulebody sh-label">Design principles</div>
 <div class="ct-modulebody">  - Generated wrappers remain environment-independent.</div>

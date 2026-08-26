@@ -14,7 +14,12 @@
   <div class="doc-breadcrumb">SolidgroundUX / create-wrappers.sh / Helpers / _write_wrapper</div>
 </header>
 <div class="ct-functionbody sh-highlight">Purpose</div>
-<div class="ct-functionbody">  Generate a wrapper whose target is stored relative to SGND_APPLICATION_ROOT.</div>
+<div class="ct-functionbody">  Generate a wrapper from the canonical wrapper template.</div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Resolves the source path relative to SGND_APPLICATION_ROOT.</div>
+<div class="ct-functionbody">  - Loads the canonical wrapper template from SGND_FRAMEWORK_ROOT.</div>
+<div class="ct-functionbody">  - Replaces the &lt;target&gt; placeholder with the application-relative target.</div>
+<div class="ct-functionbody">  - Preserves overwrite and dry-run behavior.</div>
 <div class="ct-functionbody sh-highlight">Returns</div>
 <div class="ct-functionbody">  0 on success; 1 on failure or declined overwrite.</div>
 <div class="ct-functionbody sh-highlight">Usage</div>
