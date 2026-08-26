@@ -400,12 +400,17 @@ set -uo pipefail
     sgnd_exe_start() {
         local rc=0
         local show_title=1
+        local clear_on_start=1
         local -a bootstrap_args=()
 
         while (($#)); do
             case "$1" in
                 --no-title)
                     show_title=0
+                    shift
+                    ;;
+                --no-clear)
+                    clear_on_start=0
                     shift
                     ;;
                 *)
@@ -427,6 +432,8 @@ set -uo pipefail
 
         sgnd_update_runmode
 
+
+        [[ -t 0 && -t 1 ]] && (( clear_on_start )) && sgnd_clear
         (( show_title )) && sgnd_print_titlebar
 
         return 0

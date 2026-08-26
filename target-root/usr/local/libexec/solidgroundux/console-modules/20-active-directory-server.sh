@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : 3f075279c606c54cc40bea431c3926151a3ae592ac1acc9cb7b61ebc63b4191e
+#   Build       : 2623514
+#   Checksum    : fc18d4fb3b29731fb41ad449632531355ae7c749678640a64c3b5829220278de
 #   Source      : 20-active-directory-server.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -536,6 +536,58 @@ set -uo pipefail
     }
 
 # - Console registration ---------------------------------------------------------
+    # Provides Samba Active Directory domain-controller provisioning and host-level
+    # management. Individual provisioning steps remain exposed for diagnosis and
+    # recovery, alongside complete provisioning, validation, and status workflows.
+    #
+    # . Menu items
+    # ! Provision domain
+    #   > Run the complete Active Directory server provisioning sequence.
+    #   > Handler: _adsvr_provision_domain
+    #
+    # ! Install AD server prerequisites
+    #   > Install Samba AD/DC, Kerberos, and DNS utilities.
+    #   > Handler: _adsvr_step_install_packages
+    #
+    # ! Validate provisioning inputs
+    #   > Collect realm settings and validate the machine before changes.
+    #   > Handler: _adsvr_step_preflight
+    #
+    # ! Prepare domain controller identity
+    #   > Prepare and validate the domain controller FQDN.
+    #   > Handler: _adsvr_step_identity
+    #
+    # ! Provision Samba domain
+    #   > Create the Samba directory database and Active Directory configuration.
+    #   > Handler: _adsvr_step_provision
+    #
+    # ! Apply initial domain settings
+    #   > Set Administrator policy and the upstream DNS forwarder.
+    #   > Handler: _adsvr_step_domain_settings
+    #
+    # ! Install Kerberos configuration
+    #   > Install and validate Samba's generated krb5.conf.
+    #   > Handler: _adsvr_step_kerberos
+    #
+    # ! Configure AD resolver
+    #   > Point the domain controller at Samba DNS and free IPv4 port 53.
+    #   > Handler: _adsvr_step_resolver
+    #
+    # ! Start AD/DC service
+    #   > Start Samba AD/DC and validate Samba-owned IPv4 DNS.
+    #   > Handler: _adsvr_step_start
+    #
+    # ! Register domain controller DNS
+    #   > Register and validate the DC A, SOA, Kerberos, and LDAP records.
+    #   > Handler: _adsvr_step_register_dns
+    #
+    # ! Validate AD server
+    #   > Validate service, DNS, directory, and Kerberos discovery.
+    #   > Handler: _adsvr_validate
+    #
+    # ! Show AD server status
+    #   > Show the configured Samba role, realm, and service state.
+    #   > Handler: _adsvr_status
     sgnd_menu_register_group "$SGND_AD_SERVER_MODULE_ID" "$SGND_AD_SERVER_MODULE_NAME" "$SGND_AD_SERVER_MODULE_DESC" 0 1 200
     sgnd_menu_register_item "adsvr-provision" "$SGND_AD_SERVER_MODULE_ID" "Provision domain" "_adsvr_provision_domain" "Run the complete Active Directory server provisioning sequence" 0 15 1 0
     sgnd_menu_register_item "adsvr-install" "$SGND_AD_SERVER_MODULE_ID" "Install AD server prerequisites" "_adsvr_step_install_packages" "Install Samba AD/DC, Kerberos, and DNS utilities" 0 15 1 1

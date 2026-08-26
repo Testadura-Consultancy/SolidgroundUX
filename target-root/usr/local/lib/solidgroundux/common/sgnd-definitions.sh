@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : 132ca949abd2ff82f5c66ba6b2642735225720036d3cbc5e3f0fc2eed660a722
+#   Build       : 2623702
+#   Checksum    : 2ca042acecfe554657d019cabf04d5a541473d21a2175a2d90aab7ac38a4861e
 #   Source      : sgnd-definitions.sh
 #   Type        : library
 #   Group       : Bootstrap
@@ -25,7 +25,7 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
-# --- Library guard -------------------------------------------------------------------
+# - Library guard -------------------------------------------------------------------
     _sgnd_lib_guard() {
         local lib_base
         local guard
@@ -48,10 +48,10 @@ set -uo pipefail
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
-# --- Framework identity --------------------------------------------------------------
+# - Framework identity --------------------------------------------------------------
     SGND_PRODUCT="SolidGroundUX"
     SGND_VERSION="2.0"
-    SGND_BUILD="2623415"
+    SGND_BUILD="2623702"
     SGND_COMPANY="Testadura Consultancy"
     SGND_COPYRIGHT="© 2025 - 2026 Testadura Consultancy"
     SGND_LICENSE="Testadura Non-Commercial License (TD-NC) v1.1."
@@ -59,7 +59,7 @@ set -uo pipefail
     SGND_RELEASE_URL="https://github.com/Testadura-Mark/SolidGroundUX/releases"    
     SGND_ONLINE_DOC="https://testadura-consultancy.github.io/SolidGroundUX/"
 
-# --- Framework defaults --------------------------------------------------------------
+# - Framework defaults --------------------------------------------------------------
     SGND_DEFAULT_FRAMEWORK_ROOT="/"
 
     SGND_DEFAULT_LOG_MAX_BYTES=$((25 * 1024 * 1024))
@@ -82,7 +82,7 @@ set -uo pipefail
     SGND_DEFAULT_CONSOLE_WIDTH=80
     SGND_DEFAULT_MAX_RENDER_WIDTH=140
 
-# --- Framework metadata --------------------------------------------------------------
+# - Framework metadata --------------------------------------------------------------
     SGND_FRAMEWORK_GLOBALS=(
         "system|SGND_SYSCFG_DIR|Framework-wide system configuration directory|"
         "system|SGND_DOCS_DIR|Framework-wide documentation directory|"

@@ -5,7 +5,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : 65218101aec5242de8f8267fa482932ba8bec11bfacf971c00f7b0e24ba297da
+#   Checksum    : 3c4043fa3baf97fe622026ec2690b1d87ad2e80ebb5df4259549ae771738d073
 #   Source      : create-wrappers.sh
 #   Type        : script
 #   Group       : SDK
@@ -14,8 +14,8 @@
 # Description:
 #   Creates one or more command wrappers from SolidGroundUX scripts. Source files are
 #   selected from a source directory using a filename or shell mask. Generated wrappers
-#   resolve SGND_APPLICATION_ROOT at runtime from the active SolidGroundUX configuration,
-#   so the same wrapper works on development, test, and installed systems.
+#   are rendered from the canonical wrapper-template and resolve or create the active
+#   SolidGroundUX bootstrap configuration before launching their configured target.
 #
 #   Wrapper names:
 #     - script.sh       -> sgnd-script
@@ -28,6 +28,7 @@
 # Configuration precedence used by generated wrappers:
 #   1. ~/.config/solidgroundux/solidgroundux.cfg
 #   2. /etc/solidgroundux/solidgroundux.cfg
+#   3. Auto-create the appropriate user/system configuration when neither exists
 #
 # Design principles:
 #   - Generated wrappers remain environment-independent.
@@ -45,47 +46,125 @@
 
 set -uo pipefail
 
-# --- Bootstrap ----------------------------------------------------------------------
+# - Bootstrap ------------------------------------------------------------------------
     # fn$ _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
         # . Purpose
-        #   Resolve the active SolidGroundUX configuration and load executable support.
+        #   Locate, create, and load the SolidGroundUX bootstrap configuration, then
+        #   load the executable runtime support library.
+        #
+        # . Behavior
+        #   - Searches user and system bootstrap configuration locations.
+        #   - Prefers the invoking user's config over the system config.
+        #   - Creates a new bootstrap config when none exists.
+        #   - Prompts for framework/application roots in interactive mode.
+        #   - Applies default values when running non-interactively.
+        #   - Sources the selected bootstrap configuration file.
+        #   - Loads sgnd-exe-common.sh from the resolved framework root.
+        #
+        # . Globals (write)
+        #   SGND_FRAMEWORK_ROOT
+        #   SGND_APPLICATION_ROOT
+        #
+        # . Output
+        #   Writes primitive printf-based messages before the framework UI is available.
+        #
         # . Returns
-        #   0 on success; 126/127 on bootstrap failure.
+        #   0 when the bootstrap configuration and executable common library were loaded.
+        #   126 when configuration or executable common library is unreadable or invalid.
+        #   127 when the configuration directory or file could not be created.
+        #
         # . Usage
         #   _framework_locator || return $?
+        #
+        # Notes:
+        #   - Under sudo, configuration is resolved relative to SUDO_USER instead of /root.
+        #   - This function intentionally uses printf rather than say* helpers because
+        #     the executable common library has not been loaded yet.
     _framework_locator() {
         local cfg_home="$HOME"
-        local cfg_user=""
-        local cfg_sys="/etc/solidgroundux/solidgroundux.cfg"
-        local cfg=""
-        local exe_common=""
 
         if [[ $EUID -eq 0 && -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]]; then
             cfg_home="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
         fi
 
-        cfg_user="$cfg_home/.config/solidgroundux/solidgroundux.cfg"
+        local cfg_user="$cfg_home/.config/solidgroundux/solidgroundux.cfg"
+        local cfg_sys="/etc/solidgroundux/solidgroundux.cfg"
+        local cfg=""
+        local fw_root="/"
+        local app_root="$fw_root"
+        local reply
 
         if [[ -r "$cfg_user" ]]; then
             cfg="$cfg_user"
+
         elif [[ -r "$cfg_sys" ]]; then
             cfg="$cfg_sys"
+
         else
-            printf 'FATAL: No SolidGroundUX configuration found.\n' >&2
+            if [[ $EUID -eq 0 ]]; then
+                cfg="$cfg_sys"
+            else
+                cfg="$cfg_user"
+            fi
+
+            if [[ -t 0 && -t 1 ]]; then
+                printf '%s\n' "SolidGroundUX bootstrap configuration"
+                printf '%s\n' "No configuration file found."
+                printf '%s\n' "Creating: $cfg"
+
+                printf "SGND_FRAMEWORK_ROOT [/] : " > /dev/tty
+                read -r reply < /dev/tty
+                fw_root="${reply:-/}"
+
+                printf "SGND_APPLICATION_ROOT [/] : " > /dev/tty
+                read -r reply < /dev/tty
+                app_root="${reply:-$fw_root}"
+            fi
+
+            case "$fw_root" in
+                /*) ;;
+                *) printf '%s\n' "ERR: SGND_FRAMEWORK_ROOT must be an absolute path"; return 126 ;;
+            esac
+
+            case "$app_root" in
+                /*) ;;
+                *) printf '%s\n' "ERR: SGND_APPLICATION_ROOT must be an absolute path"; return 126 ;;
+            esac
+
+            mkdir -p "$(dirname "$cfg")" || return 127
+
+            {
+                printf '%s\n' "# SolidGroundUX bootstrap configuration"
+                printf '%s\n' "# Auto-generated on first run"
+                printf '\n'
+                printf 'SGND_FRAMEWORK_ROOT=%q\n' "$fw_root"
+                printf 'SGND_APPLICATION_ROOT=%q\n' "$app_root"
+            } > "$cfg" || return 127
+
+            printf '%s\n' "Created bootstrap cfg: $cfg"
+        fi
+
+        if [[ -r "$cfg" ]]; then
+            # shellcheck source=/dev/null
+            source "$cfg"
+
+            : "${SGND_FRAMEWORK_ROOT:=/}"
+            : "${SGND_APPLICATION_ROOT:=$SGND_FRAMEWORK_ROOT}"
+        else
+            printf '%s\n' "Cannot read bootstrap cfg: $cfg"
             return 126
         fi
 
-        # shellcheck source=/dev/null
-        source "$cfg"
+        case "${SGND_LOG_LEVEL:-silent}" in
+            silent|quiet)
+                ;;
+            *)
+                printf '%s\n' "Bootstrap cfg loaded: $cfg, SGND_FRAMEWORK_ROOT=$SGND_FRAMEWORK_ROOT, SGND_APPLICATION_ROOT=$SGND_APPLICATION_ROOT"
+                ;;
+        esac
 
-        : "${SGND_FRAMEWORK_ROOT:=/}"
-        : "${SGND_APPLICATION_ROOT:=$SGND_FRAMEWORK_ROOT}"
-
-        if [[ "$SGND_FRAMEWORK_ROOT" == "/" ]]; then
-            exe_common="/usr/local/lib/solidgroundux/common/sgnd-exe-common.sh"
-        else
-            exe_common="${SGND_FRAMEWORK_ROOT%/}/usr/local/lib/solidgroundux/common/sgnd-exe-common.sh"
-        fi
+        local exe_common=""
+        exe_common="${SGND_FRAMEWORK_ROOT%/}/usr/local/lib/solidgroundux/common/sgnd-exe-common.sh"
 
         [[ -r "$exe_common" ]] || {
             printf 'FATAL: Cannot read executable common library: %s\n' "$exe_common" >&2
@@ -96,13 +175,13 @@ set -uo pipefail
         source "$exe_common"
     }
 
-# --- Script identity ----------------------------------------------------------------
+# - Script identity ------------------------------------------------------------------
     SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
     SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"
     SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
     SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
 
-# --- Framework integration -----------------------------------------------------------
+# - Framework integration ------------------------------------------------------------
     SGND_USING=(
     )
 
@@ -140,7 +219,7 @@ set -uo pipefail
 
     SGND_STATE_SAVE=1
 
-# --- Helpers ------------------------------------------------------------------------
+# - Helpers --------------------------------------------------------------------------
     # fn: _application_path - Resolve a path beneath SGND_APPLICATION_ROOT
         # . Purpose
         #   Convert an application-relative path to an absolute path.
@@ -155,6 +234,23 @@ set -uo pipefail
             printf '/%s\n' "$relative"
         else
             printf '%s/%s\n' "${SGND_APPLICATION_ROOT%/}" "$relative"
+        fi
+    }
+
+    # fn: _wrapper_template_path - Resolve the canonical wrapper template path
+        # . Purpose
+        #   Resolve the wrapper template beneath SGND_FRAMEWORK_ROOT.
+        # . Returns
+        #   0 with the template path on stdout.
+        # . Usage
+        #   template="$(_wrapper_template_path)"
+    _wrapper_template_path() {
+        local relative="usr/local/lib/solidgroundux/templates/wrapper-template"
+
+        if [[ "$SGND_FRAMEWORK_ROOT" == "/" ]]; then
+            printf '/%s\n' "$relative"
+        else
+            printf '%s/%s\n' "${SGND_FRAMEWORK_ROOT%/}" "$relative"
         fi
     }
 
@@ -213,7 +309,12 @@ set -uo pipefail
 
     # fn: _write_wrapper - Create one root-aware wrapper
         # . Purpose
-        #   Generate a wrapper whose target is stored relative to SGND_APPLICATION_ROOT.
+        #   Generate a wrapper from the canonical wrapper template.
+        # . Behavior
+        #   - Resolves the source path relative to SGND_APPLICATION_ROOT.
+        #   - Loads the canonical wrapper template from SGND_FRAMEWORK_ROOT.
+        #   - Replaces the <target> placeholder with the application-relative target.
+        #   - Preserves overwrite and dry-run behavior.
         # . Returns
         #   0 on success; 1 on failure or declined overwrite.
         # . Usage
@@ -222,9 +323,17 @@ set -uo pipefail
         local source="${1:-}"
         local wrapper="${2:-}"
         local relative_target=""
+        local template=""
+        local line=""
 
         relative_target="$(_relative_to_application_root "$source")" || {
             sayfail "Source is outside SGND_APPLICATION_ROOT: $source"
+            return 1
+        }
+
+        template="$(_wrapper_template_path)"
+        [[ -r "$template" ]] || {
+            sayfail "Wrapper template is not readable: $template"
             return 1
         }
 
@@ -236,80 +345,16 @@ set -uo pipefail
         fi
 
         if (( ${FLAG_DRYRUN:-0} )); then
-            sayinfo "[DRYRUN] Would create wrapper: $wrapper -> $relative_target"
+            sayinfo "[DRYRUN] Would create wrapper from $template: $wrapper -> $relative_target"
             return 0
         fi
 
         mkdir -p -- "$(dirname -- "$wrapper")" || return 1
 
-        printf '%s\n' \
-            '#!/usr/bin/env bash' \
-            '# =====================================================================================' \
-            '# SolidGroundUX - Command Wrapper' \
-            '# -------------------------------------------------------------------------------------' \
-            '# Metadata:' \
-            '#   Version     : 1.0' \
-            '#   Build       : -' \
-            '#   Checksum    : -' \
-            "#   Source      : $(basename -- "$wrapper")" \
-            '#   Type        : wrapper' \
-            '#   Group       : Generated' \
-            '#   Purpose     : Launch a configured SolidGroundUX target beneath the application root.' \
-            '#' \
-            '# Description:' \
-            '#   Resolves the active SolidGroundUX configuration, preferring the invoking user'\''s' \
-            '#   configuration over the system configuration, then launches SGND_WRAPPER_TARGET' \
-            '#   beneath SGND_APPLICATION_ROOT.' \
-            '#' \
-            '# Attribution:' \
-            '#   Developers  : Mark Fieten' \
-            '#   Company     : Testadura Consultancy' \
-            '#   Client      : -' \
-            '#   Copyright   : © 2025 - 2026 Testadura Consultancy' \
-            '#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.' \
-            '# =====================================================================================' \
-            '' \
-            'set -uo pipefail' \
-            '' \
-            "SGND_WRAPPER_TARGET=\"$relative_target\"" \
-            '' \
-            'cfg_home="$HOME"' \
-            '' \
-            'if [[ $EUID -eq 0 && -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]]; then' \
-            '    cfg_home="$(getent passwd "$SUDO_USER" | cut -d: -f6)"' \
-            'fi' \
-            '' \
-            'cfg_user="$cfg_home/.config/solidgroundux/solidgroundux.cfg"' \
-            'cfg_sys="/etc/solidgroundux/solidgroundux.cfg"' \
-            'cfg=""' \
-            '' \
-            'if [[ -r "$cfg_user" ]]; then' \
-            '    cfg="$cfg_user"' \
-            'elif [[ -r "$cfg_sys" ]]; then' \
-            '    cfg="$cfg_sys"' \
-            'else' \
-            '    printf '\''FATAL: No SolidGroundUX configuration found.\n'\'' >&2' \
-            '    exit 126' \
-            'fi' \
-            '' \
-            '# shellcheck source=/dev/null' \
-            'source "$cfg"' \
-            '' \
-            ': "${SGND_APPLICATION_ROOT:=/}"' \
-            '' \
-            'if [[ "$SGND_APPLICATION_ROOT" == "/" ]]; then' \
-            '    target="/${SGND_WRAPPER_TARGET#/}"' \
-            'else' \
-            '    target="${SGND_APPLICATION_ROOT%/}/${SGND_WRAPPER_TARGET#/}"' \
-            'fi' \
-            '' \
-            '[[ -f "$target" ]] || {' \
-            '    printf '\''FATAL: Wrapper target not found: %s\n'\'' "$target" >&2' \
-            '    exit 127' \
-            '}' \
-            '' \
-            'exec bash "$target" "$@"' \
-            > "$wrapper" || return 1
+        : > "$wrapper" || return 1
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            printf '%s\n' "${line//<target>/$relative_target}" >> "$wrapper" || return 1
+        done < "$template"
 
         chmod 0755 -- "$wrapper" || return 1
         sayok "Created wrapper: $wrapper -> $relative_target"
@@ -446,7 +491,7 @@ set -uo pipefail
         return 0
     }
 
-# --- Main ---------------------------------------------------------------------------
+# - Main -----------------------------------------------------------------------------
     # fn: main - Run wrapper generation
         # . Purpose
         #   Initialize SolidGroundUX and create selected command wrappers.

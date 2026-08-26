@@ -206,7 +206,6 @@
 <tr><td>_framework_config_view_system</td><td></td><td>View the system-wide SolidGroundUX framework configuration file.</td><td>40-solidgroundux.sh</td></tr>
 <tr><td>_framework_config_view_user</td><td></td><td>View the current user SolidGroundUX framework configuration file.</td><td>40-solidgroundux.sh</td></tr>
 <tr><td>_framework_config_write_value</td><td></td><td>Replace or append one KEY=VALUE assignment in a cfg file.</td><td>40-solidgroundux.sh</td></tr>
-<tr><td>_framework_locator</td><td>Locate and load the SolidGroundUX executable bootstrap context</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_framework_locator</td><td>Locate and load the SolidGroundUX executable bootstrap context</td><td></td><td>tar-it.sh</td></tr>
 <tr><td>_framework_locator</td><td>Locate and load the SolidGroundUX executable bootstrap context</td><td></td><td>untar-it.sh</td></tr>
 <tr><td>_framework_log_follow</td><td></td><td>Follow new entries appended to the active framework logfile.</td><td>40-solidgroundux.sh</td></tr>
@@ -219,6 +218,19 @@
 <tr><td>_framework_smoketest</td><td></td><td></td><td>40-solidgroundux.sh</td></tr>
 <tr><td>_framework_state_apply_ui</td><td></td><td>Reload the active palette and style after framework state changes.</td><td>40-solidgroundux.sh</td></tr>
 <tr><td>_framework_state_validate</td><td></td><td>Verify that the transferable framework-state contract is available.</td><td>40-solidgroundux.sh</td></tr>
+<tr><td>_framework_test_is_ad_client</td><td>Test whether this host has an active realm membership</td><td></td><td>45-solidground-framework-test.sh</td></tr>
+<tr><td>_framework_test_is_ad_server</td><td>Test whether this host is an AD domain controller</td><td></td><td>45-solidground-framework-test.sh</td></tr>
+<tr><td>_framework_test_is_samba_file_server</td><td>Test whether the Samba file service is installed</td><td></td><td>45-solidground-framework-test.sh</td></tr>
+<tr><td>_framework_test_is_storage_configured</td><td>Test whether managed storage is configured</td><td></td><td>45-solidground-framework-test.sh</td></tr>
+<tr><td>_framework_test_load_module</td><td>Ensure a console module is loaded</td><td>Load a discovered console module before invoking one of its handlers.</td><td>45-solidground-framework-test.sh</td></tr>
+<tr><td>_framework_test_result</td><td>Render one PASS, FAIL, or SKIP result</td><td>Render a consistent result line and optional explanatory detail.</td><td>45-solidground-framework-test.sh</td></tr>
+<tr><td>_framework_test_root_path</td><td>Resolve an installed path below SGND_FRAMEWORK_ROOT</td><td></td><td>45-solidground-framework-test.sh</td></tr>
+<tr><td>_framework_test_run_all</td><td>Run the aggregate non-destructive validation suite</td><td>Run framework-installation, console-registration, and applicable module validations as one release/integration verification pass.</td><td>45-solidground-framework-test.sh</td></tr>
+<tr><td>_framework_test_run_validator</td><td>Run one existing module validation handler</td><td>Invoke a module-owned validator when its component is applicable.</td><td>45-solidground-framework-test.sh</td></tr>
+<tr><td>_framework_test_smoketest</td><td>Open the canonical framework smoke tester</td><td></td><td>45-solidground-framework-test.sh</td></tr>
+<tr><td>_framework_test_validate_console</td><td>Validate the current console registration model</td><td>Verify that registered menu rows have unique keys, valid group references, and loaded handlers.</td><td>45-solidground-framework-test.sh</td></tr>
+<tr><td>_framework_test_validate_installation</td><td>Validate the installed framework surface</td><td>Check the core framework libraries, console executable, smoke tester, module directory, and public command wrappers required by an installed system.</td><td>45-solidground-framework-test.sh</td></tr>
+<tr><td>_framework_test_validate_modules</td><td>Run validators owned by applicable modules</td><td>Run existing module validations without duplicating their test logic.</td><td>45-solidground-framework-test.sh</td></tr>
 <tr><td>_get_parameters</td><td>Collect wrapper-generation parameters</td><td>Resolve source selection and wrapper target directory. Returns 0 on success; 1 on cancellation/invalid input. Usage _get_parameters</td><td>create-wrappers.sh</td></tr>
 <tr><td>_get_parameters</td><td>Collect prepare-release parameters</td><td>Collect prepare-release parameters.</td><td>prepare-release.sh</td></tr>
 <tr><td>_get_project_directories</td><td>Resolve project directory layout</td><td>Build the directory list required for the selected project components.</td><td>create-workspace.sh</td></tr>
@@ -275,6 +287,7 @@
 <tr><td>_print_status</td><td>Display current installed and locally available release state</td><td>Display current installed and locally available release state. Returns 0 always. Usage _print_status</td><td>release-manager.sh</td></tr>
 <tr><td>_quote_remote_arg</td><td>Shell-quote one argument for the remote receive command</td><td></td><td>deploy-workspace.sh</td></tr>
 <tr><td>_receive_stream</td><td>Store the incoming tar stream in a temporary archive</td><td>Capture standard input so the archive can be validated before extraction.</td><td>receive-files.sh</td></tr>
+<tr><td>_refresh_storage_paths</td><td>Resolve the configured SolidGroundUX share root</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_relative_to_application_root</td><td>Convert an absolute source path to application-relative</td><td>Ensure a selected source belongs to SGND_APPLICATION_ROOT and return its normalized path relative to that root. Returns 0 when source is beneath the application root; 1 otherwise. Usage rel=&quot;$(_relative_to_application_root &quot;$file&quot;)&quot;</td><td>create-wrappers.sh</td></tr>
 <tr><td>_release_base_from_archive</td><td>Derive a release base name from a tar.gz archive path</td><td>Derive a release base name from a tar.gz archive path. Returns 0 for a tar.gz archive; 1 otherwise. Usage base=&quot;$(_release_base_from_archive &quot;$archive&quot;)&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_release_clear</td><td>Clear the active terminal reliably</td><td></td><td>release-manager.sh</td></tr>
@@ -419,6 +432,8 @@
 <tr><td>_sgnd_lib_guard</td><td></td><td>Ensure the module is sourced and initialized only once.</td><td>20-active-directory-server.sh</td></tr>
 <tr><td>_sgnd_lib_guard</td><td></td><td>Ensure the module is sourced and initialized only once.</td><td>25-active-directory-client.sh</td></tr>
 <tr><td>_sgnd_lib_guard</td><td></td><td>Ensure the module is sourced and initialized only once.</td><td>30-samba-file-server.sh</td></tr>
+<tr><td>_sgnd_lib_guard</td><td>Ensure the module is sourced only once</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_sgnd_lib_guard</td><td>Ensure the module is sourced only once</td><td></td><td>60-sqlserver.sh</td></tr>
 <tr><td>_sgnd_lib_guard</td><td></td><td>Ensure the module is sourced and initialized only once.</td><td>90-development.sh</td></tr>
 <tr><td>_sgnd_logfile</td><td>Logfile</td><td>Resolve the active SolidGroundUX log file path.</td><td>ui-say.sh</td></tr>
 <tr><td>_sgnd_menu_execute_item</td><td>Execute a registered menu item through an optional host executor</td><td>Execute a registered menu item while allowing a host application to wrap handler execution with application-specific behavior such as result tracking.</td><td>sgnd-menu.sh</td></tr>
@@ -443,6 +458,7 @@
 <tr><td>_show_access</td><td>Display current share paths and named group ACLs</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_smb_manage_shares</td><td></td><td>Open the interactive manager for creating, listing, and removing managed Samba shares.</td><td>30-samba-file-server.sh</td></tr>
 <tr><td>_smb_prepare_file_server</td><td></td><td>Run the tracked Samba file-server preparation sequence.</td><td>30-samba-file-server.sh</td></tr>
+<tr><td>_smb_refresh_storage_paths</td><td></td><td>Resolve the persisted SolidGroundUX storage root and derived Samba share root.</td><td>30-samba-file-server.sh</td></tr>
 <tr><td>_smb_reload</td><td></td><td>Validate smb.conf and reload Samba configuration.</td><td>30-samba-file-server.sh</td></tr>
 <tr><td>_smb_require_storage</td><td></td><td>Verify that the managed storage and share-root paths are available.</td><td>30-samba-file-server.sh</td></tr>
 <tr><td>_smb_share_exists</td><td></td><td>Test whether a named Samba share already exists in the active configuration.</td><td>30-samba-file-server.sh</td></tr>
@@ -450,7 +466,7 @@
 <tr><td>_smb_step_install_packages</td><td></td><td>Install Samba file-server packages and supporting ACL tools.</td><td>30-samba-file-server.sh</td></tr>
 <tr><td>_smb_step_prepare_share_root</td><td></td><td>Create and apply canonical ownership and permissions to the managed Samba share root.</td><td>30-samba-file-server.sh</td></tr>
 <tr><td>_smb_step_start_service</td><td></td><td>Enable, start, and validate the Samba file-server service.</td><td>30-samba-file-server.sh</td></tr>
-<tr><td>_smb_step_validate_storage</td><td></td><td>Validate that the canonical SolidGroundUX storage root is ready for file sharing.</td><td>30-samba-file-server.sh</td></tr>
+<tr><td>_smb_step_validate_storage</td><td></td><td>Validate that the configured SolidGroundUX storage root is ready for file sharing.</td><td>30-samba-file-server.sh</td></tr>
 <tr><td>_smb_validate</td><td></td><td>Run active Samba file-server validation checks for packages, service, configuration, storage, and managed shares.</td><td>30-samba-file-server.sh</td></tr>
 <tr><td>_smb_validate_share_name</td><td></td><td>Validate a managed Samba share name.</td><td>30-samba-file-server.sh</td></tr>
 <tr><td>_smoketest_read_choice</td><td>Read one smoke-test choice with auto-exit timeout</td><td>Preserve the smoke test&#x27;s 30-second inactivity timeout while the menu itself is rendered and defined through the public sgnd-menu API.</td><td>framework-smoketest.sh</td></tr>
@@ -461,16 +477,35 @@
 <tr><td>_source_corelibs</td><td>Source required core libraries</td><td>Load the fixed set of framework core libraries in bootstrap order.</td><td>sgnd-bootstrap.sh</td></tr>
 <tr><td>_source_signature</td><td>Calculate a metadata signature for the source tree</td><td>Detect whether the repository tree has changed since the last successful sync without reading and hashing the complete contents of every file.</td><td>sync-repository.sh</td></tr>
 <tr><td>_source_usinglibs</td><td>Source declared optional libraries</td><td>Load script-declared framework libraries listed in SGND_USING.</td><td>sgnd-bootstrap.sh</td></tr>
-<tr><td>_sqlserver_prepare</td><td>Run the tracked SQL Server preparation sequence</td><td></td><td>60-sqlserver.sh</td></tr>
-<tr><td>_sqlserver_status</td><td>Show Microsoft SQL Server role status</td><td></td><td>60-sqlserver.sh</td></tr>
-<tr><td>_sqlserver_step_configure</td><td>Run the canonical SQL Server setup workflow</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_apply_conf</td><td>Set one mssql-conf value</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_conf_get</td><td>Read one mssql-conf setting</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_configure_firewall</td><td>Allow the configured SQL Server port through UFW</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_configure_memory</td><td>Configure the SQL Server memory limit</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_configure_network</td><td>Configure the SQL Server TCP port</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_configure_storage</td><td>Configure SQL data, log, and backup directories</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_engine_installed</td><td>Test whether SQL Server is installed</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_ensure_directory</td><td>Create and prepare a SQL Server storage directory</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_manage_service</td><td>Manage SQL Server service state and startup behavior</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_prepare</td><td>Run the tracked SQL Server preparation workflow</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_restart_if_active</td><td>Restart SQL Server when it is currently active</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_select_directory</td><td>Select or enter a SQL Server storage directory</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_status</td><td>Show SQL Server status and effective configuration</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_step_configure</td><td>Run the canonical mssql-conf setup workflow</td><td></td><td>60-sqlserver.sh</td></tr>
 <tr><td>_sqlserver_step_install_engine</td><td>Install Microsoft SQL Server 2025</td><td></td><td>60-sqlserver.sh</td></tr>
-<tr><td>_sqlserver_step_install_tools</td><td>Install sqlcmd and bcp</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_step_install_tools</td><td>Install sqlcmd and bcp tools</td><td></td><td>60-sqlserver.sh</td></tr>
 <tr><td>_sqlserver_step_repository</td><td>Configure Microsoft SQL Server repositories</td><td></td><td>60-sqlserver.sh</td></tr>
-<tr><td>_sqlserver_validate</td><td>Validate the Microsoft SQL Server role</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_storage_root</td><td>Resolve the configured SolidGroundUX storage root</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_tcp_port</td><td>Return the effective SQL Server TCP port</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_tools_installed</td><td>Test whether sqlcmd tools are installed</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_ubuntu_version</td><td>Return the supported Ubuntu version</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_validate</td><td>Validate the SQL Server role</td><td></td><td>60-sqlserver.sh</td></tr>
+<tr><td>_sqlserver_validate_port</td><td>Validate a TCP port number</td><td></td><td>60-sqlserver.sh</td></tr>
 <tr><td>_static_ip_conflict_check</td><td>Static ip conflict check</td><td>Static ip conflict check.</td><td>set-identity.sh</td></tr>
+<tr><td>_storage_get_mountpoint</td><td></td><td>Resolve the configured SolidGroundUX storage mount point.</td><td>15-storage.sh</td></tr>
+<tr><td>_storage_get_share_root</td><td></td><td>Return the managed Samba share root beneath the configured storage mount point.</td><td>15-storage.sh</td></tr>
 <tr><td>_storage_list_unused_disks</td><td></td><td>List whole disks that do not currently contain mounted filesystems.</td><td>15-storage.sh</td></tr>
 <tr><td>_storage_partition_path</td><td></td><td>Return the first partition belonging to a disk after partitioning.</td><td>15-storage.sh</td></tr>
+<tr><td>_storage_save_mountpoint</td><td></td><td>Persist the configured SolidGroundUX storage mount point.</td><td>15-storage.sh</td></tr>
 <tr><td>_storage_select_access_target</td><td></td><td>Ask which managed storage directory should be changed.</td><td>15-storage.sh</td></tr>
 <tr><td>_storage_validate_account</td><td></td><td>Validate that a local or directory-backed user account can be resolved.</td><td>15-storage.sh</td></tr>
 <tr><td>_storage_validate_device</td><td></td><td>Validate that a selected path is an unused whole block device.</td><td>15-storage.sh</td></tr>
@@ -500,12 +535,30 @@
 <tr><td>_validate_target</td><td>Validate and prepare the destination root</td><td>Ensure the destination is an absolute directory path suitable for extraction.</td><td>receive-files.sh</td></tr>
 <tr><td>_verify_release_set</td><td>Verify checksums and path safety for a complete release set</td><td>Verify checksums and path safety for a complete release set. Returns 0 when the release set is valid; 1 otherwise. Usage _verify_release_set &quot;$archive&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_verify_sha256_sidecar</td><td>Verify one release artifact against its SHA256 sidecar</td><td>Verify one release artifact against its SHA256 sidecar. Returns 0 when valid; 1 on missing or mismatched data. Usage _verify_sha256_sidecar &quot;$file&quot; &quot;$file.sha256&quot;</td><td>release-manager.sh</td></tr>
-<tr><td>_web_server_list_sites</td><td>List enabled Nginx sites</td><td></td><td>50-web-server.sh</td></tr>
-<tr><td>_web_server_prepare</td><td>Run the tracked web-server preparation sequence</td><td></td><td>50-web-server.sh</td></tr>
-<tr><td>_web_server_status</td><td>Show Nginx role status</td><td></td><td>50-web-server.sh</td></tr>
-<tr><td>_web_server_step_install_packages</td><td>Install Nginx</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_available_sites</td><td>List available Nginx sites</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_configure_firewall</td><td>Allow HTTP and HTTPS through UFW</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_configure_root</td><td>Select or create the web content root</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_create_site</td><td>Create and enable an Nginx site</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_disable_site</td><td>Disable an enabled Nginx site</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_enable_site</td><td>Enable an available Nginx site</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_enabled_sites</td><td>List enabled Nginx sites</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_ensure_directory</td><td>Create and prepare a web content directory when needed</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_list_sites</td><td>List Nginx sites and document roots</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_manage_service</td><td>Manage nginx.service state and startup behavior</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_manage_sites</td><td>Open the site-management workflow</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_package_installed</td><td>Test whether Nginx is installed</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_prepare</td><td>Run the tracked web-server preparation workflow</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_publish_site</td><td>Publish a directory into a site document root</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_reload</td><td>Validate and reload Nginx</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_remove_site</td><td>Remove an Nginx site configuration</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_root</td><td>Resolve the configured web content root</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_save_root</td><td>Persist the configured web content root</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_status</td><td>Show web-server status and configuration</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_step_install_packages</td><td>Install Nginx and publishing prerequisites</td><td></td><td>50-web-server.sh</td></tr>
 <tr><td>_web_server_step_start</td><td>Enable and start Nginx</td><td></td><td>50-web-server.sh</td></tr>
-<tr><td>_web_server_validate</td><td>Validate the Nginx web-server role</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_storage_root</td><td>Resolve the configured SolidGroundUX storage root</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_validate</td><td>Validate the web-server role</td><td></td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_validate_site_name</td><td>Validate an Nginx site name</td><td></td><td>50-web-server.sh</td></tr>
 <tr><td>_wrapper_name_for_script</td><td>Return the canonical wrapper command name</td><td>Prefix script basenames with sgnd- unless already present. Returns 0 always. Usage name=&quot;$(_wrapper_name_for_script &quot;$file&quot;)&quot;</td><td>create-wrappers.sh</td></tr>
 <tr><td>_write_wrapper</td><td>Create one root-aware wrapper</td><td>Generate a wrapper whose target is stored relative to SGND_APPLICATION_ROOT. Returns 0 on success; 1 on failure or declined overwrite. Usage _write_wrapper &quot;$source&quot; &quot;$wrapper&quot;</td><td>create-wrappers.sh</td></tr>
 <tr><td>add_module_node</td><td>Add module node</td><td>Add module node for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>

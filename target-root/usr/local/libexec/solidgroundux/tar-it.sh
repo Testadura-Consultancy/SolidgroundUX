@@ -25,7 +25,7 @@
 # =====================================================================================
 set -uo pipefail
 
-# --- Bootstrap ----------------------------------------------------------------------
+# - Bootstrap ----------------------------------------------------------------------
     # fn: _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
         # . Returns
         #   0 when the executable common library was loaded.
@@ -105,7 +105,7 @@ set -uo pipefail
         source "$exe_common"
     }
 
-# --- Script metadata ----------------------------------------------------------------
+# - Script metadata ----------------------------------------------------------------
     SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
     SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"
     SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
@@ -119,7 +119,7 @@ set -uo pipefail
     : "${SGND_SCRIPT_COPYRIGHT:=© 2025 - 2026 Testadura Consultancy}"
     : "${SGND_SCRIPT_LICENSE:=Testadura Non-Commercial License (TD-NC) v1.1.}"
 
-# --- Framework integration -----------------------------------------------------------
+# - Framework integration -----------------------------------------------------------
     SGND_USING=()
 
     SGND_ARGS_SPEC=(
@@ -149,7 +149,7 @@ set -uo pipefail
     SGND_ON_EXIT_HANDLERS=()
     SGND_STATE_SAVE=0
 
-# --- Local declarations --------------------------------------------------------------
+# - Local declarations --------------------------------------------------------------
     ARCHIVE_SOURCE_ROOT="${ARCHIVE_SOURCE_ROOT:-}"
     ARCHIVE_DIRECTORY="${ARCHIVE_DIRECTORY:-}"
     ARCHIVE_NAME="${ARCHIVE_NAME:-}"
@@ -158,7 +158,7 @@ set -uo pipefail
     CLI_ARCHIVE_DIRECTORY=0
     CLI_ARCHIVE_NAME=0
 
-# --- Helpers -------------------------------------------------------------------------
+# - Helpers -------------------------------------------------------------------------
     # fn: _scan_cli_args - Record which archive settings were supplied explicitly
         # . Arguments
         #   $@  Original command-line arguments.
@@ -338,7 +338,7 @@ set -uo pipefail
         return 0
     }
 
-# --- Main ----------------------------------------------------------------------------
+# - Main ----------------------------------------------------------------------------
     # fn: main - Run the archive workflow
         # . Arguments
         #   $@  Framework and script-specific arguments.
@@ -351,7 +351,7 @@ set -uo pipefail
     main() {
         _scan_cli_args "$@"
         _framework_locator || exit $?
-        sgnd_exe_start --state -- "$@"
+        sgnd_exe_start --state --no-clear -- "$@"
 
         _getparameters || return $?
         _create_archive

@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : 95cdd8178a05e344dbd603f541b9f4bc00d0b718af17d4f62c32890afedc107f
+#   Checksum    : ea1a2963b6744a6ccf332f2f32217b9aab82ea57844b4780397855545592f24d
 #   Source      : sgnd-menu.sh
 #   Group       : SolidGround Console
 #   Type        : library
@@ -44,7 +44,7 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
-# --- Library guard ------------------------------------------------------------------
+# - Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard - Library guard
         # . Purpose
         #   Prevent direct execution of a source-only module and avoid repeated initialization.
@@ -82,7 +82,7 @@ set -uo pipefail
     unset -f _sgnd_lib_guard
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
-# --- Toggle formatting --------------------------------------------------------------
+# - Toggle formatting --------------------------------------------------------------
     # fn: _sgnd_console_toggleword - Render a toggle word with an emphasized hotkey
         # . Purpose
         #   Format one toggle label using the enabled/disabled color and underline its hotkey.
@@ -201,7 +201,7 @@ set -uo pipefail
             printf '%sOff%s' "$(sgnd_sgr "$offclr")" "$RESET"
         fi
     }
-# --- Toggle labels ------------------------------------------------------------------
+# - Toggle labels ------------------------------------------------------------------
     # fn: _sgnd_console_label_clearonrender - Build the clear-on-render label
         # . Output
         #   Writes the current Clear screen toggle label to stdout.
@@ -267,7 +267,7 @@ set -uo pipefail
         : "${SGND_LOGFILE_ENABLED:=0}"
         printf 'Logfile: %s' "$(_sgnd_console_onoff "$SGND_LOGFILE_ENABLED")"
     }
-# --- Toggle actions -----------------------------------------------------------------
+# - Toggle actions -----------------------------------------------------------------
     # fn: _sgnd_console_toggle_clearonrender - Toggle clear-on-render
         # . Purpose
         #   Switch SGND_CLEAR_ONRENDER between enabled and disabled for the current session.
@@ -366,7 +366,7 @@ set -uo pipefail
     }
 
 
-# --- Session actions ----------------------------------------------------------------
+# - Session actions ----------------------------------------------------------------
     # fn: _sgnd_console_set_lines_per_page - Set lines per page
         # . Purpose
         #   Prompt for and apply the number of menu lines available per page.
@@ -455,7 +455,7 @@ set -uo pipefail
 
         return 0
     }
-# --- Menu model cache ---------------------------------------------------------------
+# - Menu model cache ---------------------------------------------------------------
     # fn: _sgnd_console_refresh_model_cache - Materialize menu datatables into indexed caches
         # . Purpose
         #   Convert registered group/item rows into direct-index arrays used by layout and rendering.
@@ -552,7 +552,7 @@ set -uo pipefail
         return 0
     }
 
-# --- Menu model indexes -------------------------------------------------------------
+# - Menu model indexes -------------------------------------------------------------
     # fn: _sgnd_console_collect_group_render_indexes - Build ordered group indexes for the active source
         # . Purpose
         #   Build the cached group order used by the renderer for the currently active module source.
@@ -842,7 +842,7 @@ set -uo pipefail
 
         return 1
     }
-# --- Menu layout measurement --------------------------------------------------------
+# - Menu layout measurement --------------------------------------------------------
     # fn: _sgnd_console_body_height - Return the usable menu-body height
         # . Purpose
         #   Determine how many rendered lines may be allocated to one menu page.
@@ -986,7 +986,7 @@ set -uo pipefail
         SGND_CONSOLE_LABEL_WIDTH_CACHE_SIGNATURE="$cache_signature"
         printf '%s\n' "$max_width"
     }
-# --- Menu pagination ----------------------------------------------------------------
+# - Menu pagination ----------------------------------------------------------------
     # fn: _sgnd_console_build_pages - Build cached menu page boundaries
         # . Purpose
         #   Partition visible menu rows into pages that fit the current terminal and configured line limit.
@@ -1111,7 +1111,7 @@ set -uo pipefail
         SGND_PAGE_GROUP_COUNTS+=("$(( ${#SGND_PAGE_GROUPS[@]} - page_group_offset ))")
         SGND_CONSOLE_LAYOUT_CACHE_KEY="$layout_cache_key"
     }
-# --- Menu rendering -----------------------------------------------------------------
+# - Menu rendering -----------------------------------------------------------------
     # fn: _sgnd_console_render_menu - Render the active menu page
         # . Purpose
         #   Render the title, page indicator, paged module rows, builtin groups, and toggle bar.
@@ -1701,7 +1701,7 @@ set -uo pipefail
         printf '%*s%s\n' "$legend_pad" "" "$legend_text"
     }
 
-# --- Public API ----------------------------------------------------------------------
+# - Public API ----------------------------------------------------------------------
     # fn: sgnd_menu_create - Initialize a reusable menu model
         # . Purpose
         #   Initialize or reset the menu model used by the caller.
@@ -1971,7 +1971,7 @@ set -uo pipefail
         #   sgnd_console_register_item "status" "system" "Show status" "show_status" "Display current status" 0 15 1 0
     sgnd_console_register_item() { sgnd_menu_register_item "$@"; }
 
-# --- Menu input and dispatch --------------------------------------------------------
+# - Menu input and dispatch --------------------------------------------------------
 
     # fn: sgnd_menu_read_choice - Read one menu choice or navigation key
         # . Purpose

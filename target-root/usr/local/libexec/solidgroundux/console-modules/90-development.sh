@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : ba35c14b4e0e6320c6a1ae237f63c20ba30abc55c6f405b90c2f30840824f4d1
+#   Build       : 2623514
+#   Checksum    : 4240028cbf948ca5e24e56058a84530ee7672123127ba1a342d6606885859e4a
 #   Source      : 90-development.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -136,6 +136,40 @@ set -uo pipefail
 
 
 # - Console registration ----------------------------------------------------------
+    # Provides SolidGroundUX development and release tooling from the management
+    # console. Each menu item is a thin wrapper around the corresponding standalone
+    # public command so the same workflows remain available outside the console.
+    #
+    # . Menu items
+    # ! Create workspace
+    #   > Create a template workspace with target-root structure.
+    #   > Handler: _dev_create_workspace
+    #   > Command: sgnd-create-workspace
+    #
+    # ! Deploy workspace
+    #   > Select and deploy workspace files locally or remotely.
+    #   > Handler: _dev_deploy_workspace
+    #   > Command: sgnd-deploy-workspace
+    #
+    # ! Prepare release
+    #   > Create a release archive with checksums and manifests.
+    #   > Handler: _dev_prepare_release
+    #   > Command: sgnd-prepare-release
+    #
+    # ! Create wrappers
+    #   > Create root-aware bin or sbin wrappers for selected scripts.
+    #   > Handler: _dev_create_wrappers
+    #   > Command: sgnd-create-wrappers
+    #
+    # ! Generate documentation
+    #   > Generate SolidGroundUX source documentation.
+    #   > Handler: _dev_generate_docs
+    #   > Command: sgnd-generate-docs
+    #
+    # ! Mirror repository
+    #   > Mirror the SolidGroundUX repository with a remote source.
+    #   > Handler: _sync_repository
+    #   > Command: sgnd-sync-repository
     sgnd_menu_register_group \
         "$SGND_DEVELOPMENT_MODULE_ID" \
         "$SGND_DEVELOPMENT_MODULE_NAME" \

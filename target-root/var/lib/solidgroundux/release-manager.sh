@@ -47,6 +47,9 @@ set -uo pipefail
 # --- Defaults -----------------------------------------------------------------------
     SGND_RELEASE_PRODUCT="SolidGroundUX"
     SGND_RELEASE_GITHUB_REPO="Testadura-Mark/SolidGroundUX"
+    SGND_RELEASE_LINE="2.0"
+    SGND_RELEASE_API_URL="https://api.github.com/repos/Testadura-Mark/SolidGroundUX/releases/latest"
+    SGND_RELEASE_CONFIG_FILE=""
 
     FLAG_AUTO=0
     FLAG_DRYRUN=0
@@ -59,7 +62,7 @@ set -uo pipefail
     VAL_STATE_ROOT=""
     VAL_RELEASES_DIR=""
     VAL_ARCHIVE_ROOT=""
-    VAL_GITHUB_REPO="$SGND_RELEASE_GITHUB_REPO"
+    VAL_GITHUB_REPO=""
 
     SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
     SCRIPT_DIR="$(cd -- "$(dirname -- "$SCRIPT_FILE")" && pwd)"
@@ -251,7 +254,7 @@ set -uo pipefail
         # Returns:
         #   0 always.
         # Usage:
-        #   _release_labeled_value "Installed version" "$current"
+        #   _release_labeled_value "Installed release" "$current"
     _release_labeled_value() {
         local label="${1:-}"
         local value="${2:-}"
@@ -337,9 +340,9 @@ set -uo pipefail
             "  $SCRIPT_NAME [action] [options]" \
             '' \
             'Actions:' \
-            '  --check                Ask GitHub for the latest release and report status' \
-            '  --download             Download the latest GitHub release when not already local/installed' \
-            '  --update               Check, download if required, and install the latest GitHub release' \
+            '  --check                Check the configured GitHub Release for the latest build' \
+            '  --download             Download the latest build when not already local/installed' \
+            '  --update               Check, download if required, and install the latest build' \
             '  --install              Install the newest pending local release' \
             '  --rollback             Install the previous archived release, or --release NAME' \
             '  --remove               Remove the active SolidGroundUX installation' \
@@ -347,7 +350,7 @@ set -uo pipefail
             'Options:' \
             '  --release NAME         Operate on a specific release base or version' \
             '  --auto                 Do not ask for confirmations or selections' \
-            '  --repo OWNER/REPO      GitHub repository used for latest-release discovery' \
+            '  --repo OWNER/REPO      Override configured GitHub repository' \
             '  --source URL|FILE      Direct release ZIP source instead of GitHub asset discovery' \
             '  --target-root PATH     Installation root (default: /)' \
             '  --state-root PATH      Release-manager state root' \
@@ -356,6 +359,10 @@ set -uo pipefail
             '  --dryrun               Show filesystem actions without changing anything' \
             '  --verbose              Show informational diagnostics' \
             '  --help                 Show this help' \
+            '' \
+            'Persistent config:' \
+            '  /var/lib/solidgroundux/release-manager.cfg' \
+            '                        Release source and release-line settings' \
             '' \
             'Filesystem state:' \
             '  releases/              Downloaded or rolled-back release sets available for install' \
@@ -478,6 +485,7 @@ set -uo pipefail
         : "${VAL_RELEASES_DIR:=${VAL_STATE_ROOT%/}/releases}"
         : "${VAL_ARCHIVE_ROOT:=${VAL_STATE_ROOT%/}/archive}"
         CANONICAL_MANAGER_PATH="${VAL_STATE_ROOT%/}/release-manager.sh"
+        SGND_RELEASE_CONFIG_FILE="${VAL_STATE_ROOT%/}/release-manager.cfg"
     }
 
     # fn: _require_command - Verify that a required system command is available
@@ -495,6 +503,56 @@ set -uo pipefail
         }
     }
 
+# --- Standalone configuration --------------------------------------------------------
+    # fn: _load_release_manager_config - Load persistent standalone release-manager settings
+        # . Purpose
+        #   Load release-source settings from the release-manager config file without
+        #   depending on SolidGroundUX framework configuration libraries.
+        # . Returns
+        #   0 always; missing config is not an error.
+        # . Usage
+        #   _load_release_manager_config
+    _load_release_manager_config() {
+        local cfg="${SGND_RELEASE_CONFIG_FILE:-}"
+        if [[ -z "$cfg" || ! -r "$cfg" ]]; then
+            VAL_GITHUB_REPO="${VAL_GITHUB_REPO:-$SGND_RELEASE_GITHUB_REPO}"
+            return 0
+        fi
+
+        # shellcheck disable=SC1090
+        source "$cfg"
+        : "${SGND_RELEASE_GITHUB_REPO:=Testadura-Mark/SolidGroundUX}"
+        : "${SGND_RELEASE_LINE:=2.0}"
+        : "${SGND_RELEASE_API_URL:=https://api.github.com/repos/${SGND_RELEASE_GITHUB_REPO}/releases/latest}"
+        VAL_GITHUB_REPO="${VAL_GITHUB_REPO:-$SGND_RELEASE_GITHUB_REPO}"
+        return 0
+    }
+
+    # fn: _ensure_release_manager_config - Create the persistent standalone config when absent
+        # . Purpose
+        #   Seed release-manager.cfg with the current release source and release line.
+        # . Returns
+        #   0 on success; non-zero on write failure.
+        # . Usage
+        #   _ensure_release_manager_config
+    _ensure_release_manager_config() {
+        local cfg="${SGND_RELEASE_CONFIG_FILE:?release manager config path not initialized}"
+        [[ -e "$cfg" ]] && return 0
+
+        if (( FLAG_DRYRUN )); then
+            printf '[DRYRUN] create %q\n' "$cfg"
+            return 0
+        fi
+
+        {
+            printf '%s\n' '# SolidGroundUX Release Manager configuration'
+            printf 'SGND_RELEASE_LINE=%q\n' "$SGND_RELEASE_LINE"
+            printf 'SGND_RELEASE_API_URL=%q\n' "$SGND_RELEASE_API_URL"
+        } > "$cfg" || return 1
+
+        chmod 0644 "$cfg"
+    }
+
 # --- Bootstrap housekeeping ----------------------------------------------------------
     # fn: _ensure_manager_directories - Ensure standalone release-manager directories exist
         # . Purpose
@@ -506,6 +564,38 @@ set -uo pipefail
         #   _ensure_manager_directories
     _ensure_manager_directories() {
         _release_run mkdir -p -- "$VAL_STATE_ROOT" "$VAL_RELEASES_DIR" "$VAL_ARCHIVE_ROOT"
+    }
+
+    # fn: _install_release_manager_wrapper - Install the public sgnd-release-manager command
+        # . Purpose
+        #   Create the canonical public wrapper in /usr/local/bin pointing at the standalone
+        #   release manager stored under /var/lib/solidgroundux.
+        # . Returns
+        #   0 on success; non-zero on filesystem failure.
+        # . Usage
+        #   _install_release_manager_wrapper
+    _install_release_manager_wrapper() {
+        local wrapper=""
+        local wrapper_dir=""
+
+        if [[ "$VAL_TARGET_ROOT" == "/" ]]; then
+            wrapper="/usr/local/bin/sgnd-release-manager"
+        else
+            wrapper="${VAL_TARGET_ROOT%/}/usr/local/bin/sgnd-release-manager"
+        fi
+        wrapper_dir="$(dirname -- "$wrapper")"
+
+        _release_run mkdir -p -- "$wrapper_dir" || return 1
+        if (( FLAG_DRYRUN )); then
+            printf '[DRYRUN] write wrapper %q -> %q\n' "$wrapper" "$CANONICAL_MANAGER_PATH"
+            return 0
+        fi
+
+        cat > "$wrapper" <<EOF
+#!/usr/bin/env bash
+exec "$CANONICAL_MANAGER_PATH" "\$@"
+EOF
+        chmod 0755 "$wrapper"
     }
 
     # fn: _install_release_manager - Install the standalone manager at its canonical path
@@ -520,13 +610,14 @@ set -uo pipefail
     _install_release_manager() {
         [[ -n "$CANONICAL_MANAGER_PATH" ]] || return 1
 
-        if [[ "$SCRIPT_FILE" == "$CANONICAL_MANAGER_PATH" ]]; then
-            return 0
+        if [[ "$SCRIPT_FILE" != "$CANONICAL_MANAGER_PATH" ]]; then
+            _release_run cp -f -- "$SCRIPT_FILE" "$CANONICAL_MANAGER_PATH" || return 1
+            _release_run chmod 0755 -- "$CANONICAL_MANAGER_PATH" || return 1
+            _release_info "Installed release manager: $CANONICAL_MANAGER_PATH"
         fi
 
-        _release_run cp -f -- "$SCRIPT_FILE" "$CANONICAL_MANAGER_PATH" || return 1
-        _release_run chmod 0755 -- "$CANONICAL_MANAGER_PATH" || return 1
-        _release_info "Installed release manager: $CANONICAL_MANAGER_PATH"
+        _install_release_manager_wrapper || return 1
+        return 0
     }
 
     # fn: _detect_bootstrap_release - Detect one complete release set beside the running script
@@ -711,6 +802,17 @@ set -uo pipefail
         _install_pending_archive "$archive" || return 1
         _install_release_manager || return 1
         _cleanup_bootstrap_files || return 1
+
+        printf '\n'
+        _release_ok "$base has been installed successfully."
+        printf '    %sRun %ssgnd-console%s to manage this system.%s\n' "$_RL_UI_TEXT" "$_RL_UI_VALUE" "$_RL_UI_TEXT" "$_RL_RESET"
+        printf '    %sRun %ssgnd-release-manager%s to manage releases.%s\n' "$_RL_UI_TEXT" "$_RL_UI_VALUE" "$_RL_UI_TEXT" "$_RL_RESET"
+
+        if (( ! FLAG_AUTO )) && [[ -t 0 && -t 1 ]]; then
+            printf '\n%sPress Enter to open the Release Manager...%s' "$_RL_UI_PROMPT" "$_RL_UI_INPUT" > /dev/tty
+            read -r _ < /dev/tty
+            printf '%s' "$_RL_RESET" > /dev/tty
+        fi
         return 0
     }
 
@@ -1425,86 +1527,116 @@ set -uo pipefail
         cp -f -- "$source" "$dest"
     }
 
-    # fn: _github_latest_tag - Resolve the latest GitHub release tag
+    # fn: _github_release_json - Fetch metadata from the configured GitHub Release endpoint
         # . Purpose
-        #   Resolve the latest GitHub release tag.
+        #   Read the configured GitHub Release metadata. The endpoint is persistent while
+        #   individual build ZIP assets can be replaced or added underneath it.
         # . Returns
-        #   0 when a tag is resolved; non-zero otherwise.
+        #   0 and the release JSON on stdout; non-zero when lookup fails.
         # . Usage
-        #   _github_latest_tag "$VAL_GITHUB_REPO"
-    _github_latest_tag() {
-        local repo="${1:?missing repository}"
-        local latest_url="https://github.com/${repo}/releases/latest"
-        local effective=""
-        local json=""
-        local tag=""
+        #   json="$(_github_release_json)"
+    _github_release_json() {
+        local url="${SGND_RELEASE_API_URL:?missing release API URL}"
+
+        # Preserve the legacy --repo override by redirecting it to that repository's
+        # latest Release endpoint for this invocation only.
+        if [[ -n "${VAL_GITHUB_REPO:-}" && "$VAL_GITHUB_REPO" != "$SGND_RELEASE_GITHUB_REPO" ]]; then
+            url="https://api.github.com/repos/${VAL_GITHUB_REPO}/releases/latest"
+        fi
 
         if command -v curl >/dev/null 2>&1; then
-            effective="$(curl -fsSL -o /dev/null -w '%{url_effective}' "$latest_url")" || return 1
-            tag="${effective##*/}"
-            [[ -n "$tag" && "$tag" != "latest" ]] || return 1
-            printf '%s\n' "$tag"
-            return 0
+            curl -fsSL "$url"
+            return $?
         fi
 
         if command -v wget >/dev/null 2>&1; then
-            json="$(wget -qO- "https://api.github.com/repos/${repo}/releases/latest")" || return 1
-            tag="$(printf '%s\n' "$json" | sed -n 's/^[[:space:]]*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
-            [[ -n "$tag" ]] || return 1
-            printf '%s\n' "$tag"
-            return 0
+            wget -qO- "$url"
+            return $?
         fi
 
         _release_fail "Neither curl nor wget is available for GitHub checks"
         return 1
     }
 
-    # fn: _base_from_tag - Convert a GitHub tag into a canonical SolidGroundUX release base
+    # fn: _github_latest_asset - Resolve the newest build ZIP attached to the configured GitHub Release
         # . Purpose
-        #   Convert a GitHub tag into a canonical SolidGroundUX release base.
+        #   Inspect Release assets and select the highest
+        #   SolidGroundUX-<release-line>.<build>-release.zip by version sorting.
         # . Returns
-        #   0 always.
+        #   Prints "<release-base>|<download-url>" and returns 0 when found.
         # . Usage
-        #   _base_from_tag "$tag"
-    _base_from_tag() {
-        local tag="${1:?missing tag}"
-        local version="$tag"
+        #   row="$(_github_latest_asset)"
+    _github_latest_asset() {
+        local json=""
+        local token=""
+        local pending_name=""
+        local name=""
+        local url=""
+        local base=""
+        local prefix="${SGND_RELEASE_PRODUCT}-${SGND_RELEASE_LINE}."
+        local suffix="-release.zip"
+        local -a rows=()
 
-        case "$version" in
-            "${SGND_RELEASE_PRODUCT}-"*) printf '%s\n' "$version"; return 0 ;;
-        esac
+        json="$(_github_release_json)" || {
+            _release_fail "Could not read configured GitHub Release metadata"
+            return 1
+        }
 
-        version="${version#v}"
-        printf '%s-%s\n' "$SGND_RELEASE_PRODUCT" "$version"
+        # GitHub's asset object contains "name" before "browser_download_url". Emit
+        # just those fields and pair them in encounter order, ignoring the Release's own
+        # top-level name because it has no following asset URL before the first asset name.
+        while IFS= read -r token; do
+            case "$token" in
+                NAME:*)
+                    pending_name="${token#NAME:}"
+                    ;;
+                URL:*)
+                    url="${token#URL:}"
+                    name="$pending_name"
+                    pending_name=""
+                    [[ "$name" == "${prefix}"*"${suffix}" ]] || continue
+                    base="${name%$suffix}"
+                    rows+=("${base}|${url}")
+                    ;;
+            esac
+        done < <(
+            printf '%s\n' "$json" | sed -n -E \
+                -e 's/^[[:space:]]*"name"[[:space:]]*:[[:space:]]*"([^"]+)",?[[:space:]]*$/NAME:\1/p' \
+                -e 's/^[[:space:]]*"browser_download_url"[[:space:]]*:[[:space:]]*"([^"]+)",?[[:space:]]*$/URL:\1/p'
+        )
+
+        (( ${#rows[@]} > 0 )) || {
+            _release_fail "No ${SGND_RELEASE_PRODUCT}-${SGND_RELEASE_LINE}.<build>-release.zip asset found"
+            return 1
+        }
+
+        printf '%s\n' "${rows[@]}" | LC_ALL=C sort -t '|' -k1,1V | tail -n 1
     }
 
-    # fn: _github_release_asset_url - Build the versioned GitHub release ZIP asset URL
+    # fn: _latest_online_release - Resolve the canonical base name of the newest published build
         # . Purpose
-        #   Build the versioned GitHub release ZIP asset URL.
-        # . Returns
-        #   0 always.
-        # . Usage
-        #   _github_release_asset_url "$tag" "$base"
-    _github_release_asset_url() {
-        local tag="${1:?missing tag}"
-        local base="${2:?missing base}"
-        printf 'https://github.com/%s/releases/download/%s/%s-release.zip\n' "$VAL_GITHUB_REPO" "$tag" "$base"
-    }
-
-    # fn: _latest_online_release - Resolve the canonical base name of the latest GitHub release
-        # . Purpose
-        #   Resolve the canonical base name of the latest GitHub release.
+        #   Resolve the highest build asset attached to the configured GitHub Release.
         # . Returns
         #   0 on success; non-zero when GitHub lookup fails.
         # . Usage
         #   _latest_online_release
     _latest_online_release() {
-        local tag=""
-        tag="$(_github_latest_tag "$VAL_GITHUB_REPO")" || {
-            _release_fail "Could not determine the latest GitHub release"
-            return 1
-        }
-        _base_from_tag "$tag"
+        local row=""
+        row="$(_github_latest_asset)" || return 1
+        printf '%s\n' "${row%%|*}"
+    }
+
+    # fn: _github_release_asset_url - Resolve the download URL for the newest published build
+        # . Purpose
+        #   Return the browser download URL selected by _github_latest_asset.
+        # . Returns
+        #   0 on success; non-zero when GitHub lookup fails.
+        # . Usage
+        #   url="$(_github_release_asset_url)"
+    _github_release_asset_url() {
+        local row=""
+        row="$(_github_latest_asset)" || return 1
+        printf '%s\n' "${row#*|}"
     }
 
     # fn: _release_is_local_or_installed - Test whether a release is already downloaded or archived
@@ -1585,7 +1717,6 @@ set -uo pipefail
     _acquire_release() {
         local expected_base="${1:-}"
         local source="${2:-}"
-        local tag=""
         local temp_dir=""
         local zip_path=""
         local base=""
@@ -1594,13 +1725,11 @@ set -uo pipefail
         _require_command mktemp || return 1
 
         if [[ -z "$source" ]]; then
-            tag="$(_github_latest_tag "$VAL_GITHUB_REPO")" || {
-                _release_fail "Could not determine latest GitHub release"
-                return 1
-            }
-            base="$(_base_from_tag "$tag")"
+            local asset_row=""
+            asset_row="$(_github_latest_asset)" || return 1
+            base="${asset_row%%|*}"
+            source="${asset_row#*|}"
             [[ -n "$expected_base" ]] || expected_base="$base"
-            source="$(_github_release_asset_url "$tag" "$base")"
         fi
 
         if [[ -n "$expected_base" ]] && _release_is_local_or_installed "$expected_base"; then
@@ -1736,7 +1865,7 @@ set -uo pipefail
         pending="$(_newest_pending_archive 2>/dev/null || true)"
         [[ -n "$pending" ]] && pending_base="$(_release_base_from_archive "$pending")"
 
-        _release_labeled_value "Installed version" "${current:-Not installed}"
+        _release_labeled_value "Installed release" "${current:-Not installed}"
         _release_labeled_value "Available locally" "${pending_base:-None}"
         _release_labeled_value "Releases directory" "$VAL_RELEASES_DIR"
         _release_labeled_value "Archive directory" "$VAL_ARCHIVE_ROOT"
@@ -1759,9 +1888,9 @@ set -uo pipefail
             _print_status
             _release_line "─"
             printf '\n'
-            printf '    %s1)%s %sCheck GitHub for latest release%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
-            printf '    %s2)%s %sDownload latest release%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
-            printf '    %s3)%s %sUpdate to latest GitHub release%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
+            printf '    %s1)%s %sCheck GitHub for latest build%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
+            printf '    %s2)%s %sDownload latest build%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
+            printf '    %s3)%s %sUpdate to latest build%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
             printf '    %s4)%s %sInstall newest local release%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
             printf '    %s5)%s %sInstall archived version / remove%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
             printf '    %sQ)%s %sQuit%s\n\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
@@ -1805,7 +1934,7 @@ set -uo pipefail
     }
 
 # --- Action dispatch ----------------------------------------------------------------
-    # fn: _action_check - Report the latest GitHub release and its local state
+    # fn: _action_check - Report the latest published build and its local state
         # . Purpose
         #   Report the latest GitHub release and its local state.
         # . Returns
@@ -1827,20 +1956,20 @@ set -uo pipefail
         fi
 
         printf '\n'
-        _release_labeled_value "Latest GitHub release" "$latest"
-        _release_labeled_value "Installed version" "${current:-Not installed}"
-        _release_labeled_value "Latest release state" "$local_state"
+        _release_labeled_value "Latest published build" "$latest"
+        _release_labeled_value "Installed release" "${current:-Not installed}"
+        _release_labeled_value "Latest build state" "$local_state"
 
         if [[ "$local_state" == "Installed" ]]; then
             _release_ok "Already current"
         elif [[ -n "$current" && "$(printf '%s\n%s\n' "$current" "$latest" | _release_sort | tail -n 1)" == "$current" ]]; then
-            _release_ok "Installed version is current or newer"
+            _release_ok "Installed release is current or newer"
         else
             _release_warn "Update available: $latest"
         fi
     }
 
-    # fn: _action_download - Acquire the latest or explicitly sourced release without installing it
+    # fn: _action_download - Acquire the latest build or explicitly sourced release without installing it
         # . Purpose
         #   Acquire the latest or explicitly sourced release without installing it.
         # . Returns
@@ -1859,7 +1988,7 @@ set -uo pipefail
         _acquire_release "$latest" "" >/dev/null
     }
 
-    # fn: _action_update - Acquire if needed and install the latest available release
+    # fn: _action_update - Acquire if needed and install the latest published build
         # . Purpose
         #   Acquire if needed and install the latest available release.
         # . Returns
@@ -1884,12 +2013,12 @@ set -uo pipefail
             latest="$(_latest_online_release)" || return 1
 
             if _archived_release_base_exists "$latest"; then
-                _release_ok "Latest GitHub release is already installed: $latest"
+                _release_ok "Latest published build is already installed: $latest"
                 return 0
             fi
 
             if [[ -n "$current" && "$(printf '%s\n%s\n' "$current" "$latest" | _release_sort | tail -n 1)" == "$current" ]]; then
-                _release_ok "Installed version is current or newer: $current"
+                _release_ok "Installed release is current or newer: $current"
                 return 0
             fi
 
@@ -1898,13 +2027,13 @@ set -uo pipefail
             fi
 
             archive="$(_newest_pending_archive "$latest")" || {
-                _release_fail "Latest release was not found after acquisition: $latest"
+                _release_fail "Latest build was not found after acquisition: $latest"
                 return 1
             }
         fi
 
         if [[ -n "$current" && "$(printf '%s\n%s\n' "$current" "$latest" | _release_sort | tail -n 1)" == "$current" && "$current" != "$latest" ]]; then
-            _release_ok "Installed version is current or newer: $current"
+            _release_ok "Installed release is current or newer: $current"
             return 0
         fi
 
@@ -1977,6 +2106,7 @@ set -uo pipefail
     main() {
         parse_args "$@" || return $?
         init_paths || return $?
+        _load_release_manager_config
 
         _require_command find || return 1
         _require_command sort || return 1
@@ -1988,6 +2118,7 @@ set -uo pipefail
         _require_command mktemp || return 1
 
         _ensure_manager_directories || return 1
+        _ensure_release_manager_config || return 1
         _admit_bootstrap_release || return $?
         _install_release_manager || return 1
 

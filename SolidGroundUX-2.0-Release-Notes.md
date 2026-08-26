@@ -1,6 +1,6 @@
 # SolidGroundUX 2.0 Release Notes
 
-**Version 2.0 — Build 2.0.2623316**
+**Version 2.0 — Build 2.0.2623404**
 
 ![SolidGroundUX 2.0](resources/solidgroundux-social-preview.png)
 
@@ -17,6 +17,9 @@ The SolidGround Management Console has been redesigned around a lightweight main
 At startup, the console discovers available pages without sourcing their full implementation modules. A page is loaded only when it is opened for the first time and remains resident for the rest of the console session. This reduces initial startup work while avoiding repeated loading once functionality has been used.
 
 Root users can manage page visibility directly from the index.
+
+### Findings
+- Ubuntu 24.04 LTS compatibility verified — SolidGroundUX 2.0 installed and ran successfully.
 
 ### Reworked for reuse
 

@@ -188,7 +188,7 @@ set -uo pipefail
         # Script basename without the .sh extension; used for help and display text.
     SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
 
-# --- Framework integration ----------------------------------------------------------
+# - Framework integration ----------------------------------------------------------
     # var: SGND_USING - Optional framework libraries to source after core bootstrap
         # Libraries to source from SGND_COMMON_LIB.
         # These are loaded automatically by sgnd_bootstrap AFTER core libraries.
@@ -945,7 +945,7 @@ set -uo pipefail
         _framework_locator || exit $?
 
         _set_defaults
-        sgnd_exe_start --needroot "$@"
+        sgnd_exe_start --needroot --no-clear "$@"
         _load_current_values || exit $?
 
         if (( ${FLAG_DNS_ONLY:-0} == 1 )); then

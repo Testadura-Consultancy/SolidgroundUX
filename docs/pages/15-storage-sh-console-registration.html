@@ -11,9 +11,55 @@
 <div class="doc-page-branding"><span class="doc-page-branding-title">SolidGroundUX Documentation</span><img src="../assets/branding/doc-header-logo.png" alt="SolidGroundUX"></div>
 <header class="doc-page-header">
   <div class="doc-title">Console registration</div>
-  <div class="doc-breadcrumb">15-storage.sh:::Console registration:</div>
+  <div class="doc-breadcrumb">SolidgroundUX / 15-storage.sh / Console registration</div>
 </header>
-
+<p class="ct-L1Sectionbody">Provides local-storage provisioning and operational management. The module persists the configured storage mount point, manages the filesystem lifecycle, validates provisioning, and controls ownership and Unix permissions.</p>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-highlight">Storage</div>
+<div class="ct-L1Sectionbody sh-emphasis">Configure storage</div>
+<div class="ct-L1Sectionbody">  &gt; Provision an unused disk as persistent local storage.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: storage_configure</div>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-emphasis">Mount storage</div>
+<div class="ct-L1Sectionbody">  &gt; Mount the configured local storage filesystem.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: storage_mount</div>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-emphasis">Unmount storage</div>
+<div class="ct-L1Sectionbody">  &gt; Unmount storage while keeping its persistent configuration.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: storage_unmount</div>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-emphasis">Expand storage</div>
+<div class="ct-L1Sectionbody">  &gt; Expand the partition and filesystem after enlarging its disk.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: storage_expand</div>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-emphasis">Validate storage provisioning</div>
+<div class="ct-L1Sectionbody">  &gt; Run active checks against the configured storage volume.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: storage_validate_provisioning</div>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-emphasis">Show storage status</div>
+<div class="ct-L1Sectionbody">  &gt; Show local disks and configured storage status.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: storage_status</div>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-highlight">Storage Access</div>
+<div class="ct-L1Sectionbody sh-emphasis">Show storage ownership</div>
+<div class="ct-L1Sectionbody">  &gt; Show ownership and permissions for the storage and shares roots.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: storage_access_status</div>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-emphasis">Set storage owner</div>
+<div class="ct-L1Sectionbody">  &gt; Set the owner of the storage root or shares root.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: storage_set_owner</div>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-emphasis">Set storage group</div>
+<div class="ct-L1Sectionbody">  &gt; Set the group of the storage root or shares root.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: storage_set_group</div>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-emphasis">Set storage permissions</div>
+<div class="ct-L1Sectionbody">  &gt; Set Unix permissions on the storage root or shares root.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: storage_set_permissions</div>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-emphasis">Restore default permissions</div>
+<div class="ct-L1Sectionbody">  &gt; Restore canonical ownership and permissions for managed storage roots.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: storage_restore_access_defaults</div>
 </main>
 </body>
 </html>

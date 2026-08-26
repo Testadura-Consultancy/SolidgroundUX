@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    :ab78d01600aa4ff5b93128942cb8b2f83c6fb4db489131721fde345e969e088e
+#   Build       : 2623514
+#   Checksum    :48dc58a4a8bd2ae7fbe66f8a22591e1786f35f0d4029b19d80a3efc13abc8930
 #   Source      : 27-active-directory-management.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -1074,6 +1074,89 @@ set -uo pipefail
     }
 
 # - Console registration -----------------------------------------------------------
+    # Provides day-to-day Active Directory object management after a domain has been
+    # provisioned. The module exposes directory status plus focused user, group, and
+    # computer-account administration without replacing full directory tooling.
+    #
+    # . Directory
+    # ! Show directory status
+    #   > Show realm, controller state, and directory object counts.
+    #   > Handler: _admg_status
+    #
+    # . Users
+    # ! List users
+    #   > List Active Directory users.
+    #   > Handler: _admg_list_users
+    #
+    # ! Show user
+    #   > Show user details and direct group memberships.
+    #   > Handler: _admg_show_user
+    #
+    # ! Create user
+    #   > Create an Active Directory user.
+    #   > Handler: _admg_create_user
+    #
+    # ! Enable / disable user
+    #   > Toggle the selected user account state.
+    #   > Handler: _admg_toggle_user
+    #
+    # ! Reset user password
+    #   > Reset the selected user's password.
+    #   > Handler: _admg_reset_user_password
+    #
+    # ! Set password never expires
+    #   > Disable password expiry for the selected user.
+    #   > Handler: _admg_set_user_password_noexpiry
+    #
+    # ! Add user to groups
+    #   > Add a selected user to one or more groups.
+    #   > Handler: _admg_user_add_groups
+    #
+    # ! Remove user from groups
+    #   > Remove selected direct group memberships.
+    #   > Handler: _admg_user_remove_groups
+    #
+    # ! Delete user
+    #   > Delete a selected non-protected user account.
+    #   > Handler: _admg_delete_user
+    #
+    # . Groups
+    # ! List groups
+    #   > List Active Directory groups.
+    #   > Handler: _admg_list_groups
+    #
+    # ! Show group
+    #   > Show group details and direct members.
+    #   > Handler: _admg_show_group
+    #
+    # ! Create group
+    #   > Create an Active Directory group.
+    #   > Handler: _admg_create_group
+    #
+    # ! Add users to group
+    #   > Add one or more users to a selected group.
+    #   > Handler: _admg_group_add_users
+    #
+    # ! Remove group members
+    #   > Remove one or more direct members from a selected group.
+    #   > Handler: _admg_group_remove_members
+    #
+    # ! Delete group
+    #   > Delete a selected non-protected group.
+    #   > Handler: _admg_delete_group
+    #
+    # . Computers
+    # ! List computers
+    #   > List Active Directory computer accounts.
+    #   > Handler: _admg_list_computers
+    #
+    # ! Show computer
+    #   > Show the selected computer account.
+    #   > Handler: _admg_show_computer
+    #
+    # ! Delete computer
+    #   > Delete a selected stale computer account.
+    #   > Handler: _admg_delete_computer
     sgnd_menu_register_group \
         "admg-directory" \
         "Directory" \

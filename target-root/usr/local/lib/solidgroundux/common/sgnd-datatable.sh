@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : 61c3b8dd70eb34bade19d89578739cc7262bf2cdb1e87cf07e677d4e0b4e7909
+#   Checksum    : b5fd4d5ac17ab67bff825e55bde59aaff0f5c89c1ec07b7506690e8b0c9ae59e
 #   Source      : sgnd-datatable.sh
 #   Type        : library
 #   Group       : Common Core
@@ -45,7 +45,7 @@
 # =====================================================================================
 set -uo pipefail
 
-# --- Library guard ------------------------------------------------------------------
+# - Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard - Library guard
         # . Purpose
         #   Prevent direct execution of a source-only module and avoid repeated initialization.
@@ -84,7 +84,7 @@ set -uo pipefail
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
     
-# --- DDL functions -----------------------------------------------------------------
+# - DDL functions -----------------------------------------------------------------
     # fn: sgnd_dt_array_length - Dt array length
         # . Purpose
         #   Return the number of items in an indexed Bash array.
@@ -328,7 +328,7 @@ set -uo pipefail
         printf '%s\n' "${#SGND_DT_SPLIT[@]}"
     }
 
-# --- DML functions -----------------------------------------------------------------
+# - DML functions -----------------------------------------------------------------
     # fn: sgnd_dt_make_row - Dt make row
         # . Purpose
         #   Build a pipe-separated datatable row from field values.

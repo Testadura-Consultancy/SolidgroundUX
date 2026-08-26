@@ -11,9 +11,46 @@
 <div class="doc-page-branding"><span class="doc-page-branding-title">SolidGroundUX Documentation</span><img src="../assets/branding/doc-header-logo.png" alt="SolidGroundUX"></div>
 <header class="doc-page-header">
   <div class="doc-title">Console registration</div>
-  <div class="doc-breadcrumb">50-web-server.sh:::Console registration:</div>
+  <div class="doc-breadcrumb">SolidgroundUX / 50-web-server.sh / Console registration</div>
 </header>
-
+<p class="ct-L1Sectionbody">Provides basic Nginx host management: installation, content-root selection, site lifecycle, publishing, service and firewall control, status, and validation. Application-specific site administration remains out of scope.</p>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-highlight">Menu items</div>
+<div class="ct-L1Sectionbody sh-emphasis">Prepare web server</div>
+<div class="ct-L1Sectionbody">  &gt; Install, validate, enable, and start Nginx.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: _web_server_prepare</div>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-emphasis">Install Nginx</div>
+<div class="ct-L1Sectionbody">  &gt; Install Nginx and basic web-server utilities.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: _web_server_step_install_packages</div>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-emphasis">Configure web content root</div>
+<div class="ct-L1Sectionbody">  &gt; Select or create the storage location used for web content.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: _web_server_configure_root</div>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-emphasis">Manage sites</div>
+<div class="ct-L1Sectionbody">  &gt; Create, enable, disable, remove, and list Nginx sites.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: _web_server_manage_sites</div>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-emphasis">Publish site content</div>
+<div class="ct-L1Sectionbody">  &gt; Synchronize a source directory into a site&#x27;s document root.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: _web_server_publish_site</div>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-emphasis">Manage web service</div>
+<div class="ct-L1Sectionbody">  &gt; Start, stop, restart, enable, or disable nginx.service.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: _web_server_manage_service</div>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-emphasis">Configure web firewall</div>
+<div class="ct-L1Sectionbody">  &gt; Allow HTTP and HTTPS through UFW.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: _web_server_configure_firewall</div>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-emphasis">Validate web server</div>
+<div class="ct-L1Sectionbody">  &gt; Validate package, configuration, service, listeners, and web root.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: _web_server_validate</div>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-emphasis">Show web-server status</div>
+<div class="ct-L1Sectionbody">  &gt; Show package, service, storage, listener, and site status.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: _web_server_status</div>
 </main>
 </body>
 </html>

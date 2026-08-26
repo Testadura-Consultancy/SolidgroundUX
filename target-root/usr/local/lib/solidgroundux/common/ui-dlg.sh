@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : 6dbff974282b42c0503222e7dbc1eff8ddb940fd00b2727a471b15d481153de9
+#   Checksum    : 9d3d2186f80b016a476261bdbc961f8247dfa5de9cb64b9efaa0acd14878304f
 #   Source      : ui-dlg.sh
 #   Type        : library
 #   Group       : UI
@@ -43,7 +43,7 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
-# --- Library guard ------------------------------------------------------------------
+# - Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard - Library guard
         # . Purpose
         #   Prevent direct execution of a source-only module and avoid repeated initialization.
@@ -85,7 +85,7 @@ set -uo pipefail
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
-# --- Internal helpers ------------------------------------------------------------------
+# - Internal helpers ------------------------------------------------------------------
     # fn: _dlg_keymap - Dlg keymap
         # . Purpose
         #   Return the dialog key/action mapping used by custom dialog controls.
@@ -328,7 +328,7 @@ set -uo pipefail
         esac
     }
 
-# --- Public API ---------------------------------------------------------------------
+# - Public API ---------------------------------------------------------------------
     # fn: sgnd_dlg_autocontinue - Dlg autocontinue
         # . Purpose
         #   Show an interruptible dialog-based auto-continue prompt.

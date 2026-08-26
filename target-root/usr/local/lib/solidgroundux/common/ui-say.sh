@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : 8d116236614ebb61f01d98c96617712c2b0434632308bdc54225676016b727b1
+#   Checksum    : 82e2d6e40ed4d70c422266accd5e542339910e03769a741abe03c03053aca66a
 #   Source      : ui-say.sh
 #   Type        : library
 #   Group       : UI
@@ -50,7 +50,7 @@
 # =====================================================================================
 set -uo pipefail
 
-# --- Library guard ------------------------------------------------------------------
+# - Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard - Library guard
         # . Purpose
         #   Prevent direct execution of a source-only module and avoid repeated initialization.
@@ -89,7 +89,7 @@ set -uo pipefail
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
-# --- Global defaults ----------------------------------------------------------------
+# - Global defaults ----------------------------------------------------------------
     # Can be overridden in:
     #   - environment
     #   - styles/*.sh
@@ -101,7 +101,7 @@ set -uo pipefail
 
     SGND_LINEBREAK_PENDING=0  # Internal flag to track if a line break is needed before the next message (used by sayprogress)
 
-# --- Helpers ------------------------------------------------------------------------
+# - Helpers ------------------------------------------------------------------------
     # fn: _say_normalize_log_level - Normalize a log level name
         # . Purpose
         #   Convert aliases and legacy log-level names into a canonical
@@ -563,7 +563,7 @@ set -uo pipefail
         fi
     }
 
-# --- Public API ---------------------------------------------------------------------
+# - Public API ---------------------------------------------------------------------
     # fn: say - Say
         # . Purpose
         #   Emit a standardized SolidGroundUX console message.

@@ -4,12 +4,12 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : 2b6e7fabcb012695709569c8e0ebd7812191f3689a4c974fd0509f3ed78a15e7
+#   Build       : 2623513
+#   Checksum    : 332b92d457cf586e66c196c40fab2bbdde84cb701610da5d70fa694ab4cbb56a
 #   Source      : manage-samba-shares.sh
 #   Type        : script
-#   Group       : System Administration
-#   Purpose     : Manage Active Directory access to SolidGroundUX Samba shares
+#   Group       : SolidGround Console
+#   Purpose     : Manage Samba shares
 #
 # Description:
 #   Provides complete interactive management of SolidGroundUX Samba shares, including
@@ -25,7 +25,7 @@
 # =====================================================================================
 set -uo pipefail
 
-# --- Bootstrap ----------------------------------------------------------------------
+# - Bootstrap ----------------------------------------------------------------------
     # fn$ _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
         # . Returns
         #   0 when the executable common library was loaded.
@@ -99,7 +99,7 @@ set -uo pipefail
         source "$exe_common"
     }
 
-# --- Script metadata ----------------------------------------------------------------
+# - Script metadata ----------------------------------------------------------------
     SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
     SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"
     SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
@@ -113,7 +113,7 @@ set -uo pipefail
     : "${SGND_SCRIPT_COPYRIGHT:=© 2025 - 2026 Testadura Consultancy}"
     : "${SGND_SCRIPT_LICENSE:=Testadura Non-Commercial License (TD-NC) v1.1.}"
 
-# --- Framework integration -----------------------------------------------------------
+# - Framework integration -----------------------------------------------------------
     SGND_USING=()
     SGND_ARGS_SPEC=()
     SGND_SCRIPT_EXAMPLES=("  $SGND_SCRIPT_NAME")
@@ -122,14 +122,61 @@ set -uo pipefail
     SGND_ON_EXIT_HANDLERS=()
     SGND_STATE_SAVE=0
 
-# --- Local declarations --------------------------------------------------------------
+# - Local declarations --------------------------------------------------------------
     SGND_SAMBA_CONFIG="/etc/samba/smb.conf"
+    SGND_STORAGE_DEFAULT_MOUNTPOINT="/srv/storage"
+    SGND_STORAGE_CONFIG_FILE="${SGND_SYSCFG_DIR:-/etc/solidgroundux}/storage.cfg"
     SGND_SAMBA_SHARE_ROOT="/srv/storage/shares"
     MANAGED_SHARES=()
     SELECTED_SHARES=()
     DISCOVERED_GROUPS=()
 
-# --- Helpers -------------------------------------------------------------------------
+# - Helpers -------------------------------------------------------------------------
+    # fn: _refresh_storage_paths - Resolve the configured SolidGroundUX share root
+        # . Returns
+        #   0 after SGND_SAMBA_SHARE_ROOT is refreshed.
+        #
+        # . Usage
+        #   _refresh_storage_paths
+    _refresh_storage_paths() {
+        local mountpoint=""
+        local device=""
+        local uuid=""
+
+        if [[ -r "$SGND_STORAGE_CONFIG_FILE" ]]; then
+            mountpoint="$(awk -F= '
+                $1 == "SGND_STORAGE_MOUNTPOINT" {
+                    print substr($0, index($0, "=") + 1)
+                    exit
+                }
+            ' "$SGND_STORAGE_CONFIG_FILE" 2>/dev/null || true)"
+        fi
+
+        if [[ "$mountpoint" != /* || "$mountpoint" == "/" || "$mountpoint" == *[[:space:]]* ]]; then
+            mountpoint=""
+        fi
+
+        if [[ -z "$mountpoint" ]]; then
+            device="$(blkid -L SGND_STORAGE 2>/dev/null || true)"
+            if [[ -n "$device" ]]; then
+                uuid="$(blkid -s UUID -o value "$device" 2>/dev/null || true)"
+                if [[ -n "$uuid" ]]; then
+                    mountpoint="$(awk -v source="UUID=$uuid" '
+                        $0 !~ /^[[:space:]]*#/ && NF >= 2 && $1 == source { print $2; exit }
+                    ' /etc/fstab 2>/dev/null || true)"
+                fi
+            fi
+        fi
+
+        if [[ "$mountpoint" != /* || "$mountpoint" == "/" || "$mountpoint" == *[[:space:]]* ]]; then
+            mountpoint="$SGND_STORAGE_DEFAULT_MOUNTPOINT"
+        fi
+
+        SGND_SAMBA_SHARE_ROOT="$mountpoint/shares"
+    }
+
+    _refresh_storage_paths
+
     # fn: _share_path - Resolve the configured path for a Samba share
         # . Returns
         #   Writes the configured path to stdout.
@@ -989,7 +1036,7 @@ set -uo pipefail
         return "$validation_rc"
     }
 
-# --- Main ---------------------------------------------------------------------------
+# - Main ---------------------------------------------------------------------------
     # fn: main - Run interactive Samba share access management
         # . Returns
         #   0 after normal exit; non-zero when startup requirements fail.

@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Run one existing module validation handler</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<div class="doc-page-branding"><span class="doc-page-branding-title">SolidGroundUX Documentation</span><img src="../assets/branding/doc-header-logo.png" alt="SolidGroundUX"></div>
+<header class="doc-page-header">
+  <div class="doc-title">Run one existing module validation handler</div>
+  <div class="doc-breadcrumb">SolidgroundUX / 45-solidground-framework-test.sh / Internal helpers / _framework_test_run_validator</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Invoke a module-owned validator when its component is applicable.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Arguments</div>
+<div class="ct-functionbody">  $1  LABEL       - Friendly component name.</div>
+<div class="ct-functionbody">  $2  MODULE_ID   - Console module that owns the validator.</div>
+<div class="ct-functionbody">  $3  HANDLER     - Existing validation function.</div>
+<div class="ct-functionbody">  $4  APPLICABLE  - 1 when configured/installed, otherwise 0.</div>
+<div class="ct-functionbody">  $5  SKIP_REASON - Explanation shown when not applicable.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 for PASS/SKIP; 1 when the validator fails or is unexpectedly missing.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  _framework_test_run_validator &quot;Web server&quot; &quot;web-server&quot; &quot;_web_server_validate&quot; 1</div>
+</main>
+</body>
+</html>

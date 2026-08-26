@@ -40,7 +40,7 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # ==================================================================================
 set -uo pipefail
-# --- Bootstrap ----------------------------------------------------------------------
+# - Bootstrap ----------------------------------------------------------------------
     # fn$ _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
         # . Purpose
         #   Locate, create, and load the SolidGroundUX bootstrap configuration, then
@@ -174,7 +174,7 @@ set -uo pipefail
         source "$exe_common"
     }
 
-# --- Script metadata (identity) ---------------------------------------------------
+# - Script metadata (identity) ---------------------------------------------------
     SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
     SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"
     SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
@@ -189,7 +189,7 @@ set -uo pipefail
     : "${SGND_SCRIPT_COPYRIGHT:=© 2025 - 2026 Testadura Consultancy}"
     : "${SGND_SCRIPT_LICENSE:=Testadura Non-Commercial License (TD-NC) v1.1.}"
 
-# --- Script metadata (framework integration) --------------------------------------
+# - Script metadata (framework integration) --------------------------------------
     # Libraries to source from SGND_COMMON_LIB
     SGND_USING=(
         sgnd-datatable.sh
@@ -259,7 +259,7 @@ set -uo pipefail
 
     SGND_STATE_SAVE=1
 
-# --- Local script Declarations ----------------------------------------------------
+# - Local script Declarations ----------------------------------------------------
     : "${SGND_SYS_STRING:=system-default}"
     : "${SGND_SYS_INT:=0}"
     : "${SGND_SYS_DATE:=1970-01-01}"
@@ -276,7 +276,7 @@ set -uo pipefail
     : "${STATE_VAR2:=4}"
     : "${STATE_VAR3:=2025-01-01}"
     
-# --- Local script functions -------------------------------------------------------
+# - Local script functions -------------------------------------------------------
     # fn: input_test - Run simple shell input tests
         # . Purpose
         #   Run simple shell input tests.
@@ -1001,7 +1001,7 @@ set -uo pipefail
 
         return 0
     }
-# --- Main -------------------------------------------------------------------------
+# - Main -------------------------------------------------------------------------
     # main MUST BE LAST function in script
         # Main entry point for the executable script.
         #

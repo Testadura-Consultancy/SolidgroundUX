@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : 1759af79d3d031e24f661cc08a1e8e2c6935712551223d790f003fce2b0ccf3b
+#   Build       : 2623514
+#   Checksum    : 94899740e6a70e93b66a58a824ba685afb99bd9e2ad7ab525bae1a68ebadc103
 #   Source      : 40-solidgroundux.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -789,6 +789,114 @@ set -uo pipefail
     }
 
 # - Console registration ---------------------------------------------------------
+    # Provides operational management of the SolidGroundUX installation itself,
+    # including release lifecycle, framework configuration and state, logging, and
+    # diagnostics.
+    #
+    # . SolidGroundUX
+    # ! About SolidGroundUX
+    #   > Show SolidGroundUX information.
+    #   > Handler: _framework_show_about
+    #
+    # ! Release manager
+    #   > Open the interactive standalone SolidGroundUX release manager.
+    #   > Handler: _release_manager
+    #   > Script: /var/lib/solidgroundux/release-manager.sh
+    #
+    # ! Check for update
+    #   > Check GitHub for the latest published SolidGroundUX release.
+    #   > Handler: _release_manager_check
+    #   > Script: /var/lib/solidgroundux/release-manager.sh --check
+    #
+    # ! Download latest release
+    #   > Download the latest published release when it is not already available locally.
+    #   > Handler: _release_manager_download
+    #   > Script: /var/lib/solidgroundux/release-manager.sh --download
+    #
+    # ! Update SolidGroundUX
+    #   > Check, download if required, and install the latest published release.
+    #   > Handler: _release_manager_update
+    #   > Script: /var/lib/solidgroundux/release-manager.sh --update
+    #
+    # ! Install pending release
+    #   > Install the newest pending local SolidGroundUX release.
+    #   > Handler: _release_manager_install
+    #   > Script: /var/lib/solidgroundux/release-manager.sh --install
+    #
+    # ! Roll back SolidGroundUX
+    #   > Install the previous archived SolidGroundUX release.
+    #   > Handler: _release_manager_rollback
+    #   > Script: /var/lib/solidgroundux/release-manager.sh --rollback
+    #
+    # ! Remove SolidGroundUX
+    #   > Remove the active installation while preserving release packages.
+    #   > Handler: _release_manager_remove
+    #   > Script: /var/lib/solidgroundux/release-manager.sh --remove
+    #
+    # . Framework Configuration
+    # ! Show effective configuration
+    #   > Show the resolved SolidGroundUX framework environment and effective settings.
+    #   > Handler: _framework_show_environment
+    #
+    # ! View system configuration
+    #   > View the system-wide framework configuration file.
+    #   > Handler: _framework_config_view_system
+    #
+    # ! Configure framework settings
+    #   > Interactively configure sgnd_framework_globals.cfg with validated values.
+    #   > Handler: framework_configure_file
+    #
+    # ! Edit system configuration file
+    #   > Edit the raw system-wide framework configuration file.
+    #   > Handler: _framework_config_edit_system
+    #
+    # ! View user configuration
+    #   > View the user-specific framework configuration file.
+    #   > Handler: _framework_config_view_user
+    #
+    # ! Edit user configuration
+    #   > Edit the user-specific framework configuration file.
+    #   > Handler: _framework_config_edit_user
+    #
+    # . Framework State
+    # ! Show state
+    #   > Display current transferable framework-state values.
+    #   > Handler: framework_state_show
+    #
+    # ! Edit state
+    #   > Edit and save transferable framework-state values.
+    #   > Handler: framework_state_edit
+    #
+    # ! Save state
+    #   > Save current transferable values to the state file.
+    #   > Handler: framework_state_save
+    #
+    # ! Reload state
+    #   > Reload transferable values from the state file.
+    #   > Handler: framework_state_reload
+    #
+    # . Framework Logging
+    # ! View current logfile
+    #   > Open the active framework logfile at its most recent entries.
+    #   > Handler: _framework_log_view
+    #
+    # ! Follow current logfile
+    #   > Follow new entries written to the active framework logfile.
+    #   > Handler: _framework_log_follow
+    #
+    # ! Show recent errors
+    #   > Show the most recent error, failure, and fatal log entries.
+    #   > Handler: _framework_log_show_errors
+    #
+    # ! Rotate current logfile
+    #   > Rotate the active framework logfile using the configured retention settings.
+    #   > Handler: _framework_log_rotate
+    #
+    # . Framework Diagnostics
+    # ! Framework smoke test
+    #   > Run the complete SolidGroundUX framework smoke test.
+    #   > Handler: _framework_smoketest
+    #   > Command: sgnd-framework-smoketest
     sgnd_menu_register_group "sgndinst" "SolidGroundUX" "SolidGroundUX framework information and release management" 0 1 810
     sgnd_menu_register_item "about" "sgndinst" "About SolidGroundUX" "_framework_show_about" "Show SolidGroundUX information" 0 15 1
     sgnd_menu_register_item "release-manager" "sgndinst" "Release manager" "_release_manager" "Open the interactive standalone SolidGroundUX release manager" 0 15 1

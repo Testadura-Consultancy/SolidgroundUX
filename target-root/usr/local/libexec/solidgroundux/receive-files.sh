@@ -31,7 +31,7 @@
 # =====================================================================================
 set -uo pipefail
 
-# --- Bootstrap ----------------------------------------------------------------------
+# - Bootstrap ----------------------------------------------------------------------
     # fn$ _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
         # . Purpose
         #   Resolve the SolidGroundUX framework root and load executable runtime support.
@@ -124,7 +124,7 @@ set -uo pipefail
         source "$exe_common"
     }
 
-# --- Script metadata (identity) ------------------------------------------------------
+# - Script metadata (identity) ------------------------------------------------------
     SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
     SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"
     SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
@@ -138,7 +138,7 @@ set -uo pipefail
     : "${SGND_SCRIPT_COPYRIGHT:=© 2025 - 2026 Testadura Consultancy}"
     : "${SGND_SCRIPT_LICENSE:=Testadura Non-Commercial License (TD-NC) v1.1.}"
 
-# --- Script metadata (framework integration) -----------------------------------------
+# - Script metadata (framework integration) -----------------------------------------
     SGND_USING=(
     )
 
@@ -166,12 +166,12 @@ set -uo pipefail
 
     SGND_STATE_SAVE=0
 
-# --- Local declarations ---------------------------------------------------------------
+# - Local declarations ---------------------------------------------------------------
     DEST_ROOT="${DEST_ROOT:-}"
     RECEIVED_ARCHIVE=""
     RECEIVED_COUNT=0
 
-# --- Receive helpers -----------------------------------------------------------------
+# - Receive helpers -----------------------------------------------------------------
     # fn: _cleanup_archive - Remove the temporary received archive
         # . Returns
         #   0 always.
@@ -356,7 +356,7 @@ set -uo pipefail
         return 0
     }
 
-# --- Main ----------------------------------------------------------------------------
+# - Main ----------------------------------------------------------------------------
     # fn: main - Receive, validate, and extract a streamed workspace archive
         # . Arguments
         #   $@  Framework and script-specific arguments.
@@ -369,7 +369,7 @@ set -uo pipefail
         #   main "$@"
     main() {
         _framework_locator || exit $?
-        sgnd_exe_start -- "$@"
+        sgnd_exe_start --no-clear -- "$@"
 
         _validate_target || return $?
 

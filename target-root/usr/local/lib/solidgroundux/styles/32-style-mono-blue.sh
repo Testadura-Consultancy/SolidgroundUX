@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : 2c1550920dd81fe41e60f6b966ec1162527b6e3732c711cda45bab7465f10560
+#   Checksum    : a212b901f6d2a1992def323e4a64ba0bff9d1a293ebee2af78e741a5ca789839
 #   Source      : 32-style-mono-blue.sh
 #   Type        : library
 #   Group       : UI
@@ -22,13 +22,13 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 
-# --- say() global defaults -----------------------------------------------------------
+# - say() global defaults -----------------------------------------------------------
 SAY_DATE_DEFAULT=0
 SAY_SHOW_DEFAULT="label"
 SAY_COLORIZE_DEFAULT="label"
 SAY_DATE_FORMAT="%Y-%m-%d %H:%M:%S"
 
-# --- Say prefixes --------------------------------------------------------------------
+# - Say prefixes --------------------------------------------------------------------
 LBL_CNCL="CANCEL"
 LBL_EMPTY="     "
 LBL_END="END"
@@ -59,7 +59,7 @@ SYM_STRT=">>>"
 SYM_WARN="(!)"
 SYM_DEBUG="(~)"
 
-# --- Semantic colors -----------------------------------------------------------------
+# - Semantic colors -----------------------------------------------------------------
 MSG_CLR_INFO=$GOLD
 MSG_CLR_STRT=$BRIGHT_GOLD
 MSG_CLR_OK=$BRIGHT_GOLD
@@ -119,7 +119,7 @@ PROG_TEXT_CLR=$BLUE
 PROG_IND_CLR=$BRIGHT_BLUE
 PROG_BAR_CLR=$BRIGHT_BLUE
 
-# --- Documentation summaries ---------------------------------------------------------
+# - Documentation summaries ---------------------------------------------------------
     # var: style_say_global_defaults - say() global defaults
         # . Purpose
         #   Document the variables assigned in this style file.

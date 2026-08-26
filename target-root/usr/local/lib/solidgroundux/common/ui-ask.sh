@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : cfde898b7dbfb2dacaef18ab9ab9576aaeeb4494413ae4a115c070ea165cc22c
+#   Checksum    : 72eb3ad213925331cf2195f39e8325060d509d9cf688a9fbdaeeeb79bc269f11
 #   Source      : ui-ask.sh
 #   Type        : library
 #   Group       : UI
@@ -41,7 +41,7 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
-# --- Library guard ------------------------------------------------------------------
+# - Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard - Library guard
         # . Purpose
         #   Prevent direct execution of a source-only module and avoid repeated initialization.
@@ -80,7 +80,7 @@ set -uo pipefail
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
-# --- Internal helpers ----------------------------------------------------------------
+# - Internal helpers ----------------------------------------------------------------
     # fn: _ask_expand_choices - Expand compact choice specifications
         # . Purpose
         #   Expand a comma-separated choice specification into one choice per line.
@@ -594,7 +594,7 @@ set -uo pipefail
         date --iso-8601=seconds -d "$value" 2>/dev/null
     }
 
-# --- Public API ---------------------------------------------------------------------
+# - Public API ---------------------------------------------------------------------
     # fn: ask - Ask for a single typed value
         # . Purpose
         #   Prompt the user for one text value through the SolidGroundUX console UI.
@@ -757,7 +757,7 @@ set -uo pipefail
         fi
     }
 
-    # fn$ ask_datetime
+    # fn: ask_datetime
         # . Purpose
         #   Prompt for an absolute or relative date/time value and normalize it.
         #

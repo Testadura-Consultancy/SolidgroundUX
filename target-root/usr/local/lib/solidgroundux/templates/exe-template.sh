@@ -5,7 +5,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : 517fe36dba1672c5956e62755673e854329907c6ef30687c27f50a10c9e05850
+#   Checksum    : 866e4e346efdef34d2fdb5d049004fd76e7e19526121f6297c333c66846cf560
 #   Source      : exe-template.sh
 #   Type        : script
 #   Group       : SDK
@@ -208,7 +208,7 @@ set -uo pipefail
         # Script basename without the .sh extension; used for help and display text.
     SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
 
-# --- Framework integration ----------------------------------------------------------
+# - Framework integration ----------------------------------------------------------
     # var: SGND_USING - Optional framework libraries to source after core bootstrap
         # Libraries to source from SGND_COMMON_LIB.
         # These are loaded automatically by sgnd_bootstrap AFTER core libraries.

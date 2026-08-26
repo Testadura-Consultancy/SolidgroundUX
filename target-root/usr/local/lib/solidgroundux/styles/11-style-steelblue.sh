@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : cc450f18ce4d0653333b708ef437669e313ea9828ce247402e0543e48628e9bb
+#   Checksum    : 0b6043cd248355655ffae00e64dca57cdb73b872735975bcf1215b4ac48ca4b5
 #   Source      : 11-style-steelblue.sh
 #   Type        : library
 #   Group       : UI
@@ -22,13 +22,13 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 
-# --- say() global defaults -----------------------------------------------------------
+# - say() global defaults -----------------------------------------------------------
 SAY_DATE_DEFAULT=0
 SAY_SHOW_DEFAULT="label"
 SAY_COLORIZE_DEFAULT="label"
 SAY_DATE_FORMAT="%Y-%m-%d %H:%M:%S"
 
-# --- Say prefixes --------------------------------------------------------------------
+# - Say prefixes --------------------------------------------------------------------
 LBL_CNCL="CANCEL"
 LBL_EMPTY="     "
 LBL_END="END"
@@ -59,7 +59,7 @@ SYM_STRT=">>>"
 SYM_WARN="(!)"
 SYM_DEBUG="(~)"
 
-# --- Semantic colors -----------------------------------------------------------------
+# - Semantic colors -----------------------------------------------------------------
 MSG_CLR_INFO=$GOLD
 MSG_CLR_STRT=$BRIGHT_GOLD
 MSG_CLR_OK=$BRIGHT_GOLD
@@ -119,7 +119,7 @@ PROG_TEXT_CLR=$SILVER
 PROG_IND_CLR=$BRIGHT_CYAN
 PROG_BAR_CLR=$BRIGHT_BLUE
 
-# --- Documentation summaries ---------------------------------------------------------
+# - Documentation summaries ---------------------------------------------------------
     # var: style_say_global_defaults - say() global defaults
         # . Purpose
         #   Document the variables assigned in this style file.

@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : e0ec88a2488ca2532d0a064a6e030018f284ce357efaa582a9636bc0d269d1aa
+#   Checksum    : 18f7338a803837baa0c50af99ed7068276c6ca5969da06de0999c7d22185231d
 #   Source      : 31-style-mono-amber.sh
 #   Type        : library
 #   Group       : UI
@@ -22,13 +22,13 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 
-# --- say() global defaults -----------------------------------------------------------
+# - say() global defaults -----------------------------------------------------------
 SAY_DATE_DEFAULT=0
 SAY_SHOW_DEFAULT="label"
 SAY_COLORIZE_DEFAULT="label"
 SAY_DATE_FORMAT="%Y-%m-%d %H:%M:%S"
 
-# --- Say prefixes --------------------------------------------------------------------
+# - Say prefixes --------------------------------------------------------------------
 LBL_CNCL="CANCEL"
 LBL_EMPTY="     "
 LBL_END="END"
@@ -59,7 +59,7 @@ SYM_STRT=">>>"
 SYM_WARN="(!)"
 SYM_DEBUG="(~)"
 
-# --- Semantic colors -----------------------------------------------------------------
+# - Semantic colors -----------------------------------------------------------------
 MSG_CLR_INFO=$GOLD
 MSG_CLR_STRT=$BRIGHT_GOLD
 MSG_CLR_OK=$BRIGHT_GOLD
@@ -108,7 +108,7 @@ SGND_SECTION_BORDERCLR=$SGND_UI_BORDER
 
 SGND_UI_DEFAULT=$DARK_BROWN
 
-# --- Documentation summaries ---------------------------------------------------------
+# - Documentation summaries ---------------------------------------------------------
     # var: style_say_global_defaults - say() global defaults
         # . Purpose
         #   Document the variables assigned in this style file.

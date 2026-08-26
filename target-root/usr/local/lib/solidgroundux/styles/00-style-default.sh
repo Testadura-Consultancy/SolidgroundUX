@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : 55d0a0330873e7f118b8ccd383139b30e6f722befd3971c3db280b625473de96
+#   Checksum    : 200d52757b4e6b28b7b52fabed18aaccaf9c4c024a86e9c5b976b8d577590471
 #   Source      : 00-style-default.sh
 #   Type        : library
 #   Group       : UI
@@ -45,9 +45,9 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 
-# --- Message type labels and icons ---------------------------------------------------
+# - Message type labels and icons ---------------------------------------------------
 
-# --- say() global defaults ---------------------------------------------------
+# - say() global defaults ---------------------------------------------------
   SAY_DATE_DEFAULT=0     # 0 = no date, 1 = add date
   SAY_SHOW_DEFAULT="label"   # label|icon|symbol|all|label,icon|...
   SAY_COLORIZE_DEFAULT="label"  # none|label|msg|both|all
@@ -66,7 +66,7 @@
       # Notes:
       #   Values are shown as assigned by this file. Referenced palette variables
       #   are resolved by the active palette when the style is sourced.
-# -- Say prefixes -------------------------------------------------------------
+# - Say prefixes -------------------------------------------------------------
   # Labels
     LBL_CNCL="CANCEL"
     LBL_EMPTY="     "
@@ -136,7 +136,7 @@
         # Notes:
         #   Values are shown as assigned by this file. Referenced palette variables
         #   are resolved by the active palette when the style is sourced.
-# -- Colors -------------------------------------------------------------------
+# - Colors -------------------------------------------------------------------
 # By message type
   MSG_CLR_INFO=$SILVER
   MSG_CLR_STRT=$BRIGHT_GREEN

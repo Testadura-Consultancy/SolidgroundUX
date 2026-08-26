@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Console registration</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<div class="doc-page-branding"><span class="doc-page-branding-title">SolidGroundUX Documentation</span><img src="../assets/branding/doc-header-logo.png" alt="SolidGroundUX"></div>
+<header class="doc-page-header">
+  <div class="doc-title">Console registration</div>
+  <div class="doc-breadcrumb">SolidgroundUX / 45-solidground-framework-test.sh / Console registration</div>
+</header>
+<p class="ct-L1Sectionbody">Provides one central testing and validation surface for SolidGroundUX. The framework smoke tester remains responsible for interactive framework/UI tests, while this module adds structural installation and console checks and delegates service-specific validation to the modules that own those services.</p>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-highlight">Menu items</div>
+<div class="ct-L1Sectionbody sh-emphasis">Run framework smoke test</div>
+<div class="ct-L1Sectionbody">  &gt; Open the comprehensive interactive framework smoke tester.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: _framework_test_smoketest</div>
+<div class="ct-L1Sectionbody">  &gt; Command: sgnd-framework-smoketest</div>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-emphasis">Validate framework installation</div>
+<div class="ct-L1Sectionbody">  &gt; Validate required framework files, module directory, and public commands.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: _framework_test_validate_installation</div>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-emphasis">Validate console registration</div>
+<div class="ct-L1Sectionbody">  &gt; Validate registered groups, items, group references, and handlers.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: _framework_test_validate_console</div>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-emphasis">Run module validations</div>
+<div class="ct-L1Sectionbody">  &gt; Run existing validators for the components applicable to this host.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: _framework_test_validate_modules</div>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-emphasis">Run full validation suite</div>
+<div class="ct-L1Sectionbody">  &gt; Run installation, console, and applicable module validations in sequence.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: _framework_test_run_all</div>
+</main>
+</body>
+</html>

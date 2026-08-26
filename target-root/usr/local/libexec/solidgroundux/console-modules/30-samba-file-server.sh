@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : 7045b511d4ea4253922dfeb6a0825e5ca0b789869db1060c7d2d76981f05fff8
+#   Build       : 2623514
+#   Checksum    : 1e75b191052ca18bda5e1b33d6fcfee1d5fca4e0bf748cf7aa0cbce2842b895b
 #   Source      : 30-samba-file-server.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -59,10 +59,62 @@ set -uo pipefail
     SGND_MODULE_VERSION="$SGND_SAMBA_FILE_MODULE_VERSION"
     SGND_MODULE_DESC="$SGND_SAMBA_FILE_MODULE_DESC"
 
-    SGND_SAMBA_SHARE_ROOT="/srv/storage/shares"
+    SGND_STORAGE_DEFAULT_MOUNTPOINT="/srv/storage"
+    SGND_STORAGE_CONFIG_FILE="${SGND_SYSCFG_DIR:-/etc/solidgroundux}/storage.cfg"
+    SGND_SAMBA_STORAGE_ROOT="$SGND_STORAGE_DEFAULT_MOUNTPOINT"
+    SGND_SAMBA_SHARE_ROOT="$SGND_SAMBA_STORAGE_ROOT/shares"
     SGND_SAMBA_CONFIG="/etc/samba/smb.conf"
 
 # - Helpers -----------------------------------------------------------------------
+    # fn: _smb_refresh_storage_paths
+        # . Purpose
+        #   Resolve the persisted SolidGroundUX storage root and derived Samba share root.
+        #
+        # . Behavior
+        #   - Reads the storage module configuration when available.
+        #   - Falls back to an existing SGND_STORAGE filesystem entry in /etc/fstab.
+        #   - Falls back to /srv/storage when storage is not configured yet.
+        #
+        # . Usage
+        #   _smb_refresh_storage_paths
+    _smb_refresh_storage_paths() {
+        local mountpoint=""
+        local device=""
+        local uuid=""
+
+        if [[ -r "$SGND_STORAGE_CONFIG_FILE" ]]; then
+            mountpoint="$(awk -F= '
+                $1 == "SGND_STORAGE_MOUNTPOINT" {
+                    print substr($0, index($0, "=") + 1)
+                    exit
+                }
+            ' "$SGND_STORAGE_CONFIG_FILE" 2>/dev/null || true)"
+        fi
+
+        if [[ "$mountpoint" != /* || "$mountpoint" == "/" || "$mountpoint" == *[[:space:]]* ]]; then
+            mountpoint=""
+        fi
+
+        if [[ -z "$mountpoint" ]]; then
+            device="$(blkid -L SGND_STORAGE 2>/dev/null || true)"
+            if [[ -n "$device" ]]; then
+                uuid="$(blkid -s UUID -o value "$device" 2>/dev/null || true)"
+                if [[ -n "$uuid" ]]; then
+                    mountpoint="$(awk -v source="UUID=$uuid" '
+                        $0 !~ /^[[:space:]]*#/ && NF >= 2 && $1 == source { print $2; exit }
+                    ' /etc/fstab 2>/dev/null || true)"
+                fi
+            fi
+        fi
+
+        if [[ "$mountpoint" != /* || "$mountpoint" == "/" || "$mountpoint" == *[[:space:]]* ]]; then
+            mountpoint="$SGND_STORAGE_DEFAULT_MOUNTPOINT"
+        fi
+
+        SGND_SAMBA_STORAGE_ROOT="$mountpoint"
+        SGND_SAMBA_SHARE_ROOT="$mountpoint/shares"
+    }
+
     # fn: _smb_validate_share_name
         # . Purpose
         #   Validate a managed Samba share name.
@@ -98,6 +150,7 @@ set -uo pipefail
         # . Returns
         #   0 after listing.
     _smb_list_managed_shares_raw() {
+        _smb_refresh_storage_paths
         local share_name=""
         local share_path=""
 
@@ -156,8 +209,9 @@ set -uo pipefail
         # . Usage
         #   _smb_require_storage
     _smb_require_storage() {
-        mountpoint -q /srv/storage || {
-            sayfail "SolidGroundUX storage is not mounted at /srv/storage."
+        _smb_refresh_storage_paths
+        mountpoint -q "$SGND_SAMBA_STORAGE_ROOT" || {
+            sayfail "SolidGroundUX storage is not mounted at $SGND_SAMBA_STORAGE_ROOT."
             return 1
         }
 
@@ -210,7 +264,7 @@ set -uo pipefail
 
     # fn: _smb_step_validate_storage
         # . Purpose
-        #   Validate that the canonical SolidGroundUX storage root is ready for file sharing.
+        #   Validate that the configured SolidGroundUX storage root is ready for file sharing.
         #
         # . Returns
         #   0 when storage requirements are met; non-zero otherwise.
@@ -232,6 +286,7 @@ set -uo pipefail
         # . Usage
         #   _smb_step_prepare_share_root
     _smb_step_prepare_share_root() {
+        _smb_refresh_storage_paths
         _smb_require_storage || return 1
 
         if (( ${FLAG_DRYRUN:-0} == 1 )); then
@@ -336,6 +391,7 @@ set -uo pipefail
         # . Usage
         #   _smb_validate
     _smb_validate() {
+        _smb_refresh_storage_paths
         local failures=0
         local result=""
         local share_name=""
@@ -369,7 +425,7 @@ set -uo pipefail
         fi
         sgnd_print_labeledvalue --label "smbd service" --value "$result" --labelwidth 24
 
-        if mountpoint -q /srv/storage; then
+        if mountpoint -q "$SGND_SAMBA_STORAGE_ROOT"; then
             result="Passed"
         else
             result="Failed"
@@ -429,6 +485,7 @@ set -uo pipefail
         # . Usage
         #   _smb_status
     _smb_status() {
+        _smb_refresh_storage_paths
         local service_state="not installed"
         local config_state="unavailable"
         local storage_state="not configured"
@@ -445,7 +502,7 @@ set -uo pipefail
             fi
         fi
 
-        if mountpoint -q /srv/storage; then
+        if mountpoint -q "$SGND_SAMBA_STORAGE_ROOT"; then
             storage_state="mounted"
             [[ -d "$SGND_SAMBA_SHARE_ROOT" ]] && share_root_state="available"
         fi
@@ -459,6 +516,44 @@ set -uo pipefail
     }
 
 # - Console registration ----------------------------------------------------------
+    # Provides host-level Samba file-server preparation, validation, status, and
+    # managed-share administration. Storage is consumed from the configured
+    # SolidGroundUX storage root rather than being independently provisioned here.
+    #
+    # . Samba File Server
+    # ! Prepare Samba file server
+    #   > Run the complete Samba file-server preparation sequence.
+    #   > Handler: _smb_prepare_file_server
+    #
+    # ! Install Samba prerequisites
+    #   > Install Samba file-server packages and command-line utilities.
+    #   > Handler: _smb_step_install_packages
+    #
+    # ! Validate storage
+    #   > Require the configured SolidGroundUX storage mount.
+    #   > Handler: _smb_step_validate_storage
+    #
+    # ! Prepare share root
+    #   > Create and validate the configured Samba share root.
+    #   > Handler: _smb_step_prepare_share_root
+    #
+    # ! Start Samba service
+    #   > Validate the configuration and start smbd.service.
+    #   > Handler: _smb_step_start_service
+    #
+    # ! Validate Samba file server
+    #   > Validate tools, configuration, service, storage, and managed shares.
+    #   > Handler: _smb_validate
+    #
+    # ! Show Samba file-server status
+    #   > Show service, configuration, storage, and share-root status.
+    #   > Handler: _smb_status
+    #
+    # . Samba Shares
+    # ! Manage shares
+    #   > Create, remove, structure, validate, and manage access to Samba shares.
+    #   > Handler: _smb_manage_shares
+    #   > Script: /usr/local/libexec/solidgroundux/manage-samba-shares.sh
     sgnd_menu_register_group \
         "$SGND_SAMBA_FILE_MODULE_ID" \
         "$SGND_SAMBA_FILE_MODULE_NAME" \
@@ -467,8 +562,8 @@ set -uo pipefail
 
     sgnd_menu_register_item "smb-prepare" "$SGND_SAMBA_FILE_MODULE_ID" "Prepare Samba file server" "_smb_prepare_file_server" "Run the complete Samba file-server preparation sequence" 0 15 1 0
     sgnd_menu_register_item "smb-install" "$SGND_SAMBA_FILE_MODULE_ID" "Install Samba prerequisites" "_smb_step_install_packages" "Install Samba file-server packages and command-line utilities" 0 15 1 1
-    sgnd_menu_register_item "smb-storage" "$SGND_SAMBA_FILE_MODULE_ID" "Validate storage" "_smb_step_validate_storage" "Require mounted storage at /srv/storage" 0 15 1 1
-    sgnd_menu_register_item "smb-share-root" "$SGND_SAMBA_FILE_MODULE_ID" "Prepare share root" "_smb_step_prepare_share_root" "Create and validate /srv/storage/shares" 0 20 1 1
+    sgnd_menu_register_item "smb-storage" "$SGND_SAMBA_FILE_MODULE_ID" "Validate storage" "_smb_step_validate_storage" "Require the configured SolidGroundUX storage mount" 0 15 1 1
+    sgnd_menu_register_item "smb-share-root" "$SGND_SAMBA_FILE_MODULE_ID" "Prepare share root" "_smb_step_prepare_share_root" "Create and validate the configured Samba share root" 0 20 1 1
     sgnd_menu_register_item "smb-service" "$SGND_SAMBA_FILE_MODULE_ID" "Start Samba service" "_smb_step_start_service" "Validate the configuration and start smbd.service" 0 25 1 1
 
     sgnd_menu_register_item "smb-validate" "$SGND_SAMBA_FILE_MODULE_ID" "Validate Samba file server" "_smb_validate" "Validate tools, configuration, service, storage, and managed shares" 0 30 1 0

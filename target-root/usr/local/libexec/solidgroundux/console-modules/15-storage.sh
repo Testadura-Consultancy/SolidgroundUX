@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : f488936773e36a852b4475e4c268a1a9e80327aabc5f221d8d180ad2c6eaf431
+#   Build       : 2623514
+#   Checksum    : f09e540572376a7373697dda0fe2c8d9a42a773a15441d67ea70e0d53fbdbee5
 #   Source      : 15-storage.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -81,7 +81,7 @@ set -uo pipefail
     SGND_MODULE_DESC="${SGND_STORAGE_MODULE_DESC}"
 
     SGND_STORAGE_DEFAULT_MOUNTPOINT="/srv/storage"
-    SGND_STORAGE_DEFAULT_SHARE_ROOT="/srv/storage/shares"
+    SGND_STORAGE_CONFIG_FILE="${SGND_SYSCFG_DIR:-/etc/solidgroundux}/storage.cfg"
 
 # - Internal helpers -------------------------------------------------------------
     # fn: _storage_validate_device
@@ -135,6 +135,97 @@ set -uo pipefail
         [[ "$mountpoint" != "/" ]] || return 1
         [[ "$mountpoint" != *$'\n'* ]] || return 1
         [[ "$mountpoint" != *[[:space:]]* ]] || return 1
+    }
+
+    # fn: _storage_get_mountpoint
+        # . Purpose
+        #   Resolve the configured SolidGroundUX storage mount point.
+        #
+        # . Behavior
+        #   - Uses the persisted storage configuration when available.
+        #   - Falls back to an existing SGND_STORAGE filesystem entry in /etc/fstab.
+        #   - Falls back to /srv/storage when storage has not yet been configured.
+        #
+        # Outputs (stdout):
+        #   Effective storage mount point.
+        #
+        # . Usage
+        #   mountpoint="$(_storage_get_mountpoint)"
+    _storage_get_mountpoint() {
+        local mountpoint=""
+        local device=""
+        local uuid=""
+
+        if [[ -r "$SGND_STORAGE_CONFIG_FILE" ]]; then
+            mountpoint="$(awk -F= '
+                $1 == "SGND_STORAGE_MOUNTPOINT" {
+                    print substr($0, index($0, "=") + 1)
+                    exit
+                }
+            ' "$SGND_STORAGE_CONFIG_FILE" 2>/dev/null || true)"
+
+            if _storage_validate_mountpoint "$mountpoint"; then
+                printf '%s\n' "$mountpoint"
+                return 0
+            fi
+        fi
+
+        device="$(blkid -L SGND_STORAGE 2>/dev/null || true)"
+        if [[ -n "$device" ]]; then
+            uuid="$(blkid -s UUID -o value "$device" 2>/dev/null || true)"
+            if [[ -n "$uuid" ]]; then
+                mountpoint="$(awk -v source="UUID=$uuid" '
+                    $0 !~ /^[[:space:]]*#/ && NF >= 2 && $1 == source { print $2; exit }
+                ' /etc/fstab 2>/dev/null || true)"
+
+                if _storage_validate_mountpoint "$mountpoint"; then
+                    printf '%s\n' "$mountpoint"
+                    return 0
+                fi
+            fi
+        fi
+
+        printf '%s\n' "$SGND_STORAGE_DEFAULT_MOUNTPOINT"
+    }
+
+    # fn: _storage_get_share_root
+        # . Purpose
+        #   Return the managed Samba share root beneath the configured storage mount point.
+        #
+        # Outputs (stdout):
+        #   Effective share-root path.
+        #
+        # . Usage
+        #   share_root="$(_storage_get_share_root)"
+    _storage_get_share_root() {
+        printf '%s/shares\n' "$(_storage_get_mountpoint)"
+    }
+
+    # fn: _storage_save_mountpoint
+        # . Purpose
+        #   Persist the configured SolidGroundUX storage mount point.
+        #
+        # Inputs:
+        #   $1 - Validated absolute mount point.
+        #
+        # . Returns
+        #   0 when configuration is written, otherwise non-zero.
+        #
+        # . Usage
+        #   _storage_save_mountpoint "/srv/storage"
+    _storage_save_mountpoint() {
+        local mountpoint="${1:-}"
+        local config_dir=""
+
+        _storage_validate_mountpoint "$mountpoint" || return 1
+        config_dir="$(dirname "$SGND_STORAGE_CONFIG_FILE")"
+
+        sudo install -d -m 0755 "$config_dir" || return 1
+        printf '%s\n' \
+            '# SolidGroundUX managed storage configuration' \
+            "SGND_STORAGE_MOUNTPOINT=$mountpoint" | \
+            sudo tee "$SGND_STORAGE_CONFIG_FILE" >/dev/null || return 1
+        sudo chmod 0644 "$SGND_STORAGE_CONFIG_FILE" || return 1
     }
 
     # fn: _storage_list_unused_disks
@@ -272,8 +363,8 @@ set -uo pipefail
             --var selection || return $?
 
         case "$selection" in
-            STORAGE) target="$SGND_STORAGE_DEFAULT_MOUNTPOINT" ;;
-            SHARES)  target="$SGND_STORAGE_DEFAULT_SHARE_ROOT" ;;
+            STORAGE) target="$(_storage_get_mountpoint)" ;;
+            SHARES)  target="$(_storage_get_share_root)" ;;
             *)       return 1 ;;
         esac
 
@@ -311,7 +402,7 @@ set -uo pipefail
         local devices=()
         local device=""
         local filesystem="EXT4"
-        local mountpoint="$SGND_STORAGE_DEFAULT_MOUNTPOINT"
+        local mountpoint="$(_storage_get_mountpoint)"
         local decision="No"
         local partition=""
         local uuid=""
@@ -437,6 +528,10 @@ set -uo pipefail
         fi
 
         sudo install -d -m 0770 "$mountpoint/shares" || return 1
+        _storage_save_mountpoint "$mountpoint" || {
+            sayfail "Storage was mounted, but its mount point could not be persisted."
+            return 1
+        }
 
         sayok "Storage configured successfully at $mountpoint."
     }
@@ -460,7 +555,7 @@ set -uo pipefail
         # . Usage
         #   storage_mount
     storage_mount() {
-        local mountpoint="$SGND_STORAGE_DEFAULT_MOUNTPOINT"
+        local mountpoint="$(_storage_get_mountpoint)"
 
         if mountpoint -q "$mountpoint"; then
             sayinfo "Storage is already mounted at $mountpoint."
@@ -503,7 +598,7 @@ set -uo pipefail
         # . Usage
         #   storage_unmount
     storage_unmount() {
-        local mountpoint="$SGND_STORAGE_DEFAULT_MOUNTPOINT"
+        local mountpoint="$(_storage_get_mountpoint)"
 
         if ! mountpoint -q "$mountpoint"; then
             sayinfo "Storage is already unmounted at $mountpoint."
@@ -544,7 +639,7 @@ set -uo pipefail
         # . Usage
         #   storage_expand
     storage_expand() {
-        local mountpoint="$SGND_STORAGE_DEFAULT_MOUNTPOINT"
+        local mountpoint="$(_storage_get_mountpoint)"
         local source=""
         local source_spec=""
         local filesystem=""
@@ -633,8 +728,8 @@ set -uo pipefail
         #   Display ownership and Unix permissions for the managed storage directories.
         #
         # . Behavior
-        #   - Reports owner, group, and octal mode for /srv/storage.
-        #   - Reports owner, group, and octal mode for /srv/storage/shares.
+        #   - Reports owner, group, and octal mode for the configured storage root.
+        #   - Reports owner, group, and octal mode for the configured shares root.
         #   - Reports missing directories without changing the filesystem.
         #
         # . Returns
@@ -651,7 +746,7 @@ set -uo pipefail
         sgnd_print
         sgnd_print_sectionheader "Storage access"
 
-        for path in "$SGND_STORAGE_DEFAULT_MOUNTPOINT" "$SGND_STORAGE_DEFAULT_SHARE_ROOT"; do
+        for path in "$(_storage_get_mountpoint)" "$(_storage_get_share_root)"; do
             owner="-"
             group="-"
             mode="-"
@@ -807,10 +902,10 @@ set -uo pipefail
         #   Restore canonical ownership and permissions for the managed storage roots.
         #
         # . Behavior
-        #   - Restores /srv/storage to root:root with mode 0755.
-        #   - Restores /srv/storage/shares to root:root with mode 0770.
+        #   - Restores the configured storage root to root:root with mode 0755.
+        #   - Restores the configured shares root to root:root with mode 0770.
         #   - Requires confirmation before changing either directory.
-        #   - Does not alter share directories beneath /srv/storage/shares.
+        #   - Does not alter share directories beneath the configured shares root.
         #   - Honors console dry-run mode.
         #
         # Inputs (globals):
@@ -824,13 +919,15 @@ set -uo pipefail
         #   storage_restore_access_defaults
     storage_restore_access_defaults() {
         local decision="No"
+        local mountpoint="$(_storage_get_mountpoint)"
+        local share_root="$(_storage_get_share_root)"
 
-        [[ -d "$SGND_STORAGE_DEFAULT_MOUNTPOINT" ]] || {
-            sayfail "Storage root does not exist: $SGND_STORAGE_DEFAULT_MOUNTPOINT"
+        [[ -d "$mountpoint" ]] || {
+            sayfail "Storage root does not exist: $mountpoint"
             return 1
         }
-        [[ -d "$SGND_STORAGE_DEFAULT_SHARE_ROOT" ]] || {
-            sayfail "Shares root does not exist: $SGND_STORAGE_DEFAULT_SHARE_ROOT"
+        [[ -d "$share_root" ]] || {
+            sayfail "Shares root does not exist: $share_root"
             return 1
         }
 
@@ -855,10 +952,10 @@ set -uo pipefail
             return 0
         fi
 
-        sudo chown root:root "$SGND_STORAGE_DEFAULT_MOUNTPOINT" || return 1
-        sudo chmod 0755 "$SGND_STORAGE_DEFAULT_MOUNTPOINT" || return 1
-        sudo chown root:root "$SGND_STORAGE_DEFAULT_SHARE_ROOT" || return 1
-        sudo chmod 0770 "$SGND_STORAGE_DEFAULT_SHARE_ROOT" || return 1
+        sudo chown root:root "$mountpoint" || return 1
+        sudo chmod 0755 "$mountpoint" || return 1
+        sudo chown root:root "$share_root" || return 1
+        sudo chmod 0770 "$share_root" || return 1
 
         sayok "Canonical storage ownership and permissions restored."
     }
@@ -870,7 +967,7 @@ set -uo pipefail
         # . Behavior
         #   - Displays a concise block-device overview.
         #   - Reports filesystem, source, capacity, availability, and persistence for
-        #     the default storage mount point.
+        #     the configured storage mount point.
         #
         # Outputs (console):
         #   Local disk and storage-mount status.
@@ -881,7 +978,7 @@ set -uo pipefail
         # . Usage
         #   storage_status
     storage_status() {
-        local mountpoint="$SGND_STORAGE_DEFAULT_MOUNTPOINT"
+        local mountpoint="$(_storage_get_mountpoint)"
         local share_root="$mountpoint/shares"
         local source="Not configured"
         local filesystem="-"
@@ -965,7 +1062,7 @@ set -uo pipefail
         #
         # . Behavior
         #   - Verifies that /etc/fstab is syntactically valid.
-        #   - Verifies that the canonical storage mount point has a persistent entry.
+        #   - Verifies that the configured storage mount point has a persistent entry.
         #   - Verifies that the storage filesystem is mounted read/write.
         #   - Resolves the active source and compares it with the configured fstab source.
         #   - Verifies the expected filesystem label and storage directory structure.
@@ -982,7 +1079,7 @@ set -uo pipefail
         # . Usage
         #   storage_validate_provisioning
     storage_validate_provisioning() {
-        local mountpoint="$SGND_STORAGE_DEFAULT_MOUNTPOINT"
+        local mountpoint="$(_storage_get_mountpoint)"
         local share_root="$mountpoint/shares"
         local fstab_source=""
         local resolved_fstab_source=""
@@ -1102,6 +1199,55 @@ set -uo pipefail
     }
 
 # - Console registration ---------------------------------------------------------
+    # Provides local-storage provisioning and operational management. The module
+    # persists the configured storage mount point, manages the filesystem lifecycle,
+    # validates provisioning, and controls ownership and Unix permissions.
+    #
+    # . Storage
+    # ! Configure storage
+    #   > Provision an unused disk as persistent local storage.
+    #   > Handler: storage_configure
+    #
+    # ! Mount storage
+    #   > Mount the configured local storage filesystem.
+    #   > Handler: storage_mount
+    #
+    # ! Unmount storage
+    #   > Unmount storage while keeping its persistent configuration.
+    #   > Handler: storage_unmount
+    #
+    # ! Expand storage
+    #   > Expand the partition and filesystem after enlarging its disk.
+    #   > Handler: storage_expand
+    #
+    # ! Validate storage provisioning
+    #   > Run active checks against the configured storage volume.
+    #   > Handler: storage_validate_provisioning
+    #
+    # ! Show storage status
+    #   > Show local disks and configured storage status.
+    #   > Handler: storage_status
+    #
+    # . Storage Access
+    # ! Show storage ownership
+    #   > Show ownership and permissions for the storage and shares roots.
+    #   > Handler: storage_access_status
+    #
+    # ! Set storage owner
+    #   > Set the owner of the storage root or shares root.
+    #   > Handler: storage_set_owner
+    #
+    # ! Set storage group
+    #   > Set the group of the storage root or shares root.
+    #   > Handler: storage_set_group
+    #
+    # ! Set storage permissions
+    #   > Set Unix permissions on the storage root or shares root.
+    #   > Handler: storage_set_permissions
+    #
+    # ! Restore default permissions
+    #   > Restore canonical ownership and permissions for managed storage roots.
+    #   > Handler: storage_restore_access_defaults
     sgnd_menu_register_group \
         "$SGND_STORAGE_MODULE_ID" \
         "$SGND_STORAGE_MODULE_NAME" \

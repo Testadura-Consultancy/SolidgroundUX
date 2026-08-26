@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : fa42d436a6d4f8e5b910d22473d08c9cd565974b0d41c952cb343a99a5ee75aa
+#   Checksum    : a81ad5f721856e537f1d170d2894c207544453706371bcf78fe2dcb5da67220b
 #   Source      : 22-style-redalert.sh
 #   Type        : library
 #   Group       : UI
@@ -105,7 +105,7 @@ SGND_SECTION_BORDERCLR=$SGND_UI_BORDER
 
 SGND_UI_DEFAULT=$DARK_GOLD
 
-# --- Documentation summaries ---------------------------------------------------------
+# - Documentation summaries ---------------------------------------------------------
     # var: style_say_global_defaults - say() global defaults
         # . Purpose
         #   Document the variables assigned in this style file.

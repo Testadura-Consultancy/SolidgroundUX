@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : efe22167092d6acf0ea971f802574f9539e272f9a9008a4f542463f340ed7683
+#   Checksum    : 4aeb328c47f9c6800c12d7b1701fcc022241234b5c2f5b36cd04259d23122622
 #   Source      : 20-style-testadura.sh
 #   Type        : library
 #   Group       : UI
@@ -57,7 +57,7 @@ SYM_STRT=">>>"
 SYM_WARN="(!)"
 SYM_DEBUG="(~)"
 
-# --- Message colors ----------------------------------------------------------------
+# - Message colors ----------------------------------------------------------------
 
 MSG_CLR_INFO=$TD_SILVER
 MSG_CLR_STRT=$SGND_BLUE
@@ -69,13 +69,13 @@ MSG_CLR_END=$TD_MAROON
 MSG_CLR_EMPTY=$TD_DARK_SILVER
 MSG_CLR_DEBUG=$SGND_DARK_BLUE
 
-# --- Progress display ---------------------------------------------------------------
+# - Progress display ---------------------------------------------------------------
 
 PROG_BAR_CLR=$TD_GOLD
 PROG_IND_CLR=$TD_MAROON
 PROG_TEXT_CLR=$TD_SILVER
 
-# --- Semantic UI colors -------------------------------------------------------------
+# - Semantic UI colors -------------------------------------------------------------
 
 SGND_UI_BORDER=$TD_MAROON
 
@@ -118,7 +118,7 @@ SGND_SECTION_BORDERCLR=$SGND_UI_BORDER
 
 SGND_UI_DEFAULT=$TD_DARK_MAROON
 
-# --- Documentation summaries ---------------------------------------------------------
+# - Documentation summaries ---------------------------------------------------------
     # var: style_say_global_defaults - say() global defaults
         # . Purpose
         #   Document the variables assigned in this style file.

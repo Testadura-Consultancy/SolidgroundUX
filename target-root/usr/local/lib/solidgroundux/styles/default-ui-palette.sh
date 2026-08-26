@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : 827e51fc3a16d9897b3052ce7392dee35b5a7d0abf2a127986024d7c5e607cbe
+#   Checksum    : d97fd529b9b7ed1588810c9347b69286dedf69a9b93a7e9752be3a00bf33191f
 #   Source      : default-ui-palette.sh
 #   Type        : library
 #   Group       : UI
@@ -45,7 +45,7 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 
-# --- Text attributes (SGR) -----------------------------------------------------------
+# - Text attributes (SGR) -----------------------------------------------------------
   # Note: Support depends on terminal emulator; bold and underline are
   # universally supported, others may be ignored gracefully.
 
@@ -77,7 +77,7 @@
       # Notes:
       #   Values are shown as assigned by this file. Referenced palette variables
       #   are resolved by the active palette when the style is sourced.
-# --- Color codes ---------------------------------------------------------------------
+# - Color codes ---------------------------------------------------------------------
   # Reset
     RESET=$'\e[0m'
     # var: style_color_codes - Color codes
@@ -90,7 +90,7 @@
         # Notes:
         #   Values are shown as assigned by this file. Referenced palette variables
         #   are resolved by the active palette when the style is sourced.
-# --- Foreground colors ---------------------------------------------------------------
+# - Foreground colors ---------------------------------------------------------------
   # Naming conventions:
   #   DARK_*    : darker / muted RGB variants
   #   *         : normal RGB colors
@@ -215,7 +215,7 @@
   BRIGHT_BROWN=$'\e[38;2;215;135;0m'
 
 
-# --- Background colors ---------------------------------------------------------------
+# - Background colors ---------------------------------------------------------------
   # Naming conventions:
   #   BG_DARK_*    : darker / muted RGB background shades
   #   BG_*         : normal RGB background colors

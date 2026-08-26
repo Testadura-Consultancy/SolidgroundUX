@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : 7fb2ba9ba2f8a850e06c386e97de3d85897326afec1799c39a63e998137ddd84
+#   Checksum    : a0956cbc169d47ba7bf5190c7b6c648e08f555ae60c1525094d75a539b1868bb
 #   Source      : 23-style-psychedelic.sh
 #   Type        : library
 #   Group       : UI
@@ -22,13 +22,13 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 
-# --- say() global defaults -----------------------------------------------------------
+# - say() global defaults -----------------------------------------------------------
 SAY_DATE_DEFAULT=0
 SAY_SHOW_DEFAULT="label"
 SAY_COLORIZE_DEFAULT="label"
 SAY_DATE_FORMAT="%Y-%m-%d %H:%M:%S"
 
-# --- Say prefixes --------------------------------------------------------------------
+# - Say prefixes --------------------------------------------------------------------
 LBL_CNCL="CANCEL"
 LBL_EMPTY="     "
 LBL_END="END"
@@ -59,7 +59,7 @@ SYM_STRT=">>>"
 SYM_WARN="(!)"
 SYM_DEBUG="(~)"
 
-# --- Semantic colors -----------------------------------------------------------------
+# - Semantic colors -----------------------------------------------------------------
 MSG_CLR_INFO=$GOLD
 MSG_CLR_STRT=$BRIGHT_GOLD
 MSG_CLR_OK=$BRIGHT_GOLD
@@ -116,7 +116,7 @@ PROG_TEXT_CLR=$BRIGHT_WHITE
 PROG_IND_CLR=$BRIGHT_CYAN
 PROG_BAR_CLR=$BRIGHT_MAGENTA
 
-# --- Documentation summaries ---------------------------------------------------------
+# - Documentation summaries ---------------------------------------------------------
     # var: style_say_global_defaults - say() global defaults
         # . Purpose
         #   Document the variables assigned in this style file.

@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : 5f4c6e26b564e5ac657e8ce6f2dcc643dcea0d1adc0e7d3602ffb75301363442
+#   Build       : 2623514
+#   Checksum    : 7c68b84b2f04ba985088d7bf5d5e7b821a234f05210e735e3bda5e293a38351a
 #   Source      : 25-active-directory-client.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -379,6 +379,59 @@ set -uo pipefail
         sudo realm leave "$realm"
     }
 
+# - Console registration ---------------------------------------------------------
+    # Provides Active Directory client preparation and domain membership management.
+    # The complete join workflow is exposed together with its individual steps for
+    # diagnosis, validation, status inspection, DNS registration, and domain leave.
+    #
+    # . Menu items
+    # ! Join domain
+    #   > Run the complete Active Directory client join sequence.
+    #   > Handler: _adc_join_domain
+    #
+    # ! Install AD client prerequisites
+    #   > Install realmd, SSSD, Kerberos, and Active Directory client utilities.
+    #   > Handler: _adc_step_install_packages
+    #
+    # ! Validate join inputs
+    #   > Collect realm, DNS, account, and machine identity settings.
+    #   > Handler: _adc_step_preflight
+    #
+    # ! Configure Active Directory DNS
+    #   > Point the client at the authoritative Active Directory DNS server.
+    #   > Handler: _adc_step_dns
+    #
+    # ! Prepare client identity
+    #   > Set and validate the machine FQDN before joining.
+    #   > Handler: _adc_step_identity
+    #
+    # ! Discover Active Directory services
+    #   > Validate realm, Kerberos, and LDAP service discovery.
+    #   > Handler: _adc_step_discover
+    #
+    # ! Join Active Directory realm
+    #   > Join the machine to the selected realm.
+    #   > Handler: _adc_step_join
+    #
+    # ! Start SSSD
+    #   > Start and validate the SSSD client service.
+    #   > Handler: _adc_step_sssd
+    #
+    # ! Register client DNS
+    #   > Register and verify the client IPv4 host record.
+    #   > Handler: _adc_step_register_dns
+    #
+    # ! Validate AD client
+    #   > Validate membership, service discovery, and SSSD.
+    #   > Handler: _adc_validate
+    #
+    # ! Show AD client status
+    #   > Show machine identity and current realm membership.
+    #   > Handler: _adc_status
+    #
+    # ! Leave domain
+    #   > Leave the currently joined Active Directory realm.
+    #   > Handler: _adc_leave
     sgnd_menu_register_group "$SGND_AD_CLIENT_MODULE_ID" "$SGND_AD_CLIENT_MODULE_NAME" "$SGND_AD_CLIENT_MODULE_DESC" 0 1 250
     sgnd_menu_register_item "adc-join" "$SGND_AD_CLIENT_MODULE_ID" "Join domain" "_adc_join_domain" "Run the complete Active Directory client join sequence" 0 15 1 0
     sgnd_menu_register_item "adc-install" "$SGND_AD_CLIENT_MODULE_ID" "Install AD client prerequisites" "_adc_step_install_packages" "Install realmd, SSSD, Kerberos, and AD client utilities" 0 15 1 1

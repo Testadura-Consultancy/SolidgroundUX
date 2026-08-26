@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : 17c8fa657c850059b6697268bfc5b7e2e287cf63879b4f94e5a30e5c7d6d9ce6
+#   Checksum    : 7296787544d128753f71a87c1c1789b944069d8f1d7bebced036b6a0a61ee821
 #   Source      : 10-style-dark.sh
 #   Type        : library
 #   Group       : UI
@@ -114,7 +114,7 @@ SGND_UI_ERROR=$BRIGHT_WHITE
 SGND_UI_PROMPT=$SILVER
 SGND_UI_INPUT=$BRIGHT_WHITE
 
-# --- Documentation summaries ---------------------------------------------------------
+# - Documentation summaries ---------------------------------------------------------
     # var: style_say_global_defaults - say() global defaults
         # . Purpose
         #   Document the variables assigned in this style file.

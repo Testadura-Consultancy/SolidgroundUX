@@ -17,10 +17,10 @@
 <div class="ct-functionbody">  Restore canonical ownership and permissions for the managed storage roots.</div>
 <div class="ct-functionbody"></div>
 <div class="ct-functionbody sh-highlight">Behavior</div>
-<div class="ct-functionbody">  - Restores /srv/storage to root:root with mode 0755.</div>
-<div class="ct-functionbody">  - Restores /srv/storage/shares to root:root with mode 0770.</div>
+<div class="ct-functionbody">  - Restores the configured storage root to root:root with mode 0755.</div>
+<div class="ct-functionbody">  - Restores the configured shares root to root:root with mode 0770.</div>
 <div class="ct-functionbody">  - Requires confirmation before changing either directory.</div>
-<div class="ct-functionbody">  - Does not alter share directories beneath /srv/storage/shares.</div>
+<div class="ct-functionbody">  - Does not alter share directories beneath the configured shares root.</div>
 <div class="ct-functionbody">  - Honors console dry-run mode.</div>
 <div class="ct-functionbody"></div>
 <p class="ct-functionbody">Inputs (globals):</p>

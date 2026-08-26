@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : ee6c049ad4f064be4730e13de00f6eae2de981a1e4c14e2fdaf678da94093316
+#   Checksum    : d219d65544f32dc4cef08e4afdf63675057c82360802bb6a10c03d3be193117b
 #   Source      : sgnd-args.sh
 #   Type        : library
 #   Group       : Common Core
@@ -45,7 +45,7 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
-# --- Library guard ------------------------------------------------------------------
+# - Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard - Library guard
         # . Purpose
         #   Prevent direct execution of a source-only module and avoid repeated initialization.
@@ -84,7 +84,7 @@ set -uo pipefail
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
-# --- Helper functions ----------------------------------------------------------------
+# - Helper functions ----------------------------------------------------------------
     # fn: _sgnd_arg_split - Split one argument specification
         # . Purpose
         #   Parse a pipe-separated argument specification into parser fields.
@@ -264,7 +264,7 @@ set -uo pipefail
         SGND_EFFECTIVE_ARGS_SPEC=( "${args[@]}" )
     }
 
-# --- Public API ----------------------------------------------------------------------
+# - Public API ----------------------------------------------------------------------
     # var: Help layout settings
         # . Purpose
         #   Configure indentation used by sgnd_show_help when rendering section headers

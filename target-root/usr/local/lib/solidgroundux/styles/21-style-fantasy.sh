@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : 0a56f0716ef330b34168bbb45495bca73aa27309aa80923c8ec9f3231fb78de9
+#   Checksum    : 2d3f75a4b5d5fe8f5c0464541018114a1c1aa9c1d812a0611629b8499c2b8302
 #   Source      : 21-style-fantasy.sh
 #   Type        : library
 #   Group       : UI
@@ -105,7 +105,7 @@ SGND_SECTION_BORDERCLR=$SGND_UI_BORDER
 
 SGND_UI_DEFAULT=$DARK_SILVER
 
-# --- Documentation summaries ---------------------------------------------------------
+# - Documentation summaries ---------------------------------------------------------
     # var: style_say_global_defaults - say() global defaults
         # . Purpose
         #   Document the variables assigned in this style file.

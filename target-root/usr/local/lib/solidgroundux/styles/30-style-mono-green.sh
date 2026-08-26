@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : ae78cd0095ac2ea0ea10b2fb967b71290afadc7beb23178a6ede27b75e201133
+#   Checksum    : 2b81f4f9a5dad82a12eb8379ea9027aad133b8c14a59391cc2bbe76a9b8bfab5
 #   Source      : 30-style-mono-green.sh
 #   Type        : library
 #   Group       : UI
@@ -105,7 +105,7 @@ SGND_SECTION_BORDERCLR=$SGND_UI_BORDER
 
 SGND_UI_DEFAULT=$DARK_GREEN
 
-# --- Documentation summaries ---------------------------------------------------------
+# - Documentation summaries ---------------------------------------------------------
     # var: style_say_global_defaults - say() global defaults
         # . Purpose
         #   Document the variables assigned in this style file.

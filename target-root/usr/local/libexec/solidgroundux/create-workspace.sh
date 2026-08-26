@@ -178,151 +178,151 @@ set -uo pipefail
         source "$exe_common"
     }
 
-# --- Script metadata -----------------------------------------------------------------
+# - Script metadata -----------------------------------------------------------------
     SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
     SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"
     SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
     SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
     SGND_SCRIPT_TITLE="Create workspace"
    
-# --- Script metadata (framework integration) -----------------------------------------
-    # SGND_USING
-        # Libraries to source from SGND_COMMON_LIB.
-        # These are loaded automatically by sgnd_bootstrap AFTER core libraries.
-        #
-        # Example:
-        #   SGND_USING=( net.sh fs.sh )
-        #
-        # Leave empty if no extra libs are needed.
-    SGND_USING=(
-    )
+    # -- Script metadata (framework integration) -----------------------------------------
+        # SGND_USING
+            # Libraries to source from SGND_COMMON_LIB.
+            # These are loaded automatically by sgnd_bootstrap AFTER core libraries.
+            #
+            # Example:
+            #   SGND_USING=( net.sh fs.sh )
+            #
+            # Leave empty if no extra libs are needed.
+        SGND_USING=(
+        )
 
-    # SGND_ARGS_SPEC
-        # Optional: script-specific argument definitions.
-        #
-        # Each entry:
-        #   "name|short|type|var|help|choices"
-        #
-        # Fields:
-        #   name    Long option name without leading --
-        #   short   Short option name without leading -
-        #   type    flag | value | enum
-        # var: Shell variable to receive the parsed value
-        #   help    Help text for auto-generated --help output
-        #   choices Comma-separated values for enum; empty otherwise
-        #
-        # Notes:
-        #   - -h / --help is built in and does not need to be defined here.
-        #   - Parsed values become available in the configured target variables.
-    SGND_ARGS_SPEC=(
-        "exe|e|flag|FLAG_EXE|Create executable template and folders|0|"
-        "lib|l|flag|FLAG_LIB|Create library template and folders|0|"
-        "mod|m|flag|FLAG_MOD|Create console module template and folders|0|"
-        "modfolder|M|value|MOD_FOLDER|Location of console module (optional)|"
-        "project|p|value|PROJECT_NAME|Project name|"
-        "folder|f|value|PROJECT_FOLDER|Set project folder|"
-        "uncreate|u|flag|FLAG_UNCREATE|Remove items listed in workspace manifest|0|"
-    )
-    # SGND_SCRIPT_EXAMPLES
-        # Optional: examples for --help output.
-        # Each entry is a string that will be printed verbatim.
-        #
-        # Example:
-        #   SGND_SCRIPT_EXAMPLES=(
-        #       "Example usage:"
-        #       "  script.sh --verbose --mode fast"
-        #       "  script.sh -v -m slow"
-        #   )
-        #
-        # Leave empty if no examples are needed.
-    SGND_SCRIPT_EXAMPLES=(
-        "Show help"
-        "  $SGND_SCRIPT_NAME --help"
-        ""
-        "Perform a dry run:"
-        "  $SGND_SCRIPT_NAME --dryrun"
-    )
+        # SGND_ARGS_SPEC
+            # Optional: script-specific argument definitions.
+            #
+            # Each entry:
+            #   "name|short|type|var|help|choices"
+            #
+            # Fields:
+            #   name    Long option name without leading --
+            #   short   Short option name without leading -
+            #   type    flag | value | enum
+            # var: Shell variable to receive the parsed value
+            #   help    Help text for auto-generated --help output
+            #   choices Comma-separated values for enum; empty otherwise
+            #
+            # Notes:
+            #   - -h / --help is built in and does not need to be defined here.
+            #   - Parsed values become available in the configured target variables.
+        SGND_ARGS_SPEC=(
+            "exe|e|flag|FLAG_EXE|Create executable template and folders|0|"
+            "lib|l|flag|FLAG_LIB|Create library template and folders|0|"
+            "mod|m|flag|FLAG_MOD|Create console module template and folders|0|"
+            "modfolder|M|value|MOD_FOLDER|Location of console module (optional)|"
+            "project|p|value|PROJECT_NAME|Project name|"
+            "folder|f|value|PROJECT_FOLDER|Set project folder|"
+            "uncreate|u|flag|FLAG_UNCREATE|Remove items listed in workspace manifest|0|"
+        )
+        # SGND_SCRIPT_EXAMPLES
+            # Optional: examples for --help output.
+            # Each entry is a string that will be printed verbatim.
+            #
+            # Example:
+            #   SGND_SCRIPT_EXAMPLES=(
+            #       "Example usage:"
+            #       "  script.sh --verbose --mode fast"
+            #       "  script.sh -v -m slow"
+            #   )
+            #
+            # Leave empty if no examples are needed.
+        SGND_SCRIPT_EXAMPLES=(
+            "Show help"
+            "  $SGND_SCRIPT_NAME --help"
+            ""
+            "Perform a dry run:"
+            "  $SGND_SCRIPT_NAME --dryrun"
+        )
 
-    # SGND_SCRIPT_GLOBALS
-        # Explicit declaration of global variables intentionally used by this script.
-        #
-        # . Purpose
-        #   - Declares which globals are part of the script’s public/config contract.
-        #   - Enables optional configuration loading when non-empty.
-        #
-        # . Behavior
-        #   - If this array is non-empty, sgnd_bootstrap enables config integration.
-        #   - Variables listed here may be populated from configuration files.
-        #   - Unlisted globals will NOT be auto-populated.
-        #
-        # Use this to:
-        #   - Document intentional globals
-        #   - Prevent accidental namespace leakage
-        #   - Make configuration behavior explicit and predictable
-        #
-        # Only list:
-        #   - Variables that must be globally accessible
-        #   - Variables that may be defined in config files
-        #
-        # Leave empty if:
-        #   - The script does not use configuration-driven globals
-    SGND_SCRIPT_GLOBALS=(
-    )
+        # SGND_SCRIPT_GLOBALS
+            # Explicit declaration of global variables intentionally used by this script.
+            #
+            # . Purpose
+            #   - Declares which globals are part of the script’s public/config contract.
+            #   - Enables optional configuration loading when non-empty.
+            #
+            # . Behavior
+            #   - If this array is non-empty, sgnd_bootstrap enables config integration.
+            #   - Variables listed here may be populated from configuration files.
+            #   - Unlisted globals will NOT be auto-populated.
+            #
+            # Use this to:
+            #   - Document intentional globals
+            #   - Prevent accidental namespace leakage
+            #   - Make configuration behavior explicit and predictable
+            #
+            # Only list:
+            #   - Variables that must be globally accessible
+            #   - Variables that may be defined in config files
+            #
+            # Leave empty if:
+            #   - The script does not use configuration-driven globals
+        SGND_SCRIPT_GLOBALS=(
+        )
 
-    # SGND_STATE_VARIABLES
-        # List of variables participating in persistent state.
-        #
-        # . Purpose
-        #   - Declares which variables should be saved/restored when state is enabled.
-        #
-        # . Behavior
-        #   - Only used when sgnd_bootstrap is invoked with --state.
-        #   - Variables listed here are serialized on exit (if SGND_STATE_SAVE=1).
-        #   - On startup, previously saved values are restored before main logic runs.
-        #
-        # Contract:
-        #   - Variables must be simple scalars (no arrays/associatives unless explicitly supported).
-        #   - Script remains fully functional when state is disabled.
-        #
-        # Leave empty if:
-        #   - The script does not use persistent state.
-    SGND_STATE_VARIABLES=(
-    )
+        # SGND_STATE_VARIABLES
+            # List of variables participating in persistent state.
+            #
+            # . Purpose
+            #   - Declares which variables should be saved/restored when state is enabled.
+            #
+            # . Behavior
+            #   - Only used when sgnd_bootstrap is invoked with --state.
+            #   - Variables listed here are serialized on exit (if SGND_STATE_SAVE=1).
+            #   - On startup, previously saved values are restored before main logic runs.
+            #
+            # Contract:
+            #   - Variables must be simple scalars (no arrays/associatives unless explicitly supported).
+            #   - Script remains fully functional when state is disabled.
+            #
+            # Leave empty if:
+            #   - The script does not use persistent state.
+        SGND_STATE_VARIABLES=(
+        )
 
-    # SGND_ON_EXIT_HANDLERS
-        # List of functions to be invoked on script termination.
-        #
-        # . Purpose
-        #   - Allows scripts to register cleanup or finalization hooks.
-        #
-        # . Behavior
-        #   - Functions listed here are executed during framework exit handling.
-        #   - Execution order follows array order.
-        #   - Handlers run regardless of normal exit or controlled termination.
-        #
-        # Contract:
-        #   - Functions must exist before exit occurs.
-        #   - Handlers must not call exit directly.
-        #   - Handlers should be idempotent (safe if executed once).
-        #
-        # Typical uses:
-        #   - Cleanup temporary files
-        #   - Persist additional state
-        #   - Release locks
-        #
-        # Leave empty if:
-        #   - No custom exit behavior is required.
-    SGND_ON_EXIT_HANDLERS=(
-    )
-    
-    # State persistence is opt-in.
-        # Scripts that want persistent state must:
-        #   1) set SGND_STATE_SAVE=1
-        #   2) call sgnd_bootstrap --state
-    SGND_STATE_SAVE=0
+        # SGND_ON_EXIT_HANDLERS
+            # List of functions to be invoked on script termination.
+            #
+            # . Purpose
+            #   - Allows scripts to register cleanup or finalization hooks.
+            #
+            # . Behavior
+            #   - Functions listed here are executed during framework exit handling.
+            #   - Execution order follows array order.
+            #   - Handlers run regardless of normal exit or controlled termination.
+            #
+            # Contract:
+            #   - Functions must exist before exit occurs.
+            #   - Handlers must not call exit directly.
+            #   - Handlers should be idempotent (safe if executed once).
+            #
+            # Typical uses:
+            #   - Cleanup temporary files
+            #   - Persist additional state
+            #   - Release locks
+            #
+            # Leave empty if:
+            #   - No custom exit behavior is required.
+        SGND_ON_EXIT_HANDLERS=(
+        )
+        
+        # State persistence is opt-in.
+            # Scripts that want persistent state must:
+            #   1) set SGND_STATE_SAVE=1
+            #   2) call sgnd_bootstrap --state
+        SGND_STATE_SAVE=0
 
 
-# --- local script functions ----------------------------------------------------------
+# - Local script functions ----------------------------------------------------------
  # -- General helpers
     # fn: _normalize_project_flags - Normalize create-workspace option flags
         # . Purpose
@@ -1273,7 +1273,7 @@ set -uo pipefail
         sayinfo "Created module app config ${appcfg_file}"
     }
 
-# --- main ----------------------------------------------------------------------------
+# - Main ----------------------------------------------------------------------------
     # main
         # . Purpose
         #   Execute the workspace creation or uncreation workflow.

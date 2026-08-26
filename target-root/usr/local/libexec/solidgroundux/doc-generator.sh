@@ -45,7 +45,7 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
-# --- Bootstrap ----------------------------------------------------------------------
+# - Bootstrap ----------------------------------------------------------------------
     # fn& _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
         # . Purpose
         #   Locate, create, and load the SolidGroundUX bootstrap configuration, then
@@ -179,13 +179,13 @@ set -uo pipefail
         source "$exe_common"
     }
 
-# --- Script identity ----------------------------------------------------------------
+# - Script identity ----------------------------------------------------------------
     SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
     SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"
     SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
     SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
 
-# --- Framework integration ----------------------------------------------------------
+# - Framework integration ----------------------------------------------------------
     # var$ SGND_USING
         # Libraries to source from SGND_COMMON_LIB.
         # These are loaded automatically by sgnd_bootstrap AFTER core libraries.
@@ -351,7 +351,7 @@ set -uo pipefail
     SGND_STATE_SAVE=1
 
 
-# --- Local script functions ----------------------------------------------------------
+# - Local script functions ----------------------------------------------------------
     # fn: _init_parameters - Initialize documentation generator parameters
         # . Purpose
         #   Initialize parameter variables from defaults when still unset.
@@ -1279,7 +1279,7 @@ set -uo pipefail
         sgnd_print
 
     }
-# --- Main ---------------------------------------------------------------------------
+# - Main ---------------------------------------------------------------------------
     # fn: main - Run the executable main sequence - Run the executable main sequence
         # . Purpose
         #   Provide the canonical executable entry point for the documentation generator.

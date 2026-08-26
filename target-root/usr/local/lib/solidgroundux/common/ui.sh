@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : de6e4a1adce9682fa06e356029c3766ef68c95febb961286d46c6e9540ca4ccc
+#   Checksum    : 67003c16772de98f28a864a47f74a3bf4da0638dd97b78f96715ba2007662f8e
 #   Source      : ui.sh
 #   Type        : library
 #   Group       : UI
@@ -44,7 +44,7 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
-# --- Library guard ------------------------------------------------------------------
+# - Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard - Library guard
         # . Purpose
         #   Prevent direct execution of a source-only module and avoid repeated initialization.
@@ -83,7 +83,7 @@ set -uo pipefail
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
-# --- Compatibility overrides --------------------------------------------------------
+# - Compatibility overrides --------------------------------------------------------
     # Shims to integrate with legacy helpers if present (say/ask), with safe fallbacks.
     # These overrides are intentionally small and policy-free.
 
@@ -175,7 +175,7 @@ set -uo pipefail
         fi
     }
 
-# --- Helpers ------------------------------------------------------------------------
+# - Helpers ------------------------------------------------------------------------
     # fn: _sgnd_ui_resolve_theme_file - Ui resolve theme file
         # . Purpose
         #   Resolve a palette or style name to a readable theme file path.
@@ -239,7 +239,7 @@ set -uo pipefail
         return 5
     }
 
-# --- Public API ---------------------------------------------------------------------
+# - Public API ---------------------------------------------------------------------
  # -- Public helpers --------------------------------------------------------------
     # fn: sgnd_strip_ansi - Strip ansi
         # . Purpose

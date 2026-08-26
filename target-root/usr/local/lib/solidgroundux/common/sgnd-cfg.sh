@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : d785b7581eccc6442405af10d9f9fde6552c63131c7e20756e42eeb2373d1da5
+#   Checksum    : 25eda803463210e7e3d5d1859d395968e7f20d267b7839b375a31e2e82fc911c
 #   Source      : sgnd-cfg.sh
 #   Type        : library
 #   Group       : Common Core
@@ -45,7 +45,7 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
-# --- Library guard ------------------------------------------------------------------
+# - Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard - Library guard
         # . Purpose
         #   Prevent direct execution of a source-only module and avoid repeated initialization.
@@ -84,7 +84,7 @@ set -uo pipefail
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
-# --- Internal helpers ----------------------------------------------------------------
+# - Internal helpers ----------------------------------------------------------------
     # fn: _sgnd_is_ident - Is ident
         # . Purpose
         #   Internal helper for is ident.
@@ -389,7 +389,7 @@ set -uo pipefail
             printf '%s|%s\n' "$key" "$val"
         done < "$file"
     }
-# --- Public API (CFG) ----------------------------------------------------------------   
+# - Public API (CFG) ----------------------------------------------------------------   
     # fn: sgnd_cfg_load - Cfg load
         # . Purpose
         #   Load a configuration domain into shell variables.
@@ -872,7 +872,7 @@ set -uo pipefail
         return 0
     }
 
-# --- Public API (STATE) -----------------------------------------------------------------
+# - Public API (STATE) -----------------------------------------------------------------
     # sgnd_state_load
         # Purpose:
         #   Load a state domain into the current shell.

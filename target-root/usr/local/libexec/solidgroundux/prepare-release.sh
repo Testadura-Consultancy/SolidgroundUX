@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : 8ac6b6ed173b03ef22b2f735e8d831dac52e8adb2ae3ca10ec453e05e69953be
+#   Build       : 2623513
+#   Checksum    : 151c955721165cc99e32b99df0c8528182164237ae74675528ed3c3f0658da77
 #   Source      : prepare-release.sh
 #   Type        : script
 #   Group       : SDK
@@ -48,7 +48,7 @@
 # =====================================================================================
 
 set -uo pipefail
-# --- Bootstrap ----------------------------------------------------------------------
+# - Bootstrap ----------------------------------------------------------------------
     # fn$ _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
         # . Purpose
         #   Locate, create, and load the SolidGroundUX bootstrap configuration, then
@@ -182,13 +182,13 @@ set -uo pipefail
         source "$exe_common"
     }
 
-# --- Script metadata (identity) ------------------------------------------------------
+# - Script metadata (identity) ------------------------------------------------------
     SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
     SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"
     SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
     SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
 
-# --- Script metadata (framework integration) -----------------------------------------
+# - Script metadata (framework integration) -----------------------------------------
     # SGND_USING
         # Libraries to source from SGND_COMMON_LIB.
         # These are loaded automatically by sgnd_bootstrap AFTER core libraries.
@@ -336,11 +336,11 @@ set -uo pipefail
         # State is loaded explicitly and saved only when FLAG_SAVEPARMS=1.
     SGND_STATE_SAVE=0
 
-# --- Local script Declarations -------------------------------------------------------
+# - Local script Declarations -------------------------------------------------------
     # Put script-local constants and defaults here (NOT framework config).
     # Prefer local variables inside functions unless a value must be shared.
 
-# --- Local script functions ----------------------------------------------------------
+# - Local script functions ----------------------------------------------------------
     # _get_parameters
         # . Purpose
         #   Resolve and collect all parameters required to prepare a release archive.
@@ -737,6 +737,7 @@ set -uo pipefail
         #   - Uses PREVIOUS_MANIFEST as the explicit removal baseline.
         #   - Computes paths present in the baseline but absent from the current manifest.
         #   - Writes one removed relative path per line in sorted order.
+        #   - Excludes persistent *.cfg and *.state files from automatic removal.
         #   - Creates an empty removal manifest when no baseline was selected.
         #
         # . Arguments
@@ -787,9 +788,14 @@ set -uo pipefail
             return 1
         fi
 
-        if ! LC_ALL=C comm -23 -- "$previous_sorted" "$current_sorted" > "$removed_manifest"; then
-            rm -f -- "$previous_sorted" "$current_sorted"
-            return 1
+        if ! LC_ALL=C comm -23 -- "$previous_sorted" "$current_sorted" \
+            | grep -Ev '\.(cfg|state)$' \
+            > "$removed_manifest"; then
+            # grep returns 1 when every removed path was intentionally filtered out.
+            if [[ ${PIPESTATUS[0]} -ne 0 || ${PIPESTATUS[1]} -gt 1 ]]; then
+                rm -f -- "$previous_sorted" "$current_sorted"
+                return 1
+            fi
         fi
 
         rm -f -- "$previous_sorted" "$current_sorted"
@@ -887,7 +893,11 @@ set -uo pipefail
                 rsync -a --delete \
                     --exclude '.*' \
                     --exclude '*.state' \
+                    --exclude '*.cfg' \
                     --exclude '*.code-workspace' \
+                    --exclude '/var/log/solidgroundux.log*' \
+                    --exclude '/var/lib/solidgroundux/archive/*' \
+                    --exclude '/var/lib/solidgroundux/releases/*' \
                     "${SOURCE_DIR%/}/" "$stage_path/" || {
                         sayfail "rsync failed."
                         return 1
@@ -1393,7 +1403,7 @@ set -uo pipefail
 
         while IFS= read -r -d '' script; do
             script_base="$(basename -- "$script")"
-            command_name="${script_base%.sh}"
+            command_name="sgnd-${script_base%.sh}"
             wrapper="${bin_root}/${command_name}"
             installed_target="/usr/local/libexec/solidgroundux/${script_base}"
 
@@ -1447,7 +1457,7 @@ set -uo pipefail
         return "$failed"
     }
 
-# --- Main Sequence -------------------------------------------------------------------
+# - Main Sequence -------------------------------------------------------------------
     # fn: main - Run the executable main sequence - Run the executable main sequence
         # . Purpose
         #   Execute the release preparation workflow.

@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : 1c9811443d7584c2b419da903c64fe0a6660b9291d14211ca1dc559936bab491
+#   Checksum    : fb399cc6c71381accff8f2b964ea90bb2ebd5a9f496b94cca67ac0dcdecd5367
 #   Source      : sgnd-bootstrap-env.sh
 #   Type        : library
 #   Group       : Bootstrap
@@ -44,7 +44,7 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
-# --- Library guard ------------------------------------------------------------------
+# - Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard - Library guard
         # . Purpose
         #   Prevent direct execution of a source-only module and avoid repeated initialization.
@@ -83,7 +83,7 @@ set -uo pipefail
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
-# --- Runtime directory metadata ------------------------------------------------------
+# - Runtime directory metadata ------------------------------------------------------
     # var: SGND_FRAMEWORK_DIRS - Framework directory specifications
         # . Purpose
         #   Hold the rebuilt path specification list consumed by sgnd_ensure_dirs.
@@ -94,7 +94,7 @@ set -uo pipefail
     SGND_FRAMEWORK_DIRS=(
     )
 
-# --- Helpers -------------------------------------------------------------------------
+# - Helpers -------------------------------------------------------------------------
     # fn: _build_framework_dirs - Build framework directory specifications
         # . Purpose
         #   Rebuild the directory specification list used by sgnd_ensure_dirs.

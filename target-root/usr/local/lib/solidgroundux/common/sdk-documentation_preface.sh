@@ -129,6 +129,18 @@
 # > Documentation comments can define product, module, section, subsection, and item
 # > content.
 #
+# > Structural headings use a hyphenated hierarchy. The number of hyphens immediately
+# > following the comment marker determines the heading level:
+# >
+# >     # - Heading      Level 1: primary/top-level section
+# >     # -- Section     Level 2: section within the current level 1 heading
+# >     # --- Subsection Level 3: subsection or paragraph-level grouping
+# >
+# > The hierarchy is semantic, not decorative. Peer headings at the same structural
+# > level should use the same number of hyphens. In particular, top-level source
+# > sections must use `# -` and should not be written as `# --` or `# ---` merely for
+# > visual emphasis.
+#
 # > Section headers are used to group related functions, variables, configuration
 # > values, or explanatory text.
 #

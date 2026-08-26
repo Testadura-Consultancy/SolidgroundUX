@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : 61c5524041f5bba4126a3455321bb61461e6f9d427323015f4362795ab655d73
+#   Checksum    : 49070f4507b8a1b3ad1873eb6df4ae9fff6b7238caa1fe631097b3fb822bf18e
 #   Source      : sgnd-bootstrap.sh
 #   Type        : library
 #   Group       : Bootstrap
@@ -45,7 +45,7 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
-# --- Library guard -------------------------------------------------------------------
+# - Library guard -------------------------------------------------------------------
     # fn$ _sgnd_lib_guard - Library guard
         # . Purpose
         #   Prevent direct execution of a source-only module and avoid repeated initialization.
@@ -120,7 +120,7 @@ set -uo pipefail
         return "$rc"
     }
 
-# --- Main sequence helpers + EXIT dispatch -------------------------------------------
+# - Main sequence helpers + EXIT dispatch -------------------------------------------
     # fn: _parse_bootstrap_args - Parse early bootstrap options
         # . Purpose
         #   Extract bootstrap-only options before the full argument parser is available.

@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : 74b214cf664965b774d98857bb0c8e3320f9d7a6817f846b7185c4fb432f6916
+#   Build       : 2623514
+#   Checksum    : 16b419542b670ded3b51964bffddfddccb46402762b0e7640a8bbda8793256b1
 #   Source      : 10-computer-setup.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -402,6 +402,43 @@ set -uo pipefail
     }
 
 # - Console registration ---------------------------------------------------------
+    # Provides the base post-clone computer setup workflow, including machine
+    # identity, SSH, SolidGround sudo access, status, validation, and preparation
+    # for cloning.
+    #
+    # . Menu items
+    # ! Prepare computer
+    #   > Run the normal post-clone setup sequence.
+    #   > Handler: _computer_prepare
+    #
+    # ! Set computer identity
+    #   > Configure hostname, network identity, DNS, and search domain.
+    #   > Handler: _computer_set_identity
+    #
+    # ! Generate SSH host keys
+    #   > Generate missing host keys, validate sshd, and restart SSH.
+    #   > Handler: _computer_generate_ssh_keys
+    #
+    # ! Configure SSH service
+    #   > Enable or disable the SSH service.
+    #   > Handler: _computer_configure_ssh_service
+    #
+    # ! Setup SolidGround sudo access
+    #   > Allow the administrator to run trusted SolidGroundUX tools without a password.
+    #   > Handler: _computer_configure_sudoers
+    #
+    # ! Show computer status
+    #   > Show identity, network, SSH, host-key, and SolidGround sudo state.
+    #   > Handler: _computer_status
+    #
+    # ! Validate computer setup
+    #   > Validate identity, SSH, host keys, and SolidGround sudo access.
+    #   > Handler: _computer_validate
+    #
+    # ! Prepare for cloning
+    #   > Prepare a template computer for cloning.
+    #   > Handler: _prepare_template
+    #   > Command: sgnd-prepare-template
     sgnd_menu_register_group \
         "$SGND_COMPUTER_SETUP_MODULE_ID" \
         "$SGND_COMPUTER_SETUP_MODULE_NAME" \

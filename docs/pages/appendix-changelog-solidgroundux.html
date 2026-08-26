@@ -16,8 +16,60 @@
 <h2 class="ct-L1Sectionheader">Changelog</h2>
 <p class="ct-documentbody">All notable changes to SolidGroundUX are documented in this file.</p>
 <p class="ct-documentbody">The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.</p>
+<h2 class="ct-L1Sectionheader">To do</h2>
+<ul>
+<li>Verify and repair MOTD launch. *DONE*</li>
+</ul>
+<ul>
+<li>Add site-management and publishing capabilities to the web module. *DONE*</li>
+</ul>
+<ul>
+<li>Make the storage mount location configurable end-to-end. Default to `/srv/storage`, but if a different mount location is entered during configuration, propagate and use that value during mount, validation, and subsequent storage operations. Consider merging configuration and mount into one workflow.</li>
+</ul>
+<ul>
+<li>Add option to create directories, allowing a name, a path, or a comma-separated list as input to the storage module. *DONE*</li>
+</ul>
+<ul>
+<li>`www` → create under the configured storage root, e.g. `/srv/storage/www`</li>
+<li>`/srv/storage/www` → use exactly that path</li>
+<li>`www,logs,backup` → create all three under the configured storage root</li>
+<li>`/srv/www,/srv/logs` → create the explicit paths as given</li>
+<li>Mixed input should work too</li>
+<li>Have the web module ask for/select a storage location for `www`</li>
+<li>Have the SQL module ask for/select `mssql/data`, `mssql/log`, and `mssql/backup`</li>
+<li>Use `ask_selection` to list existing directories; allow manual entry, and offer to create the directory when the entered value does not exist</li>
+</ul>
+<ul>
+<li>Check zip file contents for unnecessary artefacts *DONE*</li>
+</ul>
 <h2 class="ct-L1Sectionheader">Unreleased</h2>
+<h3 class="ct-L2Sectionheader">Changed</h3>
+<ul>
+<li>Renamed MOTD file to 95-solidgroundux; update-motd.d filenames must be lowercase-compatible with run-parts --lsbsysinit, and the SolidGroundUX block is intentionally displayed near the end.</li>
+<li>Added option to create directories, allowing a name, a path, or a comma-separated list as input to the storage module. *DONE*</li>
+<li>`www` → create under the configured storage root, e.g. `/srv/storage/www`</li>
+<li>`/srv/storage/www` → use exactly that path</li>
+<li>`www,logs,backup` → create all three under the configured storage root</li>
+<li>`/srv/www,/srv/logs` → create the explicit paths as given</li>
+<li>Mixed input should work too</li>
+<li>Use `ask_selection` to list existing directories; allow manual entry, and offer to create the directory when the entered value does not exist</li>
+</ul>
+<ul>
+<li>Added SQL service configuration options</li>
+</ul>
+<ul>
+<li>Added Web service configuration options</li>
+</ul>
+<ul>
+<li>Adapted the filters in `prepare-release.sh` to excluded state, config, loging and archive data</li>
+</ul>
 <h2 class="ct-L1Sectionheader">Build 2.0.2623404</h2>
+<h3 class="ct-L2Sectionheader">Verified</h3>
+<ul>
+<li>SolidGroundUX was developed on Ubunto 26.04, Ubuntu 24.04 LTS compatibility verified — SolidGroundUX 2.0 installed and ran successfully.</li>
+<li>SQL Server 2025 module verified end-to-end on Ubuntu 24.04 — repository configuration, engine installation/configuration, tools, validation and status all working; SQL Server active and listening on TCP 1433.</li>
+<li>nginx module verified end-to-end on Ubuntu 26.04 — installation, configuration, validation and HTTP serving working; site-management and publishing capabilities remain limited.</li>
+</ul>
 <h3 class="ct-L2Sectionheader">Changed</h3>
 <ul>
 <li>Improved Samba File Server and share-management usability:</li>

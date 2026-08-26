@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Run validators owned by applicable modules</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<div class="doc-page-branding"><span class="doc-page-branding-title">SolidGroundUX Documentation</span><img src="../assets/branding/doc-header-logo.png" alt="SolidGroundUX"></div>
+<header class="doc-page-header">
+  <div class="doc-title">Run validators owned by applicable modules</div>
+  <div class="doc-breadcrumb">SolidgroundUX / 45-solidground-framework-test.sh / Framework test actions / _framework_test_validate_modules</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Run existing module validations without duplicating their test logic.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Always validates Computer Setup when its validator is loaded.</div>
+<div class="ct-functionbody">  - Runs service/storage validators only when the related component appears</div>
+<div class="ct-functionbody">    configured or installed on the current host.</div>
+<div class="ct-functionbody">  - Reports non-applicable components as SKIP rather than FAIL.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Returns</div>
+<div class="ct-functionbody">  0 when all applicable validators pass; 1 when one or more fail.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Usage</div>
+<div class="ct-functionbody">  _framework_test_validate_modules</div>
+</main>
+</body>
+</html>

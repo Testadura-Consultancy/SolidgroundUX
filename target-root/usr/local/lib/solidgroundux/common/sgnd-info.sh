@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : 223c394ee4dae69fd326df0d74d96a22b5027e24462ec3fabcae33a19a0f783d
+#   Checksum    : 9a07aa3d8dfd524f84a1bfcd270757949c1fbc6e5ccf3fcb39ad29f9f68b10b6
 #   Source      : sgnd-info.sh
 #   Type        : library
 #   Group       : Common Core
@@ -44,7 +44,7 @@
 # =====================================================================================
 set -uo pipefail
 
-# --- Library guard ------------------------------------------------------------------
+# - Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard - Library guard
         # . Purpose
         #   Prevent direct execution of a source-only module and avoid repeated initialization.
@@ -83,7 +83,7 @@ set -uo pipefail
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
-# --- Internal helpers ----------------------------------------------------------------
+# - Internal helpers ----------------------------------------------------------------
     : "${_section_indent:=2}"
     : "${_items_indent:=4}"
     # fn: _sgnd_print_arg_spec_entry - Print arg spec entry
@@ -222,6 +222,7 @@ set -uo pipefail
             sgnd_print_labeledvalue "$name" "$value" --pad "$_items_indent"
         done
     }
+# - Public API ----------------------------------------------------------------------
     # fn: sgnd_print_cfg - Print cfg
         # . Purpose
         #   Print effective configuration values for diagnostics.

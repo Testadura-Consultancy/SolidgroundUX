@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 2.0
 #   Build       : 2623415
-#   Checksum    : 1b9ce615e309c6200674f082101ede0bf6fbed010d3b86e9ea024e8d0061629d
+#   Checksum    : cd151d356d4513c325e2c5804ee34151096cbe72239c72145c3acb2b78a8174b
 #   Source      : ui-glyphs.sh
 #   Type        : library
 #   Group       : UI
@@ -44,7 +44,7 @@
 # =====================================================================================
 set -uo pipefail
 
-# --- Library guard ------------------------------------------------------------------
+# - Library guard ------------------------------------------------------------------
     # fn$ _sgnd_lib_guard - Library guard
         # . Purpose
         #   Prevent direct execution of a source-only module and avoid repeated initialization.
@@ -83,7 +83,7 @@ set -uo pipefail
 
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
     
-# --- Glyph variable reference ------------------------------------------------------
+# - Glyph variable reference ------------------------------------------------------
     # var: Glyph variables - Console glyph constants
         # . Purpose
         #   Document the glyph constants exposed by this module.
@@ -146,7 +146,7 @@ set -uo pipefail
         #   These variables are display constants only; rendering and color handling live in UI modules.
 
     
-# --- Light line drawing ------------------------------------------------------------
+# - Light line drawing ------------------------------------------------------------
     LN_H="─"
     LN_V="│"
 
@@ -162,7 +162,7 @@ set -uo pipefail
     LN_X="┼"
 
 
-# --- Double line drawing -----------------------------------------------------------
+# - Double line drawing -----------------------------------------------------------
     DL_H="═"
     DL_V="║"
 
@@ -177,7 +177,7 @@ set -uo pipefail
     DL_R="╣"
     DL_X="╬"
 
-# --- Common characters -------------------------------------------------------------
+# - Common characters -------------------------------------------------------------
     CH_DEG="°"
     CH_COPY="©"
     CH_TM="™"
@@ -187,7 +187,7 @@ set -uo pipefail
     CH_ARROW="→"
     CH_ELLIPSIS="…"
 
-# --- Math / comparison -------------------------------------------------------------
+# - Math / comparison -------------------------------------------------------------
     CH_SQRT="√"
     CH_GE="≥"
     CH_LE="≤"
@@ -195,14 +195,14 @@ set -uo pipefail
     CH_APPROX="≈"
     CH_INF="∞"
 
-# --- Keyboard hints ----------------------------------------------------------------
+# - Keyboard hints ----------------------------------------------------------------
     KY_ENTER="↵"
     KY_UP="↑"
     KY_DOWN="↓"
     KY_LEFT="←"
     KY_RIGHT="→"
 
-# --- Greek letters -----------------------------------------------------------------
+# - Greek letters -----------------------------------------------------------------
     GR_ALPHA="α"
     GR_BETA="β"
     GR_GAMMA="γ"
