@@ -3,7 +3,7 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623702
+#   Build       : 2623803
 #   Source      : 60-sqlserver.sh
 #   Type        : module
 #   Group       : SolidGround Console

@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623513
-#   Checksum    : 332b92d457cf586e66c196c40fab2bbdde84cb701610da5d70fa694ab4cbb56a
+#   Build       : 2623803
+#   Checksum    : ebaae35de6afea7027b700985f1e3a05d6dfb7a4ce6c97ee623839fb690e981f
 #   Source      : manage-samba-shares.sh
 #   Type        : script
 #   Group       : SolidGround Console

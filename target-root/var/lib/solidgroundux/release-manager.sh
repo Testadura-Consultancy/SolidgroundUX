@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : 5d274fce24ffe3f41cd15e2ab08b26a7f47f68e2d2265cb8d11134721ab6d4f3
+#   Build       : 2623803
+#   Checksum    : e1027c5b0de006ad4091ba5b4392d8e42395310d3fa33727cf3cce4b87b939c1
 #   Source      : release-manager.sh
 #   Type        : script
 #   Group       : Deployment
