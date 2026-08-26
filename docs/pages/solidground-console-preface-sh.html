@@ -11,7 +11,7 @@
 <div class="doc-page-branding"><span class="doc-page-branding-title">SolidGroundUX Documentation</span><img src="../assets/branding/doc-header-logo.png" alt="SolidGroundUX"></div>
 <header class="doc-page-header">
   <div class="doc-title">SolidGroundUX - SolidGround Management Console</div>
-  <div class="doc-breadcrumb">SolidgroundUX / solidground console-preface.sh</div>
+  <div class="doc-breadcrumb">SolidgroundUX / solidground console_preface.sh</div>
 </header>
 <div class="ct-L1Sectionheader">SolidGround Management Console</div>
 <div class="doc-image-group images-1">
@@ -93,7 +93,7 @@
 <div class="ct-L2Sectionbody"></div>
 <p class="ct-L2Sectionbody">The index is intentionally lightweight. It does not source each module in order to discover its menu contents. Instead, sgnd-console reads literal assignments matching the module name and description metadata. If a display name is unavailable, a fallback name is derived from the ordered module filename.</p>
 <div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">Selecting a page by number activates that module. Q/q exits the console.</p>
+<p class="ct-L2Sectionbody">Selecting a page by number activates that module. Q/q exits the console. Host-owned selection prompts use the active theme&#x27;s `SGND_UI_LABEL` color for the prompt label. Entered selections use the themed menu/input value color from the reusable menu input path, keeping index and visibility-management input visually consistent with the rest of the console.</p>
 <div class="ct-L2Sectionbody"></div>
 <div class="ct-L2Sectionheader">Lazy Module Lifecycle</div>
 <div class="ct-L2Sectionbody"></div>
@@ -164,6 +164,12 @@
 <div class="ct-L2Sectionbody"></div>
 <p class="ct-L2Sectionbody">Normal menu actions may request a post-action wait through the WAITSECS argument of sgnd_menu_register_item. A non-zero wait for a normal action is never shorter than 15 seconds. The console presents that wait with ask_dlg_autocontinue so the operator can continue early, pause the countdown, or cancel the countdown without changing the action result. Host-owned immediate controls set SGND_LAST_WAITSECS to 0 and therefore redraw without a post-action pause.</p>
 <div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionheader">Startup Presentation</div>
+<div class="ct-L2Sectionbody"></div>
+<p class="ct-L2Sectionbody">The Management Console owns its full-screen presentation, but startup behavior is configurable. Screen clearing and the generic executable startup title are separate concerns: clearing may be enabled or disabled, and the standard executable title may be shown or suppressed independently before the console takes over rendering.</p>
+<div class="ct-L2Sectionbody"></div>
+<p class="ct-L2Sectionbody">When startup clearing is enabled, the console uses the shared SolidGroundUX clear-screen behavior rather than embedding terminal-specific clearing logic in the console host.</p>
+<div class="ct-L2Sectionbody"></div>
 <div class="ct-L2Sectionheader">Console Status and Direct Controls</div>
 <div class="ct-L2Sectionbody"></div>
 <p class="ct-L2Sectionbody">The status area shows framework-owned runtime state. These controls are available directly from the console and are not implemented as module menu items:</p>
@@ -190,7 +196,7 @@
 <div class="ct-L2Sectionbody"></div>
 <p class="ct-L2Sectionbody">The console persists enabled/disabled state for discoverable module files in the console module state file. Disabled modules are omitted from the index and are therefore never sourced during that console run.</p>
 <div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">When the console runs as root, the main index adds a separate Console management section with V) Manage visibility. That dialog discovers all module files without sourcing them and toggles their persisted enabled/disabled state. The lightweight index is rebuilt immediately when the dialog closes, so visibility changes do not require a console restart. Non-root sessions do not display the visibility control.</p>
+<p class="ct-L2Sectionbody">When the console runs as root, the main index adds a separate Console management section with V) Manage visibility. That dialog discovers all module files without sourcing them and toggles their persisted enabled/disabled state. Its selection prompt follows the same active-theme label/value coloring as the main console input. The lightweight index is rebuilt immediately when the dialog closes, so visibility changes do not require a console restart. Non-root sessions do not display the visibility control.</p>
 <div class="ct-L2Sectionbody"></div>
 <div class="ct-L2Sectionheader">Action Status</div>
 <div class="ct-L2Sectionbody"></div>

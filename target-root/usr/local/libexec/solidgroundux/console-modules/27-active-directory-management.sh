@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623514
-#   Checksum    :48dc58a4a8bd2ae7fbe66f8a22591e1786f35f0d4029b19d80a3efc13abc8930
+#   Build       : 2623817
+#   Checksum    :7e69278b0a94e74db8641e28d0da99b277c1fdcdc0cd15a41835bf20d8ae6ecf
 #   Source      : 27-active-directory-management.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -76,7 +76,7 @@ set -uo pipefail
     SGND_MODULE_DESC="$SGND_AD_MANAGEMENT_MODULE_DESC"
 
 # - Internal helpers ---------------------------------------------------------------
-    # fn$ _admg_require_dc - Require a provisioned Samba AD domain controller
+    # fn: _admg_require_dc - Require a provisioned Samba AD domain controller
         # . Purpose
         #   Verify that samba-tool and a provisioned AD realm are available locally.
         #
@@ -107,7 +107,7 @@ set -uo pipefail
         return 0
     }
 
-    # fn$ _admg_validate_sam_name - Validate a simple AD account name
+    # fn: _admg_validate_sam_name - Validate a simple AD account name
         # . Purpose
         #   Validate a practical sAMAccountName-style value for interactive creation.
         #
@@ -120,7 +120,7 @@ set -uo pipefail
         [[ "${1-}" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$ ]]
     }
 
-    # fn$ _admg_list_users_raw - Return directory users
+    # fn: _admg_list_users_raw - Return directory users
         # . Purpose
         #   Return current AD user sAMAccountNames in stable display order.
         #
@@ -136,7 +136,7 @@ set -uo pipefail
         sudo samba-tool user list 2>/dev/null | LC_ALL=C sort
     }
 
-    # fn$ _admg_list_groups_raw - Return directory groups
+    # fn: _admg_list_groups_raw - Return directory groups
         # . Purpose
         #   Return current AD group names in stable display order.
         #
@@ -152,7 +152,7 @@ set -uo pipefail
         sudo samba-tool group list 2>/dev/null | LC_ALL=C sort
     }
 
-    # fn$ _admg_list_computers_raw - Return directory computers
+    # fn: _admg_list_computers_raw - Return directory computers
         # . Purpose
         #   Return current AD computer account names in stable display order.
         #
@@ -168,7 +168,7 @@ set -uo pipefail
         sudo samba-tool computer list 2>/dev/null | LC_ALL=C sort
     }
 
-    # fn$ _admg_select_user - Select one AD user
+    # fn: _admg_select_user - Select one AD user
         # . Purpose
         #   Enumerate users and store one selected user in the requested variable.
         #
@@ -195,7 +195,7 @@ set -uo pipefail
         printf -v "$output_var" '%s' "$selected"
     }
 
-    # fn$ _admg_select_group - Select one AD group
+    # fn: _admg_select_group - Select one AD group
         # . Purpose
         #   Enumerate groups and store one selected group in the requested variable.
         #
@@ -222,7 +222,7 @@ set -uo pipefail
         printf -v "$output_var" '%s' "$selected"
     }
 
-    # fn$ _admg_select_computer - Select one AD computer
+    # fn: _admg_select_computer - Select one AD computer
         # . Purpose
         #   Enumerate computer accounts and store one selected computer in the requested variable.
         #
@@ -249,7 +249,7 @@ set -uo pipefail
         printf -v "$output_var" '%s' "$selected"
     }
 
-    # fn$ _admg_user_is_disabled - Test whether an AD user account is disabled
+    # fn: _admg_user_is_disabled - Test whether an AD user account is disabled
         # . Purpose
         #   Read userAccountControl and test the ACCOUNTDISABLE flag.
         #
@@ -270,7 +270,7 @@ set -uo pipefail
         (( (flags & 2) != 0 ))
     }
 
-    # fn$ _admg_add_member_to_group - Add one member to one AD group
+    # fn: _admg_add_member_to_group - Add one member to one AD group
         # . Purpose
         #   Provide the shared implementation used by user- and group-oriented workflows.
         #
@@ -295,7 +295,7 @@ set -uo pipefail
         sudo samba-tool group addmembers "$group" "$member"
     }
 
-    # fn$ _admg_remove_member_from_group - Remove one member from one AD group
+    # fn: _admg_remove_member_from_group - Remove one member from one AD group
         # . Purpose
         #   Provide the shared removal implementation used by user- and group-oriented workflows.
         #
@@ -320,7 +320,7 @@ set -uo pipefail
         sudo samba-tool group removemembers "$group" "$member"
     }
 
-    # fn$ _admg_user_is_protected - Test whether a user is protected from destructive actions
+    # fn: _admg_user_is_protected - Test whether a user is protected from destructive actions
         # . Purpose
         #   Prevent accidental deletion or disabling of core Samba AD service accounts.
         #
@@ -336,7 +336,7 @@ set -uo pipefail
         esac
     }
 
-    # fn$ _admg_group_is_protected - Test whether a group is protected from deletion
+    # fn: _admg_group_is_protected - Test whether a group is protected from deletion
         # . Purpose
         #   Prevent accidental deletion of core domain and built-in security groups.
         #
@@ -352,7 +352,7 @@ set -uo pipefail
         esac
     }
 
-    # fn$ _admg_decision_is_quit - Test whether a canonical decision means quit/back
+    # fn: _admg_decision_is_quit - Test whether a canonical decision means quit/back
         # . Returns
         #   0 when the value is Quit/Q (case-insensitive); 1 otherwise.
     _admg_decision_is_quit() {
@@ -502,7 +502,8 @@ set -uo pipefail
 
             ask_dlg_autocontinue \
                 --seconds 5 \
-                --legend "Enter=return to menu; timeout=create another user" \
+                --again \
+                --legend "Enter=return to menu; A=another; timeout=create another user" \
                 || dlg_rc=$?
 
             case "$dlg_rc" in
@@ -647,7 +648,8 @@ set -uo pipefail
             dlg_rc=0
             ask_dlg_autocontinue \
                 --seconds 5 \
-                --legend "Enter=return to menu; timeout=delete another user" \
+                --again \
+                --legend "Enter=return to menu; A=another; timeout=delete another user" \
                 || dlg_rc=$?
 
             case "$dlg_rc" in
@@ -735,7 +737,8 @@ set -uo pipefail
             dlg_rc=0
             ask_dlg_autocontinue \
                 --seconds 5 \
-                --legend "Enter=return to menu; timeout=remove another user from groups" \
+                --again \
+                --legend "Enter=return to menu; A=another; timeout=remove another user from groups" \
                 || dlg_rc=$?
 
             case "$dlg_rc" in
@@ -831,7 +834,8 @@ set -uo pipefail
             dlg_rc=0
             ask_dlg_autocontinue \
                 --seconds 5 \
-                --legend "Enter=return to menu; timeout=create another group" \
+                --again \
+                --legend "Enter=return to menu; A=another; timeout=create another group" \
                 || dlg_rc=$?
 
             case "$dlg_rc" in
@@ -886,7 +890,8 @@ set -uo pipefail
             dlg_rc=0
             ask_dlg_autocontinue \
                 --seconds 5 \
-                --legend "Enter=return to menu; timeout=delete another group" \
+                --again \
+                --legend "Enter=return to menu; A=another; timeout=delete another group" \
                 || dlg_rc=$?
 
             case "$dlg_rc" in
@@ -940,7 +945,8 @@ set -uo pipefail
             dlg_rc=0
             ask_dlg_autocontinue \
                 --seconds 5 \
-                --legend "Enter=return to menu; timeout=add users to another group" \
+                --again \
+                --legend "Enter=return to menu; A=another; timeout=add users to another group" \
                 || dlg_rc=$?
 
             case "$dlg_rc" in
@@ -994,7 +1000,8 @@ set -uo pipefail
             dlg_rc=0
             ask_dlg_autocontinue \
                 --seconds 5 \
-                --legend "Enter=return to menu; timeout=remove members from another group" \
+                --again \
+                --legend "Enter=return to menu; A=another; timeout=remove members from another group" \
                 || dlg_rc=$?
 
             case "$dlg_rc" in

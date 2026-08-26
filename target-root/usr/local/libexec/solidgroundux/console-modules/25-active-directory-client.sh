@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623514
-#   Checksum    : 7c68b84b2f04ba985088d7bf5d5e7b821a234f05210e735e3bda5e293a38351a
+#   Build       : 2623817
+#   Checksum    : bece424060e84969ddef7e6b290d0ffefa89664597e41e9633f72eecf8b52619
 #   Source      : 25-active-directory-client.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -13,7 +13,7 @@
 # ==================================================================================
 set -uo pipefail
 
-    # fn: _sgnd_lib_guard
+    # fn$ _sgnd_lib_guard
         # . Purpose
         #   Ensure the module is sourced and initialized only once.
         #
@@ -33,6 +33,7 @@ set -uo pipefail
     unset -f _sgnd_lib_guard
     sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
+# - Module metadata ----------------------------------------------------------------
     SGND_AD_CLIENT_MODULE_ID="active-directory-client"
     SGND_AD_CLIENT_MODULE_NAME="Active Directory Client"
     SGND_AD_CLIENT_MODULE_VERSION="1.0.0"
@@ -48,6 +49,7 @@ set -uo pipefail
     SGND_ADC_HOSTNAME_SHORT=""
     SGND_ADC_FQDN=""
 
+# - Internal helpers ---------------------------------------------------------------
     # fn: _adc_validate_realm
         # . Purpose
         #   Validate an Active Directory realm name.

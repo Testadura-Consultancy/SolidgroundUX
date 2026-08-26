@@ -3,13 +3,13 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623415
-#   Source      : solidground-console_preface.sh
+#   Build       : 2623817
+#   Source      : solidground console_preface.sh
 #   Type        : documentation
 #   Group       : SolidGround Console
 #   Purpose     : Describe the SolidGround Management Console architecture and module contract
 #
-#   Checksum : 3d0a1ee88d964f14005e666693e726df0bb26715aa4c4c77bf0567a91cdde2bd
+#   Checksum : a0a6d50f270dcaeecb839dd2ac5bd17a4a0dee0299f3cd718c6cb5c187234d76
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
@@ -111,6 +111,10 @@
 # > fallback name is derived from the ordered module filename.
 #
 # > Selecting a page by number activates that module. Q/q exits the console.
+# > Host-owned selection prompts use the active theme's `SGND_UI_LABEL` color for
+# > the prompt label. Entered selections use the themed menu/input value color from
+# > the reusable menu input path, keeping index and visibility-management input
+# > visually consistent with the rest of the console.
 #
 # -- Lazy Module Lifecycle ----------------------------------------------------------
 #
@@ -200,6 +204,17 @@
 # > the action result. Host-owned immediate controls set SGND_LAST_WAITSECS to 0 and
 # > therefore redraw without a post-action pause.
 #
+# -- Startup Presentation -----------------------------------------------------------
+#
+# > The Management Console owns its full-screen presentation, but startup behavior is
+# > configurable. Screen clearing and the generic executable startup title are separate
+# > concerns: clearing may be enabled or disabled, and the standard executable title may
+# > be shown or suppressed independently before the console takes over rendering.
+#
+# > When startup clearing is enabled, the console uses the shared SolidGroundUX
+# > clear-screen behavior rather than embedding terminal-specific clearing logic in the
+# > console host.
+#
 # -- Console Status and Direct Controls ---------------------------------------------
 #
 # > The status area shows framework-owned runtime state. These controls are available
@@ -238,9 +253,11 @@
 # >
 # > When the console runs as root, the main index adds a separate Console management
 # > section with V) Manage visibility. That dialog discovers all module files without
-# > sourcing them and toggles their persisted enabled/disabled state. The lightweight
-# > index is rebuilt immediately when the dialog closes, so visibility changes do not
-# > require a console restart. Non-root sessions do not display the visibility control.
+# > sourcing them and toggles their persisted enabled/disabled state. Its selection
+# > prompt follows the same active-theme label/value coloring as the main console input.
+# > The lightweight index is rebuilt immediately when the dialog closes, so visibility
+# > changes do not require a console restart. Non-root sessions do not display the
+# > visibility control.
 #
 # -- Action Status ------------------------------------------------------------------
 #

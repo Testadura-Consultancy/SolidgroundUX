@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623803
-#   Checksum    : 5cce28f33d7f9de4cea0230c6de8f1bf9fa6817cc573196ed60f0b9abf6da549
+#   Build       : 2623817
+#   Checksum    : 161f528305b818e315ab33a486c005fb66a2f6513b3b3dc3ce228feff90c9a3d
 #   Source      : receive-files.sh
 #   Type        : script
 #   Group       : SDK
@@ -130,13 +130,7 @@ set -uo pipefail
     SGND_SCRIPT_BASE="$(basename -- "$SGND_SCRIPT_FILE")"
     SGND_SCRIPT_NAME="${SGND_SCRIPT_BASE%.sh}"
     SGND_SCRIPT_TITLE="Receive files"
-    : "${SGND_SCRIPT_DESC:=Receive a tar stream and extract it beneath a target root.}"
-    : "${SGND_SCRIPT_VERSION:=1.8}"
-    : "${SGND_SCRIPT_BUILD:=2621602}"
-    : "${SGND_SCRIPT_DEVELOPERS:=Mark Fieten}"
-    : "${SGND_SCRIPT_COMPANY:=Testadura Consultancy}"
-    : "${SGND_SCRIPT_COPYRIGHT:=© 2025 - 2026 Testadura Consultancy}"
-    : "${SGND_SCRIPT_LICENSE:=Testadura Non-Commercial License (TD-NC) v1.1.}"
+
 
 # - Script metadata (framework integration) -----------------------------------------
     SGND_USING=(

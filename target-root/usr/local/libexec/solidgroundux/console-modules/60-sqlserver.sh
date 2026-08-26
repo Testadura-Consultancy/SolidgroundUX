@@ -3,7 +3,7 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623803
+#   Build       : 2623817
 #   Source      : 60-sqlserver.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -13,7 +13,7 @@
 set -uo pipefail
 
 # - Library guard ------------------------------------------------------------------
-    # fn: _sgnd_lib_guard - Ensure the module is sourced only once
+    # fn$ _sgnd_lib_guard - Ensure the module is sourced only once
         # . Returns
         #   0 on success; non-zero when the operation cannot be completed.
         # . Usage
@@ -36,7 +36,7 @@ set -uo pipefail
 # - Module metadata ----------------------------------------------------------------
     SGND_SQLSERVER_MODULE_ID="sql-server"
     SGND_SQLSERVER_MODULE_NAME="SQL Server"
-    SGND_SQLSERVER_MODULE_VERSION="1.1.0"
+    SGND_SQLSERVER_MODULE_VERSION="1.1.6"
     SGND_SQLSERVER_MODULE_DESC="Install, configure, manage, validate, and inspect Microsoft SQL Server"
 
     SGND_MODULE_ID="$SGND_SQLSERVER_MODULE_ID"
@@ -93,18 +93,72 @@ set -uo pipefail
         [[ -x /opt/mssql-tools18/bin/sqlcmd ]]
     }
 
-    # fn: _sqlserver_conf_get - Read one mssql-conf setting
+    # fn: _sqlserver_conf_get - Read one persisted SQL Server setting
         # . Returns
-        #   0 on success; non-zero when the operation cannot be completed.
+        #   0 on success; non-zero when the setting cannot be read or is not configured.
         # . Usage
         #   _sqlserver_conf_get
     _sqlserver_conf_get() {
         local key="$1"
+        local section=""
+        local option=""
         local value=""
-        [[ -x /opt/mssql/bin/mssql-conf ]] || return 1
-        value="$(sudo /opt/mssql/bin/mssql-conf get "$key" 2>/dev/null | sed -n 's/^[^:]*:[[:space:]]*//p' | head -n 1)"
+        local config_file="/var/opt/mssql/mssql.conf"
+
+        section="${key%%.*}"
+        option="${key#*.}"
+        [[ -n "$section" && -n "$option" && "$section" != "$option" ]] || return 1
+
+        # /var/opt/mssql/mssql.conf is the authoritative persisted configuration.
+        # Read only the protected file with privilege; parse the stream as the
+        # current user. Do not rely on a non-portable mssql-conf get subcommand.
+        if (( EUID == 0 )); then
+            value="$(cat "$config_file" 2>/dev/null | awk -v section="$section" -v option="$option" '
+                BEGIN { in_section=0 }
+                /^[[:space:]]*\[/ {
+                    line=$0
+                    gsub(/^[[:space:]]*\[/, "", line)
+                    gsub(/\][[:space:]]*$/, "", line)
+                    in_section=(line == section)
+                    next
+                }
+                in_section {
+                    line=$0
+                    sub(/^[[:space:]]*/, "", line)
+                    if (line ~ "^" option "[[:space:]]*=") {
+                        sub("^" option "[[:space:]]*=[[:space:]]*", "", line)
+                        sub(/[[:space:]]*$/, "", line)
+                        print line
+                        exit
+                    }
+                }
+            ' || true)"
+        else
+            value="$(sudo cat "$config_file" 2>/dev/null | awk -v section="$section" -v option="$option" '
+                BEGIN { in_section=0 }
+                /^[[:space:]]*\[/ {
+                    line=$0
+                    gsub(/^[[:space:]]*\[/, "", line)
+                    gsub(/\][[:space:]]*$/, "", line)
+                    in_section=(line == section)
+                    next
+                }
+                in_section {
+                    line=$0
+                    sub(/^[[:space:]]*/, "", line)
+                    if (line ~ "^" option "[[:space:]]*=") {
+                        sub("^" option "[[:space:]]*=[[:space:]]*", "", line)
+                        sub(/[[:space:]]*$/, "", line)
+                        print line
+                        exit
+                    }
+                }
+            ' || true)"
+        fi
+
         [[ -n "$value" ]] || return 1
-        printf '%s\n' "$value"
+        printf '%s
+' "$value"
     }
 
     # fn: _sqlserver_tcp_port - Return the effective SQL Server TCP port
@@ -142,6 +196,7 @@ set -uo pipefail
     _sqlserver_select_directory() {
         local label="$1"
         local default_path="$2"
+        local output_var="${3:?missing output variable}"
         local storage_root=""
         local selected=""
         local manual=""
@@ -157,14 +212,15 @@ set -uo pipefail
         fi
         options+=("Enter path manually")
 
-        ask_selection --label "$label" --var selected --items "${options[@]}" || return 1
+        sgnd_print
+        sgnd_print_sectionheader "$label"
+        ask_selection --label "Selection" --var selected --items "${options[@]}" || return 1
         if [[ "$selected" == "Enter path manually" ]]; then
             ask --label "$label" --var manual --default "$default_path" --back || return 1
             selected="$manual"
         fi
         [[ "$selected" == /* ]] || selected="$storage_root/$selected"
-        printf '%s
-' "$selected"
+        printf -v "$output_var" '%s' "$selected"
     }
 
     # fn: _sqlserver_ensure_directory - Create and prepare a SQL Server storage directory
@@ -176,7 +232,7 @@ set -uo pipefail
         local path="$1"
         local decision="YES"
         if [[ ! -d "$path" ]]; then
-            ask_decision --label "Directory does not exist. Create it" --choices "YES|Y,NO|N" --default "YES" --var decision
+            ask_decision --label "Create directory $path" --choices "YES|Y,NO|N" --default "YES" --var decision
             [[ "$decision" == "YES" ]] || return 1
             if (( ${FLAG_DRYRUN:-0} == 1 )); then sayinfo "Dry run: Would create $path."; return 0; fi
             sudo mkdir -p "$path" || return 1
@@ -195,8 +251,23 @@ set -uo pipefail
     _sqlserver_apply_conf() {
         local key="$1"
         local value="$2"
+        local quiet="${3:-0}"
+        local output=""
+
         [[ -x /opt/mssql/bin/mssql-conf ]] || { sayfail "mssql-conf is unavailable."; return 1; }
-        if (( ${FLAG_DRYRUN:-0} == 1 )); then sayinfo "Dry run: Would set $key=$value."; return 0; fi
+        if (( ${FLAG_DRYRUN:-0} == 1 )); then
+            sayinfo "Dry run: Would set $key=$value."
+            return 0
+        fi
+
+        if (( quiet )); then
+            if ! output="$(sudo /opt/mssql/bin/mssql-conf set "$key" "$value" 2>&1)"; then
+                [[ -n "$output" ]] && printf '%s\n' "$output"
+                return 1
+            fi
+            return 0
+        fi
+
         sudo /opt/mssql/bin/mssql-conf set "$key" "$value" || return 1
     }
 
@@ -313,17 +384,45 @@ set -uo pipefail
         log_dir="$(_sqlserver_conf_get filelocation.defaultlogdir 2>/dev/null || printf '%s/mssql/log' "$storage_root")"
         backup_dir="$(_sqlserver_conf_get filelocation.defaultbackupdir 2>/dev/null || printf '%s/mssql/backup' "$storage_root")"
 
-        data_dir="$(_sqlserver_select_directory "Select SQL data directory" "$data_dir")" || return 0
-        log_dir="$(_sqlserver_select_directory "Select SQL log directory" "$log_dir")" || return 0
-        backup_dir="$(_sqlserver_select_directory "Select SQL backup directory" "$backup_dir")" || return 0
+        _sqlserver_select_directory "Select SQL data directory" "$data_dir" data_dir || return 0
+        _sqlserver_select_directory "Select SQL log directory" "$log_dir" log_dir || return 0
+        _sqlserver_select_directory "Select SQL backup directory" "$backup_dir" backup_dir || return 0
 
         _sqlserver_ensure_directory "$data_dir" || return 1
         _sqlserver_ensure_directory "$log_dir" || return 1
         _sqlserver_ensure_directory "$backup_dir" || return 1
-        _sqlserver_apply_conf filelocation.defaultdatadir "$data_dir" || return 1
-        _sqlserver_apply_conf filelocation.defaultlogdir "$log_dir" || return 1
-        _sqlserver_apply_conf filelocation.defaultbackupdir "$backup_dir" || return 1
-        _sqlserver_restart_if_active || return 1
+
+        _sqlserver_apply_conf filelocation.defaultdatadir "$data_dir" 1 || return 1
+        _sqlserver_apply_conf filelocation.defaultlogdir "$log_dir" 1 || return 1
+        _sqlserver_apply_conf filelocation.defaultbackupdir "$backup_dir" 1 || return 1
+
+        local restart="YES"
+        if systemctl is-active --quiet "$SGND_SQLSERVER_SERVICE" 2>/dev/null; then
+            sgnd_print
+            sayinfo "SQL Server must be restarted to apply the storage changes."
+            ask_decision --label "Restart SQL Server now" --choices "YES|Y,NO|N" --default "YES" --var restart
+
+            if [[ "$restart" == "YES" ]]; then
+                if (( ${FLAG_DRYRUN:-0} == 1 )); then
+                    sayinfo "Dry run: Would restart $SGND_SQLSERVER_SERVICE."
+                else
+                    sudo systemctl restart "$SGND_SQLSERVER_SERVICE" || {
+                        sayfail "Could not restart $SGND_SQLSERVER_SERVICE."
+                        return 1
+                    }
+                    systemctl is-active --quiet "$SGND_SQLSERVER_SERVICE" 2>/dev/null || {
+                        sayfail "$SGND_SQLSERVER_SERVICE did not become active after restart."
+                        return 1
+                    }
+                    sayok "SQL Server restarted successfully."
+                fi
+            else
+                saywarning "Storage configuration was updated. Restart $SGND_SQLSERVER_SERVICE before using the new paths."
+            fi
+        else
+            saywarning "SQL Server is not running. The storage changes will apply the next time $SGND_SQLSERVER_SERVICE starts."
+        fi
+
         sayok "SQL Server storage locations configured."
     }
 
@@ -568,4 +667,4 @@ set -uo pipefail
     sgnd_menu_register_item "sql-status" "$SGND_SQLSERVER_MODULE_ID" "Show SQL Server status" "_sqlserver_status" "Show service, network, memory, storage, and sqlcmd status" 0 15 1 0
 
     sayinfo "SQL Server module registered with the console."
-#   Checksum : 5981350d8fcb30c9c6b7a1663f52e6d690e0e328acdc062861b6555ef4d512b5
+#   Checksum : e6a675e2f0e03c4e6c0a00ddcab0c2e7703c71816883519db9b74e011131b34e

@@ -17,35 +17,41 @@
 <p class="ct-documentbody">All notable changes to SolidGroundUX are documented in this file.</p>
 <p class="ct-documentbody">The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.</p>
 <h2 class="ct-L1Sectionheader">To do</h2>
-<ul>
-<li>Verify and repair MOTD launch. *DONE*</li>
-</ul>
-<ul>
-<li>Add site-management and publishing capabilities to the web module. *DONE*</li>
-</ul>
-<ul>
-<li>Make the storage mount location configurable end-to-end. Default to `/srv/storage`, but if a different mount location is entered during configuration, propagate and use that value during mount, validation, and subsequent storage operations. Consider merging configuration and mount into one workflow.</li>
-</ul>
-<ul>
-<li>Add option to create directories, allowing a name, a path, or a comma-separated list as input to the storage module. *DONE*</li>
-</ul>
-<ul>
-<li>`www` → create under the configured storage root, e.g. `/srv/storage/www`</li>
-<li>`/srv/storage/www` → use exactly that path</li>
-<li>`www,logs,backup` → create all three under the configured storage root</li>
-<li>`/srv/www,/srv/logs` → create the explicit paths as given</li>
-<li>Mixed input should work too</li>
-<li>Have the web module ask for/select a storage location for `www`</li>
-<li>Have the SQL module ask for/select `mssql/data`, `mssql/log`, and `mssql/backup`</li>
-<li>Use `ask_selection` to list existing directories; allow manual entry, and offer to create the directory when the entered value does not exist</li>
-</ul>
-<ul>
-<li>Check zip file contents for unnecessary artefacts *DONE*</li>
-</ul>
 <h2 class="ct-L1Sectionheader">Unreleased</h2>
+<h3 class="ct-L2Sectionheader">Added</h3>
+<ul>
+<li>Added root-only **Module metadata** (`M`) to the Management Console index. It shows metadata for modules that have actually been lazy-loaded in the current console session.</li>
+<li>Added reusable `--again` support to `ask_dlg_autocontinue`, allowing **A** to immediately repeat a workflow instead of waiting for the timeout.</li>
+<li>Added Samba share subdirectory management:</li>
+<li>Create subdirectories beneath selected shares.</li>
+<li>Accept relative paths such as `Files/Mark` and create intermediate directories.</li>
+<li>List subdirectories beneath selected shares.</li>
+<li>Remove selected subdirectories without allowing the share root itself to be removed.</li>
+<li>Reuse the current share selection; prompt for a share only when none is selected.</li>
+<li>Added Web Server site-management and publishing support:</li>
+<li>Create, enable, disable, remove, and list Nginx sites.</li>
+<li>Remove site content independently from site configuration.</li>
+<li>Publish content from a local directory or a remote machine.</li>
+<li>Persist publish-source answers as state.</li>
+<li>Configure a web address (`server_name`) separately from the site name/document-root directory.</li>
+<li>Publish generated SolidGroundUX documentation through the Web Server module.</li>
+<li>Register site hostnames in Active Directory DNS when requested.</li>
+<li>Added SQL Server configuration actions for storage, TCP network, memory, service management, firewall, tools, validation, and detailed status reporting.</li>
+</ul>
 <h3 class="ct-L2Sectionheader">Changed</h3>
 <ul>
-<li>Renamed MOTD file to 95-solidgroundux; update-motd.d filenames must be lowercase-compatible with run-parts --lsbsysinit, and the SolidGroundUX block is intentionally displayed near the end.</li>
+<li>Improved Management Console numbering so single- and multi-digit selections remain aligned on both module pages and the top-level console index.</li>
+<li>Improved Management Console state-file handling so switching **STANDARD → ROOT → STANDARD** keeps console state owned by the invoking user and prevents root-owned `0600` state files from blocking later writes.</li>
+<li>Main-console and **Manage visibility** `Select option :` prompts now use the active theme label color; typed selections continue to use the active theme value color.</li>
+<li>Web Server management is organized around separate site configuration, site content publishing, and SolidGroundUX documentation publishing concerns.</li>
+<li>Web Server site creation now defaults the web address from the local hostname/FQDN rather than from the site name.</li>
+<li>Web Server publishing no longer treats removed site definitions as publishable targets; publish selections are rebuilt from the current live Nginx site configuration.</li>
+<li>Remote Web Server publishing now supports explicit source host, source user, and source directory values and uses SSH key-based non-interactive access.</li>
+<li>SQL Server storage configuration now shows the directory-selection menu correctly, identifies the actual directory in create confirmations, and asks once whether SQL Server should be restarted after applying all storage changes.</li>
+<li>SQL Server status now reads the persisted `/var/opt/mssql/mssql.conf` settings so configured data, log, backup, and memory values can be shown instead of generic defaults.</li>
+<li>Samba subdirectory creation now inherits the selected share&#x27;s existing ownership/permission/ACL model instead of assigning ownership based on the directory name.</li>
+<li>Active Directory Management repeat workflows now support **A = another** in addition to the existing timeout repeat behavior.</li>
+<li>Renamed MOTD file to `95-solidgroundux`; `update-motd.d` filenames must be lowercase-compatible with `run-parts --lsbsysinit`, and the SolidGroundUX block is intentionally displayed near the end.</li>
 <li>Added option to create directories, allowing a name, a path, or a comma-separated list as input to the storage module. *DONE*</li>
 <li>`www` → create under the configured storage root, e.g. `/srv/storage/www`</li>
 <li>`/srv/storage/www` → use exactly that path</li>
@@ -53,15 +59,24 @@
 <li>`/srv/www,/srv/logs` → create the explicit paths as given</li>
 <li>Mixed input should work too</li>
 <li>Use `ask_selection` to list existing directories; allow manual entry, and offer to create the directory when the entered value does not exist</li>
+<li>Adapted the filters in `prepare-release.sh` to exclude state, configuration, logging, and archive data.</li>
+<li>Release Manager bootstrap/configuration writing now uses explicit `printf` output instead of a heredoc.</li>
 </ul>
+<h3 class="ct-L2Sectionheader">Repaired</h3>
 <ul>
-<li>Added SQL service configuration options</li>
+<li>Repaired SQL Server storage selection where the selection menu was being swallowed by command substitution and only a bare `Selection` prompt remained visible.</li>
+<li>Repaired SQL Server status reporting for configured storage paths and memory values under both ROOT and STANDARD console sessions.</li>
+<li>Repaired Web Server site creation where the site name was incorrectly reused as the default web address.</li>
+<li>Repaired Web Server publishing state so removed sites no longer remain in the publish-site selection.</li>
+<li>Repaired remote Web Server publishing diagnostics around SSH host verification, key authentication, source user, and source-directory availability.</li>
+<li>Repaired Samba subdirectory creation so an already selected share is used directly instead of unnecessarily returning to share selection.</li>
+<li>Repaired console action/module state ownership across privilege switching.</li>
 </ul>
+<h3 class="ct-L2Sectionheader">Verified</h3>
 <ul>
-<li>Added Web service configuration options</li>
-</ul>
-<ul>
-<li>Adapted the filters in `prepare-release.sh` to excluded state, config, loging and archive data</li>
+<li>Re-ran end-to-end provisioning from clean clones for `td-pdc`, `td-nas`, `td-sql`, and `td-web`; all four roles were configured successfully in approximately 34 minutes including unattended time, with the active work itself fitting within a sub-30-minute run.</li>
+<li>Verified generated SolidGroundUX documentation can be published through Nginx and reached through an Active Directory DNS hostname.</li>
+<li>Verified SQL Server 2025 installation and runtime status on Ubuntu 24.04, including active service, TCP 1433, configured memory limit, and configured data/log/backup paths.</li>
 </ul>
 <h2 class="ct-L1Sectionheader">Build 2.0.2623404</h2>
 <h3 class="ct-L2Sectionheader">Verified</h3>

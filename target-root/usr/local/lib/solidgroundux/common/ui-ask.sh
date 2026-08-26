@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : 72eb3ad213925331cf2195f39e8325060d509d9cf688a9fbdaeeeb79bc269f11
+#   Build       : 2623817
+#   Checksum    : 5e72de4e31938ff45d7a9212b6cdec199bdd07a59f13d6ff438ecdef2d39425a
 #   Source      : ui-ask.sh
 #   Type        : library
 #   Group       : UI
@@ -1041,6 +1041,8 @@ set -uo pipefail
         #       from the enabled interaction options.
         #   --redo
         #       Enables R as redo, returning 3.
+        #   --again
+        #       Enables A as again/repeat, returning 3.
         #   --cancel
         #       Enables C or Esc as cancel, returning 2.
         #   --pause
@@ -1057,7 +1059,7 @@ set -uo pipefail
         #   0 when the user continues explicitly.
         #   1 when the countdown expires.
         #   2 when the user cancels.
-        #   3 when the user requests redo.
+        #   3 when the user requests redo/again.
         #
         # . Usage
         #   ask_dlg_autocontinue --seconds 10 --message "Continuing deployment" --redo --cancel --pause
@@ -1065,6 +1067,7 @@ set -uo pipefail
         local seconds=5
         local message=""
         local allow_redo=0
+        local allow_again=0
         local allow_cancel=0
         local allow_pause=0
         local allow_anykey=0
@@ -1085,6 +1088,7 @@ set -uo pipefail
                 --message)    message="$2"; shift 2 ;;
                 --legend)     custom_legend="$2"; shift 2 ;;
                 --redo)       allow_redo=1; shift ;;
+                --again)      allow_again=1; shift ;;
                 --cancel)     allow_cancel=1; shift ;;
                 --pause)      allow_pause=1; shift ;;
                 --anykey)     allow_anykey=1; shift ;;
@@ -1119,6 +1123,7 @@ set -uo pipefail
                     legend+="Enter=continue; "
                 fi
                 (( allow_redo )) && legend+="R=redo; "
+                (( allow_again )) && legend+="A=again; "
                 (( allow_cancel )) && legend+="C/Esc=cancel; "
                 if (( allow_pause )); then
                     if (( paused )); then
@@ -1169,6 +1174,11 @@ set -uo pipefail
                         ;;
                     r|R)
                         (( allow_redo )) || continue
+                        printf '\r\033[%dB\033[K\n' "$((line_count - 1))" >"$tty"
+                        return 3
+                        ;;
+                    a|A)
+                        (( allow_again )) || continue
                         printf '\r\033[%dB\033[K\n' "$((line_count - 1))" >"$tty"
                         return 3
                         ;;

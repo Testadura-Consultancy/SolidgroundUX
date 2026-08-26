@@ -6,29 +6,43 @@ The format is inspired by *Keep a Changelog* while remaining focused on
 practical framework development.
 
 # To do
-- Verify and repair MOTD launch. *DONE*
-
-- Add site-management and publishing capabilities to the web module. *DONE*
-
-- Make the storage mount location configurable end-to-end. Default to `/srv/storage`, but if a different mount location is entered during configuration, propagate and use that value during mount, validation, and subsequent storage operations. Consider merging configuration and mount into one workflow.
-
-- Add option to create directories, allowing a name, a path, or a comma-separated list as input to the storage module. *DONE*
-
-    - `www` → create under the configured storage root, e.g. `/srv/storage/www`
-    - `/srv/storage/www` → use exactly that path
-    - `www,logs,backup` → create all three under the configured storage root
-    - `/srv/www,/srv/logs` → create the explicit paths as given
-    - Mixed input should work too
-    - Have the web module ask for/select a storage location for `www`
-    - Have the SQL module ask for/select `mssql/data`, `mssql/log`, and `mssql/backup`
-    - Use `ask_selection` to list existing directories; allow manual entry, and offer to create the directory when the entered value does not exist
-
-- Check zip file contents for unnecessary artefacts *DONE*
 
 # Unreleased
 
+# Build 2.0.2623817
+
+## Added
+- Added root-only **Module metadata** (`M`) to the Management Console index. It shows metadata for modules that have actually been lazy-loaded in the current console session.
+- Added reusable `--again` support to `ask_dlg_autocontinue`, allowing **A** to immediately repeat a workflow instead of waiting for the timeout.
+- Added Samba share subdirectory management:
+  - Create subdirectories beneath selected shares.
+  - Accept relative paths such as `Files/Mark` and create intermediate directories.
+  - List subdirectories beneath selected shares.
+  - Remove selected subdirectories without allowing the share root itself to be removed.
+  - Reuse the current share selection; prompt for a share only when none is selected.
+- Added Web Server site-management and publishing support:
+  - Create, enable, disable, remove, and list Nginx sites.
+  - Remove site content independently from site configuration.
+  - Publish content from a local directory or a remote machine.
+  - Persist publish-source answers as state.
+  - Configure a web address (`server_name`) separately from the site name/document-root directory.
+  - Publish generated SolidGroundUX documentation through the Web Server module.
+  - Register site hostnames in Active Directory DNS when requested.
+- Added SQL Server configuration actions for storage, TCP network, memory, service management, firewall, tools, validation, and detailed status reporting.
+
 ## Changed
-- Renamed MOTD file to 95-solidgroundux; update-motd.d filenames must be lowercase-compatible with run-parts --lsbsysinit, and the SolidGroundUX block is intentionally displayed near the end.
+- Improved Management Console numbering so single- and multi-digit selections remain aligned on both module pages and the top-level console index.
+- Improved Management Console state-file handling so switching **STANDARD → ROOT → STANDARD** keeps console state owned by the invoking user and prevents root-owned `0600` state files from blocking later writes.
+- Main-console and **Manage visibility** `Select option :` prompts now use the active theme label color; typed selections continue to use the active theme value color.
+- Web Server management is organized around separate site configuration, site content publishing, and SolidGroundUX documentation publishing concerns.
+- Web Server site creation now defaults the web address from the local hostname/FQDN rather than from the site name.
+- Web Server publishing no longer treats removed site definitions as publishable targets; publish selections are rebuilt from the current live Nginx site configuration.
+- Remote Web Server publishing now supports explicit source host, source user, and source directory values and uses SSH key-based non-interactive access.
+- SQL Server storage configuration now shows the directory-selection menu correctly, identifies the actual directory in create confirmations, and asks once whether SQL Server should be restarted after applying all storage changes.
+- SQL Server status now reads the persisted `/var/opt/mssql/mssql.conf` settings so configured data, log, backup, and memory values can be shown instead of generic defaults.
+- Samba subdirectory creation now inherits the selected share's existing ownership/permission/ACL model instead of assigning ownership based on the directory name.
+- Active Directory Management repeat workflows now support **A = another** in addition to the existing timeout repeat behavior.
+- Renamed MOTD file to `95-solidgroundux`; `update-motd.d` filenames must be lowercase-compatible with `run-parts --lsbsysinit`, and the SolidGroundUX block is intentionally displayed near the end.
 - Added option to create directories, allowing a name, a path, or a comma-separated list as input to the storage module. *DONE*
     - `www` → create under the configured storage root, e.g. `/srv/storage/www`
     - `/srv/storage/www` → use exactly that path
@@ -36,12 +50,23 @@ practical framework development.
     - `/srv/www,/srv/logs` → create the explicit paths as given
     - Mixed input should work too
     - Use `ask_selection` to list existing directories; allow manual entry, and offer to create the directory when the entered value does not exist
+- Adapted the filters in `prepare-release.sh` to exclude state, configuration, logging, and archive data.
+- Release Manager bootstrap/configuration writing now uses explicit `printf` output instead of a heredoc.
 
-- Added SQL service configuration options
+## Repaired
+- Repaired SQL Server storage selection where the selection menu was being swallowed by command substitution and only a bare `Selection` prompt remained visible.
+- Repaired SQL Server status reporting for configured storage paths and memory values under both ROOT and STANDARD console sessions.
+- Repaired Web Server site creation where the site name was incorrectly reused as the default web address.
+- Repaired Web Server publishing state so removed sites no longer remain in the publish-site selection.
+- Repaired remote Web Server publishing diagnostics around SSH host verification, key authentication, source user, and source-directory availability.
+- Repaired Samba subdirectory creation so an already selected share is used directly instead of unnecessarily returning to share selection.
+- Repaired console action/module state ownership across privilege switching.
 
-- Added Web service configuration options
+## Verified
+- Re-ran end-to-end provisioning from clean clones for `td-pdc`, `td-nas`, `td-sql`, and `td-web`; all four roles were configured successfully in approximately 34 minutes including unattended time, with the active work itself fitting within a sub-30-minute run.
+- Verified generated SolidGroundUX documentation can be published through Nginx and reached through an Active Directory DNS hostname.
+- Verified SQL Server 2025 installation and runtime status on Ubuntu 24.04, including active service, TCP 1433, configured memory limit, and configured data/log/backup paths.
 
-- Adapted the filters in `prepare-release.sh` to excluded state, config, loging and archive data 
 
 # Build 2.0.2623404
 

@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623514
-#   Checksum    : fc18d4fb3b29731fb41ad449632531355ae7c749678640a64c3b5829220278de
+#   Build       : 2623817
+#   Checksum    : 8daa68a8cd82dd8cde647db25b686739d013294b67354019a31e9c0f89eac8ed
 #   Source      : 20-active-directory-server.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -14,7 +14,7 @@
 set -uo pipefail
 
 # - Library guard ------------------------------------------------------------------
-    # fn: _sgnd_lib_guard
+    # fn$ _sgnd_lib_guard
         # . Purpose
         #   Ensure the module is sourced and initialized only once.
         #

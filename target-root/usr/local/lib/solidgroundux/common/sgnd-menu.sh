@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : ea1a2963b6744a6ccf332f2f32217b9aab82ea57844b4780397855545592f24d
+#   Build       : 2623817
+#   Checksum    : 537cd067daa80a5d1bd9632c48771ca4559a6915b2a93287ae2af57ba61c913f
 #   Source      : sgnd-menu.sh
 #   Group       : SolidGround Console
 #   Type        : library
@@ -915,6 +915,33 @@ set -uo pipefail
         # group label + underline
         printf '2\n'
     }
+    # fn: _sgnd_console_display_key_width - Calculate the width of visible numeric menu keys
+        # . Purpose
+        #   Keep item labels aligned when a menu contains multi-digit selections.
+        #
+        # . Output
+        #   Writes the number of character columns required by the widest visible numeric key.
+        #
+        # . Returns
+        #   0 after calculating the width.
+    _sgnd_console_display_key_width() {
+        local row_index=0
+        local display_key=""
+        local width=1
+        local key_width=0
+
+        _sgnd_console_collect_visible_item_indexes
+
+        for row_index in "${SGND_VISIBLE_ITEM_INDEXES[@]}"; do
+            display_key="$(_sgnd_console_get_visible_display_number "$row_index" 2>/dev/null || true)"
+            [[ -n "$display_key" ]] || continue
+            key_width="${#display_key}"
+            (( key_width > width )) && width="$key_width"
+        done
+
+        printf '%s\n' "$width"
+    }
+
     # fn: _sgnd_console_calc_label_width - Calculate the shared menu label width
         # . Purpose
         #   Find the widest visible item prefix so labels and descriptions align consistently.
@@ -953,6 +980,8 @@ set -uo pipefail
         local status_icon=""
         local width=0
         local max_width=0
+        local key_width="${SGND_RENDER_KEY_WIDTH:-$(_sgnd_console_display_key_width)}"
+        local rendered_key=""
 
         row_count="${#SGND_ITEM_ROWS[@]}"
 
@@ -975,7 +1004,12 @@ set -uo pipefail
                 never) status_icon="· " ;;
                 *) status_icon="" ;;
             esac
-            left_text="${display_key}) $(printf '%*s' "$(( indent * 2 ))" '')${status_icon}${label}"
+            if (( builtin )); then
+                rendered_key="$display_key"
+            else
+                printf -v rendered_key '%*s' "$key_width" "$display_key"
+            fi
+            left_text="${rendered_key}) $(printf '%*s' "$(( indent * 2 ))" '')${status_icon}${label}"
             width="$(sgnd_visible_length "$left_text")"
 
             (( width > max_width )) && max_width="$width"
@@ -1133,6 +1167,7 @@ set -uo pipefail
         #_sgnd_console_refresh_builtin_labels
         _sgnd_console_collect_group_render_indexes
         _sgnd_console_collect_visible_item_indexes
+        SGND_RENDER_KEY_WIDTH="$(_sgnd_console_display_key_width)"
         SGND_RENDER_LABEL_WIDTH="$(_sgnd_console_calc_label_width)"
 
         _sgnd_console_render_menu_title
@@ -1339,6 +1374,8 @@ set -uo pipefail
         local label=""
         local desc=""
         local display_key=""
+        local rendered_key=""
+        local key_width="${SGND_RENDER_KEY_WIDTH:-1}"
         local item_group=""
         local item_state="1"
 
@@ -1432,7 +1469,8 @@ set -uo pipefail
                 local status_text=""
                 printf -v indent_text '%*s' "$(( item_indent * 2 ))" ''
                 status_text="$(_sgnd_menu_status_text "$item_status" "$label_style")"
-                left_text="${display_key}) ${indent_text}${status_text}${label}"
+                printf -v rendered_key '%*s' "$key_width" "$display_key"
+                left_text="${rendered_key}) ${indent_text}${status_text}${label}"
 
                 if [[ -z "$desc" ]]; then
                     printf '%*s%s' "$tpad" "" "$label_style"
@@ -1489,6 +1527,8 @@ set -uo pipefail
         local found_group=0
         local group_state=1
         local display_key=""
+        local rendered_key=""
+        local key_width="${SGND_RENDER_KEY_WIDTH:-1}"
         local item_group=""
         local builtin="0"
         local item_state="1"
@@ -1585,7 +1625,12 @@ set -uo pipefail
             local status_text=""
             printf -v indent_text '%*s' "$(( item_indent * 2 ))" ''
             status_text="$(_sgnd_menu_status_text "$item_status" "$label_style")"
-            left_text="${display_key}) ${indent_text}${status_text}${label}"
+            if (( builtin )); then
+                rendered_key="$display_key"
+            else
+                printf -v rendered_key '%*s' "$key_width" "$display_key"
+            fi
+            left_text="${rendered_key}) ${indent_text}${status_text}${label}"
 
             if [[ -z "$desc" ]]; then
                 printf '%*s%s' "$_tpad" "" "$label_style"
@@ -1763,6 +1808,7 @@ set -uo pipefail
         SGND_CONSOLE_LABEL_WIDTH_CACHE_GENERATION=-1
         SGND_CONSOLE_LABEL_WIDTH_CACHE_SIGNATURE=""
         SGND_CONSOLE_LABEL_WIDTH_CACHE_VALUE=0
+        SGND_RENDER_KEY_WIDTH=1
         : "${SGND_PAGE_MAX_ROWS:=25}"
         : "${SGND_MENU_SHOW_TOGGLEBAR:=1}"
         return 0

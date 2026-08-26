@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : 62c292195720597c1bc9b1fba3ee3df1008f80fce701ccbc1d7d723c2724360c
+#   Build       : 2623817
+#   Checksum    : 71a01b93b2e564b6571ebeb6d04af59c36edca208f4b33b6052022b7513bcdee
 #   Source      : management-console.sh
 #   Type        : script
 #   Group       : SolidGround Console
@@ -396,6 +396,69 @@ set -uo pipefail
         SGND_PAGE_HAS_NEXT=0
         : "${SGND_PAGE_MAX_ROWS:=25}"
             
+    # --- Console state ownership -----------------------------------------------------
+    # fn: _sgnd_console_state_owner - Resolve the user that should own console state
+        # . Purpose
+        #   Keep per-user console state owned by the invoking standard user when the
+        #   console is temporarily relaunched with root access through sudo.
+        #
+        # . Output
+        #   Writes the target user name to stdout.
+        #
+        # . Returns
+        #   0 when a user name is resolved.
+    _sgnd_console_state_owner() {
+        if (( EUID == 0 )) && [[ -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]]; then
+            printf '%s\n' "$SUDO_USER"
+            return 0
+        fi
+
+        id -un
+    }
+
+    # fn: _sgnd_console_prepare_state_directory - Ensure a writable per-user state directory
+        # . Arguments
+        #   $1  DIRECTORY - State directory to prepare.
+        #
+        # . Returns
+        #   0 when the directory is ready; non-zero on failure.
+    _sgnd_console_prepare_state_directory() {
+        local directory="${1:?missing state directory}"
+        local owner=""
+        local group=""
+
+        mkdir -p -- "$directory" || return 1
+
+        if (( EUID == 0 )) && [[ -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]]; then
+            owner="$(_sgnd_console_state_owner)" || return 1
+            group="$(id -gn "$owner" 2>/dev/null)" || return 1
+            chown "$owner:$group" "$directory" || return 1
+        fi
+
+        chmod 0700 "$directory" || return 1
+    }
+
+    # fn: _sgnd_console_finalize_state_file - Normalize ownership and permissions of a state file
+        # . Arguments
+        #   $1  FILE - State file that was just created or replaced.
+        #
+        # . Returns
+        #   0 when ownership and mode are correct; non-zero on failure.
+    _sgnd_console_finalize_state_file() {
+        local file="${1:?missing state file}"
+        local owner=""
+        local group=""
+
+        [[ -e "$file" ]] || return 0
+        chmod 0600 "$file" || return 1
+
+        if (( EUID == 0 )) && [[ -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]]; then
+            owner="$(_sgnd_console_state_owner)" || return 1
+            group="$(id -gn "$owner" 2>/dev/null)" || return 1
+            chown "$owner:$group" "$file" || return 1
+        fi
+    }
+
     # --- Console paths ---------------------------------------------------------------
     # _sgnd_console_init_paths
         # . Purpose
@@ -418,6 +481,10 @@ set -uo pipefail
         SGND_CONSOLE_DEFAULT_MODULE_DIRECTORY="${SGND_CONSOLE_LIBEXEC_DIRECTORY%/}/console-modules"
         SGND_CONSOLE_MODULE_STATE_FILE="${SGND_STATE_DIR%/}/console-modules.state"
         SGND_CONSOLE_ACTION_STATE_FILE="${SGND_STATE_DIR%/}/console-actions.state"
+
+        _sgnd_console_prepare_state_directory "$SGND_STATE_DIR" || return 1
+        _sgnd_console_finalize_state_file "$SGND_CONSOLE_MODULE_STATE_FILE" || return 1
+        _sgnd_console_finalize_state_file "$SGND_CONSOLE_ACTION_STATE_FILE" || return 1
     }
 
     # --- Console configuration -------------------------------------------------------
@@ -526,7 +593,7 @@ set -uo pipefail
         esac
 
         state_dir="$(dirname -- "$SGND_CONSOLE_ACTION_STATE_FILE")"
-        mkdir -p -- "$state_dir" || return 1
+        _sgnd_console_prepare_state_directory "$state_dir" || return 1
         temp_file="$(mktemp "${TMPDIR:-/tmp}/management-console-actions.XXXXXX")" || return 1
 
         if [[ -r "$SGND_CONSOLE_ACTION_STATE_FILE" ]]; then
@@ -540,7 +607,8 @@ set -uo pipefail
             rm -f -- "$temp_file"
             return 1
         }
-        mv -- "$temp_file" "$SGND_CONSOLE_ACTION_STATE_FILE" || return 1
+        mv -f -- "$temp_file" "$SGND_CONSOLE_ACTION_STATE_FILE" || return 1
+        _sgnd_console_finalize_state_file "$SGND_CONSOLE_ACTION_STATE_FILE" || return 1
         sgnd_menu_set_item_status "$item_key" "$status" 2>/dev/null || true
         return 0
     }
@@ -631,7 +699,7 @@ set -uo pipefail
         [[ "$SGND_CONSOLE_VIEW" == "module" && -n "$active_source" ]] || return 0
 
         state_dir="$(dirname -- "$SGND_CONSOLE_ACTION_STATE_FILE")"
-        mkdir -p -- "$state_dir" || return 1
+        _sgnd_console_prepare_state_directory "$state_dir" || return 1
 
         key_file="$(mktemp "${TMPDIR:-/tmp}/management-console-reset-keys.XXXXXX")" || return 1
         temp_file="$(mktemp "${TMPDIR:-/tmp}/management-console-actions.XXXXXX")" || {
@@ -661,8 +729,12 @@ set -uo pipefail
                 return 1
             }
 
-            mv -- "$temp_file" "$SGND_CONSOLE_ACTION_STATE_FILE" || {
+            mv -f -- "$temp_file" "$SGND_CONSOLE_ACTION_STATE_FILE" || {
                 rm -f -- "$key_file" "$temp_file"
+                return 1
+            }
+            _sgnd_console_finalize_state_file "$SGND_CONSOLE_ACTION_STATE_FILE" || {
+                rm -f -- "$key_file"
                 return 1
             }
         else
@@ -772,6 +844,70 @@ set -uo pipefail
         sgnd_dt_has_row "$SGND_GROUP_SCHEMA" SGND_GROUP_ROWS key "$key"
     }
 
+    # fn: _sgnd_console_show_loaded_module_metadata - Show metadata for loaded console modules
+        # . Purpose
+        #   Display the metadata recorded for modules that have been lazy-loaded in the
+        #   current console session.
+        #
+        # . Behavior
+        #   - Available only from a root console session.
+        #   - Shows only modules that have actually been sourced during this session.
+        #   - Displays ID, name, version, description, and source file.
+        #
+        # . Returns
+        #   0 after displaying metadata; 126 when not running as root.
+    _sgnd_console_show_loaded_module_metadata() {
+        local i=0
+        local module_count="${#SGND_MODULE_ROWS[@]}"
+        local module_id=""
+        local module_name=""
+        local module_version=""
+        local module_desc=""
+        local module_source=""
+        local render_width="${SGND_MENU_RENDER_WIDTH:-$(sgnd_terminal_width)}"
+
+        (( EUID == 0 )) || {
+            saywarning "Module metadata is available only from a root console session."
+            return 126
+        }
+
+        sgnd_clear
+        _sgnd_console_render_menu_title
+        sgnd_print "$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")Loaded module metadata${RESET}"
+        sgnd_print_sectionheader --border "$LN_H" --maxwidth "$render_width"
+        sgnd_print
+
+        if (( module_count == 0 )); then
+            sgnd_print_labeledvalue --label "Loaded modules" --value "None" --labelwidth 18
+        else
+            sgnd_print_labeledvalue --label "Loaded modules" --value "$module_count" --labelwidth 18
+            sgnd_print
+
+            for (( i=0; i<module_count; i++ )); do
+                module_id="$(sgnd_dt_get "$SGND_MODULE_SCHEMA" SGND_MODULE_ROWS "$i" id)"
+                module_name="$(sgnd_dt_get "$SGND_MODULE_SCHEMA" SGND_MODULE_ROWS "$i" name)"
+                module_version="$(sgnd_dt_get "$SGND_MODULE_SCHEMA" SGND_MODULE_ROWS "$i" version)"
+                module_desc="$(sgnd_dt_get "$SGND_MODULE_SCHEMA" SGND_MODULE_ROWS "$i" desc)"
+                module_source="$(sgnd_dt_get "$SGND_MODULE_SCHEMA" SGND_MODULE_ROWS "$i" source)"
+
+                sgnd_print_sectionheader "$module_name"
+                sgnd_print_labeledvalue --label "ID" --value "$module_id" --labelwidth 18
+                sgnd_print_labeledvalue --label "Version" --value "$module_version" --labelwidth 18
+                sgnd_print_labeledvalue --label "Description" --value "$module_desc" --labelwidth 18
+                sgnd_print_labeledvalue --label "Source" --value "$module_source" --labelwidth 18
+                sgnd_print
+            done
+        fi
+
+        ask_dlg_autocontinue \
+            --seconds 15 \
+            --message "" \
+            --cancel \
+            --pause || true
+        SGND_LAST_WAITSECS=0
+        return 0
+    }
+
     # --- Module visibility ----------------------------------------------------------
     # fn$: _sgnd_console_module_id_from_filename - Derive module ID from filename
         # . Returns
@@ -847,7 +983,7 @@ set -uo pipefail
         esac
 
         state_dir="$(dirname -- "$SGND_CONSOLE_MODULE_STATE_FILE")"
-        mkdir -p -- "$state_dir" || return 1
+        _sgnd_console_prepare_state_directory "$state_dir" || return 1
         temp_file="$(mktemp "${SGND_CONSOLE_MODULE_STATE_FILE}.XXXXXX")" || return 1
 
         if [[ -r "$SGND_CONSOLE_MODULE_STATE_FILE" ]]; then
@@ -862,7 +998,8 @@ set -uo pipefail
             return 1
         }
 
-        mv -- "$temp_file" "$SGND_CONSOLE_MODULE_STATE_FILE"
+        mv -f -- "$temp_file" "$SGND_CONSOLE_MODULE_STATE_FILE" || return 1
+        _sgnd_console_finalize_state_file "$SGND_CONSOLE_MODULE_STATE_FILE"
     }
 
     # fn: _sgnd_console_manage_visibility - Manage index-page module visibility
@@ -890,6 +1027,8 @@ set -uo pipefail
         local state=""
         local next_state=""
         local i=0
+        local key_width=1
+        local rendered_key=""
         local -a module_files=()
         local -a module_ids=()
 
@@ -903,6 +1042,9 @@ set -uo pipefail
             saywarning "No console modules were found."
             return 0
         }
+
+        key_width="${#module_files[@]}"
+        (( key_width < 1 )) && key_width=1
 
         while true; do
             module_ids=()
@@ -918,8 +1060,9 @@ set -uo pipefail
                 _sgnd_console_module_literal_metadata "$module" module_name module_desc
                 state="$(_sgnd_console_module_state_get "$module_id")"
                 module_ids+=("$module_id")
+                printf -v rendered_key '%*d' "$key_width" "$((i + 1))"
                 sgnd_print_labeledvalue \
-                    --label "$((i + 1))) $module_name" \
+                    --label "${rendered_key}) $module_name" \
                     --value "${state^}" \
                     --labelwidth 34
             done
@@ -927,7 +1070,7 @@ set -uo pipefail
             sgnd_print
             sgnd_print_sectionheader --border "$LN_H" --maxwidth "${SGND_MENU_RENDER_WIDTH:-$(sgnd_terminal_width)}"
             sgnd_print "Q) Return"
-            printf '%s' "Select option : " >/dev/tty
+            printf '%sSelect option%s : ' "$(sgnd_sgr "$SGND_UI_LABEL")" "$RESET" >/dev/tty
             SGND_LAST_WAITSECS=0
             sgnd_menu_read_choice choice || return $?
 
@@ -1115,20 +1258,27 @@ set -uo pipefail
         local tpad=3
         local label_style=""
         local value_style=""
+        local key_width=1
+        local rendered_key=""
 
         term_width="${SGND_MENU_RENDER_WIDTH:-$(sgnd_terminal_width)}"
+        key_width="${#page_count}"
+        (( key_width < 1 )) && key_width=1
 
         # The lightweight console index is rendered outside the normal sgnd-menu
         # item model, so determine its label column from the page names directly.
         for (( i=0; i<page_count; i++ )); do
             name="$(sgnd_dt_get "$SGND_PAGE_SCHEMA" SGND_CONSOLE_PAGE_ROWS "$i" name)"
-            left_text="$((i + 1))) · $name"
+            printf -v rendered_key '%*d' "$key_width" "$((i + 1))"
+            left_text="${rendered_key}) · $name"
             candidate_width="$(sgnd_visible_length "$left_text")"
             (( candidate_width > left_width_max )) && left_width_max="$candidate_width"
         done
 
         if (( EUID == 0 )); then
             candidate_width="$(sgnd_visible_length "V) · Manage visibility")"
+            (( candidate_width > left_width_max )) && left_width_max="$candidate_width"
+            candidate_width="$(sgnd_visible_length "M) · Module metadata")"
             (( candidate_width > left_width_max )) && left_width_max="$candidate_width"
         fi
 
@@ -1148,7 +1298,8 @@ set -uo pipefail
         for (( i=0; i<page_count; i++ )); do
             name="$(sgnd_dt_get "$SGND_PAGE_SCHEMA" SGND_CONSOLE_PAGE_ROWS "$i" name)"
             desc="$(sgnd_dt_get "$SGND_PAGE_SCHEMA" SGND_CONSOLE_PAGE_ROWS "$i" desc)"
-            left_text="$((i + 1))) · $name"
+            printf -v rendered_key '%*d' "$key_width" "$((i + 1))"
+            left_text="${rendered_key}) · $name"
 
             if [[ -z "$desc" ]]; then
                 printf '%*s%s' "$tpad" "" "$label_style"
@@ -1186,6 +1337,15 @@ set -uo pipefail
 
             left_text="V) · Manage visibility"
             desc="Show or hide management-console pages"
+            printf '%*s%s' "$tpad" "" "$label_style"
+            sgnd_padded_visible "$left_text" "$left_width_max"
+            printf '%s%*s%s%s%s\n' \
+                "$RESET" \
+                "$gap" "" \
+                "$value_style" "$desc" "$RESET"
+
+            left_text="M) · Module metadata"
+            desc="Show metadata for modules loaded in this console session"
             printf '%*s%s' "$tpad" "" "$label_style"
             sgnd_padded_visible "$left_text" "$left_width_max"
             printf '%s%*s%s%s%s\n' \
@@ -1471,6 +1631,10 @@ set -uo pipefail
             return 1
         }
 
+        _sgnd_console_prepare_state_directory "$SGND_STATE_DIR" || return 1
+        _sgnd_console_finalize_state_file "$SGND_CONSOLE_MODULE_STATE_FILE" || return 1
+        _sgnd_console_finalize_state_file "$SGND_CONSOLE_ACTION_STATE_FILE" || return 1
+
         sayinfo "Relaunching console with standard access as $target_user"
         exec sudo -H -u "$target_user" -- \
             env \
@@ -1719,7 +1883,7 @@ set -uo pipefail
             fi
 
             sgnd_print_sectionheader --border "$DL_H" --maxwidth "${SGND_MENU_RENDER_WIDTH:-$(sgnd_terminal_width)}"
-            printf '%s' "Select option : " >/dev/tty
+            printf '%sSelect option%s : ' "$(sgnd_sgr "$SGND_UI_LABEL")" "$RESET" >/dev/tty
             SGND_LAST_WAITSECS=0
             sgnd_menu_read_choice choice || return $?
 
@@ -1752,6 +1916,11 @@ set -uo pipefail
                     _sgnd_console_manage_visibility || true
                     _sgnd_console_register_pages || true
                 fi
+                continue
+            fi
+
+            if [[ "$SGND_CONSOLE_VIEW" == "index" && ( "$choice" == "M" || "$choice" == "m" ) && $EUID -eq 0 ]]; then
+                _sgnd_console_show_loaded_module_metadata || true
                 continue
             fi
 

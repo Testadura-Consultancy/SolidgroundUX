@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623514
-#   Checksum    : 1e75b191052ca18bda5e1b33d6fcfee1d5fca4e0bf748cf7aa0cbce2842b895b
+#   Build       : 2623817
+#   Checksum    : 32c4af2654395ddbc5b228dad407df13ee3e9b12236feb35886f25e55223e8d2
 #   Source      : 30-samba-file-server.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -18,7 +18,7 @@
 set -uo pipefail
 
 # - Library guard ------------------------------------------------------------------
-    # fn: _sgnd_lib_guard
+    # fn$ _sgnd_lib_guard
         # . Purpose
         #   Ensure the module is sourced and initialized only once.
         #

@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.0
-#   Build       : 2623803
-#   Checksum    : ebaae35de6afea7027b700985f1e3a05d6dfb7a4ce6c97ee623839fb690e981f
+#   Build       : 2623817
+#   Checksum    : 1051e40a37f328ca835294c94e8e4b44712397f58000c61ff8ae4c0a4c9fd0cd
 #   Source      : manage-samba-shares.sh
 #   Type        : script
 #   Group       : SolidGround Console
@@ -435,54 +435,281 @@ set -uo pipefail
         done
     }
 
-    # fn: _select_single_share - Select exactly one managed share
-    _select_single_share() {
-        local output_var="${1:?missing output variable}"
-        local selected=""
+    # fn: _ensure_selected_shares - Ensure one or more managed shares are selected
+        # . Purpose
+        #   Reuse the current share selection and only prompt when nothing is selected.
+        #
+        # . Returns
+        #   0 when at least one share is selected; 1 when selection is cancelled.
+        #
+        # . Usage
+        #   _ensure_selected_shares || return 0
+    _ensure_selected_shares() {
+        (( ${#SELECTED_SHARES[@]} > 0 )) && return 0
+        _select_shares || return 1
+        (( ${#SELECTED_SHARES[@]} > 0 ))
+    }
 
-        _list_managed_shares || return 1
-        ask_selection --label "Select Samba share" --var selected --items "${MANAGED_SHARES[@]}" || return 1
-        printf -v "$output_var" '%s' "$selected"
+    # fn: _inherit_directory_access - Copy a parent directory's ownership and ACL model
+        # . Purpose
+        #   Make a newly created subdirectory follow the selected share's existing
+        #   Unix ownership, mode, and POSIX ACL/default-ACL model instead of inventing
+        #   per-user ownership from the directory name.
+        #
+        # . Arguments
+        #   $1 PARENT
+        #   $2 CHILD
+        #
+        # . Returns
+        #   0 when ownership/mode/ACL inheritance succeeds; non-zero otherwise.
+    _inherit_directory_access() {
+        local parent="${1:?missing parent directory}"
+        local child="${2:?missing child directory}"
+
+        sudo chown --reference="$parent" -- "$child" || return 1
+        sudo chmod --reference="$parent" -- "$child" || return 1
+        sudo getfacl -cp -- "$parent" 2>/dev/null | sudo setfacl --set-file=- -- "$child" || return 1
         return 0
     }
 
-    # fn: _create_subdirectory - Create one or more subdirectories within a selected share
+    # fn: _create_inherited_directory_tree - Create a relative directory tree with inherited access
+        # . Arguments
+        #   $1 SHARE_PATH
+        #   $2 RELATIVE_PATH
+        #
+        # . Returns
+        #   0 when the complete tree exists and newly created components inherited
+        #   their parent's ownership/mode/ACL model; non-zero on failure.
+    _create_inherited_directory_tree() {
+        local share_path="${1:?missing share path}"
+        local relative_path="${2:?missing relative path}"
+        local current="$share_path"
+        local child=""
+        local part=""
+        local -a parts=()
+
+        IFS='/' read -r -a parts <<< "$relative_path"
+        for part in "${parts[@]}"; do
+            child="$current/$part"
+            if ! sudo test -d "$child"; then
+                sudo mkdir -- "$child" || return 1
+                _inherit_directory_access "$current" "$child" || return 1
+            fi
+            current="$child"
+        done
+
+        sudo test -d "$current"
+    }
+
+    # fn: _list_share_subdirectories_raw - Return relative subdirectory paths for one share
+        # . Arguments
+        #   $1 SHARE
+        #
+        # . Output
+        #   Writes one relative directory path per line.
+    _list_share_subdirectories_raw() {
+        local share="${1:?missing share}"
+        local share_path=""
+
+        share_path="$(_share_path "$share")"
+        sudo test -d "$share_path" || return 1
+        sudo find "$share_path" -mindepth 1 -type d -printf '%P\n' 2>/dev/null | LC_ALL=C sort
+    }
+
+    # fn: _create_subdirectory - Create subdirectories beneath the currently selected shares
+        # . Purpose
+        #   Create one relative path in every selected share. If no share is currently
+        #   selected, prompt for a share selection first. Newly created directory
+        #   components inherit the parent share's ownership, mode, and ACL model.
+        #
+        # . Returns
+        #   0 after returning to the manager; non-zero on creation failure.
     _create_subdirectory() {
         local share=""
         local share_path=""
         local relative_path=""
         local full_path=""
         local dlg_rc=0
+        local created_count=0
 
-        _select_single_share share || return 0
-        share_path="$(_share_path "$share")"
-        [[ -d "$share_path" ]] || {
-            sayfail "Share backing directory does not exist: $share_path"
-            return 1
-        }
+        _ensure_selected_shares || return 0
 
         while :; do
             relative_path=""
             ask \
-                --label "Subdirectory in '$share' (Q=Back)" \
+                --label "Relative directory path (e.g. Files/Mark) (Q=Back)" \
                 --var relative_path \
                 --validate _validate_relative_path \
                 --back || return 0
 
-            full_path="$share_path/$relative_path"
-            if [[ -e "$full_path" ]]; then
-                saywarning "Path already exists: $full_path"
-            elif (( ${FLAG_DRYRUN:-0} == 1 )); then
-                sayinfo "Dry run: Would create $full_path."
+            created_count=0
+            for share in "${SELECTED_SHARES[@]}"; do
+                share_path="$(_share_path "$share")"
+                sudo test -d "$share_path" || {
+                    sayfail "Share backing directory does not exist: $share_path"
+                    return 1
+                }
+
+                full_path="$share_path/$relative_path"
+                sgnd_print_labeledvalue --label "Share" --value "$share" --labelwidth 18
+                sgnd_print_labeledvalue --label "Directory" --value "$full_path" --labelwidth 18
+
+                if sudo test -d "$full_path"; then
+                    saywarning "Directory already exists: $full_path"
+                    continue
+                fi
+
+                if (( ${FLAG_DRYRUN:-0} == 1 )); then
+                    sayinfo "Dry run: Would create $full_path using the share access model."
+                    created_count=$((created_count + 1))
+                    continue
+                fi
+
+                _create_inherited_directory_tree "$share_path" "$relative_path" || {
+                    sayfail "Could not create subdirectory tree: $full_path"
+                    return 1
+                }
+
+                sudo test -d "$full_path" || {
+                    sayfail "Directory creation could not be verified: $full_path"
+                    return 1
+                }
+
+                sayok "Created '$relative_path' in '$share'."
+                created_count=$((created_count + 1))
+            done
+
+            dlg_rc=0
+            ask_dlg_autocontinue \
+                --seconds 5 \
+                --again \
+                --legend "Enter=return to manager; A=another; timeout=create another subdirectory" \
+                || dlg_rc=$?
+            case "$dlg_rc" in
+                1|3) continue ;;
+                *) return 0 ;;
+            esac
+        done
+    }
+
+    # fn: _list_subdirectories - List subdirectories beneath the currently selected shares
+        # . Returns
+        #   0 after displaying the directory trees.
+    _list_subdirectories() {
+        local share=""
+        local relative_path=""
+        local count=0
+
+        _ensure_selected_shares || return 0
+
+        for share in "${SELECTED_SHARES[@]}"; do
+            sgnd_print
+            sgnd_print_sectionheader --text "$share subdirectories"
+            count=0
+            while IFS= read -r relative_path; do
+                [[ -n "$relative_path" ]] || continue
+                sgnd_print --text "$relative_path" --pad 2
+                count=$((count + 1))
+            done < <(_list_share_subdirectories_raw "$share" || true)
+
+            (( count > 0 )) || sgnd_print --text "No subdirectories found." --pad 2
+        done
+
+        ask_dlg_autocontinue \
+            --seconds 15 \
+            --message "Press Enter to return to share management." \
+            --pause || true
+        return 0
+    }
+
+    # fn: _remove_subdirectory - Remove a selected subdirectory from a selected share
+        # . Purpose
+        #   Select a concrete relative directory beneath the current share selection and
+        #   remove it. The share root itself is never presented or accepted as a target.
+        #
+        # . Returns
+        #   0 after returning to the manager; non-zero on removal failure.
+    _remove_subdirectory() {
+        local share=""
+        local relative_path=""
+        local selected=""
+        local selected_share=""
+        local selected_relative=""
+        local share_path=""
+        local full_path=""
+        local decision="No"
+        local dlg_rc=0
+        local -a choices=()
+
+        _ensure_selected_shares || return 0
+
+        while :; do
+            choices=()
+            for share in "${SELECTED_SHARES[@]}"; do
+                while IFS= read -r relative_path; do
+                    [[ -n "$relative_path" ]] || continue
+                    choices+=("$share/$relative_path")
+                done < <(_list_share_subdirectories_raw "$share" || true)
+            done
+
+            if (( ${#choices[@]} == 0 )); then
+                saywarning "No subdirectories found beneath the selected share(s)."
+                return 0
+            fi
+
+            ask_selection \
+                --label "Select subdirectory to remove" \
+                --var selected \
+                --items "${choices[@]}" || return 0
+
+            selected_share="${selected%%/*}"
+            selected_relative="${selected#*/}"
+            _validate_relative_path "$selected_relative" || {
+                sayfail "Invalid relative directory path: $selected_relative"
+                return 1
+            }
+
+            share_path="$(_share_path "$selected_share")"
+            full_path="$share_path/$selected_relative"
+            [[ "$full_path" == "$share_path/"* && "$full_path" != "$share_path" ]] || {
+                sayfail "Refusing to remove the share root."
+                return 1
+            }
+            sudo test -d "$full_path" || {
+                saywarning "Directory no longer exists: $full_path"
+                continue
+            }
+
+            if sudo find "$full_path" -mindepth 1 -print -quit 2>/dev/null | grep -q .; then
+                decision="No"
+                ask_decision \
+                    --label "Directory is not empty. Remove it and all contents" \
+                    --choices "Yes|Y,No|N,Quit|Q" \
+                    --default "No" \
+                    --var decision || return $?
+                [[ "${decision^^}" == "QUIT" || "${decision^^}" == "Q" ]] && return 0
+                [[ "${decision^^}" == "YES" ]] || continue
+            fi
+
+            if (( ${FLAG_DRYRUN:-0} == 1 )); then
+                sayinfo "Dry run: Would remove $full_path."
             else
-                sudo install -d -m 0770 "$full_path" || return 1
-                sayok "Created subdirectory '$relative_path' in '$share'."
+                sudo rm -rf -- "$full_path" || return 1
+                sudo test ! -e "$full_path" || {
+                    sayfail "Directory removal could not be verified: $full_path"
+                    return 1
+                }
+                sayok "Removed '$selected_relative' from '$selected_share'."
             fi
 
             dlg_rc=0
-            ask_dlg_autocontinue --seconds 5 --legend "Enter=return to manager; timeout=create another subdirectory" || dlg_rc=$?
+            ask_dlg_autocontinue \
+                --seconds 5 \
+                --again \
+                --legend "Enter=return to manager; A=another; timeout=remove another subdirectory" \
+                || dlg_rc=$?
             case "$dlg_rc" in
-                1) continue ;;
+                1|3) continue ;;
                 *) return 0 ;;
             esac
         done
@@ -1050,6 +1277,8 @@ set -uo pipefail
             "Create share"
             "Remove share"
             "Create subdirectory"
+            "List subdirectories"
+            "Remove subdirectory"
             "Select shares"
             "Show access"
             "Grant read-only access to AD group"
@@ -1096,6 +1325,12 @@ set -uo pipefail
                     ;;
                 "Create subdirectory")
                     _create_subdirectory || true
+                    ;;
+                "List subdirectories")
+                    _list_subdirectories || true
+                    ;;
+                "Remove subdirectory")
+                    _remove_subdirectory || true
                     ;;
                 "Select shares")
                     _select_shares || true
