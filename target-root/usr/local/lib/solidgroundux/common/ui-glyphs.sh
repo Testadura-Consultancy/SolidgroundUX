@@ -2,9 +2,9 @@
 # SolidGroundUX - UI Glyphs
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : cd151d356d4513c325e2c5804ee34151096cbe72239c72145c3acb2b78a8174b
+#   Version     : 2.1
+#   Build       : 2624102
+#   Checksum    : feee7c562670fd6ec7a4aece16ea0be242a8fdabb2eae849cf468112b47cec6d
 #   Source      : ui-glyphs.sh
 #   Type        : library
 #   Group       : UI
@@ -45,25 +45,32 @@
 set -uo pipefail
 
 # - Library guard ------------------------------------------------------------------
-    # fn$ _sgnd_lib_guard - Library guard
+    # fn$ _sgnd_lib_guard - Enforce source-only, single-load library initialization
         # . Purpose
-        #   Prevent direct execution of a source-only module and avoid repeated initialization.
+        #   Ensure the file is sourced as a library and initialized only once.
         #
         # . Behavior
-        #   - Derives a module-specific guard variable from the current filename.
-        #   - Exits with status 2 when the file is executed directly.
-        #   - Returns immediately when the module has already been loaded.
-        #   - Marks the module as loaded before normal initialization continues.
+        #   - Derives a unique guard variable name from the current filename.
+        #   - Aborts execution when the file is run directly instead of sourced.
+        #   - Sets the guard variable on first load.
+        #   - Returns immediately when the library was already loaded.
+        #
+        # Inputs
+        #   BASH_SOURCE[0]
+        #   $0
+        #
+        # Outputs (globals)
+        #   SGND_<MODULE>_LOADED
         #
         # . Returns
-        #   0 when the module may continue loading or was already loaded.
-        #   Exits with status 2 when executed directly.
+        #   0 when already loaded or successfully initialized.
+        #   Exits with code 2 when executed instead of sourced.
         #
         # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
-        local lib_base
-        local guard
+        local lib_base=""
+        local guard=""
 
         lib_base="$(basename "${BASH_SOURCE[0]}" .sh)"
         lib_base="${lib_base//-/_}"
@@ -81,8 +88,10 @@ set -uo pipefail
     _sgnd_lib_guard
     unset -f _sgnd_lib_guard
 
-    sgnd_module_init_metadata "${BASH_SOURCE[0]}"
-    
+    if declare -F sgnd_module_init_metadata >/dev/null 2>&1 \
+        && declare -F sgnd_header_buffer_load >/dev/null 2>&1; then
+        sgnd_module_init_metadata "${BASH_SOURCE[0]}"
+    fi
 # - Glyph variable reference ------------------------------------------------------
     # var: Glyph variables - Console glyph constants
         # . Purpose

@@ -3,20 +3,22 @@
 # SolidGroundUX - Release Manager
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623803
-#   Checksum    : e1027c5b0de006ad4091ba5b4392d8e42395310d3fa33727cf3cce4b87b939c1
+#   Version     : 2.1
+#   Build       : 2624102
+#   Checksum    : 014d66c7b421ec52c9bc3d92231a5ab6a4bca7406620cad642b914ec37e0b2bc
 #   Source      : release-manager.sh
+#   Wrapper     : sgnd-release
 #   Type        : script
 #   Group       : Deployment
-#   Purpose     : Standalone SolidGroundUX release acquisition, installation, rollback, and removal.
+#   Purpose     : Standalone SolidGroundUX/project package acquisition, installation, rollback, and removal.
 #
 # Description:
-#   Provides a framework-independent release manager for SolidGroundUX.
+#   Provides a framework-independent release manager for SolidGroundUX and compatible project packages.
 #
 #   The script:
-#     - Discovers pending releases under /var/lib/solidgroundux/releases
-#     - Treats versioned directories under /var/lib/solidgroundux/archive as install history
+#     - Keeps SolidGroundUX release state in the legacy releases/archive locations
+#     - Keeps other project release state under /var/lib/solidgroundux/projects/<project>/
+#     - Reads release-package.info from incoming ZIPs to select the owning project
 #     - Installs a first release by verifying and extracting its complete tar archive
 #     - Updates an existing installation and applies the incoming .removed manifest
 #     - Rolls back by making the installed filesystem match a selected archived release
@@ -28,7 +30,7 @@
 #
 # Design principles:
 #   - Standalone operation even when SolidGroundUX is absent or damaged
-#   - Filesystem-as-state: releases = available, archive = installed/history
+#   - Filesystem-as-state per project: releases = available, archive = installed/history
 #   - Complete release archives; no incremental binary patching
 #   - Conservative removal: files/symlinks are removed, directories only when empty
 #   - Transactional acquisition through a temporary directory before release admission
@@ -45,6 +47,7 @@
 set -uo pipefail
 
 # --- Defaults -----------------------------------------------------------------------
+    SGND_RELEASE_PROJECT="solidgroundux"
     SGND_RELEASE_PRODUCT="SolidGroundUX"
     SGND_RELEASE_GITHUB_REPO="Testadura-Mark/SolidGroundUX"
     SGND_RELEASE_LINE="2.0"
@@ -63,6 +66,13 @@ set -uo pipefail
     VAL_RELEASES_DIR=""
     VAL_ARCHIVE_ROOT=""
     VAL_GITHUB_REPO=""
+    VAL_PROJECT=""
+
+    PROJECT_STATE_ROOT=""
+    PROJECT_INFO_FILE=""
+
+    FLAG_RELEASES_DIR_OVERRIDE=0
+    FLAG_ARCHIVE_ROOT_OVERRIDE=0
 
     SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
     SCRIPT_DIR="$(cd -- "$(dirname -- "$SCRIPT_FILE")" && pwd)"
@@ -214,7 +224,7 @@ set -uo pipefail
         local manager_version=""
         local manager_build=""
         local title="SolidGroundUX Release Manager"
-        local desc="Standalone installation, update, rollback and removal"
+        local desc="Standalone package installation, update, rollback and removal"
         local host=""
         local pad=4
         local right_pad=4
@@ -345,13 +355,14 @@ set -uo pipefail
             '  --update               Check, download if required, and install the latest build' \
             '  --install              Install the newest pending local release' \
             '  --rollback             Install the previous archived release, or --release NAME' \
-            '  --remove               Remove the active SolidGroundUX installation' \
+            '  --remove               Remove the active selected project installation' \
             '' \
             'Options:' \
             '  --release NAME         Operate on a specific release base or version' \
             '  --auto                 Do not ask for confirmations or selections' \
+            '  --project SLUG         Select a locally known project (default: solidgroundux)' \
             '  --repo OWNER/REPO      Override configured GitHub repository' \
-            '  --source URL|FILE      Direct release ZIP source instead of GitHub asset discovery' \
+            '  --source URL|FILE      Direct package ZIP source; usable with download/install/update' \
             '  --target-root PATH     Installation root (default: /)' \
             '  --state-root PATH      Release-manager state root' \
             '  --releases-dir PATH    Pending/downloaded releases directory' \
@@ -366,7 +377,8 @@ set -uo pipefail
             '' \
             'Filesystem state:' \
             '  releases/              Downloaded or rolled-back release sets available for install' \
-            '  archive/<release>/     Installed release history; highest version is current'
+            '  archive/<release>/     SolidGroundUX install history' \
+            '  projects/<slug>/       State for additional project packages'
     }
 
     # fn: _set_action - Set and validate the requested release-manager action
@@ -407,6 +419,11 @@ set -uo pipefail
                     [[ -n "$VAL_RELEASE" ]] || { _release_fail "--release requires a value"; return 1; }
                     ;;
                 --auto) FLAG_AUTO=1 ;;
+                --project)
+                    shift
+                    VAL_PROJECT="${1:-}"
+                    [[ -n "$VAL_PROJECT" ]] || { _release_fail "--project requires a value"; return 1; }
+                    ;;
                 --repo)
                     shift
                     VAL_GITHUB_REPO="${1:-}"
@@ -431,11 +448,13 @@ set -uo pipefail
                     shift
                     VAL_RELEASES_DIR="${1:-}"
                     [[ -n "$VAL_RELEASES_DIR" ]] || { _release_fail "--releases-dir requires a value"; return 1; }
+                    FLAG_RELEASES_DIR_OVERRIDE=1
                     ;;
                 --archive-root)
                     shift
                     VAL_ARCHIVE_ROOT="${1:-}"
                     [[ -n "$VAL_ARCHIVE_ROOT" ]] || { _release_fail "--archive-root requires a value"; return 1; }
+                    FLAG_ARCHIVE_ROOT_OVERRIDE=1
                     ;;
                 --dryrun) FLAG_DRYRUN=1 ;;
                 --verbose) FLAG_VERBOSE=1 ;;
@@ -482,10 +501,139 @@ set -uo pipefail
             fi
         fi
 
-        : "${VAL_RELEASES_DIR:=${VAL_STATE_ROOT%/}/releases}"
-        : "${VAL_ARCHIVE_ROOT:=${VAL_STATE_ROOT%/}/archive}"
         CANONICAL_MANAGER_PATH="${VAL_STATE_ROOT%/}/release-manager.sh"
         SGND_RELEASE_CONFIG_FILE="${VAL_STATE_ROOT%/}/release-manager.cfg"
+    }
+
+    # fn: _package_info_value - Read one key from release-package.info safely
+        # . Purpose
+        #   Parse a simple KEY=value field without sourcing package-controlled shell code.
+    _package_info_value() {
+        local file="${1:?missing package info}"
+        local key="${2:?missing key}"
+        local value=""
+
+        value="$(sed -n -E "s/^${key}=(.*)$/\1/p" "$file" | head -n 1)"
+        [[ -n "$value" ]] || return 1
+        printf '%s\n' "$value"
+    }
+
+    # fn: _project_slug_safe - Validate a project slug used beneath the manager state root
+    _project_slug_safe() {
+        local slug="${1:-}"
+        [[ "$slug" =~ ^[a-z0-9][a-z0-9._-]*$ ]]
+    }
+
+    # fn: _load_project_info - Load persisted display identity for one project
+    _load_project_info() {
+        local slug="${1:?missing project slug}"
+        local info=""
+        local product=""
+
+        [[ "$slug" == "solidgroundux" ]] && {
+            SGND_RELEASE_PRODUCT="SolidGroundUX"
+            return 0
+        }
+
+        info="${VAL_STATE_ROOT%/}/projects/${slug}/project.info"
+        if [[ -r "$info" ]]; then
+            product="$(_package_info_value "$info" "SGND_PACKAGE_PRODUCT" 2>/dev/null || true)"
+        fi
+
+        SGND_RELEASE_PRODUCT="${product:-$slug}"
+        return 0
+    }
+
+    # fn: _set_project_context - Select release/archive state for one project
+        # . Purpose
+        #   Make all existing installation-engine functions operate on the selected project.
+        #
+        # . Behavior
+        #   - SolidGroundUX keeps its legacy state layout for backwards compatibility.
+        #   - Other projects use /var/lib/solidgroundux/projects/<slug>/.
+    _set_project_context() {
+        local slug="${1:-solidgroundux}"
+
+        slug="${slug,,}"
+        _project_slug_safe "$slug" || {
+            _release_fail "Invalid project slug: $slug"
+            return 1
+        }
+
+        SGND_RELEASE_PROJECT="$slug"
+        VAL_PROJECT="$slug"
+
+        if [[ "$slug" == "solidgroundux" ]]; then
+            PROJECT_STATE_ROOT="$VAL_STATE_ROOT"
+            PROJECT_INFO_FILE=""
+            (( FLAG_RELEASES_DIR_OVERRIDE )) || VAL_RELEASES_DIR="${VAL_STATE_ROOT%/}/releases"
+            (( FLAG_ARCHIVE_ROOT_OVERRIDE )) || VAL_ARCHIVE_ROOT="${VAL_STATE_ROOT%/}/archive"
+        else
+            PROJECT_STATE_ROOT="${VAL_STATE_ROOT%/}/projects/${slug}"
+            PROJECT_INFO_FILE="${PROJECT_STATE_ROOT%/}/project.info"
+            (( FLAG_RELEASES_DIR_OVERRIDE )) || VAL_RELEASES_DIR="${PROJECT_STATE_ROOT%/}/releases"
+            (( FLAG_ARCHIVE_ROOT_OVERRIDE )) || VAL_ARCHIVE_ROOT="${PROJECT_STATE_ROOT%/}/archive"
+        fi
+
+        _load_project_info "$slug"
+        return 0
+    }
+
+    # fn: _persist_project_info - Persist display identity for an admitted project package
+    _persist_project_info() {
+        local package_info="${1:?missing package info}"
+
+        [[ "$SGND_RELEASE_PROJECT" == "solidgroundux" ]] && return 0
+        [[ -n "$PROJECT_INFO_FILE" ]] || return 1
+
+        if (( FLAG_DRYRUN )); then
+            printf '[DRYRUN] copy %q -> %q\n' "$package_info" "$PROJECT_INFO_FILE"
+            return 0
+        fi
+
+        mkdir -p -- "$(dirname -- "$PROJECT_INFO_FILE")" || return 1
+        cp -f -- "$package_info" "$PROJECT_INFO_FILE"
+    }
+
+    # fn: _list_known_projects - List locally known project slugs
+    _list_known_projects() {
+        local dir=""
+        printf '%s\n' "solidgroundux"
+        if [[ -d "${VAL_STATE_ROOT%/}/projects" ]]; then
+            find "${VAL_STATE_ROOT%/}/projects" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null \
+                | LC_ALL=C sort
+        fi
+    }
+
+    # fn: _select_project_interactive - Select a locally known project
+    _select_project_interactive() {
+        local slug=""
+        local choice=""
+        local i=0
+        local -a projects=()
+
+        mapfile -t projects < <(_list_known_projects)
+        (( ${#projects[@]} > 0 )) || return 1
+
+        printf '\n%sProjects%s\n' "$_RL_BRIGHT_WHITE" "$_RL_RESET" > /dev/tty
+        _release_line "─" > /dev/tty
+        for (( i=0; i<${#projects[@]}; i++ )); do
+            slug="${projects[$i]}"
+            printf '  %s%d)%s %s%s%s\n' \
+                "$_RL_UI_PROMPT" "$((i+1))" "$_RL_RESET" \
+                "$_RL_UI_TEXT" "$slug" "$_RL_RESET" > /dev/tty
+        done
+        printf '  %sQ)%s %sReturn%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET" > /dev/tty
+        _release_line "─" > /dev/tty
+        printf '%sSelect project: %s' "$_RL_UI_PROMPT" "$_RL_UI_INPUT" > /dev/tty
+        read -r choice < /dev/tty
+        printf '%s' "$_RL_RESET" > /dev/tty
+
+        case "${choice^^}" in Q|"") return 1 ;; esac
+        [[ "$choice" =~ ^[0-9]+$ ]] || return 1
+        (( choice >= 1 && choice <= ${#projects[@]} )) || return 1
+
+        printf '%s\n' "${projects[$((choice-1))]}"
     }
 
     # fn: _require_command - Verify that a required system command is available
@@ -564,6 +712,9 @@ set -uo pipefail
         #   _ensure_manager_directories
     _ensure_manager_directories() {
         _release_run mkdir -p -- "$VAL_STATE_ROOT" "$VAL_RELEASES_DIR" "$VAL_ARCHIVE_ROOT"
+        if [[ "$SGND_RELEASE_PROJECT" != "solidgroundux" ]]; then
+            _release_run mkdir -p -- "$PROJECT_STATE_ROOT"
+        fi
     }
 
     # fn: _install_release_manager_wrapper - Install the public sgnd-release-manager command
@@ -634,11 +785,36 @@ EOF
         #   _detect_bootstrap_release
     _detect_bootstrap_release() {
         local archive=""
+        local package_info="${SCRIPT_DIR%/}/release-package.info"
+        local package_project=""
+        local package_release=""
         local -a candidates=()
 
         BOOTSTRAP_RELEASE_BASE=""
         BOOTSTRAP_SOURCE_DIR=""
 
+        if [[ -r "$package_info" ]]; then
+            package_project="$(_package_info_value "$package_info" "SGND_PACKAGE_PROJECT" 2>/dev/null || true)"
+            package_release="$(_package_info_value "$package_info" "SGND_PACKAGE_RELEASE" 2>/dev/null || true)"
+
+            [[ "$package_project" == "solidgroundux" ]] || return 1
+            [[ -n "$package_release" ]] || {
+                _release_fail "Bootstrap package is missing SGND_PACKAGE_RELEASE"
+                return 2
+            }
+
+            archive="${SCRIPT_DIR%/}/${package_release}.tar.gz"
+            [[ -f "$archive" ]] || {
+                _release_fail "Bootstrap package archive not found: $(basename -- "$archive")"
+                return 2
+            }
+
+            BOOTSTRAP_RELEASE_BASE="$package_release"
+            BOOTSTRAP_SOURCE_DIR="$SCRIPT_DIR"
+            return 0
+        fi
+
+        # Legacy bootstrap bundles without release-package.info remain supported.
         mapfile -t candidates < <(
             find "$SCRIPT_DIR" -maxdepth 1 -type f -name "${SGND_RELEASE_PRODUCT}-*.tar.gz" -print 2>/dev/null
         )
@@ -747,6 +923,7 @@ EOF
                 "${base}.removed"
                 "${base}.removed.sha256"
                 "SHA256SUMS"
+                "release-package.info"
             )
 
             for artifact in "${artifacts[@]}"; do
@@ -1449,7 +1626,7 @@ EOF
         local target_manifest=""
 
         current="$(_current_release 2>/dev/null || true)"
-        [[ -n "$current" ]] || { _release_fail "SolidGroundUX is not currently installed"; return 1; }
+        [[ -n "$current" ]] || { _release_fail "$SGND_RELEASE_PRODUCT is not currently installed"; return 1; }
         [[ "$target_base" != "$current" ]] || { _release_ok "Already running $current"; return 0; }
 
         archive="$(_find_archived_archive "$target_base")" || {
@@ -1481,7 +1658,7 @@ EOF
 
         current="$(_current_release 2>/dev/null || true)"
         [[ -n "$current" ]] || {
-            _release_ok "SolidGroundUX is not installed"
+            _release_ok "$SGND_RELEASE_PRODUCT is not installed"
             return 0
         }
 
@@ -1494,7 +1671,7 @@ EOF
         _release_info "Removing installed release: $current"
         _manifest_paths "$manifest" | _remove_paths_from_stream || return 1
         _move_all_archives_to_releases || return 1
-        _release_ok "SolidGroundUX removed; archived releases returned to the releases directory"
+        _release_ok "$SGND_RELEASE_PRODUCT removed; archived releases returned to the releases directory"
     }
 
 # --- GitHub/source acquisition ------------------------------------------------------
@@ -1537,6 +1714,11 @@ EOF
         #   json="$(_github_release_json)"
     _github_release_json() {
         local url="${SGND_RELEASE_API_URL:?missing release API URL}"
+
+        if [[ "$SGND_RELEASE_PROJECT" != "solidgroundux" ]]; then
+            _release_fail "Online GitHub discovery is currently configured only for SolidGroundUX; use --source for project packages."
+            return 1
+        fi
 
         # Preserve the legacy --repo override by redirecting it to that repository's
         # latest Release endpoint for this invocation only.
@@ -1663,21 +1845,56 @@ EOF
     _admit_extracted_release() {
         local extracted_root="${1:?missing extraction root}"
         local expected_base="${2:-}"
+        local package_info="${extracted_root%/}/release-package.info"
+        local package_format=""
+        local package_project=""
+        local package_product=""
+        local package_release=""
         local archive=""
         local base=""
         local source_dir=""
         local artifact=""
-        local -a candidates=()
         local -a artifacts=()
 
-        mapfile -t candidates < <(find "$extracted_root" -type f -name "${SGND_RELEASE_PRODUCT}-*.tar.gz" -print)
-        (( ${#candidates[@]} == 1 )) || {
-            _release_fail "Release ZIP must contain exactly one SolidGroundUX tar.gz archive"
+        [[ -r "$package_info" ]] || {
+            _release_fail "Release ZIP is missing release-package.info"
             return 1
         }
 
-        archive="${candidates[0]}"
+        package_format="$(_package_info_value "$package_info" "SGND_PACKAGE_FORMAT" 2>/dev/null || true)"
+        package_project="$(_package_info_value "$package_info" "SGND_PACKAGE_PROJECT" 2>/dev/null || true)"
+        package_product="$(_package_info_value "$package_info" "SGND_PACKAGE_PRODUCT" 2>/dev/null || true)"
+        package_release="$(_package_info_value "$package_info" "SGND_PACKAGE_RELEASE" 2>/dev/null || true)"
+
+        [[ "$package_format" == "1" ]] || {
+            _release_fail "Unsupported release package format: ${package_format:-missing}"
+            return 1
+        }
+        _project_slug_safe "$package_project" || {
+            _release_fail "Invalid package project slug: $package_project"
+            return 1
+        }
+        [[ -n "$package_product" && -n "$package_release" ]] || {
+            _release_fail "Release package identity is incomplete"
+            return 1
+        }
+
+        _set_project_context "$package_project" || return 1
+        SGND_RELEASE_PRODUCT="$package_product"
+        _ensure_manager_directories || return 1
+        _persist_project_info "$package_info" || return 1
+
+        archive="${extracted_root%/}/${package_release}.tar.gz"
+        [[ -f "$archive" ]] || {
+            _release_fail "Release ZIP archive does not match package identity: ${package_release}.tar.gz"
+            return 1
+        }
+
         base="$(_release_base_from_archive "$archive")" || return 1
+        if [[ "$base" != "$package_release" ]]; then
+            _release_fail "Release package identity mismatch: $package_release != $base"
+            return 1
+        fi
         if [[ -n "$expected_base" && "$base" != "$expected_base" ]]; then
             _release_fail "Downloaded release identity mismatch: expected $expected_base, found $base"
             return 1
@@ -1703,7 +1920,7 @@ EOF
             _release_run mv -f -- "$source_dir/$artifact" "$VAL_RELEASES_DIR/" || return 1
         done
 
-        _release_ok "Release admitted: $base"
+        _release_ok "Release admitted for ${SGND_RELEASE_PRODUCT}: $base"
         printf '%s\n' "$base"
     }
 
@@ -1826,7 +2043,7 @@ EOF
                 printf '  %s%d)%s %s%s%s\n' "$_RL_UI_PROMPT" "$(( ${#releases[@]} - i ))" "$_RL_RESET" "$_RL_DARK_WHITE" "$base" "$_RL_RESET" > /dev/tty
             fi
         done
-        printf '  %s%d)%s %sRemove SolidGroundUX%s\n' "$_RL_MSG_FAIL" "$remove_choice" "$_RL_RESET" "$_RL_MSG_FAIL" "$_RL_RESET" > /dev/tty
+        printf '  %s%d)%s %sRemove %s%s\n' "$_RL_MSG_FAIL" "$remove_choice" "$_RL_RESET" "$_RL_MSG_FAIL" "$_RL_RESET" > /dev/tty
         printf '  %sQ)%s %sReturn%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET" > /dev/tty
         printf '\n' > /dev/tty
         _release_line "─" > /dev/tty
@@ -1865,6 +2082,8 @@ EOF
         pending="$(_newest_pending_archive 2>/dev/null || true)"
         [[ -n "$pending" ]] && pending_base="$(_release_base_from_archive "$pending")"
 
+        _release_labeled_value "Project" "$SGND_RELEASE_PROJECT"
+        _release_labeled_value "Product" "$SGND_RELEASE_PRODUCT"
         _release_labeled_value "Installed release" "${current:-Not installed}"
         _release_labeled_value "Available locally" "${pending_base:-None}"
         _release_labeled_value "Releases directory" "$VAL_RELEASES_DIR"
@@ -1908,11 +2127,16 @@ EOF
                 5)
                     target="$(_select_archived_release 2>/dev/tty)" || continue
                     if [[ "$target" == '__REMOVE__' ]]; then
-                        _confirm "Remove SolidGroundUX?" && _remove_installation
+                        _confirm "Remove $SGND_RELEASE_PRODUCT?" && _remove_installation
                     else
                         _confirm "Install $target?" && _rollback_to_archived_release "$target"
                     fi
                     _pause
+                    ;;
+                P)
+                    target="$(_select_project_interactive 2>/dev/tty)" || continue
+                    _set_project_context "$target" || { _pause; continue; }
+                    _ensure_manager_directories || { _pause; continue; }
                     ;;
                 Q) return 0 ;;
             esac
@@ -2004,6 +2228,7 @@ EOF
 
         if [[ -n "$VAL_SOURCE" ]]; then
             _acquire_release "" "$VAL_SOURCE" >/dev/null || return 1
+            current="$(_current_release 2>/dev/null || true)"
             archive="$(_newest_pending_archive)" || {
                 _release_fail "No pending release was found after acquisition"
                 return 1
@@ -2050,11 +2275,17 @@ EOF
         #   _action_install
     _action_install() {
         local archive=""
+
+        if [[ -n "$VAL_SOURCE" ]]; then
+            _acquire_release "" "$VAL_SOURCE" >/dev/null || return 1
+        fi
+
         archive="$(_newest_pending_archive "$VAL_RELEASE" 2>/dev/null || true)"
         [[ -n "$archive" ]] || {
-            _release_fail "No matching pending release found"
+            _release_fail "No matching pending release found for project: $SGND_RELEASE_PROJECT"
             return 1
         }
+
         _confirm "Install $(_release_base_from_archive "$archive")?" || return 2
         _install_pending_archive "$archive"
     }
@@ -2091,7 +2322,7 @@ EOF
         # . Usage
         #   _action_remove
     _action_remove() {
-        _confirm "Remove SolidGroundUX from $VAL_TARGET_ROOT?" || return 2
+        _confirm "Remove $SGND_RELEASE_PRODUCT from $VAL_TARGET_ROOT?" || return 2
         _remove_installation
     }
 
@@ -2107,6 +2338,7 @@ EOF
         parse_args "$@" || return $?
         init_paths || return $?
         _load_release_manager_config
+        _set_project_context "${VAL_PROJECT:-solidgroundux}" || return 1
 
         _require_command find || return 1
         _require_command sort || return 1

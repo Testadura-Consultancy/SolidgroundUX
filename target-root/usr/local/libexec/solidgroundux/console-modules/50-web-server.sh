@@ -2,8 +2,8 @@
 # SolidGroundUX - Web Server
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623817
+#   Version     : 2.1
+#   Build       : 2624102
 #   Source      : 50-web-server.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -13,14 +13,32 @@
 set -uo pipefail
 
 # - Library guard ------------------------------------------------------------------
-    # fn$ _sgnd_lib_guard - Ensure the module is sourced only once
+    # fn$ _sgnd_lib_guard - Enforce source-only, single-load library initialization
+        # . Purpose
+        #   Ensure the file is sourced as a library and initialized only once.
+        #
+        # . Behavior
+        #   - Derives a unique guard variable name from the current filename.
+        #   - Aborts execution when the file is run directly instead of sourced.
+        #   - Sets the guard variable on first load.
+        #   - Returns immediately when the library was already loaded.
+        #
+        # Inputs
+        #   BASH_SOURCE[0]
+        #   $0
+        #
+        # Outputs (globals)
+        #   SGND_<MODULE>_LOADED
+        #
         # . Returns
-        #   0 on success; non-zero when the operation cannot be completed.
+        #   0 when already loaded or successfully initialized.
+        #   Exits with code 2 when executed instead of sourced.
+        #
         # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
-        local lib_base
-        local guard
+        local lib_base=""
+        local guard=""
 
         lib_base="$(basename "${BASH_SOURCE[0]}" .sh)"
         lib_base="${lib_base//-/_}"
@@ -38,8 +56,10 @@ set -uo pipefail
     _sgnd_lib_guard
     unset -f _sgnd_lib_guard
 
-    sgnd_module_init_metadata "${BASH_SOURCE[0]}"
-
+    if declare -F sgnd_module_init_metadata >/dev/null 2>&1 \
+        && declare -F sgnd_header_buffer_load >/dev/null 2>&1; then
+        sgnd_module_init_metadata "${BASH_SOURCE[0]}"
+    fi
 # - Module metadata ----------------------------------------------------------------
     SGND_WEB_SERVER_MODULE_ID="web-server"
     SGND_WEB_SERVER_MODULE_NAME="Web Server"
@@ -162,14 +182,14 @@ set -uo pipefail
 
     # fn: _web_server_installed_docs_root - Resolve the installed SolidGroundUX documentation path
         # . Output
-        #   Writes the documentation directory belonging to the active application root.
+        #   Writes the documentation directory belonging to the active framework root.
     _web_server_installed_docs_root() {
-        local application_root="${SGND_APPLICATION_ROOT:-/}"
+        local framework_root="${SGND_FRAMEWORK_ROOT:-/}"
 
-        if [[ "$application_root" == "/" ]]; then
+        if [[ "$framework_root" == "/" ]]; then
             printf '/usr/local/share/testadura/solidgroundux/doc\n'
         else
-            printf '%s/usr/local/share/testadura/solidgroundux/doc\n' "${application_root%/}"
+            printf '%s/usr/local/share/testadura/solidgroundux/doc\n' "${framework_root%/}"
         fi
     }
 
@@ -1343,4 +1363,4 @@ EOF
     sgnd_menu_register_item "web-status" "web-service" "Show web-server status" "_web_server_status" "Show package, service, storage, listener, and site status" 0 15 1 0
 
     sayinfo "Web Server module registered with the console."
-#   Checksum : 9d98adb2b17cd1c876b099e0f18c34d2b29923b08ff1b6ca0cae2d7323da2c50
+#   Checksum : 7b5a7a7f3aaa68d1641d9a6788631798af0f9308ea35f3e31fc267311ab71d32

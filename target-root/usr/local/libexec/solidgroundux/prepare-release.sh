@@ -3,9 +3,9 @@
 # SolidGroundUX - Prepare Release
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623513
-#   Checksum    : 151c955721165cc99e32b99df0c8528182164237ae74675528ed3c3f0658da77
+#   Version     : 2.1
+#   Build       : 2624102
+#   Checksum    : d17cf035880a7b343e0b34c4a1e4063216cef843f705a364a1cb46ec385f56ff
 #   Source      : prepare-release.sh
 #   Type        : script
 #   Group       : SDK
@@ -22,8 +22,9 @@
 #     - Ensures release metadata is consistent across processed scripts
 #     - Verifies public command wrappers for executable top-level libexec scripts
 #     - Creates release tar/manifests/checksums and a complete distributable release ZIP
+#     - Writes release-package.info at ZIP root so the package identifies its project/release
 #     - Uses an explicit removal-baseline manifest from persistent manifest history
-#     - Ships the standalone release-manager.sh beside the release payload
+#     - Ships release-manager.sh only with the SolidGroundUX framework bootstrap package
 #
 # Design principles:
 #   - Release preparation is deterministic and repeatable
@@ -49,123 +50,77 @@
 
 set -uo pipefail
 # - Bootstrap ----------------------------------------------------------------------
-    # fn$ _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
+    # fn$ _framework_locator - Resolve and load the active SolidGroundUX framework
         # . Purpose
-        #   Locate, create, and load the SolidGroundUX bootstrap configuration, then
-        #   load the executable runtime support library.
+        #   Determine the filesystem root of the currently executing SolidGroundUX tree
+        #   from the script's physical path, then load the executable runtime library.
         #
         # . Behavior
-        #   - Searches user and system bootstrap configuration locations.
-        #   - Prefers the invoking user's config over the system config.
-        #   - Creates a new bootstrap config when none exists.
-        #   - Prompts for framework/application roots in interactive mode.
-        #   - Applies default values when running non-interactively.
-        #   - Sources the selected bootstrap configuration file.
+        #   - Resolves the physical path of the executing script.
+        #   - Treats usr, etc, and var as the canonical top-level SolidGroundUX tree roots.
+        #   - Uses the last occurrence of one of those path components to determine the
+        #     active filesystem root.
+        #   - Resolves production scripts beneath /usr, /etc, or /var to root (/).
+        #   - Resolves staged/development trees to the path prefix preceding the detected
+        #     usr, etc, or var component.
         #   - Loads sgnd-exe-common.sh from the resolved framework root.
         #
         # . Globals (write)
         #   SGND_FRAMEWORK_ROOT
-        #   SGND_APPLICATION_ROOT
         #
         # . Output
-        #   Writes primitive printf-based messages before the framework UI is available.
+        #   Writes fatal bootstrap errors to stderr using printf because framework UI
+        #   helpers are not available until sgnd-exe-common.sh has been loaded.
         #
         # . Returns
-        #   0 when the bootstrap configuration and executable common library were loaded.
-        #   126 when configuration or executable common library is unreadable or invalid.
-        #   127 when the configuration directory or file could not be created.
+        #   0 when the framework root was resolved and executable common library loaded.
+        #   126 when the script path cannot be resolved, no canonical root component can
+        #   be found, or the executable common library is unreadable.
         #
         # . Usage
         #   _framework_locator || return $?
-        #
-        # Notes:
-        #   - Under sudo, configuration is resolved relative to SUDO_USER instead of /root.
-        #   - This function intentionally uses printf rather than say* helpers because
-        #     the executable common library has not been loaded yet.
     _framework_locator() {
-        local cfg_home="$HOME"
+        local script_file=""
+        local path_without_root=""
+        local component=""
+        local framework_root=""
+        local exe_common=""
+        local index=0
+        local root_index=-1
+        local -a path_parts=()
 
-        if [[ $EUID -eq 0 && -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]]; then
-            cfg_home="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
-        fi
+        script_file="$(readlink -f "${BASH_SOURCE[0]}")" || {
+            printf 'FATAL: Cannot resolve executable path: %s\n' "${BASH_SOURCE[0]}" >&2
+            return 126
+        }
 
-        local cfg_user="$cfg_home/.config/solidgroundux/solidgroundux.cfg"
-        local cfg_sys="/etc/solidgroundux/solidgroundux.cfg"
-        local cfg=""
-        local fw_root="/"
-        local app_root="$fw_root"
-        local reply=""
+        path_without_root="${script_file#/}"
+        IFS='/' read -r -a path_parts <<< "$path_without_root"
 
-        if [[ -r "$cfg_user" ]]; then
-            cfg="$cfg_user"
-
-        elif [[ -r "$cfg_sys" ]]; then
-            cfg="$cfg_sys"
-
-        else
-            if [[ $EUID -eq 0 ]]; then
-                cfg="$cfg_sys"
-            else
-                cfg="$cfg_user"
-            fi
-
-            if [[ -t 0 && -t 1 ]]; then
-                printf '%s\n' "SolidGroundUX bootstrap configuration" >&2
-                printf '%s\n' "No configuration file found." >&2
-                printf '%s\n' "Creating: $cfg" >&2
-
-                printf "SGND_FRAMEWORK_ROOT [/] : " > /dev/tty
-                read -r reply < /dev/tty
-                fw_root="${reply:-/}"
-
-                printf "SGND_APPLICATION_ROOT [/] : " > /dev/tty
-                read -r reply < /dev/tty
-                app_root="${reply:-$fw_root}"
-            fi
-
-            case "$fw_root" in
-                /*) ;;
-                *) printf '%s\n' "ERR: SGND_FRAMEWORK_ROOT must be an absolute path" >&2; return 126 ;;
+        for index in "${!path_parts[@]}"; do
+            component="${path_parts[$index]}"
+            case "$component" in
+                usr|etc|var)
+                    root_index=$index
+                    ;;
             esac
+        done
 
-            case "$app_root" in
-                /*) ;;
-                *) printf '%s\n' "ERR: SGND_APPLICATION_ROOT must be an absolute path" >&2; return 126 ;;
-            esac
-
-            mkdir -p "$(dirname "$cfg")" || return 127
-
-            {
-                printf '%s\n' "# SolidGroundUX bootstrap configuration"
-                printf '%s\n' "# Auto-generated on first run"
-                printf '\n'
-                printf 'SGND_FRAMEWORK_ROOT=%q\n' "$fw_root"
-                printf 'SGND_APPLICATION_ROOT=%q\n' "$app_root"
-            } > "$cfg" || return 127
-
-            printf '%s\n' "Created bootstrap cfg: $cfg" >&2
-        fi
-
-        if [[ -r "$cfg" ]]; then
-            # shellcheck source=/dev/null
-            source "$cfg"
-
-            : "${SGND_FRAMEWORK_ROOT:=/}"
-            : "${SGND_APPLICATION_ROOT:=$SGND_FRAMEWORK_ROOT}"
-        else
-            printf '%s\n' "Cannot read bootstrap cfg: $cfg" >&2
+        if (( root_index < 0 )); then
+            printf 'FATAL: Cannot determine SolidGroundUX framework root from: %s\n' "$script_file" >&2
             return 126
         fi
 
-        case "${SGND_LOG_LEVEL:-silent}" in
-            silent|quiet)
-                ;;
-            *)
-                printf '%s\n' "Bootstrap cfg loaded: $cfg, SGND_FRAMEWORK_ROOT=$SGND_FRAMEWORK_ROOT, SGND_APPLICATION_ROOT=$SGND_APPLICATION_ROOT" >&2
-                ;;
-        esac
+        if (( root_index == 0 )); then
+            framework_root="/"
+        else
+            framework_root=""
+            for (( index=0; index<root_index; index++ )); do
+                framework_root+="/${path_parts[$index]}"
+            done
+        fi
 
-        local exe_common=""
+        SGND_FRAMEWORK_ROOT="$framework_root"
 
         if [[ "$SGND_FRAMEWORK_ROOT" == "/" ]]; then
             exe_common="/usr/local/lib/solidgroundux/common/sgnd-exe-common.sh"
@@ -225,6 +180,7 @@ set -uo pipefail
         "updatebuild||enum|MODE_UPDATEBUILD|Build metadata policy: A=all, C=changed, N=none|C"
         "updateversion||enum|MODE_UPDATEVERSION|Version metadata policy: A=all, C=changed, N=none|C"
         "createwrappers|w|flag|FLAG_CREATEWRAPPERS|Create missing /usr/local/bin wrappers for top-level libexec scripts|1|"
+        "normalizecanon||flag|FLAG_NORMALIZE_CANON|Normalize canonical framework/guard structures before metadata processing|1|"
         "previous-manifest||value|PREVIOUS_MANIFEST|Removal baseline manifest path|"
     )
 
@@ -294,16 +250,14 @@ set -uo pipefail
    SGND_STATE_VARIABLES=(
         SOURCE_DIR
         STAGING_ROOT
-        PRODUCT
-        VERSION
         FLAG_CLEANUP
         FLAG_USEEXISTING
         FLAG_SAVEPARMS
         MODE_UPDATEBUILD
         MODE_UPDATEVERSION
         FLAG_CREATEWRAPPERS
+        FLAG_NORMALIZE_CANON
         PREVIOUS_MANIFEST
-        MANIFEST_HISTORY_DIR
     )
 
     # SGND_ON_EXIT_HANDLERS
@@ -341,6 +295,91 @@ set -uo pipefail
     # Prefer local variables inside functions unless a value must be shared.
 
 # - Local script functions ----------------------------------------------------------
+    # fn$ _release_resolve_project_identity - Resolve the authoritative project definitions
+    _release_resolve_project_identity() {
+        local globals_dir="${SOURCE_DIR%/}/usr/local/lib/solidgroundux/globals"
+        local file="" base="" slug="" key="" product_var="" version_var=""
+        local -a project_defs=()
+        PROJECT_DEFINITIONS_FILE=""
+        PROJECT_DEFINITIONS_KEY=""
+        PROJECT_IS_FRAMEWORK=0
+        PROJECT_SLUG=""
+
+        [[ -d "$globals_dir" ]] || { sayfail "Project globals directory not found: $globals_dir"; return 1; }
+
+        if [[ -f "$globals_dir/sgnd-definitions.sh" ]]; then
+            PROJECT_DEFINITIONS_FILE="$globals_dir/sgnd-definitions.sh"
+            PROJECT_DEFINITIONS_KEY="SGND"
+            PROJECT_IS_FRAMEWORK=1
+            PROJECT_SLUG="solidgroundux"
+            source "$PROJECT_DEFINITIONS_FILE"
+            PRODUCT="${SGND_PRODUCT:-SolidGroundUX}"
+            VERSION="${SGND_VERSION:-}"
+            [[ -n "$VERSION" ]] || return 1
+            return 0
+        fi
+
+        while IFS= read -r -d '' file; do project_defs+=("$file"); done < <(
+            find "$globals_dir" -maxdepth 1 -type f -name '*-definitions.sh' -print0 2>/dev/null | sort -z
+        )
+        (( ${#project_defs[@]} == 1 )) || { sayfail "Expected exactly one project definitions file in $globals_dir; found ${#project_defs[@]}"; return 1; }
+
+        PROJECT_DEFINITIONS_FILE="${project_defs[0]}"
+        base="$(basename -- "$PROJECT_DEFINITIONS_FILE")"
+        slug="${base%-definitions.sh}"
+        PROJECT_SLUG="$slug"
+        key="$(printf '%s' "$slug" | sed -E 's/[^A-Za-z0-9]+/_/g' | tr '[:lower:]' '[:upper:]')"
+        PROJECT_DEFINITIONS_KEY="$key"
+        source "$PROJECT_DEFINITIONS_FILE"
+
+        product_var="SGND_${key}_PRODUCT"
+        version_var="SGND_${key}_VERSION"
+        PRODUCT="${!product_var-}"
+        VERSION="${!version_var-}"
+        [[ -n "$PRODUCT" ]] || { sayfail "Project product global missing: $product_var"; return 1; }
+        [[ -n "$VERSION" ]] || { sayfail "Project version global missing: $version_var"; return 1; }
+    }
+
+    # fn$ _release_update_project_identity - Update version/build in the correct definitions file
+    _release_update_project_identity() {
+        local file="${PROJECT_DEFINITIONS_FILE:-}" key="${PROJECT_DEFINITIONS_KEY:-}"
+        local version_var="" build_var="" checksum=""
+        [[ -f "$file" ]] || return 1
+
+        if (( ${FLAG_DRYRUN:-0} )); then
+            sayinfo "[DRYRUN] Would update project identity in $file to $VERSION.$BUILD"
+            return 0
+        fi
+
+        if (( ${PROJECT_IS_FRAMEWORK:-0} )); then
+            sgnd_framework_set_version "$file" "$VERSION" "$BUILD"
+            return $?
+        fi
+
+        version_var="SGND_${key}_VERSION"
+        build_var="SGND_${key}_BUILD"
+        grep -q "^${version_var}=" "$file" || return 1
+        grep -q "^${build_var}=" "$file" || return 1
+        sed -i -E "s|^${version_var}=.*$|${version_var}=$(printf '%q' "$VERSION")|" "$file" || return 1
+        sed -i -E "s|^${build_var}=.*$|${build_var}=$(printf '%q' "$BUILD")|" "$file" || return 1
+        sgnd_header_upsert_field "$file" "Metadata" "Version" "$VERSION" || return 1
+        sgnd_header_upsert_field "$file" "Metadata" "Build" "$BUILD" || return 1
+        checksum="$(sgnd_header_calc_checksum "$file")" || return 1
+        sgnd_header_upsert_field "$file" "Metadata" "Checksum" "$checksum"
+    }
+
+    # fn$ _release_wrapper_name_for_script - Resolve wrapper metadata or conventional name
+    _release_wrapper_name_for_script() {
+        local script="${1:-}" wrapper_name="" base=""
+        if sgnd_header_get_field "$script" "Metadata" "Wrapper" wrapper_name 2>/dev/null; then
+            wrapper_name="${wrapper_name#"${wrapper_name%%[![:space:]]*}"}"
+            wrapper_name="${wrapper_name%"${wrapper_name##*[![:space:]]}"}"
+            [[ -n "$wrapper_name" ]] && { printf '%s\n' "$wrapper_name"; return 0; }
+        fi
+        base="$(basename -- "$script")"; base="${base%.sh}"
+        [[ "$base" == sgnd-* ]] && printf '%s\n' "$base" || printf 'sgnd-%s\n' "$base"
+    }
+
     # _get_parameters
         # . Purpose
         #   Resolve and collect all parameters required to prepare a release archive.
@@ -401,13 +440,6 @@ set -uo pipefail
         # . Usage
         #   _get_parameters
     _get_parameters(){
-        PRODUCT="${PRODUCT:-"$SGND_PRODUCT"}"
-        VERSION="${VERSION:-"$SGND_VERSION"}"
-        BUILD="$(date +%y%j%H)"
-
-        SOURCE_DIR="${SOURCE_DIR:-"$SGND_APPLICATION_ROOT"}"
-        SGND_APPLICATION_PARENT="$(dirname "$SGND_APPLICATION_ROOT")"
-        STAGING_ROOT="${STAGING_ROOT:-"$SGND_APPLICATION_PARENT/releases"}"
         FLAG_AUTO="${FLAG_AUTO:-0}"
         FLAG_CLEANUP="${FLAG_CLEANUP:-1}"
         FLAG_USEEXISTING="${FLAG_USEEXISTING:-1}"
@@ -415,10 +447,27 @@ set -uo pipefail
         MODE_UPDATEBUILD="${MODE_UPDATEBUILD:-C}"
         MODE_UPDATEVERSION="${MODE_UPDATEVERSION:-C}"
         FLAG_CREATEWRAPPERS="${FLAG_CREATEWRAPPERS:-1}"
-        MANIFEST_HISTORY_DIR="${MANIFEST_HISTORY_DIR:-"${STAGING_ROOT%/}/manifest-history"}"
+        FLAG_NORMALIZE_CANON="${FLAG_NORMALIZE_CANON:-1}"
         PREVIOUS_MANIFEST="${PREVIOUS_MANIFEST:-}"
 
-        sgnd_state_load_keys --array SGND_STATE_VARIABLES || return $?
+        # Persisted user choices are loaded in main before project identity resolution.
+
+        PRODUCT="${PRODUCT:?project identity not resolved}"
+        VERSION="${VERSION:?project identity not resolved}"
+        BUILD="$(date +%y%j%H)"
+
+        SOURCE_DIR="${SOURCE_DIR:-"$SGND_FRAMEWORK_ROOT"}"
+
+        if [[ -z "${STAGING_ROOT:-}" ]]; then
+            if [[ "$SGND_FRAMEWORK_ROOT" == "/" ]]; then
+                STAGING_ROOT="/var/local/lib/solidgroundux/releases"
+            else
+                STAGING_ROOT="$(dirname "$SGND_FRAMEWORK_ROOT")/releases"
+            fi
+        fi
+
+        # Derived state: always follow the resolved staging root.
+        MANIFEST_HISTORY_DIR="${STAGING_ROOT%/}/manifest-history"
         
         if [[ "${FLAG_AUTO:-0}" -eq 1 ]]; then
              sayinfo "Auto mode: using last deployment or default settings."
@@ -527,6 +576,24 @@ set -uo pipefail
             case "${createwrappers^^}" in
                 Y|YES) FLAG_CREATEWRAPPERS=1 ;;
                 *)     FLAG_CREATEWRAPPERS=0 ;;
+            esac
+
+            if [[ "$FLAG_NORMALIZE_CANON" -eq 1 ]]; then
+                normalizecanon="Y"
+            else
+                normalizecanon="N"
+            fi
+            ask --label "Normalize canonical structures (Y/N)" \
+                --var normalizecanon \
+                --default "$normalizecanon" \
+                --choices "Y,Yes,N,No" \
+                --colorize both \
+                --labelclr "${CYAN}" \
+                --pad "$lp" \
+                --labelwidth "$lw"
+            case "${normalizecanon^^}" in
+                Y|YES) FLAG_NORMALIZE_CANON=1 ;;
+                *)     FLAG_NORMALIZE_CANON=0 ;;
             esac
 
             _sgnd_release_select_previous_manifest || {
@@ -1021,13 +1088,41 @@ set -uo pipefail
         printf '%s\n' "$candidate"
     }
 
+    # fn$ _write_release_package_info - Write ZIP-root package identity metadata
+        # . Purpose
+        #   Write a small machine-readable shipping label for the release package.
+        #
+        # . Behavior
+        #   - Uses the resolved project identity from the authoritative definitions file.
+        #   - Writes only simple shell-style key/value assignments; the release manager
+        #     parses these values and does not source the file.
+        #
+        # . Arguments
+        #   $1  Destination file.
+        #
+        # . Returns
+        #   0 on success; non-zero on write failure.
+    _write_release_package_info() {
+        local destination="${1:?missing destination}"
+
+        {
+            printf 'SGND_PACKAGE_FORMAT=%s\n' "1"
+            printf 'SGND_PACKAGE_PROJECT=%s\n' "${PROJECT_SLUG:?project slug not resolved}"
+            printf 'SGND_PACKAGE_PRODUCT=%s\n' "${PRODUCT:?product not resolved}"
+            printf 'SGND_PACKAGE_VERSION=%s\n' "${VERSION:?version not resolved}"
+            printf 'SGND_PACKAGE_BUILD=%s\n' "${BUILD:?build not resolved}"
+            printf 'SGND_PACKAGE_RELEASE=%s\n' "${RELEASE:?release not resolved}"
+        } > "$destination"
+    }
+
     # fn: _create_release_package - Create the complete distributable release ZIP
         # . Purpose
         #   Package the standalone release manager and release payload into one ZIP.
         #
         # . Behavior
         #   - Requires the six canonical release artifacts created by _create_tar.
-        #   - Adds release-manager.sh at the ZIP root.
+        #   - Adds release-manager.sh at the ZIP root only for the SolidGroundUX framework bundle.
+#   - Generic project bundles contain only their release artifacts and require an installed release manager.
         #   - Does not include SHA256SUMS; the manager verifies individual sidecars.
         #
         # . Returns
@@ -1038,8 +1133,10 @@ set -uo pipefail
     _create_release_package() {
         local manager=""
         local package_dir=""
+        local package_info=""
         local zip_path="${STAGING_ROOT%/}/${RELEASE}-release.zip"
         local artifact=""
+        local -a zip_items=()
         local -a artifacts=(
             "${TAR_FILE}"
             "${TAR_FILE}.sha256"
@@ -1049,10 +1146,14 @@ set -uo pipefail
             "${RELEASE}.removed.sha256"
         )
 
-        manager="$(_find_release_manager_source)" || {
-            sayfail "Could not uniquely locate release-manager.sh beneath $SOURCE_DIR"
-            return 1
-        }
+        # Only the SolidGroundUX framework bundle must be self-bootstrapping.
+        # Generic project releases are consumed by an already installed release manager.
+        if (( ${PROJECT_IS_FRAMEWORK:-0} )); then
+            manager="$(_find_release_manager_source)" || {
+                sayfail "Could not uniquely locate release-manager.sh beneath $SOURCE_DIR"
+                return 1
+            }
+        fi
 
         for artifact in "${artifacts[@]}"; do
             [[ -f "${STAGING_ROOT%/}/${artifact}" ]] || {
@@ -1063,7 +1164,11 @@ set -uo pipefail
 
         if (( ${FLAG_DRYRUN:-0} )); then
             sayinfo "Would have created release package: $zip_path"
-            sayinfo "Would have included release-manager.sh and ${#artifacts[@]} release artifacts at ZIP root"
+            if (( ${PROJECT_IS_FRAMEWORK:-0} )); then
+                sayinfo "Would have included release-package.info, release-manager.sh, and ${#artifacts[@]} release artifacts at ZIP root"
+            else
+                sayinfo "Would have included release-package.info and ${#artifacts[@]} project release artifacts at ZIP root"
+            fi
             return 0
         fi
 
@@ -1073,23 +1178,35 @@ set -uo pipefail
         }
 
         package_dir="$(mktemp -d)" || return 1
+        package_info="$package_dir/release-package.info"
 
-        cp -f -- "$manager" "$package_dir/release-manager.sh" || {
+        _write_release_package_info "$package_info" || {
             rm -rf -- "$package_dir"
+            sayfail "Failed to create release-package.info."
             return 1
         }
+        zip_items+=("release-package.info")
+
+        if (( ${PROJECT_IS_FRAMEWORK:-0} )); then
+            cp -f -- "$manager" "$package_dir/release-manager.sh" || {
+                rm -rf -- "$package_dir"
+                return 1
+            }
+            zip_items+=("release-manager.sh")
+        fi
 
         for artifact in "${artifacts[@]}"; do
             cp -f -- "${STAGING_ROOT%/}/${artifact}" "$package_dir/$artifact" || {
                 rm -rf -- "$package_dir"
                 return 1
             }
+            zip_items+=("$artifact")
         done
 
         rm -f -- "$zip_path"
         (
             cd "$package_dir" || exit 1
-            zip -q "$zip_path" "release-manager.sh" "${artifacts[@]}"
+            zip -q "$zip_path" "${zip_items[@]}"
         ) || {
             rm -rf -- "$package_dir"
             sayfail "Failed to create release ZIP."
@@ -1179,6 +1296,59 @@ set -uo pipefail
         sed -i -E \
             "0,/^#([[:space:]]*)Version([[:space:]]*):[[:space:]]*.*/s//#\1Version\2: $version/" \
             "$file"
+    }
+
+    # fn$ _normalize_canonical_sources - Normalize canonical structures before metadata processing
+        # . Purpose
+        #   Apply the canonical framework locator and library guard to managed shell files
+        #   before version/build/checksum metadata is evaluated.
+        #
+        # . Behavior
+        #   - Honors FLAG_NORMALIZE_CANON; disabled runs are skipped.
+        #   - Uses normalize-canon.sh from the active framework libexec directory.
+        #   - Passes the same recursive shell-file mask represented by SOURCE_DIR.
+        #   - Runs the normalizer in --auto mode so prepare-release remains non-interactive.
+        #   - Propagates dry-run mode when prepare-release is running dry.
+        #
+        # . Returns
+        #   0 when normalization is disabled or completes successfully; non-zero otherwise.
+        #
+        # . Usage
+        #   _normalize_canonical_sources
+    _normalize_canonical_sources() {
+        local normalizer=""
+        local source_mask="${SOURCE_DIR%/}/**/*.sh"
+        local -a command=()
+
+        (( ${FLAG_NORMALIZE_CANON:-1} )) || {
+            sayinfo "Canonical normalization disabled."
+            return 0
+        }
+
+        if [[ "$SGND_FRAMEWORK_ROOT" == "/" ]]; then
+            normalizer="/usr/local/libexec/solidgroundux/normalize-canon.sh"
+        else
+            normalizer="${SGND_FRAMEWORK_ROOT%/}/usr/local/libexec/solidgroundux/normalize-canon.sh"
+        fi
+
+        [[ -x "$normalizer" ]] || {
+            sayfail "Canonical normalizer not found or not executable: $normalizer"
+            return 1
+        }
+
+        command=("$normalizer" --auto)
+        if (( ${FLAG_DRYRUN:-0} )); then
+            command+=(--dryrun)
+        fi
+        command+=("$source_mask")
+
+        saystart "Normalizing canonical shell structures"
+        "${command[@]}" || {
+            sayfail "Canonical normalization failed."
+            return 1
+        }
+        sayend "Canonical normalization complete."
+        return 0
     }
 
     # fn: _apply_version_bump - Apply release metadata policy to managed source files
@@ -1276,19 +1446,8 @@ set -uo pipefail
             fi
         done < <(find "$SOURCE_DIR" -type f -name '*.sh' -not -path '*/releases/*' -print0)
 
-        local definitions_file
-        definitions_file="$SOURCE_DIR/usr/local/lib/solidgroundux/common/sgnd-definitions.sh"
-
-        if [[ -f "$definitions_file" ]]; then
-            if (( ${FLAG_DRYRUN:-0} )); then
-                sayinfo "[DRYRUN] Would have updated framework version identity in $definitions_file"
-            else
-                sgnd_framework_set_version "$definitions_file" "$VERSION" "$BUILD" \
-                    || { sayfail "Failed to update framework version identity"; return 1; }
-            fi
-        else
-            saydebug "No sgnd-definitions.sh in source tree; skipping framework version identity update."
-        fi
+        _release_update_project_identity \
+            || { sayfail "Failed to update project version/build identity"; return 1; }
 
         if (( failed )); then
             sayfail "One or more source files could not be prepared. Release creation aborted."
@@ -1364,7 +1523,7 @@ set -uo pipefail
         #
         # . Behavior
         #   - Inspects executable *.sh files directly beneath usr/local/libexec/solidgroundux.
-        #   - Uses the script basename without .sh as the public command name.
+        #   - Uses optional Metadata/Wrapper when present; otherwise uses the canonical sgnd-<script> name.
         #   - Leaves existing wrappers untouched.
         #   - Creates only missing wrappers when FLAG_CREATEWRAPPERS=1.
         #   - Reports missing wrappers without creating them when the option is disabled.
@@ -1403,7 +1562,7 @@ set -uo pipefail
 
         while IFS= read -r -d '' script; do
             script_base="$(basename -- "$script")"
-            command_name="sgnd-${script_base%.sh}"
+            command_name="$(_release_wrapper_name_for_script "$script")"
             wrapper="${bin_root}/${command_name}"
             installed_target="/usr/local/libexec/solidgroundux/${script_base}"
 
@@ -1487,7 +1646,21 @@ set -uo pipefail
 
         # -- Main script logic
 
+        SOURCE_DIR="${SOURCE_DIR:-"$SGND_FRAMEWORK_ROOT"}"
+        sgnd_state_load_keys --array SGND_STATE_VARIABLES || exit $?
+        SOURCE_DIR="${SOURCE_DIR:-"$SGND_FRAMEWORK_ROOT"}"
+
+        _release_resolve_project_identity || {
+            sayfail "Could not resolve project identity; release was not created."
+            exit 1
+        }
+
         _get_parameters || exit $?
+
+        _normalize_canonical_sources || {
+            sayfail "Canonical normalization failed; release was not created."
+            exit 1
+        }
 
         _apply_version_bump || {
             sayfail "Metadata preparation failed; release was not created."

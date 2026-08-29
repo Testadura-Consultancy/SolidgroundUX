@@ -2,9 +2,9 @@
 # SolidGroundUX - Console Helpers
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : ab3471db97fbd16baff98b1593b4b5778c48a5310ec910427cdf2b60fd8fc02e
+#   Version     : 2.1
+#   Build       : 2624102
+#   Checksum    : f95932c864c08bc67274b3de8133309d10f1f54a31070b4eec751cec5208540d
 #   Source      : console-helpers.sh
 #   Type        : library
 #   Group       : SolidGround Console
@@ -25,15 +25,32 @@
 set -uo pipefail
 
 # - Library guard ------------------------------------------------------------------
-    # _sgnd_lib_guard
-        # Returns:
-        #   0 when the library may continue loading; exits with 2 when executed directly.
+    # fn$ _sgnd_lib_guard - Enforce source-only, single-load library initialization
+        # . Purpose
+        #   Ensure the file is sourced as a library and initialized only once.
         #
-        # Usage:
+        # . Behavior
+        #   - Derives a unique guard variable name from the current filename.
+        #   - Aborts execution when the file is run directly instead of sourced.
+        #   - Sets the guard variable on first load.
+        #   - Returns immediately when the library was already loaded.
+        #
+        # Inputs
+        #   BASH_SOURCE[0]
+        #   $0
+        #
+        # Outputs (globals)
+        #   SGND_<MODULE>_LOADED
+        #
+        # . Returns
+        #   0 when already loaded or successfully initialized.
+        #   Exits with code 2 when executed instead of sourced.
+        #
+        # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
-        local lib_base
-        local guard
+        local lib_base=""
+        local guard=""
 
         lib_base="$(basename "${BASH_SOURCE[0]}" .sh)"
         lib_base="${lib_base//-/_}"
@@ -44,14 +61,17 @@ set -uo pipefail
             exit 2
         }
 
-        [[ -n "${!guard-}" ]] && return 1
+        [[ -n "${!guard-}" ]] && return 0
         printf -v "$guard" '1'
-        return 0
     }
 
-    _sgnd_lib_guard || return 0
+    _sgnd_lib_guard
     unset -f _sgnd_lib_guard
 
+    if declare -F sgnd_module_init_metadata >/dev/null 2>&1 \
+        && declare -F sgnd_header_buffer_load >/dev/null 2>&1; then
+        sgnd_module_init_metadata "${BASH_SOURCE[0]}"
+    fi
 # - Framework-internal API ---------------------------------------------------------
     # _sgnd_flag_is_on
         # Purpose:

@@ -3,36 +3,33 @@
 # SolidGroundUX - Create Wrappers
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : 3c4043fa3baf97fe622026ec2690b1d87ad2e80ebb5df4259549ae771738d073
+#   Version     : 2.1
+#   Build       : 2624102
+#   Checksum    : dcb9fae548b2bc63983d979193debd916696060d9fbd76d81f41be1eaf215eef
 #   Source      : create-wrappers.sh
 #   Type        : script
 #   Group       : SDK
-#   Purpose     : Create root-aware command wrappers for SolidGroundUX scripts.
+#   Purpose     : Create framework-relative command wrappers for SolidGroundUX scripts.
 #
 # Description:
 #   Creates one or more command wrappers from SolidGroundUX scripts. Source files are
 #   selected from a source directory using a filename or shell mask. Generated wrappers
-#   are rendered from the canonical wrapper-template and resolve or create the active
-#   SolidGroundUX bootstrap configuration before launching their configured target.
+#   are rendered from the canonical wrapper-template and resolve the active SolidGroundUX
+#   framework tree from the wrapper path before launching their configured target.
 #
 #   Wrapper names:
-#     - script.sh       -> sgnd-script
-#     - sgnd-script.sh  -> sgnd-script
+#     - Optional Metadata/Wrapper overrides the generated command name.
+#     - Otherwise script.sh -> sgnd-script and sgnd-script.sh -> sgnd-script.
 #
 #   Wrapper target directories:
-#     - /usr/local/bin  (default)
-#     - /usr/local/sbin
-#
-# Configuration precedence used by generated wrappers:
-#   1. ~/.config/solidgroundux/solidgroundux.cfg
-#   2. /etc/solidgroundux/solidgroundux.cfg
-#   3. Auto-create the appropriate user/system configuration when neither exists
+#     - <selected-framework-root>/usr/local/bin  (default)
+#     - <selected-framework-root>/usr/local/sbin
 #
 # Design principles:
 #   - Generated wrappers remain environment-independent.
-#   - Wrapper targets are stored relative to SGND_APPLICATION_ROOT.
+#   - The source directory determines the framework tree that owns the wrappers.
+#   - Wrapper targets are stored relative to that selected framework root.
+#   - Wrapper execution follows the active self-locating framework tree.
 #   - Existing wrappers are not overwritten without confirmation.
 #   - A filename or mask may select one or multiple source scripts.
 #
@@ -47,124 +44,83 @@
 set -uo pipefail
 
 # - Bootstrap ------------------------------------------------------------------------
-    # fn$ _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
+    # fn$ _framework_locator - Resolve and load the active SolidGroundUX framework
         # . Purpose
-        #   Locate, create, and load the SolidGroundUX bootstrap configuration, then
-        #   load the executable runtime support library.
+        #   Determine the filesystem root of the currently executing SolidGroundUX tree
+        #   from the script's physical path, then load the executable runtime library.
         #
         # . Behavior
-        #   - Searches user and system bootstrap configuration locations.
-        #   - Prefers the invoking user's config over the system config.
-        #   - Creates a new bootstrap config when none exists.
-        #   - Prompts for framework/application roots in interactive mode.
-        #   - Applies default values when running non-interactively.
-        #   - Sources the selected bootstrap configuration file.
+        #   - Resolves the physical path of the executing script.
+        #   - Treats usr, etc, and var as the canonical top-level SolidGroundUX tree roots.
+        #   - Uses the last occurrence of one of those path components to determine the
+        #     active filesystem root.
+        #   - Resolves production scripts beneath /usr, /etc, or /var to root (/).
+        #   - Resolves staged/development trees to the path prefix preceding the detected
+        #     usr, etc, or var component.
         #   - Loads sgnd-exe-common.sh from the resolved framework root.
         #
         # . Globals (write)
         #   SGND_FRAMEWORK_ROOT
-        #   SGND_APPLICATION_ROOT
         #
         # . Output
-        #   Writes primitive printf-based messages before the framework UI is available.
+        #   Writes fatal bootstrap errors to stderr using printf because framework UI
+        #   helpers are not available until sgnd-exe-common.sh has been loaded.
         #
         # . Returns
-        #   0 when the bootstrap configuration and executable common library were loaded.
-        #   126 when configuration or executable common library is unreadable or invalid.
-        #   127 when the configuration directory or file could not be created.
+        #   0 when the framework root was resolved and executable common library loaded.
+        #   126 when the script path cannot be resolved, no canonical root component can
+        #   be found, or the executable common library is unreadable.
         #
         # . Usage
         #   _framework_locator || return $?
-        #
-        # Notes:
-        #   - Under sudo, configuration is resolved relative to SUDO_USER instead of /root.
-        #   - This function intentionally uses printf rather than say* helpers because
-        #     the executable common library has not been loaded yet.
     _framework_locator() {
-        local cfg_home="$HOME"
+        local script_file=""
+        local path_without_root=""
+        local component=""
+        local framework_root=""
+        local exe_common=""
+        local index=0
+        local root_index=-1
+        local -a path_parts=()
 
-        if [[ $EUID -eq 0 && -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]]; then
-            cfg_home="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
-        fi
+        script_file="$(readlink -f "${BASH_SOURCE[0]}")" || {
+            printf 'FATAL: Cannot resolve executable path: %s\n' "${BASH_SOURCE[0]}" >&2
+            return 126
+        }
 
-        local cfg_user="$cfg_home/.config/solidgroundux/solidgroundux.cfg"
-        local cfg_sys="/etc/solidgroundux/solidgroundux.cfg"
-        local cfg=""
-        local fw_root="/"
-        local app_root="$fw_root"
-        local reply
+        path_without_root="${script_file#/}"
+        IFS='/' read -r -a path_parts <<< "$path_without_root"
 
-        if [[ -r "$cfg_user" ]]; then
-            cfg="$cfg_user"
-
-        elif [[ -r "$cfg_sys" ]]; then
-            cfg="$cfg_sys"
-
-        else
-            if [[ $EUID -eq 0 ]]; then
-                cfg="$cfg_sys"
-            else
-                cfg="$cfg_user"
-            fi
-
-            if [[ -t 0 && -t 1 ]]; then
-                printf '%s\n' "SolidGroundUX bootstrap configuration"
-                printf '%s\n' "No configuration file found."
-                printf '%s\n' "Creating: $cfg"
-
-                printf "SGND_FRAMEWORK_ROOT [/] : " > /dev/tty
-                read -r reply < /dev/tty
-                fw_root="${reply:-/}"
-
-                printf "SGND_APPLICATION_ROOT [/] : " > /dev/tty
-                read -r reply < /dev/tty
-                app_root="${reply:-$fw_root}"
-            fi
-
-            case "$fw_root" in
-                /*) ;;
-                *) printf '%s\n' "ERR: SGND_FRAMEWORK_ROOT must be an absolute path"; return 126 ;;
+        for index in "${!path_parts[@]}"; do
+            component="${path_parts[$index]}"
+            case "$component" in
+                usr|etc|var)
+                    root_index=$index
+                    ;;
             esac
+        done
 
-            case "$app_root" in
-                /*) ;;
-                *) printf '%s\n' "ERR: SGND_APPLICATION_ROOT must be an absolute path"; return 126 ;;
-            esac
-
-            mkdir -p "$(dirname "$cfg")" || return 127
-
-            {
-                printf '%s\n' "# SolidGroundUX bootstrap configuration"
-                printf '%s\n' "# Auto-generated on first run"
-                printf '\n'
-                printf 'SGND_FRAMEWORK_ROOT=%q\n' "$fw_root"
-                printf 'SGND_APPLICATION_ROOT=%q\n' "$app_root"
-            } > "$cfg" || return 127
-
-            printf '%s\n' "Created bootstrap cfg: $cfg"
-        fi
-
-        if [[ -r "$cfg" ]]; then
-            # shellcheck source=/dev/null
-            source "$cfg"
-
-            : "${SGND_FRAMEWORK_ROOT:=/}"
-            : "${SGND_APPLICATION_ROOT:=$SGND_FRAMEWORK_ROOT}"
-        else
-            printf '%s\n' "Cannot read bootstrap cfg: $cfg"
+        if (( root_index < 0 )); then
+            printf 'FATAL: Cannot determine SolidGroundUX framework root from: %s\n' "$script_file" >&2
             return 126
         fi
 
-        case "${SGND_LOG_LEVEL:-silent}" in
-            silent|quiet)
-                ;;
-            *)
-                printf '%s\n' "Bootstrap cfg loaded: $cfg, SGND_FRAMEWORK_ROOT=$SGND_FRAMEWORK_ROOT, SGND_APPLICATION_ROOT=$SGND_APPLICATION_ROOT"
-                ;;
-        esac
+        if (( root_index == 0 )); then
+            framework_root="/"
+        else
+            framework_root=""
+            for (( index=0; index<root_index; index++ )); do
+                framework_root+="/${path_parts[$index]}"
+            done
+        fi
 
-        local exe_common=""
-        exe_common="${SGND_FRAMEWORK_ROOT%/}/usr/local/lib/solidgroundux/common/sgnd-exe-common.sh"
+        SGND_FRAMEWORK_ROOT="$framework_root"
+
+        if [[ "$SGND_FRAMEWORK_ROOT" == "/" ]]; then
+            exe_common="/usr/local/lib/solidgroundux/common/sgnd-exe-common.sh"
+        else
+            exe_common="${SGND_FRAMEWORK_ROOT%/}/usr/local/lib/solidgroundux/common/sgnd-exe-common.sh"
+        fi
 
         [[ -r "$exe_common" ]] || {
             printf 'FATAL: Cannot read executable common library: %s\n' "$exe_common" >&2
@@ -220,21 +176,67 @@ set -uo pipefail
     SGND_STATE_SAVE=1
 
 # - Helpers --------------------------------------------------------------------------
-    # fn: _application_path - Resolve a path beneath SGND_APPLICATION_ROOT
+    # fn: _framework_path - Resolve a path beneath a framework root
         # . Purpose
-        #   Convert an application-relative path to an absolute path.
+        #   Convert a framework-relative path to an absolute path beneath the supplied
+        #   framework root. Defaults to the active SGND_FRAMEWORK_ROOT.
+        # . Arguments
+        #   $1 Relative path.
+        #   $2 Framework root (optional).
         # . Returns
         #   0 always.
         # . Usage
-        #   path="$(_application_path "usr/local/bin")"
-    _application_path() {
+        #   path="$(_framework_path "usr/local/bin" "$root")"
+    _framework_path() {
         local relative="${1#/}"
+        local root="${2:-$SGND_FRAMEWORK_ROOT}"
 
-        if [[ "$SGND_APPLICATION_ROOT" == "/" ]]; then
+        if [[ "$root" == "/" ]]; then
             printf '/%s\n' "$relative"
         else
-            printf '%s/%s\n' "${SGND_APPLICATION_ROOT%/}" "$relative"
+            printf '%s/%s\n' "${root%/}" "$relative"
         fi
+    }
+
+    # fn: _framework_root_from_path - Resolve the framework root owning a selected path
+        # . Purpose
+        #   Derive the canonical SolidGroundUX framework root from an absolute source path,
+        #   using the same last usr/etc/var component rule as _framework_locator().
+        # . Returns
+        #   0 with the resolved root on stdout; 1 when the path cannot be resolved.
+    _framework_root_from_path() {
+        local path="${1:-}"
+        local absolute=""
+        local path_without_root=""
+        local component=""
+        local root=""
+        local index=0
+        local root_index=-1
+        local -a path_parts=()
+
+        [[ -n "$path" ]] || return 1
+        absolute="$(readlink -f "$path")" || return 1
+        path_without_root="${absolute#/}"
+        IFS='/' read -r -a path_parts <<< "$path_without_root"
+
+        for index in "${!path_parts[@]}"; do
+            component="${path_parts[$index]}"
+            case "$component" in
+                usr|etc|var) root_index=$index ;;
+            esac
+        done
+
+        (( root_index >= 0 )) || return 1
+
+        if (( root_index == 0 )); then
+            printf '/\n'
+            return 0
+        fi
+
+        for (( index=0; index<root_index; index++ )); do
+            root+="/${path_parts[$index]}"
+        done
+        printf '%s\n' "$root"
     }
 
     # fn: _wrapper_template_path - Resolve the canonical wrapper template path
@@ -254,23 +256,24 @@ set -uo pipefail
         fi
     }
 
-    # fn: _relative_to_application_root - Convert an absolute source path to application-relative
+    # fn: _relative_to_framework_root - Convert an absolute source path to framework-relative
         # . Purpose
-        #   Ensure a selected source belongs to SGND_APPLICATION_ROOT and return its
+        #   Ensure a selected source belongs to the supplied framework root and return its
         #   normalized path relative to that root.
         # . Returns
-        #   0 when source is beneath the application root; 1 otherwise.
+        #   0 when source is beneath the framework root; 1 otherwise.
         # . Usage
-        #   rel="$(_relative_to_application_root "$file")"
-    _relative_to_application_root() {
+        #   rel="$(_relative_to_framework_root "$file")"
+    _relative_to_framework_root() {
         local file="${1:-}"
-        local root="${SGND_APPLICATION_ROOT%/}"
+        local framework_root="${2:-$SGND_FRAMEWORK_ROOT}"
+        local root="${framework_root%/}"
         local absolute=""
 
         [[ -n "$file" ]] || return 1
         absolute="$(readlink -f "$file")" || return 1
 
-        if [[ "$SGND_APPLICATION_ROOT" == "/" ]]; then
+        if [[ "$SGND_FRAMEWORK_ROOT" == "/" ]]; then
             printf '%s\n' "${absolute#/}"
             return 0
         fi
@@ -286,20 +289,32 @@ set -uo pipefail
         esac
     }
 
-    # fn: _wrapper_name_for_script - Return the canonical wrapper command name
+    # fn: _wrapper_name_for_script - Return the public wrapper command name
         # . Purpose
-        #   Prefix script basenames with sgnd- unless already present.
+        #   Resolve an optional Metadata/Wrapper override, falling back to the current
+        #   sgnd-<script> naming convention when no override is present.
+        #
         # . Returns
-        #   0 always.
+        #   0 with the wrapper name on stdout.
+        #
         # . Usage
         #   name="$(_wrapper_name_for_script "$file")"
     _wrapper_name_for_script() {
         local file="${1:-}"
         local base=""
+        local wrapper_name=""
+
+        if [[ -n "$file" ]] && sgnd_header_get_field "$file" "Metadata" "Wrapper" wrapper_name 2>/dev/null; then
+            wrapper_name="${wrapper_name#"${wrapper_name%%[![:space:]]*}"}"
+            wrapper_name="${wrapper_name%"${wrapper_name##*[![:space:]]}"}"
+            if [[ -n "$wrapper_name" ]]; then
+                printf '%s\n' "$wrapper_name"
+                return 0
+            fi
+        fi
 
         base="$(basename -- "$file")"
         base="${base%.sh}"
-
         if [[ "$base" == sgnd-* ]]; then
             printf '%s\n' "$base"
         else
@@ -307,13 +322,13 @@ set -uo pipefail
         fi
     }
 
-    # fn: _write_wrapper - Create one root-aware wrapper
+    # fn: _write_wrapper - Create one framework-relative wrapper
         # . Purpose
         #   Generate a wrapper from the canonical wrapper template.
         # . Behavior
-        #   - Resolves the source path relative to SGND_APPLICATION_ROOT.
+        #   - Resolves the source path relative to SGND_FRAMEWORK_ROOT.
         #   - Loads the canonical wrapper template from SGND_FRAMEWORK_ROOT.
-        #   - Replaces the <target> placeholder with the application-relative target.
+        #   - Replaces the <target> placeholder with the framework-relative target.
         #   - Preserves overwrite and dry-run behavior.
         # . Returns
         #   0 on success; 1 on failure or declined overwrite.
@@ -322,12 +337,13 @@ set -uo pipefail
     _write_wrapper() {
         local source="${1:-}"
         local wrapper="${2:-}"
+        local framework_root="${3:-$SGND_FRAMEWORK_ROOT}"
         local relative_target=""
         local template=""
         local line=""
 
-        relative_target="$(_relative_to_application_root "$source")" || {
-            sayfail "Source is outside SGND_APPLICATION_ROOT: $source"
+        relative_target="$(_relative_to_framework_root "$source" "$framework_root")" || {
+            sayfail "Source is outside selected framework root ($framework_root): $source"
             return 1
         }
 
@@ -372,7 +388,11 @@ set -uo pipefail
         local lw=22
         local lp=4
 
-        SOURCE_DIR="${SOURCE_DIR:-"$SGND_APPLICATION_ROOT"}"
+        if [[ "$SGND_FRAMEWORK_ROOT" == "/" ]]; then
+            SOURCE_DIR="${SOURCE_DIR:-/usr/local/libexec/solidgroundux}"
+        else
+            SOURCE_DIR="${SOURCE_DIR:-${SGND_FRAMEWORK_ROOT%/}/usr/local/libexec/solidgroundux}"
+        fi
         SOURCE_MASK="${SOURCE_MASK:-*.sh}"
         TARGET_KIND="${TARGET_KIND:-bin}"
         FLAG_OVERWRITE="${FLAG_OVERWRITE:-0}"
@@ -442,18 +462,24 @@ set -uo pipefail
         #   _create_wrappers
     _create_wrappers() {
         local target_root=""
+        local selected_framework_root=""
         local source=""
         local wrapper_name=""
         local wrapper=""
         local matched=0
         local failed=0
 
+        selected_framework_root="$(_framework_root_from_path "$SOURCE_DIR")" || {
+            sayfail "Cannot determine framework root from source directory: $SOURCE_DIR"
+            return 1
+        }
+
         case "${TARGET_KIND,,}" in
             bin)
-                target_root="$(_application_path "usr/local/bin")"
+                target_root="$(_framework_path "usr/local/bin" "$selected_framework_root")"
                 ;;
             sbin)
-                target_root="$(_application_path "usr/local/sbin")"
+                target_root="$(_framework_path "usr/local/sbin" "$selected_framework_root")"
                 ;;
             *)
                 sayfail "Invalid wrapper target directory: $TARGET_KIND"
@@ -467,7 +493,7 @@ set -uo pipefail
             wrapper_name="$(_wrapper_name_for_script "$source")"
             wrapper="${target_root%/}/$wrapper_name"
 
-            _write_wrapper "$source" "$wrapper" || failed=1
+            _write_wrapper "$source" "$wrapper" "$selected_framework_root" || failed=1
         done < <(
             find "$SOURCE_DIR" \
                 -mindepth 1 \

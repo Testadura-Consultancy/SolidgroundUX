@@ -2,9 +2,9 @@
 # SolidGroundUX - Framework Definitions
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623803
-#   Checksum    : 6a4a4ce7af8fd10ed58ed380b52603a4b4b67eaaf8273f5b5854d153d550235e
+#   Version     : 2.1
+#   Build       : 2624102
+#   Checksum    : 8f4f796937fb1968de391011993c8b8eaa7c45edca1128a6cef770d9a87e2d0a
 #   Source      : sgnd-definitions.sh
 #   Type        : library
 #   Group       : Bootstrap
@@ -25,10 +25,33 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
-# - Library guard -------------------------------------------------------------------
+# - Library guard ------------------------------------------------------------------
+    # fn$ _sgnd_lib_guard - Enforce source-only, single-load library initialization
+        # . Purpose
+        #   Ensure the file is sourced as a library and initialized only once.
+        #
+        # . Behavior
+        #   - Derives a unique guard variable name from the current filename.
+        #   - Aborts execution when the file is run directly instead of sourced.
+        #   - Sets the guard variable on first load.
+        #   - Returns immediately when the library was already loaded.
+        #
+        # Inputs
+        #   BASH_SOURCE[0]
+        #   $0
+        #
+        # Outputs (globals)
+        #   SGND_<MODULE>_LOADED
+        #
+        # . Returns
+        #   0 when already loaded or successfully initialized.
+        #   Exits with code 2 when executed instead of sourced.
+        #
+        # . Usage
+        #   _sgnd_lib_guard
     _sgnd_lib_guard() {
-        local lib_base
-        local guard
+        local lib_base=""
+        local guard=""
 
         lib_base="$(basename "${BASH_SOURCE[0]}" .sh)"
         lib_base="${lib_base//-/_}"
@@ -46,12 +69,14 @@ set -uo pipefail
     _sgnd_lib_guard
     unset -f _sgnd_lib_guard
 
-    sgnd_module_init_metadata "${BASH_SOURCE[0]}"
-
+    if declare -F sgnd_module_init_metadata >/dev/null 2>&1 \
+        && declare -F sgnd_header_buffer_load >/dev/null 2>&1; then
+        sgnd_module_init_metadata "${BASH_SOURCE[0]}"
+    fi
 # - Framework identity --------------------------------------------------------------
     SGND_PRODUCT="SolidGroundUX"
-    SGND_VERSION="2.0"
-    SGND_BUILD="2623823"
+    SGND_VERSION="2.1"
+    SGND_BUILD="2624102"
     SGND_COMPANY="Testadura Consultancy"
     SGND_COPYRIGHT="© 2025 - 2026 Testadura Consultancy"
     SGND_LICENSE="Testadura Non-Commercial License (TD-NC) v1.1."
@@ -131,8 +156,8 @@ set -uo pipefail
 
     SGND_RUNTIME_GLOBALS=(
         "both|SGND_FRAMEWORK_ROOT|Root path used as the base for framework filesystem locations.|"
-        "both|SGND_APPLICATION_ROOT|Root path used as the base for application filesystem locations.|"
         "both|SGND_COMMON_LIB|Directory containing common SolidGroundUX library files.|"
+        "both|SGND_GLOBALS_FOLDER|Directory containing framework and project definition libraries.|"
         "both|SGND_COMMON_EXE|Directory containing common SolidGroundUX executable files.|"
         "system|SGND_SYSCFG_DIR|Directory containing system-level SolidGroundUX configuration files.|"
         "user|SGND_USRCFG_DIR|Directory containing user-level SolidGroundUX configuration files.|"

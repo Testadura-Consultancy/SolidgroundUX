@@ -2,9 +2,9 @@
 # SolidGroundUX - Documentation Renderer
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : e39d7fbb5b4df009240233939c654051a26b430fe3568939dd83905f86b73a2e
+#   Version     : 2.1
+#   Build       : 2624102
+#   Checksum    : 85c777deed8c2cc05847b5633f445ae292ffdd8916cb7d3dd2396b2eaaa5fcfe
 #   Source      : doc-renderer.sh
 #   Type        : library
 #   Group       : SDK
@@ -40,25 +40,32 @@
 # ==================================================================================
 set -uo pipefail
 # - Library guard ------------------------------------------------------------------
-    # fn$ _sgnd_lib_guard - Library guard
+    # fn$ _sgnd_lib_guard - Enforce source-only, single-load library initialization
         # . Purpose
-        #   Prevent direct execution of a source-only module and avoid repeated initialization.
+        #   Ensure the file is sourced as a library and initialized only once.
         #
         # . Behavior
-        #   - Derives a module-specific guard variable from the current filename.
-        #   - Exits with status 2 when the file is executed directly.
-        #   - Returns immediately when the module has already been loaded.
-        #   - Marks the module as loaded before normal initialization continues.
+        #   - Derives a unique guard variable name from the current filename.
+        #   - Aborts execution when the file is run directly instead of sourced.
+        #   - Sets the guard variable on first load.
+        #   - Returns immediately when the library was already loaded.
+        #
+        # Inputs
+        #   BASH_SOURCE[0]
+        #   $0
+        #
+        # Outputs (globals)
+        #   SGND_<MODULE>_LOADED
         #
         # . Returns
-        #   0 when the module may continue loading or was already loaded.
-        #   Exits with status 2 when executed directly.
+        #   0 when already loaded or successfully initialized.
+        #   Exits with code 2 when executed instead of sourced.
         #
         # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
-        local lib_base
-        local guard
+        local lib_base=""
+        local guard=""
 
         lib_base="$(basename "${BASH_SOURCE[0]}" .sh)"
         lib_base="${lib_base//-/_}"
@@ -76,8 +83,10 @@ set -uo pipefail
     _sgnd_lib_guard
     unset -f _sgnd_lib_guard
 
-    sgnd_module_init_metadata "${BASH_SOURCE[0]}"
-
+    if declare -F sgnd_module_init_metadata >/dev/null 2>&1 \
+        && declare -F sgnd_header_buffer_load >/dev/null 2>&1; then
+        sgnd_module_init_metadata "${BASH_SOURCE[0]}"
+    fi
 # - Local definitions -------------------------------------------------------------
     # var: DOC_RENDER_CACHE_DIR - Persistent renderer input cache directory
         # . Purpose

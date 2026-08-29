@@ -2,9 +2,9 @@
 # SolidGroundUX - SolidGroundUX
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623514
-#   Checksum    : 94899740e6a70e93b66a58a824ba685afb99bd9e2ad7ab525bae1a68ebadc103
+#   Version     : 2.1
+#   Build       : 2624102
+#   Checksum    : 3b3b4934a61b39c836b867ebf5674683c9129543039ac02abd9ff696c296d040
 #   Source      : 40-solidgroundux.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -22,21 +22,33 @@
 #   License       : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # ==================================================================================
 set -uo pipefail
-# - Library guard ----------------------------------------------------------------
-    # fn$ _sgnd_lib_guard
+# - Library guard ------------------------------------------------------------------
+    # fn$ _sgnd_lib_guard - Enforce source-only, single-load library initialization
         # . Purpose
-        #   Ensure the module is sourced and initialized only once.
+        #   Ensure the file is sourced as a library and initialized only once.
+        #
+        # . Behavior
+        #   - Derives a unique guard variable name from the current filename.
+        #   - Aborts execution when the file is run directly instead of sourced.
+        #   - Sets the guard variable on first load.
+        #   - Returns immediately when the library was already loaded.
+        #
+        # Inputs
+        #   BASH_SOURCE[0]
+        #   $0
+        #
+        # Outputs (globals)
+        #   SGND_<MODULE>_LOADED
         #
         # . Returns
-        #   0 when loading may continue.
-        #   1 when the module was already loaded.
-        #   Exits with status 2 when executed directly.
+        #   0 when already loaded or successfully initialized.
+        #   Exits with code 2 when executed instead of sourced.
         #
         # . Usage
-        #   _sgnd_lib_guard "example-0"
+        #   _sgnd_lib_guard
     _sgnd_lib_guard() {
-        local lib_base
-        local guard
+        local lib_base=""
+        local guard=""
 
         lib_base="$(basename "${BASH_SOURCE[0]}" .sh)"
         lib_base="${lib_base//-/_}"
@@ -47,16 +59,17 @@ set -uo pipefail
             exit 2
         }
 
-        [[ -n "${!guard-}" ]] && return 1
+        [[ -n "${!guard-}" ]] && return 0
         printf -v "$guard" '1'
-        return 0
     }
 
-    _sgnd_lib_guard || return 0
+    _sgnd_lib_guard
     unset -f _sgnd_lib_guard
 
-    sgnd_module_init_metadata "${BASH_SOURCE[0]}"
-
+    if declare -F sgnd_module_init_metadata >/dev/null 2>&1 \
+        && declare -F sgnd_header_buffer_load >/dev/null 2>&1; then
+        sgnd_module_init_metadata "${BASH_SOURCE[0]}"
+    fi
 # - Module metadata -------------------------------------------------------------
     SGND_SOLIDGROUNDUX_MODULE_ID="solidgroundux"
     SGND_SOLIDGROUNDUX_MODULE_NAME="SolidGroundUX"

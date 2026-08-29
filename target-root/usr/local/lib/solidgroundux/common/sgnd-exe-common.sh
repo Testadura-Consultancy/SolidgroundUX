@@ -2,9 +2,9 @@
 # SolidGroundUX - Executable Runtime Support
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623803
-#   Checksum    : bbb54f99a3449cf4d8a7deeaaf2624965ed0625ea467540465196076d8445c61
+#   Version     : 2.1
+#   Build       : 2624102
+#   Checksum    : 24b9f8bbc87f6d113ce34c5127d13cbe31ae3ed266f2c3f8f22c30925751b2f7
 #   Source      : sgnd-exe-common.sh
 #   Type        : library
 #   Group       : Bootstrap
@@ -45,32 +45,32 @@
 # ==================================================================================
 set -uo pipefail
 # - Library guard ------------------------------------------------------------------
-    # fn$ _sgnd_lib_guard
+    # fn$ _sgnd_lib_guard - Enforce source-only, single-load library initialization
         # . Purpose
-        #   Ensure the file is sourced as a library and only initialized once.
+        #   Ensure the file is sourced as a library and initialized only once.
         #
         # . Behavior
         #   - Derives a unique guard variable name from the current filename.
-        #   - Aborts execution if the file is executed instead of sourced.
+        #   - Aborts execution when the file is run directly instead of sourced.
         #   - Sets the guard variable on first load.
-        #   - Skips initialization if the library was already loaded.
+        #   - Returns immediately when the library was already loaded.
         #
-        # Inputs:
+        # Inputs
         #   BASH_SOURCE[0]
         #   $0
         #
-        # Outputs (globals):
+        # Outputs (globals)
         #   SGND_<MODULE>_LOADED
         #
         # . Returns
-        #   0 if already loaded or successfully initialized.
-        #   Exits with code 2 if executed instead of sourced.
+        #   0 when already loaded or successfully initialized.
+        #   Exits with code 2 when executed instead of sourced.
         #
         # . Usage
-        #   _sgnd_lib_guard "example-0"
+        #   _sgnd_lib_guard
     _sgnd_lib_guard() {
-        local lib_base
-        local guard
+        local lib_base=""
+        local guard=""
 
         lib_base="$(basename "${BASH_SOURCE[0]}" .sh)"
         lib_base="${lib_base//-/_}"
@@ -88,11 +88,10 @@ set -uo pipefail
     _sgnd_lib_guard
     unset -f _sgnd_lib_guard
 
-    if declare -F sgnd_module_init_metadata >/dev/null 2>&1; then
+    if declare -F sgnd_module_init_metadata >/dev/null 2>&1 \
+        && declare -F sgnd_header_buffer_load >/dev/null 2>&1; then
         sgnd_module_init_metadata "${BASH_SOURCE[0]}"
     fi
-
-
 # - Minimal UI----------------------------------------------------------------------
     # var$ Minimal message colors
         # ANSI color constants used by the fallback UI functions before the full

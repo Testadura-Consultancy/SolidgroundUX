@@ -2,9 +2,9 @@
 # SolidGroundUX - Framework Information
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623803
-#   Checksum    : 686611d4cf8ac6d05511b844147c12089849bcff90e1ca866df191ff3b21aa14
+#   Version     : 2.1
+#   Build       : 2624102
+#   Checksum    : 8a59f8ad76e1487e7e9fb04f4ead32a79b57d4bb3f0d6afb86f0356c7ea3a8e3
 #   Source      : sgnd-info.sh
 #   Type        : library
 #   Group       : Common Core
@@ -15,7 +15,7 @@
 #
 #   The library:
 #     - Provides access to framework identity (name, version, paths)
-#     - Exposes resolved bootstrap values such as SGND_FRAMEWORK_ROOT and SGND_APPLICATION_ROOT
+#     - Exposes resolved bootstrap values such as SGND_FRAMEWORK_ROOT and runtime paths
 #     - Supplies helper functions for displaying framework and environment details
 #     - Supports diagnostics, logging, and informational output
 #
@@ -45,25 +45,32 @@
 set -uo pipefail
 
 # - Library guard ------------------------------------------------------------------
-    # fn$ _sgnd_lib_guard - Library guard
+    # fn$ _sgnd_lib_guard - Enforce source-only, single-load library initialization
         # . Purpose
-        #   Prevent direct execution of a source-only module and avoid repeated initialization.
+        #   Ensure the file is sourced as a library and initialized only once.
         #
         # . Behavior
-        #   - Derives a module-specific guard variable from the current filename.
-        #   - Exits with status 2 when the file is executed directly.
-        #   - Returns immediately when the module has already been loaded.
-        #   - Marks the module as loaded before normal initialization continues.
+        #   - Derives a unique guard variable name from the current filename.
+        #   - Aborts execution when the file is run directly instead of sourced.
+        #   - Sets the guard variable on first load.
+        #   - Returns immediately when the library was already loaded.
+        #
+        # Inputs
+        #   BASH_SOURCE[0]
+        #   $0
+        #
+        # Outputs (globals)
+        #   SGND_<MODULE>_LOADED
         #
         # . Returns
-        #   0 when the module may continue loading or was already loaded.
-        #   Exits with status 2 when executed directly.
+        #   0 when already loaded or successfully initialized.
+        #   Exits with code 2 when executed instead of sourced.
         #
         # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
-        local lib_base
-        local guard
+        local lib_base=""
+        local guard=""
 
         lib_base="$(basename "${BASH_SOURCE[0]}" .sh)"
         lib_base="${lib_base//-/_}"
@@ -81,8 +88,10 @@ set -uo pipefail
     _sgnd_lib_guard
     unset -f _sgnd_lib_guard
 
-    sgnd_module_init_metadata "${BASH_SOURCE[0]}"
-
+    if declare -F sgnd_module_init_metadata >/dev/null 2>&1 \
+        && declare -F sgnd_header_buffer_load >/dev/null 2>&1; then
+        sgnd_module_init_metadata "${BASH_SOURCE[0]}"
+    fi
 # - Internal helpers ----------------------------------------------------------------
     : "${_section_indent:=2}"
     : "${_items_indent:=4}"

@@ -6,13 +6,13 @@
 # =====================================================================================
 set -uo pipefail
 
-SGND_DEFINITIONS="/usr/local/lib/solidgroundux/common/sgnd-definitions.sh"
+SGND_DEFINITIONS="/usr/local/lib/solidgroundux/globals/sgnd-definitions.sh"
 
 # Support execution from an uninstalled target-root during development.
 if [[ ! -r "$SGND_DEFINITIONS" ]]; then
     script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
     target_root="$(readlink -f "$script_dir/../..")"
-    SGND_DEFINITIONS="${target_root%/}/usr/local/lib/solidgroundux/common/sgnd-definitions.sh"
+    SGND_DEFINITIONS="${target_root%/}/usr/local/lib/solidgroundux/globals/sgnd-definitions.sh"
 fi
 
 [[ -r "$SGND_DEFINITIONS" ]] || exit 0
@@ -21,7 +21,7 @@ fi
 # metadata initializer already exists. The MOTD only needs the static definitions.
 sgnd_module_init_metadata() { :; }
 
-# shellcheck source=/usr/local/lib/solidgroundux/common/sgnd-definitions.sh
+# shellcheck source=/usr/local/lib/solidgroundux/globals/sgnd-definitions.sh
 source "$SGND_DEFINITIONS"
 
 unset -f sgnd_module_init_metadata 2>/dev/null || true

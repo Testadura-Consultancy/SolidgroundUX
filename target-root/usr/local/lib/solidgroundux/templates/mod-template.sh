@@ -2,9 +2,9 @@
 # SolidGroundUX - Console Module Template
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : 8fd9bb35d17bdd7a832c1c74b19d6ded31ef14cf6ed506343db68ab1bf5904a9
+#   Version     : 2.1
+#   Build       : 2624102
+#   Checksum    : d9225da61eb4ccc87ec2a1c10491859ce1e335acdc72213fbac6e927071178c1
 #   Source      : mod-template.sh
 #   Type        : module
 #   Group       : SDK
@@ -50,32 +50,32 @@
 # ==================================================================================
 set -uo pipefail
 # - Library guard ------------------------------------------------------------------
-    # fn$ _sgnd_lib_guard
+    # fn$ _sgnd_lib_guard - Enforce source-only, single-load library initialization
         # . Purpose
-        #   Ensure the file is sourced as a library and only initialized once.
+        #   Ensure the file is sourced as a library and initialized only once.
         #
         # . Behavior
         #   - Derives a unique guard variable name from the current filename.
-        #   - Aborts execution if the file is executed instead of sourced.
+        #   - Aborts execution when the file is run directly instead of sourced.
         #   - Sets the guard variable on first load.
-        #   - Skips initialization if the library was already loaded.
+        #   - Returns immediately when the library was already loaded.
         #
-        # Inputs:
+        # Inputs
         #   BASH_SOURCE[0]
         #   $0
         #
-        # Outputs (globals):
+        # Outputs (globals)
         #   SGND_<MODULE>_LOADED
         #
         # . Returns
-        #   0 if already loaded or successfully initialized.
-        #   Exits with code 2 if executed instead of sourced.
+        #   0 when already loaded or successfully initialized.
+        #   Exits with code 2 when executed instead of sourced.
         #
         # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
-        local lib_base
-        local guard
+        local lib_base=""
+        local guard=""
 
         lib_base="$(basename "${BASH_SOURCE[0]}" .sh)"
         lib_base="${lib_base//-/_}"
@@ -93,8 +93,10 @@ set -uo pipefail
     _sgnd_lib_guard
     unset -f _sgnd_lib_guard
 
-    sgnd_module_init_metadata "${BASH_SOURCE[0]}"
-
+    if declare -F sgnd_module_init_metadata >/dev/null 2>&1 \
+        && declare -F sgnd_header_buffer_load >/dev/null 2>&1; then
+        sgnd_module_init_metadata "${BASH_SOURCE[0]}"
+    fi
 # - Module metadata -------------------------------------------------------------
     # Replace SAMPLE_MODULE in all variable names and values below.
     # MODULE_NAME and MODULE_DESC must remain literal quoted assignments because the

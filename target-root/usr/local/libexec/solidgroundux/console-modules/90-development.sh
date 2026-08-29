@@ -2,9 +2,9 @@
 # SolidGroundUX - Development
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623817
-#   Checksum    : 2df13787397dcbb2b949fe690ccf016252768ba79e66d96388bdada46f0fc17b
+#   Version     : 2.1
+#   Build       : 2624102
+#   Checksum    : e8bdb6cc10129a187201ff4513b4b7f584258cfc53a205680fe6fc292a4c0678
 #   Source      : 90-development.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -14,18 +14,32 @@
 set -uo pipefail
 
 # - Library guard ------------------------------------------------------------------
-    # fn$ _sgnd_lib_guard
+    # fn$ _sgnd_lib_guard - Enforce source-only, single-load library initialization
         # . Purpose
-        #   Ensure the module is sourced and initialized only once.
+        #   Ensure the file is sourced as a library and initialized only once.
+        #
+        # . Behavior
+        #   - Derives a unique guard variable name from the current filename.
+        #   - Aborts execution when the file is run directly instead of sourced.
+        #   - Sets the guard variable on first load.
+        #   - Returns immediately when the library was already loaded.
+        #
+        # Inputs
+        #   BASH_SOURCE[0]
+        #   $0
+        #
+        # Outputs (globals)
+        #   SGND_<MODULE>_LOADED
         #
         # . Returns
-        #   0 when loading may continue; exits with 2 when executed directly.
+        #   0 when already loaded or successfully initialized.
+        #   Exits with code 2 when executed instead of sourced.
         #
         # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
-        local lib_base
-        local guard
+        local lib_base=""
+        local guard=""
 
         lib_base="$(basename "${BASH_SOURCE[0]}" .sh)"
         lib_base="${lib_base//-/_}"
@@ -43,8 +57,10 @@ set -uo pipefail
     _sgnd_lib_guard
     unset -f _sgnd_lib_guard
 
-    sgnd_module_init_metadata "${BASH_SOURCE[0]}"
-
+    if declare -F sgnd_module_init_metadata >/dev/null 2>&1 \
+        && declare -F sgnd_header_buffer_load >/dev/null 2>&1; then
+        sgnd_module_init_metadata "${BASH_SOURCE[0]}"
+    fi
 # - Module metadata ----------------------------------------------------------------
     SGND_DEVELOPMENT_MODULE_ID="development"
     SGND_DEVELOPMENT_MODULE_NAME="Development"

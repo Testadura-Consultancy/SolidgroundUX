@@ -2,9 +2,9 @@
 # SolidGroundUX - How to?
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : 78cc34b74d2783e0d2a3a2ddfc2e3236258cea93b3bd2f73404571f05a470fe4
+#   Version     : 2.1
+#   Build       : 2624102
+#   Checksum    : 2b9fffe93e85fdc7ee44bb55b1003a70a95408ea2a542ed3a29f05f617d0ffb0
 #   Source      : solidgroundux_epilogue.sh
 #   Type        : documentation
 #   Group       : SolidGroundUX
@@ -182,7 +182,6 @@
 #
 # > Important globals
 # >     SGND_FRAMEWORK_ROOT
-# >     SGND_APPLICATION_ROOT
 # >     SGND_SCRIPT_FILE
 # >     SGND_SCRIPT_DIR
 # >     SGND_SCRIPT_BASE
@@ -231,7 +230,7 @@
 # -- 3. Framework Directory and Global Model -----------------------------------------
 #
 # > Purpose
-# >     Standardize framework paths, application paths, user paths,
+# >     Standardize framework-managed paths, user paths,
 # >     configuration locations, state locations, documentation locations,
 # >     style locations, and log locations.
 #
@@ -240,7 +239,6 @@
 #
 # > Important globals
 # >     SGND_FRAMEWORK_ROOT
-# >     SGND_APPLICATION_ROOT
 # >     SGND_COMMON_LIB
 # >     SGND_SYSCFG_DIR
 # >     SGND_USRCFG_DIR

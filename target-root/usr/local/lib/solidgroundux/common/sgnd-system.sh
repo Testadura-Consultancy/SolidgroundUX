@@ -2,9 +2,9 @@
 # SolidGroundUX - System Utilities
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623803
-#   Checksum    : 23515e5f9b0b7f31c661fff98f2ac0e82afdaabeb3e96785de893160ce373206
+#   Version     : 2.1
+#   Build       : 2624102
+#   Checksum    : 9ebf3217a928b14d2d14077eaec3e34591aef660a991ce4b1781859263535803
 #   Source      : sgnd-system.sh
 #   Type        : library
 #   Group       : Common Core
@@ -44,25 +44,32 @@
 # =====================================================================================
 set -uo pipefail
 # - Library guard ------------------------------------------------------------------
-    # fn$ _sgnd_lib_guard - Library guard
+    # fn$ _sgnd_lib_guard - Enforce source-only, single-load library initialization
         # . Purpose
-        #   Prevent direct execution of a source-only module and avoid repeated initialization.
+        #   Ensure the file is sourced as a library and initialized only once.
         #
         # . Behavior
-        #   - Derives a module-specific guard variable from the current filename.
-        #   - Exits with status 2 when the file is executed directly.
-        #   - Returns immediately when the module has already been loaded.
-        #   - Marks the module as loaded before normal initialization continues.
+        #   - Derives a unique guard variable name from the current filename.
+        #   - Aborts execution when the file is run directly instead of sourced.
+        #   - Sets the guard variable on first load.
+        #   - Returns immediately when the library was already loaded.
+        #
+        # Inputs
+        #   BASH_SOURCE[0]
+        #   $0
+        #
+        # Outputs (globals)
+        #   SGND_<MODULE>_LOADED
         #
         # . Returns
-        #   0 when the module may continue loading or was already loaded.
-        #   Exits with status 2 when executed directly.
+        #   0 when already loaded or successfully initialized.
+        #   Exits with code 2 when executed instead of sourced.
         #
         # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
-        local lib_base
-        local guard
+        local lib_base=""
+        local guard=""
 
         lib_base="$(basename "${BASH_SOURCE[0]}" .sh)"
         lib_base="${lib_base//-/_}"
@@ -77,12 +84,13 @@ set -uo pipefail
         printf -v "$guard" '1'
     }
 
-    # -- Execute on load -----------------------------------------------------------
-        _sgnd_lib_guard
-        unset -f _sgnd_lib_guard
+    _sgnd_lib_guard
+    unset -f _sgnd_lib_guard
 
+    if declare -F sgnd_module_init_metadata >/dev/null 2>&1 \
+        && declare -F sgnd_header_buffer_load >/dev/null 2>&1; then
         sgnd_module_init_metadata "${BASH_SOURCE[0]}"
-
+    fi
 # - Public API ---------------------------------------------------------------------
     # -- Privilege and runtime requirements -------------------------------------------
         # fn: sgnd_need_root - Need root
@@ -111,7 +119,7 @@ set -uo pipefail
             if [[ ${EUID:-$(id -u)} -ne 0 && -z "${SGND_ALREADY_ROOT:-}" ]]; then
                 saydebug "Restarting as root"
                 exec sudo \
-                    --preserve-env=SGND_FRAMEWORK_ROOT,SGND_APPLICATION_ROOT,PATH \
+                    --preserve-env=SGND_FRAMEWORK_ROOT,PATH \
                     -- env SGND_ALREADY_ROOT=1 "$0" "$@"
             fi
 

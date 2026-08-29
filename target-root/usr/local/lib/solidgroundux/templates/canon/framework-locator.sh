@@ -1,33 +1,3 @@
-#!/usr/bin/env bash
-# =====================================================================================
-# SolidGroundUX - Command Wrapper
-# -------------------------------------------------------------------------------------
-# Metadata:
-#   Version     : 1.0
-#   Build       : -
-#   Checksum    : d0227d9918b8f9791c05f4b66cba11e99383b902db80294ab63a5093258c23c0
-#   Source      : wrapper-template
-#   Type        : wrapper
-#   Group       : SDK
-#   Subgroup    : Templates
-#   Purpose     : Launch a configured SolidGroundUX target beneath the active framework root.
-#
-# Description:
-#   Resolves the active SolidGroundUX framework from this wrapper's physical path,
-#   loads the executable runtime context, then launches SGND_WRAPPER_TARGET beneath
-#   SGND_FRAMEWORK_ROOT.
-#
-# Attribution:
-#   Developers  : Mark Fieten
-#   Company     : Testadura Consultancy
-#   Client      : -
-#   Copyright   : © 2025 - 2026 Testadura Consultancy
-#   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
-# =====================================================================================
-
-set -uo pipefail
-
-# - Bootstrap -----------------------------------------------------------------------
     # fn$ _framework_locator - Resolve and load the active SolidGroundUX framework
         # . Purpose
         #   Determine the filesystem root of the currently executing SolidGroundUX tree
@@ -114,22 +84,3 @@ set -uo pipefail
         # shellcheck source=/dev/null
         source "$exe_common"
     }
-
-# - Wrapper target -------------------------------------------------------------------
-    SGND_WRAPPER_TARGET="usr/local/libexec/solidgroundux/tar-it.sh"
-
-# - Main -----------------------------------------------------------------------------
-    _framework_locator || exit $?
-
-    if [[ "$SGND_FRAMEWORK_ROOT" == "/" ]]; then
-        target="/${SGND_WRAPPER_TARGET#/}"
-    else
-        target="${SGND_FRAMEWORK_ROOT%/}/${SGND_WRAPPER_TARGET#/}"
-    fi
-
-    [[ -f "$target" ]] || {
-        printf 'FATAL: Wrapper target not found: %s\n' "$target" >&2
-        exit 127
-    }
-
-    exec bash "$target" "$@"

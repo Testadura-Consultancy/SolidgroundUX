@@ -9,6 +9,35 @@ practical framework development.
 
 # Unreleased
 
+## SolidGround Framework
+
+### Added
+- Added canonical bootstrap source normalization for release preparation. Executable `_framework_locator` functions and reusable-library guard sections can now be materialized from canonical source fragments instead of being maintained independently across the tree.
+- Added argument-parser support for extracting recognized framework built-ins while preserving script-specific options and positional arguments in their original order for the later script-level parse.
+
+### Changed
+- Simplified executable bootstrap root discovery for the 2.1 architecture. `SGND_FRAMEWORK_ROOT` is now derived directly from the physical script path using the last canonical top-level `usr`, `etc`, or `var` component, allowing the same bootstrap code to resolve both installed `/` and staged/development trees.
+- Reworked bootstrap argument processing so framework built-ins and script-specific arguments may be freely intermixed; callers no longer need to place framework options before application options.
+- Script argument parsing now continues across positional values, allowing valid options to occur later on the command line. The standard `--` marker remains the hard end-of-options boundary and everything following it is treated as positional data.
+- Script command-line values are applied after configuration/state loading so explicit CLI values take precedence without a later parser pass resetting previously parsed framework flags.
+- Updated bootstrap and argument-parser documentation to describe argument extraction, ordering independence, precedence, preservation behavior, and `--` semantics.
+- Framework smoke-test utility actions now continue the numbered menu sequence instead of using `L`, `V`, and `A`, avoiding collisions with framework/console shortcut keys; the timed smoke-test reader now accepts multi-digit selections.
+
+### Repaired
+- Repaired canonical library-guard normalization so the next top-level source section is detected whether or not whitespace exists before its separator run, preventing sections such as `Minimal UI` from being consumed during normalization.
+- Repaired canonical library guards for early bootstrap libraries by making metadata initialization conditional until `sgnd_module_init_metadata` is available.
+- Repaired repeated argument parsing that could reset a previously recognized script flag such as `--auto` during bootstrap, causing unattended tools to fall back into interactive behavior.
+
+## Development Tools
+
+### Added
+- Added optional canonical-source normalization to `prepare-release.sh`, executed before release metadata processing so generated bootstrap/guard fragments are normalized before checksums and release artifacts are produced.
+
+### Changed
+- Canonical normalization skips the canonical fragment directory itself, validates modified shell files with `bash -n`, and reports changes through checksum comparison.
+- `prepare-release.sh` invokes canonical normalization in unattended mode and propagates dry-run behavior when release preparation is running as a dry run.
+
+
 # Build 2.0.2623817
 
 ## Added

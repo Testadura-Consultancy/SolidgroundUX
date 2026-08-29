@@ -3,9 +3,9 @@
 # SolidGroundUX - Executable Script Template
 # ------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : 677574c7048f6b63bcad843b29a3a391cc2e7b0e22c9efb86dec6efb04c3fca7
+#   Version     : 2.1
+#   Build       : 2624021
+#   Checksum    : d86b7bef506fe9f9c57ead361851f936fc1b8fc1428307691eb6e19fecce5a16
 #   Source      : prepare-template.sh
 #   Type        : script
 #   Group       : SolidGround Console
@@ -23,133 +23,83 @@
 # =====================================================================================
 set -uo pipefail
 # - Bootstrap -----------------------------------------------------------------------
-    # fn$ _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
+    # fn$ _framework_locator - Resolve and load the active SolidGroundUX framework
         # . Purpose
-        #   Locate, create, and load the SolidGroundUX bootstrap configuration, then
-        #   load the executable runtime support library.
+        #   Determine the filesystem root of the currently executing SolidGroundUX tree
+        #   from the script's physical path, then load the executable runtime library.
         #
         # . Behavior
-        #   - Searches user and system bootstrap configuration locations.
-        #   - Prefers the invoking user's config over the system config.
-        #   - Creates a new bootstrap config when none exists.
-        #   - Prompts for framework/application roots in interactive mode.
-        #   - Applies default values when running non-interactively.
-        #   - Sources the selected bootstrap configuration file.
+        #   - Resolves the physical path of the executing script.
+        #   - Treats usr, etc, and var as the canonical top-level SolidGroundUX tree roots.
+        #   - Uses the last occurrence of one of those path components to determine the
+        #     active filesystem root.
+        #   - Resolves production scripts beneath /usr, /etc, or /var to root (/).
+        #   - Resolves staged/development trees to the path prefix preceding the detected
+        #     usr, etc, or var component.
         #   - Loads sgnd-exe-common.sh from the resolved framework root.
         #
         # . Globals (write)
         #   SGND_FRAMEWORK_ROOT
-        #   SGND_APPLICATION_ROOT
         #
         # . Output
-        #   Writes primitive printf-based messages before the framework UI is available.
+        #   Writes fatal bootstrap errors to stderr using printf because framework UI
+        #   helpers are not available until sgnd-exe-common.sh has been loaded.
         #
         # . Returns
-        #   0 when the bootstrap configuration and executable common library were loaded.
-        #   126 when configuration or executable common library is unreadable or invalid.
-        #   127 when the configuration directory or file could not be created.
+        #   0 when the framework root was resolved and executable common library loaded.
+        #   126 when the script path cannot be resolved, no canonical root component can
+        #   be found, or the executable common library is unreadable.
         #
         # . Usage
         #   _framework_locator || return $?
-        #
-        # Notes:
-        #   - Under sudo, configuration is resolved relative to SUDO_USER instead of /root.
-        #   - This function intentionally uses printf rather than say* helpers because
-        #     the executable common library has not been loaded yet.
-    _framework_locator (){
-        local cfg_home="$HOME"
+    _framework_locator() {
+        local script_file=""
+        local path_without_root=""
+        local component=""
+        local framework_root=""
+        local exe_common=""
+        local index=0
+        local root_index=-1
+        local -a path_parts=()
 
-        if [[ $EUID -eq 0 && -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]]; then
-            cfg_home="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
-        fi
+        script_file="$(readlink -f "${BASH_SOURCE[0]}")" || {
+            printf 'FATAL: Cannot resolve executable path: %s\n' "${BASH_SOURCE[0]}" >&2
+            return 126
+        }
 
-        local cfg_user="$cfg_home/.config/solidgroundux/solidgroundux.cfg"
-        local cfg_sys="/etc/solidgroundux/solidgroundux.cfg"
-        local cfg=""
-        local fw_root="/"
-        local app_root="$fw_root"
-        local reply
+        path_without_root="${script_file#/}"
+        IFS='/' read -r -a path_parts <<< "$path_without_root"
 
-        # Determine existing configuration
-        if [[ -r "$cfg_user" ]]; then
-            cfg="$cfg_user"
-
-        elif [[ -r "$cfg_sys" ]]; then
-            cfg="$cfg_sys"
-
-        else
-            # Determine creation location
-            if [[ $EUID -eq 0 ]]; then
-                cfg="$cfg_sys"
-            else
-                cfg="$cfg_user"
-            fi
-
-            # Interactive prompts (first run only)
-            if [[ -t 0 && -t 1 ]]; then
-
-                printf '%s\n' "SolidGroundUX bootstrap configuration"
-                printf '%s\n'  "No configuration file found."
-                printf '%s\n'  "Creating: $cfg"
-
-                printf "SGND_FRAMEWORK_ROOT [/] : " > /dev/tty
-                read -r reply < /dev/tty
-                fw_root="${reply:-/}"
-
-                printf "SGND_APPLICATION_ROOT [/] : " > /dev/tty
-                read -r reply < /dev/tty
-                app_root="${reply:-$fw_root}"
-            fi
-
-            # Validate paths (must be absolute)
-            case "$fw_root" in
-                /*) ;;
-                *) printf '%s\n' "ERR: SGND_FRAMEWORK_ROOT must be an absolute path"; return 126 ;;
+        for index in "${!path_parts[@]}"; do
+            component="${path_parts[$index]}"
+            case "$component" in
+                usr|etc|var)
+                    root_index=$index
+                    ;;
             esac
+        done
 
-            case "$app_root" in
-                /*) ;;
-                *) printf '%s\n' "ERR: SGND_APPLICATION_ROOT must be an absolute path"; return 126 ;;
-            esac
-
-            # Create configuration file
-            mkdir -p "$(dirname "$cfg")" || return 127
-
-            # write cfg file 
-            {
-                printf '%s\n' "# SolidGroundUX bootstrap configuration"
-                printf '%s\n' "# Auto-generated on first run"
-                printf '\n'
-                printf 'SGND_FRAMEWORK_ROOT=%q\n' "$fw_root"
-                printf 'SGND_APPLICATION_ROOT=%q\n' "$app_root"
-            } > "$cfg" || return 127
-
-           printf '%s\n' "Created bootstrap cfg: $cfg"
-        fi
-
-        # Load configuration
-        if [[ -r "$cfg" ]]; then
-            # shellcheck source=/dev/null
-            source "$cfg"
-
-            : "${SGND_FRAMEWORK_ROOT:=/}"
-            : "${SGND_APPLICATION_ROOT:=$SGND_FRAMEWORK_ROOT}"
-        else
-            printf '%s\n' "Cannot read bootstrap cfg: $cfg"
+        if (( root_index < 0 )); then
+            printf 'FATAL: Cannot determine SolidGroundUX framework root from: %s\n' "$script_file" >&2
             return 126
         fi
 
-        case "${SGND_LOG_LEVEL:-silent}" in
-            silent|quiet)
-                ;;
-            *)
-                printf '%s\n' "Bootstrap cfg loaded: $cfg, SGND_FRAMEWORK_ROOT=$SGND_FRAMEWORK_ROOT, SGND_APPLICATION_ROOT=$SGND_APPLICATION_ROOT"
-                ;;
-        esac
+        if (( root_index == 0 )); then
+            framework_root="/"
+        else
+            framework_root=""
+            for (( index=0; index<root_index; index++ )); do
+                framework_root+="/${path_parts[$index]}"
+            done
+        fi
 
-        local exe_common=""
+        SGND_FRAMEWORK_ROOT="$framework_root"
 
-        exe_common="${SGND_FRAMEWORK_ROOT%/}/usr/local/lib/solidgroundux/common/sgnd-exe-common.sh"
+        if [[ "$SGND_FRAMEWORK_ROOT" == "/" ]]; then
+            exe_common="/usr/local/lib/solidgroundux/common/sgnd-exe-common.sh"
+        else
+            exe_common="${SGND_FRAMEWORK_ROOT%/}/usr/local/lib/solidgroundux/common/sgnd-exe-common.sh"
+        fi
 
         [[ -r "$exe_common" ]] || {
             printf 'FATAL: Cannot read executable common library: %s\n' "$exe_common" >&2

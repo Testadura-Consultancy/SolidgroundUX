@@ -3,9 +3,9 @@
 # SolidGroundUX - Create Workspace
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623803
-#   Checksum    : c67d382d29f8250f51dd66d191222c0ba47e2188d8317ea7fec179c1464c1119
+#   Version     : 2.1
+#   Build       : 2624102
+#   Checksum    : 67f96464f5ed2dcf1e7fc4332bc918b20f8aa1fca48e097de61f48912606e26c
 #   Source      : create-workspace.sh
 #   Type        : script
 #   Group       : SDK
@@ -18,10 +18,12 @@
 #   The script:
 #     - Resolves project name and target folder
 #     - Creates a repository-shaped target-root structure
-#     - Copies the canonical SolidGroundUX template set into the workspace
+#     - Copies reusable SolidGroundUX templates into the workspace, excluding canon/
 #     - Instantiates the selected starter template(s) from that local template set
-#     - Generates a VS Code workspace file
-#     - Generates a standard .gitignore
+#     - Creates project-namespaced definitions in the SolidGroundUX globals folder
+#     - Optionally creates a simple 95-<project> MOTD identity entry
+#     - Generates a VS Code workspace file and standard .gitignore
+#     - Optionally initializes Git and creates/pushes a GitHub repository using gh
 #
 # Design principles:
 #   - Workspace creation is deterministic and repeatable
@@ -45,123 +47,77 @@
 # =====================================================================================
 set -uo pipefail
 # --- Bootstrap ----------------------------------------------------------------------
-    # fn$ _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
+    # fn$ _framework_locator - Resolve and load the active SolidGroundUX framework
         # . Purpose
-        #   Locate, create, and load the SolidGroundUX bootstrap configuration, then
-        #   load the executable runtime support library.
+        #   Determine the filesystem root of the currently executing SolidGroundUX tree
+        #   from the script's physical path, then load the executable runtime library.
         #
         # . Behavior
-        #   - Searches user and system bootstrap configuration locations.
-        #   - Prefers the invoking user's config over the system config.
-        #   - Creates a new bootstrap config when none exists.
-        #   - Prompts for framework/application roots in interactive mode.
-        #   - Applies default values when running non-interactively.
-        #   - Sources the selected bootstrap configuration file.
+        #   - Resolves the physical path of the executing script.
+        #   - Treats usr, etc, and var as the canonical top-level SolidGroundUX tree roots.
+        #   - Uses the last occurrence of one of those path components to determine the
+        #     active filesystem root.
+        #   - Resolves production scripts beneath /usr, /etc, or /var to root (/).
+        #   - Resolves staged/development trees to the path prefix preceding the detected
+        #     usr, etc, or var component.
         #   - Loads sgnd-exe-common.sh from the resolved framework root.
         #
         # . Globals (write)
         #   SGND_FRAMEWORK_ROOT
-        #   SGND_APPLICATION_ROOT
         #
         # . Output
-        #   Writes primitive printf-based messages before the framework UI is available.
+        #   Writes fatal bootstrap errors to stderr using printf because framework UI
+        #   helpers are not available until sgnd-exe-common.sh has been loaded.
         #
         # . Returns
-        #   0 when the bootstrap configuration and executable common library were loaded.
-        #   126 when configuration or executable common library is unreadable or invalid.
-        #   127 when the configuration directory or file could not be created.
+        #   0 when the framework root was resolved and executable common library loaded.
+        #   126 when the script path cannot be resolved, no canonical root component can
+        #   be found, or the executable common library is unreadable.
         #
         # . Usage
         #   _framework_locator || return $?
-        #
-        # Notes:
-        #   - Under sudo, configuration is resolved relative to SUDO_USER instead of /root.
-        #   - This function intentionally uses printf rather than say* helpers because
-        #     the executable common library has not been loaded yet.
     _framework_locator() {
-        local cfg_home="$HOME"
+        local script_file=""
+        local path_without_root=""
+        local component=""
+        local framework_root=""
+        local exe_common=""
+        local index=0
+        local root_index=-1
+        local -a path_parts=()
 
-        if [[ $EUID -eq 0 && -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]]; then
-            cfg_home="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
-        fi
+        script_file="$(readlink -f "${BASH_SOURCE[0]}")" || {
+            printf 'FATAL: Cannot resolve executable path: %s\n' "${BASH_SOURCE[0]}" >&2
+            return 126
+        }
 
-        local cfg_user="$cfg_home/.config/solidgroundux/solidgroundux.cfg"
-        local cfg_sys="/etc/solidgroundux/solidgroundux.cfg"
-        local cfg=""
-        local fw_root="/"
-        local app_root="$fw_root"
-        local reply=""
+        path_without_root="${script_file#/}"
+        IFS='/' read -r -a path_parts <<< "$path_without_root"
 
-        if [[ -r "$cfg_user" ]]; then
-            cfg="$cfg_user"
-
-        elif [[ -r "$cfg_sys" ]]; then
-            cfg="$cfg_sys"
-
-        else
-            if [[ $EUID -eq 0 ]]; then
-                cfg="$cfg_sys"
-            else
-                cfg="$cfg_user"
-            fi
-
-            if [[ -t 0 && -t 1 ]]; then
-                printf '%s\n' "SolidGroundUX bootstrap configuration" >&2
-                printf '%s\n' "No configuration file found." >&2
-                printf '%s\n' "Creating: $cfg" >&2
-
-                printf "SGND_FRAMEWORK_ROOT [/] : " > /dev/tty
-                read -r reply < /dev/tty
-                fw_root="${reply:-/}"
-
-                printf "SGND_APPLICATION_ROOT [/] : " > /dev/tty
-                read -r reply < /dev/tty
-                app_root="${reply:-$fw_root}"
-            fi
-
-            case "$fw_root" in
-                /*) ;;
-                *) printf '%s\n' "ERR: SGND_FRAMEWORK_ROOT must be an absolute path" >&2; return 126 ;;
+        for index in "${!path_parts[@]}"; do
+            component="${path_parts[$index]}"
+            case "$component" in
+                usr|etc|var)
+                    root_index=$index
+                    ;;
             esac
+        done
 
-            case "$app_root" in
-                /*) ;;
-                *) printf '%s\n' "ERR: SGND_APPLICATION_ROOT must be an absolute path" >&2; return 126 ;;
-            esac
-
-            mkdir -p "$(dirname "$cfg")" || return 127
-
-            {
-                printf '%s\n' "# SolidGroundUX bootstrap configuration"
-                printf '%s\n' "# Auto-generated on first run"
-                printf '\n'
-                printf 'SGND_FRAMEWORK_ROOT=%q\n' "$fw_root"
-                printf 'SGND_APPLICATION_ROOT=%q\n' "$app_root"
-            } > "$cfg" || return 127
-
-            printf '%s\n' "Created bootstrap cfg: $cfg" >&2
-        fi
-
-        if [[ -r "$cfg" ]]; then
-            # shellcheck source=/dev/null
-            source "$cfg"
-
-            : "${SGND_FRAMEWORK_ROOT:=/}"
-            : "${SGND_APPLICATION_ROOT:=$SGND_FRAMEWORK_ROOT}"
-        else
-            printf '%s\n' "Cannot read bootstrap cfg: $cfg" >&2
+        if (( root_index < 0 )); then
+            printf 'FATAL: Cannot determine SolidGroundUX framework root from: %s\n' "$script_file" >&2
             return 126
         fi
 
-        case "${SGND_LOG_LEVEL:-silent}" in
-            silent|quiet)
-                ;;
-            *)
-                printf '%s\n' "Bootstrap cfg loaded: $cfg, SGND_FRAMEWORK_ROOT=$SGND_FRAMEWORK_ROOT, SGND_APPLICATION_ROOT=$SGND_APPLICATION_ROOT" >&2
-                ;;
-        esac
+        if (( root_index == 0 )); then
+            framework_root="/"
+        else
+            framework_root=""
+            for (( index=0; index<root_index; index++ )); do
+                framework_root+="/${path_parts[$index]}"
+            done
+        fi
 
-        local exe_common=""
+        SGND_FRAMEWORK_ROOT="$framework_root"
 
         if [[ "$SGND_FRAMEWORK_ROOT" == "/" ]]; then
             exe_common="/usr/local/lib/solidgroundux/common/sgnd-exe-common.sh"
@@ -218,9 +174,12 @@ set -uo pipefail
             "exe|e|flag|FLAG_EXE|Create executable template and folders|0|"
             "lib|l|flag|FLAG_LIB|Create library template and folders|0|"
             "mod|m|flag|FLAG_MOD|Create console module template and folders|0|"
-            "modfolder|M|value|MOD_FOLDER|Location of console module (optional)|"
             "project|p|value|PROJECT_NAME|Project name|"
             "folder|f|value|PROJECT_FOLDER|Set project folder|"
+            "gitinit|g|flag|FLAG_GIT_INIT|Initialize a local Git repository|0|"
+            "github||flag|FLAG_GITHUB_INIT|Create and push a GitHub repository using gh|0|"
+            "github-repo||value|GITHUB_REPO_NAME|GitHub repository name|"
+            "github-visibility||enum|GITHUB_VISIBILITY|GitHub repository visibility|private,public"
             "uncreate|u|flag|FLAG_UNCREATE|Remove items listed in workspace manifest|0|"
         )
         # SGND_SCRIPT_EXAMPLES
@@ -440,7 +399,8 @@ set -uo pipefail
         #
         # . Behavior
         #   - Resolves the installed canonical template directory.
-        #   - Copies all top-level *.sh templates into target-root/usr/local/lib/solidgroundux/templates.
+        #   - Copies all top-level template files except templates_preface.sh.
+#   - Excludes templates/canon because only top-level files are copied.
         #   - Records newly created template files in the workspace manifest.
         #   - Honors dry-run mode through _copy_template_file().
         #
@@ -465,18 +425,21 @@ set -uo pipefail
             return 1
         }
 
-        shopt -s nullglob
-        for template in "$source_dir"/*.sh; do
+        while IFS= read -r -d '' template; do
+            case "$(basename -- "$template")" in
+                templates_preface.sh)
+                    continue
+                    ;;
+            esac
+
             found=1
-            _copy_template_file "$template" "$target_dir/$(basename -- "$template")" || {
-                shopt -u nullglob
-                return 1
-            }
-        done
-        shopt -u nullglob
+            _copy_template_file "$template" "$target_dir/$(basename -- "$template")" || return 1
+        done < <(
+            find "$source_dir" -mindepth 1 -maxdepth 1 -type f -print0 2>/dev/null | sort -z
+        )
 
         (( found )) || {
-            sayfail "No shell templates found in: $source_dir"
+            sayfail "No templates found in: $source_dir"
             return 1
         }
 
@@ -534,7 +497,7 @@ set -uo pipefail
         if (( ${FLAG_MOD:-0} )); then
             _copy_template_file \
                 "${template_dir}/mod-template.sh" \
-                "${PROJECT_FOLDER}/target-root/usr/local/libexec/${project_slug}/${mod_file}" \
+                "${PROJECT_FOLDER}/target-root/usr/local/libexec/solidgroundux/${project_slug}/${mod_file}" \
                 || return 1
         fi
 
@@ -578,6 +541,9 @@ set -uo pipefail
         if (( ${FLAG_EXE:-0} )) || (( ${FLAG_LIB:-0} )) || (( ${FLAG_MOD:-0} )); then
             out_ref+=(
                 "target-root"
+                "target-root/etc/update-motd.d"
+                "target-root/usr/local/lib/solidgroundux/globals"
+                "target-root/usr/local/lib/solidgroundux/templates"
                 "target-root/usr/local/share/doc/$PROJECT_NAME"
                 "target-root/var/state"
             )
@@ -596,14 +562,13 @@ set -uo pipefail
         if (( ${FLAG_LIB:-0} )); then
             out_ref+=(
                 "target-root/usr/local/lib"
-                "target-root/usr/local/lib/solidgroundux/templates"
             )
         fi
 
         if (( ${FLAG_MOD:-0} )); then
             out_ref+=(
                 "target-root/usr/local/libexec"
-                "target-root/usr/local/libexec/${project_slug}"
+                "target-root/usr/local/libexec/solidgroundux/${project_slug}"
             )
         fi
     }
@@ -793,8 +758,7 @@ set -uo pipefail
         # . Behavior
         #   - Prompts for the project name.
         #   - Prompts whether to include executable, library, and console-module components.
-        #   - Prompts for the console module app folder when module support is enabled.
-        #   - Derives a filesystem-safe slug from the project name.
+                #   - Derives a filesystem-safe slug from the project name.
         #   - Uses the selected components to determine a default project folder.
         #   - Prompts for the project folder.
         #   - Normalizes relative folder paths to absolute paths.
@@ -829,6 +793,10 @@ set -uo pipefail
         local default_projectname="Project"
         local lw=25
         local mxw=60
+        FLAG_CREATE_MOTD="${FLAG_CREATE_MOTD:-1}"
+        FLAG_GIT_INIT="${FLAG_GIT_INIT:-0}"
+        FLAG_GITHUB_INIT="${FLAG_GITHUB_INIT:-0}"
+        GITHUB_VISIBILITY="${GITHUB_VISIBILITY:-private}"
 
         while true; do
             sgnd_print
@@ -885,28 +853,45 @@ set -uo pipefail
             ask --label "Include console module (Y/N)" --var resp --default "$default" --choices "Y,Yes,N,No" --labelwidth "$lw"
             resp="${resp^^}"
             [[ "$resp" == "Y" || "$resp" == "YES" ]] && FLAG_MOD=1 || FLAG_MOD=0
+
+            default="Y"
+            (( FLAG_CREATE_MOTD )) || default="N"
+            ask --label "Create project MOTD entry (Y/N)" --var resp --default "$default" --choices "Y,Yes,N,No" --labelwidth "$lw"
+            resp="${resp^^}"
+            [[ "$resp" == "Y" || "$resp" == "YES" ]] && FLAG_CREATE_MOTD=1 || FLAG_CREATE_MOTD=0
+
             saydebug "${slug}"
-            if (( ${FLAG_MOD:-0} )); then
-                lw=25
-                if [[ -n "${MOD_FOLDER:-}" ]]; then
-                    ask --label "Console module app folder " --var MOD_FOLDER --default "$MOD_FOLDER" --labelwidth "$lw"
-                else
-                    ask --label "Console module app folder " --var MOD_FOLDER --default "$PROJECT_FOLDER/target-root/usr/local/libexec/${slug}" --labelwidth "$lw"
-                fi
-
-                if [[ "$MOD_FOLDER" != /* ]]; then
-                    MOD_FOLDER="$(pwd)/$MOD_FOLDER"
-                fi
-            else
-                MOD_FOLDER=""
-            fi
-
 
             if (( ! FLAG_EXE )) && (( ! FLAG_LIB )) && (( ! FLAG_MOD )); then
                 saywarning "Nothing selected; defaulting to executable and library."
                 FLAG_EXE=1
                 FLAG_LIB=1
                 FLAG_MOD=0
+            fi
+
+            sgnd_print
+            sgnd_print_sectionheader "Version control" --maxwidth "$mxw"
+            lw=35
+
+            default="N"
+            (( FLAG_GIT_INIT )) && default="Y"
+            ask --label "Initialize local Git repository (Y/N)" --var resp --default "$default" --choices "Y,Yes,N,No" --labelwidth "$lw"
+            resp="${resp^^}"
+            [[ "$resp" == "Y" || "$resp" == "YES" ]] && FLAG_GIT_INIT=1 || FLAG_GIT_INIT=0
+
+            default="N"
+            (( FLAG_GITHUB_INIT )) && default="Y"
+            ask --label "Create GitHub repository (Y/N)" --var resp --default "$default" --choices "Y,Yes,N,No" --labelwidth "$lw"
+            resp="${resp^^}"
+            [[ "$resp" == "Y" || "$resp" == "YES" ]] && FLAG_GITHUB_INIT=1 || FLAG_GITHUB_INIT=0
+
+            if (( FLAG_GITHUB_INIT )); then
+                FLAG_GIT_INIT=1
+                GITHUB_REPO_NAME="${GITHUB_REPO_NAME:-$slug}"
+
+                ask --label "GitHub repository name"                     --var GITHUB_REPO_NAME                     --default "$GITHUB_REPO_NAME"                     --labelwidth "$lw"
+
+                ask_decision --label "GitHub visibility"                     --choices "private,public"                     --default "$GITHUB_VISIBILITY"                     --var GITHUB_VISIBILITY                     --displaychoices 1                     --labelwidth "$lw"
             fi
 
             sgnd_print 
@@ -925,8 +910,12 @@ set -uo pipefail
             sgnd_print_labeledvalue --label "Executable"     --value "$exe_text"
             sgnd_print_labeledvalue --label "Library"        --value "$lib_text"
             sgnd_print_labeledvalue --label "Console module" --value "$mod_text"
-            if (( ${FLAG_MOD:-0} )); then
-                 sgnd_print_labeledvalue --label "Module app dir" --value "${MOD_FOLDER:-<none>}"
+            sgnd_print_labeledvalue --label "Project MOTD"    --value "$([[ ${FLAG_CREATE_MOTD:-1} -eq 1 ]] && printf yes || printf no)"
+            sgnd_print_labeledvalue --label "Initialize Git"  --value "$([[ ${FLAG_GIT_INIT:-0} -eq 1 ]] && printf yes || printf no)"
+            sgnd_print_labeledvalue --label "Create GitHub"   --value "$([[ ${FLAG_GITHUB_INIT:-0} -eq 1 ]] && printf yes || printf no)"
+            if (( ${FLAG_GITHUB_INIT:-0} )); then
+                sgnd_print_labeledvalue --label "GitHub repo"       --value "$GITHUB_REPO_NAME"
+                sgnd_print_labeledvalue --label "GitHub visibility" --value "$GITHUB_VISIBILITY"
             fi
 
             sgnd_print 
@@ -1207,70 +1196,240 @@ set -uo pipefail
         fi
     }
 
-    # fn: _create_mod_appcfg - Create the module application configuration file
+    # fn: _project_slug - Return the filesystem-safe project slug
+    _project_slug() {
+        local slug="${PROJECT_NAME// /-}"
+        slug="${slug,,}"
+        slug="$(printf '%s' "$slug" | sed -E 's/[^a-z0-9._-]+/-/g; s/^-+//; s/-+$//')"
+        printf '%s\n' "$slug"
+    }
+
+    # fn: _project_key - Return the variable-safe project key
+    _project_key() {
+        local key="${PROJECT_NAME^^}"
+        key="$(printf '%s' "$key" | sed -E 's/[^A-Z0-9]+/_/g; s/^_+//; s/_+$//')"
+        printf '%s\n' "$key"
+    }
+
+    # fn: _create_project_definitions - Create project-wide definition globals
         # . Purpose
-        #   Create a console-module application configuration file.
-        #
-        # . Behavior
-        #   - Does nothing when MOD_FOLDER is empty.
-        #   - Creates the MOD_FOLDER directory when needed.
-        #   - Writes a <project>.app.cfg file pointing to the generated module script.
-        #   - Honors dry-run mode by reporting the intended action without writing the file.
-        #
-        # Inputs (globals):
-        #   PROJECT_NAME
-        #   PROJECT_FOLDER
-        #   MOD_FOLDER
-        #   FLAG_DRYRUN
-        #
-        # . Returns
-        #   0 on success
-        #   Non-zero on failure
-        #
-        # . Usage
-        #   _create_mod_appcfg
-    _create_mod_appcfg() {
-        local project_slug=""
-        local appcfg_file=""
-        local existed=0
-        local mod_folder_existed=0
+        #   Create <project>-definitions.sh in the deployable SolidGroundUX globals folder.
+    _create_project_definitions() {
+        local slug="" key="" definitions_file="" build="" existed=0
+        slug="$(_project_slug)"
+        key="$(_project_key)"
+        build="$(date +%y%j%H)"
+        definitions_file="${PROJECT_FOLDER}/target-root/usr/local/lib/solidgroundux/globals/${slug}-definitions.sh"
+        [[ -e "$definitions_file" ]] && existed=1
 
-        [[ -n "${MOD_FOLDER:-}" ]] || return 0
-
-        project_slug="${PROJECT_NAME// /-}"
-        project_slug="${project_slug,,}"
-        appcfg_file="${MOD_FOLDER%/}/${project_slug}.app.cfg"
-
-        [[ -e "$appcfg_file" ]] && existed=1
-        [[ -d "$MOD_FOLDER" ]] && mod_folder_existed=1
-
-        if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
-            sayinfo "Would have created module app config ${appcfg_file}"
+        if (( ${FLAG_DRYRUN:-0} )); then
+            sayinfo "Would have created project definitions: $definitions_file"
             return 0
         fi
 
-        mkdir -p "$MOD_FOLDER" || return 1
-
-        if (( ! mod_folder_existed )); then
-            _manifest_record_dir "$MOD_FOLDER"
-        fi
-
+        mkdir -p -- "$(dirname -- "$definitions_file")" || return 1
         {
-            printf '%s\n' "# ----------------------------------------------------------------------"
-            printf '%s\n' "# Console module app config"
-            printf '%s\n' "# Auto-generated by create-workspace"
-            printf '%s\n' "# ----------------------------------------------------------------------"
-            printf '\n'
-            printf 'APP_TITLE=%q\n' "$PROJECT_NAME"
-            printf 'MODULE_DIR=%q\n' "${PROJECT_FOLDER}/target-root/usr/local/libexec/${project_slug}"
-            printf 'MODULE_FILE=%q\n' "mod-${project_slug}.sh"
-        } > "$appcfg_file" || return 1
+            printf '%s\n' '#!/usr/bin/env bash'
+            printf '# =====================================================================================\n'
+            printf '# %s - Project Definitions\n' "$PROJECT_NAME"
+            printf '# -------------------------------------------------------------------------------------\n'
+            printf '# Metadata:\n'
+            printf '#   Version     : 1.0\n'
+            printf '#   Build       : %s\n' "$build"
+            printf '#   Checksum    : -\n'
+            printf '#   Source      : %s-definitions.sh\n' "$slug"
+            printf '#   Type        : library\n'
+            printf '#   Group       : Globals\n'
+            printf '#   Purpose     : Project-wide identity and release globals\n'
+            printf '# =====================================================================================\n'
+            printf 'SGND_%s_PRODUCT=%q\n' "$key" "$PROJECT_NAME"
+            printf 'SGND_%s_VERSION=%q\n' "$key" "1.0"
+            printf 'SGND_%s_BUILD=%q\n' "$key" "$build"
+        } > "$definitions_file" || return 1
 
-        if (( ! existed )); then
-            _manifest_record_file "$appcfg_file"
+        (( existed )) || _manifest_record_file "$definitions_file"
+        sayinfo "Created project definitions: $definitions_file"
+    }
+
+    # fn: _create_project_motd - Create a minimal project MOTD identity entry
+    _create_project_motd() {
+        local slug="" key="" motd_file="" definitions_installed=""
+        (( ${FLAG_CREATE_MOTD:-1} )) || return 0
+        slug="$(_project_slug)"
+        key="$(_project_key)"
+        motd_file="${PROJECT_FOLDER}/target-root/etc/update-motd.d/95-${slug}"
+        definitions_installed="/usr/local/lib/solidgroundux/globals/${slug}-definitions.sh"
+
+        if (( ${FLAG_DRYRUN:-0} )); then
+            sayinfo "Would have created project MOTD: $motd_file"
+            return 0
         fi
 
-        sayinfo "Created module app config ${appcfg_file}"
+        mkdir -p -- "$(dirname -- "$motd_file")" || return 1
+        {
+            printf '%s\n' '#!/usr/bin/env bash'
+            printf 'definitions=%q\n' "$definitions_installed"
+            printf '[[ -r "$definitions" ]] || exit 0\n'
+            printf '# shellcheck source=/dev/null\n'
+            printf 'source "$definitions"\n'
+            printf 'printf '\''%%s %%s.%%s\\n'\'' "$SGND_%s_PRODUCT" "$SGND_%s_VERSION" "$SGND_%s_BUILD"\n' "$key" "$key" "$key"
+        } > "$motd_file" || return 1
+
+        chmod 0755 -- "$motd_file" || return 1
+        _manifest_record_file "$motd_file"
+        sayinfo "Created project MOTD: $motd_file"
+    }
+
+    # fn: _initialize_git_repository - Initialize and commit the new workspace
+        # . Purpose
+        #   Initialize a local Git repository using main as the primary branch.
+        #
+        # . Behavior
+        #   - Does nothing unless FLAG_GIT_INIT=1.
+        #   - Leaves an existing .git repository intact.
+        #   - Creates an initial commit containing the generated workspace when possible.
+        #   - Reports missing Git identity as a failure rather than silently creating
+        #     an uncommitted repository.
+    _initialize_git_repository() {
+        (( ${FLAG_GIT_INIT:-0} )) || return 0
+
+        command -v git >/dev/null 2>&1 || {
+            sayfail "Git is required to initialize the repository."
+            return 1
+        }
+
+        if (( ${FLAG_DRYRUN:-0} )); then
+            sayinfo "Would initialize Git repository in $PROJECT_FOLDER with branch main."
+            sayinfo "Would stage generated files and create the initial commit."
+            return 0
+        fi
+
+        if [[ ! -d "$PROJECT_FOLDER/.git" ]]; then
+            if git -C "$PROJECT_FOLDER" init -b main >/dev/null 2>&1; then
+                :
+            else
+                git -C "$PROJECT_FOLDER" init >/dev/null || return 1
+                git -C "$PROJECT_FOLDER" branch -M main || return 1
+            fi
+            sayinfo "Initialized Git repository: $PROJECT_FOLDER"
+        else
+            sayinfo "Git repository already exists: $PROJECT_FOLDER"
+            git -C "$PROJECT_FOLDER" branch -M main >/dev/null 2>&1 || true
+        fi
+
+        git -C "$PROJECT_FOLDER" add -A || return 1
+
+        if git -C "$PROJECT_FOLDER" diff --cached --quiet; then
+            sayinfo "No Git changes require an initial commit."
+            return 0
+        fi
+
+        if ! git -C "$PROJECT_FOLDER" commit -m "Initial project scaffold" >/dev/null; then
+            sayfail "Could not create the initial Git commit. Check git user.name and user.email."
+            return 1
+        fi
+
+        sayinfo "Created initial Git commit."
+        return 0
+    }
+
+    # fn: _initialize_github_repository - Create and push the workspace repository
+        # . Purpose
+        #   Create a GitHub repository using the authenticated gh CLI account.
+        #
+        # . Behavior
+        #   - Does nothing unless FLAG_GITHUB_INIT=1.
+        #   - Requires a successfully initialized local Git repository.
+        #   - Requires gh to be installed and authenticated.
+        #   - Creates origin for a new repository, then explicitly pushes main.
+        #   - If origin already exists, does not recreate the remote and only pushes main.
+    _initialize_github_repository() {
+        local visibility_flag="--private"
+        local github_account=""
+        local confirm="Y"
+
+        (( ${FLAG_GITHUB_INIT:-0} )) || return 0
+
+        command -v gh >/dev/null 2>&1 || {
+            sayfail "GitHub CLI (gh) is required to create a GitHub repository."
+            return 1
+        }
+
+        gh auth status >/dev/null 2>&1 || {
+            sayfail "GitHub CLI is not authenticated. Run: gh auth login"
+            return 1
+        }
+
+        github_account="$(gh api user --jq '.login' 2>/dev/null || true)"
+        [[ -n "$github_account" ]] || {
+            sayfail "Could not determine the authenticated GitHub account."
+            return 1
+        }
+
+        GITHUB_VISIBILITY="${GITHUB_VISIBILITY:-private}"
+        GITHUB_VISIBILITY="${GITHUB_VISIBILITY,,}"
+
+        case "$GITHUB_VISIBILITY" in
+            public)  visibility_flag="--public" ;;
+            private) visibility_flag="--private" ;;
+            *)
+                sayfail "Invalid GitHub visibility: ${GITHUB_VISIBILITY:-}"
+                return 1
+                ;;
+        esac
+
+        sgnd_print
+        sgnd_print_sectionheader "GitHub repository" --padend 60
+        sgnd_print_labeledvalue --label "GitHub account" --value "$github_account"
+        sgnd_print_labeledvalue --label "Repository"     --value "$GITHUB_REPO_NAME"
+        sgnd_print_labeledvalue --label "Visibility"     --value "$GITHUB_VISIBILITY"
+        sgnd_print_labeledvalue --label "Branch"         --value "main"
+        sgnd_print
+
+        if (( ${FLAG_DRYRUN:-0} )); then
+            sayinfo "Would create GitHub repository ${github_account}/${GITHUB_REPO_NAME} and push main."
+            return 0
+        fi
+
+        if (( ! ${FLAG_AUTO:-0} )); then
+            sgnd_print_sectionheader --padend 60
+            ask --label "Create repository and push to GitHub (Y/N)" \
+                --var confirm \
+                --default "Y" \
+                --choices "Y,Yes,N,No"
+            sgnd_print
+
+            case "${confirm^^}" in
+                Y|YES) ;;
+                *)
+                    saycancel "GitHub repository creation cancelled."
+                    return 0
+                    ;;
+            esac
+        fi
+
+        if git -C "$PROJECT_FOLDER" remote get-url origin >/dev/null 2>&1; then
+            sayinfo "Git remote origin already exists; skipping GitHub repository creation."
+            git -C "$PROJECT_FOLDER" push -u origin main || return 1
+            sayinfo "Pushed main to existing origin."
+            return 0
+        fi
+
+        gh repo create "$GITHUB_REPO_NAME" \
+            --source "$PROJECT_FOLDER" \
+            "$visibility_flag" \
+            --remote origin || {
+                sayfail "GitHub repository creation failed."
+                return 1
+            }
+
+        git -C "$PROJECT_FOLDER" push -u origin main || {
+            sayfail "GitHub repository was created, but pushing main failed."
+            return 1
+        }
+
+        sayok "Created GitHub repository and pushed main: ${github_account}/${GITHUB_REPO_NAME}"
+        return 0
     }
 
 # - Main ----------------------------------------------------------------------------
@@ -1292,7 +1451,8 @@ set -uo pipefail
         #       - resolves project settings interactively
         #       - initializes the workspace manifest
         #       - creates the repository structure, workspace file, and .gitignore
-        #       - optionally creates a console-module app config
+        #       - creates project definitions and optionally a project MOTD entry
+#       - optionally initializes Git and creates/pushes a GitHub repository
         #       - applies final ownership and permission fixes when not in dry-run mode.
         #
         # . Arguments
@@ -1379,10 +1539,8 @@ set -uo pipefail
             _create_repository || exit $?
             _create_workspace_file || exit $?
             _create_gitignore_file || exit $?
-            
-            if (( ${FLAG_MOD:-0} )); then
-                _create_mod_appcfg || exit $?
-            fi
+            _create_project_definitions || exit $?
+            _create_project_motd || exit $?
 
             if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
                 sayinfo "Would have fixed ownership and permissions"
@@ -1390,6 +1548,18 @@ set -uo pipefail
                 saydebug "Fixing ownership and permissions $PROJECT_FOLDER"
                 sgnd_fix_ownership "${PROJECT_FOLDER}"
                 sgnd_fix_permissions "${PROJECT_FOLDER}"
+            fi
+
+            _initialize_git_repository || exit $?
+            _initialize_github_repository || exit $?
+
+            if (( ! ${FLAG_AUTO:-0} )); then
+                sgnd_print
+                sgnd_print_sectionheader "Workspace creation complete" --padend 60
+                ask_dlg_autocontinue \
+                    --seconds 10 \
+                    --message "Press Enter to end." \
+                    --hidelegend || true
             fi
     }
 

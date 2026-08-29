@@ -2,9 +2,9 @@
 # SolidGroundUX - Bootstrap Sequence
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : dc459ce30420d36ed93bb79fea2a983d48a873419eacce16fac6b9ed92d8356b
+#   Version     : 2.1
+#   Build       : 2624102
+#   Checksum    : c601e11ab5ab3604c35f2ec6bd52c933ba8528dd1f0782e64a00386be003325f
 #   Source      : bootstrap_preface.sh
 #   Type        : documentation
 #   Group       : Bootstrap
@@ -178,6 +178,21 @@
 #   
 # > Application-specific arguments can be added by the executable itself, but common
 # > framework behavior remains standardized across all bootstrapped tools.
+# >
+# > Framework-provided and application-specific arguments may be freely intermixed on
+# > the command line. Bootstrap extracts recognized framework builtins while preserving
+# > application-specific options and positional values in their original order for the
+# > later script-level parse. Argument meaning therefore does not depend on whether a
+# > builtin appears before, between, or after application-specific options.
+# >
+# > The standard `--` marker is an absolute end-of-options boundary. Once encountered,
+# > everything following it is preserved as positional data, even when a following
+# > value happens to resemble a framework or application option.
+# >
+# > Script-specific command-line values are applied after script configuration and
+# > state have been loaded. Explicit command-line values can therefore override stored
+# > or configured script values while framework builtins remain available independently
+# > of their position on the command line.
 #   
 # > This gives SolidGroundUX applications a shared command-line personality: once a
 # > user understands the standard options for one tool, the same expectations apply

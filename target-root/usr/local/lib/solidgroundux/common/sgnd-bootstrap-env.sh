@@ -2,9 +2,9 @@
 # SolidGroundUX - Bootstrap Environment
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : fb399cc6c71381accff8f2b964ea90bb2ebd5a9f496b94cca67ac0dcdecd5367
+#   Version     : 2.1
+#   Build       : 2624102
+#   Checksum    : 13ceb6c9c48bdc2e2fa9a0f7a025165653db534f4df27645ceb93dfc3dfba9ab
 #   Source      : sgnd-bootstrap-env.sh
 #   Type        : library
 #   Group       : Bootstrap
@@ -22,7 +22,7 @@
 #
 # Design principles:
 #   - Deterministic environment setup regardless of execution context
-#   - Clear separation between framework root and application root
+#   - A single self-locating framework root for all framework-managed filesystem paths
 #   - Safe defaults with minimal assumptions about host system
 #   - Idempotent setup (safe to run multiple times)
 #
@@ -45,25 +45,32 @@
 # =====================================================================================
 set -uo pipefail
 # - Library guard ------------------------------------------------------------------
-    # fn$ _sgnd_lib_guard - Library guard
+    # fn$ _sgnd_lib_guard - Enforce source-only, single-load library initialization
         # . Purpose
-        #   Prevent direct execution of a source-only module and avoid repeated initialization.
+        #   Ensure the file is sourced as a library and initialized only once.
         #
         # . Behavior
-        #   - Derives a module-specific guard variable from the current filename.
-        #   - Exits with status 2 when the file is executed directly.
-        #   - Returns immediately when the module has already been loaded.
-        #   - Marks the module as loaded before normal initialization continues.
+        #   - Derives a unique guard variable name from the current filename.
+        #   - Aborts execution when the file is run directly instead of sourced.
+        #   - Sets the guard variable on first load.
+        #   - Returns immediately when the library was already loaded.
+        #
+        # Inputs
+        #   BASH_SOURCE[0]
+        #   $0
+        #
+        # Outputs (globals)
+        #   SGND_<MODULE>_LOADED
         #
         # . Returns
-        #   0 when the module may continue loading or was already loaded.
-        #   Exits with status 2 when executed directly.
+        #   0 when already loaded or successfully initialized.
+        #   Exits with code 2 when executed instead of sourced.
         #
         # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
-        local lib_base
-        local guard
+        local lib_base=""
+        local guard=""
 
         lib_base="$(basename "${BASH_SOURCE[0]}" .sh)"
         lib_base="${lib_base//-/_}"
@@ -81,8 +88,10 @@ set -uo pipefail
     _sgnd_lib_guard
     unset -f _sgnd_lib_guard
 
-    sgnd_module_init_metadata "${BASH_SOURCE[0]}"
-
+    if declare -F sgnd_module_init_metadata >/dev/null 2>&1 \
+        && declare -F sgnd_header_buffer_load >/dev/null 2>&1; then
+        sgnd_module_init_metadata "${BASH_SOURCE[0]}"
+    fi
 # - Runtime directory metadata ------------------------------------------------------
     # var: SGND_FRAMEWORK_DIRS - Framework directory specifications
         # . Purpose
@@ -119,6 +128,7 @@ set -uo pipefail
     _build_framework_dirs(){
         SGND_FRAMEWORK_DIRS=(
             "s|$SGND_COMMON_LIB"
+            "s|$SGND_GLOBALS_FOLDER"
             "s|$SGND_COMMON_EXE"
             "s|$SGND_SYSCFG_DIR"
             "u|$SGND_USRCFG_DIR"
@@ -147,8 +157,6 @@ set -uo pipefail
         #   sgnd_apply_defaults
     sgnd_apply_defaults() {
         : "${SGND_FRAMEWORK_ROOT:=$SGND_DEFAULT_FRAMEWORK_ROOT}"
-        : "${SGND_APPLICATION_ROOT:=$SGND_FRAMEWORK_ROOT}"
-
         : "${SGND_LOG_MAX_BYTES:=$SGND_DEFAULT_LOG_MAX_BYTES}"
         : "${SGND_LOG_KEEP:=$SGND_DEFAULT_LOG_KEEP}"
         : "${SGND_LOG_COMPRESS:=$SGND_DEFAULT_LOG_COMPRESS}"
@@ -227,9 +235,10 @@ set -uo pipefail
         product="$(printf '%s' "${SGND_PRODUCT:-solidgroundux}" | tr '[:upper:]' '[:lower:]')"
 
         SGND_COMMON_LIB="$SGND_FRAMEWORK_ROOT/usr/local/lib/$product/common"
+        SGND_GLOBALS_FOLDER="$SGND_FRAMEWORK_ROOT/usr/local/lib/$product/globals"
         SGND_COMMON_EXE="$SGND_FRAMEWORK_ROOT/usr/local/libexec/$product"
 
-        SGND_SYSCFG_DIR="$SGND_APPLICATION_ROOT/etc/$product"
+        SGND_SYSCFG_DIR="$SGND_FRAMEWORK_ROOT/etc/$product"
         SGND_USRCFG_DIR="$SGND_USER_HOME/.config/$product"
         SGND_STATE_DIR="$SGND_USER_HOME/.state/$product"
         SGND_FRAMEWORK_STATEFILE="$SGND_USRCFG_DIR/framework.state"

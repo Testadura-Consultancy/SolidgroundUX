@@ -2,9 +2,9 @@
 # SolidGroundUX - Argument Parsing
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : d219d65544f32dc4cef08e4afdf63675057c82360802bb6a10c03d3be193117b
+#   Version     : 2.1
+#   Build       : 2624102
+#   Checksum    : 2bd387b54b63b3b023befd072e638c0e7ad480268ff6f7318feec2b38da19b44
 #   Source      : sgnd-args.sh
 #   Type        : library
 #   Group       : Common Core
@@ -46,25 +46,32 @@
 # =====================================================================================
 set -uo pipefail
 # - Library guard ------------------------------------------------------------------
-    # fn$ _sgnd_lib_guard - Library guard
+    # fn$ _sgnd_lib_guard - Enforce source-only, single-load library initialization
         # . Purpose
-        #   Prevent direct execution of a source-only module and avoid repeated initialization.
+        #   Ensure the file is sourced as a library and initialized only once.
         #
         # . Behavior
-        #   - Derives a module-specific guard variable from the current filename.
-        #   - Exits with status 2 when the file is executed directly.
-        #   - Returns immediately when the module has already been loaded.
-        #   - Marks the module as loaded before normal initialization continues.
+        #   - Derives a unique guard variable name from the current filename.
+        #   - Aborts execution when the file is run directly instead of sourced.
+        #   - Sets the guard variable on first load.
+        #   - Returns immediately when the library was already loaded.
+        #
+        # Inputs
+        #   BASH_SOURCE[0]
+        #   $0
+        #
+        # Outputs (globals)
+        #   SGND_<MODULE>_LOADED
         #
         # . Returns
-        #   0 when the module may continue loading or was already loaded.
-        #   Exits with status 2 when executed directly.
+        #   0 when already loaded or successfully initialized.
+        #   Exits with code 2 when executed instead of sourced.
         #
         # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
-        local lib_base
-        local guard
+        local lib_base=""
+        local guard=""
 
         lib_base="$(basename "${BASH_SOURCE[0]}" .sh)"
         lib_base="${lib_base//-/_}"
@@ -82,8 +89,10 @@ set -uo pipefail
     _sgnd_lib_guard
     unset -f _sgnd_lib_guard
 
-    sgnd_module_init_metadata "${BASH_SOURCE[0]}"
-
+    if declare -F sgnd_module_init_metadata >/dev/null 2>&1 \
+        && declare -F sgnd_header_buffer_load >/dev/null 2>&1; then
+        sgnd_module_init_metadata "${BASH_SOURCE[0]}"
+    fi
 # - Helper functions ----------------------------------------------------------------
     # fn: _sgnd_arg_split - Split one argument specification
         # . Purpose
@@ -430,51 +439,84 @@ set -uo pipefail
         sgnd_print
         sgnd_print_sectionheader
     }
-    # fn: sgnd_parse_args - Parse args
+    # fn: sgnd_parse_args - Parse framework or script command-line arguments
         # . Purpose
-        #   Parse command-line options according to SGND_ARG_SPEC and dispatch built-in argument handlers.
+        #   Parse command-line options against the selected SolidGroundUX argument
+        #   specification while preserving the remaining arguments for a later parse pass.
         #
         # . Behavior
-        #   - Provides a public SolidGroundUX helper or command entry point.
-        #   - Reads or updates SolidGroundUX runtime, metadata, configuration, or UI globals as needed.
-        #   - Uses framework UI/output conventions for terminal or dialog interaction.
+        #   - Selects builtin, script, or combined argument specifications through
+        #     SGND_ARGS_SOURCE (builtins, script, or both; default both).
+        #   - Initializes defaults only for the argument specification selected for the
+        #     current parse pass.
+        #   - Parses recognized flag, value, and enum options and updates their declared
+        #     target variables.
+        #   - With --stop-at-unknown, stops at the first unrecognized option and preserves
+        #     that option and the complete remaining command line in SGND_POSITIONAL.
+        #   - With --preserve-unknown, consumes recognized options while preserving
+        #     unrecognized options and positional values in their original order, then
+        #     continues scanning so recognized options may appear anywhere before `--`.
+        #   - Treats `--` as the absolute end-of-options marker. Everything following it
+        #     is positional data and is preserved without further option interpretation.
+        #   - Enables bootstrap to extract framework builtins first and later parse the
+        #     preserved script-specific arguments without imposing argument ordering.
         #
         # . Arguments
-        #   $1  ARG1 - Positional value used by this function.
-        #   $2  ARG2 - Positional value used by this function.
+        #   --stop-at-unknown
+        #       Optional parser mode; stop at the first option not present in the active
+        #       specification and preserve the remainder.
+        #   --preserve-unknown
+        #       Optional parser mode; preserve arguments not present in the active
+        #       specification and continue parsing later recognized options.
+        #   $@  Command-line arguments to parse after optional parser mode switches.
         #
-        # Outputs (globals):
-        #   May update SGND_* globals shown in the function body.
+        # Inputs (globals)
+        #   SGND_ARGS_SOURCE
+        #   SGND_BUILTIN_ARGS
+        #   SGND_ARGS_SPEC
         #
-        # . Output
-        #   Writes computed or formatted text to stdout unless the function explicitly targets stderr or /dev/tty.
-        #
-        # . Side effects
-        #   May update files, directories, runtime state, or process state required by the workflow.
+        # Outputs (globals)
+        #   SGND_POSITIONAL
+        #   SGND_EFFECTIVE_ARGS_SPEC
+        #   Target variables declared by the selected argument specification.
         #
         # . Returns
-        #   0 on success.
-        #   Non-zero when validation, resolution, user cancellation, or execution fails.
+        #   0 when parsing succeeds.
+        #   1 for unknown options in strict mode, missing values, invalid enum values,
+        #   or malformed argument specifications.
         #
         # . Usage
-        #   sgnd_parse_args "example"
+        #   SGND_ARGS_SOURCE=builtins sgnd_parse_args --preserve-unknown "$@"
+        #   SGND_ARGS_SOURCE=script sgnd_parse_args "${SGND_POSITIONAL[@]}"
     sgnd_parse_args() {
 
         local stop_at_unknown=0
+        local preserve_unknown=0
 
-        # Optional mode switch
-        if [[ "${1-}" == "--stop-at-unknown" ]]; then
-            stop_at_unknown=1
-            shift
-        fi
+        # Optional mode switches.
+        while [[ $# -gt 0 ]]; do
+            case "${1-}" in
+                --stop-at-unknown)
+                    stop_at_unknown=1
+                    shift
+                    ;;
+                --preserve-unknown)
+                    preserve_unknown=1
+                    shift
+                    ;;
+                *)
+                    break
+                    ;;
+            esac
+        done
 
-        # Default parse source (kept for compatibility if you still use it)
+        # Select which specification set this pass is allowed to consume.
         local source="${SGND_ARGS_SOURCE:-both}"
 
-        # Reset positional array
+        # Reset positional/preserved array.
         SGND_POSITIONAL=()
 
-        # Initialize variables from spec defaults
+        # Initialize only the selected argument variables from defaults.
         _sgnd_arg_init_defaults "$source"
 
         # Main parse loop
@@ -497,6 +539,11 @@ set -uo pipefail
                     spec="$(_sgnd_arg_find_spec "$opt" || true)"
 
                     if [[ -z "${spec:-}" ]]; then
+                        if (( preserve_unknown )); then
+                            SGND_POSITIONAL+=("$1")
+                            shift
+                            continue
+                        fi
                         if (( stop_at_unknown )); then
                             SGND_POSITIONAL+=("$@")
                             break
@@ -558,6 +605,11 @@ set -uo pipefail
                     spec="$(_sgnd_arg_find_spec "$sopt" || true)"
 
                     if [[ -z "${spec:-}" ]]; then
+                        if (( preserve_unknown )); then
+                            SGND_POSITIONAL+=("$1")
+                            shift
+                            continue
+                        fi
                         if (( stop_at_unknown )); then
                             SGND_POSITIONAL+=("$@")
                             break
@@ -605,8 +657,14 @@ set -uo pipefail
                     esac
                     ;;
 
-                # Positional or first unknown
+                # Positional argument. During preservation/extraction passes, keep
+                # scanning so later builtin options can still be consumed.
                 *)
+                    if (( preserve_unknown )); then
+                        SGND_POSITIONAL+=("$1")
+                        shift
+                        continue
+                    fi
                     SGND_POSITIONAL+=("$@")
                     break
                     ;;

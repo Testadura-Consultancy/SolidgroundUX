@@ -2,8 +2,8 @@
 # SolidGroundUX - SQL Server
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623817
+#   Version     : 2.1
+#   Build       : 2624102
 #   Source      : 60-sqlserver.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -13,26 +13,53 @@
 set -uo pipefail
 
 # - Library guard ------------------------------------------------------------------
-    # fn$ _sgnd_lib_guard - Ensure the module is sourced only once
+    # fn$ _sgnd_lib_guard - Enforce source-only, single-load library initialization
+        # . Purpose
+        #   Ensure the file is sourced as a library and initialized only once.
+        #
+        # . Behavior
+        #   - Derives a unique guard variable name from the current filename.
+        #   - Aborts execution when the file is run directly instead of sourced.
+        #   - Sets the guard variable on first load.
+        #   - Returns immediately when the library was already loaded.
+        #
+        # Inputs
+        #   BASH_SOURCE[0]
+        #   $0
+        #
+        # Outputs (globals)
+        #   SGND_<MODULE>_LOADED
+        #
         # . Returns
-        #   0 on success; non-zero when the operation cannot be completed.
+        #   0 when already loaded or successfully initialized.
+        #   Exits with code 2 when executed instead of sourced.
+        #
         # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
-        local lib_base
-        local guard
+        local lib_base=""
+        local guard=""
+
         lib_base="$(basename "${BASH_SOURCE[0]}" .sh)"
         lib_base="${lib_base//-/_}"
         guard="SGND_${lib_base^^}_LOADED"
-        [[ "${BASH_SOURCE[0]}" != "$0" ]] || { printf 'This is a library; source it, do not execute it: %s\n' "${BASH_SOURCE[0]}" >&2; exit 2; }
+
+        [[ "${BASH_SOURCE[0]}" != "$0" ]] || {
+            printf 'This is a library; source it, do not execute it: %s\n' "${BASH_SOURCE[0]}" >&2
+            exit 2
+        }
+
         [[ -n "${!guard-}" ]] && return 0
         printf -v "$guard" '1'
     }
 
     _sgnd_lib_guard
     unset -f _sgnd_lib_guard
-    sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
+    if declare -F sgnd_module_init_metadata >/dev/null 2>&1 \
+        && declare -F sgnd_header_buffer_load >/dev/null 2>&1; then
+        sgnd_module_init_metadata "${BASH_SOURCE[0]}"
+    fi
 # - Module metadata ----------------------------------------------------------------
     SGND_SQLSERVER_MODULE_ID="sql-server"
     SGND_SQLSERVER_MODULE_NAME="SQL Server"
@@ -667,4 +694,4 @@ set -uo pipefail
     sgnd_menu_register_item "sql-status" "$SGND_SQLSERVER_MODULE_ID" "Show SQL Server status" "_sqlserver_status" "Show service, network, memory, storage, and sqlcmd status" 0 15 1 0
 
     sayinfo "SQL Server module registered with the console."
-#   Checksum : e6a675e2f0e03c4e6c0a00ddcab0c2e7703c71816883519db9b74e011131b34e
+#   Checksum : 4eff94020b76983c569f671268d1ab64de64f73d97136fa20900c2ff5edbff8c

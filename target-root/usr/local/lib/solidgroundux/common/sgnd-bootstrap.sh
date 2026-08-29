@@ -2,9 +2,9 @@
 # SolidGroundUX - Bootstrap Core
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : 49070f4507b8a1b3ad1873eb6df4ae9fff6b7238caa1fe631097b3fb822bf18e
+#   Version     : 2.1
+#   Build       : 2624102
+#   Checksum    : 8ad1c35b272beb67597f98a74fac742e304ed75752a255235c31ee5a3e674e0c
 #   Source      : sgnd-bootstrap.sh
 #   Type        : library
 #   Group       : Bootstrap
@@ -45,26 +45,33 @@
 #   License     : Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 # =====================================================================================
 set -uo pipefail
-# - Library guard -------------------------------------------------------------------
-    # fn$ _sgnd_lib_guard - Library guard
+# - Library guard ------------------------------------------------------------------
+    # fn$ _sgnd_lib_guard - Enforce source-only, single-load library initialization
         # . Purpose
-        #   Prevent direct execution of a source-only module and avoid repeated initialization.
+        #   Ensure the file is sourced as a library and initialized only once.
         #
         # . Behavior
-        #   - Derives a module-specific guard variable from the current filename.
-        #   - Exits with status 2 when the file is executed directly.
-        #   - Returns immediately when the module has already been loaded.
-        #   - Marks the module as loaded before normal initialization continues.
+        #   - Derives a unique guard variable name from the current filename.
+        #   - Aborts execution when the file is run directly instead of sourced.
+        #   - Sets the guard variable on first load.
+        #   - Returns immediately when the library was already loaded.
+        #
+        # Inputs
+        #   BASH_SOURCE[0]
+        #   $0
+        #
+        # Outputs (globals)
+        #   SGND_<MODULE>_LOADED
         #
         # . Returns
-        #   0 when the module may continue loading or was already loaded.
-        #   Exits with status 2 when executed directly.
+        #   0 when already loaded or successfully initialized.
+        #   Exits with code 2 when executed instead of sourced.
         #
         # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
-        local lib_base
-        local guard
+        local lib_base=""
+        local guard=""
 
         lib_base="$(basename "${BASH_SOURCE[0]}" .sh)"
         lib_base="${lib_base//-/_}"
@@ -82,44 +89,10 @@ set -uo pipefail
     _sgnd_lib_guard
     unset -f _sgnd_lib_guard
 
-    # fn: _boot_fail - Report a bootstrap failure
-        # . Purpose
-        #   Emit a bootstrap failure message with caller context and return a code.
-        #
-        # . Behavior
-        #   - Captures caller file, function, and line information.
-        #   - Formats one contextual failure message.
-        #   - Writes the message through sayfail.
-        #   - Returns the supplied status code unchanged.
-        #
-        # . Arguments
-        #   $1  Failure text to report.
-        #   $2  Return code to return to the caller.
-        #       Default: 1
-        #
-        # . Output
-        #   Writes one formatted failure message through sayfail.
-        #
-        # . Returns
-        #   The supplied return code.
-        #
-        # . Usage
-        #   _boot_fail "example" "example-2"
-    _boot_fail() {
-        local msg="${1:-Bootstrap step failed}"
-        local rc="${2:-1}"
-
-        # Caller context
-        local caller_file="${BASH_SOURCE[1]}"
-        local caller_func="${FUNCNAME[1]}"
-        local caller_line="${BASH_LINENO[0]}"
-
-        local fnlmsg="${msg} (at ${caller_file}:${caller_line} in function ${caller_func})"
-
-        sayfail "$fnlmsg"
-        return "$rc"
-    }
-
+    if declare -F sgnd_module_init_metadata >/dev/null 2>&1 \
+        && declare -F sgnd_header_buffer_load >/dev/null 2>&1; then
+        sgnd_module_init_metadata "${BASH_SOURCE[0]}"
+    fi
 # - Main sequence helpers + EXIT dispatch -------------------------------------------
     # fn: _parse_bootstrap_args - Parse early bootstrap options
         # . Purpose
@@ -201,6 +174,7 @@ set -uo pipefail
         #
         # . Behavior
         #   - Resolves the bootstrap directory.
+        #   - Resolves and sources framework/project definition libraries from globals/.
         #   - Sources the comment-header parser and bootstrap environment library.
         #   - Initializes metadata for early-loaded core modules and the active script.
         #   - Applies defaults, rebases paths, and ensures required directories exist.
@@ -217,31 +191,47 @@ set -uo pipefail
     _init_bootstrap() {
         sayinfo "Sourcing bootstrap environment"
         SGND_BOOTSTRAP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-        
+
+        if [[ "$SGND_FRAMEWORK_ROOT" == "/" ]]; then
+            SGND_GLOBALS_FOLDER="/usr/local/lib/solidgroundux/globals"
+        else
+            SGND_GLOBALS_FOLDER="${SGND_FRAMEWORK_ROOT%/}/usr/local/lib/solidgroundux/globals"
+        fi
+
         # shellcheck source=/dev/null
         source "$SGND_BOOTSTRAP_DIR/sgnd-comment-header-parser.sh"
-        source "$SGND_BOOTSTRAP_DIR/sgnd-definitions.sh"
+        source "$SGND_GLOBALS_FOLDER/sgnd-definitions.sh"
         source "$SGND_BOOTSTRAP_DIR/sgnd-bootstrap-env.sh"
 
+        # Project definition files are foundational globals rather than SGND_USING
+        # dependencies. Source every additional *-definitions.sh from globals/.
+        local project_def=""
+        while IFS= read -r -d '' project_def; do
+            [[ "$(basename -- "$project_def")" == "sgnd-definitions.sh" ]] && continue
+            # shellcheck source=/dev/null
+            source "$project_def"
+        done < <(
+            find "$SGND_GLOBALS_FOLDER" -maxdepth 1 -type f -name '*-definitions.sh' -print0 2>/dev/null | sort -z
+        )
+
         # Core modules cannot self-initialize metadata during early source phase.
-        # Initialize them here once header parsing helpers are available.     
+        # Initialize them here once header parsing helpers are available.
         sgnd_module_init_metadata "$SGND_BOOTSTRAP_DIR/sgnd-bootstrap.sh"
         sgnd_module_init_metadata "$SGND_BOOTSTRAP_DIR/sgnd-comment-header-parser.sh"
-        sgnd_module_init_metadata "$SGND_BOOTSTRAP_DIR/sgnd-definitions.sh"
+        sgnd_module_init_metadata "$SGND_GLOBALS_FOLDER/sgnd-definitions.sh"
         sgnd_module_init_metadata "$SGND_BOOTSTRAP_DIR/sgnd-bootstrap-env.sh"
 
         sgnd_script_init_metadata
-
         sgnd_apply_defaults
 
         sayinfo "Rebasing directories"
         sgnd_rebase_directories
-        sgnd_rebase_framework_cfg_paths  
+        sgnd_rebase_framework_cfg_paths
 
         sayinfo "Making sure directories exist"
         sgnd_ensure_dirs "${SGND_FRAMEWORK_DIRS[@]}"
-
     }
+
 
     # fn: _source_corelibs - Source required core libraries
         # . Purpose
@@ -931,15 +921,20 @@ set -uo pipefail
         # Load UI style
             sayinfo "Loading UI style"
             sgnd_load_ui_style || { local rc=$?; _boot_fail "Failed to load UI style" "$rc"; return "$rc"; }
-        # Parse builtin arguments early
+        # Parse builtin arguments early. Consume builtins wherever they appear while
+        # preserving script-specific options and positionals in their original order.
             saydebug "Processing builtin arguments."
             local -a _sgnd_script_args
             local -a _sgnd_after_builtins
+            local _sgnd_prev_args_source="${SGND_ARGS_SOURCE-}"
                 _sgnd_script_args=( "${SGND_BOOTSTRAP_REST[@]}" )
 
-            saydebug "Parsing arguments $SGND_BUILTIN_ARGS ${_sgnd_script_args[@]}"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
-            sgnd_parse_args --stop-at-unknown "${_sgnd_script_args[@]}" || { local rc=$?; _boot_fail "Error parsing builtins" "$rc"; return "$rc"; }
-            
+            saydebug "Parsing builtin arguments from: ${_sgnd_script_args[*]}"
+            SGND_ARGS_SOURCE="builtins"
+            sgnd_parse_args --preserve-unknown "${_sgnd_script_args[@]}" \
+                || { local rc=$?; SGND_ARGS_SOURCE="$_sgnd_prev_args_source"; _boot_fail "Error parsing builtins" "$rc"; return "$rc"; }
+            SGND_ARGS_SOURCE="$_sgnd_prev_args_source"
+
             _sgnd_after_builtins=( "${SGND_POSITIONAL[@]}" )
         
         # If provided CLI log level, should override framework configuration.
@@ -1001,13 +996,17 @@ set -uo pipefail
                 || { local rc=$?; _boot_fail "Script cfg load failed" "$rc"; return "$rc"; }
         fi
 
-        # Always parse script args if the script defines any arg specs
-        if (( ${#SGND_ARGS_SPEC[@]} > 0 && ${#SGND_BOOTSTRAP_REST[@]} > 0 )); then
-            saydebug "Parsing script arguments $SGND_BOOTSTRAP_REST"
+        # Parse script arguments after state/config have loaded. Initialize script
+        # defaults once, then let explicit CLI values override restored state.
+        if (( ${#SGND_ARGS_SPEC[@]} > 0 )); then
+            saydebug "Parsing script arguments ${SGND_BOOTSTRAP_REST[*]}"
+            local _sgnd_prev_args_source="${SGND_ARGS_SOURCE-}"
+            SGND_ARGS_SOURCE="script"
             sgnd_parse_args "${SGND_BOOTSTRAP_REST[@]}" \
-                || { local rc=$?; _boot_fail "Error parsing script args" "$rc"; return "$rc"; }
+                || { local rc=$?; SGND_ARGS_SOURCE="$_sgnd_prev_args_source"; _boot_fail "Error parsing script args" "$rc"; return "$rc"; }
+            SGND_ARGS_SOURCE="$_sgnd_prev_args_source"
             SGND_BOOTSTRAP_REST=( "${SGND_POSITIONAL[@]}" )
-            saydebug "Parsed script arguments $SGND_BOOTSTRAP_REST remaining"
+            saydebug "Parsed script arguments ${SGND_BOOTSTRAP_REST[*]} remaining"
         fi
 
         saydebug "Update loadmode"

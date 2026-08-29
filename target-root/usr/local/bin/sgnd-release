@@ -116,7 +116,7 @@ set -uo pipefail
     }
 
 # - Wrapper target -------------------------------------------------------------------
-    SGND_WRAPPER_TARGET="usr/local/libexec/solidgroundux/tar-it.sh"
+    SGND_WRAPPER_TARGET="var/lib/solidgroundux/release-manager.sh"
 
 # - Main -----------------------------------------------------------------------------
     _framework_locator || exit $?

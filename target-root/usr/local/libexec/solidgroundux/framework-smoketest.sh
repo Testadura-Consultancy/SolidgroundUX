@@ -3,9 +3,9 @@
 # SolidGroundUX - Framework smoke tester
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623803
-#   Checksum    : ca7efe5eac7f864605bcc4c107be339ba2932c26f585da84862a286aed31fa74
+#   Version     : 2.1
+#   Build       : 2624102
+#   Checksum    : ce4929b129c764a5ec647df157166cce51928b032d886e451236936fc437b089
 #   Source      : framework-smoketest.sh
 #   Type        : script
 #   Group       : SDK
@@ -41,123 +41,77 @@
 # ==================================================================================
 set -uo pipefail
 # - Bootstrap ----------------------------------------------------------------------
-    # fn$ _framework_locator - Locate and load the SolidGroundUX executable bootstrap context
+    # fn$ _framework_locator - Resolve and load the active SolidGroundUX framework
         # . Purpose
-        #   Locate, create, and load the SolidGroundUX bootstrap configuration, then
-        #   load the executable runtime support library.
+        #   Determine the filesystem root of the currently executing SolidGroundUX tree
+        #   from the script's physical path, then load the executable runtime library.
         #
         # . Behavior
-        #   - Searches user and system bootstrap configuration locations.
-        #   - Prefers the invoking user's config over the system config.
-        #   - Creates a new bootstrap config when none exists.
-        #   - Prompts for framework/application roots in interactive mode.
-        #   - Applies default values when running non-interactively.
-        #   - Sources the selected bootstrap configuration file.
+        #   - Resolves the physical path of the executing script.
+        #   - Treats usr, etc, and var as the canonical top-level SolidGroundUX tree roots.
+        #   - Uses the last occurrence of one of those path components to determine the
+        #     active filesystem root.
+        #   - Resolves production scripts beneath /usr, /etc, or /var to root (/).
+        #   - Resolves staged/development trees to the path prefix preceding the detected
+        #     usr, etc, or var component.
         #   - Loads sgnd-exe-common.sh from the resolved framework root.
         #
         # . Globals (write)
         #   SGND_FRAMEWORK_ROOT
-        #   SGND_APPLICATION_ROOT
         #
         # . Output
-        #   Writes primitive printf-based messages before the framework UI is available.
+        #   Writes fatal bootstrap errors to stderr using printf because framework UI
+        #   helpers are not available until sgnd-exe-common.sh has been loaded.
         #
         # . Returns
-        #   0 when the bootstrap configuration and executable common library were loaded.
-        #   126 when configuration or executable common library is unreadable or invalid.
-        #   127 when the configuration directory or file could not be created.
+        #   0 when the framework root was resolved and executable common library loaded.
+        #   126 when the script path cannot be resolved, no canonical root component can
+        #   be found, or the executable common library is unreadable.
         #
         # . Usage
         #   _framework_locator || return $?
-        #
-        # Notes:
-        #   - Under sudo, configuration is resolved relative to SUDO_USER instead of /root.
-        #   - This function intentionally uses printf rather than say* helpers because
-        #     the executable common library has not been loaded yet.
     _framework_locator() {
-        local cfg_home="$HOME"
+        local script_file=""
+        local path_without_root=""
+        local component=""
+        local framework_root=""
+        local exe_common=""
+        local index=0
+        local root_index=-1
+        local -a path_parts=()
 
-        if [[ $EUID -eq 0 && -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]]; then
-            cfg_home="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
-        fi
+        script_file="$(readlink -f "${BASH_SOURCE[0]}")" || {
+            printf 'FATAL: Cannot resolve executable path: %s\n' "${BASH_SOURCE[0]}" >&2
+            return 126
+        }
 
-        local cfg_user="$cfg_home/.config/solidgroundux/solidgroundux.cfg"
-        local cfg_sys="/etc/solidgroundux/solidgroundux.cfg"
-        local cfg=""
-        local fw_root="/"
-        local app_root="$fw_root"
-        local reply=""
+        path_without_root="${script_file#/}"
+        IFS='/' read -r -a path_parts <<< "$path_without_root"
 
-        if [[ -r "$cfg_user" ]]; then
-            cfg="$cfg_user"
-
-        elif [[ -r "$cfg_sys" ]]; then
-            cfg="$cfg_sys"
-
-        else
-            if [[ $EUID -eq 0 ]]; then
-                cfg="$cfg_sys"
-            else
-                cfg="$cfg_user"
-            fi
-
-            if [[ -t 0 && -t 1 ]]; then
-                printf '%s\n' "SolidGroundUX bootstrap configuration" >&2
-                printf '%s\n' "No configuration file found." >&2
-                printf '%s\n' "Creating: $cfg" >&2
-
-                printf "SGND_FRAMEWORK_ROOT [/] : " > /dev/tty
-                read -r reply < /dev/tty
-                fw_root="${reply:-/}"
-
-                printf "SGND_APPLICATION_ROOT [/] : " > /dev/tty
-                read -r reply < /dev/tty
-                app_root="${reply:-$fw_root}"
-            fi
-
-            case "$fw_root" in
-                /*) ;;
-                *) printf '%s\n' "ERR: SGND_FRAMEWORK_ROOT must be an absolute path" >&2; return 126 ;;
+        for index in "${!path_parts[@]}"; do
+            component="${path_parts[$index]}"
+            case "$component" in
+                usr|etc|var)
+                    root_index=$index
+                    ;;
             esac
+        done
 
-            case "$app_root" in
-                /*) ;;
-                *) printf '%s\n' "ERR: SGND_APPLICATION_ROOT must be an absolute path" >&2; return 126 ;;
-            esac
-
-            mkdir -p "$(dirname "$cfg")" || return 127
-
-            {
-                printf '%s\n' "# SolidGroundUX bootstrap configuration"
-                printf '%s\n' "# Auto-generated on first run"
-                printf '\n'
-                printf 'SGND_FRAMEWORK_ROOT=%q\n' "$fw_root"
-                printf 'SGND_APPLICATION_ROOT=%q\n' "$app_root"
-            } > "$cfg" || return 127
-
-            printf '%s\n' "Created bootstrap cfg: $cfg" >&2
-        fi
-
-        if [[ -r "$cfg" ]]; then
-            # shellcheck source=/dev/null
-            source "$cfg"
-
-            : "${SGND_FRAMEWORK_ROOT:=/}"
-            : "${SGND_APPLICATION_ROOT:=$SGND_FRAMEWORK_ROOT}"
-        else
-            printf '%s\n' "Cannot read bootstrap cfg: $cfg" >&2
+        if (( root_index < 0 )); then
+            printf 'FATAL: Cannot determine SolidGroundUX framework root from: %s\n' "$script_file" >&2
             return 126
         fi
 
-        case "${SGND_CONSOLE_LOG_LEVEL:-silent}" in
-            silent|quiet)
-                ;;
-            *)
-                printf '%s\n' "Bootstrap cfg loaded: $cfg, SGND_FRAMEWORK_ROOT=$SGND_FRAMEWORK_ROOT, SGND_APPLICATION_ROOT=$SGND_APPLICATION_ROOT" >&2
-                ;;
-        esac
+        if (( root_index == 0 )); then
+            framework_root="/"
+        else
+            framework_root=""
+            for (( index=0; index<root_index; index++ )); do
+                framework_root+="/${path_parts[$index]}"
+            done
+        fi
 
-        local exe_common=""
+        SGND_FRAMEWORK_ROOT="$framework_root"
 
         if [[ "$SGND_FRAMEWORK_ROOT" == "/" ]]; then
             exe_common="/usr/local/lib/solidgroundux/common/sgnd-exe-common.sh"
@@ -1088,7 +1042,8 @@ set -uo pipefail
         #   - Disables management-console togglebar chrome for this standalone menu.
         #   - Creates the menu model once for the current process.
         #   - Registers the numbered test actions in their historical order.
-        #   - Registers L, V, A, and Q as literal-key utility actions.
+        #   - Registers the additional smoke-test actions as numbered items.
+        #   - Keeps Q as the literal-key quit action.
         #
         # . Returns
         #   0 when all menu groups and items are registered successfully.
@@ -1126,45 +1081,40 @@ set -uo pipefail
             "Logging and aggregate smoke-test actions" \
             1 1 900 || return $?
 
-        sgnd_menu_register_item "L" "smoke-actions" "File log level test" "file_loglevel_test"       "Verify file log-level filtering" 1 15 1 || return $?
-        sgnd_menu_register_item "V" "smoke-actions" "View logfile"        "view_log"                 "Display the active SolidGroundUX logfile" 1 15 1 || return $?
-        sgnd_menu_register_item "A" "smoke-actions" "Run all tests"       "_smoketest_run_all_tests" "Run the principal framework smoke-test sequence" 1 15 1 || return $?
-        sgnd_menu_register_item "Q" "smoke-actions" "Quit"                "_smoketest_request_exit"  "Exit the framework smoke tester" 1 0 1 || return $?
+        sgnd_menu_register_item "filelog" "smoke-actions" "File log level test" "file_loglevel_test"       "Verify file log-level filtering" 0 15 1 || return $?
+        sgnd_menu_register_item "viewlog" "smoke-actions" "View logfile"        "view_log"                 "Display the active SolidGroundUX logfile" 0 15 1 || return $?
+        sgnd_menu_register_item "runall"  "smoke-actions" "Run all tests"       "_smoketest_run_all_tests" "Run the principal framework smoke-test sequence" 0 15 1 || return $?
+        sgnd_menu_register_item "Q"       "smoke-actions" "Quit"                "_smoketest_request_exit"  "Exit the framework smoke tester" 1 0 1 || return $?
 
         return 0
     }
 
     # fn: _smoketest_read_choice - Read one smoke-test choice with auto-exit timeout
         # . Purpose
-        #   Preserve the smoke test's 30-second inactivity timeout while the menu itself
-        #   is rendered and defined through the public sgnd-menu API.
+        #   Preserve the smoke test's 30-second inactivity timeout while allowing
+        #   complete menu selections such as 11, 12, and 13 to be entered.
         #
         # . Arguments
-        #   $1  OUTPUT_VAR - Variable receiving the selected single-character choice.
+        #   $1  OUTPUT_VAR - Variable receiving the selected menu choice.
         #
         # . Returns
-        #   0 when a key was read.
+        #   0 when a selection was read.
         #   1 when the 30-second timeout expires.
         #
         # . Usage
         #   _smoketest_read_choice choice
     _smoketest_read_choice() {
         local output_var="${1:?missing output variable}"
-        local key=""
-        local seconds_left=0
+        local choice=""
 
-        for (( seconds_left=30; seconds_left>=1; seconds_left-- )); do
-            printf '\r\033[K%bSelect option (auto-exit in %2ss): %b' \
-                "${SGND_UI_TEXT:-}" \
-                "$seconds_left" \
-                "${RESET:-}" >/dev/tty
+        printf '%bSelect option (auto-exit in 30s): %b' \
+            "${SGND_UI_TEXT:-}" \
+            "${RESET:-}" >/dev/tty
 
-            if IFS= read -r -s -n 1 -t 1 key </dev/tty; then
-                printf '\n' >/dev/tty
-                printf -v "$output_var" '%s' "$key"
-                return 0
-            fi
-        done
+        if IFS= read -r -t 30 choice </dev/tty; then
+            printf -v "$output_var" '%s' "$choice"
+            return 0
+        fi
 
         printf '\n' >/dev/tty
         printf -v "$output_var" '%s' ''

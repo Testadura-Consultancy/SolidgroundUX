@@ -2,9 +2,9 @@
 # SolidGroundUX - Active Directory Server
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623817
-#   Checksum    : 8daa68a8cd82dd8cde647db25b686739d013294b67354019a31e9c0f89eac8ed
+#   Version     : 2.1
+#   Build       : 2624102
+#   Checksum    : 08eae622f9f542950ea2431dd34887a01a82ea2728dc8efbd03fb98aeaef6dfd
 #   Source      : 20-active-directory-server.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -14,29 +14,53 @@
 set -uo pipefail
 
 # - Library guard ------------------------------------------------------------------
-    # fn$ _sgnd_lib_guard
+    # fn$ _sgnd_lib_guard - Enforce source-only, single-load library initialization
         # . Purpose
-        #   Ensure the module is sourced and initialized only once.
+        #   Ensure the file is sourced as a library and initialized only once.
+        #
+        # . Behavior
+        #   - Derives a unique guard variable name from the current filename.
+        #   - Aborts execution when the file is run directly instead of sourced.
+        #   - Sets the guard variable on first load.
+        #   - Returns immediately when the library was already loaded.
+        #
+        # Inputs
+        #   BASH_SOURCE[0]
+        #   $0
+        #
+        # Outputs (globals)
+        #   SGND_<MODULE>_LOADED
         #
         # . Returns
-        #   0 when loading may continue; exits with 2 when executed directly.
+        #   0 when already loaded or successfully initialized.
+        #   Exits with code 2 when executed instead of sourced.
         #
         # . Usage
         #   _sgnd_lib_guard
     _sgnd_lib_guard() {
-        local lib_base
-        local guard
+        local lib_base=""
+        local guard=""
+
         lib_base="$(basename "${BASH_SOURCE[0]}" .sh)"
         lib_base="${lib_base//-/_}"
         guard="SGND_${lib_base^^}_LOADED"
-        [[ "${BASH_SOURCE[0]}" != "$0" ]] || { printf 'This is a library; source it, do not execute it: %s\n' "${BASH_SOURCE[0]}" >&2; exit 2; }
+
+        [[ "${BASH_SOURCE[0]}" != "$0" ]] || {
+            printf 'This is a library; source it, do not execute it: %s\n' "${BASH_SOURCE[0]}" >&2
+            exit 2
+        }
+
         [[ -n "${!guard-}" ]] && return 0
         printf -v "$guard" '1'
     }
+
     _sgnd_lib_guard
     unset -f _sgnd_lib_guard
-    sgnd_module_init_metadata "${BASH_SOURCE[0]}"
 
+    if declare -F sgnd_module_init_metadata >/dev/null 2>&1 \
+        && declare -F sgnd_header_buffer_load >/dev/null 2>&1; then
+        sgnd_module_init_metadata "${BASH_SOURCE[0]}"
+    fi
 # - Module metadata ----------------------------------------------------------------
     SGND_AD_SERVER_MODULE_ID="active-directory-server"
     SGND_AD_SERVER_MODULE_NAME="Active Directory Server"
