@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624102
-#   Checksum    : 3b3b4934a61b39c836b867ebf5674683c9129543039ac02abd9ff696c296d040
+#   Build       : 2624122
+#   Checksum    : 6e66646a93d354924b6042f19f71247a4655119625714c0ff5c2736a5e5c02bf
 #   Source      : 40-solidgroundux.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -12,7 +12,8 @@
 #   Purpose     : Manage the SolidGroundUX framework and release lifecycle
 #
 # Description:
-#   Contains SolidGroundUX framework information, release management, configuration, state, logging, and diagnostics.
+#   Contains SolidGroundUX framework information, access to the standalone release manager,
+#   configuration, state, logging, and diagnostics.
 #
 # Attribution:
 #   Developers    : Mark Fieten
@@ -104,66 +105,6 @@ set -uo pipefail
         else
             sudo bash "$manager" "$@"
         fi
-    }
-
-    # fn: _release_manager_check - Check GitHub for the latest SolidGroundUX release
-        # Returns:
-        #   Exit status of release-manager --check.
-        #
-        # Usage:
-        #   _release_manager_check
-    _release_manager_check() {
-        _release_manager --check
-    }
-
-    # fn: _release_manager_download - Download the latest SolidGroundUX release
-        # Returns:
-        #   Exit status of release-manager --download.
-        #
-        # Usage:
-        #   _release_manager_download
-    _release_manager_download() {
-        _release_manager --download
-    }
-
-    # fn: _release_manager_update - Update SolidGroundUX to the latest GitHub release
-        # Returns:
-        #   Exit status of release-manager --update.
-        #
-        # Usage:
-        #   _release_manager_update
-    _release_manager_update() {
-        _release_manager --update
-    }
-
-    # fn: _release_manager_install - Install the newest pending local SolidGroundUX release
-        # Returns:
-        #   Exit status of release-manager --install.
-        #
-        # Usage:
-        #   _release_manager_install
-    _release_manager_install() {
-        _release_manager --install
-    }
-
-    # fn: _release_manager_rollback - Roll back SolidGroundUX to the previous archived release
-        # Returns:
-        #   Exit status of release-manager --rollback.
-        #
-        # Usage:
-        #   _release_manager_rollback
-    _release_manager_rollback() {
-        _release_manager --rollback
-    }
-
-    # fn: _release_manager_remove - Remove the active SolidGroundUX installation
-        # Returns:
-        #   Exit status of release-manager --remove.
-        #
-        # Usage:
-        #   _release_manager_remove
-    _release_manager_remove() {
-        _release_manager --remove
     }
 
 # - Framework diagnostics --------------------------------------------------------
@@ -813,38 +754,9 @@ set -uo pipefail
     #
     # ! Release manager
     #   > Open the interactive standalone SolidGroundUX release manager.
+    #   > Check, download, update, install, roll back, remove, and manage project releases there.
     #   > Handler: _release_manager
     #   > Script: /var/lib/solidgroundux/release-manager.sh
-    #
-    # ! Check for update
-    #   > Check GitHub for the latest published SolidGroundUX release.
-    #   > Handler: _release_manager_check
-    #   > Script: /var/lib/solidgroundux/release-manager.sh --check
-    #
-    # ! Download latest release
-    #   > Download the latest published release when it is not already available locally.
-    #   > Handler: _release_manager_download
-    #   > Script: /var/lib/solidgroundux/release-manager.sh --download
-    #
-    # ! Update SolidGroundUX
-    #   > Check, download if required, and install the latest published release.
-    #   > Handler: _release_manager_update
-    #   > Script: /var/lib/solidgroundux/release-manager.sh --update
-    #
-    # ! Install pending release
-    #   > Install the newest pending local SolidGroundUX release.
-    #   > Handler: _release_manager_install
-    #   > Script: /var/lib/solidgroundux/release-manager.sh --install
-    #
-    # ! Roll back SolidGroundUX
-    #   > Install the previous archived SolidGroundUX release.
-    #   > Handler: _release_manager_rollback
-    #   > Script: /var/lib/solidgroundux/release-manager.sh --rollback
-    #
-    # ! Remove SolidGroundUX
-    #   > Remove the active installation while preserving release packages.
-    #   > Handler: _release_manager_remove
-    #   > Script: /var/lib/solidgroundux/release-manager.sh --remove
     #
     # . Framework Configuration
     # ! Show effective configuration
@@ -912,13 +824,7 @@ set -uo pipefail
     #   > Command: sgnd-framework-smoketest
     sgnd_menu_register_group "sgndinst" "SolidGroundUX" "SolidGroundUX framework information and release management" 0 1 810
     sgnd_menu_register_item "about" "sgndinst" "About SolidGroundUX" "_framework_show_about" "Show SolidGroundUX information" 0 15 1
-    sgnd_menu_register_item "release-manager" "sgndinst" "Release manager" "_release_manager" "Open the interactive standalone SolidGroundUX release manager" 0 15 1
-    sgnd_menu_register_item "release-check" "sgndinst" "Check for update" "_release_manager_check" "Check GitHub for the latest published SolidGroundUX release" 0 15 1
-    sgnd_menu_register_item "release-download" "sgndinst" "Download latest release" "_release_manager_download" "Download the latest published release when it is not already available locally" 0 15 1
-    sgnd_menu_register_item "release-update" "sgndinst" "Update SolidGroundUX" "_release_manager_update" "Check, download if required, and install the latest published release" 0 15 1
-    sgnd_menu_register_item "release-install" "sgndinst" "Install pending release" "_release_manager_install" "Install the newest pending local SolidGroundUX release" 0 15 1
-    sgnd_menu_register_item "release-rollback" "sgndinst" "Roll back SolidGroundUX" "_release_manager_rollback" "Install the previous archived SolidGroundUX release" 0 15 1
-    sgnd_menu_register_item "release-remove" "sgndinst" "Remove SolidGroundUX" "_release_manager_remove" "Remove the active installation while preserving release packages" 0 15 1
+    sgnd_menu_register_item "release-manager" "sgndinst" "Release manager" "_release_manager" "Open the standalone release manager for check, download, update, install, rollback, removal, and project release management" 0 15 1
 
     sgnd_menu_register_group "framework-config" "Framework Configuration" "View and edit framework configuration files and effective settings" 0 1 820
     sgnd_menu_register_item "config-env" "framework-config" "Show effective configuration" "_framework_show_environment" "Show the resolved SolidGroundUX framework environment and effective settings" 0 30 1

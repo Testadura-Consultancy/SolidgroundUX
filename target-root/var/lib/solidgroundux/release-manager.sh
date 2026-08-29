@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624102
-#   Checksum    : 014d66c7b421ec52c9bc3d92231a5ab6a4bca7406620cad642b914ec37e0b2bc
+#   Build       : 2624122
+#   Checksum    : 1bb8029dea6670fd1e236b843b54318d8607aaa05b86d605ea75859b1c4a7523
 #   Source      : release-manager.sh
 #   Wrapper     : sgnd-release
 #   Type        : script
@@ -22,11 +22,13 @@
 #     - Installs a first release by verifying and extracting its complete tar archive
 #     - Updates an existing installation and applies the incoming .removed manifest
 #     - Rolls back by making the installed filesystem match a selected archived release
-#     - Removes SolidGroundUX while preserving release packages for later reinstall
+#     - Removes the selected project while preserving release packages for later reinstall
 #     - Queries GitHub for the latest published release and downloads it only when needed
 #     - Bootstraps a clean machine from release-manager.sh plus an adjacent release bundle
 #     - Installs a canonical manager copy under /var/lib/solidgroundux for future recovery
-#     - Uses a small self-contained UI without depending on the SolidGroundUX framework
+#     - Uses a small self-contained UI before SolidGroundUX is available
+#     - Reuses the normal SolidGroundUX UI primitives/theme when a healthy framework is available
+#     - Persists release-manager parameter values as standalone state
 #
 # Design principles:
 #   - Standalone operation even when SolidGroundUX is absent or damaged
@@ -71,8 +73,17 @@ set -uo pipefail
     PROJECT_STATE_ROOT=""
     PROJECT_INFO_FILE=""
 
+    FLAG_TARGET_ROOT_OVERRIDE=0
+    FLAG_STATE_ROOT_OVERRIDE=0
     FLAG_RELEASES_DIR_OVERRIDE=0
     FLAG_ARCHIVE_ROOT_OVERRIDE=0
+    FLAG_PROJECT_OVERRIDE=0
+    FLAG_SOURCE_OVERRIDE=0
+    FLAG_RELEASE_OVERRIDE=0
+    FLAG_REPO_OVERRIDE=0
+
+    RELEASE_UI_MODE="standalone"
+    RELEASE_STATE_FILE=""
 
     SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
     SCRIPT_DIR="$(cd -- "$(dirname -- "$SCRIPT_FILE")" && pwd)"
@@ -86,20 +97,24 @@ set -uo pipefail
 # --- Standalone UI ------------------------------------------------------------------
     # Default-theme-compatible standalone palette.
     # Kept local so the release manager remains framework-independent.
-    _RL_RESET=$'\033[0m'
-    _RL_BOLD=$'\033[1m'
-    _RL_FAINT=$'\033[2m'
-    _RL_ITALIC=$'\033[3m'
+    # Bootstrap palette: design-time snapshot of the SolidGroundUX default theme.
+    # It deliberately mirrors the normal default palette/style closely, but has no
+    # runtime dependency on SolidGroundUX.
+    _RL_RESET=$'\e[0m'
+    _RL_BOLD=$'\e[1m'
+    _RL_FAINT=$'\e[2m'
+    _RL_ITALIC=$'\e[3m'
 
-    _RL_SILVER=$'\033[38;5;250m'
-    _RL_YELLOW=$'\033[38;5;226m'
-    _RL_BRIGHT_CYAN=$'\033[96m'
-    _RL_BRIGHT_GREEN=$'\033[92m'
-    _RL_BRIGHT_ORANGE=$'\033[38;5;208m'
-    _RL_BRIGHT_RED=$'\033[91m'
-    _RL_DARK_WHITE=$'\e[38;5;250m'  
-    _RL_WHITE=$'\e[0;37m'
-    _RL_BRIGHT_WHITE=$'\e[38;5;15m'
+    _RL_SILVER=$'\e[0;38;5;250m'
+    _RL_YELLOW=$'\e[38;2;215;190;0m'
+    _RL_BRIGHT_CYAN=$'\e[38;2;70;255;255m'
+    _RL_BRIGHT_GREEN=$'\e[38;2;70;255;110m'
+    _RL_BRIGHT_ORANGE=$'\e[38;2;255;190;45m'
+    _RL_BRIGHT_RED=$'\e[38;2;255;70;70m'
+    _RL_DARK_WHITE=$'\e[38;2;155;155;155m'
+    _RL_WHITE=$'\e[38;2;192;192;192m'
+    _RL_BRIGHT_WHITE=$'\e[38;2;255;255;255m'
+    _RL_BRIGHT_MAGENTA=$'\e[38;2;255;0;255m'
 
     _RL_UI_LABEL="$_RL_SILVER"
     _RL_UI_VALUE="$_RL_YELLOW"
@@ -126,6 +141,7 @@ set -uo pipefail
         _RL_BRIGHT_GREEN=""
         _RL_BRIGHT_ORANGE=""
         _RL_BRIGHT_RED=""
+        _RL_BRIGHT_MAGENTA=""
         _RL_UI_LABEL=""
         _RL_UI_VALUE=""
         _RL_UI_TEXT=""
@@ -139,6 +155,147 @@ set -uo pipefail
         _RL_MSG_CANCEL=""
         _RL_MSG_END=""
     fi
+
+    # fn: _release_framework_root_for_target - Resolve the framework root for the selected target
+    _release_framework_root_for_target() {
+        if [[ "$VAL_TARGET_ROOT" == "/" ]]; then
+            printf '%s\n' "/"
+        else
+            printf '%s\n' "${VAL_TARGET_ROOT%/}"
+        fi
+    }
+
+    # fn: _release_try_framework_ui - Prefer the installed SolidGroundUX UI when healthy
+        # . Purpose
+        #   Opportunistically load the normal framework UI after the target root is known.
+        #
+        # . Behavior
+        #   - Never required for release-manager operation.
+        #   - Falls back silently to the bootstrap UI if the framework is absent, damaged,
+        #     or cannot complete bootstrap.
+        #   - Keeps release-manager business logic behind _release_* UI adapters.
+    _release_try_framework_ui() {
+        local root=""
+        local exe_common=""
+        local rc=0
+
+        RELEASE_UI_MODE="standalone"
+        root="$(_release_framework_root_for_target)"
+        if [[ "$root" == "/" ]]; then
+            exe_common="/usr/local/lib/solidgroundux/common/sgnd-exe-common.sh"
+        else
+            exe_common="${root%/}/usr/local/lib/solidgroundux/common/sgnd-exe-common.sh"
+        fi
+
+        [[ -r "$exe_common" ]] || return 0
+
+        # Supply the minimal executable metadata contract expected by bootstrap.
+        SGND_FRAMEWORK_ROOT="$root"
+        SGND_SCRIPT_FILE="$SCRIPT_FILE"
+        SGND_SCRIPT_DIR="$SCRIPT_DIR"
+        SGND_SCRIPT_BASE="$SCRIPT_BASE"
+        SGND_SCRIPT_NAME="$SCRIPT_NAME"
+        SGND_SCRIPT_TITLE="SolidGroundUX Release Manager"
+        SGND_USING=()
+        SGND_ARGS_SPEC=()
+        SGND_SCRIPT_GLOBALS=()
+        SGND_STATE_VARIABLES=()
+        SGND_ON_EXIT_HANDLERS=()
+        SGND_STATE_SAVE=0
+
+        # A broken framework must never make its rescue/update tool unusable.
+        set +u
+        # shellcheck source=/dev/null
+        source "$exe_common" >/dev/null 2>&1 || rc=$?
+        if (( rc == 0 )) && declare -F _load_bootstrapper >/dev/null 2>&1; then
+            _load_bootstrapper >/dev/null 2>&1 || rc=$?
+        fi
+        if (( rc == 0 )) && declare -F sgnd_bootstrap >/dev/null 2>&1; then
+            sgnd_bootstrap >/dev/null 2>&1 || rc=$?
+        fi
+        set -u
+
+        if (( rc == 0 )) \
+            && declare -F sgnd_print >/dev/null 2>&1 \
+            && declare -F sgnd_print_labeledvalue >/dev/null 2>&1 \
+            && declare -F sgnd_print_sectionheader >/dev/null 2>&1 \
+            && declare -F ask >/dev/null 2>&1; then
+            RELEASE_UI_MODE="framework"
+        fi
+
+        return 0
+    }
+
+    # fn: _release_print - Print a line through the active UI implementation
+    _release_print() {
+        if [[ "$RELEASE_UI_MODE" == "framework" ]] && declare -F sgnd_print >/dev/null 2>&1; then
+            sgnd_print "$@"
+        else
+            printf '%s\n' "$*"
+        fi
+    }
+
+    # fn: _release_section_header - Render a section header through the active UI
+    _release_section_header() {
+        local title="${1:-}"
+        if [[ "$RELEASE_UI_MODE" == "framework" ]] && declare -F sgnd_print_sectionheader >/dev/null 2>&1; then
+            sgnd_print_sectionheader "$title" --padend 0
+            return 0
+        fi
+
+        printf '\n'
+        [[ -n "$title" ]] && printf '%s%s%s%s\n' "$_RL_BRIGHT_WHITE" "$_RL_BOLD" "$title" "$_RL_RESET"
+        _release_line "─"
+    }
+
+    # fn: _release_ask - Ask for a scalar value using framework ask() or the fallback UI
+        # Arguments:
+        #   $1 label, $2 variable name, $3 default
+    _release_ask() {
+        local label="${1:-Value}"
+        local var_name="${2:?missing variable name}"
+        local default="${3:-}"
+        local reply=""
+
+        if (( FLAG_AUTO )); then
+            [[ -n "${!var_name-}" ]] || printf -v "$var_name" '%s' "$default"
+            return 0
+        fi
+
+        if [[ "$RELEASE_UI_MODE" == "framework" ]] && declare -F ask >/dev/null 2>&1; then
+            ask --label "$label" --var "$var_name" --default "$default" --colorize both
+            return $?
+        fi
+
+        printf '%s%s%s [%s%s%s]: ' \
+            "$_RL_UI_PROMPT" "$label" "$_RL_RESET" \
+            "$_RL_UI_VALUE" "$default" "$_RL_RESET" > /dev/tty
+        read -r reply < /dev/tty
+        [[ -n "$reply" ]] || reply="$default"
+        printf -v "$var_name" '%s' "$reply"
+    }
+
+    # fn: _release_ask_yesno - Ask a yes/no question with a default
+    _release_ask_yesno() {
+        local label="${1:-Continue?}"
+        local default="${2:-Y}"
+        local reply=""
+
+        (( FLAG_AUTO )) && return 0
+
+        if [[ "$RELEASE_UI_MODE" == "framework" ]] && declare -F ask >/dev/null 2>&1; then
+            ask --label "$label (Y/N)" --var reply --default "$default" --choices "Y,Yes,N,No"
+        else
+            printf '%s%s%s [%s]: ' "$_RL_UI_PROMPT" "$label" "$_RL_RESET" "$default" > /dev/tty
+            read -r reply < /dev/tty
+            [[ -n "$reply" ]] || reply="$default"
+        fi
+
+        case "${reply^^}" in
+            Y|YES) return 0 ;;
+            *) return 1 ;;
+        esac
+    }
 
     # fn: _release_terminal_width - Return the usable terminal width
         # Returns:
@@ -269,6 +426,12 @@ set -uo pipefail
         local label="${1:-}"
         local value="${2:-}"
         local width="${3:-24}"
+
+        if [[ "$RELEASE_UI_MODE" == "framework" ]] && declare -F sgnd_print_labeledvalue >/dev/null 2>&1; then
+            sgnd_print_labeledvalue --label "$label" --value "$value" --labelwidth "$width"
+            return 0
+        fi
+
         printf '    %s%-*s%s : %s%s%s\n' \
             "$_RL_UI_PROMPT" "$width" "$label" "$_RL_RESET" \
             "$_RL_UI_VALUE" "$value" "$_RL_RESET"
@@ -417,32 +580,38 @@ set -uo pipefail
                     shift
                     VAL_RELEASE="${1:-}"
                     [[ -n "$VAL_RELEASE" ]] || { _release_fail "--release requires a value"; return 1; }
+                    FLAG_RELEASE_OVERRIDE=1
                     ;;
                 --auto) FLAG_AUTO=1 ;;
                 --project)
                     shift
                     VAL_PROJECT="${1:-}"
                     [[ -n "$VAL_PROJECT" ]] || { _release_fail "--project requires a value"; return 1; }
+                    FLAG_PROJECT_OVERRIDE=1
                     ;;
                 --repo)
                     shift
                     VAL_GITHUB_REPO="${1:-}"
                     [[ -n "$VAL_GITHUB_REPO" ]] || { _release_fail "--repo requires a value"; return 1; }
+                    FLAG_REPO_OVERRIDE=1
                     ;;
                 --source)
                     shift
                     VAL_SOURCE="${1:-}"
                     [[ -n "$VAL_SOURCE" ]] || { _release_fail "--source requires a value"; return 1; }
+                    FLAG_SOURCE_OVERRIDE=1
                     ;;
                 --target-root)
                     shift
                     VAL_TARGET_ROOT="${1:-}"
                     [[ -n "$VAL_TARGET_ROOT" ]] || { _release_fail "--target-root requires a value"; return 1; }
+                    FLAG_TARGET_ROOT_OVERRIDE=1
                     ;;
                 --state-root)
                     shift
                     VAL_STATE_ROOT="${1:-}"
                     [[ -n "$VAL_STATE_ROOT" ]] || { _release_fail "--state-root requires a value"; return 1; }
+                    FLAG_STATE_ROOT_OVERRIDE=1
                     ;;
                 --releases-dir)
                     shift
@@ -487,13 +656,29 @@ set -uo pipefail
         #   0 on success; 1 when the target root is invalid.
         # . Usage
         #   init_paths
+    # fn: _release_default_target_root - Derive target root only from canonical manager location
+    _release_default_target_root() {
+        local suffix="/var/lib/solidgroundux/release-manager.sh"
+        local root=""
+
+        if [[ "$SCRIPT_FILE" == *"$suffix" ]]; then
+            root="${SCRIPT_FILE%$suffix}"
+            [[ -n "$root" ]] || root="/"
+            printf '%s\n' "$root"
+            return 0
+        fi
+
+        # Bootstrap/unpacked copies are not in their required installed location.
+        printf '%s\n' "/"
+    }
+
     init_paths() {
         VAL_TARGET_ROOT="$(_normalize_root "$VAL_TARGET_ROOT")" || {
             _release_fail "Target root must be absolute: $VAL_TARGET_ROOT"
             return 1
         }
 
-        if [[ -z "$VAL_STATE_ROOT" ]]; then
+        if [[ -z "$VAL_STATE_ROOT" ]] || (( ! FLAG_STATE_ROOT_OVERRIDE )); then
             if [[ "$VAL_TARGET_ROOT" == "/" ]]; then
                 VAL_STATE_ROOT="/var/lib/solidgroundux"
             else
@@ -503,7 +688,83 @@ set -uo pipefail
 
         CANONICAL_MANAGER_PATH="${VAL_STATE_ROOT%/}/release-manager.sh"
         SGND_RELEASE_CONFIG_FILE="${VAL_STATE_ROOT%/}/release-manager.cfg"
+        RELEASE_STATE_FILE="${VAL_STATE_ROOT%/}/release-manager.state"
     }
+
+    # fn: _release_load_state - Load standalone parameter defaults
+    _release_load_state() {
+        local file="${RELEASE_STATE_FILE:-}"
+        local key="" value=""
+
+        [[ -r "$file" ]] || return 0
+
+        while IFS='=' read -r key value || [[ -n "$key" ]]; do
+            case "$key" in
+                VAL_TARGET_ROOT)  (( FLAG_TARGET_ROOT_OVERRIDE )) || VAL_TARGET_ROOT="$value" ;;
+                VAL_PROJECT)      (( FLAG_PROJECT_OVERRIDE )) || VAL_PROJECT="$value" ;;
+                VAL_SOURCE)       (( FLAG_SOURCE_OVERRIDE )) || VAL_SOURCE="$value" ;;
+                VAL_RELEASE)      (( FLAG_RELEASE_OVERRIDE )) || VAL_RELEASE="$value" ;;
+                VAL_GITHUB_REPO)  (( FLAG_REPO_OVERRIDE )) || VAL_GITHUB_REPO="$value" ;;
+                VAL_STATE_ROOT)   (( FLAG_STATE_ROOT_OVERRIDE )) || VAL_STATE_ROOT="$value" ;;
+                *) ;;
+            esac
+        done < "$file"
+    }
+
+    # fn: _release_save_state - Persist accepted parameter values
+    _release_save_state() {
+        local file="${RELEASE_STATE_FILE:-}"
+
+        [[ -n "$file" ]] || return 0
+        if (( FLAG_DRYRUN )); then
+            _release_info "Would save release-manager state: $file"
+            return 0
+        fi
+
+        mkdir -p -- "$(dirname -- "$file")" || return 1
+        {
+            printf 'VAL_TARGET_ROOT=%s\n' "$VAL_TARGET_ROOT"
+            printf 'VAL_PROJECT=%s\n' "${VAL_PROJECT:-solidgroundux}"
+            printf 'VAL_SOURCE=%s\n' "${VAL_SOURCE:-}"
+            printf 'VAL_RELEASE=%s\n' "${VAL_RELEASE:-}"
+            printf 'VAL_GITHUB_REPO=%s\n' "${VAL_GITHUB_REPO:-}"
+            printf 'VAL_STATE_ROOT=%s\n' "$VAL_STATE_ROOT"
+        } > "$file" || return 1
+        chmod 0600 "$file" 2>/dev/null || true
+    }
+
+    # fn: _release_prompt_settings - Resolve stateful interactive defaults
+    _release_prompt_settings() {
+        local target_before="$VAL_TARGET_ROOT"
+
+        (( FLAG_AUTO )) && return 0
+        [[ -t 0 && -t 1 ]] || return 0
+
+        _release_section_header "Release Manager settings"
+        _release_ask "Target root" VAL_TARGET_ROOT "$VAL_TARGET_ROOT" || return 1
+        VAL_TARGET_ROOT="$(_normalize_root "$VAL_TARGET_ROOT")" || {
+            _release_fail "Target root must be absolute: $VAL_TARGET_ROOT"
+            return 1
+        }
+
+        # Target-root changes also change the natural state/config locations.
+        if [[ "$VAL_TARGET_ROOT" != "$target_before" ]] && (( ! FLAG_STATE_ROOT_OVERRIDE )); then
+            VAL_STATE_ROOT=""
+        fi
+        init_paths || return 1
+
+        # If the selected target contains a healthy framework, switch the remaining
+        # questions and menu to the normal SolidGroundUX UI/theme.
+        _release_try_framework_ui
+
+        _release_ask "Project" VAL_PROJECT "${VAL_PROJECT:-solidgroundux}" || return 1
+        _set_project_context "${VAL_PROJECT:-solidgroundux}" || return 1
+
+        _release_ask "GitHub repository" VAL_GITHUB_REPO "${VAL_GITHUB_REPO:-$SGND_RELEASE_GITHUB_REPO}" || return 1
+
+        _release_save_state
+    }
+
 
     # fn: _package_info_value - Read one key from release-package.info safely
         # . Purpose
@@ -761,15 +1022,19 @@ EOF
     _install_release_manager() {
         [[ -n "$CANONICAL_MANAGER_PATH" ]] || return 1
 
-        if [[ "$SCRIPT_FILE" != "$CANONICAL_MANAGER_PATH" ]]; then
-            _release_run cp -f -- "$SCRIPT_FILE" "$CANONICAL_MANAGER_PATH" || return 1
-            _release_run chmod 0755 -- "$CANONICAL_MANAGER_PATH" || return 1
-            _release_info "Installed release manager: $CANONICAL_MANAGER_PATH"
-        fi
+        # The installed SolidGroundUX tar owns the canonical manager copy.
+        # A ZIP-root/bootstrap or development copy must never overwrite it merely
+        # because it is executing from a different pathname.
+        [[ -f "$CANONICAL_MANAGER_PATH" ]] || {
+            _release_fail "Canonical release manager was not installed by the package: $CANONICAL_MANAGER_PATH"
+            return 1
+        }
 
+        _release_run chmod 0755 -- "$CANONICAL_MANAGER_PATH" || return 1
         _install_release_manager_wrapper || return 1
         return 0
     }
+
 
     # fn: _detect_bootstrap_release - Detect one complete release set beside the running script
         # . Purpose
@@ -1992,7 +2257,6 @@ EOF
         #   _confirm "Continue?"
     _confirm() {
         local prompt="${1:-Continue?}"
-        local reply=""
 
         (( FLAG_AUTO )) && return 0
         [[ -t 0 && -t 1 ]] || {
@@ -2000,14 +2264,9 @@ EOF
             return 1
         }
 
-        printf '%s%s [Y/n] %s' "$_RL_UI_PROMPT" "$prompt" "$_RL_UI_INPUT" > /dev/tty
-        read -r reply < /dev/tty
-        printf '%s' "$_RL_RESET" > /dev/tty
-        case "${reply^^}" in
-            ""|Y|YES) return 0 ;;
-            *) return 1 ;;
-        esac
+        _release_ask_yesno "$prompt" "Y"
     }
+
 
     # fn: _select_archived_release - Select an archived release or the remove operation from a submenu
         # . Purpose
@@ -2043,7 +2302,7 @@ EOF
                 printf '  %s%d)%s %s%s%s\n' "$_RL_UI_PROMPT" "$(( ${#releases[@]} - i ))" "$_RL_RESET" "$_RL_DARK_WHITE" "$base" "$_RL_RESET" > /dev/tty
             fi
         done
-        printf '  %s%d)%s %sRemove %s%s\n' "$_RL_MSG_FAIL" "$remove_choice" "$_RL_RESET" "$_RL_MSG_FAIL" "$_RL_RESET" > /dev/tty
+        printf '  %s%d)%s %sRemove %s%s\n' "$_RL_MSG_FAIL" "$remove_choice" "$_RL_RESET" "$_RL_MSG_FAIL" "$SGND_RELEASE_PRODUCT" "$_RL_RESET" > /dev/tty
         printf '  %sQ)%s %sReturn%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET" > /dev/tty
         printf '\n' > /dev/tty
         _release_line "─" > /dev/tty
@@ -2112,6 +2371,7 @@ EOF
             printf '    %s3)%s %sUpdate to latest build%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
             printf '    %s4)%s %sInstall newest local release%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
             printf '    %s5)%s %sInstall archived version / remove%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
+            printf '    %sP)%s %sSelect project%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
             printf '    %sQ)%s %sQuit%s\n\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
             
             _release_line "─"
@@ -2276,8 +2536,15 @@ EOF
     _action_install() {
         local archive=""
 
+        archive="$(_newest_pending_archive "$VAL_RELEASE" 2>/dev/null || true)"
+
+        if [[ -z "$archive" && -z "$VAL_SOURCE" ]] && (( ! FLAG_AUTO )); then
+            _release_ask "Package ZIP or URL" VAL_SOURCE "${VAL_SOURCE:-}" || return 1
+        fi
+
         if [[ -n "$VAL_SOURCE" ]]; then
             _acquire_release "" "$VAL_SOURCE" >/dev/null || return 1
+            _release_save_state || true
         fi
 
         archive="$(_newest_pending_archive "$VAL_RELEASE" 2>/dev/null || true)"
@@ -2335,9 +2602,31 @@ EOF
         # . Usage
         #   main "$@"
     main() {
+        local default_root=""
+        local rc=0
+
+        # Establish the bootstrap/default UI first; it is always available.
+        RELEASE_UI_MODE="standalone"
+
+        default_root="$(_release_default_target_root)"
+        VAL_TARGET_ROOT="$default_root"
+
         parse_args "$@" || return $?
+
+        # Resolve the first state location from the explicit/default target root,
+        # then load stored defaults without overriding explicit CLI values.
         init_paths || return $?
+        _release_load_state
+        init_paths || return $?
+
+        # If the stored/explicit target already contains SolidGroundUX, use its UI
+        # for the settings/menu. Otherwise the design-time default fallback remains.
+        _release_try_framework_ui
+
         _load_release_manager_config
+
+        # In interactive mode parameters are questions; in --auto mode state/CLI/defaults win.
+        _release_prompt_settings || return $?
         _set_project_context "${VAL_PROJECT:-solidgroundux}" || return 1
 
         _require_command find || return 1
@@ -2351,12 +2640,18 @@ EOF
 
         _ensure_manager_directories || return 1
         _ensure_release_manager_config || return 1
+
+        # Adjacent release artifacts are only admitted for the special first-install
+        # bootstrap case (the SolidGroundUX ZIP-root manager).
         _admit_bootstrap_release || return $?
-        _install_release_manager || return 1
 
         if [[ -z "$ACTION" && -n "${BOOTSTRAP_RELEASE_BASE:-}" ]]; then
-            # A clean machine started from a release bundle bootstraps itself immediately.
             _bootstrap_first_install || return $?
+            # The tar has now installed the canonical manager; verify it and its wrapper.
+            _install_release_manager || return 1
+        elif [[ -f "$CANONICAL_MANAGER_PATH" ]]; then
+            # Normal installed operation: only ensure the wrapper; never self-copy.
+            _install_release_manager || return 1
         fi
 
         if [[ -z "$ACTION" ]]; then
@@ -2366,10 +2661,10 @@ EOF
                 return 1
             }
             _interactive_menu
+            _release_save_state || true
             return $?
         fi
 
-        local rc=0
         case "$ACTION" in
             check) _action_check || rc=$? ;;
             download) _action_download || rc=$? ;;
@@ -2379,6 +2674,10 @@ EOF
             remove) _action_remove || rc=$? ;;
             *) _release_fail "Unknown action: $ACTION"; rc=1 ;;
         esac
+
+        if (( rc == 0 )); then
+            _release_save_state || true
+        fi
 
         if (( rc == 0 )) && [[ -n "${BOOTSTRAP_RELEASE_BASE:-}" ]]; then
             _cleanup_bootstrap_files || return 1

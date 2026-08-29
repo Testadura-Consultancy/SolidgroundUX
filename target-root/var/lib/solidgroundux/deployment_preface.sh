@@ -2,9 +2,9 @@
 # SolidGroundUX - Deployment and Release Management
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : df6f9f5759c2e0f5ab9853877a8980da5230d3fe13ca3ef1e8a6875c6e0fe880
+#   Version     : 2.1
+#   Build       : 2624122
+#   Checksum    : 6e224f1c8125644fb46a6a6efc7f8a73f2241eb729b40f100c79c96f89ab18a6
 #   Source      : deployment_preface.sh
 #   Type        : documentation
 #   Group       : Deployment
@@ -40,27 +40,36 @@
 # >         Creation, validation, installation, update, rollback, and removal of
 # >         complete SolidGroundUX releases.
 #
-# > The release manager is deliberately framework-independent. It does not source
-# > SolidGroundUX libraries or require a working framework installation. This allows
-# > it to bootstrap a clean machine and to repair, update, roll back, or remove an
-# > installation even when the installed framework is unavailable or damaged.
+# > The release manager is deliberately self-sufficient. It always carries a small
+# > standalone UI and default-theme fallback so it can bootstrap a clean machine or
+# > recover a damaged installation. When a healthy SolidGroundUX framework is available
+# > at the selected target root, the manager may reuse the normal framework UI primitives
+# > and active theme without making the release engine dependent on them.
 #
 # -- Release Preparation -------------------------------------------------------------
 #
-# > prepare-release.sh creates the canonical SolidGroundUX release set.
+# > prepare-release.sh creates the canonical project release set.
 #
 # > A release contains a complete target-root filesystem image rather than a binary
-# > patch. Typical artifacts include:
+# > patch. The distributable ZIP contains:
 #
-# >     SolidGroundUX-<version>.tar.gz
-# >     SolidGroundUX-<version>.tar.gz.sha256
-# >     SolidGroundUX-<version>.manifest
-# >     SolidGroundUX-<version>.manifest.sha256
-# >     SolidGroundUX-<version>.removed
-# >     SolidGroundUX-<version>.removed.sha256
-# >     SHA256SUMS
+# >     release-package.info
+# >     <Product>-<version>.<build>.tar.gz
+# >     <Product>-<version>.<build>.tar.gz.sha256
+# >     <Product>-<version>.<build>.manifest
+# >     <Product>-<version>.<build>.manifest.sha256
+# >     <Product>-<version>.<build>.removed
+# >     <Product>-<version>.<build>.removed.sha256
 #
-# > The tar archive contains the complete framework tree for that release.
+# > SolidGroundUX framework packages additionally contain release-manager.sh at ZIP root
+# > so the package can bootstrap a clean machine. Generic project packages omit the
+# > manager and are consumed by an already installed Release Manager.
+#
+# > The tar archive contains the complete target-root tree for that release.
+#
+# > release-package.info is the package shipping label. It identifies the package format,
+# > project slug, product, version, build, and release name without requiring the manager
+# > to inspect the tar archive first.
 #
 # > The normal manifest describes the paths contained in the release.
 #
@@ -89,18 +98,20 @@
 #
 # > It replaces the former separate installer, updater, and uninstaller scripts.
 #
-# > Its state model is intentionally filesystem-based:
+# > Its state model is intentionally filesystem-based and project-aware.
+#
+# > SolidGroundUX retains the canonical locations:
 #
 # >     /var/lib/solidgroundux/releases
-# >         Contains downloaded, prepared, or rolled-back releases that are available
-# >         for installation.
-#
 # >     /var/lib/solidgroundux/archive/<release>
-# >         Contains releases that have been installed. The highest versioned archive
-# >         directory represents the currently installed release.
 #
-# > No separate current-version database is required. The release directories
-# > themselves provide installation history and rollback information.
+# > Additional projects keep their own state beneath:
+#
+# >     /var/lib/solidgroundux/projects/<project>/releases
+# >     /var/lib/solidgroundux/projects/<project>/archive/<release>
+#
+# > The highest versioned archive directory represents the currently installed release
+# > for that project. No separate current-version database is required.
 #
 # > A first install consists of validating and extracting a complete release archive.
 #
@@ -117,50 +128,70 @@
 #
 # -- First Installation --------------------------------------------------------------
 #
-# > GitHub release bundles may contain both release-manager.sh and the prepared release
-# > artifacts in one ZIP file.
+# > SolidGroundUX release ZIPs contain release-manager.sh together with the complete
+# > prepared release set and release-package.info.
 #
-# > A first installation can therefore start from any temporary directory:
+# > A first installation therefore remains deliberately small:
 #
 # >     cd /tmp
 # >     unzip SolidGroundUX-<version>-release.zip
-# >     sudo ./release-manager.sh --install
+# >     sudo ./release-manager.sh
+#
+# > Because the ZIP-root manager is not yet running from its canonical installed
+# > location, the default target root is `/`. In interactive mode the target root is
+# > still asked explicitly before installation proceeds.
 #
 # > On first run, release-manager.sh:
 #
-# >     - Creates the SolidGroundUX release-management directories when needed.
-# >     - Detects a complete release set beside itself.
-# >     - Validates the release artifacts and checksums.
-# >     - Admits the release into /var/lib/solidgroundux/releases.
-# >     - Installs the release.
-# >     - Moves the installed release set into the versioned archive directory.
-# >     - Copies itself to /var/lib/solidgroundux/release-manager.sh.
-# >     - Cleans only the known temporary bootstrap files after successful installation.
+# >     - Reads release-package.info and identifies the package.
+# >     - Asks for or resolves the target root and other stateful parameters.
+# >     - Creates the required release-management directories.
+# >     - Validates the release artifacts, checksums, manifests, and archive paths.
+# >     - Admits the release into the selected project's releases directory.
+# >     - Installs the complete tar archive into the selected target root.
+# >     - Moves the installed release set into that project's archive history.
+# >     - Uses the release-manager.sh installed by the SolidGroundUX tar as the canonical
+# >       `/var/lib/solidgroundux/release-manager.sh` copy.
+# >     - Creates or verifies the public release-manager wrapper.
+# >     - Cleans only known temporary bootstrap files after successful installation.
 #
-# > Because all managed paths are absolute, the bootstrap copy may be run from /tmp
-# > or any other convenient directory.
+# > The bootstrap copy never overwrites the canonical manager merely because it is
+# > executing from another path. The installed release owns the permanent manager copy.
 #
 # -- Interactive Use -----------------------------------------------------------------
 #
-# > Running release-manager.sh without an action opens the interactive release menu:
+# > Running release-manager.sh without an action opens the interactive Release Manager:
 #
 # >     sudo /var/lib/solidgroundux/release-manager.sh
 #
-# > The menu can:
+# > Parameter values are presented as questions and persisted as standalone state so the
+# > accepted values become defaults on later runs. Typical parameters include:
+#
+# >     - Target root.
+# >     - Project.
+# >     - Package source.
+# >     - GitHub repository.
+# >     - Release selector.
+# >
+# > The menu provides the release lifecycle actions:
 #
 # >     - Check GitHub for the latest release.
 # >     - Download the latest release.
 # >     - Update to the latest release.
-# >     - Install the newest locally available release.
+# >     - Install a local package/release.
 # >     - Select an archived version for reinstallation or rollback.
-# >     - Remove SolidGroundUX.
+# >     - Remove the selected project.
+# >     - Select the active project for project-specific operations.
 #
-# > Archived releases are shown in a dedicated submenu, newest first. The current
-# > release is marked explicitly, and removal is offered as the final menu option.
+# > The standalone fallback UI is based on the SolidGroundUX default theme. When a
+# > healthy SolidGroundUX framework is available at the selected target root, the manager
+# > may switch to the normal framework UI primitives and active theme.
 #
 # -- Command-line Use ----------------------------------------------------------------
 #
-# > release-manager.sh also supports unattended and scripted operation.
+# > Command-line actions invoke the same functions exposed by the interactive menu.
+# > Arguments therefore select an action and/or provide parameter values; they do not
+# > form a separate release workflow.
 #
 # > Check GitHub without changing the machine:
 #
@@ -174,13 +205,16 @@
 #
 # >     release-manager.sh --update
 #
-# > Install the newest release already available in releases/:
+# > Install the newest release already available locally:
 #
 # >     release-manager.sh --install
 #
-# > Install a specific local or archived release:
+# > Install directly from a package ZIP or URL:
 #
-# >     release-manager.sh --install --release 1.8.2622102
+# >     release-manager.sh --install --source /tmp/SolidGroundUX-release.zip
+#
+# >     release-manager.sh --install \
+# >         --source https://example.org/releases/SolidGroundUX-release.zip
 #
 # > Roll back to the previous archived release:
 #
@@ -188,13 +222,17 @@
 #
 # > Roll back to a specific archived release:
 #
-# >     release-manager.sh --rollback --release 1.8.2621804
+# >     release-manager.sh --rollback --release 2.1.2624102
 #
-# > Remove the active SolidGroundUX installation:
+# > Remove the selected project:
 #
 # >     release-manager.sh --remove
 #
-# > Run an action without confirmation prompts:
+# > Select a known project explicitly:
+#
+# >     release-manager.sh --project solidground-management-modules --install
+#
+# > Run an action without questions or confirmations:
 #
 # >     release-manager.sh --update --auto
 #
@@ -206,22 +244,20 @@
 #
 # >     release-manager.sh --check --repo Testadura-Mark/SolidGroundUX
 #
-# > Use a specific ZIP file or URL as the release source:
+# > Alternate target roots can be supplied for development, testing, or recovery:
 #
-# >     release-manager.sh --update --source /tmp/SolidGroundUX-release.zip
-# >
-# >     release-manager.sh --update # >         --source https://example.org/releases/SolidGroundUX-release.zip
-#
-# > Alternate roots can be supplied for testing or recovery:
-#
-# >     release-manager.sh --install # >         --target-root /mnt/testroot # >         --state-root /mnt/testroot/var/lib/solidgroundux
+# >     release-manager.sh --install \
+# >         --target-root /mnt/testroot \
+# >         --source /tmp/SolidGroundUX-release.zip
 #
 # -- GitHub Acquisition --------------------------------------------------------------
 #
 # > GitHub is the default authoritative source for determining the latest published
-# > SolidGroundUX release.
+# > SolidGroundUX release. Generic project packages can always be supplied directly by
+# > file or URL; project-specific online discovery can be added through project metadata
+# > without changing the package-installation engine.
 #
-# > release-manager.sh asks GitHub which release is current before downloading.
+# > release-manager.sh asks GitHub which SolidGroundUX release is current before downloading.
 #
 # > If that release is already present under archive/ it is considered installed.
 #
@@ -277,8 +313,9 @@
 # > Release integrity is validated before installation by checking the supplied
 # > SHA-256 sidecar files and release paths.
 #
-# > The release manager intentionally remains independent of the installed framework,
-# > its configuration, runtime state, themes, and bootstrap libraries.
+# > The release engine intentionally remains independent of the installed framework.
+# > Its standalone UI and default-theme fallback are always available. Framework UI
+# > primitives and the active theme are used only when they can be loaded successfully.
 #
 # > As a result, the canonical copy at:
 #

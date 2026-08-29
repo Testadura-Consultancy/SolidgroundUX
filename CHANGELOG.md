@@ -9,6 +9,8 @@ practical framework development.
 
 # Unreleased
 
+# Build 2.1.2624122
+
 ## SolidGround Framework
 
 ### Added
@@ -36,6 +38,33 @@ practical framework development.
 ### Changed
 - Canonical normalization skips the canonical fragment directory itself, validates modified shell files with `bash -n`, and reports changes through checksum comparison.
 - `prepare-release.sh` invokes canonical normalization in unattended mode and propagates dry-run behavior when release preparation is running as a dry run.
+
+## Release Management
+
+### Added
+- Added project-aware release packages. Every release ZIP now carries a `release-package.info` shipping label containing package format, project slug, product, version, build, and release identity.
+- Added generic project package support to `release-manager.sh`. Additional projects keep independent release and archive state beneath `/var/lib/solidgroundux/projects/<project>/`, while SolidGroundUX retains its existing release-state layout.
+- Added standalone, stateful Release Manager parameters for target root, project, package source, release selector, repository, and state root. Accepted interactive values are reused as defaults on later runs.
+- Added a standalone Release Manager UI fallback based on the SolidGroundUX default theme for bootstrap and recovery scenarios where the framework is not available.
+- Added opportunistic use of the normal SolidGroundUX UI primitives and active theme when a healthy framework is available at the selected target root.
+- Added project selection to the interactive Release Manager while retaining command-line actions for check, download, update, install, rollback, and removal.
+- Added package-source installation support so a ZIP file or URL can be admitted and installed directly through the same release engine.
+
+### Changed
+- `prepare-release.sh` now resolves project identity from the project definitions file, updates version/build identity in the appropriate definitions file, and packages generic projects without bundling `release-manager.sh`.
+- SolidGroundUX release ZIPs continue to include `release-manager.sh` as the first-install bootstrap entry point; generic project ZIPs rely on an already installed Release Manager.
+- The ZIP-root Release Manager is now treated as a bootstrap runner rather than the authoritative installed copy. Installing the SolidGroundUX tar establishes `/var/lib/solidgroundux/release-manager.sh`.
+- Release Manager startup no longer copies the currently executing script over the canonical installed manager merely because it is running from another path.
+- Interactive Release Manager operation is parameter-driven and menu-based; non-interactive arguments select the same underlying menu actions rather than maintaining a separate workflow.
+- The SolidGroundUX Management Console now delegates release lifecycle operations to a single **Release manager** menu item instead of duplicating check, download, update, install, rollback, and remove actions.
+- Release preparation keeps build output in the workspace release directory instead of duplicating release artifacts into `target-root/var/lib/solidgroundux/releases`; the Release Manager admits package artifacts into managed release state when they are actually acquired or installed.
+- Release Manager root handling now distinguishes the running bootstrap copy from the selected installation target. A bootstrap copy defaults the target root to `/` and asks explicitly in interactive mode; an installed canonical manager can derive the default target root from its location.
+- The Release Manager remains usable when the framework is absent or damaged: standalone primitives are always available, and framework UI integration is strictly optional.
+
+### Repaired
+- Repaired Release Manager self-install behavior that could attempt to copy a development or bootstrap copy over `/var/lib/solidgroundux/release-manager.sh` and fail with permission errors.
+- Repaired project-aware package admission so release artifacts are moved only after ZIP extraction into temporary staging, not as an unconditional startup side effect.
+- Repaired Release Manager project-menu presentation and product-specific remove labeling after the project-aware refactor.
 
 
 # Build 2.0.2623817
