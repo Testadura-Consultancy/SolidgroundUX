@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624122
-#   Checksum    : 1bb8029dea6670fd1e236b843b54318d8607aaa05b86d605ea75859b1c4a7523
+#   Build       : 2624123
+#   Checksum    : e973284d0d5437fef4c3ee5c701260132d4b24dfa12ecaf793add7505bca5296
 #   Source      : release-manager.sh
 #   Wrapper     : sgnd-release
 #   Type        : script
@@ -13,7 +13,7 @@
 #   Purpose     : Standalone SolidGroundUX/project package acquisition, installation, rollback, and removal.
 #
 # Description:
-#   Provides a framework-independent release manager for SolidGroundUX and compatible project packages.
+#   Provides a self-sufficient release manager for SolidGroundUX and compatible project packages.
 #
 #   The script:
 #     - Keeps SolidGroundUX release state in the legacy releases/archive locations
@@ -96,7 +96,7 @@ set -uo pipefail
 
 # --- Standalone UI ------------------------------------------------------------------
     # Default-theme-compatible standalone palette.
-    # Kept local so the release manager remains framework-independent.
+    # Kept local so the release manager remains self-sufficient.
     # Bootstrap palette: design-time snapshot of the SolidGroundUX default theme.
     # It deliberately mirrors the normal default palette/style closely, but has no
     # runtime dependency on SolidGroundUX.
@@ -157,6 +157,8 @@ set -uo pipefail
     fi
 
     # fn: _release_framework_root_for_target - Resolve the framework root for the selected target
+        # . Usage
+        #   _release_framework_root_for_target
     _release_framework_root_for_target() {
         if [[ "$VAL_TARGET_ROOT" == "/" ]]; then
             printf '%s\n' "/"
@@ -174,6 +176,8 @@ set -uo pipefail
         #   - Falls back silently to the bootstrap UI if the framework is absent, damaged,
         #     or cannot complete bootstrap.
         #   - Keeps release-manager business logic behind _release_* UI adapters.
+        # . Usage
+        #   _release_try_framework_ui
     _release_try_framework_ui() {
         local root=""
         local exe_common=""
@@ -227,6 +231,8 @@ set -uo pipefail
     }
 
     # fn: _release_print - Print a line through the active UI implementation
+        # . Usage
+        #   _release_print "<args...>"
     _release_print() {
         if [[ "$RELEASE_UI_MODE" == "framework" ]] && declare -F sgnd_print >/dev/null 2>&1; then
             sgnd_print "$@"
@@ -236,6 +242,8 @@ set -uo pipefail
     }
 
     # fn: _release_section_header - Render a section header through the active UI
+        # . Usage
+        #   _release_section_header "<title>"
     _release_section_header() {
         local title="${1:-}"
         if [[ "$RELEASE_UI_MODE" == "framework" ]] && declare -F sgnd_print_sectionheader >/dev/null 2>&1; then
@@ -251,6 +259,8 @@ set -uo pipefail
     # fn: _release_ask - Ask for a scalar value using framework ask() or the fallback UI
         # Arguments:
         #   $1 label, $2 variable name, $3 default
+        # . Usage
+        #   _release_ask "<label>" "<var_name>" "<default>"
     _release_ask() {
         local label="${1:-Value}"
         local var_name="${2:?missing variable name}"
@@ -276,6 +286,8 @@ set -uo pipefail
     }
 
     # fn: _release_ask_yesno - Ask a yes/no question with a default
+        # . Usage
+        #   _release_ask_yesno "<label>" "<default>"
     _release_ask_yesno() {
         local label="${1:-Continue?}"
         local default="${2:-Y}"
@@ -657,6 +669,8 @@ set -uo pipefail
         # . Usage
         #   init_paths
     # fn: _release_default_target_root - Derive target root only from canonical manager location
+        # . Usage
+        #   _release_default_target_root
     _release_default_target_root() {
         local suffix="/var/lib/solidgroundux/release-manager.sh"
         local root=""
@@ -692,6 +706,8 @@ set -uo pipefail
     }
 
     # fn: _release_load_state - Load standalone parameter defaults
+        # . Usage
+        #   _release_load_state
     _release_load_state() {
         local file="${RELEASE_STATE_FILE:-}"
         local key="" value=""
@@ -712,6 +728,8 @@ set -uo pipefail
     }
 
     # fn: _release_save_state - Persist accepted parameter values
+        # . Usage
+        #   _release_save_state
     _release_save_state() {
         local file="${RELEASE_STATE_FILE:-}"
 
@@ -734,6 +752,8 @@ set -uo pipefail
     }
 
     # fn: _release_prompt_settings - Resolve stateful interactive defaults
+        # . Usage
+        #   _release_prompt_settings
     _release_prompt_settings() {
         local target_before="$VAL_TARGET_ROOT"
 
@@ -769,6 +789,8 @@ set -uo pipefail
     # fn: _package_info_value - Read one key from release-package.info safely
         # . Purpose
         #   Parse a simple KEY=value field without sourcing package-controlled shell code.
+        # . Usage
+        #   _package_info_value "<file>" "<key>"
     _package_info_value() {
         local file="${1:?missing package info}"
         local key="${2:?missing key}"
@@ -780,12 +802,16 @@ set -uo pipefail
     }
 
     # fn: _project_slug_safe - Validate a project slug used beneath the manager state root
+        # . Usage
+        #   _project_slug_safe "<slug>"
     _project_slug_safe() {
         local slug="${1:-}"
         [[ "$slug" =~ ^[a-z0-9][a-z0-9._-]*$ ]]
     }
 
     # fn: _load_project_info - Load persisted display identity for one project
+        # . Usage
+        #   _load_project_info "<slug>"
     _load_project_info() {
         local slug="${1:?missing project slug}"
         local info=""
@@ -812,6 +838,8 @@ set -uo pipefail
         # . Behavior
         #   - SolidGroundUX keeps its legacy state layout for backwards compatibility.
         #   - Other projects use /var/lib/solidgroundux/projects/<slug>/.
+        # . Usage
+        #   _set_project_context "<slug>"
     _set_project_context() {
         local slug="${1:-solidgroundux}"
 
@@ -841,6 +869,8 @@ set -uo pipefail
     }
 
     # fn: _persist_project_info - Persist display identity for an admitted project package
+        # . Usage
+        #   _persist_project_info "<package_info>"
     _persist_project_info() {
         local package_info="${1:?missing package info}"
 
@@ -857,6 +887,8 @@ set -uo pipefail
     }
 
     # fn: _list_known_projects - List locally known project slugs
+        # . Usage
+        #   _list_known_projects
     _list_known_projects() {
         local dir=""
         printf '%s\n' "solidgroundux"
@@ -867,6 +899,8 @@ set -uo pipefail
     }
 
     # fn: _select_project_interactive - Select a locally known project
+        # . Usage
+        #   _select_project_interactive "<command_name>"
     _select_project_interactive() {
         local slug=""
         local choice=""

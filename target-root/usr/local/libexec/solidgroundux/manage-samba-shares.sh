@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624021
-#   Checksum    : 2ab080aea0e8c786627fd148f73584f816d51b6d79414d4ee5def97844aef180
+#   Build       : 2624123
+#   Checksum    : 1905470e6ef2f9e38f36ad94fea0dda1506bae38252c7d848cfc4fe61c1f191e
 #   Source      : manage-samba-shares.sh
 #   Type        : script
 #   Group       : SolidGround Console
@@ -280,11 +280,15 @@ set -uo pipefail
     }
 
     # fn: _validate_share_name - Validate a managed Samba share name
+        # . Usage
+        #   _validate_share_name "<arg1>"
     _validate_share_name() {
         [[ "${1:-}" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$ ]]
     }
 
     # fn: _validate_relative_path - Validate a relative path beneath a share root
+        # . Usage
+        #   _validate_relative_path "<relative_path>"
     _validate_relative_path() {
         local relative_path="${1:-}"
         local part=""
@@ -302,6 +306,8 @@ set -uo pipefail
     }
 
     # fn: _share_exists - Test whether a Samba share exists
+        # . Usage
+        #   _share_exists "<share_name>"
     _share_exists() {
         local share_name="${1:-}"
         [[ -r "$SGND_SAMBA_CONFIG" ]] || return 1
@@ -309,6 +315,8 @@ set -uo pipefail
     }
 
     # fn: _reload_samba - Validate and reload Samba configuration
+        # . Usage
+        #   _reload_samba
     _reload_samba() {
         sudo testparm -s >/dev/null 2>&1 || {
             sayfail "The Samba configuration is invalid."
@@ -318,6 +326,8 @@ set -uo pipefail
     }
 
     # fn: _create_share - Create a managed share and backing directory
+        # . Usage
+        #   _create_share
     _create_share() {
         local share_name=""
         local comment=""
@@ -391,6 +401,8 @@ set -uo pipefail
     }
 
     # fn: _remove_share - Remove a managed share and optionally its directory
+        # . Usage
+        #   _remove_share
     _remove_share() {
         local share_name=""
         local share_path=""
@@ -476,6 +488,8 @@ set -uo pipefail
         #
         # . Returns
         #   0 when ownership/mode/ACL inheritance succeeds; non-zero otherwise.
+        # . Usage
+        #   _inherit_directory_access "<parent>" "<child>"
     _inherit_directory_access() {
         local parent="${1:?missing parent directory}"
         local child="${2:?missing child directory}"
@@ -494,6 +508,8 @@ set -uo pipefail
         # . Returns
         #   0 when the complete tree exists and newly created components inherited
         #   their parent's ownership/mode/ACL model; non-zero on failure.
+        # . Usage
+        #   _create_inherited_directory_tree "<share_path>" "<relative_path>"
     _create_inherited_directory_tree() {
         local share_path="${1:?missing share path}"
         local relative_path="${2:?missing relative path}"
@@ -521,6 +537,8 @@ set -uo pipefail
         #
         # . Output
         #   Writes one relative directory path per line.
+        # . Usage
+        #   _list_share_subdirectories_raw "<share>"
     _list_share_subdirectories_raw() {
         local share="${1:?missing share}"
         local share_path=""
@@ -538,6 +556,8 @@ set -uo pipefail
         #
         # . Returns
         #   0 after returning to the manager; non-zero on creation failure.
+        # . Usage
+        #   _create_subdirectory
     _create_subdirectory() {
         local share=""
         local share_path=""
@@ -609,6 +629,8 @@ set -uo pipefail
     # fn: _list_subdirectories - List subdirectories beneath the currently selected shares
         # . Returns
         #   0 after displaying the directory trees.
+        # . Usage
+        #   _list_subdirectories
     _list_subdirectories() {
         local share=""
         local relative_path=""
@@ -643,6 +665,8 @@ set -uo pipefail
         #
         # . Returns
         #   0 after returning to the manager; non-zero on removal failure.
+        # . Usage
+        #   _remove_subdirectory
     _remove_subdirectory() {
         local share=""
         local relative_path=""
@@ -735,6 +759,8 @@ set -uo pipefail
         #
         # . Returns
         #   0 when a valid ticket cache exists; 1 otherwise.
+        # . Usage
+        #   _ensure_kerberos_ticket
     _ensure_kerberos_ticket() {
         local realm=""
         local principal=""
@@ -1080,6 +1106,8 @@ set -uo pipefail
         #
         # . Returns
         #   0 with a selected group; 1 when none are assigned or the user returns.
+        # . Usage
+        #   _select_assigned_group "<output_var>"
     _select_assigned_group() {
         local output_var="${1:?missing output variable}"
         local share=""

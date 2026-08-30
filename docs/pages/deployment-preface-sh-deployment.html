@@ -35,7 +35,7 @@
 <div class="ct-L1Sectionbody">        Creation, validation, installation, update, rollback, and removal of</div>
 <div class="ct-L1Sectionbody">        complete SolidGroundUX releases.</div>
 <div class="ct-L1Sectionbody"></div>
-<p class="ct-L1Sectionbody">The release manager is deliberately framework-independent. It does not source SolidGroundUX libraries or require a working framework installation. This allows it to bootstrap a clean machine and to repair, update, roll back, or remove an installation even when the installed framework is unavailable or damaged.</p>
+<p class="ct-L1Sectionbody">The release manager is deliberately self-sufficient. It always carries a small standalone UI and default-theme fallback so it can bootstrap a clean machine or recover a damaged installation. When a healthy SolidGroundUX framework is available at the selected target root, the manager may reuse the normal framework UI primitives and active theme without making the release engine dependent on them.</p>
 <div class="ct-L1Sectionbody"></div>
 </main>
 </body>

@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624102
-#   Checksum    : 0da93812645c6ec48a2e29c02753d08900fad5dcc20e77831daf4e91cc4a92e4
+#   Build       : 2624123
+#   Checksum    : 777bbe54b0ccf2962f682734ae12b49f62543ad3971608b804ee6950802b31e7
 #   Source      : 10-computer-setup.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -84,6 +84,8 @@ set -uo pipefail
         #
         # . Returns
         #   Exit status from set-identity.sh.
+        # . Usage
+        #   _computer_set_identity "<args...>"
     _computer_set_identity() {
         _sgnd_run_module_script "set-identity.sh" "$@"
     }
@@ -94,6 +96,8 @@ set -uo pipefail
         #
         # . Returns
         #   0 on success; non-zero on failure.
+        # . Usage
+        #   _computer_configure_ssh_service
     _computer_configure_ssh_service() {
         local ssh_unit="ssh.service"
         local enabled="N"
@@ -143,6 +147,8 @@ set -uo pipefail
         #
         # . Returns
         #   0 on success; non-zero on failure.
+        # . Usage
+        #   _computer_generate_ssh_keys
     _computer_generate_ssh_keys() {
         if (( ${FLAG_DRYRUN:-0} == 1 )); then
             sayinfo "Dry run: Would generate SSH host keys and restart SSH."
@@ -176,6 +182,8 @@ set -uo pipefail
         #
         # . Returns
         #   0 on success; non-zero on failure or cancellation.
+        # . Usage
+        #   _computer_configure_sudoers
     _computer_configure_sudoers() {
         local admin_user="${SUDO_USER:-${USER:-sysadmin}}"
         local temp_file=""
@@ -258,6 +266,8 @@ set -uo pipefail
         #
         # . Returns
         #   0 when all steps succeed; otherwise the failing step status.
+        # . Usage
+        #   _computer_prepare
     _computer_prepare() {
         sgnd_console_run_tracked "setnetid" _computer_set_identity || return $?
         sgnd_console_run_tracked "sshkeys" _computer_generate_ssh_keys || return $?
@@ -275,6 +285,8 @@ set -uo pipefail
         #
         # . Returns
         #   0 after displaying available status information.
+        # . Usage
+        #   _computer_status "<dns_servers>" "<dns_servers>"
     _computer_status() {
         local hostname_short=""
         local fqdn=""
@@ -344,6 +356,8 @@ set -uo pipefail
         #
         # . Returns
         #   0 when all required checks pass; 1 otherwise.
+        # . Usage
+        #   _computer_validate
     _computer_validate() {
         local failures=0
         local hostname_short=""

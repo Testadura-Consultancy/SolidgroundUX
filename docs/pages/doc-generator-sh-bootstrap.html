@@ -11,40 +11,9 @@
 <div class="doc-page-branding"><span class="doc-page-branding-title">SolidGroundUX Documentation</span><img src="../assets/branding/doc-header-logo.png" alt="SolidGroundUX"></div>
 <header class="doc-page-header">
   <div class="doc-title">Bootstrap</div>
-  <div class="doc-breadcrumb">SolidgroundUX / doc-generator.sh / Bootstrap</div>
+  <div class="doc-breadcrumb">doc-generator.sh:::Bootstrap:</div>
 </header>
-<p class="ct-L1Sectionbody">fn&amp; _framework_locator - Locate and load the SolidGroundUX executable bootstrap context</p>
-<div class="ct-L1Sectionbody sh-highlight">Purpose</div>
-<div class="ct-L1Sectionbody">  Locate, create, and load the SolidGroundUX bootstrap configuration, then</div>
-<div class="ct-L1Sectionbody">  load the executable runtime support library.</div>
-<div class="ct-L1Sectionbody"></div>
-<div class="ct-L1Sectionbody sh-highlight">Behavior</div>
-<div class="ct-L1Sectionbody">  - Searches user and system bootstrap configuration locations.</div>
-<div class="ct-L1Sectionbody">  - Prefers the invoking user&#x27;s config over the system config.</div>
-<div class="ct-L1Sectionbody">  - Creates a new bootstrap config when none exists.</div>
-<div class="ct-L1Sectionbody">  - Prompts for framework/application roots in interactive mode.</div>
-<div class="ct-L1Sectionbody">  - Applies default values when running non-interactively.</div>
-<div class="ct-L1Sectionbody">  - Sources the selected bootstrap configuration file.</div>
-<div class="ct-L1Sectionbody">  - Loads sgnd-exe-common.sh from the resolved framework root.</div>
-<div class="ct-L1Sectionbody"></div>
-<div class="ct-L1Sectionbody sh-highlight">Globals (write)</div>
-<div class="ct-L1Sectionbody">  SGND_FRAMEWORK_ROOT</div>
-<div class="ct-L1Sectionbody">  SGND_APPLICATION_ROOT</div>
-<div class="ct-L1Sectionbody"></div>
-<div class="ct-L1Sectionbody sh-highlight">Output</div>
-<div class="ct-L1Sectionbody">  Writes primitive printf-based messages before the framework UI is available.</div>
-<div class="ct-L1Sectionbody"></div>
-<div class="ct-L1Sectionbody sh-highlight">Returns</div>
-<div class="ct-L1Sectionbody">  0 when the bootstrap configuration and executable common library were loaded.</div>
-<div class="ct-L1Sectionbody">  126 when configuration or executable common library is unreadable or invalid.</div>
-<div class="ct-L1Sectionbody">  127 when the configuration directory or file could not be created.</div>
-<div class="ct-L1Sectionbody"></div>
-<div class="ct-L1Sectionbody sh-highlight">Usage</div>
-<div class="ct-L1Sectionbody"></div>
-<p class="ct-L1Sectionbody">Notes:</p>
-<div class="ct-L1Sectionbody">  - Under sudo, configuration is resolved relative to SUDO_USER instead of /root.</div>
-<div class="ct-L1Sectionbody">  - This function intentionally uses printf rather than say* helpers because</div>
-<div class="ct-L1Sectionbody">    the executable common library has not been loaded yet.</div>
+
 </main>
 </body>
 </html>

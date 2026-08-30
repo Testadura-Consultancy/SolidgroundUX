@@ -1,4 +1,5 @@
 :root {
+    --doc-page-background: #ffffff;
     --doc-text: #1f2933;
     --doc-muted: #667085;
     --doc-border: #d9dee7;
@@ -93,6 +94,7 @@ body {
 }
 
 .ct-functionheader,
+.ct-classheader,
 .ct-variableheader,
 .ct-gendocheader {
     font-size: 11.5pt;
@@ -109,6 +111,7 @@ body {
 .ct-L2Sectionbody,
 .ct-L3Sectionbody,
 .ct-functionbody,
+.ct-classbody,
 .ct-variablebody,
 .ct-gendocbody,
 .ct-documentbody {

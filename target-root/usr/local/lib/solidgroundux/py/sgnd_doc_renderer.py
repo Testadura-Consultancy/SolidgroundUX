@@ -97,6 +97,8 @@ INSTALL_PREFIX = "appendix:install:"
 # . Arguments
 #   path  Value consumed by this function; see the typed Python signature for its contract.
 #   required  Value consumed by this function; see the typed Python signature for its contract.
+# . Usage
+#   read_psv(<path>, <required>)
 def read_psv(path: Path, *, required: bool = True) -> List[Row]:
     """Read a pipe-separated table with a schema/header row."""
     if not path.exists():
@@ -134,6 +136,8 @@ def read_psv(path: Path, *, required: bool = True) -> List[Row]:
 #
 # . Arguments
 #   path  Value consumed by this function; see the typed Python signature for its contract.
+# . Usage
+#   read_config(<path>)
 def read_config(path: Path) -> Dict[str, str]:
     rows = read_psv(path, required=False)
     config: Dict[str, str] = {}
@@ -153,6 +157,8 @@ def read_config(path: Path) -> Dict[str, str]:
 #
 # . Arguments
 #   value  Value consumed by this function; see the typed Python signature for its contract.
+# . Usage
+#   esc(<value>)
 def esc(value: str | None) -> str:
     return html.escape(value or "", quote=True)
 
@@ -163,6 +169,8 @@ def esc(value: str | None) -> str:
 #
 # . Arguments
 #   value  Value consumed by this function; see the typed Python signature for its contract.
+# . Usage
+#   slugify(<value>)
 def slugify(value: str | None) -> str:
     text = (value or "").lower()
     text = re.sub(r"[^a-z0-9]+", "-", text)
@@ -176,6 +184,8 @@ def slugify(value: str | None) -> str:
 #
 # . Arguments
 #   value  Value consumed by this function; see the typed Python signature for its contract.
+# . Usage
+#   normalize_key(<value>)
 def normalize_key(value: str | None) -> str:
     text = (value or "").lower()
     text = re.sub(r"[^a-z0-9]+", "_", text)
@@ -193,6 +203,8 @@ def normalize_key(value: str | None) -> str:
 #   parent_section  Value consumed by this function; see the typed Python signature for its contract.
 #   section_name  Value consumed by this function; see the typed Python signature for its contract.
 #   item_name  Value consumed by this function; see the typed Python signature for its contract.
+# . Usage
+#   content_ref(<module_name>, <grandparent_section>, <parent_section>, <section_name>, <item_name>)
 def content_ref(
     module_name: str,
     grandparent_section: str = "",
@@ -209,6 +221,8 @@ def content_ref(
 #
 # . Arguments
 #   product_name  Value consumed by this function; see the typed Python signature for its contract.
+# . Usage
+#   canonical_ref(<product_name>)
 def canonical_ref(product_name: str) -> str:
     return f"{CANONICAL_PREFIX}{product_name}"
 
@@ -219,6 +233,8 @@ def canonical_ref(product_name: str) -> str:
 #
 # . Arguments
 #   product_name  Value consumed by this function; see the typed Python signature for its contract.
+# . Usage
+#   attribution_ref(<product_name>)
 def attribution_ref(product_name: str) -> str:
     return f"{ATTRIBUTION_PREFIX}{product_name}"
 
@@ -229,6 +245,8 @@ def attribution_ref(product_name: str) -> str:
 #
 # . Arguments
 #   product_name  Value consumed by this function; see the typed Python signature for its contract.
+# . Usage
+#   glossary_ref(<product_name>)
 def glossary_ref(product_name: str) -> str:
     return f"{GLOSSARY_PREFIX}{product_name}"
 
@@ -239,6 +257,8 @@ def glossary_ref(product_name: str) -> str:
 #
 # . Arguments
 #   product_name  Value consumed by this function; see the typed Python signature for its contract.
+# . Usage
+#   integrity_ref(<product_name>)
 def integrity_ref(product_name: str) -> str:
     return f"{INTEGRITY_PREFIX}{product_name}"
 
@@ -249,6 +269,8 @@ def integrity_ref(product_name: str) -> str:
 #
 # . Arguments
 #   product_name  Value consumed by this function; see the typed Python signature for its contract.
+# . Usage
+#   globals_ref(<product_name>)
 def globals_ref(product_name: str) -> str:
     return f"{GLOBALS_PREFIX}{product_name}"
 
@@ -259,6 +281,8 @@ def globals_ref(product_name: str) -> str:
 #
 # . Arguments
 #   product_name  Value consumed by this function; see the typed Python signature for its contract.
+# . Usage
+#   license_ref(<product_name>)
 def license_ref(product_name: str) -> str:
     return f"{LICENSE_PREFIX}{product_name}"
 
@@ -269,6 +293,8 @@ def license_ref(product_name: str) -> str:
 #
 # . Arguments
 #   product_name  Value consumed by this function; see the typed Python signature for its contract.
+# . Usage
+#   enums_ref(<product_name>)
 def enums_ref(product_name: str) -> str:
     return f"{ENUMS_PREFIX}{product_name}"
 
@@ -279,6 +305,8 @@ def enums_ref(product_name: str) -> str:
 #
 # . Arguments
 #   product_name  Value consumed by this function; see the typed Python signature for its contract.
+# . Usage
+#   changelog_ref(<product_name>)
 def changelog_ref(product_name: str) -> str:
     return f"{CHANGELOG_PREFIX}{product_name}"
 
@@ -289,6 +317,8 @@ def changelog_ref(product_name: str) -> str:
 #
 # . Arguments
 #   product_name  Value consumed by this function; see the typed Python signature for its contract.
+# . Usage
+#   install_ref(<product_name>)
 def install_ref(product_name: str) -> str:
     return f"{INSTALL_PREFIX}{product_name}"
 
@@ -299,6 +329,8 @@ def install_ref(product_name: str) -> str:
 #
 # . Arguments
 #   ref  Value consumed by this function; see the typed Python signature for its contract.
+# . Usage
+#   page_href_from_contentref(<ref>)
 def page_href_from_contentref(ref: str) -> str:
     return f"pages/{slugify(ref)}.html"
 
@@ -309,6 +341,8 @@ def page_href_from_contentref(ref: str) -> str:
 #
 # . Arguments
 #   node_type  Value consumed by this function; see the typed Python signature for its contract.
+# . Usage
+#   is_item_node(<node_type>)
 def is_item_node(node_type: str) -> bool:
     return node_type in {"function", "class", "variable", "general documentation"}
 
@@ -320,6 +354,8 @@ def is_item_node(node_type: str) -> bool:
 # . Arguments
 #   name  Value consumed by this function; see the typed Python signature for its contract.
 #   title  Value consumed by this function; see the typed Python signature for its contract.
+# . Usage
+#   display_name_with_title(<name>, <title>)
 def display_name_with_title(name: str, title: str) -> str:
     clean_name = name or ""
     clean_title = title or ""
@@ -384,6 +420,8 @@ class DocRenderer:
     # . Arguments
     #   input_dir  Value consumed by this function; see the typed Python signature for its contract.
     #   output_dir  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.__init__(<input_dir>, <output_dir>)
     def __init__(self, input_dir: Path, output_dir: Path) -> None:
         self.input_dir = input_dir
         self.output_dir = output_dir
@@ -412,6 +450,8 @@ class DocRenderer:
     # fn: run - Run
     # . Purpose
     #   Run for the documentation rendering workflow.
+    # . Usage
+    #   self.run()
     def run(self) -> None:
         self.load_input()
         self.prepare_output()
@@ -425,6 +465,8 @@ class DocRenderer:
     # fn: load_input - Load input
     # . Purpose
     #   Load input for the documentation rendering workflow.
+    # . Usage
+    #   self.load_input()
     def load_input(self) -> None:
         self.mod_table = read_psv(self.input_dir / "mod_table.psv")
         self.mod_sections = read_psv(self.input_dir / "mod_sections.psv")
@@ -439,6 +481,8 @@ class DocRenderer:
     # fn: prepare_output - Prepare output
     # . Purpose
     #   Prepare output for the documentation rendering workflow.
+    # . Usage
+    #   self.prepare_output()
     def prepare_output(self) -> None:
         clean_output = self.config.get("FLAG_CLEAN_OUTPUT", "1") == "1"
 
@@ -452,6 +496,8 @@ class DocRenderer:
     # fn: init_metadata - Initialize metadata
     # . Purpose
     #   Initialize metadata for the documentation rendering workflow.
+    # . Usage
+    #   self.init_metadata()
     def init_metadata(self) -> None:
         self.doc_title = self.config.get("VAL_DOCUMENT_TITLE", "SolidGroundUX Documentation")
         self.doc_subtitle = self.config.get("VAL_DOCUMENT_SUBTITLE", "")
@@ -466,6 +512,8 @@ class DocRenderer:
     # fn: build_doc_hierarchy - Build doc hierarchy
     # . Purpose
     #   Build doc hierarchy for the documentation rendering workflow.
+    # . Usage
+    #   self.build_doc_hierarchy()
     def build_doc_hierarchy(self) -> None:
         self.nav = []
 
@@ -714,6 +762,8 @@ class DocRenderer:
     # fn: modules_by_product - Modules by product
     # . Purpose
     #   Modules by product for the documentation rendering workflow.
+    # . Usage
+    #   self.modules_by_product()
     def modules_by_product(self) -> Dict[str, List[Row]]:
         result: Dict[str, List[Row]] = defaultdict(list)
 
@@ -733,6 +783,8 @@ class DocRenderer:
     # . Arguments
     #   product_name  Value consumed by this function; see the typed Python signature for its contract.
     #   modules  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.split_special_comment_modules(<product_name>, <modules>)
     def split_special_comment_modules(
         self,
         product_name: str,
@@ -785,6 +837,8 @@ class DocRenderer:
     # . Arguments
     #   module_key  Value consumed by this function; see the typed Python signature for its contract.
     #   product_key  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.product_comment_role(<module_key>, <product_key>)
     def product_comment_role(self, module_key: str, product_key: str) -> str:
         pre_names = {
             f"{product_key}_pref_comment",
@@ -814,6 +868,8 @@ class DocRenderer:
     # . Arguments
     #   module_key  Value consumed by this function; see the typed Python signature for its contract.
     #   group_key  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.group_comment_role(<module_key>, <group_key>)
     def group_comment_role(self, module_key: str, group_key: str) -> str:
         pre_names = {
             f"{group_key}_comment",
@@ -843,6 +899,8 @@ class DocRenderer:
     #   module_key  Value consumed by this function; see the typed Python signature for its contract.
     #   subgroup_key  Value consumed by this function; see the typed Python signature for its contract.
     #   purpose  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.subgroup_comment_role(<module_key>, <subgroup_key>, <purpose>)
     def subgroup_comment_role(self, module_key: str, subgroup_key: str, purpose: str = "") -> str:
         purpose_key = normalize_key(purpose)
         if purpose_key == "subgroup_preface":
@@ -878,6 +936,8 @@ class DocRenderer:
     #   docindex  Value consumed by this function; see the typed Python signature for its contract.
     #   fallback_name  Value consumed by this function; see the typed Python signature for its contract.
     #   nodetype  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.add_standalone_doc_node(<module>, <parent_node_id>, <hierarchy_level>, <docindex>, <fallback_name>, <nodetype>)
     def add_standalone_doc_node(
         self,
         module: Row,
@@ -910,6 +970,8 @@ class DocRenderer:
     #
     # . Arguments
     #   module  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.is_template_module(<module>)
     def is_template_module(self, module: Row) -> bool:
         source_file = Path(module.get("file", "") or "").name
         return "template" in source_file.casefold()
@@ -921,6 +983,8 @@ class DocRenderer:
     # . Arguments
     #   module  Value consumed by this function; see the typed Python signature for its contract.
     #   item  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.should_render_item(<module>, <item>)
     def should_render_item(self, module: Row, item: Row) -> bool:
         # ':' items are always documented. '$' items describe template scaffolding
         # and are documented only when the source script itself is a template.
@@ -935,6 +999,8 @@ class DocRenderer:
     #
     # . Arguments
     #   section  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.section_key(<section>)
     def section_key(self, section: Row) -> tuple[str, str, str]:
         return (
             section.get("section", ""),
@@ -948,6 +1014,8 @@ class DocRenderer:
     #
     # . Arguments
     #   section  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.section_level(<section>)
     def section_level(self, section: Row) -> int:
         try:
             return int(section.get("level", "1") or "1")
@@ -961,6 +1029,8 @@ class DocRenderer:
     # . Arguments
     #   parent_section  Value consumed by this function; see the typed Python signature for its contract.
     #   child_section  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.is_direct_child_section(<parent_section>, <child_section>)
     def is_direct_child_section(self, parent_section: Row, child_section: Row) -> bool:
         parent_name = parent_section.get("section", "")
         parent_parent = parent_section.get("parent", "")
@@ -983,6 +1053,8 @@ class DocRenderer:
     # . Arguments
     #   module_name  Value consumed by this function; see the typed Python signature for its contract.
     #   section  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.section_has_body_content(<module_name>, <section>)
     def section_has_body_content(self, module_name: str, section: Row) -> bool:
         section_name = section.get("section", "")
         parent_section = section.get("parent", "")
@@ -1014,6 +1086,8 @@ class DocRenderer:
     #   module  Value consumed by this function; see the typed Python signature for its contract.
     #   section  Value consumed by this function; see the typed Python signature for its contract.
     #   module_items  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.section_has_visible_direct_items(<module>, <section>, <module_items>)
     def section_has_visible_direct_items(self, module: Row, section: Row, module_items: List[Row]) -> bool:
         section_name = section.get("section", "")
         parent_section = section.get("parent", "")
@@ -1041,6 +1115,8 @@ class DocRenderer:
     #   module_sections  Value consumed by this function; see the typed Python signature for its contract.
     #   module_items  Value consumed by this function; see the typed Python signature for its contract.
     #   cache  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.should_render_section(<module>, <section>, <module_sections>, <module_items>, <cache>)
     def should_render_section(
         self,
         module: Row,
@@ -1086,6 +1162,8 @@ class DocRenderer:
     #   module_docindex  Value consumed by this function; see the typed Python signature for its contract.
     #   section_rows  Value consumed by this function; see the typed Python signature for its contract.
     #   item_rows  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.add_module_node(<module>, <parent_node_id>, <hierarchy_level>, <module_docindex>, <section_rows>, <item_rows>)
     def add_module_node(
         self,
         module: Row,
@@ -1225,6 +1303,8 @@ class DocRenderer:
     # fn: build_content_index - Build content index
     # . Purpose
     #   Build content index for the documentation rendering workflow.
+    # . Usage
+    #   self.build_content_index()
     def build_content_index(self) -> None:
         rows = sorted(
             self.doc_content_lines,
@@ -1246,6 +1326,8 @@ class DocRenderer:
     # fn: render_assets - Render assets
     # . Purpose
     #   Render assets for the documentation rendering workflow.
+    # . Usage
+    #   self.render_assets()
     def render_assets(self) -> None:
         self.render_layout_css()
         self.ensure_theme_css()
@@ -1254,6 +1336,8 @@ class DocRenderer:
     # fn: copy_branding_assets - Copy branding assets
     # . Purpose
     #   Copy optional documentation branding images into the generated site.
+    # . Usage
+    #   self.copy_branding_assets()
     def copy_branding_assets(self) -> None:
         """Copy optional documentation branding images into the generated site."""
         branding_dir = self.asset_dir / "branding"
@@ -1284,12 +1368,16 @@ class DocRenderer:
     #
     # . Arguments
     #   name  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.branding_asset_exists(<name>)
     def branding_asset_exists(self, name: str) -> bool:
         return (self.asset_dir / "branding" / name).is_file()
 
     # fn: render_page_branding - Render page branding
     # . Purpose
     #   Render the compact SolidGroundUX identity used on documentation pages.
+    # . Usage
+    #   self.render_page_branding()
     def render_page_branding(self) -> str:
         """Render the compact SolidGroundUX identity used on documentation pages."""
         if not self.branding_asset_exists(DOC_HEADER_LOGO):
@@ -1305,6 +1393,8 @@ class DocRenderer:
     # fn: render_nav_branding - Render nav branding
     # . Purpose
     #   Render the Testadura publisher identity above the navigation index.
+    # . Usage
+    #   self.render_nav_branding()
     def render_nav_branding(self) -> str:
         """Render the Testadura publisher identity above the navigation index."""
         if not self.branding_asset_exists(DOC_INDEX_LOGO):
@@ -1326,6 +1416,8 @@ class DocRenderer:
     #
     # . Arguments
     #   module  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.is_theme_module(<module>)
     def is_theme_module(self, module: Row) -> bool:
         """Return True for numbered SolidGroundUX semantic style modules."""
         source_name = Path(module.get("file", "") or module.get("name", "")).name
@@ -1342,6 +1434,8 @@ class DocRenderer:
     #
     # . Arguments
     #   path  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.parse_shell_assignments(<path>)
     def parse_shell_assignments(self, path: Path) -> Dict[str, str]:
         """Read simple top-level shell assignments without executing the file."""
         assignments: Dict[str, str] = {}
@@ -1368,6 +1462,8 @@ class DocRenderer:
     #
     # . Arguments
     #   value  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.strip_shell_inline_comment(<value>)
     def strip_shell_inline_comment(self, value: str) -> str:
         """Strip an unquoted shell comment from an assignment value."""
         single = False
@@ -1403,6 +1499,8 @@ class DocRenderer:
     #
     # . Arguments
     #   index  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.xterm_256_rgb(<index>)
     def xterm_256_rgb(self, index: int) -> Tuple[int, int, int]:
         """Convert an xterm 256-color index to an RGB tuple."""
         basic = (
@@ -1435,6 +1533,8 @@ class DocRenderer:
     #
     # . Arguments
     #   value  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.parse_sgr_color(<value>)
     def parse_sgr_color(self, value: str) -> str:
         """Extract a CSS foreground color from a literal SGR assignment."""
         rgb_match = re.search(r"38;2;(\d+);(\d+);(\d+)m", value)
@@ -1458,6 +1558,8 @@ class DocRenderer:
     #   assignments  Value consumed by this function; see the typed Python signature for its contract.
     #   palette  Value consumed by this function; see the typed Python signature for its contract.
     #   seen  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.resolve_theme_style(<variable_name>, <assignments>, <palette>, <seen>)
     def resolve_theme_style(
         self,
         variable_name: str,
@@ -1508,6 +1610,8 @@ class DocRenderer:
     #   effect_name  Value consumed by this function; see the typed Python signature for its contract.
     #   assignments  Value consumed by this function; see the typed Python signature for its contract.
     #   palette  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.apply_theme_effect(<style>, <effect_name>, <assignments>, <palette>)
     def apply_theme_effect(
         self,
         style: Dict[str, str],
@@ -1535,6 +1639,8 @@ class DocRenderer:
     #
     # . Arguments
     #   style  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.css_style_attr(<style>)
     def css_style_attr(self, style: Dict[str, str]) -> str:
         if not style:
             return ""
@@ -1550,6 +1656,8 @@ class DocRenderer:
     #   assignments  Value consumed by this function; see the typed Python signature for its contract.
     #   palette  Value consumed by this function; see the typed Python signature for its contract.
     #   sample_text  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.theme_sample(<label>, <variable_name>, <assignments>, <palette>, <sample_text>)
     def theme_sample(
         self,
         label: str,
@@ -1581,6 +1689,8 @@ class DocRenderer:
     #   right_variable  Value consumed by this function; see the typed Python signature for its contract.
     #   assignments  Value consumed by this function; see the typed Python signature for its contract.
     #   palette  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.theme_pair(<left_label>, <left_variable>, <right_label>, <right_variable>, <assignments>, <palette>)
     def theme_pair(
         self,
         left_label: str,
@@ -1607,6 +1717,8 @@ class DocRenderer:
     #
     # . Arguments
     #   module  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.render_theme_specimen(<module>)
     def render_theme_specimen(self, module: Row) -> str:
         """Render a live HTML specimen derived from a SolidGroundUX style file."""
         source_file = Path(module.get("file", "") or "")
@@ -1735,6 +1847,8 @@ class DocRenderer:
     # fn: render_layout_css - Render layout css
     # . Purpose
     #   Render layout css for the documentation rendering workflow.
+    # . Usage
+    #   self.render_layout_css()
     def render_layout_css(self) -> None:
         css_file = self.asset_dir / "doc.css"
         css_file.write_text("""html, body {
@@ -2144,6 +2258,8 @@ body {
     # fn: ensure_theme_css - Ensure theme css
     # . Purpose
     #   Ensure theme css for the documentation rendering workflow.
+    # . Usage
+    #   self.ensure_theme_css()
     def ensure_theme_css(self) -> None:
         theme_file = self.asset_dir / "theme.css"
 
@@ -2155,6 +2271,8 @@ body {
     # fn: default_theme_css - Provide default theme css
     # . Purpose
     #   Provide default theme css for the documentation rendering workflow.
+    # . Usage
+    #   self.default_theme_css()
     def default_theme_css(self) -> str:
         return """:root {
     --doc-page-background: #ffffff;
@@ -2392,6 +2510,8 @@ body {
     # . Arguments
     #   ref  Value consumed by this function; see the typed Python signature for its contract.
     #   fallback  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.title_from_rows(<ref>, <fallback>)
     def title_from_rows(self, ref: str, fallback: str) -> str:
         for row in self.content_by_ref.get(ref, []):
             if row.get("suppress", "0") == "1":
@@ -2404,6 +2524,8 @@ body {
     # fn: regular_module_rows - Regular module rows
     # . Purpose
     #   Regular module rows for the documentation rendering workflow.
+    # . Usage
+    #   self.regular_module_rows()
     def regular_module_rows(self) -> List[Row]:
         rows: List[Row] = []
 
@@ -2422,6 +2544,8 @@ body {
     #
     # . Arguments
     #   source_path  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.count_source_lines(<source_path>)
     def count_source_lines(self, source_path: str) -> tuple[int, int]:
         if not source_path:
             return (0, 0)
@@ -2451,6 +2575,8 @@ body {
     # fn: collect_landing_summary - Collect landing summary
     # . Purpose
     #   Collect landing summary for the documentation rendering workflow.
+    # . Usage
+    #   self.collect_landing_summary()
     def collect_landing_summary(self) -> Dict[str, int]:
         module_rows = self.regular_module_rows()
         source_files = {row.get("file", "") for row in module_rows if row.get("file", "")}
@@ -2482,6 +2608,8 @@ body {
     # fn: render_landing_summary - Render landing summary
     # . Purpose
     #   Render landing summary for the documentation rendering workflow.
+    # . Usage
+    #   self.render_landing_summary()
     def render_landing_summary(self) -> str:
         summary = self.collect_landing_summary()
 
@@ -2515,6 +2643,8 @@ body {
     # fn: render_title_page - Render title page
     # . Purpose
     #   Render title page for the documentation rendering workflow.
+    # . Usage
+    #   self.render_title_page()
     def render_title_page(self) -> None:
         output_file = self.page_dir / "title.html"
         output_file.parent.mkdir(parents=True, exist_ok=True)
@@ -2569,6 +2699,8 @@ body {
     # fn: render_index_page - Render index page
     # . Purpose
     #   Render index page for the documentation rendering workflow.
+    # . Usage
+    #   self.render_index_page()
     def render_index_page(self) -> None:
         first_page = "pages/title.html"
         index_file = self.output_dir / "index.html"
@@ -2602,6 +2734,8 @@ body {
     #
     # . Arguments
     #   ref  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.is_appendix_ref(<ref>)
     def is_appendix_ref(self, ref: str) -> bool:
         return any(ref.startswith(prefix) for prefix in (
             CANONICAL_PREFIX,
@@ -2621,12 +2755,16 @@ body {
     #
     # . Arguments
     #   ref  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.has_renderable_page(<ref>)
     def has_renderable_page(self, ref: str) -> bool:
         return self.is_appendix_ref(ref) or ref in self.content_by_ref
     
     # fn: render_navigation - Render navigation
     # . Purpose
     #   Render navigation for the documentation rendering workflow.
+    # . Usage
+    #   self.render_navigation()
     def render_navigation(self) -> str:
         lines: List[str] = []
         open_detail_levels: List[int] = []
@@ -2692,6 +2830,8 @@ body {
     # fn: get_first_item_page - Get first item page
     # . Purpose
     #   Get first item page for the documentation rendering workflow.
+    # . Usage
+    #   self.get_first_item_page()
     def get_first_item_page(self) -> str:
         for node in self.nav:
             if node.contentref and node.contentref in self.content_by_ref:
@@ -2706,6 +2846,8 @@ body {
     # fn: render_content_pages - Render content pages
     # . Purpose
     #   Render content pages for the documentation rendering workflow.
+    # . Usage
+    #   self.render_content_pages()
     def render_content_pages(self) -> None:
         rendered_refs: set[str] = set()
 
@@ -2738,6 +2880,8 @@ body {
     #
     # . Arguments
     #   product_name  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.render_attribution_page(<product_name>)
     def render_attribution_page(self, product_name: str) -> None:
         ref = attribution_ref(product_name)
         href = page_href_from_contentref(ref)
@@ -2776,6 +2920,8 @@ body {
     #
     # . Arguments
     #   product_name  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.render_attribution_body(<product_name>)
     def render_attribution_body(self, product_name: str) -> str:
         modules_by_name: Dict[str, Row] = {
             module.get("name", ""): module
@@ -2857,6 +3003,8 @@ body {
     #
     # . Arguments
     #   product_name  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.render_glossary_page(<product_name>)
     def render_glossary_page(self, product_name: str) -> None:
         ref = glossary_ref(product_name)
         href = page_href_from_contentref(ref)
@@ -2895,6 +3043,8 @@ body {
     #
     # . Arguments
     #   product_name  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.render_glossary_body(<product_name>)
     def render_glossary_body(self, product_name: str) -> str:
         function_rows = self.collect_glossary_rows(product_name, "function")
         variable_rows = self.collect_glossary_rows(product_name, "variable")
@@ -2914,6 +3064,8 @@ body {
     # . Arguments
     #   product_name  Value consumed by this function; see the typed Python signature for its contract.
     #   item_type  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.collect_glossary_rows(<product_name>, <item_type>)
     def collect_glossary_rows(self, product_name: str, item_type: str) -> List[Row]:
         modules_by_name: Dict[str, Row] = {
             module.get("name", ""): module
@@ -2963,6 +3115,8 @@ body {
     #
     # . Arguments
     #   ref  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.extract_item_purpose(<ref>)
     def extract_item_purpose(self, ref: str) -> str:
         rows = self.content_by_ref.get(ref, [])
 
@@ -3014,6 +3168,8 @@ body {
     #   title  Value consumed by this function; see the typed Python signature for its contract.
     #   name_header  Value consumed by this function; see the typed Python signature for its contract.
     #   rows  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.render_glossary_table(<title>, <name_header>, <rows>)
     def render_glossary_table(self, title: str, name_header: str, rows: List[Row]) -> str:
         lines: List[str] = [
             '<section class="doc-glossary-block">',
@@ -3056,6 +3212,8 @@ body {
     #
     # . Arguments
     #   product_name  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.render_integrity_page(<product_name>)
     def render_integrity_page(self, product_name: str) -> None:
         ref = integrity_ref(product_name)
         href = page_href_from_contentref(ref)
@@ -3094,6 +3252,8 @@ body {
     #
     # . Arguments
     #   product_name  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.render_integrity_body(<product_name>)
     def render_integrity_body(self, product_name: str) -> str:
         rows: List[Row] = []
 
@@ -3153,6 +3313,8 @@ body {
     #
     # . Arguments
     #   product_name  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.render_license_page(<product_name>)
     def render_license_page(self, product_name: str) -> None:
         ref = license_ref(product_name)
         href = page_href_from_contentref(ref)
@@ -3188,6 +3350,8 @@ body {
     # fn: render_license_body - Render license body
     # . Purpose
     #   Render license body for the documentation rendering workflow.
+    # . Usage
+    #   self.render_license_body()
     def render_license_body(self) -> str:
         lines: List[str] = [
             '<div class="ct-documentbody">This appendix contains the active SolidGroundUX license text exported by the Bash renderer hand-off.</div>',
@@ -3209,6 +3373,8 @@ body {
     #
     # . Arguments
     #   product_name  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.render_enums_page(<product_name>)
     def render_enums_page(self, product_name: str) -> None:
         ref = enums_ref(product_name)
         href = page_href_from_contentref(ref)
@@ -3244,6 +3410,8 @@ body {
     # fn: render_enums_body - Render enums body
     # . Purpose
     #   Render enums body for the documentation rendering workflow.
+    # . Usage
+    #   self.render_enums_body()
     def render_enums_body(self) -> str:
         grouped: Dict[str, List[Row]] = defaultdict(list)
 
@@ -3293,6 +3461,8 @@ body {
     #
     # . Arguments
     #   product_name  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.render_globals_page(<product_name>)
     def render_globals_page(self, product_name: str) -> None:
         ref = globals_ref(product_name)
         href = page_href_from_contentref(ref)
@@ -3331,6 +3501,8 @@ body {
     #
     # . Arguments
     #   product_name  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.render_globals_body(<product_name>)
     def render_globals_body(self, product_name: str) -> str:
         modules_by_name: Dict[str, Row] = {
             module.get("name", ""): module
@@ -3387,6 +3559,8 @@ body {
     # . Arguments
     #   title  Value consumed by this function; see the typed Python signature for its contract.
     #   rows  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.render_globals_table(<title>, <rows>)
     def render_globals_table(self, title: str, rows: List[Row]) -> str:
         lines: List[str] = [
             '<section class="doc-globals-block">',
@@ -3441,6 +3615,8 @@ body {
     #
     # . Arguments
     #   candidates  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.read_optional_project_document(<candidates>)
     def read_optional_project_document(self, candidates: Sequence[str]) -> tuple[str, str]:
         for name in candidates:
             path = self.input_dir / name
@@ -3454,6 +3630,8 @@ body {
     #
     # . Arguments
     #   markdown_text  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.render_markdown_document(<markdown_text>)
     def render_markdown_document(self, markdown_text: str) -> str:
         if not markdown_text.strip():
             return ""
@@ -3467,6 +3645,8 @@ body {
         # fn: flush_paragraph - Flush paragraph
         # . Purpose
         #   Flush paragraph for the documentation rendering workflow.
+        # . Usage
+        #   self.flush_paragraph()
         def flush_paragraph() -> None:
             if paragraph:
                 lines.append(f'<p class="ct-documentbody">{esc(" ".join(paragraph))}</p>')
@@ -3475,6 +3655,8 @@ body {
         # fn: close_list - Close list
         # . Purpose
         #   Close list for the documentation rendering workflow.
+        # . Usage
+        #   self.close_list()
         def close_list() -> None:
             nonlocal list_type
             if list_type:
@@ -3544,6 +3726,8 @@ body {
     #   letter  Value consumed by this function; see the typed Python signature for its contract.
     #   title  Value consumed by this function; see the typed Python signature for its contract.
     #   candidates  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.render_project_document_page(<product_name>, <ref>, <letter>, <title>, <candidates>)
     def render_project_document_page(
         self,
         product_name: str,
@@ -3593,6 +3777,8 @@ body {
     #
     # . Arguments
     #   product_name  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.render_canonical_page(<product_name>)
     def render_canonical_page(self, product_name: str) -> None:
         self.render_project_document_page(
             product_name,
@@ -3612,6 +3798,8 @@ body {
     #
     # . Arguments
     #   product_name  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.render_changelog_page(<product_name>)
     def render_changelog_page(self, product_name: str) -> None:
         self.render_project_document_page(
             product_name,
@@ -3627,6 +3815,8 @@ body {
     #
     # . Arguments
     #   product_name  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.render_install_page(<product_name>)
     def render_install_page(self, product_name: str) -> None:
         self.render_project_document_page(
             product_name,
@@ -3642,6 +3832,8 @@ body {
     #
     # . Arguments
     #   node  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.render_content_page(<node>)
     def render_content_page(self, node: NavNode) -> None:
         href = page_href_from_contentref(node.contentref)
         output_file = self.output_dir / href
@@ -3701,6 +3893,8 @@ body {
     # . Arguments
     #   ref  Value consumed by this function; see the typed Python signature for its contract.
     #   rows  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.render_content_page_for_ref(<ref>, <rows>)
     def render_content_page_for_ref(self, ref: str, rows: List[Row]) -> None:
         href = page_href_from_contentref(ref)
         output_file = self.output_dir / href
@@ -3745,6 +3939,8 @@ body {
     #
     # . Arguments
     #   ref  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.breadcrumb_from_contentref(<ref>)
     def breadcrumb_from_contentref(self, ref: str) -> str:
         parts = ref.split(":")
         while len(parts) < 5:
@@ -3769,6 +3965,8 @@ body {
     #
     # . Arguments
     #   node  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.is_module_level_special_page(<node>)
     def is_module_level_special_page(self, node: NavNode) -> bool:
         if node.nodetype not in {"preface", "epilogue", "documentation"}:
             return False
@@ -3786,6 +3984,8 @@ body {
     # . Arguments
     #   module_name  Value consumed by this function; see the typed Python signature for its contract.
     #   skip_first_header  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.render_module_content(<module_name>, <skip_first_header>)
     def render_module_content(self, module_name: str, skip_first_header: bool = False) -> str:
         rows = sorted(
             [row for row in self.doc_content_lines if row.get("file", "") == module_name],
@@ -3803,6 +4003,8 @@ body {
     #
     # . Arguments
     #   row  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.is_images_marker(<row>)
     def is_images_marker(self, row: Row) -> bool:
         if (row.get("content", "") or "").strip().casefold() not in {"image", "images"}:
             return False
@@ -3814,6 +4016,8 @@ body {
     #
     # . Arguments
     #   value  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.parse_image_entry(<value>)
     def parse_image_entry(self, value: str) -> tuple[str, str]:
         text = (value or "").strip()
 
@@ -3829,6 +4033,8 @@ body {
     #
     # . Arguments
     #   source  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.image_source(<source>)
     def image_source(self, source: str) -> str:
         clean_source = source.strip().replace("\\", "/")
         if re.match(r"^(?:https?:|data:|/)" , clean_source, flags=re.IGNORECASE):
@@ -3843,6 +4049,8 @@ body {
     #
     # . Arguments
     #   entries  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.render_image_group(<entries>)
     def render_image_group(self, entries: Sequence[tuple[str, str]]) -> str:
         valid_entries = [(source, caption) for source, caption in entries if source]
         if not valid_entries:
@@ -3870,6 +4078,8 @@ body {
     #
     # . Arguments
     #   row  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.is_flowing_prose_row(<row>)
     def is_flowing_prose_row(self, row: Row) -> bool:
         """Return True when a row may be reflowed into a logical paragraph."""
         if row.get("suppress", "0") == "1":
@@ -3905,6 +4115,8 @@ body {
     # . Arguments
     #   rows  Value consumed by this function; see the typed Python signature for its contract.
     #   skip_first_header  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.render_rows(<rows>, <skip_first_header>)
     def render_rows(self, rows: Sequence[Row], skip_first_header: bool = False) -> str:
         lines: List[str] = []
         skipped_first_header = False
@@ -3995,6 +4207,8 @@ body {
     # . Arguments
     #   ref  Value consumed by this function; see the typed Python signature for its contract.
     #   skip_first_header  Value consumed by this function; see the typed Python signature for its contract.
+    # . Usage
+    #   self.render_content_for_ref(<ref>, <skip_first_header>)
     def render_content_for_ref(self, ref: str, skip_first_header: bool = False) -> str:
         return self.render_rows(self.content_by_ref.get(ref, []), skip_first_header=skip_first_header)
 
@@ -4005,6 +4219,8 @@ body {
 #
 # . Arguments
 #   argv  Value consumed by this function; see the typed Python signature for its contract.
+# . Usage
+#   main(<argv>)
 def main(argv: Sequence[str]) -> int:
     if len(argv) != 3:
         print("Usage: python3 sgnd_doc_renderer.py <input-dir> <output-dir>", file=sys.stderr)

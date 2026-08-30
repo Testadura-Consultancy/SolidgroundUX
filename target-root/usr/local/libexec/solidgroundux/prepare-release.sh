@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624102
-#   Checksum    : d17cf035880a7b343e0b34c4a1e4063216cef843f705a364a1cb46ec385f56ff
+#   Build       : 2624123
+#   Checksum    : bb0c8d27e76c067497b4833f0ffca225ec0f3fc07adffadf0432c682a63ef12e
 #   Source      : prepare-release.sh
 #   Type        : script
 #   Group       : SDK
@@ -296,6 +296,8 @@ set -uo pipefail
 
 # - Local script functions ----------------------------------------------------------
     # fn$ _release_resolve_project_identity - Resolve the authoritative project definitions
+        # . Usage
+        #   _release_resolve_project_identity "<script>"
     _release_resolve_project_identity() {
         local globals_dir="${SOURCE_DIR%/}/usr/local/lib/solidgroundux/globals"
         local file="" base="" slug="" key="" product_var="" version_var=""
@@ -341,6 +343,8 @@ set -uo pipefail
     }
 
     # fn$ _release_update_project_identity - Update version/build in the correct definitions file
+        # . Usage
+        #   _release_update_project_identity
     _release_update_project_identity() {
         local file="${PROJECT_DEFINITIONS_FILE:-}" key="${PROJECT_DEFINITIONS_KEY:-}"
         local version_var="" build_var="" checksum=""
@@ -369,6 +373,8 @@ set -uo pipefail
     }
 
     # fn$ _release_wrapper_name_for_script - Resolve wrapper metadata or conventional name
+        # . Usage
+        #   _release_wrapper_name_for_script "<script>"
     _release_wrapper_name_for_script() {
         local script="${1:-}" wrapper_name="" base=""
         if sgnd_header_get_field "$script" "Metadata" "Wrapper" wrapper_name 2>/dev/null; then
@@ -431,8 +437,6 @@ set -uo pipefail
         #   Collect prepare-release parameters.
         #
         # . Behavior
-        #   - Internal helper.
-        #   - Preserves existing script runtime behavior.
         #
         # . Returns
         #   Returns the underlying command or workflow status.
@@ -761,8 +765,6 @@ set -uo pipefail
         #   Write release checksum metadata for a file.
         #
         # . Behavior
-        #   - Public entry point.
-        #   - Preserves existing script runtime behavior.
         #
         # . Returns
         #   Returns the underlying command or workflow status.
@@ -925,8 +927,6 @@ set -uo pipefail
         #   Create the release tar archive.
         #
         # . Behavior
-        #   - Internal helper.
-        #   - Preserves existing script runtime behavior.
         #
         # . Returns
         #   Returns the underlying command or workflow status.
@@ -1102,6 +1102,8 @@ set -uo pipefail
         #
         # . Returns
         #   0 on success; non-zero on write failure.
+        # . Usage
+        #   _write_release_package_info "<destination>"
     _write_release_package_info() {
         local destination="${1:?missing destination}"
 

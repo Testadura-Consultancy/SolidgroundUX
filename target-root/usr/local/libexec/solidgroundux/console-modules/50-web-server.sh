@@ -3,7 +3,7 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624122
+#   Build       : 2624123
 #   Source      : 50-web-server.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -174,6 +174,8 @@ set -uo pipefail
     # fn: _web_server_save_state - Persist web-server module state
         # . Returns
         #   0 on success; non-zero when state cannot be saved.
+        # . Usage
+        #   _web_server_save_state
     _web_server_save_state() {
         command -v sgnd_state_save_keys >/dev/null 2>&1 || return 0
         mkdir -p "$(dirname -- "$SGND_WEB_SERVER_STATE_FILE")" || return 1
@@ -183,6 +185,8 @@ set -uo pipefail
     # fn: _web_server_installed_docs_root - Resolve the installed SolidGroundUX documentation path
         # . Output
         #   Writes the documentation directory belonging to the active framework root.
+        # . Usage
+        #   _web_server_installed_docs_root
     _web_server_installed_docs_root() {
         local framework_root="${SGND_FRAMEWORK_ROOT:-/}"
 
@@ -231,6 +235,8 @@ set -uo pipefail
     }
 
     # fn: _web_server_current_dns - Resolve the first configured non-loopback DNS server
+        # . Usage
+        #   _web_server_current_dns "<arg1>" "<dns>"
     _web_server_current_dns() {
         local dns=""
         if command -v resolvectl >/dev/null 2>&1; then
@@ -243,11 +249,15 @@ set -uo pipefail
     }
 
     # fn: _web_server_local_ipv4 - Resolve this server's primary IPv4 address
+        # . Usage
+        #   _web_server_local_ipv4
     _web_server_local_ipv4() {
         hostname -I 2>/dev/null | awk '{for (i=1; i<=NF; i++) if ($i ~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/ && $i !~ /^127\./) {print $i; exit}}'
     }
 
     # fn: _web_server_offer_dns_record - Optionally register an internal AD DNS A record
+        # . Usage
+        #   _web_server_offer_dns_record "<web_address>"
     _web_server_offer_dns_record() {
         local web_address="$1"
         local local_domain=""
@@ -964,6 +974,8 @@ EOF
 
 # - SolidGroundUX documentation ----------------------------------------------------
     # fn: _web_server_default_docs_address - Return a sensible documentation web address
+        # . Usage
+        #   _web_server_default_docs_address
     _web_server_default_docs_address() {
         local domain=""
         domain="$(hostname -d 2>/dev/null || true)"
@@ -977,6 +989,8 @@ EOF
     # fn: _web_server_configure_documentation_site - Configure the documentation web site
         # . Purpose
         #   Create or select the Nginx site used to publish SolidGroundUX documentation.
+        # . Usage
+        #   _web_server_configure_documentation_site "<existing_address>" "<existing_address>"
     _web_server_configure_documentation_site() {
         local site="${SGND_WEB_DOC_SITE:-SolidGroundUX-Documentation}"
         local address="${SGND_WEB_DOC_ADDRESS:-}"
@@ -1045,6 +1059,8 @@ EOF
         # . Purpose
         #   Publish documentation from the installed tree, a local/remote directory,
         #   or a GitHub repository into the configured documentation site.
+        # . Usage
+        #   _web_server_publish_documentation
     _web_server_publish_documentation() {
         local site="${SGND_WEB_DOC_SITE:-SolidGroundUX-Documentation}"
         local source_type="${SGND_WEB_DOC_SOURCE_TYPE:-Installed documentation}"
@@ -1164,6 +1180,8 @@ EOF
     }
 
     # fn: _web_server_documentation_status - Show documentation publishing status
+        # . Usage
+        #   _web_server_documentation_status "<address>" "<address>"
     _web_server_documentation_status() {
         local site="${SGND_WEB_DOC_SITE:-SolidGroundUX-Documentation}"
         local config_file="/etc/nginx/sites-available/${SGND_WEB_DOC_SITE:-SolidGroundUX-Documentation}"
@@ -1363,4 +1381,4 @@ EOF
     sgnd_menu_register_item "web-status" "web-service" "Show web-server status" "_web_server_status" "Show package, service, storage, listener, and site status" 0 15 1 0
 
     sayinfo "Web Server module registered with the console."
-#   Checksum : 7b5a7a7f3aaa68d1641d9a6788631798af0f9308ea35f3e31fc267311ab71d32
+#   Checksum : 687c35da400870c45fdc1c62efe6edb05def065ec0dcb35ca565c0bec85ef0ea

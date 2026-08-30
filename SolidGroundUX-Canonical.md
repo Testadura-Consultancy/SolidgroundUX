@@ -259,7 +259,7 @@ Console modules are discovered from:
 /usr/local/libexec/solidgroundux/console-modules/
 ```
 
-During development, installed paths MUST be derivable from `SGND_APPLICATION_ROOT` or the applicable framework root rather than hard-coded throughout the codebase.
+During development, installed paths MUST be derived from `SGND_FRAMEWORK_ROOT` rather than hard-coded throughout the codebase. The same installed-path contract therefore applies to `/` in production and to a staged `target-root` tree during development.
 
 ## 3.3 Ownership
 
@@ -282,14 +282,9 @@ Canonical configuration precedence is:
 3. system configuration;
 4. framework default.
 
-Canonical locations:
+Framework configuration MUST use the current framework configuration files resolved by bootstrap. The former application-root bootstrap configuration and `solidgroundux.cfg` first-run creation workflow are obsolete and MUST NOT be reintroduced.
 
-```text
-~/.config/solidgroundux/solidgroundux.cfg
-/etc/solidgroundux/solidgroundux.cfg
-```
-
-Configuration loading MUST be deterministic and documented.
+Configuration loading MUST be deterministic and documented. Executables MUST NOT require an application-root prompt merely to locate SolidGroundUX; `SGND_FRAMEWORK_ROOT` is derived from the executing path.
 
 ---
 
@@ -302,13 +297,12 @@ Executable scripts SHOULD use the following order:
 1. shebang;
 2. file header;
 3. shell options where applicable;
-4. immutable metadata;
-5. framework locator;
-6. framework imports;
-7. global declarations;
-8. function definitions;
-9. main routine;
-10. invocation of main.
+4. canonical framework locator;
+5. script identity and framework-integration metadata;
+6. local/global declarations;
+7. function definitions;
+8. main routine;
+9. invocation of main.
 
 Libraries SHOULD omit executable main flow unless designed to support direct execution.
 
@@ -330,6 +324,7 @@ Canonical pattern:
 
 ```bash
 main() {
+    _framework_locator || return $?
     sgnd_exe_start --state -- "$@" || return $?
 
     # Script logic.
@@ -345,15 +340,9 @@ exit $?
 
 Where framework initialization has stricter ordering requirements, that ordering is part of the contract.
 
-For the Management Studio, canonical initialization is:
+For the SolidGround Management Console, canonical initialization may add console-specific path or host initialization after `sgnd_exe_start`.
 
-```bash
-_framework_locator || exit $?
-sgnd_exe_start --state -- "$@"
-_sgnd_console_init_paths || exit $?
-```
-
-`SGND_APPLICATION_ROOT` MUST NOT be referenced during initial sourcing before the framework locator has established it.
+`SGND_FRAMEWORK_ROOT` MUST be established by `_framework_locator` before framework libraries are loaded. The former `SGND_FRAMEWORK_ROOT` bootstrap contract is obsolete.
 
 ## 4.4 Functions
 
@@ -461,7 +450,7 @@ Canonical examples:
 ```bash
 SGND_VERSION
 SGND_BUILD
-SGND_APPLICATION_ROOT
+SGND_FRAMEWORK_ROOT
 SGND_CONSOLE_WIDTH
 SGND_MAX_RENDER_WIDTH
 ```
@@ -507,17 +496,16 @@ Spaces in canonical script file names are prohibited.
 
 ## 6.1 Requirement
 
-Every non-trivial public function MUST have a canonical function header.
+Every documented function MUST have a canonical `fn:` or `fn$` marker and at least one `. Usage` example.
 
-Private functions SHOULD have either the full or short canonical header, depending on complexity.
+Public functions and non-trivial private functions SHOULD use the full canonical contract when their behavior warrants it. Simple private helpers SHOULD use a concise header rather than repeating boilerplate that adds no information.
 
-Headers are contracts, not decoration.
+Headers are contracts, not decoration. Comment size SHOULD be proportional to behavioral complexity.
 
 ## 6.2 Required Information
 
-A full function header SHOULD describe:
+A full function header SHOULD document only the contract information that materially helps a caller or maintainer, including as applicable:
 
-- function name;
 - purpose;
 - parameters;
 - output;
@@ -525,12 +513,15 @@ A full function header SHOULD describe:
 - side effects;
 - global variables read or modified;
 - dependencies;
-- concrete usage examples;
-- notes or constraints where necessary.
+- notes or constraints.
+
+A concise header MAY consist of the function marker, a short purpose, and `. Usage` when the function is self-explanatory and has no surprising contract.
+
+Every function header, full or concise, MUST contain at least one `. Usage` example.
 
 ## 6.3 Usage Examples
 
-Each function header MUST include at least one concrete, informative example.
+Each function header MUST include exactly one or more concrete, informative `. Usage` examples; at least one is mandatory.
 
 This is insufficient:
 
@@ -560,18 +551,18 @@ A stale comment is a defect.
 
 ## 7.1 Standard Arguments
 
-Framework-supported arguments SHOULD be used consistently, including:
+Framework-supported built-ins MUST use their canonical semantics. Current built-ins include execution/state and presentation controls such as:
 
 ```text
---state
---autostate
---needroot
---cannotroot
---log
---console
+--dryrun
+--commit
+--auto
+--resetstate
+--title
+--no-title
 ```
 
-Applications MAY add their own arguments but MUST NOT redefine standard argument semantics.
+Additional built-ins MAY be provided by bootstrap. Applications MAY add their own arguments but MUST NOT redefine framework argument semantics.
 
 ## 7.2 Root Requirements
 
@@ -590,6 +581,8 @@ Unknown arguments MUST produce:
 - and, where useful, concise usage guidance.
 
 Unknown arguments MUST NOT be silently ignored.
+
+Framework built-ins and script-specific options MAY be freely intermixed before the standard `--` end-of-options marker. Recognized framework built-ins are extracted without reordering or discarding the remaining script arguments. Everything after `--` is positional data and MUST remain untouched.
 
 ## 7.4 Dry Run
 
@@ -710,7 +703,7 @@ Debug logging MUST NOT materially alter behaviour.
 
 Persisted state MUST be deliberate.
 
-Variables intended for state persistence SHOULD be declared through `SGND_STATE_VARIABLES` or the current canonical state mechanism.
+Variables intended for state persistence SHOULD be declared through `SGND_STATE_VARIABLES` or the current canonical state mechanism. Standalone bootstrap/recovery tools that cannot depend on the framework MAY use a small explicit state file, provided its schema and precedence are deterministic.
 
 A script MUST NOT persist every variable merely because persistence is available.
 
@@ -736,7 +729,9 @@ Invalid or obsolete state MUST fail safely and SHOULD produce actionable guidanc
 
 ## 11.1 Visual Consistency
 
-UI primitives MUST use theme variables rather than hard-coded escape sequences.
+Framework UI primitives MUST use theme variables rather than hard-coded escape sequences.
+
+A standalone bootstrap/recovery tool MAY carry a small design-time fallback palette based on the SolidGroundUX default theme when the framework is unavailable. When a healthy framework is available, it SHOULD prefer the normal framework UI primitives and active theme.
 
 Canonical style globals include:
 
@@ -922,7 +917,7 @@ The canonical module directory is:
 /usr/local/libexec/solidgroundux/console-modules/
 ```
 
-In development, the equivalent path MUST derive from the applicable application root.
+In development, the equivalent path MUST derive from `SGND_FRAMEWORK_ROOT`.
 
 Page visibility MAY be persisted independently of module discovery. Root-only management controls MAY edit this state, but hidden modules MUST remain discoverable to the visibility manager so they can be re-enabled.
 
@@ -1018,7 +1013,7 @@ It SHOULD include:
 - removal of SSH host keys where the deployment flow requires regeneration;
 - explicit reporting of what the clone must do next.
 
-First-boot services SHOULD NOT be retained when the Management Studio provides an explicit and reliable post-clone workflow.
+First-boot services SHOULD NOT be retained when the SolidGround Management Console provides an explicit and reliable post-clone workflow.
 
 ---
 
@@ -1067,62 +1062,105 @@ The script SHOULD distinguish between:
 
 ## 16.1 Canonical Release Manager
 
-`release-manager.sh` is the canonical SolidGroundUX installation and release-lifecycle tool.
+`release-manager.sh` is the canonical installation and release-lifecycle tool for SolidGroundUX packages.
 
 Separate legacy installer, updater, and uninstaller commands MUST NOT be documented as current interfaces once their responsibilities have been absorbed by the Release Manager.
 
-Prepared releases are produced by `prepare-release` and consumed by `release-manager`.
+Prepared release packages are produced by `prepare-release.sh` and consumed by `release-manager.sh`.
 
-## 16.2 Integrity
+The Release Manager MUST remain usable when SolidGroundUX is not yet installed or is damaged. Its release engine therefore MUST NOT depend on a working framework runtime.
 
-Releases SHOULD include manifest or checksum verification.
+## 16.2 Release Package Contract
 
-Installation MUST stop when integrity verification fails.
+Every distributable package MUST contain a `release-package.info` shipping label identifying at least:
 
-## 16.3 Existing Directories
+```text
+package format
+project
+product
+version
+build
+release
+```
+
+A package MUST also contain the complete release archive, manifest, removed manifest, and their checksum sidecars.
+
+SolidGroundUX framework packages MAY additionally contain a ZIP-root `release-manager.sh` bootstrap copy. Generic project packages SHOULD rely on an already installed Release Manager.
+
+The package identity file is transport metadata. The deployed project definitions file remains the authoritative runtime project identity.
+
+## 16.3 Bootstrap and Canonical Manager
+
+A ZIP-root Release Manager is a bootstrap runner, not the authoritative installed copy.
+
+On first installation:
+
+1. the bootstrap manager identifies and validates the adjacent package;
+2. the target root is resolved or explicitly confirmed;
+3. the package archive is installed;
+4. the installed tar establishes the canonical manager under `var/lib/solidgroundux`;
+5. the bootstrap copy MAY clean up its known temporary files.
+
+The running bootstrap or development copy MUST NOT overwrite the canonical manager merely because its pathname differs.
+
+## 16.4 Integrity
+
+Releases MUST include checksum verification for the archive, manifest, and removed manifest.
+
+Installation MUST stop when integrity or path-safety verification fails.
+
+## 16.5 Existing Directories
 
 Archive extraction MUST NOT overwrite ownership, mode, ACLs, or extended attributes of existing parent system directories unless the installer explicitly owns and manages those directories.
 
-## 16.4 Backups
+## 16.6 Operation Detection
 
-Upgrades SHOULD back up replaced configuration or application files where local changes may exist.
-
-Backup naming and location MUST be deterministic.
-
-## 16.5 Operation Detection
-
-The Release Manager SHOULD identify whether the operation is:
+The Release Manager SHOULD identify whether the selected action represents:
 
 - first installation;
-- repair;
-- reinstall;
-- upgrade;
-- downgrade.
+- repair or reinstall;
+- update;
+- downgrade or rollback;
+- removal.
 
-The operator SHOULD be informed when behaviour differs by mode.
+The operator SHOULD be informed when behavior differs by mode.
 
-## 16.6 Release Archives
+## 16.7 Project-Aware Filesystem State
 
-Release tooling MUST set canonical ownership and permissions before packaging.
+Release state is filesystem-based and project-aware.
 
-Packaging MUST not depend on the local developer account’s ownership being appropriate for installation.
-
-## 16.7 Filesystem-Based Release State
-
-Canonical release state is represented by the managed release artifacts themselves.
-
-The Release Manager uses:
+SolidGroundUX retains the canonical state locations:
 
 ```text
 /var/lib/solidgroundux/releases/
 /var/lib/solidgroundux/archive/
 ```
 
-Available prepared releases are retained beneath `releases/`. Installed release history is retained beneath `archive/`.
+Additional projects use:
 
-The release lifecycle SHOULD remain inspectable with ordinary filesystem tools rather than depending on a separate opaque current-version database.
+```text
+/var/lib/solidgroundux/projects/<project>/releases/
+/var/lib/solidgroundux/projects/<project>/archive/
+```
 
----
+The release lifecycle SHOULD remain inspectable with ordinary filesystem tools rather than depending on an opaque current-version database.
+
+Build output produced by `prepare-release.sh` belongs to the workspace release-output directory. It MUST NOT be copied into the target-root managed release-state directories merely as a side effect of preparing a release. A package enters managed `releases/` state when the Release Manager acquires or admits it.
+
+## 16.8 Interactive and Non-Interactive Operation
+
+Interactive Release Manager operation SHOULD present stateful parameter values as questions and release actions through a menu.
+
+Non-interactive action arguments such as check, download, update, install, rollback, and remove MUST dispatch the same underlying action functions used by the interactive menu.
+
+Explicit command-line values take precedence over stored parameter state. `--auto` MAY suppress questions and confirmations where the selected action already expresses informed intent.
+
+## 16.9 Standalone and Framework UI
+
+The Release Manager MUST always have a minimal standalone UI and fallback theme available.
+
+When a healthy SolidGroundUX framework exists at the selected target root, the manager MAY use the normal SolidGroundUX UI primitives and active theme. Failure to load the framework UI MUST fall back safely to the standalone implementation and MUST NOT prevent release recovery operations.
+
 
 # 17. Security
 
@@ -1157,7 +1195,7 @@ These are separate states and MUST NOT be conflated.
 
 SSH enablement and SSH key generation are separate operations.
 
-The Management Studio SHOULD expose them as separate actions.
+The SolidGround Management Console SHOULD expose them as separate actions.
 
 ---
 
@@ -1255,19 +1293,21 @@ An example using a non-existent command is a documentation defect.
 
 ## 20.1 Version
 
-Canonical display:
+Canonical framework display:
 
 ```text
 SGND_VERSION.SGND_BUILD
 ```
 
+Project-specific definitions MAY provide equivalent project-scoped Version and Build globals.
+
 Build identifiers MAY embed date or time information according to the release process.
 
 ## 20.2 Script Headers
 
-Release tooling SHOULD synchronize version metadata in changed script headers.
+Release tooling SHOULD synchronize version metadata in changed script headers and MUST update the authoritative project definitions file for the release identity being produced.
 
-An option MAY restrict header updates to changed files.
+An option MAY restrict per-script header updates to changed files.
 
 Unchanged files SHOULD NOT receive meaningless version churn unless the release policy explicitly requires a global version update.
 
@@ -1426,9 +1466,10 @@ A script or module is canonically aligned when the reviewer can answer **yes** t
 
 ## 24.3 Contracts
 
-- Do non-trivial functions have accurate headers?
-- Does each public function include a concrete usage example?
-- Are parameters, return values, side effects, and globals documented?
+- Do public and non-trivial functions have accurate contracts?
+- Do simple private helpers avoid unnecessary boilerplate?
+- Does every documented function include at least one concrete `. Usage` example?
+- Are parameters, return values, side effects, and globals documented where they materially affect the contract?
 
 ## 24.4 Behaviour
 

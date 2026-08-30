@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 2.1
 #   Build       : 2624102
-#   Checksum    : 81afee5a29410fc210ab345cdb4467c480a4f55a358af89d5e0f83b0aafcc6ad
+#   Checksum    : 88b9076342bf9db3afafd32aec03a07dc90261e709610f290d5a73c691c9d3eb
 #   Source      : ui.sh
 #   Type        : library
 #   Group       : UI
@@ -1242,6 +1242,10 @@ set -uo pipefail
         elif [[ -n "${SGND_SCRIPT_VERSION:-}" ]]; then
             left+=" (v. ${SGND_SCRIPT_VERSION})"
         fi
+        if [[ "${SGND_FRAMEWORK_ROOT:-/}" != "/" ]]; then
+            left+=" ${MSG_CLR_WARN}NON-ROOT${RESET}"
+        fi
+        
         local leftclr="${SGND_TITLE_TEXTCLR:-$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")}"
         local rightclr="${SGND_TITLE_RIGHTCLR:-${SGND_TITLE_TEXTCLR:-$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")}}"
         local sub="${SGND_SCRIPT_DESC:-""}"

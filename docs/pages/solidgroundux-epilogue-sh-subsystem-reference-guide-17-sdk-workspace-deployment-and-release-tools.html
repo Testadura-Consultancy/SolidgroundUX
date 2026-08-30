@@ -31,10 +31,11 @@
 <div class="ct-L2Sectionbody">    prepare-release -&gt; prepared release artifacts -&gt; release-manager</div>
 <div class="ct-L2Sectionbody"></div>
 <div class="ct-L2Sectionbody">    deploy-workspace.sh is a development/test transfer tool. prepare-release.sh</div>
-<div class="ct-L2Sectionbody">    creates complete release archives, manifests, removal manifests, and checksums.</div>
-<div class="ct-L2Sectionbody">    release-manager.sh is framework-independent and owns installation, update,</div>
-<div class="ct-L2Sectionbody">    rollback/reinstallation, download/check, and removal. Release state is represented</div>
-<div class="ct-L2Sectionbody">    by /var/lib/solidgroundux/releases and /var/lib/solidgroundux/archive.</div>
+<div class="ct-L2Sectionbody">    creates project-aware ZIP packages containing release-package.info plus complete</div>
+<div class="ct-L2Sectionbody">    release archives, manifests, removal manifests, and checksums. release-manager.sh</div>
+<div class="ct-L2Sectionbody">    owns package admission, check/download, installation, update, rollback/reinstall,</div>
+<div class="ct-L2Sectionbody">    and removal. SolidGroundUX keeps its legacy releases/archive locations; additional</div>
+<div class="ct-L2Sectionbody">    projects keep independent state beneath /var/lib/solidgroundux/projects/&lt;project&gt;.</div>
 </main>
 </body>
 </html>

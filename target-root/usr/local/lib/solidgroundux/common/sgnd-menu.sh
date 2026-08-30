@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624102
-#   Checksum    : d32d24fb2397ad0c2b7b50158d27cbcd82486f3033e4fd9fc15d46b0107cdb5b
+#   Build       : 2624123
+#   Checksum    : 075fb23de558465abbfafa1821b5404376108c931e60da4e2df8a26f28bf5943
 #   Source      : sgnd-menu.sh
 #   Group       : SolidGround Console
 #   Type        : library
@@ -745,6 +745,8 @@ set -uo pipefail
         #
         # . Output
         #   Numeric chapter identifier. Sources without a numeric prefix use chapter 0.
+        # . Usage
+        #   _sgnd_menu_module_chapter "<source>"
     _sgnd_menu_module_chapter() {
         local source="${1:-}"
         local module_number=""
@@ -934,6 +936,8 @@ set -uo pipefail
         #
         # . Returns
         #   0 after calculating the width.
+        # . Usage
+        #   _sgnd_console_display_key_width
     _sgnd_console_display_key_width() {
         local row_index=0
         local display_key=""
@@ -2177,6 +2181,8 @@ set -uo pipefail
         #
         # . Returns
         #   Exit status from the host executor or registered handler.
+        # . Usage
+        #   _sgnd_menu_execute_item "<item_key>" "<handler>" "<builtin>"
     _sgnd_menu_execute_item() {
         local item_key="${1:?missing item key}"
         local handler="${2:?missing handler}"

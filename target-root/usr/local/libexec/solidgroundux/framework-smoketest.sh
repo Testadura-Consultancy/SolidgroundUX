@@ -4,8 +4,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624102
-#   Checksum    : ce4929b129c764a5ec647df157166cce51928b032d886e451236936fc437b089
+#   Build       : 2624123
+#   Checksum    : 6a65dc89e09f7d8fbcdc1136cd0d00d6ae39c0b276f682a0780a98728c019c2b
 #   Source      : framework-smoketest.sh
 #   Type        : script
 #   Group       : SDK
@@ -236,8 +236,6 @@ set -uo pipefail
         #   Run simple shell input tests.
         #
         # . Behavior
-        #   - Public entry point.
-        #   - Preserves existing script runtime behavior.
         #
         # . Returns
         #   Returns the underlying command or workflow status.
@@ -320,8 +318,6 @@ set -uo pipefail
         #   Run interactive ask helper tests.
         #
         # . Behavior
-        #   - Public entry point.
-        #   - Preserves existing script runtime behavior.
         #
         # . Returns
         #   Returns the underlying command or workflow status.
@@ -494,8 +490,6 @@ set -uo pipefail
         #   Run console message helper tests.
         #
         # . Behavior
-        #   - Public entry point.
-        #   - Preserves existing script runtime behavior.
         #
         # . Returns
         #   Returns the underlying command or workflow status.

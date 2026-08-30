@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624102
-#   Checksum    : c601e11ab5ab3604c35f2ec6bd52c933ba8528dd1f0782e64a00386be003325f
+#   Build       : 2624123
+#   Checksum    : de8261c38ddb5bcb39a446b25dc8c9f161c756898cbe80e201c8f516fc80aa1c
 #   Source      : bootstrap_preface.sh
 #   Type        : documentation
 #   Group       : Bootstrap
@@ -34,9 +34,10 @@
 #
 # -- Bootstrap Sequence -------------------------------------------------------------
 #
-# > A typical executable script using SolidGroundUX starts with a small bootstrap
-# > block. That block sources the framework bootstrap library and then hands control
-# > to the framework initializer.
+# > A typical executable starts with the canonical `_framework_locator`, which derives
+# > `SGND_FRAMEWORK_ROOT` from the script's physical path and loads `sgnd-exe-common.sh`.
+# > The script then declares its metadata, `SGND_USING`, argument specification, state,
+# > and configuration contract before calling `sgnd_exe_start` from `main`.
 #   
 # > Conceptually, the startup sequence is:
 #   
@@ -75,8 +76,9 @@
 # > the script declares what it needs and lets the bootstrap layer perform the actual
 # > loading.
 #   
-# > Core libraries needed by the bootstrap process itself are loaded automatically.
-# > Additional libraries are loaded based on the script's declared requirements.
+# > Core libraries needed by bootstrap are loaded automatically. Project definitions are
+# > sourced explicitly as foundational globals rather than through `SGND_USING`; additional
+# > libraries are then loaded from the script's declared requirements.
 #
 # -- Global Definitions -------------------------------------------------------------
 #

@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624102
-#   Checksum    : 4c7596bd15c26f241b6e746b42c96745e96240f8603d8ac16aae825f2501ead3
+#   Build       : 2624123
+#   Checksum    : 96c1aee4709602575f19590f7d5241ef48e06ed0a124e8a8bb01bcfd701ffc1a
 #   Source      : management-console.sh
 #   Wrapper     : sgnd-console
 #   Type        : script
@@ -362,6 +362,8 @@ set -uo pipefail
         #
         # . Returns
         #   0 when a user name is resolved.
+        # . Usage
+        #   _sgnd_console_state_owner
     _sgnd_console_state_owner() {
         if (( EUID == 0 )) && [[ -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]]; then
             printf '%s\n' "$SUDO_USER"
@@ -377,6 +379,8 @@ set -uo pipefail
         #
         # . Returns
         #   0 when the directory is ready; non-zero on failure.
+        # . Usage
+        #   _sgnd_console_prepare_state_directory "<directory>"
     _sgnd_console_prepare_state_directory() {
         local directory="${1:?missing state directory}"
         local owner=""
@@ -399,6 +403,8 @@ set -uo pipefail
         #
         # . Returns
         #   0 when ownership and mode are correct; non-zero on failure.
+        # . Usage
+        #   _sgnd_console_finalize_state_file "<file>"
     _sgnd_console_finalize_state_file() {
         local file="${1:?missing state file}"
         local owner=""
@@ -508,6 +514,8 @@ set -uo pipefail
 
     # --- Action result tracking ------------------------------------------------------
     # fn: sgnd_console_action_status - Read persisted status for a menu action
+        # . Usage
+        #   sgnd_console_action_status "<item_key>"
     sgnd_console_action_status() {
         local item_key="${1:?missing item key}"
         local line=""
@@ -533,6 +541,8 @@ set -uo pipefail
     }
 
     # fn: sgnd_console_record_action_result - Persist and display an action result
+        # . Usage
+        #   sgnd_console_record_action_result "<item_key>" "<rc>"
     sgnd_console_record_action_result() {
         local item_key="${1:?missing item key}"
         local rc="${2:-1}"
@@ -569,6 +579,8 @@ set -uo pipefail
     }
 
     # fn: sgnd_console_run_tracked - Execute one registered action and track its result
+        # . Usage
+        #   sgnd_console_run_tracked "<item_key>" "<handler>"
     sgnd_console_run_tracked() {
         local item_key="${1:?missing item key}"
         local handler="${2:?missing handler}"
@@ -592,6 +604,8 @@ set -uo pipefail
         #
         # . Returns
         #   Exit status from the executed handler.
+        # . Usage
+        #   _sgnd_console_execute_menu_item "<item_key>" "<handler>" "<builtin>"
     _sgnd_console_execute_menu_item() {
         local item_key="${1:?missing item key}"
         local handler="${2:?missing handler}"
@@ -606,6 +620,8 @@ set -uo pipefail
     }
 
     # fn: _sgnd_console_refresh_action_statuses - Apply persisted statuses to menu items
+        # . Usage
+        #   _sgnd_console_refresh_action_statuses "<NR>"
     _sgnd_console_refresh_action_statuses() {
         local i
         local row_count="${#SGND_ITEM_ROWS[@]}"
@@ -811,6 +827,8 @@ set -uo pipefail
         #
         # . Returns
         #   0 after displaying metadata; 126 when not running as root.
+        # . Usage
+        #   _sgnd_console_show_loaded_module_metadata "<module_name>" "<state>"
     _sgnd_console_show_loaded_module_metadata() {
         local i=0
         local module_count="${#SGND_MODULE_ROWS[@]}"
@@ -1787,6 +1805,8 @@ set -uo pipefail
         # . Returns
         #   0 when handled.
         #   2 when the key is not a console execution-context control.
+        # . Usage
+        #   _sgnd_console_handle_control "<control>"
     _sgnd_console_handle_control() {
         local control="${1:-}"
 

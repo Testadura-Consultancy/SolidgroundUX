@@ -108,7 +108,6 @@
 <tr><td>_adsvr_validate_realm</td><td></td><td>Validate an Active Directory DNS/Kerberos realm name.</td><td>20-active-directory-server.sh</td></tr>
 <tr><td>_adsvr_wait_configured</td><td></td><td>Wait for Samba is-configured to report the service ready.</td><td>20-active-directory-server.sh</td></tr>
 <tr><td>_adsvr_wait_dns</td><td></td><td>Wait until Samba owns IPv4 TCP and UDP port 53 on the domain controller.</td><td>20-active-directory-server.sh</td></tr>
-<tr><td>_application_path</td><td>Resolve a path beneath SGND_APPLICATION_ROOT</td><td>Convert an application-relative path to an absolute path. Returns 0 always. Usage path=&quot;$(_application_path &quot;usr/local/bin&quot;)&quot;</td><td>create-wrappers.sh</td></tr>
 <tr><td>_apply_group_access</td><td>Apply read or write ACLs to selected shares</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_apply_removed_manifest</td><td>Apply the incoming release removal manifest</td><td>Apply the incoming release removal manifest. Returns 0 when complete; non-zero on removal failure. Usage _apply_removed_manifest &quot;$removed&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_apply_version_bump</td><td>Apply release metadata policy to managed source files</td><td>Apply Version and Build according to A/C/N policy and always refresh Checksum for files whose source or metadata changed.</td><td>prepare-release.sh</td></tr>
@@ -125,7 +124,6 @@
 <tr><td>_ask_is_ident</td><td></td><td>Test whether a value is a valid shell variable identifier.</td><td>ui-ask.sh</td></tr>
 <tr><td>_ask_parse_fieldspec</td><td>Parse an ask_prompt_form field specification</td><td>Split a form field specification into the temporary parser globals used by ask_prompt_form.</td><td>ui-ask.sh</td></tr>
 <tr><td>_ask_validate</td><td></td><td>Run a validation callback when provided.</td><td>ui-ask.sh</td></tr>
-<tr><td>_boot_fail</td><td>Report a bootstrap failure</td><td>Emit a bootstrap failure message with caller context and return a code.</td><td>sgnd-bootstrap.sh</td></tr>
 <tr><td>_bootstrap_first_install</td><td>Bootstrap and install an adjacent release on a clean machine</td><td>Complete the zero-framework first-install path when release-manager.sh is executed from a GitHub bootstrap bundle: ensure directories, admit the bundled release, install it when no version is installed, persist the manager, and clean the temporary bundle. Returns 0 when no first-install bootstrap is required or when it completes successfully; non-zero on admission, verification, installation, or persistence failure. Usage _bootstrap_first_install</td><td>release-manager.sh</td></tr>
 <tr><td>_build_content_ref</td><td>Build a stable documentation content reference</td><td>Create the canonical reference key used to link content to a module, section, and item context.</td><td>doc-processor.sh</td></tr>
 <tr><td>_build_framework_dirs</td><td>Build framework directory specifications</td><td>Rebuild the directory specification list used by sgnd_ensure_dirs.</td><td>sgnd-bootstrap-env.sh</td></tr>
@@ -151,7 +149,8 @@
 <tr><td>_create_archive</td><td>Create the compressed framework archive</td><td></td><td>tar-it.sh</td></tr>
 <tr><td>_create_gitignore_file</td><td>Create the workspace .gitignore file</td><td>Create the workspace .gitignore file.</td><td>create-workspace.sh</td></tr>
 <tr><td>_create_inherited_directory_tree</td><td>Create a relative directory tree with inherited access</td><td></td><td>manage-samba-shares.sh</td></tr>
-<tr><td>_create_mod_appcfg</td><td>Create the module application configuration file</td><td>Create a console-module application configuration file.</td><td>create-workspace.sh</td></tr>
+<tr><td>_create_project_definitions</td><td>Create project-wide definition globals</td><td>Create &lt;project&gt;-definitions.sh in the deployable SolidGroundUX globals folder. Usage _create_project_definitions</td><td>create-workspace.sh</td></tr>
+<tr><td>_create_project_motd</td><td>Create a minimal project MOTD identity entry</td><td></td><td>create-workspace.sh</td></tr>
 <tr><td>_create_release_package</td><td>Create the complete distributable release ZIP</td><td>Package the standalone release manager and release payload into one ZIP.</td><td>prepare-release.sh</td></tr>
 <tr><td>_create_repository</td><td>Create the repository directory structure</td><td>Create the project repository structure and copy template files.</td><td>create-workspace.sh</td></tr>
 <tr><td>_create_share</td><td>Create a managed share and backing directory</td><td></td><td>manage-samba-shares.sh</td></tr>
@@ -221,13 +220,15 @@
 <tr><td>_framework_config_view_system</td><td></td><td>View the system-wide SolidGroundUX framework configuration file.</td><td>40-solidgroundux.sh</td></tr>
 <tr><td>_framework_config_view_user</td><td></td><td>View the current user SolidGroundUX framework configuration file.</td><td>40-solidgroundux.sh</td></tr>
 <tr><td>_framework_config_write_value</td><td></td><td>Replace or append one KEY=VALUE assignment in a cfg file.</td><td>40-solidgroundux.sh</td></tr>
-<tr><td>_framework_locator</td><td>Locate and load the SolidGroundUX executable bootstrap context</td><td></td><td>tar-it.sh</td></tr>
-<tr><td>_framework_locator</td><td>Locate and load the SolidGroundUX executable bootstrap context</td><td></td><td>untar-it.sh</td></tr>
+<tr><td>_framework_locator</td><td>Locate and load the SolidGroundUX executable bootstrap context</td><td>Determine the filesystem root of the currently executing SolidGroundUX tree from the script&#x27;s physical path, then load the executable runtime library.</td><td>tar-it.sh</td></tr>
+<tr><td>_framework_locator</td><td>Locate and load the SolidGroundUX executable bootstrap context</td><td>Determine the filesystem root of the currently executing SolidGroundUX tree from the script&#x27;s physical path, then load the executable runtime library.</td><td>untar-it.sh</td></tr>
 <tr><td>_framework_log_follow</td><td></td><td>Follow new entries appended to the active framework logfile.</td><td>40-solidgroundux.sh</td></tr>
 <tr><td>_framework_log_rotate</td><td></td><td>Rotate the active framework logfile according to configured retention and compression settings.</td><td>40-solidgroundux.sh</td></tr>
 <tr><td>_framework_log_show_errors</td><td></td><td>Show the most recent ERROR, FAIL, and FATAL entries from the active framework logfile.</td><td>40-solidgroundux.sh</td></tr>
 <tr><td>_framework_log_validate</td><td></td><td>Verify that the configured framework logfile path exists and is usable for log actions.</td><td>40-solidgroundux.sh</td></tr>
 <tr><td>_framework_log_view</td><td></td><td>Open the active framework logfile at its most recent entries.</td><td>40-solidgroundux.sh</td></tr>
+<tr><td>_framework_path</td><td>Resolve a path beneath a framework root</td><td>Convert a framework-relative path to an absolute path beneath the supplied framework root. Defaults to the active SGND_FRAMEWORK_ROOT. Arguments $1 Relative path. $2 Framework root (optional). Returns 0 always. Usage path=&quot;$(_framework_path &quot;usr/local/bin&quot; &quot;$root&quot;)&quot;</td><td>create-wrappers.sh</td></tr>
+<tr><td>_framework_root_from_path</td><td>Resolve the framework root owning a selected path</td><td>Derive the canonical SolidGroundUX framework root from an absolute source path, using the same last usr/etc/var component rule as _framework_locator(). Returns 0 with the resolved root on stdout; 1 when the path cannot be resolved. Usage _framework_root_from_path &quot;&lt;path&gt;&quot; &quot;&lt;framework_root&gt;&quot;</td><td>create-wrappers.sh</td></tr>
 <tr><td>_framework_show_about</td><td></td><td></td><td>40-solidgroundux.sh</td></tr>
 <tr><td>_framework_show_environment</td><td></td><td></td><td>40-solidgroundux.sh</td></tr>
 <tr><td>_framework_smoketest</td><td></td><td></td><td>40-solidgroundux.sh</td></tr>
@@ -265,6 +266,8 @@
 <tr><td>_init_localvars</td><td>Initialize parser state variables</td><td>Reset source, module, item, section, and emission state before parsing a file.</td><td>doc-processor.sh</td></tr>
 <tr><td>_init_metadata</td><td>Initialize document-level render metadata</td><td>Populate renderer metadata from document configuration values.</td><td>doc-renderer.sh</td></tr>
 <tr><td>_init_parameters</td><td>Initialize documentation generator parameters</td><td>Initialize parameter variables from defaults when still unset.</td><td>doc-generator.sh</td></tr>
+<tr><td>_initialize_git_repository</td><td>Initialize and commit the new workspace</td><td>Initialize a local Git repository using main as the primary branch.</td><td>create-workspace.sh</td></tr>
+<tr><td>_initialize_github_repository</td><td>Create and push the workspace repository</td><td>Create a GitHub repository using the authenticated gh CLI account.</td><td>create-workspace.sh</td></tr>
 <tr><td>_install_pending_archive</td><td>Install, update, or roll back to a pending release archive</td><td>Install, update, or roll back to a pending release archive. Returns 0 on success; non-zero on verification or deployment failure. Usage _install_pending_archive &quot;$archive&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_install_release_manager</td><td>Install the standalone manager at its canonical path</td><td>Copy the currently running release manager to the machine-local state root so future update, rollback, repair, and removal operations do not depend on a temporary bootstrap copy. Returns 0 on success; non-zero when the manager cannot be copied or made executable. Usage _install_release_manager</td><td>release-manager.sh</td></tr>
 <tr><td>_install_release_manager_wrapper</td><td>Install the public sgnd-release-manager command</td><td>Create the canonical public wrapper in /usr/local/bin pointing at the standalone release manager stored under /var/lib/solidgroundux. Returns 0 on success; non-zero on filesystem failure. Usage _install_release_manager_wrapper</td><td>release-manager.sh</td></tr>
@@ -276,11 +279,13 @@
 <tr><td>_latest_online_release</td><td>Resolve the canonical base name of the newest published build</td><td>Resolve the highest build asset attached to the configured GitHub Release. Returns 0 on success; non-zero when GitHub lookup fails. Usage _latest_online_release</td><td>release-manager.sh</td></tr>
 <tr><td>_list_archived_releases</td><td>List archived releases in ascending version order</td><td>List archived releases in ascending version order. Returns 0 always. Usage _list_archived_releases</td><td>release-manager.sh</td></tr>
 <tr><td>_list_archives</td><td>Build the available archive list, newest first</td><td>Find readable .tar.gz archives in ARCHIVE_DIRECTORY and store their basenames.</td><td>untar-it.sh</td></tr>
+<tr><td>_list_known_projects</td><td>List locally known project slugs</td><td></td><td>release-manager.sh</td></tr>
 <tr><td>_list_managed_shares</td><td>Discover shares beneath the SolidGroundUX share root</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_list_share_subdirectories_raw</td><td>Return relative subdirectory paths for one share</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_list_subdirectories</td><td>List subdirectories beneath the currently selected shares</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_load_bootstrapper</td><td>Load the SolidGroundUX bootstrap library</td><td>Resolve and source the main SolidGroundUX bootstrap library.</td><td>sgnd-exe-common.sh</td></tr>
 <tr><td>_load_current_values</td><td>Load current values</td><td>Load current values.</td><td>set-identity.sh</td></tr>
+<tr><td>_load_project_info</td><td>Load persisted display identity for one project</td><td></td><td>release-manager.sh</td></tr>
 <tr><td>_load_release_manager_config</td><td>Load persistent standalone release-manager settings</td><td>Load release-source settings from the release-manager config file without depending on SolidGroundUX framework configuration libraries. Returns 0 always; missing config is not an error. Usage _load_release_manager_config</td><td>release-manager.sh</td></tr>
 <tr><td>_manifest_init</td><td>Initialize the workspace creation manifest</td><td>Initialize the workspace creation manifest.</td><td>create-workspace.sh</td></tr>
 <tr><td>_manifest_paths</td><td>Emit normalized paths from a release manifest</td><td>Emit normalized paths from a release manifest. Returns 0 after reading the manifest. Usage _manifest_paths &quot;$manifest&quot;</td><td>release-manager.sh</td></tr>
@@ -294,42 +299,51 @@
 <tr><td>_normalize_project_flags</td><td>Normalize create-workspace option flags</td><td>Normalize project selection flags into a coherent default state.</td><td>create-workspace.sh</td></tr>
 <tr><td>_normalize_relative_path</td><td>Normalize and validate a workspace-relative path</td><td></td><td>deploy-workspace.sh</td></tr>
 <tr><td>_normalize_root</td><td>Normalize an absolute filesystem root</td><td>Normalize an absolute filesystem root. Returns 0 when the root is absolute; 1 otherwise. Usage root=&quot;$(_normalize_root &quot;/&quot;)&quot;</td><td>release-manager.sh</td></tr>
+<tr><td>_package_info_value</td><td>Read one key from release-package.info safely</td><td>Parse a simple KEY=value field without sourcing package-controlled shell code. Usage _package_info_value &quot;&lt;file&gt;&quot; &quot;&lt;key&gt;&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_parse_bootstrap_args</td><td>Parse early bootstrap options</td><td>Extract bootstrap-only options before the full argument parser is available.</td><td>sgnd-bootstrap.sh</td></tr>
 <tr><td>_parse_module_file</td><td>Parse one module source file</td><td>Parse a source file and collect normalized documentation tables.</td><td>doc-processor.sh</td></tr>
 <tr><td>_pause</td><td>Wait for Enter after an interactive operation</td><td>Wait for Enter after an interactive operation. Returns 0 always. Usage _pause</td><td>release-manager.sh</td></tr>
 <tr><td>_pending_release_base_exists</td><td>Test whether a release is available in releases/</td><td>Test whether a release is available in releases/. Returns 0 when present; 1 otherwise. Usage _pending_release_base_exists &quot;$release&quot;</td><td>release-manager.sh</td></tr>
+<tr><td>_persist_project_info</td><td>Persist display identity for an admitted project package</td><td></td><td>release-manager.sh</td></tr>
 <tr><td>_persist_render_cache</td><td>Persist a complete renderer export set</td><td>Replace the persistent renderer cache with a validated export directory.</td><td>doc-renderer.sh</td></tr>
 <tr><td>_prepare-template.sh</td><td></td><td>Prepare a template computer for cloning.</td><td>10-computer-setup.sh</td></tr>
 <tr><td>_prepare_output_directory</td><td>Create and optionally clean the documentation output directory</td><td>Ensure the configured output directory exists and is ready for rendering.</td><td>doc-renderer.sh</td></tr>
 <tr><td>_previous_release</td><td>Return the archived release immediately preceding current</td><td>Return the archived release immediately preceding current. Returns 0 when a previous release exists; non-zero otherwise. Usage previous=&quot;$(_previous_release)&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_print_deployment_summary</td><td>Display the completed deployment details</td><td>Show which workspace files were selected and where they were sent.</td><td>deploy-workspace.sh</td></tr>
 <tr><td>_print_status</td><td>Display current installed and locally available release state</td><td>Display current installed and locally available release state. Returns 0 always. Usage _print_status</td><td>release-manager.sh</td></tr>
+<tr><td>_project_key</td><td>Return the variable-safe project key</td><td></td><td>create-workspace.sh</td></tr>
+<tr><td>_project_slug</td><td>Return the filesystem-safe project slug</td><td></td><td>create-workspace.sh</td></tr>
+<tr><td>_project_slug_safe</td><td>Validate a project slug used beneath the manager state root</td><td></td><td>release-manager.sh</td></tr>
 <tr><td>_quote_remote_arg</td><td>Shell-quote one argument for the remote receive command</td><td></td><td>deploy-workspace.sh</td></tr>
 <tr><td>_receive_stream</td><td>Store the incoming tar stream in a temporary archive</td><td>Capture standard input so the archive can be validated before extraction.</td><td>receive-files.sh</td></tr>
 <tr><td>_refresh_storage_paths</td><td>Resolve the configured SolidGroundUX share root</td><td></td><td>manage-samba-shares.sh</td></tr>
-<tr><td>_relative_to_application_root</td><td>Convert an absolute source path to application-relative</td><td>Ensure a selected source belongs to SGND_APPLICATION_ROOT and return its normalized path relative to that root. Returns 0 when source is beneath the application root; 1 otherwise. Usage rel=&quot;$(_relative_to_application_root &quot;$file&quot;)&quot;</td><td>create-wrappers.sh</td></tr>
+<tr><td>_relative_to_framework_root</td><td>Convert an absolute source path to framework-relative</td><td>Ensure a selected source belongs to the supplied framework root and return its normalized path relative to that root. Returns 0 when source is beneath the framework root; 1 otherwise. Usage rel=&quot;$(_relative_to_framework_root &quot;$file&quot;)&quot;</td><td>create-wrappers.sh</td></tr>
+<tr><td>_release_ask</td><td>Ask for a scalar value using framework ask() or the fallback UI</td><td></td><td>release-manager.sh</td></tr>
+<tr><td>_release_ask_yesno</td><td>Ask a yes/no question with a default</td><td></td><td>release-manager.sh</td></tr>
 <tr><td>_release_base_from_archive</td><td>Derive a release base name from a tar.gz archive path</td><td>Derive a release base name from a tar.gz archive path. Returns 0 for a tar.gz archive; 1 otherwise. Usage base=&quot;$(_release_base_from_archive &quot;$archive&quot;)&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_release_clear</td><td>Clear the active terminal reliably</td><td></td><td>release-manager.sh</td></tr>
+<tr><td>_release_default_target_root</td><td>Derive target root only from canonical manager location</td><td></td><td>release-manager.sh</td></tr>
 <tr><td>_release_fail</td><td>Write a failure message</td><td>Write a failure message. Returns 0 always. Usage _release_fail &quot;message&quot;</td><td>release-manager.sh</td></tr>
+<tr><td>_release_framework_root_for_target</td><td>Resolve the framework root for the selected target</td><td></td><td>release-manager.sh</td></tr>
 <tr><td>_release_info</td><td>Write verbose informational output</td><td>Write verbose informational output. Returns 0 always. Usage _release_info &quot;message&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_release_is_local_or_installed</td><td>Test whether a release is already downloaded or archived</td><td>Test whether a release is already downloaded or archived. Returns 0 when present locally; 1 otherwise. Usage _release_is_local_or_installed &quot;$base&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_release_labeled_value</td><td>Print one aligned label/value pair</td><td></td><td>release-manager.sh</td></tr>
 <tr><td>_release_line</td><td>Print a repeated border character</td><td></td><td>release-manager.sh</td></tr>
+<tr><td>_release_load_state</td><td>Load standalone parameter defaults</td><td></td><td>release-manager.sh</td></tr>
 <tr><td>_release_location</td><td>Resolve a release tarball from pending or archived storage</td><td>Resolve a release tarball from pending or archived storage. Returns 0 when found; non-zero otherwise. Usage _release_location &quot;$release&quot;</td><td>release-manager.sh</td></tr>
-<tr><td>_release_manager</td><td>Open the standalone SolidGroundUX release manager</td><td>Start the framework-independent release manager for installation, update, rollback, reinstallation, and removal operations.</td><td>40-solidgroundux.sh</td></tr>
-<tr><td>_release_manager_check</td><td>Check GitHub for the latest SolidGroundUX release</td><td></td><td>40-solidgroundux.sh</td></tr>
-<tr><td>_release_manager_download</td><td>Download the latest SolidGroundUX release</td><td></td><td>40-solidgroundux.sh</td></tr>
-<tr><td>_release_manager_install</td><td>Install the newest pending local SolidGroundUX release</td><td></td><td>40-solidgroundux.sh</td></tr>
-<tr><td>_release_manager_remove</td><td>Remove the active SolidGroundUX installation</td><td></td><td>40-solidgroundux.sh</td></tr>
-<tr><td>_release_manager_rollback</td><td>Roll back SolidGroundUX to the previous archived release</td><td></td><td>40-solidgroundux.sh</td></tr>
-<tr><td>_release_manager_update</td><td>Update SolidGroundUX to the latest GitHub release</td><td></td><td>40-solidgroundux.sh</td></tr>
+<tr><td>_release_manager</td><td>Open the standalone SolidGroundUX release manager</td><td>Start the self-sufficient release manager for installation, update, rollback, reinstallation, and removal operations.</td><td>40-solidgroundux.sh</td></tr>
 <tr><td>_release_matches</td><td>Test whether a release base matches an optional selector</td><td>Test whether a release base matches an optional selector. Returns 0 when it matches; 1 otherwise. Usage _release_matches &quot;$base&quot; &quot;$VAL_RELEASE&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_release_metadata_field</td><td>Read a field from this script&#x27;s Metadata header</td><td>Read one value from the canonical script Metadata block without depending on SolidGroundUX framework libraries. Arguments $1  Metadata field name, for example Version or Build. Returns 0 and the trimmed field value when found; 1 otherwise. Usage version=&quot;$(_release_metadata_field &quot;Version&quot;)&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_release_ok</td><td>Write a successful-operation message</td><td>Write a successful-operation message. Returns 0 always. Usage _release_ok &quot;message&quot;</td><td>release-manager.sh</td></tr>
+<tr><td>_release_print</td><td>Print a line through the active UI implementation</td><td></td><td>release-manager.sh</td></tr>
+<tr><td>_release_prompt_settings</td><td>Resolve stateful interactive defaults</td><td></td><td>release-manager.sh</td></tr>
 <tr><td>_release_run</td><td>Execute a command or report it in dry-run mode</td><td>Execute a command or report it in dry-run mode. Returns The executed command status, or 0 in dry-run mode. Usage _release_run mkdir -p /tmp/example</td><td>release-manager.sh</td></tr>
+<tr><td>_release_save_state</td><td>Persist accepted parameter values</td><td></td><td>release-manager.sh</td></tr>
+<tr><td>_release_section_header</td><td>Render a section header through the active UI</td><td></td><td>release-manager.sh</td></tr>
 <tr><td>_release_sort</td><td>Sort release identifiers by version</td><td>Sort release identifiers by version. Returns Status returned by sort. Usage</td><td>release-manager.sh</td></tr>
 <tr><td>_release_terminal_width</td><td>Return the usable terminal width</td><td></td><td>release-manager.sh</td></tr>
 <tr><td>_release_title</td><td>Render the standalone release-manager title</td><td>Display the release-manager identity and current hostname without using framework UI libraries. Returns 0 always. Usage _release_title</td><td>release-manager.sh</td></tr>
+<tr><td>_release_try_framework_ui</td><td>Prefer the installed SolidGroundUX UI when healthy</td><td>Opportunistically load the normal framework UI after the target root is known.</td><td>release-manager.sh</td></tr>
 <tr><td>_release_warn</td><td>Write a warning message</td><td>Write a warning message. Returns 0 always. Usage _release_warn &quot;message&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_reload_samba</td><td>Validate and reload Samba configuration</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_remove_group_access</td><td>Remove one AD/NSS group&#x27;s access from selected shares</td><td></td><td>manage-samba-shares.sh</td></tr>
@@ -362,10 +376,12 @@
 <tr><td>_select_files</td><td>Resolve the combined workspace filters into a concrete file list</td><td>Select deployable files by optional directory, filename or mask, and modification time.</td><td>deploy-workspace.sh</td></tr>
 <tr><td>_select_files</td><td>Select staged files using directory and filename mask</td><td></td><td>untar-it.sh</td></tr>
 <tr><td>_select_group</td><td>Select or enter an AD/NSS group</td><td></td><td>manage-samba-shares.sh</td></tr>
+<tr><td>_select_project_interactive</td><td>Select a locally known project</td><td></td><td>release-manager.sh</td></tr>
 <tr><td>_select_shares</td><td>Select one or more managed shares</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_set_action</td><td>Set and validate the requested release-manager action</td><td>Set and validate the requested release-manager action. Returns 0 on success; 1 when conflicting actions are supplied. Usage _set_action update</td><td>release-manager.sh</td></tr>
 <tr><td>_set_defaults</td><td>Set defaults</td><td>Set defaults.</td><td>set-identity.sh</td></tr>
 <tr><td>_set_hostname</td><td>Set hostname</td><td>Set hostname.</td><td>set-identity.sh</td></tr>
+<tr><td>_set_project_context</td><td>Select release/archive state for one project</td><td>Make all existing installation-engine functions operate on the selected project.</td><td>release-manager.sh</td></tr>
 <tr><td>_set_script_header_version</td><td>Set an explicit version in a managed script header</td><td></td><td>prepare-release.sh</td></tr>
 <tr><td>_sgnd_arg_find_spec</td><td>Find an argument specification</td><td>Locate the effective argument specification for a long or short option.</td><td>sgnd-args.sh</td></tr>
 <tr><td>_sgnd_arg_init_defaults</td><td>Initialize argument defaults</td><td>Initialize argument target variables from builtin and/or script argument specs.</td><td>sgnd-args.sh</td></tr>
@@ -486,7 +502,7 @@
 <tr><td>_smb_step_validate_storage</td><td></td><td>Validate that the configured SolidGroundUX storage root is ready for file sharing.</td><td>30-samba-file-server.sh</td></tr>
 <tr><td>_smb_validate</td><td></td><td>Run active Samba file-server validation checks for packages, service, configuration, storage, and managed shares.</td><td>30-samba-file-server.sh</td></tr>
 <tr><td>_smb_validate_share_name</td><td></td><td>Validate a managed Samba share name.</td><td>30-samba-file-server.sh</td></tr>
-<tr><td>_smoketest_read_choice</td><td>Read one smoke-test choice with auto-exit timeout</td><td>Preserve the smoke test&#x27;s 30-second inactivity timeout while the menu itself is rendered and defined through the public sgnd-menu API.</td><td>framework-smoketest.sh</td></tr>
+<tr><td>_smoketest_read_choice</td><td>Read one smoke-test choice with auto-exit timeout</td><td>Preserve the smoke test&#x27;s 30-second inactivity timeout while allowing complete menu selections such as 11, 12, and 13 to be entered.</td><td>framework-smoketest.sh</td></tr>
 <tr><td>_smoketest_register_menu</td><td>Register the smoke-test menu through the public menu API</td><td>Build the framework smoke-test menu using the reusable sgnd-menu API.</td><td>framework-smoketest.sh</td></tr>
 <tr><td>_smoketest_request_exit</td><td>Mark the interactive smoke-test menu for exit</td><td>Request termination of the current smoke-test menu loop.</td><td>framework-smoketest.sh</td></tr>
 <tr><td>_smoketest_run_all_tests</td><td>Run the complete smoke-test sequence</td><td>Execute the principal framework smoke tests in their normal menu order.</td><td>framework-smoketest.sh</td></tr>
@@ -531,7 +547,6 @@
 <tr><td>_stream_local</td><td>Stream selected workspace files to the local receiver</td><td></td><td>deploy-workspace.sh</td></tr>
 <tr><td>_stream_remote</td><td>Stream selected workspace files to the remote receiver over SSH</td><td></td><td>deploy-workspace.sh</td></tr>
 <tr><td>_summary</td><td>Print documentation generation summary</td><td>Generate a summary of the documentation data collected.</td><td>doc-generator.sh</td></tr>
-<tr><td>_sync_repository</td><td></td><td>Launch the canonical SolidGroundUX repository synchronization tool.</td><td>90-development.sh</td></tr>
 <tr><td>_sync_share_samba_access</td><td>Synchronize Samba access lists from POSIX ACLs</td><td></td><td>manage-samba-shares.sh</td></tr>
 <tr><td>_target_path</td><td>Map a release-relative path beneath the configured target root</td><td>Map a release-relative path beneath the configured target root. Returns 0 always. Usage target=&quot;$(_target_path &quot;$rel&quot;)&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_uncreate_from_manifest</td><td>Remove artifacts recorded in the create manifest</td><td>Remove files and directories listed in a workspace manifest.</td><td>create-workspace.sh</td></tr>
@@ -550,7 +565,7 @@
 <tr><td>_verify_release_set</td><td>Verify checksums and path safety for a complete release set</td><td>Verify checksums and path safety for a complete release set. Returns 0 when the release set is valid; 1 otherwise. Usage _verify_release_set &quot;$archive&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_verify_sha256_sidecar</td><td>Verify one release artifact against its SHA256 sidecar</td><td>Verify one release artifact against its SHA256 sidecar. Returns 0 when valid; 1 on missing or mismatched data. Usage _verify_sha256_sidecar &quot;$file&quot; &quot;$file.sha256&quot;</td><td>release-manager.sh</td></tr>
 <tr><td>_web_server_available_sites</td><td>List available Nginx sites</td><td></td><td>50-web-server.sh</td></tr>
-<tr><td>_web_server_configure_documentation_site</td><td>Configure the documentation web site</td><td>Create or select the Nginx site used to publish SolidGroundUX documentation.</td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_configure_documentation_site</td><td>Configure the documentation web site</td><td>Create or select the Nginx site used to publish SolidGroundUX documentation. Usage _web_server_configure_documentation_site &quot;&lt;existing_address&gt;&quot; &quot;&lt;existing_address&gt;&quot;</td><td>50-web-server.sh</td></tr>
 <tr><td>_web_server_configure_firewall</td><td>Allow HTTP and HTTPS through UFW</td><td></td><td>50-web-server.sh</td></tr>
 <tr><td>_web_server_configure_root</td><td>Select or create the web content root</td><td></td><td>50-web-server.sh</td></tr>
 <tr><td>_web_server_create_site</td><td>Create and enable an Nginx site</td><td></td><td>50-web-server.sh</td></tr>
@@ -569,7 +584,7 @@
 <tr><td>_web_server_offer_dns_record</td><td>Optionally register an internal AD DNS A record</td><td></td><td>50-web-server.sh</td></tr>
 <tr><td>_web_server_package_installed</td><td>Test whether Nginx is installed</td><td></td><td>50-web-server.sh</td></tr>
 <tr><td>_web_server_prepare</td><td>Run the tracked web-server preparation workflow</td><td></td><td>50-web-server.sh</td></tr>
-<tr><td>_web_server_publish_documentation</td><td>Publish SolidGroundUX documentation</td><td>Publish documentation from the installed tree, a local/remote directory, or a GitHub repository into the configured documentation site.</td><td>50-web-server.sh</td></tr>
+<tr><td>_web_server_publish_documentation</td><td>Publish SolidGroundUX documentation</td><td>Publish documentation from the installed tree, a local/remote directory, or a GitHub repository into the configured documentation site. Usage _web_server_publish_documentation</td><td>50-web-server.sh</td></tr>
 <tr><td>_web_server_publish_key</td><td>Return the dedicated SolidGroundUX publishing key path</td><td></td><td>50-web-server.sh</td></tr>
 <tr><td>_web_server_publish_site</td><td>Publish local or remote content into a site document root</td><td></td><td>50-web-server.sh</td></tr>
 <tr><td>_web_server_reload</td><td>Validate and reload Nginx</td><td></td><td>50-web-server.sh</td></tr>
@@ -588,9 +603,9 @@
 <tr><td>_web_server_storage_root</td><td>Resolve the configured SolidGroundUX storage root</td><td></td><td>50-web-server.sh</td></tr>
 <tr><td>_web_server_validate</td><td>Validate the web-server role</td><td></td><td>50-web-server.sh</td></tr>
 <tr><td>_web_server_validate_site_name</td><td>Validate an Nginx site name</td><td></td><td>50-web-server.sh</td></tr>
-<tr><td>_wrapper_name_for_script</td><td>Return the canonical wrapper command name</td><td>Prefix script basenames with sgnd- unless already present. Returns 0 always. Usage name=&quot;$(_wrapper_name_for_script &quot;$file&quot;)&quot;</td><td>create-wrappers.sh</td></tr>
+<tr><td>_wrapper_name_for_script</td><td>Return the public wrapper command name</td><td>Resolve an optional Metadata/Wrapper override, falling back to the current sgnd-&lt;script&gt; naming convention when no override is present.</td><td>create-wrappers.sh</td></tr>
 <tr><td>_wrapper_template_path</td><td>Resolve the canonical wrapper template path</td><td>Resolve the wrapper template beneath SGND_FRAMEWORK_ROOT. Returns 0 with the template path on stdout. Usage template=&quot;$(_wrapper_template_path)&quot;</td><td>create-wrappers.sh</td></tr>
-<tr><td>_write_wrapper</td><td>Create one root-aware wrapper</td><td>Generate a wrapper from the canonical wrapper template. Behavior - Resolves the source path relative to SGND_APPLICATION_ROOT. - Loads the canonical wrapper template from SGND_FRAMEWORK_ROOT. - Replaces the &lt;target&gt; placeholder with the application-relative target. - Preserves overwrite and dry-run behavior. Returns 0 on success; 1 on failure or declined overwrite. Usage _write_wrapper &quot;$source&quot; &quot;$wrapper&quot;</td><td>create-wrappers.sh</td></tr>
+<tr><td>_write_wrapper</td><td>Create one framework-relative wrapper</td><td>Generate a wrapper from the canonical wrapper template. Behavior - Resolves the source path relative to SGND_FRAMEWORK_ROOT. - Loads the canonical wrapper template from SGND_FRAMEWORK_ROOT. - Replaces the &lt;target&gt; placeholder with the framework-relative target. - Preserves overwrite and dry-run behavior. Returns 0 on success; 1 on failure or declined overwrite. Usage _write_wrapper &quot;$source&quot; &quot;$wrapper&quot;</td><td>create-wrappers.sh</td></tr>
 <tr><td>add_module_node</td><td>Add module node</td><td>Add module node for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>add_standalone_doc_node</td><td>Add standalone doc node</td><td>Add standalone doc node for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>apply_theme_effect</td><td>Apply theme effect</td><td>Map the SolidGroundUX SGR effect constants used by themes to CSS.</td><td>sgnd_doc_renderer.py</td></tr>
@@ -607,38 +622,38 @@
 <tr><td>attribution_ref</td><td>Build attribution ref</td><td>Build attribution ref for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>branding_asset_exists</td><td>Branding asset exists</td><td>Branding asset exists for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>breadcrumb_from_contentref</td><td>Breadcrumb from contentref</td><td>Breadcrumb from contentref for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
-<tr><td>build_content_index</td><td>Build content index</td><td>Build content index for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
-<tr><td>build_doc_hierarchy</td><td>Build doc hierarchy</td><td>Build doc hierarchy for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>build_content_index</td><td>Build content index</td><td>Build content index for the documentation rendering workflow. Usage self.build_content_index()</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>build_doc_hierarchy</td><td>Build doc hierarchy</td><td>Build doc hierarchy for the documentation rendering workflow. Usage self.build_doc_hierarchy()</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>canonical_ref</td><td>Build canonical ref</td><td>Build canonical ref for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>changelog_ref</td><td>Build changelog ref</td><td>Build changelog ref for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
-<tr><td>close_list</td><td>Close list</td><td>Close list for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>close_list</td><td>Close list</td><td>Close list for the documentation rendering workflow. Usage self.close_list()</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>collect_glossary_rows</td><td>Collect glossary rows</td><td>Collect glossary rows for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
-<tr><td>collect_landing_summary</td><td>Collect landing summary</td><td>Collect landing summary for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>collect_landing_summary</td><td>Collect landing summary</td><td>Collect landing summary for the documentation rendering workflow. Usage self.collect_landing_summary()</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>confirm</td><td>Confirm</td><td>Ask the user for a yes/no confirmation and return success for yes.</td><td>ui.sh</td></tr>
 <tr><td>content_ref</td><td>Build content ref</td><td>Build content ref for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
-<tr><td>copy_branding_assets</td><td>Copy branding assets</td><td>Copy optional documentation branding images into the generated site.</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>copy_branding_assets</td><td>Copy branding assets</td><td>Copy optional documentation branding images into the generated site. Usage self.copy_branding_assets()</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>count_source_lines</td><td>Count source lines</td><td>Count source lines for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>css_style_attr</td><td>Css style attr</td><td>Css style attr for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
-<tr><td>default_theme_css</td><td>Provide default theme css</td><td>Provide default theme css for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>default_theme_css</td><td>Provide default theme css</td><td>Provide default theme css for the documentation rendering workflow. Usage self.default_theme_css()</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>display_name_with_title</td><td>Resolve display name with title</td><td>Resolve display name with title for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
-<tr><td>ensure_theme_css</td><td>Ensure theme css</td><td>Ensure theme css for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>ensure_theme_css</td><td>Ensure theme css</td><td>Ensure theme css for the documentation rendering workflow. Usage self.ensure_theme_css()</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>enums_ref</td><td>Build enums ref</td><td>Build enums ref for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>esc</td><td>Esc</td><td>Esc for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>extract_item_purpose</td><td>Extract item purpose</td><td>Extract item purpose for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>file_loglevel_test</td><td>Run file logging tests for every log level</td><td>Verify file logging and file-level filtering independently from console output.</td><td>framework-smoketest.sh</td></tr>
-<tr><td>flush_paragraph</td><td>Flush paragraph</td><td>Flush paragraph for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>flush_paragraph</td><td>Flush paragraph</td><td>Flush paragraph for the documentation rendering workflow. Usage self.flush_paragraph()</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>framework_configure_file</td><td></td><td>Interactively configure registered settings in a SolidGroundUX cfg file.</td><td>40-solidgroundux.sh</td></tr>
 <tr><td>framework_state_edit</td><td></td><td>Edit and save all transferable framework-state variables.</td><td>40-solidgroundux.sh</td></tr>
 <tr><td>framework_state_reload</td><td></td><td>Reload transferable framework state from disk into the console instance.</td><td>40-solidgroundux.sh</td></tr>
 <tr><td>framework_state_save</td><td></td><td>Save current transferable framework-state values.</td><td>40-solidgroundux.sh</td></tr>
 <tr><td>framework_state_show</td><td></td><td>Display all transferable framework-state variables and their values.</td><td>40-solidgroundux.sh</td></tr>
-<tr><td>get_first_item_page</td><td>Get first item page</td><td>Get first item page for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>get_first_item_page</td><td>Get first item page</td><td>Get first item page for the documentation rendering workflow. Usage self.get_first_item_page()</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>globals_ref</td><td>Build globals ref</td><td>Build globals ref for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>glossary_ref</td><td>Build glossary ref</td><td>Build glossary ref for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>group_comment_role</td><td>Group comment role</td><td>Group comment role for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>has_renderable_page</td><td>Determine whether renderable page</td><td>Determine whether renderable page for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>image_source</td><td>Image source</td><td>Image source for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
-<tr><td>init_metadata</td><td>Initialize metadata</td><td>Initialize metadata for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>init_metadata</td><td>Initialize metadata</td><td>Initialize metadata for the documentation rendering workflow. Usage self.init_metadata()</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>init_paths</td><td>Resolve target, state, release, and archive directories</td><td>Resolve target, state, release, and archive directories. Returns 0 on success; 1 when the target root is invalid. Usage init_paths</td><td>release-manager.sh</td></tr>
 <tr><td>input_test</td><td>Run simple shell input tests</td><td>Run simple shell input tests.</td><td>framework-smoketest.sh</td></tr>
 <tr><td>install_ref</td><td>Build install ref</td><td>Build install ref for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
@@ -653,7 +668,7 @@
 <tr><td>is_theme_module</td><td>Determine whether theme module</td><td>Return True for numbered SolidGroundUX semantic style modules.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>justsay</td><td>Write plain message text</td><td>Write message text without applying a semantic say-state such as ok, fail, or warning.</td><td>ui-say.sh</td></tr>
 <tr><td>license_ref</td><td>Build license ref</td><td>Build license ref for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
-<tr><td>load_input</td><td>Load input</td><td>Load input for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>load_input</td><td>Load input</td><td>Load input for the documentation rendering workflow. Usage self.load_input()</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>loglevel_test</td><td>Run console message visibility tests for every log level</td><td>Cycle through all supported SGND_CONSOLE_LOG_LEVEL values and emit one test message for each message type.</td><td>framework-smoketest.sh</td></tr>
 <tr><td>main</td><td>Run the executable main sequence</td><td>Run the executable main sequence.</td><td>create-workspace.sh</td></tr>
 <tr><td>main</td><td>Run wrapper generation</td><td>Initialize SolidGroundUX and create selected command wrappers. Usage main &quot;$@&quot;</td><td>create-wrappers.sh</td></tr>
@@ -669,7 +684,7 @@
 <tr><td>main</td><td>Run documentation renderer</td><td>Run documentation renderer for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>main</td><td>Run the archive workflow</td><td></td><td>tar-it.sh</td></tr>
 <tr><td>main</td><td>Run the selective restore workflow</td><td></td><td>untar-it.sh</td></tr>
-<tr><td>modules_by_product</td><td>Modules by product</td><td>Modules by product for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>modules_by_product</td><td>Modules by product</td><td>Modules by product for the documentation rendering workflow. Usage self.modules_by_product()</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>motd_test</td><td>Motd test</td><td>Motd test.</td><td>framework-smoketest.sh</td></tr>
 <tr><td>normalize_key</td><td>Normalize key</td><td>Normalize key for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>page_href_from_contentref</td><td>Build page href from contentref</td><td>Build page href from contentref for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
@@ -677,14 +692,14 @@
 <tr><td>parse_image_entry</td><td>Parse image entry</td><td>Parse image entry for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>parse_sgr_color</td><td>Parse sgr color</td><td>Extract a CSS foreground color from a literal SGR assignment.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>parse_shell_assignments</td><td>Parse shell assignments</td><td>Read simple top-level shell assignments without executing the file.</td><td>sgnd_doc_renderer.py</td></tr>
-<tr><td>prepare_output</td><td>Prepare output</td><td>Prepare output for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>prepare_output</td><td>Prepare output</td><td>Prepare output for the documentation rendering workflow. Usage self.prepare_output()</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>print_usage</td><td>Display standalone release-manager command-line help</td><td>Display standalone release-manager command-line help. Returns 0 always. Usage print_usage</td><td>release-manager.sh</td></tr>
 <tr><td>product_comment_role</td><td>Product comment role</td><td>Product comment role for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>read_config</td><td>Read config</td><td>Read config for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>read_optional_project_document</td><td>Read optional project document</td><td>Read optional project document for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>read_psv</td><td>Read psv</td><td>Read a pipe-separated table with a schema/header row.</td><td>sgnd_doc_renderer.py</td></tr>
-<tr><td>regular_module_rows</td><td>Regular module rows</td><td>Regular module rows for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
-<tr><td>render_assets</td><td>Render assets</td><td>Render assets for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>regular_module_rows</td><td>Regular module rows</td><td>Regular module rows for the documentation rendering workflow. Usage self.regular_module_rows()</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>render_assets</td><td>Render assets</td><td>Render assets for the documentation rendering workflow. Usage self.render_assets()</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>render_attribution_body</td><td>Render attribution body</td><td>Render attribution body for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>render_attribution_page</td><td>Render attribution page</td><td>Render attribution page for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>render_canonical_page</td><td>Render canonical page</td><td>Render canonical page for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
@@ -692,8 +707,8 @@
 <tr><td>render_content_for_ref</td><td>Render content for ref</td><td>Render content for ref for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>render_content_page</td><td>Render content page</td><td>Render content page for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>render_content_page_for_ref</td><td>Render content page for ref</td><td>Render content page for ref for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
-<tr><td>render_content_pages</td><td>Render content pages</td><td>Render content pages for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
-<tr><td>render_enums_body</td><td>Render enums body</td><td>Render enums body for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>render_content_pages</td><td>Render content pages</td><td>Render content pages for the documentation rendering workflow. Usage self.render_content_pages()</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>render_enums_body</td><td>Render enums body</td><td>Render enums body for the documentation rendering workflow. Usage self.render_enums_body()</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>render_enums_page</td><td>Render enums page</td><td>Render enums page for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>render_globals_body</td><td>Render globals body</td><td>Render globals body for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>render_globals_page</td><td>Render globals page</td><td>Render globals page for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
@@ -702,25 +717,25 @@
 <tr><td>render_glossary_page</td><td>Render glossary page</td><td>Render glossary page for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>render_glossary_table</td><td>Render glossary table</td><td>Render glossary table for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>render_image_group</td><td>Render image group</td><td>Render image group for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
-<tr><td>render_index_page</td><td>Render index page</td><td>Render index page for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>render_index_page</td><td>Render index page</td><td>Render index page for the documentation rendering workflow. Usage self.render_index_page()</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>render_install_page</td><td>Render install page</td><td>Render install page for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>render_integrity_body</td><td>Render integrity body</td><td>Render integrity body for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>render_integrity_page</td><td>Render integrity page</td><td>Render integrity page for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
-<tr><td>render_landing_summary</td><td>Render landing summary</td><td>Render landing summary for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
-<tr><td>render_layout_css</td><td>Render layout css</td><td>Render layout css for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
-<tr><td>render_license_body</td><td>Render license body</td><td>Render license body for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>render_landing_summary</td><td>Render landing summary</td><td>Render landing summary for the documentation rendering workflow. Usage self.render_landing_summary()</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>render_layout_css</td><td>Render layout css</td><td>Render layout css for the documentation rendering workflow. Usage self.render_layout_css()</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>render_license_body</td><td>Render license body</td><td>Render license body for the documentation rendering workflow. Usage self.render_license_body()</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>render_license_page</td><td>Render license page</td><td>Render license page for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>render_markdown_document</td><td>Render markdown document</td><td>Render markdown document for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>render_module_content</td><td>Render module content</td><td>Render module content for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
-<tr><td>render_nav_branding</td><td>Render nav branding</td><td>Render the Testadura publisher identity above the navigation index.</td><td>sgnd_doc_renderer.py</td></tr>
-<tr><td>render_navigation</td><td>Render navigation</td><td>Render navigation for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
-<tr><td>render_page_branding</td><td>Render page branding</td><td>Render the compact SolidGroundUX identity used on documentation pages.</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>render_nav_branding</td><td>Render nav branding</td><td>Render the Testadura publisher identity above the navigation index. Usage self.render_nav_branding()</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>render_navigation</td><td>Render navigation</td><td>Render navigation for the documentation rendering workflow. Usage self.render_navigation()</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>render_page_branding</td><td>Render page branding</td><td>Render the compact SolidGroundUX identity used on documentation pages. Usage self.render_page_branding()</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>render_project_document_page</td><td>Render project document page</td><td>Render project document page for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>render_rows</td><td>Render rows</td><td>Render rows for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>render_theme_specimen</td><td>Render theme specimen</td><td>Render a live HTML specimen derived from a SolidGroundUX style file.</td><td>sgnd_doc_renderer.py</td></tr>
-<tr><td>render_title_page</td><td>Render title page</td><td>Render title page for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>render_title_page</td><td>Render title page</td><td>Render title page for the documentation rendering workflow. Usage self.render_title_page()</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>resolve_theme_style</td><td>Resolve theme style</td><td>Resolve a semantic style variable to CSS without sourcing shell code.</td><td>sgnd_doc_renderer.py</td></tr>
-<tr><td>run</td><td>Run</td><td>Run for the documentation rendering workflow.</td><td>sgnd_doc_renderer.py</td></tr>
+<tr><td>run</td><td>Run</td><td>Run for the documentation rendering workflow. Usage self.run()</td><td>sgnd_doc_renderer.py</td></tr>
 <tr><td>sample_function_with_arguments</td><td>Sample function with arguments</td><td>Demonstrate how function arguments are documented.</td><td>doc-sample.sh</td></tr>
 <tr><td>sample_public_function</td><td>Sample public function</td><td>Sample public function.</td><td>doc-sample.sh</td></tr>
 <tr><td>say</td><td>Emit a minimal bootstrap message</td><td>Emit a status message before the full SolidGroundUX UI layer is loaded.</td><td>sgnd-exe-common.sh</td></tr>
@@ -872,7 +887,7 @@
 <tr><td>sgnd_on_exit_add</td><td>On exit add</td><td>Register a function or command to run through the SolidGroundUX exit dispatcher.</td><td>sgnd-bootstrap.sh</td></tr>
 <tr><td>sgnd_on_exit_install</td><td>On exit install</td><td>Install the SolidGroundUX exit trap dispatcher once for the current shell.</td><td>sgnd-bootstrap.sh</td></tr>
 <tr><td>sgnd_padded_visible</td><td>Padded visible</td><td>Pad styled text based on visible width rather than byte length.</td><td>sgnd-core.sh</td></tr>
-<tr><td>sgnd_parse_args</td><td>Parse args</td><td>Parse command-line options according to SGND_ARG_SPEC and dispatch built-in argument handlers.</td><td>sgnd-args.sh</td></tr>
+<tr><td>sgnd_parse_args</td><td>Parse framework or script command-line arguments</td><td>Parse command-line options against the selected SolidGroundUX argument specification while preserving the remaining arguments for a later parse pass.</td><td>sgnd-args.sh</td></tr>
 <tr><td>sgnd_parse_statespec</td><td>Parse statespec</td><td>Parse a save-state specification into source variable and state key parts.</td><td>sgnd-bootstrap.sh</td></tr>
 <tr><td>sgnd_ping_ok</td><td>Ping ok</td><td>Check whether a host responds to one ping probe.</td><td>sgnd-system.sh</td></tr>
 <tr><td>sgnd_port_open</td><td>Port open</td><td>Check whether a TCP port is reachable.</td><td>sgnd-system.sh</td></tr>

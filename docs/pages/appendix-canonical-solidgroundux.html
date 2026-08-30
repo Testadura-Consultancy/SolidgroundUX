@@ -182,7 +182,7 @@
 /var/log/solidgroundux/</code></pre>
 <p class="ct-documentbody">Console modules are discovered from:</p>
 <pre class="doc-license-text"><code>/usr/local/libexec/solidgroundux/console-modules/</code></pre>
-<p class="ct-documentbody">During development, installed paths MUST be derivable from `SGND_APPLICATION_ROOT` or the applicable framework root rather than hard-coded throughout the codebase.</p>
+<p class="ct-documentbody">During development, installed paths MUST be derived from `SGND_FRAMEWORK_ROOT` rather than hard-coded throughout the codebase. The same installed-path contract therefore applies to `/` in production and to a staged `target-root` tree during development.</p>
 <h3 class="ct-L2Sectionheader">3.3 Ownership</h3>
 <p class="ct-documentbody">Installed framework and application trees under `/usr/local` MUST normally be owned by:</p>
 <pre class="doc-license-text"><code>root:root</code></pre>
@@ -196,10 +196,8 @@
 <li>system configuration;</li>
 <li>framework default.</li>
 </ol>
-<p class="ct-documentbody">Canonical locations:</p>
-<pre class="doc-license-text"><code>~/.config/solidgroundux/solidgroundux.cfg
-/etc/solidgroundux/solidgroundux.cfg</code></pre>
-<p class="ct-documentbody">Configuration loading MUST be deterministic and documented.</p>
+<p class="ct-documentbody">Framework configuration MUST use the current framework configuration files resolved by bootstrap. The former application-root bootstrap configuration and `solidgroundux.cfg` first-run creation workflow are obsolete and MUST NOT be reintroduced.</p>
+<p class="ct-documentbody">Configuration loading MUST be deterministic and documented. Executables MUST NOT require an application-root prompt merely to locate SolidGroundUX; `SGND_FRAMEWORK_ROOT` is derived from the executing path.</p>
 <p class="ct-documentbody">---</p>
 <h2 class="ct-L1Sectionheader">4. Script Anatomy</h2>
 <h3 class="ct-L2Sectionheader">4.1 Canonical Section Order</h3>
@@ -208,10 +206,9 @@
 <li>shebang;</li>
 <li>file header;</li>
 <li>shell options where applicable;</li>
-<li>immutable metadata;</li>
-<li>framework locator;</li>
-<li>framework imports;</li>
-<li>global declarations;</li>
+<li>canonical framework locator;</li>
+<li>script identity and framework-integration metadata;</li>
+<li>local/global declarations;</li>
 <li>function definitions;</li>
 <li>main routine;</li>
 <li>invocation of main.</li>
@@ -225,6 +222,7 @@
 <p class="ct-documentbody">Executable scripts SHOULD provide a single explicit main function.</p>
 <p class="ct-documentbody">Canonical pattern:</p>
 <pre class="doc-license-text"><code>main() {
+    _framework_locator || return $?
     sgnd_exe_start --state -- &quot;$@&quot; || return $?
 
     # Script logic.
@@ -233,11 +231,8 @@
 <pre class="doc-license-text"><code>main &quot;$@&quot;
 exit $?</code></pre>
 <p class="ct-documentbody">Where framework initialization has stricter ordering requirements, that ordering is part of the contract.</p>
-<p class="ct-documentbody">For the Management Studio, canonical initialization is:</p>
-<pre class="doc-license-text"><code>_framework_locator || exit $?
-sgnd_exe_start --state -- &quot;$@&quot;
-_sgnd_console_init_paths || exit $?</code></pre>
-<p class="ct-documentbody">`SGND_APPLICATION_ROOT` MUST NOT be referenced during initial sourcing before the framework locator has established it.</p>
+<p class="ct-documentbody">For the SolidGround Management Console, canonical initialization may add console-specific path or host initialization after `sgnd_exe_start`.</p>
+<p class="ct-documentbody">`SGND_FRAMEWORK_ROOT` MUST be established by `_framework_locator` before framework libraries are loaded. The former `SGND_FRAMEWORK_ROOT` bootstrap contract is obsolete.</p>
 <h3 class="ct-L2Sectionheader">4.4 Functions</h3>
 <p class="ct-documentbody">Functions MUST perform one coherent responsibility.</p>
 <p class="ct-documentbody">A function SHOULD be short enough that its control flow remains visible, but no arbitrary line limit is imposed.</p>
@@ -293,7 +288,7 @@ _helper</code></pre>
 <p class="ct-documentbody">Canonical examples:</p>
 <pre class="doc-license-text"><code>SGND_VERSION
 SGND_BUILD
-SGND_APPLICATION_ROOT
+SGND_FRAMEWORK_ROOT
 SGND_CONSOLE_WIDTH
 SGND_MAX_RENDER_WIDTH</code></pre>
 <p class="ct-documentbody">Temporary variables SHOULD use descriptive lowercase names:</p>
@@ -316,13 +311,12 @@ set-identity.sh</code></pre>
 <p class="ct-documentbody">---</p>
 <h2 class="ct-L1Sectionheader">6. Function Header Contracts</h2>
 <h3 class="ct-L2Sectionheader">6.1 Requirement</h3>
-<p class="ct-documentbody">Every non-trivial public function MUST have a canonical function header.</p>
-<p class="ct-documentbody">Private functions SHOULD have either the full or short canonical header, depending on complexity.</p>
-<p class="ct-documentbody">Headers are contracts, not decoration.</p>
+<p class="ct-documentbody">Every documented function MUST have a canonical `fn:` or `fn$` marker and at least one `. Usage` example.</p>
+<p class="ct-documentbody">Public functions and non-trivial private functions SHOULD use the full canonical contract when their behavior warrants it. Simple private helpers SHOULD use a concise header rather than repeating boilerplate that adds no information.</p>
+<p class="ct-documentbody">Headers are contracts, not decoration. Comment size SHOULD be proportional to behavioral complexity.</p>
 <h3 class="ct-L2Sectionheader">6.2 Required Information</h3>
-<p class="ct-documentbody">A full function header SHOULD describe:</p>
+<p class="ct-documentbody">A full function header SHOULD document only the contract information that materially helps a caller or maintainer, including as applicable:</p>
 <ul>
-<li>function name;</li>
 <li>purpose;</li>
 <li>parameters;</li>
 <li>output;</li>
@@ -330,11 +324,12 @@ set-identity.sh</code></pre>
 <li>side effects;</li>
 <li>global variables read or modified;</li>
 <li>dependencies;</li>
-<li>concrete usage examples;</li>
-<li>notes or constraints where necessary.</li>
+<li>notes or constraints.</li>
 </ul>
+<p class="ct-documentbody">A concise header MAY consist of the function marker, a short purpose, and `. Usage` when the function is self-explanatory and has no surprising contract.</p>
+<p class="ct-documentbody">Every function header, full or concise, MUST contain at least one `. Usage` example.</p>
 <h3 class="ct-L2Sectionheader">6.3 Usage Examples</h3>
-<p class="ct-documentbody">Each function header MUST include at least one concrete, informative example.</p>
+<p class="ct-documentbody">Each function header MUST include exactly one or more concrete, informative `. Usage` examples; at least one is mandatory.</p>
 <p class="ct-documentbody">This is insufficient:</p>
 <pre class="doc-license-text"><code># sgnd_sgr &quot;$value&quot;</code></pre>
 <p class="ct-documentbody">This is preferred:</p>
@@ -347,14 +342,14 @@ set-identity.sh</code></pre>
 <p class="ct-documentbody">---</p>
 <h2 class="ct-L1Sectionheader">7. Arguments and Command-Line Behaviour</h2>
 <h3 class="ct-L2Sectionheader">7.1 Standard Arguments</h3>
-<p class="ct-documentbody">Framework-supported arguments SHOULD be used consistently, including:</p>
-<pre class="doc-license-text"><code>--state
---autostate
---needroot
---cannotroot
---log
---console</code></pre>
-<p class="ct-documentbody">Applications MAY add their own arguments but MUST NOT redefine standard argument semantics.</p>
+<p class="ct-documentbody">Framework-supported built-ins MUST use their canonical semantics. Current built-ins include execution/state and presentation controls such as:</p>
+<pre class="doc-license-text"><code>--dryrun
+--commit
+--auto
+--resetstate
+--title
+--no-title</code></pre>
+<p class="ct-documentbody">Additional built-ins MAY be provided by bootstrap. Applications MAY add their own arguments but MUST NOT redefine framework argument semantics.</p>
 <h3 class="ct-L2Sectionheader">7.2 Root Requirements</h3>
 <p class="ct-documentbody">Root requirements MUST be explicit.</p>
 <p class="ct-documentbody">A script requiring root SHOULD use the framework mechanism rather than duplicating an ad hoc UID check.</p>
@@ -367,6 +362,7 @@ set-identity.sh</code></pre>
 <li>and, where useful, concise usage guidance.</li>
 </ul>
 <p class="ct-documentbody">Unknown arguments MUST NOT be silently ignored.</p>
+<p class="ct-documentbody">Framework built-ins and script-specific options MAY be freely intermixed before the standard `--` end-of-options marker. Recognized framework built-ins are extracted without reordering or discarding the remaining script arguments. Everything after `--` is positional data and MUST remain untouched.</p>
 <h3 class="ct-L2Sectionheader">7.4 Dry Run</h3>
 <p class="ct-documentbody">A dry run MUST:</p>
 <ul>
@@ -435,7 +431,7 @@ set-identity.sh</code></pre>
 <h2 class="ct-L1Sectionheader">10. State Management</h2>
 <h3 class="ct-L2Sectionheader">10.1 Declared State</h3>
 <p class="ct-documentbody">Persisted state MUST be deliberate.</p>
-<p class="ct-documentbody">Variables intended for state persistence SHOULD be declared through `SGND_STATE_VARIABLES` or the current canonical state mechanism.</p>
+<p class="ct-documentbody">Variables intended for state persistence SHOULD be declared through `SGND_STATE_VARIABLES` or the current canonical state mechanism. Standalone bootstrap/recovery tools that cannot depend on the framework MAY use a small explicit state file, provided its schema and precedence are deterministic.</p>
 <p class="ct-documentbody">A script MUST NOT persist every variable merely because persistence is available.</p>
 <h3 class="ct-L2Sectionheader">10.2 Persistence Policy</h3>
 <p class="ct-documentbody">State persistence MUST follow the execution contract of the owning application or tool.</p>
@@ -448,7 +444,8 @@ set-identity.sh</code></pre>
 <p class="ct-documentbody">---</p>
 <h2 class="ct-L1Sectionheader">11. User Interface</h2>
 <h3 class="ct-L2Sectionheader">11.1 Visual Consistency</h3>
-<p class="ct-documentbody">UI primitives MUST use theme variables rather than hard-coded escape sequences.</p>
+<p class="ct-documentbody">Framework UI primitives MUST use theme variables rather than hard-coded escape sequences.</p>
+<p class="ct-documentbody">A standalone bootstrap/recovery tool MAY carry a small design-time fallback palette based on the SolidGroundUX default theme when the framework is unavailable. When a healthy framework is available, it SHOULD prefer the normal framework UI primitives and active theme.</p>
 <p class="ct-documentbody">Canonical style globals include:</p>
 <pre class="doc-license-text"><code>SGND_UI_BOLD
 SGND_UI_FAINT
@@ -560,7 +557,7 @@ sgnd_print_labeledvalue --label &quot;License Accepted&quot; \
 <h3 class="ct-L2Sectionheader">13.3 Module Discovery and Visibility</h3>
 <p class="ct-documentbody">The canonical module directory is:</p>
 <pre class="doc-license-text"><code>/usr/local/libexec/solidgroundux/console-modules/</code></pre>
-<p class="ct-documentbody">In development, the equivalent path MUST derive from the applicable application root.</p>
+<p class="ct-documentbody">In development, the equivalent path MUST derive from `SGND_FRAMEWORK_ROOT`.</p>
 <p class="ct-documentbody">Page visibility MAY be persisted independently of module discovery. Root-only management controls MAY edit this state, but hidden modules MUST remain discoverable to the visibility manager so they can be re-enabled.</p>
 <h3 class="ct-L2Sectionheader">13.4 Module Contract</h3>
 <p class="ct-documentbody">A console module MUST be source-only and MUST register itself through the public menu API expected by the host.</p>
@@ -614,7 +611,7 @@ systemctl restart ssh</code></pre>
 <li>removal of SSH host keys where the deployment flow requires regeneration;</li>
 <li>explicit reporting of what the clone must do next.</li>
 </ul>
-<p class="ct-documentbody">First-boot services SHOULD NOT be retained when the Management Studio provides an explicit and reliable post-clone workflow.</p>
+<p class="ct-documentbody">First-boot services SHOULD NOT be retained when the SolidGround Management Console provides an explicit and reliable post-clone workflow.</p>
 <p class="ct-documentbody">---</p>
 <h2 class="ct-L1Sectionheader">15. Package Installation</h2>
 <h3 class="ct-L2Sectionheader">15.1 Base Packages</h3>
@@ -647,38 +644,64 @@ systemctl restart ssh</code></pre>
 <p class="ct-documentbody">---</p>
 <h2 class="ct-L1Sectionheader">16. Installer Behaviour</h2>
 <h3 class="ct-L2Sectionheader">16.1 Canonical Release Manager</h3>
-<p class="ct-documentbody">`release-manager.sh` is the canonical SolidGroundUX installation and release-lifecycle tool.</p>
+<p class="ct-documentbody">`release-manager.sh` is the canonical installation and release-lifecycle tool for SolidGroundUX packages.</p>
 <p class="ct-documentbody">Separate legacy installer, updater, and uninstaller commands MUST NOT be documented as current interfaces once their responsibilities have been absorbed by the Release Manager.</p>
-<p class="ct-documentbody">Prepared releases are produced by `prepare-release` and consumed by `release-manager`.</p>
-<h3 class="ct-L2Sectionheader">16.2 Integrity</h3>
-<p class="ct-documentbody">Releases SHOULD include manifest or checksum verification.</p>
-<p class="ct-documentbody">Installation MUST stop when integrity verification fails.</p>
-<h3 class="ct-L2Sectionheader">16.3 Existing Directories</h3>
+<p class="ct-documentbody">Prepared release packages are produced by `prepare-release.sh` and consumed by `release-manager.sh`.</p>
+<p class="ct-documentbody">The Release Manager MUST remain usable when SolidGroundUX is not yet installed or is damaged. Its release engine therefore MUST NOT depend on a working framework runtime.</p>
+<h3 class="ct-L2Sectionheader">16.2 Release Package Contract</h3>
+<p class="ct-documentbody">Every distributable package MUST contain a `release-package.info` shipping label identifying at least:</p>
+<pre class="doc-license-text"><code>package format
+project
+product
+version
+build
+release</code></pre>
+<p class="ct-documentbody">A package MUST also contain the complete release archive, manifest, removed manifest, and their checksum sidecars.</p>
+<p class="ct-documentbody">SolidGroundUX framework packages MAY additionally contain a ZIP-root `release-manager.sh` bootstrap copy. Generic project packages SHOULD rely on an already installed Release Manager.</p>
+<p class="ct-documentbody">The package identity file is transport metadata. The deployed project definitions file remains the authoritative runtime project identity.</p>
+<h3 class="ct-L2Sectionheader">16.3 Bootstrap and Canonical Manager</h3>
+<p class="ct-documentbody">A ZIP-root Release Manager is a bootstrap runner, not the authoritative installed copy.</p>
+<p class="ct-documentbody">On first installation:</p>
+<ol>
+<li>the bootstrap manager identifies and validates the adjacent package;</li>
+<li>the target root is resolved or explicitly confirmed;</li>
+<li>the package archive is installed;</li>
+<li>the installed tar establishes the canonical manager under `var/lib/solidgroundux`;</li>
+<li>the bootstrap copy MAY clean up its known temporary files.</li>
+</ol>
+<p class="ct-documentbody">The running bootstrap or development copy MUST NOT overwrite the canonical manager merely because its pathname differs.</p>
+<h3 class="ct-L2Sectionheader">16.4 Integrity</h3>
+<p class="ct-documentbody">Releases MUST include checksum verification for the archive, manifest, and removed manifest.</p>
+<p class="ct-documentbody">Installation MUST stop when integrity or path-safety verification fails.</p>
+<h3 class="ct-L2Sectionheader">16.5 Existing Directories</h3>
 <p class="ct-documentbody">Archive extraction MUST NOT overwrite ownership, mode, ACLs, or extended attributes of existing parent system directories unless the installer explicitly owns and manages those directories.</p>
-<h3 class="ct-L2Sectionheader">16.4 Backups</h3>
-<p class="ct-documentbody">Upgrades SHOULD back up replaced configuration or application files where local changes may exist.</p>
-<p class="ct-documentbody">Backup naming and location MUST be deterministic.</p>
-<h3 class="ct-L2Sectionheader">16.5 Operation Detection</h3>
-<p class="ct-documentbody">The Release Manager SHOULD identify whether the operation is:</p>
+<h3 class="ct-L2Sectionheader">16.6 Operation Detection</h3>
+<p class="ct-documentbody">The Release Manager SHOULD identify whether the selected action represents:</p>
 <ul>
 <li>first installation;</li>
-<li>repair;</li>
-<li>reinstall;</li>
-<li>upgrade;</li>
-<li>downgrade.</li>
+<li>repair or reinstall;</li>
+<li>update;</li>
+<li>downgrade or rollback;</li>
+<li>removal.</li>
 </ul>
-<p class="ct-documentbody">The operator SHOULD be informed when behaviour differs by mode.</p>
-<h3 class="ct-L2Sectionheader">16.6 Release Archives</h3>
-<p class="ct-documentbody">Release tooling MUST set canonical ownership and permissions before packaging.</p>
-<p class="ct-documentbody">Packaging MUST not depend on the local developer account’s ownership being appropriate for installation.</p>
-<h3 class="ct-L2Sectionheader">16.7 Filesystem-Based Release State</h3>
-<p class="ct-documentbody">Canonical release state is represented by the managed release artifacts themselves.</p>
-<p class="ct-documentbody">The Release Manager uses:</p>
+<p class="ct-documentbody">The operator SHOULD be informed when behavior differs by mode.</p>
+<h3 class="ct-L2Sectionheader">16.7 Project-Aware Filesystem State</h3>
+<p class="ct-documentbody">Release state is filesystem-based and project-aware.</p>
+<p class="ct-documentbody">SolidGroundUX retains the canonical state locations:</p>
 <pre class="doc-license-text"><code>/var/lib/solidgroundux/releases/
 /var/lib/solidgroundux/archive/</code></pre>
-<p class="ct-documentbody">Available prepared releases are retained beneath `releases/`. Installed release history is retained beneath `archive/`.</p>
-<p class="ct-documentbody">The release lifecycle SHOULD remain inspectable with ordinary filesystem tools rather than depending on a separate opaque current-version database.</p>
-<p class="ct-documentbody">---</p>
+<p class="ct-documentbody">Additional projects use:</p>
+<pre class="doc-license-text"><code>/var/lib/solidgroundux/projects/&lt;project&gt;/releases/
+/var/lib/solidgroundux/projects/&lt;project&gt;/archive/</code></pre>
+<p class="ct-documentbody">The release lifecycle SHOULD remain inspectable with ordinary filesystem tools rather than depending on an opaque current-version database.</p>
+<p class="ct-documentbody">Build output produced by `prepare-release.sh` belongs to the workspace release-output directory. It MUST NOT be copied into the target-root managed release-state directories merely as a side effect of preparing a release. A package enters managed `releases/` state when the Release Manager acquires or admits it.</p>
+<h3 class="ct-L2Sectionheader">16.8 Interactive and Non-Interactive Operation</h3>
+<p class="ct-documentbody">Interactive Release Manager operation SHOULD present stateful parameter values as questions and release actions through a menu.</p>
+<p class="ct-documentbody">Non-interactive action arguments such as check, download, update, install, rollback, and remove MUST dispatch the same underlying action functions used by the interactive menu.</p>
+<p class="ct-documentbody">Explicit command-line values take precedence over stored parameter state. `--auto` MAY suppress questions and confirmations where the selected action already expresses informed intent.</p>
+<h3 class="ct-L2Sectionheader">16.9 Standalone and Framework UI</h3>
+<p class="ct-documentbody">The Release Manager MUST always have a minimal standalone UI and fallback theme available.</p>
+<p class="ct-documentbody">When a healthy SolidGroundUX framework exists at the selected target root, the manager MAY use the normal SolidGroundUX UI primitives and active theme. Failure to load the framework UI MUST fall back safely to the standalone implementation and MUST NOT prevent release recovery operations.</p>
 <h2 class="ct-L1Sectionheader">17. Security</h2>
 <h3 class="ct-L2Sectionheader">17.1 Least Surprise</h3>
 <p class="ct-documentbody">Security-sensitive defaults MUST be conservative and visible.</p>
@@ -699,7 +722,7 @@ systemctl restart ssh</code></pre>
 <p class="ct-documentbody">These are separate states and MUST NOT be conflated.</p>
 <h3 class="ct-L2Sectionheader">17.5 Remote Access</h3>
 <p class="ct-documentbody">SSH enablement and SSH key generation are separate operations.</p>
-<p class="ct-documentbody">The Management Studio SHOULD expose them as separate actions.</p>
+<p class="ct-documentbody">The SolidGround Management Console SHOULD expose them as separate actions.</p>
 <p class="ct-documentbody">---</p>
 <h2 class="ct-L1Sectionheader">18. Samba Active Directory Provisioning</h2>
 <h3 class="ct-L2Sectionheader">18.1 Required Inputs</h3>
@@ -757,12 +780,13 @@ systemctl restart ssh</code></pre>
 <p class="ct-documentbody">---</p>
 <h2 class="ct-L1Sectionheader">20. Versioning and Release Metadata</h2>
 <h3 class="ct-L2Sectionheader">20.1 Version</h3>
-<p class="ct-documentbody">Canonical display:</p>
+<p class="ct-documentbody">Canonical framework display:</p>
 <pre class="doc-license-text"><code>SGND_VERSION.SGND_BUILD</code></pre>
+<p class="ct-documentbody">Project-specific definitions MAY provide equivalent project-scoped Version and Build globals.</p>
 <p class="ct-documentbody">Build identifiers MAY embed date or time information according to the release process.</p>
 <h3 class="ct-L2Sectionheader">20.2 Script Headers</h3>
-<p class="ct-documentbody">Release tooling SHOULD synchronize version metadata in changed script headers.</p>
-<p class="ct-documentbody">An option MAY restrict header updates to changed files.</p>
+<p class="ct-documentbody">Release tooling SHOULD synchronize version metadata in changed script headers and MUST update the authoritative project definitions file for the release identity being produced.</p>
+<p class="ct-documentbody">An option MAY restrict per-script header updates to changed files.</p>
 <p class="ct-documentbody">Unchanged files SHOULD NOT receive meaningless version churn unless the release policy explicitly requires a global version update.</p>
 <h3 class="ct-L2Sectionheader">20.3 Canonical Metadata</h3>
 <pre class="doc-license-text"><code>SGND_COMPANY=&quot;Testadura Consultancy&quot;
@@ -877,9 +901,10 @@ td_*          → sgnd_*</code></pre>
 </ul>
 <h3 class="ct-L2Sectionheader">24.3 Contracts</h3>
 <ul>
-<li>Do non-trivial functions have accurate headers?</li>
-<li>Does each public function include a concrete usage example?</li>
-<li>Are parameters, return values, side effects, and globals documented?</li>
+<li>Do public and non-trivial functions have accurate contracts?</li>
+<li>Do simple private helpers avoid unnecessary boilerplate?</li>
+<li>Does every documented function include at least one concrete `. Usage` example?</li>
+<li>Are parameters, return values, side effects, and globals documented where they materially affect the contract?</li>
 </ul>
 <h3 class="ct-L2Sectionheader">24.4 Behaviour</h3>
 <ul>

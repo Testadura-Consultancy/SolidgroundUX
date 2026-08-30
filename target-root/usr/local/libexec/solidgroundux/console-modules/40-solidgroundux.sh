@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624122
-#   Checksum    : 6e66646a93d354924b6042f19f71247a4655119625714c0ff5c2736a5e5c02bf
+#   Build       : 2624123
+#   Checksum    : f0226399b8e8fec81db6596957b38d79b09960986a2e8398cc107e53cc5ccf2f
 #   Source      : 40-solidgroundux.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -84,7 +84,7 @@ set -uo pipefail
 # - SolidGroundUX installation actions -------------------------------------------
     # fn: _release_manager - Open the standalone SolidGroundUX release manager
         # . Purpose
-        #   Start the framework-independent release manager for installation,
+        #   Start the self-sufficient release manager for installation,
         #   update, rollback, reinstallation, and removal operations.
         #
         # . Returns
@@ -115,8 +115,6 @@ set -uo pipefail
         # Usage:
         #   _framework_smoketest
         #
-        # . Usage
-        #   _framework_smoketest
     _framework_smoketest() {
         _sgnd_run_public_command "sgnd-framework-smoketest"
     }
@@ -128,8 +126,6 @@ set -uo pipefail
         # Usage:
         #   _framework_show_environment
         #
-        # . Usage
-        #   _framework_show_environment
     _framework_show_environment() {
         _sgnd_run_public_command "sgnd-framework-smoketest" --show env
     }
@@ -286,8 +282,6 @@ set -uo pipefail
         # Usage:
         #   _framework_config_validator "SGND_LOG_KEEP"
         #
-        # . Usage
-        #   _framework_config_validator "ui.style"
     _framework_config_validator() {
         local key="${1:-}"
 
@@ -314,8 +308,6 @@ set -uo pipefail
         # Usage:
         #   _framework_config_validate_log_level "normal"
         #
-        # . Usage
-        #   _framework_config_validate_log_level "2026-07-31" "2026-07-31" "2026-07-31" && printf 'Success\n' || printf 'Failed\n'
     _framework_config_validate_log_level() {
         case "${1,,}" in
             silent|quiet|normal|verbose|debug|trace) return 0 ;;
@@ -338,8 +330,6 @@ set -uo pipefail
         # Usage:
         #   _framework_config_write_value "$file" "$key" "$value"
         #
-        # . Usage
-        #   _framework_config_write_value "example-0" "/tmp/sgnd-example.txt" "ui.style" "dark"
     _framework_config_write_value() {
         local file="${1:?missing cfg file}"
         local key="${2:?missing cfg key}"
@@ -401,8 +391,6 @@ set -uo pipefail
         #   framework_configure_file
         #   framework_configure_file "$SGND_FRAMEWORK_USRCFG_FILE"
         #
-        # . Usage
-        #   framework_configure_file "/tmp/sgnd-example.txt"
     framework_configure_file() {
         local cfg_file="${1:-${SGND_FRAMEWORK_SYSCFG_FILE:-}}"
         local spec=""

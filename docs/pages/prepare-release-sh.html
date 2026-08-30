@@ -11,7 +11,7 @@
 <div class="doc-page-branding"><span class="doc-page-branding-title">SolidGroundUX Documentation</span><img src="../assets/branding/doc-header-logo.png" alt="SolidGroundUX"></div>
 <header class="doc-page-header">
   <div class="doc-title">SolidGroundUX - Prepare Release</div>
-  <div class="doc-breadcrumb">SolidgroundUX / prepare-release.sh</div>
+  <div class="doc-breadcrumb">SolidGroundUX / prepare-release.sh</div>
 </header>
 <div class="ct-modulebody sh-label">Description</div>
 <div class="ct-modulebody">  Provides a release-preparation utility for SolidGroundUX workspaces.</div>
@@ -24,8 +24,9 @@
 <div class="ct-modulebody">    - Ensures release metadata is consistent across processed scripts</div>
 <div class="ct-modulebody">    - Verifies public command wrappers for executable top-level libexec scripts</div>
 <div class="ct-modulebody">    - Creates release tar/manifests/checksums and a complete distributable release ZIP</div>
+<div class="ct-modulebody">    - Writes release-package.info at ZIP root so the package identifies its project/release</div>
 <div class="ct-modulebody">    - Uses an explicit removal-baseline manifest from persistent manifest history</div>
-<div class="ct-modulebody">    - Ships the standalone release-manager.sh beside the release payload</div>
+<div class="ct-modulebody">    - Ships release-manager.sh only with the SolidGroundUX framework bootstrap package</div>
 <div class="ct-modulebody"></div>
 <div class="ct-modulebody sh-label">Design principles</div>
 <div class="ct-modulebody">  - Release preparation is deterministic and repeatable</div>

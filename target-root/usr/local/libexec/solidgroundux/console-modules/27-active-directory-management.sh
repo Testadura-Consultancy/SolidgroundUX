@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624102
-#   Checksum    :0e2441b5d011fa2b924518f57bdab1246dc0a665e9265f5391410d43cfdd7ebb
+#   Build       : 2624123
+#   Checksum    :1ef6a4603357da93826fd818a5c3f89a2fc110451d3e59286451334e8697ca90
 #   Source      : 27-active-directory-management.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -371,6 +371,8 @@ set -uo pipefail
     # fn: _admg_decision_is_quit - Test whether a canonical decision means quit/back
         # . Returns
         #   0 when the value is Quit/Q (case-insensitive); 1 otherwise.
+        # . Usage
+        #   _admg_decision_is_quit "<arg1>"
     _admg_decision_is_quit() {
         [[ "${1^^}" == "QUIT" || "${1^^}" == "Q" ]]
     }

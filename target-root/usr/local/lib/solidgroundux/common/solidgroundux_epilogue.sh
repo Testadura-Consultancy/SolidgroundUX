@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624102
-#   Checksum    : 2b9fffe93e85fdc7ee44bb55b1003a70a95408ea2a542ed3a29f05f617d0ffb0
+#   Build       : 2624123
+#   Checksum    : 048859e89d49dd4ce8caf991b95c0f92779b8ef48b02b8f729fb730c81773169
 #   Source      : solidgroundux_epilogue.sh
 #   Type        : documentation
 #   Group       : SolidGroundUX
@@ -129,8 +129,10 @@
 # -- Create a VS Code workspace ------------------------------------------------------
 #
 # > Use sgnd-create-workspace. The underlying create-workspace tool creates the
-# > repository directory structure, workspace file, .gitignore, module app cfg, and
-# > can undo created artifacts from its creation manifest.
+# > repository-shaped target-root structure, project definitions, workspace file,
+# > .gitignore, optional project MOTD, and local component templates. It can instantiate
+# > starter executable/library/module files, optionally initialize and publish Git/GitHub,
+# > and can undo created artifacts from its creation manifest.
 #
 # -- Deploy a workspace --------------------------------------------------------------
 #
@@ -481,7 +483,7 @@
 # >     reusable public menu API.
 #
 # > Main files
-# >     sgnd-console.sh
+# >     management-console.sh
 # >     sgnd-menu.sh
 # >     console-helpers.sh
 # >     console-modules/*.sh
@@ -518,7 +520,8 @@
 # >     prepare-release -> prepared release artifacts -> release-manager
 #
 # >     deploy-workspace.sh is a development/test transfer tool. prepare-release.sh
-# >     creates complete release archives, manifests, removal manifests, and checksums.
-# >     release-manager.sh is framework-independent and owns installation, update,
-# >     rollback/reinstallation, download/check, and removal. Release state is represented
-# >     by /var/lib/solidgroundux/releases and /var/lib/solidgroundux/archive.
+# >     creates project-aware ZIP packages containing release-package.info plus complete
+# >     release archives, manifests, removal manifests, and checksums. release-manager.sh
+# >     owns package admission, check/download, installation, update, rollback/reinstall,
+# >     and removal. SolidGroundUX keeps its legacy releases/archive locations; additional
+# >     projects keep independent state beneath /var/lib/solidgroundux/projects/<project>.

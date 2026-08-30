@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624102
-#   Checksum    : 8ad1c35b272beb67597f98a74fac742e304ed75752a255235c31ee5a3e674e0c
+#   Build       : 2624123
+#   Checksum    : 7a92a82d196b8c60f93718c12bb00f46d277792c671f53b87000ae4e66a4a5db
 #   Source      : sgnd-bootstrap.sh
 #   Type        : library
 #   Group       : Bootstrap
@@ -386,7 +386,7 @@ set -uo pipefail
         #   Non-zero when validation, resolution, user cancellation, or execution fails.
         #
         # . Usage
-        #   sgnd_script_init_metadata "/usr/local/libexec/solidgroundux/sgnd-console.sh"
+        #   sgnd_script_init_metadata "/usr/local/libexec/solidgroundux/management-console.sh"
     sgnd_script_init_metadata() {
         local metadata=""
         local attribution=""

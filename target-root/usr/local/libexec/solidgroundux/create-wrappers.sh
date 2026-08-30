@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624102
-#   Checksum    : dcb9fae548b2bc63983d979193debd916696060d9fbd76d81f41be1eaf215eef
+#   Build       : 2624123
+#   Checksum    : 02d4ac758b6dcad45dbf09c6d7786b9bf982f041bb6e1edae1abbacbfe4972d9
 #   Source      : create-wrappers.sh
 #   Type        : script
 #   Group       : SDK
@@ -204,6 +204,8 @@ set -uo pipefail
         #   using the same last usr/etc/var component rule as _framework_locator().
         # . Returns
         #   0 with the resolved root on stdout; 1 when the path cannot be resolved.
+        # . Usage
+        #   _framework_root_from_path "<path>" "<framework_root>"
     _framework_root_from_path() {
         local path="${1:-}"
         local absolute=""

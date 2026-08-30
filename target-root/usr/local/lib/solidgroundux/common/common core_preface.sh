@@ -2,9 +2,9 @@
 # SolidGroundUX - Framework Services Overview
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : 575b30a2fa1c15a2e60d8deacf912e58af16c50e585a80e13f4183e5e4f3f63d
+#   Version     : 2.1
+#   Build       : 2624123
+#   Checksum    : e014314aa68d2d0615344316a52638ff27899cb1f56336f007f32b5b793340b4
 #   Source      : common core_preface.sh
 #   Type        : documentation
 #   Group       : Common Core
@@ -37,9 +37,9 @@
 # > The state subsystem stores runtime information that applications may wish to
 # > remember between executions.
 #  
-# > Unlike configuration values, state information represents remembered runtime
-# > conditions such as previous selections, recently opened resources, window
-# > positions, or cached information.
+# > Unlike configuration values, state represents remembered runtime choices and
+# > workflow context such as previous selections, recently used values, UI choices,
+# > or cached information. Scripts opt individual values into persistence explicitly.
 #  
 # -- Command-Line Arguments ----------------------------------------------------------
 #  

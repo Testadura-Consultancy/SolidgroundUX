@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624102
-#   Checksum    : 67f96464f5ed2dcf1e7fc4332bc918b20f8aa1fca48e097de61f48912606e26c
+#   Build       : 2624123
+#   Checksum    : 059aea9241dc8ad5abee684b4622b0856ab406f9db0d65ebfaf1b0288658b3ea
 #   Source      : create-workspace.sh
 #   Type        : script
 #   Group       : SDK
@@ -779,8 +779,6 @@ set -uo pipefail
         #   Resolve project creation settings.
         #
         # . Behavior
-        #   - Internal helper.
-        #   - Preserves existing script runtime behavior.
         #
         # . Returns
         #   Returns the underlying command or workflow status.
@@ -1033,8 +1031,6 @@ set -uo pipefail
         #   Create the VS Code workspace file.
         #
         # . Behavior
-        #   - Internal helper.
-        #   - Preserves existing script runtime behavior.
         #
         # . Returns
         #   Returns the underlying command or workflow status.
@@ -1109,8 +1105,6 @@ set -uo pipefail
         #   Create the workspace .gitignore file.
         #
         # . Behavior
-        #   - Internal helper.
-        #   - Preserves existing script runtime behavior.
         #
         # . Returns
         #   Returns the underlying command or workflow status.
@@ -1197,6 +1191,8 @@ set -uo pipefail
     }
 
     # fn: _project_slug - Return the filesystem-safe project slug
+        # . Usage
+        #   _project_slug
     _project_slug() {
         local slug="${PROJECT_NAME// /-}"
         slug="${slug,,}"
@@ -1205,6 +1201,8 @@ set -uo pipefail
     }
 
     # fn: _project_key - Return the variable-safe project key
+        # . Usage
+        #   _project_key
     _project_key() {
         local key="${PROJECT_NAME^^}"
         key="$(printf '%s' "$key" | sed -E 's/[^A-Z0-9]+/_/g; s/^_+//; s/_+$//')"
@@ -1214,6 +1212,8 @@ set -uo pipefail
     # fn: _create_project_definitions - Create project-wide definition globals
         # . Purpose
         #   Create <project>-definitions.sh in the deployable SolidGroundUX globals folder.
+        # . Usage
+        #   _create_project_definitions
     _create_project_definitions() {
         local slug="" key="" definitions_file="" build="" existed=0
         slug="$(_project_slug)"
@@ -1252,6 +1252,8 @@ set -uo pipefail
     }
 
     # fn: _create_project_motd - Create a minimal project MOTD identity entry
+        # . Usage
+        #   _create_project_motd
     _create_project_motd() {
         local slug="" key="" motd_file="" definitions_installed=""
         (( ${FLAG_CREATE_MOTD:-1} )) || return 0
@@ -1290,6 +1292,8 @@ set -uo pipefail
         #   - Creates an initial commit containing the generated workspace when possible.
         #   - Reports missing Git identity as a failure rather than silently creating
         #     an uncommitted repository.
+        # . Usage
+        #   _initialize_git_repository
     _initialize_git_repository() {
         (( ${FLAG_GIT_INIT:-0} )) || return 0
 
@@ -1343,6 +1347,8 @@ set -uo pipefail
         #   - Requires gh to be installed and authenticated.
         #   - Creates origin for a new repository, then explicitly pushes main.
         #   - If origin already exists, does not recreate the remote and only pushes main.
+        # . Usage
+        #   _initialize_github_repository
     _initialize_github_repository() {
         local visibility_flag="--private"
         local github_account=""
@@ -1474,8 +1480,6 @@ set -uo pipefail
         #   Run the executable main sequence.
         #
         # . Behavior
-        #   - Public entry point.
-        #   - Preserves existing script runtime behavior.
         #
         # . Returns
         #   Returns the underlying command or workflow status.

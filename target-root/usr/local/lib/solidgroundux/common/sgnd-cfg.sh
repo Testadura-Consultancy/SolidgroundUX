@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624102
-#   Checksum    : b65084681fa837f236d8ff77c630fa4bb5dd917c7c845f28ea812895d0e909f5
+#   Build       : 2624123
+#   Checksum    : a086436cf66ce5edf2ddfc22c230a9733182ff9437cabec780e7fce8bf8e823e
 #   Source      : sgnd-cfg.sh
 #   Type        : library
 #   Group       : Common Core
@@ -652,8 +652,6 @@ set -uo pipefail
         #
         #   sgnd_cfg_write_skeleton_filtered "$SGND_SYSCFG_FILE" "system" SGND_SCRIPT_GLOBALS "Script"
         #
-        # . Usage
-        #   sgnd_cfg_write_skeleton_filtered "/tmp/sgnd-example.txt" "example-2" "example-3" "TESTADURA"
     sgnd_cfg_write_skeleton_filtered() {
             local file="${1:-}"
             local audience_want="${2:-}"

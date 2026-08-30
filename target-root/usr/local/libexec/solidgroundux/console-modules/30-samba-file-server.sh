@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624102
-#   Checksum    : 2c4b017ca100223bbf919c21c9e8b8a0176e1a03193d239b77a9f2c4336ebea5
+#   Build       : 2624123
+#   Checksum    : 3ef961899966fb54fede8634f4bee073d401e6e54d28d08482a13df4a7c01c9c
 #   Source      : 30-samba-file-server.sh
 #   Type        : module
 #   Group       : SolidGround Console
@@ -165,6 +165,8 @@ set -uo pipefail
         #
         # . Returns
         #   0 after listing.
+        # . Usage
+        #   _smb_list_managed_shares_raw
     _smb_list_managed_shares_raw() {
         _smb_refresh_storage_paths
         local share_name=""
@@ -195,6 +197,8 @@ set -uo pipefail
         #
         # . Returns
         #   0 on selection; 1 when no share is available or the user returns.
+        # . Usage
+        #   _smb_select_managed_share "<output_var>"
     _smb_select_managed_share() {
         local output_var="${1:?missing output variable}"
         local selected=""

@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624122
-#   Checksum    : 6e224f1c8125644fb46a6a6efc7f8a73f2241eb729b40f100c79c96f89ab18a6
+#   Build       : 2624123
+#   Checksum    : 2241f46bb94f5015f9676caf34eda9a05357b60210261819c5b433e36d279ab7
 #   Source      : deployment_preface.sh
 #   Type        : documentation
 #   Group       : Deployment
@@ -48,7 +48,9 @@
 #
 # -- Release Preparation -------------------------------------------------------------
 #
-# > prepare-release.sh creates the canonical project release set.
+# > prepare-release.sh creates the canonical project release set in the workspace release
+# > output directory. These build artifacts are not copied into the target-root release
+# > state; release-manager.sh admits them there only when a package is acquired/installed.
 #
 # > A release contains a complete target-root filesystem image rather than a binary
 # > patch. The distributable ZIP contains:

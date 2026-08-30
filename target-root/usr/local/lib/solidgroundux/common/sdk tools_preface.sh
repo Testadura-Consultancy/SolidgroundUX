@@ -2,9 +2,9 @@
 # SolidGroundUX - SDK Overview
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : 94b838575f927391f7e8612b5544dfb1bcecfba59ff52731768bb893ed95063e
+#   Version     : 2.1
+#   Build       : 2624123
+#   Checksum    : 9371044bc27ff41f9fbb62f290f6c86befc12e314d03cd81d35baa33506d860e
 #   Source      : sdk tools_preface.sh
 #   Type        : documentation
 #   Group       : SDK
@@ -43,9 +43,11 @@
 #
 # > Most projects begin with the workspace creation utility.
 #
-# > The workspace generator creates the directory structure expected by the
-# > framework and populates it with the required templates, configuration files,
-# > documentation scaffolding, and supporting assets.
+# > The workspace generator creates the repository-shaped target-root structure,
+# > project definitions, optional project MOTD, VS Code workspace file, and a local copy
+# > of the reusable component templates. It can instantiate starter executable, library,
+# > and console-module files and can optionally initialize and publish the repository
+# > through Git/GitHub.
 #
 # > The resulting workspace provides a consistent starting point for development.
 # > Rather than manually creating directories and copying scripts between projects,
@@ -119,15 +121,16 @@
 #
 # -- Preparing a Release ------------------------------------------------------------
 #
-# > prepare-release.sh creates the complete release set consumed by the standalone
-# > release manager. It can maintain Version and Build metadata, refresh changed-file
-# > checksums, verify executable wrappers, optionally create missing wrappers, and
-# > generate the archive, manifest, removal manifest, and checksum sidecars.
+# > prepare-release.sh creates the complete project release set consumed by the Release
+# > Manager. It resolves project identity from the project definitions file, maintains
+# > Version and Build metadata, refreshes changed-file checksums, verifies executable
+# > wrappers, and generates the archive, manifest, removal manifest, checksum sidecars,
+# > and the distributable release ZIP.
 #
-# > The prepared bundle includes release-manager.sh so a fresh machine can bootstrap
-# > from the same framework-independent lifecycle used for later updates and rollback.
-# > release-manager.sh then owns check, download, install, update, rollback/reinstall,
-# > and removal operations.
+# > Every ZIP contains release-package.info so the package identifies its project,
+# > product, version, build, and release without inspecting the payload tar. SolidGroundUX
+# > framework ZIPs additionally include release-manager.sh as a clean-machine bootstrap
+# > entry point; generic project ZIPs use the already installed Release Manager.
 #
 # -- Why These Tools Exist ----------------------------------------------------------
 #

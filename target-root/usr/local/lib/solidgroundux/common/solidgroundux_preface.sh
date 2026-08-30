@@ -2,9 +2,9 @@
 # SolidGroundUX - Framework Introduction
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : bdfa54c36175147e63573b179636d4cce2a285ec0f68284364550e7f402649fc
+#   Version     : 2.1
+#   Build       : 2624123
+#   Checksum    : ce9e9a229de5e8ef3b3eab21ce7553951b99148abd5a8da12bef03ed0996e74e
 #   Source      : solidgroundux_preface.sh
 #   Type        : documentation
 #   Group       : SolidGroundUX
@@ -69,15 +69,16 @@
 # > reusable libraries, and console modules. Console modules can be hosted by a modular menu-driven
 # > application, allowing functionality to be added or removed without modifying the host application itself.
 #   
-# > Beyond the runtime framework, SolidGroundUX also includes tools for creating VS Code workspaces,
-# > deploying projects, creating packages, editing metadata, and generating documentation.
+# > Beyond the runtime framework, SolidGroundUX also includes tools for creating project workspaces,
+# > deploying development trees, preparing project-aware release packages, managing releases, and generating
+# > documentation.
 #   
-# > The documentation generator extracts documentation directly from source files and produces a navigable
-# > HTML documentation set. The file doc-sample.sh demonstrates the documentation conventions used
+# > The documentation generator extracts documentation directly from Bash and Python source files and produces
+# > a navigable HTML documentation set. The file doc-sample.sh demonstrates the documentation conventions used
 # > throughout the framework and serves as a practical reference implementation.
 #   
-# > At present, the documentation system supports Bash source files, but the architecture has been designed
-# > with future support for Python and C# in mind.
+# > Bash and Python share the same source-documentation dialect. The renderer is language-neutral enough to
+# > allow additional source languages to be added later without changing the generated documentation model.
 
 # - Framework capabilities summary --------------------------------------------------
 # . Images

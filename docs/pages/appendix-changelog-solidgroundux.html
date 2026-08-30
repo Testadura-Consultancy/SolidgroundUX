@@ -18,6 +18,67 @@
 <p class="ct-documentbody">The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.</p>
 <h2 class="ct-L1Sectionheader">To do</h2>
 <h2 class="ct-L1Sectionheader">Unreleased</h2>
+<h2 class="ct-L1Sectionheader">Build 2.1.2624123</h2>
+<h3 class="ct-L2Sectionheader">SolidGround Framework</h3>
+<h4 class="ct-L3Sectionheader">Added</h4>
+<ul>
+<li>Added canonical bootstrap source normalization for release preparation. Executable `_framework_locator` functions and reusable-library guard sections can now be materialized from canonical source fragments instead of being maintained independently across the tree.</li>
+<li>Added argument-parser support for extracting recognized framework built-ins while preserving script-specific options and positional arguments in their original order for the later script-level parse.</li>
+</ul>
+<h4 class="ct-L3Sectionheader">Changed</h4>
+<ul>
+<li>Simplified executable bootstrap root discovery for the 2.1 architecture. `SGND_FRAMEWORK_ROOT` is now derived directly from the physical script path using the last canonical top-level `usr`, `etc`, or `var` component, allowing the same bootstrap code to resolve both installed `/` and staged/development trees.</li>
+<li>Reworked bootstrap argument processing so framework built-ins and script-specific arguments may be freely intermixed; callers no longer need to place framework options before application options.</li>
+<li>Script argument parsing now continues across positional values, allowing valid options to occur later on the command line. The standard `--` marker remains the hard end-of-options boundary and everything following it is treated as positional data.</li>
+<li>Script command-line values are applied after configuration/state loading so explicit CLI values take precedence without a later parser pass resetting previously parsed framework flags.</li>
+<li>Updated bootstrap and argument-parser documentation to describe argument extraction, ordering independence, precedence, preservation behavior, and `--` semantics.</li>
+<li>Framework smoke-test utility actions now continue the numbered menu sequence instead of using `L`, `V`, and `A`, avoiding collisions with framework/console shortcut keys; the timed smoke-test reader now accepts multi-digit selections.</li>
+</ul>
+<h4 class="ct-L3Sectionheader">Repaired</h4>
+<ul>
+<li>Repaired canonical library-guard normalization so the next top-level source section is detected whether or not whitespace exists before its separator run, preventing sections such as `Minimal UI` from being consumed during normalization.</li>
+<li>Repaired canonical library guards for early bootstrap libraries by making metadata initialization conditional until `sgnd_module_init_metadata` is available.</li>
+<li>Repaired repeated argument parsing that could reset a previously recognized script flag such as `--auto` during bootstrap, causing unattended tools to fall back into interactive behavior.</li>
+</ul>
+<h3 class="ct-L2Sectionheader">Development Tools</h3>
+<h4 class="ct-L3Sectionheader">Added</h4>
+<ul>
+<li>Added optional canonical-source normalization to `prepare-release.sh`, executed before release metadata processing so generated bootstrap/guard fragments are normalized before checksums and release artifacts are produced.</li>
+</ul>
+<h4 class="ct-L3Sectionheader">Changed</h4>
+<ul>
+<li>Canonical normalization skips the canonical fragment directory itself, validates modified shell files with `bash -n`, and reports changes through checksum comparison.</li>
+<li>`prepare-release.sh` invokes canonical normalization in unattended mode and propagates dry-run behavior when release preparation is running as a dry run.</li>
+</ul>
+<h3 class="ct-L2Sectionheader">Release Management</h3>
+<h4 class="ct-L3Sectionheader">Added</h4>
+<ul>
+<li>Added project-aware release packages. Every release ZIP now carries a `release-package.info` shipping label containing package format, project slug, product, version, build, and release identity.</li>
+<li>Added generic project package support to `release-manager.sh`. Additional projects keep independent release and archive state beneath `/var/lib/solidgroundux/projects/&lt;project&gt;/`, while SolidGroundUX retains its existing release-state layout.</li>
+<li>Added standalone, stateful Release Manager parameters for target root, project, package source, release selector, repository, and state root. Accepted interactive values are reused as defaults on later runs.</li>
+<li>Added a standalone Release Manager UI fallback based on the SolidGroundUX default theme for bootstrap and recovery scenarios where the framework is not available.</li>
+<li>Added opportunistic use of the normal SolidGroundUX UI primitives and active theme when a healthy framework is available at the selected target root.</li>
+<li>Added project selection to the interactive Release Manager while retaining command-line actions for check, download, update, install, rollback, and removal.</li>
+<li>Added package-source installation support so a ZIP file or URL can be admitted and installed directly through the same release engine.</li>
+</ul>
+<h4 class="ct-L3Sectionheader">Changed</h4>
+<ul>
+<li>`prepare-release.sh` now resolves project identity from the project definitions file, updates version/build identity in the appropriate definitions file, and packages generic projects without bundling `release-manager.sh`.</li>
+<li>SolidGroundUX release ZIPs continue to include `release-manager.sh` as the first-install bootstrap entry point; generic project ZIPs rely on an already installed Release Manager.</li>
+<li>The ZIP-root Release Manager is now treated as a bootstrap runner rather than the authoritative installed copy. Installing the SolidGroundUX tar establishes `/var/lib/solidgroundux/release-manager.sh`.</li>
+<li>Release Manager startup no longer copies the currently executing script over the canonical installed manager merely because it is running from another path.</li>
+<li>Interactive Release Manager operation is parameter-driven and menu-based; non-interactive arguments select the same underlying menu actions rather than maintaining a separate workflow.</li>
+<li>The SolidGroundUX Management Console now delegates release lifecycle operations to a single **Release manager** menu item instead of duplicating check, download, update, install, rollback, and remove actions.</li>
+<li>Release preparation keeps build output in the workspace release directory instead of duplicating release artifacts into `target-root/var/lib/solidgroundux/releases`; the Release Manager admits package artifacts into managed release state when they are actually acquired or installed.</li>
+<li>Release Manager root handling now distinguishes the running bootstrap copy from the selected installation target. A bootstrap copy defaults the target root to `/` and asks explicitly in interactive mode; an installed canonical manager can derive the default target root from its location.</li>
+<li>The Release Manager remains usable when the framework is absent or damaged: standalone primitives are always available, and framework UI integration is strictly optional.</li>
+</ul>
+<h4 class="ct-L3Sectionheader">Repaired</h4>
+<ul>
+<li>Repaired Release Manager self-install behavior that could attempt to copy a development or bootstrap copy over `/var/lib/solidgroundux/release-manager.sh` and fail with permission errors.</li>
+<li>Repaired project-aware package admission so release artifacts are moved only after ZIP extraction into temporary staging, not as an unconditional startup side effect.</li>
+<li>Repaired Release Manager project-menu presentation and product-specific remove labeling after the project-aware refactor.</li>
+</ul>
 <h2 class="ct-L1Sectionheader">Build 2.0.2623817</h2>
 <h3 class="ct-L2Sectionheader">Added</h3>
 <ul>

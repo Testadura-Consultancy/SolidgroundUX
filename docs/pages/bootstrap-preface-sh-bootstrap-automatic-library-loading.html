@@ -20,7 +20,7 @@
 <div class="ct-L2Sectionbody">  </div>
 <p class="ct-L2Sectionbody">This keeps executable scripts smaller and makes dependencies explicit near the top of the file. Instead of scattering `source` statements throughout the script, the script declares what it needs and lets the bootstrap layer perform the actual loading.</p>
 <div class="ct-L2Sectionbody">  </div>
-<p class="ct-L2Sectionbody">Core libraries needed by the bootstrap process itself are loaded automatically. Additional libraries are loaded based on the script&#x27;s declared requirements.</p>
+<p class="ct-L2Sectionbody">Core libraries needed by bootstrap are loaded automatically. Project definitions are sourced explicitly as foundational globals rather than through `SGND_USING`; additional libraries are then loaded from the script&#x27;s declared requirements.</p>
 <div class="ct-L2Sectionbody"></div>
 </main>
 </body>

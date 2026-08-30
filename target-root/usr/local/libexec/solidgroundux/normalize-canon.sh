@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624021
-#   Checksum    : abd4a0c37ac0f40012ac512472fb4929d0925de5790069ed5aa5911e5e26f8c7
+#   Build       : 2624123
+#   Checksum    : 7ed0ee2c1b287a207a6bf3fc3e3bba3257eb8105468610f9fe05e30feaf6b01c
 #   Source      : normalize-canon.sh
 #   Type        : script
 #   Group       : SDK
@@ -433,7 +433,8 @@ set -uo pipefail
         # . Behavior
         #   Uses _sgnd_lib_guard() only to identify the file type. Once identified,
         #   replaces the complete Library guard section through the next top-level
-        #   SolidGroundUX section marker.
+        #   section marker. A top-level section is identified structurally by
+        #   `# - <Section title>`; trailing separator dashes are cosmetic and optional.
         #
         # . Returns
         #   0 when replacement succeeds; non-zero when the section is malformed.
@@ -455,14 +456,17 @@ set -uo pipefail
                 in_guard=0
                 found=0
             }
-            /^[[:space:]]*#[[:space:]]*-[[:space:]]+Library guard[[:space:]]*-{5,}[[:space:]]*$/ {
+            # Canonical top-level section marker: `# - <Section title>`.
+            # Exactly one whitespace character separates `#` from `-`, so ordinary
+            # documentation bullets such as `#   - item` are not section markers.
+            /^[[:space:]]*#[[:space:]]-[[:space:]]+Library guard([[:space:]]+-+)?[[:space:]]*$/ {
                 found++
                 if (found > 1) exit 42
                 emit_canon()
                 in_guard=1
                 next
             }
-            in_guard && /^[[:space:]]*#[[:space:]]*-[[:space:]]+[^-].*-{5,}[[:space:]]*$/ {
+            in_guard && /^[[:space:]]*#[[:space:]]-[[:space:]]+[^[:space:]-].*$/ {
                 in_guard=0
                 print
                 next

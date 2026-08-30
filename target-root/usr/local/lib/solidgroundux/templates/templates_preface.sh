@@ -2,9 +2,9 @@
 # SolidGroundUX - Script templates 
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623415
-#   Checksum    : 5233714c7ee00376394e95196b9f0c3fdb3d5de49bf0cfea3b261db1abd70d59
+#   Version     : 2.1
+#   Build       : 2624123
+#   Checksum    : 9bd698057da84f826391b9ab8add3976abf5f9710601290b4891f3cb7574f275
 #   Source      : templates_preface.sh
 #   Type        : documentation
 #   Group       : SDK
@@ -49,10 +49,10 @@
 # > The executable template is used for scripts that are intended to be run directly
 # > by a user, administrator, scheduled task, or another process.
 #
-# > It contains the standard executable bootstrap block. This block resolves the
-# > framework location, loads the bootstrap library, declares dependencies, prepares
-# > framework globals, registers arguments, and hands control to the script's main
-# > execution path.
+# > It contains the canonical executable locator/bootstrap structure. The locator derives
+# > the active framework root from the script path and loads `sgnd-exe-common.sh`; the
+# > template then declares dependencies, arguments, state/config contracts, and enters
+# > the framework through `sgnd_exe_start` from `main`.
 #
 # > New command-line tools should normally start from this template rather than
 # > copying bootstrap code from an existing script. The template represents the

@@ -14,7 +14,7 @@
   <div class="doc-breadcrumb">bootstrap_preface.sh::Bootstrap:Bootstrap Sequence:</div>
 </header>
 <div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">A typical executable script using SolidGroundUX starts with a small bootstrap block. That block sources the framework bootstrap library and then hands control to the framework initializer.</p>
+<p class="ct-L2Sectionbody">A typical executable starts with the canonical `_framework_locator`, which derives `SGND_FRAMEWORK_ROOT` from the script&#x27;s physical path and loads `sgnd-exe-common.sh`. The script then declares its metadata, `SGND_USING`, argument specification, state, and configuration contract before calling `sgnd_exe_start` from `main`.</p>
 <div class="ct-L2Sectionbody">  </div>
 <p class="ct-L2Sectionbody">Conceptually, the startup sequence is:</p>
 <div class="ct-L2Sectionbody">  </div>

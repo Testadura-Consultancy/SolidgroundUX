@@ -2,14 +2,14 @@
 # SolidGroundUX - SolidGround Management Console
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2623817
+#   Version     : 2.1
+#   Build       : 2624123
 #   Source      : solidground console_preface.sh
 #   Type        : documentation
 #   Group       : SolidGround Console
 #   Purpose     : Describe the SolidGround Management Console architecture and module contract
 #
-#   Checksum : a0a6d50f270dcaeecb839dd2ac5bd17a4a0dee0299f3cd718c6cb5c187234d76
+#   Checksum : 9d83865ca4d152cdd0cf3fd51d7bfec89cfa3a11312fd7e35baaa98462df716a
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
@@ -275,6 +275,8 @@
 #
 # > release-manager remains independently executable so framework repair, rollback, or
 # > removal does not depend on the framework being healthy enough to run the console.
+# > When a healthy framework is available it may reuse the normal SolidGroundUX UI/theme;
+# > otherwise its built-in default-theme fallback keeps bootstrap and recovery usable.
 #
 # -- Storage Page -------------------------------------------------------------------
 #

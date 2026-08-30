@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624102
-#   Checksum    : 85c777deed8c2cc05847b5633f445ae292ffdd8916cb7d3dd2396b2eaaa5fcfe
+#   Build       : 2624123
+#   Checksum    : c00c7fd9868a9fe15be2f373ff8d2619116d1ee70da98b821fd928028a915179
 #   Source      : doc-renderer.sh
 #   Type        : library
 #   Group       : SDK
@@ -449,6 +449,8 @@ set -uo pipefail
             #
             # . Output
             #   Writes the resolved path to stdout.
+            # . Usage
+            #   _doc_render_cache_dir
         _doc_render_cache_dir() {
             printf '%s\n' "${DOC_RENDER_CACHE_DIR:-$VAL_OUTDIR/.sgnd-render-cache}"
         }
@@ -459,6 +461,8 @@ set -uo pipefail
             #
             # . Returns
             #   0 when the cache is absent or removed successfully.
+            # . Usage
+            #   _clear_render_cache
         _clear_render_cache() {
             local cache_dir=""
             cache_dir="$(_doc_render_cache_dir)"
@@ -484,6 +488,8 @@ set -uo pipefail
             #
             # . Returns
             #   0 when the cache is replaced successfully.
+            # . Usage
+            #   _persist_render_cache "<source_dir>"
         _persist_render_cache() {
             local source_dir="${1:?missing source render directory}"
             local cache_dir=""
@@ -513,6 +519,8 @@ set -uo pipefail
             # . Returns
             #   0 when all required files exist and are readable.
             #   1 otherwise.
+            # . Usage
+            #   _validate_render_cache "<cache_dir>"
         _validate_render_cache() {
             local cache_dir="${1:?missing renderer cache directory}"
             local required_file=""
@@ -681,6 +689,8 @@ set -uo pipefail
         # . Returns
         #   0 when rendering completes and index.html exists.
         #   1 when the cache is missing/invalid or rendering fails.
+        # . Usage
+        #   _render_cached_site "<output_folder>"
     _render_cached_site() {
         local output_folder="${1:-}"
         local cache_dir=""

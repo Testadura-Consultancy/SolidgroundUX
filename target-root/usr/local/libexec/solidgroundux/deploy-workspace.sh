@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624021
-#   Checksum    : f8d66e54b1128f500fc2250cae60292cafca819d2ac833b26fe0fd929175d422
+#   Build       : 2624123
+#   Checksum    : 9906ab97eab07bdc9b6672e3456bdc67eba32fb58ee3256274dbe5f9639546b1
 #   Source      : deploy-workspace.sh
 #   Type        : script
 #   Group       : SDK
@@ -156,7 +156,7 @@ set -uo pipefail
         "  $SGND_SCRIPT_NAME --local --source /srv/solidgroundux/target-root --directory usr/local/lib/solidgroundux --match '*.sh'"
         ""
         "Deploy one named file remotely:"
-        "  $SGND_SCRIPT_NAME --remote sysadmin@192.168.0.253 --match sgnd-console.sh"
+        "  $SGND_SCRIPT_NAME --remote sysadmin@192.168.0.253 --match management-console.sh"
         ""
         "Deploy files changed since the last successful deployment:"
         "  $SGND_SCRIPT_NAME --remote sysadmin@192.168.0.253 --since-last"
