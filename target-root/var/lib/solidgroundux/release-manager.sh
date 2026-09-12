@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624123
-#   Checksum    : e973284d0d5437fef4c3ee5c701260132d4b24dfa12ecaf793add7505bca5296
+#   Build       : 2625500
+#   Checksum    : 1e81e99f8872a12cf760f98694a3df8777713cb44a4ec6200f0c2cee3cf86e94
 #   Source      : release-manager.sh
 #   Wrapper     : sgnd-release
 #   Type        : script
@@ -512,6 +512,36 @@ set -uo pipefail
     }
 
 # --- Arguments and paths ------------------------------------------------------------
+    # fn: _ensure_root - Re-execute release-manager with elevated privileges when required
+    _ensure_root() {
+        local script_file=""
+
+        (( EUID == 0 )) && return 0
+
+        script_file="$(readlink -f "${BASH_SOURCE[0]}")" || {
+            _release_fail "Cannot resolve release-manager path."
+            return 1
+        }
+
+        command -v sudo >/dev/null 2>&1 || {
+            _release_fail "Release Manager requires root privileges and sudo is not available."
+            return 1
+        }
+
+        if (( FLAG_AUTO )); then
+            _release_fail "Automatic mode requires Release Manager to be started with root privileges."
+            return 1
+        fi
+
+        _release_ask_yesno \
+            "Release Manager requires elevated privileges. Restart with sudo?" \
+            "Y" || {
+                _release_warn "Release Manager cancelled."
+                return 1
+            }
+
+        exec sudo -- "$script_file" "$@"
+    }
     # fn: print_usage - Display standalone release-manager command-line help
         # . Purpose
         #   Display standalone release-manager command-line help.
@@ -2646,6 +2676,7 @@ EOF
         VAL_TARGET_ROOT="$default_root"
 
         parse_args "$@" || return $?
+        _ensure_root
 
         # Resolve the first state location from the explicit/default target root,
         # then load stored defaults without overriding explicit CLI values.
