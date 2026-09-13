@@ -7,7 +7,10 @@ practical framework development.
 
 # To do
 
-# Unreleased
+# Build 2.1.2625621
+
+### Changed
+- Executable rights granted on release-manager and motd
 
 # Build 2.1.2624123
 
