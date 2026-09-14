@@ -7,6 +7,20 @@ practical framework development.
 
 # To do
 
+# Unreleased
+### Added
+
+- Added console application context detection to `management-console`.
+  - Introduced `SGND_CONSOLE_APP_ROOT`, derived from the active `--appcfg` path.
+  - Added application-local executable resolution so development console modules can use executables from the same staged project tree while continuing to use the installed SolidGroundUX framework runtime.
+  - Added development-context indicators to the console index when either the console host or console application is running from a non-production root; indicators remain hidden in normal production use.
+
+### Changed
+
+- Changed `management-console` executable resolution to prefer the active console application's executable directories before falling back to framework-owned executable locations.
+- Changed `create-workspace` to mark canonical templates copied into a new workspace with a caveat identifying them as workspace-local canonical starter templates that should only be changed deliberately.
+- Kept the installed canonical template sources unchanged; the caveat is added only to the copies placed in the newly created workspace.
+
 # Build 2.1.2625621
 
 ### Changed

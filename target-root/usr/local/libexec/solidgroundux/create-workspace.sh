@@ -355,6 +355,26 @@ set -uo pipefail
         mkdir -p "$(dirname "$dst")" || return 1
         cp "$src" "$dst" || return 1
 
+        if [[ "$dst" == */target-root/usr/local/lib/solidgroundux/templates/* ]]; then
+            local temp_file=""
+            temp_file="$(mktemp)" || return 1
+
+            {
+                IFS= read -r first_line || true
+                if [[ "$first_line" == '#!'* ]]; then
+                    printf '%s\n' "$first_line"
+                    printf '%s\n' '# Caveat: Canonical template placed as a template by create-workspace.sh; change at your own peril.'
+                    cat
+                else
+                    printf '%s\n' '# Caveat: Canonical template placed as a template by create-workspace.sh; change at your own peril.'
+                    [[ -n "$first_line" ]] && printf '%s\n' "$first_line"
+                    cat
+                fi
+            } < "$dst" > "$temp_file" || { rm -f -- "$temp_file"; return 1; }
+
+            mv -f -- "$temp_file" "$dst" || { rm -f -- "$temp_file"; return 1; }
+        fi
+
         if (( ! existed )); then
             _manifest_record_file "$dst"
         fi

@@ -303,6 +303,10 @@ set -uo pipefail
         SGND_CONSOLE_LIBEXEC_DIRECTORY=""
         SGND_CONSOLE_DEFAULT_MODULE_DIRECTORY=""
         SGND_CONSOLE_MODULE_PATH=""
+        SGND_CONSOLE_APP_ROOT=""
+        SGND_CONSOLE_APP_BIN_DIRECTORY=""
+        SGND_CONSOLE_APP_SBIN_DIRECTORY=""
+        SGND_CONSOLE_APP_LIBEXEC_DIRECTORY=""
         SGND_CONSOLE_MODULE_STATE_FILE=""
         SGND_CONSOLE_ACTION_STATE_FILE=""
         SGND_CONSOLE_SUCCESS_TTL_DAYS=7
@@ -448,6 +452,89 @@ set -uo pipefail
         _sgnd_console_finalize_state_file "$SGND_CONSOLE_ACTION_STATE_FILE" || return 1
     }
 
+    # --- Console application context -------------------------------------------------
+    # fn$: _sgnd_console_resolve_app_root - Resolve the application root from a module source
+        # . Purpose
+        #   Derive the root of the management application tree independently from the
+        #   SolidGroundUX framework root. This allows an installed management console to
+        #   host modules and module-owned executables from a staged/development tree.
+        #
+        # . Behavior
+        #   - Uses the normalized module file/directory path selected through --appcfg.
+        #   - Uses the last usr, etc, or var path component as the application-tree marker,
+        #     matching the framework locator convention.
+        #   - Resolves /usr, /etc, or /var based application sources to root (/).
+        #   - Resolves staged trees to the path prefix preceding that canonical component.
+        #   - Falls back to SGND_FRAMEWORK_ROOT when no canonical component is present;
+        #     this preserves support for arbitrary module-only directories.
+        #
+        # . Output
+        #   Writes the resolved application root to stdout.
+        #
+        # . Usage
+        #   SGND_CONSOLE_APP_ROOT="$(_sgnd_console_resolve_app_root "$module_path")"
+    _sgnd_console_resolve_app_root() {
+        local source_path="${1:?missing application module source}"
+        local path_without_root=""
+        local component=""
+        local app_root=""
+        local index=0
+        local root_index=-1
+        local -a path_parts=()
+
+        source_path="$(readlink -f -- "$source_path" 2>/dev/null || printf '%s' "$source_path")"
+        path_without_root="${source_path#/}"
+        IFS='/' read -r -a path_parts <<< "$path_without_root"
+
+        for index in "${!path_parts[@]}"; do
+            component="${path_parts[$index]}"
+            case "$component" in
+                usr|etc|var) root_index=$index ;;
+            esac
+        done
+
+        if (( root_index < 0 )); then
+            printf '%s\n' "${SGND_FRAMEWORK_ROOT:-/}"
+            return 0
+        fi
+
+        if (( root_index == 0 )); then
+            printf '/\n'
+            return 0
+        fi
+
+        for (( index=0; index<root_index; index++ )); do
+            app_root+="/${path_parts[$index]}"
+        done
+
+        printf '%s\n' "${app_root:-/}"
+    }
+
+    # fn: _sgnd_console_set_app_context - Initialize application-owned executable paths
+        # . Purpose
+        #   Establish the management-application root and executable locations from the
+        #   active console module source without changing SGND_FRAMEWORK_ROOT.
+        #
+        # . Behavior
+        #   - Keeps framework/runtime ownership and management-application ownership separate.
+        #   - Makes module-owned bin, sbin, and libexec locations available to dispatchers.
+        #   - Leaves presentation of DEV context to the console index renderer.
+        #
+        # . Usage
+        #   _sgnd_console_set_app_context "$module_path"
+    _sgnd_console_set_app_context() {
+        local module_path="${1:?missing application module source}"
+
+        SGND_CONSOLE_APP_ROOT="$(_sgnd_console_resolve_app_root "$module_path")"
+        SGND_CONSOLE_APP_BIN_DIRECTORY="${SGND_CONSOLE_APP_ROOT%/}/usr/local/bin"
+        SGND_CONSOLE_APP_SBIN_DIRECTORY="${SGND_CONSOLE_APP_ROOT%/}/usr/local/sbin"
+        SGND_CONSOLE_APP_LIBEXEC_DIRECTORY="${SGND_CONSOLE_APP_ROOT%/}/usr/local/libexec/solidgroundux"
+
+        saydebug "Framework root          : $SGND_FRAMEWORK_ROOT"
+        saydebug "Console application root: $SGND_CONSOLE_APP_ROOT"
+        saydebug "Application libexec     : $SGND_CONSOLE_APP_LIBEXEC_DIRECTORY"
+    }
+
     # --- Console configuration -------------------------------------------------------
     # fn: _sgnd_console_load_config - Resolve the console module source
         # . Purpose
@@ -477,7 +564,7 @@ set -uo pipefail
         local module_path="${VAL_APPCFG-}"
 
         : "${SGND_CONSOLE_TITLE:=${SGND_SCRIPT_TITLE}}"
-        : "${SGND_CONSOLE_DESC:=${SGND_SCRIPT_DESC}}"
+        : "${SGND_CONSOLE_DESC:=${SGND_SCRIPT_DESCRIPTION:-$SGND_SCRIPT_DESC}}"
         : "${SGND_PAGE_MAX_ROWS:=25}"
 
         if [[ -n "${VAL_TITLE:-}" ]]; then
@@ -506,6 +593,7 @@ set -uo pipefail
         fi
 
         SGND_CONSOLE_MODULE_PATH="$module_path"
+        _sgnd_console_set_app_context "$SGND_CONSOLE_MODULE_PATH"
 
         saydebug "Console title      : $SGND_CONSOLE_TITLE"
         saydebug "Console desc       : $SGND_CONSOLE_DESC"
@@ -1002,6 +1090,8 @@ set -uo pipefail
         local i=0
         local key_width=1
         local rendered_key=""
+        local context_shown=0
+        local context_style=""
         local -a module_files=()
         local -a module_ids=()
 
@@ -1264,6 +1354,21 @@ set -uo pipefail
         value_style="$(sgnd_sgr "$SGND_UI_VALUE" "" "$FX_ITALIC")"
 
         _sgnd_console_render_menu_title
+
+        context_style="$(sgnd_sgr "$SGND_UI_TEXT")"
+        context_shown=0
+        if [[ "${SGND_FRAMEWORK_ROOT:-/}" != "/" ]]; then
+            sgnd_print "${context_style}Console host: ${MSG_CLR_WARN}DEV${RESET}"
+            context_shown=1
+        fi
+
+        if [[ "${SGND_CONSOLE_APP_ROOT:-/}" != "/" ]]; then
+            sgnd_print "${context_style}Console application: ${MSG_CLR_WARN}DEV${RESET}"
+            context_shown=1
+        fi
+
+        (( context_shown )) && sgnd_print
+
         sgnd_print "$(sgnd_sgr "$SGND_UI_TEXT" "" "$FX_BOLD")Console pages${RESET}"
         sgnd_print_sectionheader --border "$LN_H" --maxwidth "$term_width"
         sgnd_print
@@ -1449,7 +1554,11 @@ set -uo pipefail
         local resolved=""
         local -a command_args=()
 
-        if [[ -x "${SGND_CONSOLE_BIN_DIRECTORY%/}/$command_name" ]]; then
+        if [[ -n "${SGND_CONSOLE_APP_BIN_DIRECTORY:-}" && -x "${SGND_CONSOLE_APP_BIN_DIRECTORY%/}/$command_name" ]]; then
+            resolved="${SGND_CONSOLE_APP_BIN_DIRECTORY%/}/$command_name"
+        elif [[ -n "${SGND_CONSOLE_APP_SBIN_DIRECTORY:-}" && -x "${SGND_CONSOLE_APP_SBIN_DIRECTORY%/}/$command_name" ]]; then
+            resolved="${SGND_CONSOLE_APP_SBIN_DIRECTORY%/}/$command_name"
+        elif [[ -x "${SGND_CONSOLE_BIN_DIRECTORY%/}/$command_name" ]]; then
             resolved="${SGND_CONSOLE_BIN_DIRECTORY%/}/$command_name"
         elif [[ -x "${SGND_CONSOLE_SBIN_DIRECTORY%/}/$command_name" ]]; then
             resolved="${SGND_CONSOLE_SBIN_DIRECTORY%/}/$command_name"
@@ -1490,6 +1599,7 @@ set -uo pipefail
         local resolved=""
         local candidate=""
         local -a search_directories=(
+            "${SGND_CONSOLE_APP_LIBEXEC_DIRECTORY:-}"
             "$SGND_COMMON_EXE"
             "$SGND_COMMON_LIB"
         )

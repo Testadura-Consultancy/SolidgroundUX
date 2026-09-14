@@ -464,6 +464,9 @@ set -uo pipefail
             if (( capture )); then
                 line="${line#\#}"
                 [[ "$line" == " "* ]] && line="${line# }"
+
+                [[ -z "$line" ]] && break
+
                 result+="$line"$'\n'
             fi
         done < "$file"
@@ -515,6 +518,9 @@ set -uo pipefail
             if (( in_section )); then
                 line="${line#\#}"
                 line="${line#"${line%%[![:space:]]*}"}"
+                
+                [[ -z "$line" ]] && break
+
                 result+="$line"$'\n'
             fi
         done <<< "$text"
