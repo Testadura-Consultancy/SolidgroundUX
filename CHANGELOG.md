@@ -5,11 +5,13 @@ All notable changes to SolidGroundUX are documented in this file.
 The format is inspired by *Keep a Changelog* while remaining focused on
 practical framework development.
 
-# To do
+## To do
 
-# Unreleased
+## Unreleased
+
 ### Added
 
+- Added development-context indicators to `management-console`, showing the console host and console application as `DEV` when running from non-production roots while remaining hidden during normal production use.
 - Added console application context detection to `management-console`.
   - Introduced `SGND_CONSOLE_APP_ROOT`, derived from the active `--appcfg` path.
   - Added application-local executable resolution so development console modules can use executables from the same staged project tree while continuing to use the installed SolidGroundUX framework runtime.
@@ -17,6 +19,7 @@ practical framework development.
 
 ### Changed
 
+- Changed comment-header section parsing to terminate at the first empty comment line, preventing subsequent header sections from being included in multiline metadata such as `Description`.
 - Changed `management-console` executable resolution to prefer the active console application's executable directories before falling back to framework-owned executable locations.
 - Changed `create-workspace` to mark canonical templates copied into a new workspace with a caveat identifying them as workspace-local canonical starter templates that should only be changed deliberately.
 - Kept the installed canonical template sources unchanged; the caveat is added only to the copies placed in the newly created workspace.
