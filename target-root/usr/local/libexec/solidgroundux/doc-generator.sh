@@ -368,7 +368,10 @@ set -uo pipefail
         #   SGND_DOC_DISCOVERED_BUILDS, SGND_DOC_DISCOVERED_DEFINITIONS.
     _doc_discover_products() {
         local globals_dir="${VAL_SRCDIR%/}/usr/local/lib/solidgroundux/globals"
-        local definition="" record="" product="" version="" build=""
+        local source_repo="" development_root="" repo="" definition=""
+        local record="" product="" version="" build="" project_root=""
+        local -a definition_roots=()
+        local -A seen_products=()
 
         SGND_DOC_DISCOVERED_PRODUCTS=()
         SGND_DOC_DISCOVERED_VERSIONS=()
@@ -376,51 +379,63 @@ set -uo pipefail
         SGND_DOC_DISCOVERED_DEFINITIONS=()
         SGND_DOC_DISCOVERED_ROOTS=()
 
-        [[ -d "$globals_dir" ]] || {
-            saywarning "No product definitions directory found beneath source: $globals_dir"
-            return 0
-        }
+        # Production / arbitrary source: the selected source tree is the registry.
+        definition_roots+=("$globals_dir")
 
-        while IFS= read -r -d '' definition; do
-            record="$(bash -c '
-                set -u
-                source "$1"
-                for var in $(compgen -A variable SGND_); do
-                    case "$var" in
-                        *_PRODUCT)
-                            prefix="${var%_PRODUCT}"
-                            version_var="${prefix}_VERSION"
-                            build_var="${prefix}_BUILD"
-                            printf "%s|%s|%s\n" "${!var-}" "${!version_var-}" "${!build_var-}"
-                            exit 0
-                            ;;
-                    esac
-                done
-            ' bash "$definition" 2>/dev/null || true)"
-            [[ -n "$record" ]] || continue
-            IFS='|' read -r product version build <<< "$record"
-            [[ -n "$product" ]] || continue
-            SGND_DOC_DISCOVERED_PRODUCTS+=("$product")
-            SGND_DOC_DISCOVERED_VERSIONS+=("$version")
-            SGND_DOC_DISCOVERED_BUILDS+=("$build")
-            SGND_DOC_DISCOVERED_DEFINITIONS+=("$definition")
-            local project_root="${definition%%/target-root/*}"
-            local source_repo="$(dirname -- "${VAL_SRCDIR%/}")"
-            local development_root="$(dirname -- "$source_repo")"
-            local candidate_repo="" candidate_def="" candidate_record="" candidate_product=""
-            if [[ "$(basename -- "${VAL_SRCDIR%/}")" == "target-root" && -d "$development_root" ]]; then
-                while IFS= read -r -d '' candidate_repo; do
-                    while IFS= read -r -d '' candidate_def; do
-                        candidate_record="$(bash -c 'source "$1"; for v in $(compgen -A variable SGND_); do case "$v" in SGND_PRODUCT|*_PRODUCT) printf "%s\\n" "${!v-}"; exit;; esac; done' bash "$candidate_def" 2>/dev/null || true)"
-                        if [[ "${candidate_record,,}" == "${product,,}" ]]; then project_root="$candidate_repo"; break 2; fi
-                    done < <(find "$candidate_repo/target-root/usr/local/lib/solidgroundux/globals" -maxdepth 1 -type f -name '*-definitions.sh' -print0 2>/dev/null)
-                done < <(find "$development_root" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null)
+        # Development source: target-root is normally one repository beneath a common
+        # development directory. Discover sibling product repositories as well so the
+        # documentation generator can offer one combined ecosystem collection.
+        if [[ "$(basename -- "${VAL_SRCDIR%/}")" == "target-root" ]]; then
+            source_repo="$(dirname -- "${VAL_SRCDIR%/}")"
+            development_root="$(dirname -- "$source_repo")"
+            if [[ -d "$development_root" ]]; then
+                while IFS= read -r -d '' repo; do
+                    [[ -d "$repo/target-root/usr/local/lib/solidgroundux/globals" ]] || continue
+                    definition_roots+=("$repo/target-root/usr/local/lib/solidgroundux/globals")
+                done < <(find "$development_root" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null | sort -z)
             fi
-            SGND_DOC_DISCOVERED_ROOTS+=("$project_root")
-        done < <(find "$globals_dir" -maxdepth 1 -type f -name '*-definitions.sh' -print0 2>/dev/null | sort -z)
+        fi
+
+        for globals_dir in "${definition_roots[@]}"; do
+            [[ -d "$globals_dir" ]] || continue
+            while IFS= read -r -d '' definition; do
+                record="$(bash -c '
+                    set -u
+                    source "$1"
+                    for var in $(compgen -A variable SGND_); do
+                        case "$var" in
+                            SGND_PRODUCT|*_PRODUCT)
+                                prefix="${var%_PRODUCT}"
+                                version_var="${prefix}_VERSION"
+                                build_var="${prefix}_BUILD"
+                                printf "%s|%s|%s\n" "${!var-}" "${!version_var-}" "${!build_var-}"
+                                exit 0
+                                ;;
+                        esac
+                    done
+                ' bash "$definition" 2>/dev/null || true)"
+                [[ -n "$record" ]] || continue
+                IFS='|' read -r product version build <<< "$record"
+                [[ -n "$product" ]] || continue
+
+                # The primary source tree is searched first. If the same product is also
+                # visible through a sibling path, retain the first authoritative record.
+                [[ -z "${seen_products[${product,,}]-}" ]] || continue
+                seen_products["${product,,}"]=1
+
+                project_root="${definition%%/target-root/*}"
+                [[ "$project_root" != "$definition" ]] || project_root="${VAL_SRCDIR%/}"
+
+                SGND_DOC_DISCOVERED_PRODUCTS+=("$product")
+                SGND_DOC_DISCOVERED_VERSIONS+=("$version")
+                SGND_DOC_DISCOVERED_BUILDS+=("$build")
+                SGND_DOC_DISCOVERED_DEFINITIONS+=("$definition")
+                SGND_DOC_DISCOVERED_ROOTS+=("$project_root")
+            done < <(find "$globals_dir" -maxdepth 1 -type f -name '*-definitions.sh' -print0 2>/dev/null | sort -z)
+        done
 
         if (( ${#SGND_DOC_DISCOVERED_PRODUCTS[@]} == 0 )); then
-            saywarning "No *-definitions.sh product definitions found in $globals_dir"
+            saywarning "No *-definitions.sh product definitions found for source: $VAL_SRCDIR"
         fi
     }
 
@@ -562,6 +577,68 @@ set -uo pipefail
         done
     }
 
+    # fn: _doc_force_product_on_new_modules - Attribute newly parsed modules to a product
+    _doc_force_product_on_new_modules() {
+        local start_index="${1:-0}"
+        local forced_product="${2:-}"
+        local row=""
+        local -a fields=()
+        local i=0
+
+        [[ -n "$forced_product" ]] || return 0
+        for (( i=start_index; i<${#MOD_TABLE[@]}; i++ )); do
+            row="${MOD_TABLE[$i]}"
+            IFS='|' read -r -a fields <<< "$row"
+            while (( ${#fields[@]} < 11 )); do fields+=(""); done
+            fields[10]="$forced_product"
+            MOD_TABLE[$i]="$(IFS='|'; printf '%s' "${fields[*]}")"
+        done
+    }
+
+    # fn: _doc_iterate_selected_product_roots - Parse every selected product source tree
+    _doc_iterate_selected_product_roots() {
+        local callback="${1:-_parse_module_file}"
+        local product="" discovered_product="" project_root="" source_root=""
+        local before_count=0 index=0 found=0
+
+        (( ${#SGND_DOC_SELECTED_PRODUCTS[@]} > 0 )) || {
+            _iterate_files "$VAL_SRCDIR" "$VAL_FILESPEC" "$FLAG_RECURSIVE_SCAN" "$callback"
+            return $?
+        }
+
+        for product in "${SGND_DOC_SELECTED_PRODUCTS[@]}"; do
+            found=0
+            for index in "${!SGND_DOC_DISCOVERED_PRODUCTS[@]}"; do
+                discovered_product="${SGND_DOC_DISCOVERED_PRODUCTS[$index]}"
+                [[ "${discovered_product,,}" == "${product,,}" ]] || continue
+
+                project_root="${SGND_DOC_DISCOVERED_ROOTS[$index]:-}"
+                if [[ -d "$project_root/target-root" ]]; then
+                    source_root="$project_root/target-root"
+                else
+                    source_root="$project_root"
+                fi
+
+                [[ -d "$source_root" ]] || {
+                    sayfail "Documentation source root not found for product '$product': $source_root"
+                    return 1
+                }
+
+                sayinfo "Parsing documentation product: $product"
+                before_count="${#MOD_TABLE[@]}"
+                _iterate_files "$source_root" "$VAL_FILESPEC" "$FLAG_RECURSIVE_SCAN" "$callback" || return 1
+                _doc_force_product_on_new_modules "$before_count" "$product"
+                found=1
+                break
+            done
+
+            (( found )) || {
+                sayfail "No documentation source root resolved for selected product: $product"
+                return 1
+            }
+        done
+    }
+
     _doc_force_single_product_on_new_modules() {
         local start_index="${1:-0}"
         local forced_product="" row=""
@@ -661,8 +738,7 @@ set -uo pipefail
         done
 
         MOD_TABLE=(); MOD_ATTRIBUTION=(); MOD_GLOBALS=(); MOD_SECTIONS=(); MOD_ITEMS=(); DOC_CONTENT_LINES=()
-        _iterate_files "$VAL_SRCDIR" "$VAL_FILESPEC" "$FLAG_RECURSIVE_SCAN" _parse_module_file
-        _doc_force_single_product_on_new_modules 0
+        _doc_iterate_selected_product_roots _parse_module_file || return 1
         _doc_filter_current_tables_to_selected_products
 
         local -a fresh_mod_table=("${MOD_TABLE[@]}")
@@ -1677,8 +1753,7 @@ set -uo pipefail
                     _doc_full_update_collection || return 1
                 else
                     FLAG_CLEAN_OUTPUT=1
-                    _iterate_files "$VAL_SRCDIR" "$VAL_FILESPEC" "$FLAG_RECURSIVE_SCAN" _parse_module_file
-                    _doc_force_single_product_on_new_modules 0
+                    _doc_iterate_selected_product_roots _parse_module_file || return 1
                     _doc_filter_current_tables_to_selected_products
                 fi
                 ;;
