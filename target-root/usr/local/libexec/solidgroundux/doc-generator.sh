@@ -779,7 +779,6 @@ set -uo pipefail
                 sgnd_print
                 sgnd_print_sectionheader "Documentation collection" --padend 0
                 local collection_action="1"
-                sgnd_print_sectionheader "Collection action" --padend 0
                 sgnd_print_labeledvalue --label "1" --value "Update existing collection" --labelwidth 3
                 sgnd_print_labeledvalue --label "2" --value "Create new collection" --labelwidth 3
                 [[ "$VAL_COLLECTION_MODE" == "create" ]] && collection_action="2"
@@ -910,7 +909,7 @@ set -uo pipefail
                 --labelwidth "$lw"
 
             VAL_DOCUMENT_PRODUCT="$VAL_COLLECTION_NAME"
-            sgnd_print_labeledvalue --label "Products" --value "${VAL_DOCUMENT_PRODUCTS:-ALL}" --labelwidth "$lw"
+            sgnd_print_labeledvalue --label "Products" --value "${VAL_DOCUMENT_PRODUCTS:-ALL}" --labelwidth "$lw" --pad "$lp" --labelclr "${CYAN}" --valueclr "${YELLOW}"
             fi
 
             (( ${SGND_STATE_SAVE:-0} )) && default="Y" || default="N"
