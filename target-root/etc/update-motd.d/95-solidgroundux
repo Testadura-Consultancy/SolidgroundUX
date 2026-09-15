@@ -90,4 +90,37 @@ printf '%sDocumentation    : %s%s%s\n' \
     "$CYAN" "$YELLOW" "$SGND_ONLINE_DOC" "$RESET"
 
 printf '\n'
-printf '%sInstalled modules:%s\n' "$CYAN" "$RESET"
+printf '%sInstalled products:%s\n' "$CYAN" "$RESET"
+
+globals_dir="/usr/local/lib/solidgroundux/globals"
+if [[ ! -d "$globals_dir" && -n "${target_root:-}" ]]; then
+    globals_dir="${target_root%/}/usr/local/lib/solidgroundux/globals"
+fi
+
+if [[ -d "$globals_dir" ]]; then
+    while IFS= read -r -d '' definition; do
+        [[ "$definition" == "$SGND_DEFINITIONS" ]] && continue
+        record="$(bash -c '
+            sgnd_module_init_metadata() { :; }
+            source "$1"
+            for var in $(compgen -A variable SGND_); do
+                case "$var" in
+                    *_PRODUCT)
+                        prefix="${var%_PRODUCT}"; vv="${prefix}_VERSION"; bv="${prefix}_BUILD"
+                        printf "%s|%s|%s\\n" "${!var-}" "${!vv-}" "${!bv-}"; exit
+                        ;;
+                esac
+            done
+        ' bash "$definition" 2>/dev/null || true)"
+        [[ -n "$record" ]] || continue
+        IFS='|' read -r installed_product installed_version installed_build <<< "$record"
+        printf '  %s%s %s.%s%s\n' "$YELLOW" "$installed_product" "$installed_version" "$installed_build" "$RESET"
+    done < <(find "$globals_dir" -maxdepth 1 -type f -name '*-definitions.sh' -print0 2>/dev/null | sort -z)
+fi
+
+printf  '\n'
+
+printf '%sRun %ssgnd-console%s%s to manage this system.%s\n' \
+    "$CYAN" "$YELLOW" "$RESET" "$CYAN" "$RESET"
+printf '%sRun %ssgnd-release-manager%s%s to install updates, roll back, or remove SolidGroundUX.%s\n' \
+    "$CYAN" "$YELLOW" "$RESET" "$CYAN" "$RESET"

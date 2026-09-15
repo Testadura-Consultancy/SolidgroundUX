@@ -434,6 +434,8 @@ class DocRenderer:
         self.mod_attribution: List[Row] = []
         self.mod_globals: List[Row] = []
         self.doc_license_lines: List[Row] = []
+        self.product_manifests: List[Row] = []
+        self.product_manifest_by_name: Dict[str, Row] = {}
         self.doc_enums: List[Row] = []
         self.doc_content_lines: List[Row] = []
         self.config: Dict[str, str] = {}
@@ -475,6 +477,8 @@ class DocRenderer:
         self.mod_attribution = read_psv(self.input_dir / "mod_attribution.psv", required=False)
         self.mod_globals = read_psv(self.input_dir / "mod_globals.psv", required=False)
         self.doc_license_lines = read_psv(self.input_dir / "doc_license_lines.psv", required=False)
+        self.product_manifests = read_psv(self.input_dir / "product_manifests.psv", required=False)
+        self.product_manifest_by_name = {normalize_key(row.get("product", "")): row for row in self.product_manifests if row.get("product", "")}
         self.doc_enums = read_psv(self.input_dir / "doc_enums.psv", required=False)
         self.doc_content_lines = read_psv(self.input_dir / "doc_content_lines.psv")
         self.config = read_config(self.input_dir / "render_config.psv")
@@ -518,7 +522,17 @@ class DocRenderer:
     # . Usage
     #   self.product_has_appendices(product_name)
     def product_has_appendices(self, product_name: str) -> bool:
+        manifest = self.product_manifest_by_name.get(normalize_key(product_name), {})
+        if manifest:
+            return bool((manifest.get("appendices", "") or "").strip())
         return normalize_key(product_name) == normalize_key("SolidGroundUX")
+
+    def product_appendix_keys(self, product_name: str) -> set[str]:
+        manifest = self.product_manifest_by_name.get(normalize_key(product_name), {})
+        spec = (manifest.get("appendices", "") or "").strip()
+        if not spec and normalize_key(product_name) == normalize_key("SolidGroundUX"):
+            return {item.key for item in APPENDIX_SPECS}
+        return {normalize_key(item) for item in spec.split(",") if item.strip()}
 
     # fn: build_doc_hierarchy - Build doc hierarchy
     # . Purpose
@@ -756,7 +770,9 @@ class DocRenderer:
                     )
                 )
 
-                for appendix_index, appendix in enumerate(APPENDIX_SPECS, start=1):
+                product_appendix_keys = self.product_appendix_keys(product_name)
+                enabled_appendices = [a for a in APPENDIX_SPECS if normalize_key(a.key) in product_appendix_keys]
+                for appendix_index, appendix in enumerate(enabled_appendices, start=1):
                     appendix_label = f"Appendix {appendix.letter}: {appendix.title}"
                     self.nav.append(
                         NavNode(
@@ -3703,11 +3719,17 @@ body {
     #   candidates  Value consumed by this function; see the typed Python signature for its contract.
     # . Usage
     #   self.read_optional_project_document(<candidates>)
-    def read_optional_project_document(self, candidates: Sequence[str]) -> tuple[str, str]:
-        for name in candidates:
-            path = self.input_dir / name
-            if path.is_file():
-                return name, path.read_text(encoding="utf-8", errors="replace")
+    def read_optional_project_document(self, candidates: Sequence[str], product_name: str = "") -> tuple[str, str]:
+        roots: List[Path] = []
+        manifest = self.product_manifest_by_name.get(normalize_key(product_name), {}) if product_name else {}
+        if manifest.get("project_root"):
+            roots.append(Path(manifest["project_root"]))
+        roots.append(self.input_dir)
+        for root in roots:
+            for name in candidates:
+                path = root / name
+                if path.is_file():
+                    return name, path.read_text(encoding="utf-8", errors="replace")
         return candidates[0], ""
 
     # fn: render_markdown_document - Render markdown document
@@ -3826,7 +3848,7 @@ body {
         output_file = self.output_dir / href
         output_file.parent.mkdir(parents=True, exist_ok=True)
 
-        source_name, markdown_text = self.read_optional_project_document(candidates)
+        source_name, markdown_text = self.read_optional_project_document(candidates, product_name)
         body = self.render_markdown_document(markdown_text)
         if not body:
             body = (

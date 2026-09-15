@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624123
-#   Checksum    : 059aea9241dc8ad5abee684b4622b0856ab406f9db0d65ebfaf1b0288658b3ea
+#   Build       : 2625813
+#   Checksum    : 92fbfa57508a3c038d4a0726110f88bc9136a03a93288ed08a5bcee05f62c3b9
 #   Source      : create-workspace.sh
 #   Type        : script
 #   Group       : SDK
@@ -175,6 +175,10 @@ set -uo pipefail
             "lib|l|flag|FLAG_LIB|Create library template and folders|0|"
             "mod|m|flag|FLAG_MOD|Create console module template and folders|0|"
             "project|p|value|PROJECT_NAME|Project name|"
+            "product||value|PRODUCT_NAME|Product name|"
+            "title||value|SCRIPT_TITLE|Generated script title|"
+            "group||value|PROJECT_GROUP|Generated script group|"
+            "subgroup||value|PROJECT_SUBGROUP|Generated script subgroup|"
             "folder|f|value|PROJECT_FOLDER|Set project folder|"
             "gitinit|g|flag|FLAG_GIT_INIT|Initialize a local Git repository|0|"
             "github||flag|FLAG_GITHUB_INIT|Create and push a GitHub repository using gh|0|"
@@ -413,6 +417,57 @@ set -uo pipefail
         mod_ref="mod-${project_slug}.sh"
     }
 
+    # fn: _template_metadata_value - Read one Metadata field from a template
+    _template_metadata_value() {
+        local file="${1:?missing template file}" field="${2:?missing field}"
+        awk -v field="$field" '
+            $0 ~ "^#[[:space:]]+" field "[[:space:]]*:" {
+                line=$0; sub("^#[[:space:]]+" field "[[:space:]]*:[[:space:]]*", "", line); print line; exit
+            }
+        ' "$file"
+    }
+
+    # fn: _specialize_workspace_template - Make a copied canonical template product-aware
+    _specialize_workspace_template() {
+        local file="${1:?missing template file}" tmp=""
+        [[ -f "$file" ]] || return 1
+        (( ${FLAG_DRYRUN:-0} )) && return 0
+        tmp="$(mktemp)" || return 1
+        awk -v product="${PRODUCT_NAME:-$PROJECT_NAME}" '
+            NR==3 && /^# / {
+                line=$0; sub(/^# [^-]+ - /, "", line); print "# " product " - " line; next
+            }
+            { print }
+        ' "$file" > "$tmp" || { rm -f "$tmp"; return 1; }
+        mv -f "$tmp" "$file"
+    }
+
+    # fn: _specialize_generated_file - Apply selected product/script metadata to a generated starter file
+    _specialize_generated_file() {
+        local file="${1:?missing generated file}" tmp=""
+        [[ -f "$file" ]] || return 1
+        (( ${FLAG_DRYRUN:-0} )) && return 0
+        tmp="$(mktemp)" || return 1
+        awk -v product="${PRODUCT_NAME:-$PROJECT_NAME}" -v title="${SCRIPT_TITLE:-$PRODUCT_NAME}" -v group="${PROJECT_GROUP:-}" -v subgroup="${PROJECT_SUBGROUP:-}" '
+            NR==3 && /^# / { print "# " product " - " title; next }
+            /^#[[:space:]]+Group[[:space:]]*:/ { print "#   Group       : " group; next }
+            /^#[[:space:]]+Subgroup[[:space:]]*:/ { print "#   Subgroup    : " subgroup; next }
+            { print }
+        ' "$file" > "$tmp" || { rm -f "$tmp"; return 1; }
+        mv -f "$tmp" "$file"
+    }
+
+    # fn: _resolve_template_metadata_defaults - Resolve header defaults from the selected starter template
+    _resolve_template_metadata_defaults() {
+        local source_dir="${SGND_COMMON_LIB}/../templates" template=""
+        if (( ${FLAG_EXE:-0} )); then template="$source_dir/exe-template.sh"
+        elif (( ${FLAG_LIB:-0} )); then template="$source_dir/lib-template.sh"
+        else template="$source_dir/mod-template.sh"; fi
+        SCRIPT_TITLE="${SCRIPT_TITLE:-${PRODUCT_NAME:-$PROJECT_NAME}}"
+        PROJECT_GROUP="${PROJECT_GROUP:-$(_template_metadata_value "$template" Group 2>/dev/null || true)}"
+        PROJECT_SUBGROUP="${PROJECT_SUBGROUP:-$(_template_metadata_value "$template" Subgroup 2>/dev/null || true)}"
+    }
+
     # fn: _copy_workspace_templates - Copy canonical templates into the workspace
         # . Purpose
         #   Seed the repository-shaped workspace with the installed SolidGroundUX templates.
@@ -454,6 +509,7 @@ set -uo pipefail
 
             found=1
             _copy_template_file "$template" "$target_dir/$(basename -- "$template")" || return 1
+            _specialize_workspace_template "$target_dir/$(basename -- "$template")" || return 1
         done < <(
             find "$source_dir" -mindepth 1 -maxdepth 1 -type f -print0 2>/dev/null | sort -z
         )
@@ -505,6 +561,7 @@ set -uo pipefail
                 "${template_dir}/exe-template.sh" \
                 "${PROJECT_FOLDER}/target-root/usr/local/libexec/${exe_file}" \
                 || return 1
+            _specialize_generated_file "${PROJECT_FOLDER}/target-root/usr/local/libexec/${exe_file}" || return 1
         fi
 
         if (( ${FLAG_LIB:-0} )); then
@@ -512,6 +569,7 @@ set -uo pipefail
                 "${template_dir}/lib-template.sh" \
                 "${PROJECT_FOLDER}/target-root/usr/local/lib/${lib_file}" \
                 || return 1
+            _specialize_generated_file "${PROJECT_FOLDER}/target-root/usr/local/lib/${lib_file}" || return 1
         fi
 
         if (( ${FLAG_MOD:-0} )); then
@@ -519,6 +577,7 @@ set -uo pipefail
                 "${template_dir}/mod-template.sh" \
                 "${PROJECT_FOLDER}/target-root/usr/local/libexec/solidgroundux/${project_slug}/${mod_file}" \
                 || return 1
+            _specialize_generated_file "${PROJECT_FOLDER}/target-root/usr/local/libexec/solidgroundux/${project_slug}/${mod_file}" || return 1
         fi
 
         return 0
@@ -820,6 +879,13 @@ set -uo pipefail
             sgnd_print
             sgnd_print_sectionheader "Project name and location" --maxwidth "$mxw"
             ask --label "Project name " --var PROJECT_NAME --default "$default_projectname" --labelwidth "$lw"
+            PRODUCT_NAME="${PRODUCT_NAME:-$PROJECT_NAME}"
+            ask --label "Product name " --var PRODUCT_NAME --default "$PRODUCT_NAME" --labelwidth "$lw"
+            _resolve_template_metadata_defaults
+            SCRIPT_TITLE="${SCRIPT_TITLE:-$PRODUCT_NAME}"
+            ask --label "Script title " --var SCRIPT_TITLE --default "$SCRIPT_TITLE" --labelwidth "$lw"
+            ask --label "Group " --var PROJECT_GROUP --default "$PROJECT_GROUP" --labelwidth "$lw"
+            ask --label "Subgroup " --var PROJECT_SUBGROUP --default "$PROJECT_SUBGROUP" --labelwidth "$lw"
 
             slug="${PROJECT_NAME// /-}"
             slug="${slug,,}"
@@ -924,6 +990,10 @@ set -uo pipefail
             (( ${FLAG_MOD:-0} )) && mod_text="yes"
 
             sgnd_print_labeledvalue --label "Project name"   --value "$PROJECT_NAME"
+            sgnd_print_labeledvalue --label "Product name"   --value "$PRODUCT_NAME"
+            sgnd_print_labeledvalue --label "Script title"   --value "$SCRIPT_TITLE"
+            sgnd_print_labeledvalue --label "Group"          --value "$PROJECT_GROUP"
+            sgnd_print_labeledvalue --label "Subgroup"       --value "${PROJECT_SUBGROUP:--}"
             sgnd_print_labeledvalue --label "Project folder" --value "$PROJECT_FOLDER"
             sgnd_print_labeledvalue --label "Executable"     --value "$exe_text"
             sgnd_print_labeledvalue --label "Library"        --value "$lib_text"
@@ -948,7 +1018,7 @@ set -uo pipefail
             case $? in
                 0|1) break ;;
                 2) saycancel "Aborting as per user request."; return 1 ;;
-                3) PROJECT_NAME=""; PROJECT_FOLDER=""; continue ;;
+                3) PROJECT_NAME=""; PRODUCT_NAME=""; SCRIPT_TITLE=""; PROJECT_GROUP=""; PROJECT_SUBGROUP=""; PROJECT_FOLDER=""; continue ;;
                 *) sayfail "Aborting (unexpected response)."; return 1 ;;
             esac
         done
@@ -1251,7 +1321,7 @@ set -uo pipefail
         {
             printf '%s\n' '#!/usr/bin/env bash'
             printf '# =====================================================================================\n'
-            printf '# %s - Project Definitions\n' "$PROJECT_NAME"
+            printf '# %s - Project Definitions\n' "${PRODUCT_NAME:-$PROJECT_NAME}"
             printf '# -------------------------------------------------------------------------------------\n'
             printf '# Metadata:\n'
             printf '#   Version     : 1.0\n'
@@ -1262,9 +1332,15 @@ set -uo pipefail
             printf '#   Group       : Globals\n'
             printf '#   Purpose     : Project-wide identity and release globals\n'
             printf '# =====================================================================================\n'
-            printf 'SGND_%s_PRODUCT=%q\n' "$key" "$PROJECT_NAME"
+            printf 'SGND_%s_PRODUCT=%q\n' "$key" "${PRODUCT_NAME:-$PROJECT_NAME}"
             printf 'SGND_%s_VERSION=%q\n' "$key" "1.0"
             printf 'SGND_%s_BUILD=%q\n' "$key" "$build"
+            printf 'SGND_%s_COMPANY=%q\n' "$key" "${SGND_COMPANY:-Testadura Consultancy}"
+            printf 'SGND_%s_COPYRIGHT=%q\n' "$key" "${SGND_COPYRIGHT:-}"
+            printf 'SGND_%s_LICENSE=%q\n' "$key" "${SGND_LICENSE:-}"
+            printf 'SGND_%s_DOCUMENTATION=%q\n' "$key" ""
+            printf 'SGND_%s_APPENDICES=%q\n' "$key" "attribution,license,changelog"
+            printf 'SGND_%s_RELEASE_EXCLUDES=%q\n' "$key" "usr/local/lib/solidgroundux/templates"
         } > "$definitions_file" || return 1
 
         (( existed )) || _manifest_record_file "$definitions_file"

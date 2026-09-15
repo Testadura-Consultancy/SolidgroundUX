@@ -4,8 +4,8 @@
 # ------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624102
-#   Checksum    : 2dc2a288ae2f2ed890fff4879294aa6847d4c8fe8e0daeb5dd84707e1022b22f
+#   Build       : 2625813
+#   Checksum    : 4dbb05d326380d279588ac9e0a1e561647a3aad82728fd8548586a1349a72773
 #   Source      : doc-generator.sh
 #   Type        : script
 #   Group       : SDK
@@ -374,6 +374,7 @@ set -uo pipefail
         SGND_DOC_DISCOVERED_VERSIONS=()
         SGND_DOC_DISCOVERED_BUILDS=()
         SGND_DOC_DISCOVERED_DEFINITIONS=()
+        SGND_DOC_DISCOVERED_ROOTS=()
 
         [[ -d "$globals_dir" ]] || {
             saywarning "No product definitions directory found beneath source: $globals_dir"
@@ -403,6 +404,19 @@ set -uo pipefail
             SGND_DOC_DISCOVERED_VERSIONS+=("$version")
             SGND_DOC_DISCOVERED_BUILDS+=("$build")
             SGND_DOC_DISCOVERED_DEFINITIONS+=("$definition")
+            local project_root="${definition%%/target-root/*}"
+            local source_repo="$(dirname -- "${VAL_SRCDIR%/}")"
+            local development_root="$(dirname -- "$source_repo")"
+            local candidate_repo="" candidate_def="" candidate_record="" candidate_product=""
+            if [[ "$(basename -- "${VAL_SRCDIR%/}")" == "target-root" && -d "$development_root" ]]; then
+                while IFS= read -r -d '' candidate_repo; do
+                    while IFS= read -r -d '' candidate_def; do
+                        candidate_record="$(bash -c 'source "$1"; for v in $(compgen -A variable SGND_); do case "$v" in SGND_PRODUCT|*_PRODUCT) printf "%s\\n" "${!v-}"; exit;; esac; done' bash "$candidate_def" 2>/dev/null || true)"
+                        if [[ "${candidate_record,,}" == "${product,,}" ]]; then project_root="$candidate_repo"; break 2; fi
+                    done < <(find "$candidate_repo/target-root/usr/local/lib/solidgroundux/globals" -maxdepth 1 -type f -name '*-definitions.sh' -print0 2>/dev/null)
+                done < <(find "$development_root" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null)
+            fi
+            SGND_DOC_DISCOVERED_ROOTS+=("$project_root")
         done < <(find "$globals_dir" -maxdepth 1 -type f -name '*-definitions.sh' -print0 2>/dev/null | sort -z)
 
         if (( ${#SGND_DOC_DISCOVERED_PRODUCTS[@]} == 0 )); then

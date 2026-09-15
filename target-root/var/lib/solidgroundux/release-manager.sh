@@ -52,9 +52,12 @@ set -uo pipefail
     SGND_RELEASE_PROJECT="solidgroundux"
     SGND_RELEASE_PRODUCT="SolidGroundUX"
     SGND_RELEASE_GITHUB_REPO="Testadura-Mark/SolidGroundUX"
-    SGND_RELEASE_LINE="2.0"
+    SGND_MANAGEMENT_MODULES_GITHUB_REPO="Testadura-Consultancy/solidgrond-management-modules"
+    SGND_RELEASE_LINE="2.1"
+    SGND_RELEASE_BUILD=""
     SGND_RELEASE_API_URL="https://api.github.com/repos/Testadura-Mark/SolidGroundUX/releases/latest"
     SGND_RELEASE_CONFIG_FILE=""
+    SGND_RELEASE_VARIANT="bundle"
 
     FLAG_AUTO=0
     FLAG_DRYRUN=0
@@ -68,7 +71,9 @@ set -uo pipefail
     VAL_RELEASES_DIR=""
     VAL_ARCHIVE_ROOT=""
     VAL_GITHUB_REPO=""
+    VAL_GITHUB_URL=""
     VAL_PROJECT=""
+    VAL_VARIANT=""
 
     PROJECT_STATE_ROOT=""
     PROJECT_INFO_FILE=""
@@ -78,6 +83,7 @@ set -uo pipefail
     FLAG_RELEASES_DIR_OVERRIDE=0
     FLAG_ARCHIVE_ROOT_OVERRIDE=0
     FLAG_PROJECT_OVERRIDE=0
+    FLAG_VARIANT_OVERRIDE=0
     FLAG_SOURCE_OVERRIDE=0
     FLAG_RELEASE_OVERRIDE=0
     FLAG_REPO_OVERRIDE=0
@@ -567,6 +573,7 @@ set -uo pipefail
             '  --auto                 Do not ask for confirmations or selections' \
             '  --project SLUG         Select a locally known project (default: solidgroundux)' \
             '  --repo OWNER/REPO      Override configured GitHub repository' \
+            '  --variant TYPE         Release channel: bundle or individual' \
             '  --source URL|FILE      Direct package ZIP source; usable with download/install/update' \
             '  --target-root PATH     Installation root (default: /)' \
             '  --state-root PATH      Release-manager state root' \
@@ -630,6 +637,12 @@ set -uo pipefail
                     VAL_PROJECT="${1:-}"
                     [[ -n "$VAL_PROJECT" ]] || { _release_fail "--project requires a value"; return 1; }
                     FLAG_PROJECT_OVERRIDE=1
+                    ;;
+                --variant)
+                    shift
+                    VAL_VARIANT="${1:-}"
+                    [[ "$VAL_VARIANT" == "bundle" || "$VAL_VARIANT" == "individual" ]] || { _release_fail "--variant must be bundle or individual"; return 1; }
+                    FLAG_VARIANT_OVERRIDE=1
                     ;;
                 --repo)
                     shift
@@ -751,6 +764,8 @@ set -uo pipefail
                 VAL_SOURCE)       (( FLAG_SOURCE_OVERRIDE )) || VAL_SOURCE="$value" ;;
                 VAL_RELEASE)      (( FLAG_RELEASE_OVERRIDE )) || VAL_RELEASE="$value" ;;
                 VAL_GITHUB_REPO)  (( FLAG_REPO_OVERRIDE )) || VAL_GITHUB_REPO="$value" ;;
+                VAL_GITHUB_URL)   (( FLAG_REPO_OVERRIDE )) || VAL_GITHUB_URL="$value" ;;
+                VAL_VARIANT)      (( FLAG_VARIANT_OVERRIDE )) || VAL_VARIANT="$value" ;;
                 VAL_STATE_ROOT)   (( FLAG_STATE_ROOT_OVERRIDE )) || VAL_STATE_ROOT="$value" ;;
                 *) ;;
             esac
@@ -776,45 +791,272 @@ set -uo pipefail
             printf 'VAL_SOURCE=%s\n' "${VAL_SOURCE:-}"
             printf 'VAL_RELEASE=%s\n' "${VAL_RELEASE:-}"
             printf 'VAL_GITHUB_REPO=%s\n' "${VAL_GITHUB_REPO:-}"
+            printf 'VAL_GITHUB_URL=%s\n' "${VAL_GITHUB_URL:-}"
+            printf 'SGND_RELEASE_BUILD=%s\n' "${SGND_RELEASE_BUILD:-}"
+            printf 'VAL_VARIANT=%s\n' "${VAL_VARIANT:-}"
             printf 'VAL_STATE_ROOT=%s\n' "$VAL_STATE_ROOT"
         } > "$file" || return 1
         chmod 0600 "$file" 2>/dev/null || true
     }
 
-    # fn: _release_prompt_settings - Resolve stateful interactive defaults
+    # fn: _release_definition_value - Read one simple assignment from a definitions file
+        # . Purpose
+        #   Read product release metadata without sourcing project-controlled shell code.
+        # . Returns
+        #   0 with the unquoted value on stdout; 1 when the key is absent.
+        # . Usage
+        #   value="$(_release_definition_value "$file" "SGND_RELEASE_URL")"
+    _release_definition_value() {
+        local file="${1:?missing definitions file}"
+        local key="${2:?missing key}"
+        local value=""
+        value="$(sed -n -E "s/^[[:space:]]*${key}[[:space:]]*=[[:space:]]*(.*)[[:space:]]*$/\1/p" "$file" | head -n 1)"
+        [[ -n "$value" ]] || return 1
+        value="$(_release_normalize_github_url "$value" 2>/dev/null || printf '%s' "$value")"
+        printf '%s\n' "$value"
+    }
+
+    # fn: _release_normalize_github_url - Normalize a GitHub repository/release URL
+        # Returns:
+        #   0 with the normalized URL on stdout; 1 when empty.
+        # Usage:
+        #   url="$(_release_normalize_github_url "$url")"
+    _release_normalize_github_url() {
+        local url="${1:-}"
+        url="$(printf '%s' "$url" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+        while [[ ${#url} -ge 2 ]]; do
+            if [[ "$url" == \"*\" && "$url" == *\" ]]; then
+                url="${url#\"}"; url="${url%\"}"
+            elif [[ "$url" == \'*\' && "$url" == *\' ]]; then
+                url="${url#\'}"; url="${url%\'}"
+            else
+                break
+            fi
+            url="$(printf '%s' "$url" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+        done
+        [[ -n "$url" ]] || return 1
+        printf '%s\n' "$url"
+    }
+
+    # fn: _release_project_repo_state_file - Resolve per-project repository state file
+        # Returns:
+        #   0 with the state pathname on stdout.
+        # Usage:
+        #   file="$(_release_project_repo_state_file "$project")"
+    _release_project_repo_state_file() {
+        local project="${1:-${VAL_PROJECT:-solidgroundux}}"
+        printf '%s/projects/%s/repository.url\n' "${VAL_STATE_ROOT%/}" "$project"
+    }
+
+    # fn: _release_load_project_repo - Load a saved repository URL for one project
+        # Returns:
+        #   0 when a saved URL was loaded; 1 when none exists.
+        # Usage:
+        #   _release_load_project_repo "$project"
+    _release_load_project_repo() {
+        local project="${1:-${VAL_PROJECT:-solidgroundux}}" file="" url="" repo=""
+        file="$(_release_project_repo_state_file "$project")"
+        [[ -r "$file" ]] || return 1
+        IFS= read -r url < "$file" || true
+        url="$(_release_normalize_github_url "$url" 2>/dev/null || true)"
+        [[ -n "$url" ]] || return 1
+        repo="$(_release_repo_from_url "$url" 2>/dev/null || true)"
+        [[ -n "$repo" ]] || return 1
+        VAL_GITHUB_URL="$url"
+        VAL_GITHUB_REPO="$repo"
+        return 0
+    }
+
+    # fn: _release_save_project_repo - Persist repository URL for the selected project
+        # Returns:
+        #   0 on success; non-zero on persistence failure.
+        # Usage:
+        #   _release_save_project_repo
+    _release_save_project_repo() {
+        local file="" url=""
+        url="$(_release_normalize_github_url "${VAL_GITHUB_URL:-}" 2>/dev/null || true)"
+        [[ -n "$url" ]] || return 0
+        VAL_GITHUB_URL="$url"
+        file="$(_release_project_repo_state_file "${VAL_PROJECT:-solidgroundux}")"
+        if (( FLAG_DRYRUN )); then
+            _release_info "Would save project GitHub repository: $file"
+            return 0
+        fi
+        mkdir -p -- "$(dirname -- "$file")" || return 1
+        printf '%s\n' "$url" > "$file" || return 1
+        chmod 0600 "$file" 2>/dev/null || true
+    }
+
+    # fn: _release_repo_from_url - Convert a GitHub release URL to OWNER/REPO
+        # Returns:
+        #   0 with OWNER/REPO on stdout; 1 for an unsupported URL.
+        # Usage:
+        #   repo="$(_release_repo_from_url "$url")"
+    _release_repo_from_url() {
+        local url="${1:-}"
+        url="$(_release_normalize_github_url "$url" 2>/dev/null || true)"
+        [[ -n "$url" ]] || return 1
+        url="${url#https://github.com/}"
+        url="${url#http://github.com/}"
+        url="${url%/releases}"; url="${url%/}"
+        [[ "$url" == */* && "$url" != http* ]] || return 1
+        printf '%s\n' "$url"
+    }
+
+    # fn: _release_package_catalog - List release packages known to this target
+        # . Purpose
+        #   Build the selectable package catalog from installed product definitions, with
+        #   bootstrap defaults for products that may not yet be installed on a clean target.
+        # . Output
+        #   Writes project|product|variant|release-url|version|build records.
+        # . Usage
+        #   mapfile -t packages < <(_release_package_catalog)
+    _release_package_catalog() {
+        local globals="${VAL_TARGET_ROOT%/}/usr/local/lib/solidgroundux/globals"
+        local file="" product="" version="" build="" url="" product_var="" version_var="" build_var=""
+        local modules_seen=0 framework_seen=0
+
+        if [[ -f "$globals/sgnd-definitions.sh" ]]; then
+            product="$(_release_definition_value "$globals/sgnd-definitions.sh" SGND_PRODUCT 2>/dev/null || true)"
+            version="$(_release_definition_value "$globals/sgnd-definitions.sh" SGND_VERSION 2>/dev/null || true)"
+            build="$(_release_definition_value "$globals/sgnd-definitions.sh" SGND_BUILD 2>/dev/null || true)"
+            url="$(_release_definition_value "$globals/sgnd-definitions.sh" SGND_RELEASE_URL 2>/dev/null || true)"
+            printf 'solidgroundux|%s|bundle|%s|%s|%s\n' "${product:-SolidGroundUX}" "${url:-https://github.com/$SGND_RELEASE_GITHUB_REPO/releases}" "${version:-2.1}" "$build"
+            printf 'solidgroundux|%s|individual|%s|%s|%s\n' "${product:-SolidGroundUX}" "${url:-https://github.com/$SGND_RELEASE_GITHUB_REPO/releases}" "${version:-2.1}" "$build"
+            framework_seen=1
+        fi
+
+        if [[ -d "$globals" ]]; then
+            while IFS= read -r -d '' file; do
+                [[ "$(basename -- "$file")" == "sgnd-definitions.sh" ]] && continue
+                product_var="$(sed -n -E 's/^[[:space:]]*(SGND_[A-Za-z0-9_]+_PRODUCT)[[:space:]]*=.*$/\1/p' "$file" | head -n 1)"
+                [[ -n "$product_var" ]] || continue
+                version_var="${product_var%_PRODUCT}_VERSION"
+                build_var="${product_var%_PRODUCT}_BUILD"
+                product="$(_release_definition_value "$file" "$product_var" 2>/dev/null || true)"
+                version="$(_release_definition_value "$file" "$version_var" 2>/dev/null || true)"
+                build="$(_release_definition_value "$file" "$build_var" 2>/dev/null || true)"
+                url="$(_release_definition_value "$file" "${product_var%_PRODUCT}_RELEASE_URL" 2>/dev/null || true)"
+                if [[ "$product" == "SolidGroundUX Management Console Modules" ]]; then
+                    modules_seen=1
+                    [[ -n "$url" ]] || url="https://github.com/$SGND_MANAGEMENT_MODULES_GITHUB_REPO/releases"
+                fi
+                [[ -n "$url" ]] || continue
+                printf '%s|%s|individual|%s|%s|%s\n' "$(basename -- "$file" -definitions.sh)" "$product" "$url" "$version" "$build"
+            done < <(find "$globals" -maxdepth 1 -type f -name '*-definitions.sh' -print0 2>/dev/null | sort -z)
+        fi
+
+        (( framework_seen )) || {
+            printf 'solidgroundux|SolidGroundUX|bundle|https://github.com/%s/releases|2.1|\n' "$SGND_RELEASE_GITHUB_REPO"
+            printf 'solidgroundux|SolidGroundUX|individual|https://github.com/%s/releases|2.1|\n' "$SGND_RELEASE_GITHUB_REPO"
+        }
+        (( modules_seen )) || printf 'solidground-management-console-modules|SolidGroundUX Management Console Modules|individual|https://github.com/%s/releases|1.1|\n' "$SGND_MANAGEMENT_MODULES_GITHUB_REPO"
+    }
+
+    # fn: _release_select_package_interactive - Select a product package and derive its context
+        # . Purpose
+        #   Make package selection the normal entry point. Project, product, channel, version,
+        #   build, and GitHub URL are derived from the selected product; the URL remains editable.
+        # . Returns
+        #   0 after package selection; 2 when manual override was selected; 1 on cancellation.
+        # . Usage
+        #   _release_select_package_interactive
+    _release_select_package_interactive() {
+        local choice="" row="" project="" product="" variant="" url="" version="" build="" repo="" i=0
+        local -a packages=()
+        mapfile -t packages < <(_release_package_catalog)
+        (( ${#packages[@]} > 0 )) || return 2
+
+        printf '\n%sAvailable packages%s\n' "$_RL_BRIGHT_WHITE" "$_RL_RESET" > /dev/tty
+        _release_line "─" > /dev/tty
+        for (( i=0; i<${#packages[@]}; i++ )); do
+            IFS='|' read -r project product variant url version build <<< "${packages[$i]}"
+            printf '  %s%d)%s %s%s%s  %s[%s / %s.%s]%s\n' "$_RL_UI_PROMPT" "$((i+1))" "$_RL_RESET" "$_RL_UI_TEXT" "$product" "$_RL_RESET" "$_RL_DARK_WHITE" "$variant" "$version" "${build:--}" "$_RL_RESET" > /dev/tty
+        done
+        printf '  %sM)%s %sManual configuration / override%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET" > /dev/tty
+        printf '  %sQ)%s %sCancel%s\n\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET" > /dev/tty
+        _release_line "─" > /dev/tty
+        printf '%sSelect package: %s' "$_RL_UI_PROMPT" "$_RL_UI_INPUT" > /dev/tty
+        read -r choice < /dev/tty
+        printf '%s' "$_RL_RESET" > /dev/tty
+        case "${choice^^}" in M) return 2 ;; Q|"") return 1 ;; esac
+        [[ "$choice" =~ ^[0-9]+$ ]] || return 1
+        (( choice >= 1 && choice <= ${#packages[@]} )) || return 1
+        row="${packages[$((choice-1))]}"
+        IFS='|' read -r project product variant url version build <<< "$row"
+
+        VAL_PROJECT="$project"
+        VAL_VARIANT="$variant"
+        SGND_RELEASE_VARIANT="$variant"
+        SGND_RELEASE_LINE="$version"
+        SGND_RELEASE_BUILD="$build"
+        _set_project_context "$project" || return 1
+        SGND_RELEASE_PRODUCT="$product"
+
+        # Version and build are product metadata, not Release Manager input. Keep the
+        # values discovered from the selected product definitions/catalog until GitHub
+        # discovery supplies the identity of a newer published artifact. Repository
+        # overrides are persisted per project and take precedence over definitions.
+        VAL_GITHUB_URL=""
+        VAL_GITHUB_REPO=""
+        _release_load_project_repo "$project" || true
+        _release_ask "GitHub repository URL" VAL_GITHUB_URL "${VAL_GITHUB_URL:-${url:-https://github.com/$SGND_RELEASE_GITHUB_REPO/releases}}" || return 1
+        VAL_GITHUB_URL="$(_release_normalize_github_url "$VAL_GITHUB_URL" 2>/dev/null || true)"
+        repo="$(_release_repo_from_url "$VAL_GITHUB_URL" 2>/dev/null || true)"
+        [[ -n "$repo" ]] || { _release_fail "Invalid GitHub repository URL: $VAL_GITHUB_URL"; return 1; }
+        VAL_GITHUB_REPO="$repo"
+        _release_save_project_repo || return 1
+        return 0
+    }
+
+    # fn: _release_prompt_manual_settings - Collect explicit product/repository/channel overrides
+        # Returns:
+        #   0 when the manual settings are valid; non-zero otherwise.
+        # Usage:
+        #   _release_prompt_manual_settings
+    _release_prompt_manual_settings() {
+        local repo=""
+        _release_ask "Project" VAL_PROJECT "${VAL_PROJECT:-solidgroundux}" || return 1
+        _set_project_context "${VAL_PROJECT:-solidgroundux}" || return 1
+        _release_ask "Product" SGND_RELEASE_PRODUCT "${SGND_RELEASE_PRODUCT:-$VAL_PROJECT}" || return 1
+        _release_load_project_repo "${VAL_PROJECT:-solidgroundux}" || true
+        _release_ask "GitHub repository URL" VAL_GITHUB_URL "${VAL_GITHUB_URL:-https://github.com/${VAL_GITHUB_REPO:-$SGND_RELEASE_GITHUB_REPO}/releases}" || return 1
+        VAL_GITHUB_URL="$(_release_normalize_github_url "$VAL_GITHUB_URL" 2>/dev/null || true)"
+        repo="$(_release_repo_from_url "$VAL_GITHUB_URL" 2>/dev/null || true)"
+        [[ -n "$repo" ]] || { _release_fail "Invalid GitHub repository URL: $VAL_GITHUB_URL"; return 1; }
+        VAL_GITHUB_REPO="$repo"
+        _release_save_project_repo || return 1
+        _release_ask "Release variant (bundle/individual)" VAL_VARIANT "${VAL_VARIANT:-individual}" || return 1
+        [[ "$VAL_VARIANT" == "bundle" || "$VAL_VARIANT" == "individual" ]] || return 1
+        SGND_RELEASE_VARIANT="$VAL_VARIANT"
+    }
+
+    # fn: _release_prompt_settings - Resolve target and select the release package
+        # . Purpose
+        #   Ask only for the target first, then derive release context from a selected package.
+        #   Manual project/product/repository editing is an explicit override path.
         # . Usage
         #   _release_prompt_settings
     _release_prompt_settings() {
-        local target_before="$VAL_TARGET_ROOT"
-
+        local target_before="$VAL_TARGET_ROOT" select_rc=0
         (( FLAG_AUTO )) && return 0
         [[ -t 0 && -t 1 ]] || return 0
 
         _release_section_header "Release Manager settings"
         _release_ask "Target root" VAL_TARGET_ROOT "$VAL_TARGET_ROOT" || return 1
-        VAL_TARGET_ROOT="$(_normalize_root "$VAL_TARGET_ROOT")" || {
-            _release_fail "Target root must be absolute: $VAL_TARGET_ROOT"
-            return 1
-        }
-
-        # Target-root changes also change the natural state/config locations.
-        if [[ "$VAL_TARGET_ROOT" != "$target_before" ]] && (( ! FLAG_STATE_ROOT_OVERRIDE )); then
-            VAL_STATE_ROOT=""
-        fi
+        VAL_TARGET_ROOT="$(_normalize_root "$VAL_TARGET_ROOT")" || { _release_fail "Target root must be absolute: $VAL_TARGET_ROOT"; return 1; }
+        if [[ "$VAL_TARGET_ROOT" != "$target_before" ]] && (( ! FLAG_STATE_ROOT_OVERRIDE )); then VAL_STATE_ROOT=""; fi
         init_paths || return 1
-
-        # If the selected target contains a healthy framework, switch the remaining
-        # questions and menu to the normal SolidGroundUX UI/theme.
         _release_try_framework_ui
 
-        _release_ask "Project" VAL_PROJECT "${VAL_PROJECT:-solidgroundux}" || return 1
-        _set_project_context "${VAL_PROJECT:-solidgroundux}" || return 1
-
-        _release_ask "GitHub repository" VAL_GITHUB_REPO "${VAL_GITHUB_REPO:-$SGND_RELEASE_GITHUB_REPO}" || return 1
-
+        _release_select_package_interactive || select_rc=$?
+        case "$select_rc" in
+            0) ;;
+            2) _release_prompt_manual_settings || return 1 ;;
+            *) return "$select_rc" ;;
+        esac
         _release_save_state
     }
-
 
     # fn: _package_info_value - Read one key from release-package.info safely
         # . Purpose
@@ -895,6 +1137,10 @@ set -uo pipefail
         fi
 
         _load_project_info "$slug"
+        if [[ "$slug" != "solidgroundux" && -z "${VAL_VARIANT:-}" ]]; then
+            VAL_VARIANT="individual"
+        fi
+        SGND_RELEASE_VARIANT="${VAL_VARIANT:-$SGND_RELEASE_VARIANT}"
         return 0
     }
 
@@ -989,15 +1235,18 @@ set -uo pipefail
         local cfg="${SGND_RELEASE_CONFIG_FILE:-}"
         if [[ -z "$cfg" || ! -r "$cfg" ]]; then
             VAL_GITHUB_REPO="${VAL_GITHUB_REPO:-$SGND_RELEASE_GITHUB_REPO}"
+            VAL_VARIANT="${VAL_VARIANT:-$SGND_RELEASE_VARIANT}"
             return 0
         fi
 
         # shellcheck disable=SC1090
         source "$cfg"
         : "${SGND_RELEASE_GITHUB_REPO:=Testadura-Mark/SolidGroundUX}"
-        : "${SGND_RELEASE_LINE:=2.0}"
+        : "${SGND_RELEASE_LINE:=2.1}"
         : "${SGND_RELEASE_API_URL:=https://api.github.com/repos/${SGND_RELEASE_GITHUB_REPO}/releases/latest}"
         VAL_GITHUB_REPO="${VAL_GITHUB_REPO:-$SGND_RELEASE_GITHUB_REPO}"
+        VAL_VARIANT="${VAL_VARIANT:-$SGND_RELEASE_VARIANT}"
+        SGND_RELEASE_VARIANT="$VAL_VARIANT"
         return 0
     }
 
@@ -1020,7 +1269,9 @@ set -uo pipefail
         {
             printf '%s\n' '# SolidGroundUX Release Manager configuration'
             printf 'SGND_RELEASE_LINE=%q\n' "$SGND_RELEASE_LINE"
-            printf 'SGND_RELEASE_API_URL=%q\n' "$SGND_RELEASE_API_URL"
+            printf 'SGND_RELEASE_GITHUB_REPO=%q\n' "${VAL_GITHUB_REPO:-$SGND_RELEASE_GITHUB_REPO}"
+            printf 'SGND_RELEASE_VARIANT=%q\n' "${VAL_VARIANT:-$SGND_RELEASE_VARIANT}"
+            printf 'SGND_RELEASE_API_URL=%q\n' "https://api.github.com/repos/${VAL_GITHUB_REPO:-$SGND_RELEASE_GITHUB_REPO}/releases/latest"
         } > "$cfg" || return 1
 
         chmod 0644 "$cfg"
@@ -1116,6 +1367,7 @@ EOF
         local archive=""
         local package_info="${SCRIPT_DIR%/}/release-package.info"
         local package_project=""
+        local package_type=""
         local package_release=""
         local -a candidates=()
 
@@ -1124,7 +1376,9 @@ EOF
 
         if [[ -r "$package_info" ]]; then
             package_project="$(_package_info_value "$package_info" "SGND_PACKAGE_PROJECT" 2>/dev/null || true)"
+            package_type="$(_package_info_value "$package_info" "SGND_PACKAGE_TYPE" 2>/dev/null || true)"
             package_release="$(_package_info_value "$package_info" "SGND_PACKAGE_RELEASE" 2>/dev/null || true)"
+            [[ -n "$package_type" ]] || package_type="individual"
 
             [[ "$package_project" == "solidgroundux" ]] || return 1
             [[ -n "$package_release" ]] || {
@@ -1138,6 +1392,8 @@ EOF
                 return 2
             }
 
+            VAL_VARIANT="$package_type"
+            SGND_RELEASE_VARIANT="$package_type"
             BOOTSTRAP_RELEASE_BASE="$package_release"
             BOOTSTRAP_SOURCE_DIR="$SCRIPT_DIR"
             return 0
@@ -1213,6 +1469,12 @@ EOF
         for artifact in "${artifacts[@]}"; do
             _release_run mv -f -- "${BOOTSTRAP_SOURCE_DIR%/}/${artifact}" "$VAL_RELEASES_DIR/" || return 1
         done
+        if [[ -r "${BOOTSTRAP_SOURCE_DIR%/}/release-package.info" ]]; then
+            _release_run cp -f -- "${BOOTSTRAP_SOURCE_DIR%/}/release-package.info" "${VAL_RELEASES_DIR%/}/${base}.package" || return 1
+            if [[ -f "${BOOTSTRAP_SOURCE_DIR%/}/RELEASE-PRODUCTS" ]]; then
+                _release_run cp -f -- "${BOOTSTRAP_SOURCE_DIR%/}/RELEASE-PRODUCTS" "${VAL_RELEASES_DIR%/}/${base}.products" || return 1
+            fi
+        fi
 
         if [[ -f "${BOOTSTRAP_SOURCE_DIR%/}/SHA256SUMS" ]]; then
             _release_run rm -f -- "${BOOTSTRAP_SOURCE_DIR%/}/SHA256SUMS" || return 1
@@ -1253,6 +1515,7 @@ EOF
                 "${base}.removed.sha256"
                 "SHA256SUMS"
                 "release-package.info"
+                "RELEASE-PRODUCTS"
             )
 
             for artifact in "${artifacts[@]}"; do
@@ -1323,6 +1586,16 @@ EOF
     }
 
 # --- Release identity and discovery -------------------------------------------------
+    # fn: _release_product_artifact_name - Convert a display product name to its canonical release-file identity
+        # Returns:
+        #   Product name with whitespace runs replaced by hyphens.
+        # Usage:
+        #   artifact_product="$(_release_product_artifact_name "$SGND_RELEASE_PRODUCT")"
+    _release_product_artifact_name() {
+        local product_name="${1:-}"
+        printf '%s\n' "$product_name" | sed -E 's/[[:space:]]+/-/g'
+    }
+
     # fn: _release_base_from_archive - Derive a release base name from a tar.gz archive path
         # . Purpose
         #   Derive a release base name from a tar.gz archive path.
@@ -1344,12 +1617,26 @@ EOF
         #   0 when it matches; 1 otherwise.
         # . Usage
         #   _release_matches "$base" "$VAL_RELEASE"
+    _release_variant_matches() {
+        local base="${1:?missing base}"
+        local variant="${VAL_VARIANT:-${SGND_RELEASE_VARIANT:-individual}}"
+        local artifact_product="$(_release_product_artifact_name "$SGND_RELEASE_PRODUCT")"
+        if [[ "$variant" == "bundle" ]]; then
+            [[ "$base" == "${artifact_product}-bundled-"* ]]
+        else
+            [[ "$base" == "${artifact_product}-"* && "$base" != "${artifact_product}-bundled-"* ]]
+        fi
+    }
+
     _release_matches() {
         local base="${1:?missing base}"
         local requested="${2:-}"
+        local artifact_product="$(_release_product_artifact_name "$SGND_RELEASE_PRODUCT")"
+        _release_variant_matches "$base" || return 1
         [[ -z "$requested" ]] && return 0
         [[ "$base" == "$requested" ]] && return 0
-        [[ "$base" == "${SGND_RELEASE_PRODUCT}-${requested}" ]] && return 0
+        [[ "$base" == "${artifact_product}-${requested}" ]] && return 0
+        [[ "$base" == "${artifact_product}-bundled-${requested}" ]] && return 0
         return 1
     }
 
@@ -1373,9 +1660,7 @@ EOF
         #   current="$(_current_release)"
     _current_release() {
         [[ -d "$VAL_ARCHIVE_ROOT" ]] || return 1
-        find "$VAL_ARCHIVE_ROOT" -mindepth 1 -maxdepth 1 -type d -name "${SGND_RELEASE_PRODUCT}-*" -printf '%f\n' 2>/dev/null \
-            | _release_sort \
-            | tail -n 1
+        _list_archived_releases | tail -n 1
     }
 
     # fn: _previous_release - Return the archived release immediately preceding current
@@ -1387,10 +1672,7 @@ EOF
         #   previous="$(_previous_release)"
     _previous_release() {
         [[ -d "$VAL_ARCHIVE_ROOT" ]] || return 1
-        find "$VAL_ARCHIVE_ROOT" -mindepth 1 -maxdepth 1 -type d -name "${SGND_RELEASE_PRODUCT}-*" -printf '%f\n' 2>/dev/null \
-            | _release_sort \
-            | tail -n 2 \
-            | head -n 1
+        _list_archived_releases | tail -n 2 | head -n 1
     }
 
     # fn: _list_archived_releases - List archived releases in ascending version order
@@ -1402,7 +1684,10 @@ EOF
         #   _list_archived_releases
     _list_archived_releases() {
         [[ -d "$VAL_ARCHIVE_ROOT" ]] || return 0
-        find "$VAL_ARCHIVE_ROOT" -mindepth 1 -maxdepth 1 -type d -name "${SGND_RELEASE_PRODUCT}-*" -printf '%f\n' 2>/dev/null | _release_sort
+        local base="" artifact_product="$(_release_product_artifact_name "$SGND_RELEASE_PRODUCT")"
+        while IFS= read -r base; do
+            _release_variant_matches "$base" && printf '%s\n' "$base"
+        done < <(find "$VAL_ARCHIVE_ROOT" -mindepth 1 -maxdepth 1 -type d -name "${artifact_product}-*" -printf '%f\n' 2>/dev/null) | _release_sort
     }
 
     # fn: _find_pending_archives - List pending release tarballs under the releases directory
@@ -1414,7 +1699,11 @@ EOF
         #   _find_pending_archives
     _find_pending_archives() {
         [[ -d "$VAL_RELEASES_DIR" ]] || return 0
-        find "$VAL_RELEASES_DIR" -maxdepth 2 -type f -name "${SGND_RELEASE_PRODUCT}-*.tar.gz" -print 2>/dev/null
+        local archive="" base="" artifact_product="$(_release_product_artifact_name "$SGND_RELEASE_PRODUCT")"
+        while IFS= read -r archive; do
+            base="$(_release_base_from_archive "$archive" 2>/dev/null || true)"
+            [[ -n "$base" ]] && _release_variant_matches "$base" && printf '%s\n' "$archive"
+        done < <(find "$VAL_RELEASES_DIR" -maxdepth 2 -type f -name "${artifact_product}-*.tar.gz" -print 2>/dev/null)
     }
 
     # fn: _newest_pending_archive - Find the newest pending archive matching an optional release selector
@@ -1784,6 +2073,8 @@ EOF
             "${base}.manifest.sha256"
             "${base}.removed"
             "${base}.removed.sha256"
+            "${base}.package"
+            "${base}.products"
         )
 
         _release_run mkdir -p -- "$dest_dir" || return 1
@@ -1872,6 +2163,21 @@ EOF
         done < <(_list_archived_releases)
     }
 
+# --- Release channel ----------------------------------------------------------------
+    # fn: _remember_release_channel - Persist the channel of the successfully installed release
+    _remember_release_channel() {
+        local archive="${1:?missing archive}" base="" metadata="" type=""
+        base="$(_release_base_from_archive "$archive")" || return 1
+        metadata="${VAL_ARCHIVE_ROOT%/}/${base}/${base}.package"
+        [[ -r "$metadata" ]] || metadata="$(dirname -- "$archive")/${base}.package"
+        type="$(_package_info_value "$metadata" "SGND_PACKAGE_TYPE" 2>/dev/null || true)"
+        [[ -n "$type" ]] || type="individual"
+        [[ "$type" == "bundle" || "$type" == "individual" ]] || return 1
+        VAL_VARIANT="$type"
+        SGND_RELEASE_VARIANT="$type"
+        _release_save_state
+    }
+
 # --- Installation engine ------------------------------------------------------------
     # fn: _extract_release - Extract a complete SolidGroundUX release beneath the target root
         # . Purpose
@@ -1911,6 +2217,7 @@ EOF
             _release_info "Clean install: $base"
             _extract_release "$archive" || return 1
             _archive_release_set "$archive" || return 1
+            _remember_release_channel "$archive" || return 1
             return 0
         fi
 
@@ -1918,6 +2225,7 @@ EOF
             _release_info "Reinstalling current release: $base"
             _extract_release "$archive" || return 1
             _archive_release_set "$archive" || return 1
+            _remember_release_channel "$archive" || return 1
             return 0
         fi
 
@@ -1927,6 +2235,7 @@ EOF
             _apply_removed_manifest "$removed" || return 1
             _extract_release "$archive" || return 1
             _archive_release_set "$archive" || return 1
+            _remember_release_channel "$archive" || return 1
             return 0
         fi
 
@@ -1937,6 +2246,7 @@ EOF
         _remove_release_difference "$current_manifest" "$target_manifest" || return 1
         _extract_release "$archive" || return 1
         _archive_release_set "$archive" || return 1
+        _remember_release_channel "$archive" || return 1
         _move_newer_archives_to_releases "$base" || return 1
     }
 
@@ -2043,24 +2353,43 @@ EOF
         #   json="$(_github_release_json)"
     _github_release_json() {
         local url="${SGND_RELEASE_API_URL:?missing release API URL}"
+        local temp_file=""
+        local http_code=""
+        local curl_rc=0
 
-        if [[ "$SGND_RELEASE_PROJECT" != "solidgroundux" ]]; then
-            _release_fail "Online GitHub discovery is currently configured only for SolidGroundUX; use --source for project packages."
-            return 1
-        fi
-
-        # Preserve the legacy --repo override by redirecting it to that repository's
-        # latest Release endpoint for this invocation only.
-        if [[ -n "${VAL_GITHUB_REPO:-}" && "$VAL_GITHUB_REPO" != "$SGND_RELEASE_GITHUB_REPO" ]]; then
+        # Repository selection is project-aware. An explicit/stateful repository wins;
+        # otherwise retain the configured default.
+        if [[ -n "${VAL_GITHUB_URL:-}" ]]; then
+            local repo=""
+            repo="$(_release_repo_from_url "$VAL_GITHUB_URL" 2>/dev/null || true)"
+            [[ -n "$repo" ]] || { _release_fail "Invalid GitHub repository URL: $VAL_GITHUB_URL"; return 1; }
+            url="https://api.github.com/repos/${repo}/releases/latest"
+        elif [[ -n "${VAL_GITHUB_REPO:-}" ]]; then
             url="https://api.github.com/repos/${VAL_GITHUB_REPO}/releases/latest"
         fi
 
         if command -v curl >/dev/null 2>&1; then
-            curl -fsSL "$url"
-            return $?
+            temp_file="$(mktemp)" || return 1
+            http_code="$(curl -sS -L -o "$temp_file" -w '%{http_code}' "$url")" || curl_rc=$?
+            if (( curl_rc != 0 )); then
+                rm -f -- "$temp_file"
+                _release_fail "Could not contact GitHub Release API"
+                return 1
+            fi
+            case "$http_code" in
+                200) cat -- "$temp_file"; rm -f -- "$temp_file"; return 0 ;;
+                404) rm -f -- "$temp_file"; return 4 ;;
+                *)
+                    rm -f -- "$temp_file"
+                    _release_fail "GitHub Release API returned HTTP $http_code"
+                    return 1
+                    ;;
+            esac
         fi
 
         if command -v wget >/dev/null 2>&1; then
+            # wget cannot portably expose the HTTP status separately. Keep transport/HTTP
+            # failures as errors rather than misclassifying them as an empty release channel.
             wget -qO- "$url"
             return $?
         fi
@@ -2079,48 +2408,42 @@ EOF
         #   row="$(_github_latest_asset)"
     _github_latest_asset() {
         local json=""
-        local token=""
-        local pending_name=""
-        local name=""
         local url=""
+        local name=""
         local base=""
-        local prefix="${SGND_RELEASE_PRODUCT}-${SGND_RELEASE_LINE}."
+        local variant="${VAL_VARIANT:-${SGND_RELEASE_VARIANT:-individual}}"
+        local artifact_product="$(_release_product_artifact_name "$SGND_RELEASE_PRODUCT")"
+        local prefix="${artifact_product}-"
         local suffix="-release.zip"
+        local github_rc=0
         local -a rows=()
 
-        json="$(_github_release_json)" || {
+        [[ "$variant" == "bundle" ]] && prefix="${artifact_product}-bundled-"
+
+        json="$(_github_release_json)" || github_rc=$?
+        if (( github_rc != 0 )); then
+            (( github_rc == 4 )) && return 4
             _release_fail "Could not read configured GitHub Release metadata"
             return 1
-        }
+        fi
 
-        # GitHub's asset object contains "name" before "browser_download_url". Emit
-        # just those fields and pair them in encounter order, ignoring the Release's own
-        # top-level name because it has no following asset URL before the first asset name.
-        while IFS= read -r token; do
-            case "$token" in
-                NAME:*)
-                    pending_name="${token#NAME:}"
-                    ;;
-                URL:*)
-                    url="${token#URL:}"
-                    name="$pending_name"
-                    pending_name=""
-                    [[ "$name" == "${prefix}"*"${suffix}" ]] || continue
-                    base="${name%$suffix}"
-                    rows+=("${base}|${url}")
-                    ;;
-            esac
+        # browser_download_url is the authoritative artifact identity. Parsing the URL
+        # directly avoids depending on GitHub JSON field ordering or pairing an asset's
+        # name field with a later URL field.
+        while IFS= read -r url; do
+            [[ -n "$url" ]] || continue
+            name="${url##*/}"
+            [[ "${name,,}" == "${prefix,,}"*"${suffix,,}" ]] || continue
+            if [[ "$variant" != "bundle" && "${name,,}" == "${artifact_product,,}-bundled-"* ]]; then
+                continue
+            fi
+            base="${name%$suffix}"
+            rows+=("${base}|${url}")
         done < <(
-            printf '%s\n' "$json" | sed -n -E \
-                -e 's/^[[:space:]]*"name"[[:space:]]*:[[:space:]]*"([^"]+)",?[[:space:]]*$/NAME:\1/p' \
-                -e 's/^[[:space:]]*"browser_download_url"[[:space:]]*:[[:space:]]*"([^"]+)",?[[:space:]]*$/URL:\1/p'
+            printf '%s\n' "$json" | sed -n -E                 's/.*"browser_download_url"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p'
         )
 
-        (( ${#rows[@]} > 0 )) || {
-            _release_fail "No ${SGND_RELEASE_PRODUCT}-${SGND_RELEASE_LINE}.<build>-release.zip asset found"
-            return 1
-        }
-
+        (( ${#rows[@]} > 0 )) || return 4
         printf '%s\n' "${rows[@]}" | LC_ALL=C sort -t '|' -k1,1V | tail -n 1
     }
 
@@ -2133,7 +2456,9 @@ EOF
         #   _latest_online_release
     _latest_online_release() {
         local row=""
-        row="$(_github_latest_asset)" || return 1
+        local asset_rc=0
+        row="$(_github_latest_asset)" || asset_rc=$?
+        (( asset_rc == 0 )) || return "$asset_rc"
         printf '%s\n' "${row%%|*}"
     }
 
@@ -2146,7 +2471,9 @@ EOF
         #   url="$(_github_release_asset_url)"
     _github_release_asset_url() {
         local row=""
-        row="$(_github_latest_asset)" || return 1
+        local asset_rc=0
+        row="$(_github_latest_asset)" || asset_rc=$?
+        (( asset_rc == 0 )) || return "$asset_rc"
         printf '%s\n' "${row#*|}"
     }
 
@@ -2178,6 +2505,7 @@ EOF
         local package_format=""
         local package_project=""
         local package_product=""
+        local package_type="individual"
         local package_release=""
         local archive=""
         local base=""
@@ -2193,10 +2521,16 @@ EOF
         package_format="$(_package_info_value "$package_info" "SGND_PACKAGE_FORMAT" 2>/dev/null || true)"
         package_project="$(_package_info_value "$package_info" "SGND_PACKAGE_PROJECT" 2>/dev/null || true)"
         package_product="$(_package_info_value "$package_info" "SGND_PACKAGE_PRODUCT" 2>/dev/null || true)"
+        package_type="$(_package_info_value "$package_info" "SGND_PACKAGE_TYPE" 2>/dev/null || true)"
         package_release="$(_package_info_value "$package_info" "SGND_PACKAGE_RELEASE" 2>/dev/null || true)"
+        [[ -n "$package_type" ]] || package_type="individual"
 
-        [[ "$package_format" == "1" ]] || {
+        [[ "$package_format" == "1" || "$package_format" == "2" ]] || {
             _release_fail "Unsupported release package format: ${package_format:-missing}"
+            return 1
+        }
+        [[ "$package_type" == "individual" || "$package_type" == "bundle" ]] || {
+            _release_fail "Unsupported release package type: $package_type"
             return 1
         }
         _project_slug_safe "$package_project" || {
@@ -2210,6 +2544,8 @@ EOF
 
         _set_project_context "$package_project" || return 1
         SGND_RELEASE_PRODUCT="$package_product"
+        VAL_VARIANT="$package_type"
+        SGND_RELEASE_VARIANT="$package_type"
         _ensure_manager_directories || return 1
         _persist_project_info "$package_info" || return 1
 
@@ -2248,6 +2584,11 @@ EOF
             }
             _release_run mv -f -- "$source_dir/$artifact" "$VAL_RELEASES_DIR/" || return 1
         done
+        _release_run cp -f -- "$package_info" "${VAL_RELEASES_DIR%/}/${base}.package" || return 1
+        if [[ "$package_type" == "bundle" ]]; then
+            [[ -f "${extracted_root%/}/RELEASE-PRODUCTS" ]] || { _release_fail "Bundled package is missing RELEASE-PRODUCTS"; return 1; }
+            _release_run cp -f -- "${extracted_root%/}/RELEASE-PRODUCTS" "${VAL_RELEASES_DIR%/}/${base}.products" || return 1
+        fi
 
         _release_ok "Release admitted for ${SGND_RELEASE_PRODUCT}: $base"
         printf '%s\n' "$base"
@@ -2380,7 +2721,7 @@ EOF
 
         [[ "$choice" =~ ^[0-9]+$ ]] || return 1
         if (( choice == remove_choice )); then
-            printf '%s\n' '__REMOVE__'
+            printf '%s\n' 'REMOVE'
             return 0
         fi
 
@@ -2407,6 +2748,9 @@ EOF
 
         _release_labeled_value "Project" "$SGND_RELEASE_PROJECT"
         _release_labeled_value "Product" "$SGND_RELEASE_PRODUCT"
+        _release_labeled_value "Version" "${SGND_RELEASE_LINE:-Unknown}"
+        _release_labeled_value "Build" "${SGND_RELEASE_BUILD:-Unknown}"
+        _release_labeled_value "GitHub repository" "${VAL_GITHUB_URL:-https://github.com/${VAL_GITHUB_REPO:-$SGND_RELEASE_GITHUB_REPO}/releases}"
         _release_labeled_value "Installed release" "${current:-Not installed}"
         _release_labeled_value "Available locally" "${pending_base:-None}"
         _release_labeled_value "Releases directory" "$VAL_RELEASES_DIR"
@@ -2435,7 +2779,8 @@ EOF
             printf '    %s3)%s %sUpdate to latest build%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
             printf '    %s4)%s %sInstall newest local release%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
             printf '    %s5)%s %sInstall archived version / remove%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
-            printf '    %sP)%s %sSelect project%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
+
+            printf '    %sP)%s %sSelect package%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
             printf '    %sQ)%s %sQuit%s\n\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
             
             _release_line "─"
@@ -2450,7 +2795,7 @@ EOF
                 4) ACTION=install; _action_install; _pause ;;
                 5)
                     target="$(_select_archived_release 2>/dev/tty)" || continue
-                    if [[ "$target" == '__REMOVE__' ]]; then
+                    if [[ "$target" == 'REMOVE' ]]; then
                         _confirm "Remove $SGND_RELEASE_PRODUCT?" && _remove_installation
                     else
                         _confirm "Install $target?" && _rollback_to_archived_release "$target"
@@ -2458,9 +2803,15 @@ EOF
                     _pause
                     ;;
                 P)
-                    target="$(_select_project_interactive 2>/dev/tty)" || continue
-                    _set_project_context "$target" || { _pause; continue; }
+                    local package_rc=0
+                    _release_select_package_interactive || package_rc=$?
+                    if (( package_rc == 2 )); then
+                        _release_prompt_manual_settings || { _pause; continue; }
+                    elif (( package_rc != 0 )); then
+                        continue
+                    fi
                     _ensure_manager_directories || { _pause; continue; }
+                    _release_save_state || true
                     ;;
                 Q) return 0 ;;
             esac
@@ -2494,7 +2845,27 @@ EOF
         local current=""
         local local_state="Not downloaded"
 
-        latest="$(_latest_online_release)" || return 1
+        local check_rc=0
+        latest="$(_latest_online_release)" || check_rc=$?
+        if (( check_rc != 0 )); then
+            if (( check_rc == 4 )); then
+                printf '\n'
+                _release_labeled_value "GitHub check" "No published release is currently available for $SGND_RELEASE_PRODUCT."
+                return 0
+            fi
+            return 1
+        fi
+        # The selected product owns its version/build identity. GitHub discovery must
+        # therefore be able to find a newer product version than the locally configured
+        # one (for example local 1.1 with a published 1.2 package). Learn both values
+        # from the selected asset after discovery succeeds.
+        local artifact_product=""
+        local published_identity=""
+        artifact_product="$(_release_product_artifact_name "$SGND_RELEASE_PRODUCT")"
+        published_identity="${latest#${artifact_product}-}"
+        [[ "$published_identity" == bundled-* ]] && published_identity="${published_identity#bundled-}"
+        SGND_RELEASE_BUILD="${published_identity##*.}"
+        SGND_RELEASE_LINE="${published_identity%.*}"
         current="$(_current_release 2>/dev/null || true)"
 
         if _archived_release_base_exists "$latest"; then
@@ -2678,6 +3049,8 @@ EOF
         parse_args "$@" || return $?
         _ensure_root
 
+        clear
+
         # Resolve the first state location from the explicit/default target root,
         # then load stored defaults without overriding explicit CLI values.
         init_paths || return $?
@@ -2692,7 +3065,11 @@ EOF
 
         # In interactive mode parameters are questions; in --auto mode state/CLI/defaults win.
         _release_prompt_settings || return $?
+        # Rebase project state paths without discarding the product identity selected by
+        # the package catalog. _set_project_context normally loads persisted identity.
+        local selected_product="${SGND_RELEASE_PRODUCT:-}"
         _set_project_context "${VAL_PROJECT:-solidgroundux}" || return 1
+        [[ -n "$selected_product" ]] && SGND_RELEASE_PRODUCT="$selected_product"
 
         _require_command find || return 1
         _require_command sort || return 1

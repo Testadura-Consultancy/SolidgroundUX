@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624123
-#   Checksum    : c00c7fd9868a9fe15be2f373ff8d2619116d1ee70da98b821fd928028a915179
+#   Build       : 2625813
+#   Checksum    : 9acfc680facac3a17e629770a185e6b0ce4f221127fe7d5d929567ca82df4413
 #   Source      : doc-renderer.sh
 #   Type        : library
 #   Group       : SDK
@@ -344,6 +344,34 @@ set -uo pipefail
             return 0
         }
 
+        # fn: _export_product_manifests - Export discovered product metadata for product-owned appendices
+        _export_product_manifests() {
+            local export_dir="${1:?missing export dir}" index=0 definition="" record=""
+            local product="" version="" build="" company="" copyright="" license="" documentation="" appendices="" project_root=""
+            local file="$export_dir/product_manifests.psv"
+            printf '%s\n' 'product|version|build|company|copyright|license|documentation|appendices|project_root' > "$file"
+            for index in "${!SGND_DOC_DISCOVERED_DEFINITIONS[@]}"; do
+                definition="${SGND_DOC_DISCOVERED_DEFINITIONS[$index]}"
+                project_root="${SGND_DOC_DISCOVERED_ROOTS[$index]:-${definition%%/target-root/*}}"
+                record="$(bash -c '
+                    source "$1"
+                    for var in $(compgen -A variable SGND_); do
+                        case "$var" in
+                            SGND_PRODUCT) p=SGND ;;
+                            *_PRODUCT) p="${var%_PRODUCT}" ;;
+                            *) continue ;;
+                        esac
+                        eval "product=\${${p}_PRODUCT-}"; eval "version=\${${p}_VERSION-}"; eval "build=\${${p}_BUILD-}";
+                        eval "company=\${${p}_COMPANY-}"; eval "copyright=\${${p}_COPYRIGHT-}"; eval "license=\${${p}_LICENSE-}";
+                        eval "documentation=\${${p}_DOCUMENTATION-}"; eval "appendices=\${${p}_APPENDICES-}";
+                        printf "%s|%s|%s|%s|%s|%s|%s|%s\\n" "$product" "$version" "$build" "$company" "$copyright" "$license" "$documentation" "$appendices"; exit
+                    done
+                ' bash "$definition" 2>/dev/null || true)"
+                [[ -n "$record" ]] || continue
+                printf '%s|%s\n' "$record" "$project_root" >> "$file"
+            done
+        }
+
         # fn: _export_render_tables - Export parser tables for the Python renderer
             # . Purpose
             #   Persist normalized documentation tables into a renderer hand-off directory.
@@ -370,6 +398,7 @@ set -uo pipefail
             local export_dir="${1:?missing export dir}"
 
             mkdir -p "$export_dir" || return 1
+            _export_product_manifests "$export_dir" || return 1
 
             sgnd_dt_export_psv \
                 "$MOD_TABLE_SCHEMA" \

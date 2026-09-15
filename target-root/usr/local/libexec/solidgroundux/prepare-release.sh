@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2624123
-#   Checksum    : bb0c8d27e76c067497b4833f0ffca225ec0f3fc07adffadf0432c682a63ef12e
+#   Build       : 2625813
+#   Checksum    : 7dcbb6fd3b773e22f0c8d5abb2a7cfaa47a2d267622fe58d792c87fec2ea16d3
 #   Source      : prepare-release.sh
 #   Type        : script
 #   Group       : SDK
@@ -258,6 +258,9 @@ set -uo pipefail
         FLAG_CREATEWRAPPERS
         FLAG_NORMALIZE_CANON
         PREVIOUS_MANIFEST
+        DEVELOPMENT_ROOT
+        COMPANION_PRODUCT_PATHS
+        FLAG_CREATE_INDIVIDUAL_RELEASES
     )
 
     # SGND_ON_EXIT_HANDLERS
@@ -293,6 +296,13 @@ set -uo pipefail
 # - Local script Declarations -------------------------------------------------------
     # Put script-local constants and defaults here (NOT framework config).
     # Prefer local variables inside functions unless a value must be shared.
+
+    # Selected release products, ordered with the primary product first.
+    RELEASE_PRODUCT_NAMES=()
+    RELEASE_PRODUCT_VERSIONS=()
+    RELEASE_PRODUCT_BUILDS=()
+    RELEASE_PRODUCT_VERSION_MODES=()
+    RELEASE_PRODUCT_BUILD_MODES=()
 
 # - Local script functions ----------------------------------------------------------
     # fn$ _release_resolve_project_identity - Resolve the authoritative project definitions
@@ -330,16 +340,239 @@ set -uo pipefail
         base="$(basename -- "$PROJECT_DEFINITIONS_FILE")"
         slug="${base%-definitions.sh}"
         PROJECT_SLUG="$slug"
-        key="$(printf '%s' "$slug" | sed -E 's/[^A-Za-z0-9]+/_/g' | tr '[:lower:]' '[:upper:]')"
-        PROJECT_DEFINITIONS_KEY="$key"
         source "$PROJECT_DEFINITIONS_FILE"
 
-        product_var="SGND_${key}_PRODUCT"
+        # The filename is a filesystem identity, not the authoritative variable prefix.
+        # Discover the product variable from the definitions content so renamed/slightly
+        # different project slugs do not break version/build updates.
+        product_var="$(sed -n -E 's/^[[:space:]]*(SGND_[A-Za-z0-9_]+_PRODUCT)[[:space:]]*=.*$/\1/p' "$PROJECT_DEFINITIONS_FILE" | head -n 1)"
+        [[ -n "$product_var" ]] || { sayfail "Project product global missing in: $PROJECT_DEFINITIONS_FILE"; return 1; }
+
+        key="${product_var#SGND_}"
+        key="${key%_PRODUCT}"
+        PROJECT_DEFINITIONS_KEY="$key"
         version_var="SGND_${key}_VERSION"
         PRODUCT="${!product_var-}"
         VERSION="${!version_var-}"
-        [[ -n "$PRODUCT" ]] || { sayfail "Project product global missing: $product_var"; return 1; }
+        [[ -n "$PRODUCT" ]] || { sayfail "Project product global is empty: $product_var"; return 1; }
         [[ -n "$VERSION" ]] || { sayfail "Project version global missing: $version_var"; return 1; }
+    }
+
+    # fn$ _release_product_record - Read product metadata from one target-root
+    _release_product_record() {
+        local root="${1:?missing target root}"
+        local globals_dir="${root%/}/usr/local/lib/solidgroundux/globals" file="" record=""
+        [[ -d "$globals_dir" ]] || return 1
+        while IFS= read -r -d '' file; do
+            record="$(bash -c '
+                source "$1"
+                for var in $(compgen -A variable SGND_); do
+                    case "$var" in
+                        SGND_PRODUCT) printf "%s|%s|%s|%s\\n" "${SGND_PRODUCT-}" "${SGND_VERSION-}" "${SGND_BUILD-}" "$1"; exit ;;
+                        *_PRODUCT) prefix="${var%_PRODUCT}"; vv="${prefix}_VERSION"; bv="${prefix}_BUILD"; printf "%s|%s|%s|%s\\n" "${!var-}" "${!vv-}" "${!bv-}" "$1"; exit ;;
+                    esac
+                done
+            ' bash "$file" 2>/dev/null || true)"
+            [[ -n "$record" ]] && { printf '%s\n' "$record"; return 0; }
+        done < <(find "$globals_dir" -maxdepth 1 -type f \( -name 'sgnd-definitions.sh' -o -name '*-definitions.sh' \) -print0 2>/dev/null | sort -z)
+        return 1
+    }
+
+    # fn$ _release_product_excludes - Return newline-separated release excludes for a product root
+    _release_product_excludes() {
+        local root="${1:?missing target root}"
+        local globals_dir="${root%/}/usr/local/lib/solidgroundux/globals" file="" value=""
+        [[ -d "$globals_dir" ]] || return 0
+        while IFS= read -r -d '' file; do
+            value="$(bash -c '
+                source "$1"
+                for var in $(compgen -A variable SGND_); do
+                    case "$var" in *_RELEASE_EXCLUDES|SGND_RELEASE_EXCLUDES) printf "%s\\n" "${!var-}"; exit;; esac
+                done
+            ' bash "$file" 2>/dev/null || true)"
+            [[ -n "$value" ]] || continue
+            tr ',' '\n' <<< "$value"
+            return 0
+        done < <(find "$globals_dir" -maxdepth 1 -type f -name '*-definitions.sh' -print0 2>/dev/null | sort -z)
+    }
+
+    # fn$ _release_parse_product_selection - Parse A/comma/range product selection
+    _release_parse_product_selection() {
+        local spec="${1:-}" max="${2:-0}" token="" begin="" finish="" i=0 idx=0
+        local -n out_ref=$3
+        local -A seen=()
+        out_ref=()
+        spec="${spec//[[:space:]]/}"
+        [[ -n "$spec" ]] || return 1
+        if [[ "${spec^^}" == "A" ]]; then
+            for (( i=1; i<=max; i++ )); do out_ref+=("$i"); done
+            return 0
+        fi
+        IFS=',' read -r -a _tokens <<< "$spec"
+        for token in "${_tokens[@]}"; do
+            if [[ "$token" =~ ^([0-9]+)-([0-9]+)$ ]]; then
+                begin="${BASH_REMATCH[1]}"; finish="${BASH_REMATCH[2]}"
+                (( begin >= 1 && finish >= begin && finish <= max )) || return 1
+                for (( i=begin; i<=finish; i++ )); do
+                    [[ -n "${seen[$i]-}" ]] || { out_ref+=("$i"); seen[$i]=1; }
+                done
+            elif [[ "$token" =~ ^[0-9]+$ ]]; then
+                idx="$token"
+                (( idx >= 1 && idx <= max )) || return 1
+                [[ -n "${seen[$idx]-}" ]] || { out_ref+=("$idx"); seen[$idx]=1; }
+            else
+                return 1
+            fi
+        done
+        (( ${#out_ref[@]} > 0 ))
+    }
+
+    # fn$ _release_select_products - Select the product(s) that participate in this release
+    _release_select_products() {
+        local repo="" root="" record="" product="" version="" build="" defs=""
+        local selection="" primary_choice="1" answer="N" primary_pos=1 i=0 index=0
+        local current_repo="" current_root="${SOURCE_DIR:-$SGND_FRAMEWORK_ROOT}"
+        local -a roots=() products=() versions=() builds=() definitions=() selected_indexes=()
+        local -a selected_roots=() selected_products=() selected_versions=() selected_builds=()
+
+        [[ "$(basename -- "$current_root")" == "target-root" ]] && current_repo="$(dirname -- "$current_root")"
+        DEVELOPMENT_ROOT="${DEVELOPMENT_ROOT:-$(dirname -- "${current_repo:-$current_root}")}"
+
+        # Product discovery starts with the development root. This is the registry root
+        # beneath which releasable product workspaces are discovered.
+        if (( ! ${FLAG_AUTO:-0} )); then
+            sgnd_print
+            sgnd_print_sectionheader "Product discovery" --padend 0
+            ask --label "Development root" --var DEVELOPMENT_ROOT --default "$DEVELOPMENT_ROOT" \
+                --validate sgnd_validate_dir_exists --colorize both --labelclr "${CYAN}" --labelwidth 30
+        fi
+        DEVELOPMENT_ROOT="${DEVELOPMENT_ROOT%/}"
+        [[ -d "$DEVELOPMENT_ROOT" ]] || { sayfail "Development root not found: $DEVELOPMENT_ROOT"; return 1; }
+
+        while IFS= read -r -d '' repo; do
+            root="$repo/target-root"
+            [[ -d "$root" ]] || continue
+            record="$(_release_product_record "$root" 2>/dev/null || true)"
+            [[ -n "$record" ]] || continue
+            IFS='|' read -r product version build defs <<< "$record"
+            roots+=("$root"); products+=("$product"); versions+=("$version"); builds+=("$build"); definitions+=("$defs")
+        done < <(find "$DEVELOPMENT_ROOT" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null | sort -z)
+
+        (( ${#roots[@]} > 0 )) || { sayfail "No releasable products found below: $DEVELOPMENT_ROOT"; return 1; }
+
+        sgnd_print
+        sgnd_print_sectionheader "Release products" --padend 0
+        for i in "${!roots[@]}"; do
+            sgnd_print "$((i+1)) : ${products[$i]}  v${versions[$i]}.${builds[$i]}"
+        done
+        (( ${#roots[@]} > 1 )) && sgnd_print "A : All products"
+        sgnd_print
+
+        while true; do
+            selection="${PRODUCT_SELECTION:-A}"
+            (( ${#roots[@]} == 1 )) && selection="1"
+            ask --label "Products (comma/range or A)" --var selection --default "$selection" --colorize both --labelclr "${CYAN}" --labelwidth 30
+            if _release_parse_product_selection "$selection" "${#roots[@]}" selected_indexes; then
+                break
+            fi
+            saywarning "Invalid product selection: $selection"
+        done
+        PRODUCT_SELECTION="$selection"
+
+        for index in "${selected_indexes[@]}"; do
+            i=$((index-1))
+            selected_roots+=("${roots[$i]}")
+            selected_products+=("${products[$i]}")
+            selected_versions+=("${versions[$i]}")
+            selected_builds+=("${builds[$i]}")
+        done
+
+        # Each selected product can use a different source tree. Discovery supplies the
+        # default, but the operator may point a product at another assembled target-root.
+        sgnd_print
+        sgnd_print_sectionheader "Product source directories" --padend 0
+        for i in "${!selected_roots[@]}"; do
+            root="${selected_roots[$i]}"
+            ask --label "${selected_products[$i]}" --var root --default "$root" --validate sgnd_validate_dir_exists --colorize both --labelclr "${CYAN}" --labelwidth 46
+            selected_roots[$i]="${root%/}"
+            record="$(_release_product_record "${selected_roots[$i]}" 2>/dev/null || true)"
+            [[ -n "$record" ]] || { sayfail "No product definitions found below: ${selected_roots[$i]}"; return 1; }
+            IFS='|' read -r product version build defs <<< "$record"
+            selected_products[$i]="$product"
+            selected_versions[$i]="$version"
+            selected_builds[$i]="$build"
+        done
+
+        # Prefer SolidGroundUX as the primary identity when it is among the selected products.
+        primary_pos=1
+        for i in "${!selected_products[@]}"; do
+            [[ "${selected_products[$i]}" == "SolidGroundUX" ]] && { primary_pos=$((i+1)); break; }
+        done
+
+        if (( ${#selected_roots[@]} > 1 )); then
+            sgnd_print
+            sgnd_print_sectionheader "Primary release product" --padend 0
+            for i in "${!selected_roots[@]}"; do
+                sgnd_print "$((i+1)) : ${selected_products[$i]}  v${selected_versions[$i]}.${selected_builds[$i]}"
+            done
+            primary_choice="$primary_pos"
+            ask --label "Primary product" --var primary_choice --default "$primary_choice" --colorize both --labelclr "${CYAN}" --labelwidth 30
+            [[ "$primary_choice" =~ ^[0-9]+$ ]] && (( primary_choice >= 1 && primary_choice <= ${#selected_roots[@]} )) || {
+                sayfail "Invalid primary product selection: $primary_choice"
+                return 1
+            }
+        else
+            primary_choice=1
+        fi
+
+        # Put the primary product first; the remaining products are bundle overlays.
+        RELEASE_SOURCE_DIRS=("${selected_roots[$((primary_choice-1))]}")
+        RELEASE_PRODUCT_NAMES=("${selected_products[$((primary_choice-1))]}")
+        RELEASE_PRODUCT_VERSIONS=("${selected_versions[$((primary_choice-1))]}")
+        RELEASE_PRODUCT_BUILDS=("${selected_builds[$((primary_choice-1))]}")
+        for i in "${!selected_roots[@]}"; do
+            (( i == primary_choice-1 )) && continue
+            RELEASE_SOURCE_DIRS+=("${selected_roots[$i]}")
+            RELEASE_PRODUCT_NAMES+=("${selected_products[$i]}")
+            RELEASE_PRODUCT_VERSIONS+=("${selected_versions[$i]}")
+            RELEASE_PRODUCT_BUILDS+=("${selected_builds[$i]}")
+        done
+        SOURCE_DIR="${RELEASE_SOURCE_DIRS[0]}"
+        COMPANION_PRODUCT_PATHS=""
+        for root in "${RELEASE_SOURCE_DIRS[@]:1}"; do
+            [[ -n "$COMPANION_PRODUCT_PATHS" ]] && COMPANION_PRODUCT_PATHS+=","
+            COMPANION_PRODUCT_PATHS+="$root"
+        done
+
+        FLAG_CREATE_INDIVIDUAL_RELEASES="${FLAG_CREATE_INDIVIDUAL_RELEASES:-0}"
+        if (( ${#RELEASE_SOURCE_DIRS[@]} > 1 )); then
+            answer="N"
+            (( FLAG_CREATE_INDIVIDUAL_RELEASES )) && answer="Y"
+            ask --label "Also create individual product releases (Y/N)" --var answer --default "$answer" --choices "Y,Yes,N,No" --colorize both --labelclr "${CYAN}" --labelwidth 46
+            case "${answer^^}" in Y|YES) FLAG_CREATE_INDIVIDUAL_RELEASES=1 ;; *) FLAG_CREATE_INDIVIDUAL_RELEASES=0 ;; esac
+        else
+            FLAG_CREATE_INDIVIDUAL_RELEASES=0
+        fi
+
+        _release_resolve_project_identity || return 1
+    }
+
+    # fn$ _release_write_bundle_manifest - Record products included in an assembled release
+    _release_write_bundle_manifest() {
+        local stage="${1:?missing stage}" product_index=0 root="" record="" product="" version="" build="" defs=""
+        (( ${FLAG_DRYRUN:-0} )) && return 0
+        {
+            printf '# SolidGroundUX assembled release products\n'
+            for product_index in "${!RELEASE_SOURCE_DIRS[@]}"; do
+                root="${RELEASE_SOURCE_DIRS[$product_index]}"
+                record="$(_release_product_record "$root" 2>/dev/null || true)"
+                [[ -n "$record" ]] || continue
+                IFS='|' read -r product version build defs <<< "$record"
+                version="${RELEASE_PRODUCT_VERSIONS[$product_index]:-$version}"
+                build="${RELEASE_PRODUCT_BUILDS[$product_index]:-$build}"
+                printf '%s|%s|%s|%s\n' "$product" "$version" "$build" "$defs"
+            done
+        } > "$stage/RELEASE-PRODUCTS"
     }
 
     # fn$ _release_update_project_identity - Update version/build in the correct definitions file
@@ -399,8 +632,8 @@ set -uo pipefail
         # Parameters handled:
         #   RELEASE
         #       Release identifier used for staging and filenames
-        #   SOURCE_DIR
-        #       Source directory to package
+        #   RELEASE_SOURCE_DIRS
+        #       Product-specific source directories selected during product discovery
         #   STAGING_ROOT
         #       Root directory containing staging files and release outputs
         #   TAR_FILE
@@ -412,7 +645,7 @@ set -uo pipefail
         #
         # Outputs (globals):
         #   RELEASE
-        #   SOURCE_DIR
+        #   RELEASE_SOURCE_DIRS
         #   STAGING_ROOT
         #   TAR_FILE
         #   FLAG_AUTO
@@ -474,6 +707,15 @@ set -uo pipefail
         MANIFEST_HISTORY_DIR="${STAGING_ROOT%/}/manifest-history"
         
         if [[ "${FLAG_AUTO:-0}" -eq 1 ]]; then
+             local auto_index=0
+             RELEASE_PRODUCT_VERSION_MODES=()
+             RELEASE_PRODUCT_BUILD_MODES=()
+             for auto_index in "${!RELEASE_PRODUCT_NAMES[@]}"; do
+                 RELEASE_PRODUCT_VERSION_MODES+=("${MODE_UPDATEVERSION^^}")
+                 RELEASE_PRODUCT_BUILD_MODES+=("${MODE_UPDATEBUILD^^}")
+                 RELEASE_PRODUCT_BUILDS[$auto_index]="$BUILD"
+             done
+             VERSION="${RELEASE_PRODUCT_VERSIONS[0]}"
              sayinfo "Auto mode: using last deployment or default settings."
              return 0
         fi
@@ -481,21 +723,35 @@ set -uo pipefail
         local lp=4
         while true; do
             sgnd_print
-            sgnd_print_sectionheader "File locations" --padend 0
-            ask --label "Source directory" --var SOURCE_DIR --default "$SOURCE_DIR" --validate sgnd_validate_dir_exists --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+            sgnd_print_sectionheader "Release locations" --padend 0
             ask --label "Staging directory" --var STAGING_ROOT --default "$STAGING_ROOT" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
 
             sgnd_print
             sgnd_print_sectionheader "Release identification" --padend 0
-            ask --label "Product" --var PRODUCT --default "$PRODUCT" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
-            ask --label "Version" --var VERSION --default "$VERSION" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
-            sgnd_print_labeledvalue --label "Build" --value "$BUILD" --colorize both --lableclr "$(sgnd_sgr "$SILVER" "" "$FX_ITALIC")" --valueclr "$(sgnd_sgr "$SILVER" "" "$FX_ITALIC")" --pad "$lp" --labelwidth "$lw"
+            sgnd_print_labeledvalue --label "Product" --value "$PRODUCT" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+            sgnd_print_labeledvalue --label "Version" --value "$VERSION" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+            sgnd_print_labeledvalue --label "Build" --value "$BUILD" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
 
             sgnd_print
-            RELEASE="${RELEASE:-"$PRODUCT-$VERSION.$BUILD"}"
+            RELEASE="${RELEASE:-"$(_release_product_artifact_name "$PRODUCT")-$VERSION.$BUILD"}"
             ask --label "Release" --var RELEASE --default "$RELEASE" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+            RELEASE="$(printf '%s\n' "$RELEASE" | sed -E 's/[[:space:]]+/-/g')"
             TAR_FILE="${TAR_FILE:-"$RELEASE.tar.gz"}"
             ask --label "Tar file" --var TAR_FILE --default "$TAR_FILE" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+
+            if (( ${#RELEASE_SOURCE_DIRS[@]} > 1 )); then
+                sgnd_print
+                sgnd_print_sectionheader "Bundled products" --padend 0
+                local bundle_root="" bundle_record="" bundle_product="" bundle_version="" bundle_build="" bundle_defs=""
+                for bundle_root in "${RELEASE_SOURCE_DIRS[@]}"; do
+                    bundle_record="$(_release_product_record "$bundle_root" 2>/dev/null || true)"
+                    [[ -n "$bundle_record" ]] || continue
+                    IFS='|' read -r bundle_product bundle_version bundle_build bundle_defs <<< "$bundle_record"
+                    sgnd_print_labeledvalue --label "$bundle_product" --value "v${bundle_version}.${bundle_build}" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth 46
+                done
+                sgnd_print_labeledvalue --label "Individual product releases" --value "$([[ ${FLAG_CREATE_INDIVIDUAL_RELEASES:-0} -eq 1 ]] && printf Yes || printf No)" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth 46
+                sgnd_print_labeledvalue --label "Bundled release" --value "$(_release_product_artifact_name "$PRODUCT")-bundled-$VERSION.$BUILD" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth 46
+            fi
 
             sgnd_print
             sgnd_print_sectionheader "Switches" --padend 0
@@ -544,25 +800,37 @@ set -uo pipefail
                 saveparms="N"
             fi
 
-            ask_decision --label "Update build (A(ll)/C(hanged only)/N(o))" \
-                --choices "A,C,N" \
-                --default "${MODE_UPDATEBUILD^^}" \
-                --var MODE_UPDATEBUILD \
-                --displaychoices 0 \
-                --colorize both \
-                --labelclr "${CYAN}" \
-                --pad "$lp" \
-                --labelwidth "$lw"
-
-            ask_decision --label "Update version (A(ll)/C(hanged only)/N(o))" \
-                --choices "A,C,N" \
-                --default "${MODE_UPDATEVERSION^^}" \
-                --var MODE_UPDATEVERSION \
-                --displaychoices 0 \
-                --colorize both \
-                --labelclr "${CYAN}" \
-                --pad "$lp" \
-                --labelwidth "$lw"
+            sgnd_print
+            sgnd_print_sectionheader "Release metadata" --padend 0
+            local product_index=0 product_version="" product_version_mode="" product_build_mode=""
+            for product_index in "${!RELEASE_PRODUCT_NAMES[@]}"; do
+                sgnd_print_labeledvalue --label "Product" --value "${RELEASE_PRODUCT_NAMES[$product_index]}" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+                product_version="${RELEASE_PRODUCT_VERSIONS[$product_index]}"
+                ask --label "  Version" --var product_version --default "$product_version" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+                RELEASE_PRODUCT_VERSIONS[$product_index]="$product_version"
+                sgnd_print_labeledvalue --label "  Build" --value "$BUILD" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+                RELEASE_PRODUCT_BUILDS[$product_index]="$BUILD"
+                product_version_mode="${RELEASE_PRODUCT_VERSION_MODES[$product_index]:-${MODE_UPDATEVERSION:-C}}"
+                product_build_mode="${RELEASE_PRODUCT_BUILD_MODES[$product_index]:-${MODE_UPDATEBUILD:-C}}"
+                ask_decision --label "  Update version (A/C/N)" \
+                    --choices "A,C,N" --default "${product_version_mode^^}" --var product_version_mode \
+                    --displaychoices 0 --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+                ask_decision --label "  Update build (A/C/N)" \
+                    --choices "A,C,N" --default "${product_build_mode^^}" --var product_build_mode \
+                    --displaychoices 0 --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+                RELEASE_PRODUCT_VERSION_MODES[$product_index]="${product_version_mode^^}"
+                RELEASE_PRODUCT_BUILD_MODES[$product_index]="${product_build_mode^^}"
+                sgnd_print
+            done
+            VERSION="${RELEASE_PRODUCT_VERSIONS[0]}"
+            for product_index in "${!RELEASE_PRODUCT_BUILDS[@]}"; do
+                RELEASE_PRODUCT_BUILDS[$product_index]="$BUILD"
+            done
+            # Release filenames follow the selected primary product's entered Version.
+            RELEASE="$(_release_product_artifact_name "$PRODUCT")-$VERSION.$BUILD"
+            TAR_FILE="$RELEASE.tar.gz"
+            MODE_UPDATEVERSION="${RELEASE_PRODUCT_VERSION_MODES[0]:-${MODE_UPDATEVERSION:-C}}"
+            MODE_UPDATEBUILD="${RELEASE_PRODUCT_BUILD_MODES[0]:-${MODE_UPDATEBUILD:-C}}"
 
             if [[ "$FLAG_CREATEWRAPPERS" -eq 1 ]]; then
                 createwrappers="Y"
@@ -651,7 +919,7 @@ set -uo pipefail
         #   _sgnd_release_list_manifest_history
     _sgnd_release_list_manifest_history() {
         [[ -d "$MANIFEST_HISTORY_DIR" ]] || return 0
-        find "$MANIFEST_HISTORY_DIR" -maxdepth 1 -type f -name "${PRODUCT}-*.manifest" -printf '%f\n' 2>/dev/null \
+        find "$MANIFEST_HISTORY_DIR" -maxdepth 1 -type f -name "$(_release_product_artifact_name "$PRODUCT")-*.manifest" -printf '%f\n' 2>/dev/null \
             | LC_ALL=C sort -V
     }
 
@@ -957,20 +1225,56 @@ set -uo pipefail
                 sayinfo "Would have staged files from $SOURCE_DIR to $stage_path"
             else
                 saydebug "Staging files from $SOURCE_DIR to $stage_path"
-                rsync -a --delete \
-                    --exclude '.*' \
-                    --exclude '*.state' \
-                    --exclude '*.cfg' \
-                    --exclude '*.code-workspace' \
-                    --exclude '/var/log/solidgroundux.log*' \
-                    --exclude '/var/lib/solidgroundux/archive/*' \
-                    --exclude '/var/lib/solidgroundux/releases/*' \
+                local -a primary_excludes=() primary_rsync_args=()
+                local exclude=""
+                while IFS= read -r exclude; do [[ -n "$exclude" ]] && primary_excludes+=("$exclude"); done < <(_release_product_excludes "$SOURCE_DIR")
+                primary_rsync_args=( -a --delete --exclude '.*' --exclude '*.state' --exclude '*.cfg' --exclude '*.code-workspace' --exclude '/var/log/solidgroundux.log*' --exclude '/var/lib/solidgroundux/archive/*' --exclude '/var/lib/solidgroundux/releases/*' )
+                for exclude in "${primary_excludes[@]}"; do primary_rsync_args+=( --exclude "/${exclude#/}" ); done
+                rsync "${primary_rsync_args[@]}" \
                     "${SOURCE_DIR%/}/" "$stage_path/" || {
                         sayfail "rsync failed."
                         return 1
                     }
             fi
         fi
+
+        # --- Overlay selected companion products --------------------------------------
+        if (( ${#RELEASE_SOURCE_DIRS[@]} > 1 )); then
+            local companion="" rel="" existing="" incoming=""
+            for companion in "${RELEASE_SOURCE_DIRS[@]:1}"; do
+                local -a companion_excludes=() companion_rsync_args=()
+                local exclude="" skip=0
+                while IFS= read -r exclude; do [[ -n "$exclude" ]] && companion_excludes+=("$exclude"); done < <(_release_product_excludes "$companion")
+                if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
+                    sayinfo "Would have overlaid companion product from $companion"
+                    continue
+                fi
+                while IFS= read -r -d '' incoming; do
+                    rel="${incoming#${companion%/}/}"
+                    skip=0
+                    for exclude in "${companion_excludes[@]}"; do [[ "$rel" == "${exclude#/}" || "$rel" == "${exclude#/}/"* ]] && { skip=1; break; }; done
+                    (( skip )) && continue
+                    existing="$stage_path/$rel"
+                    if [[ -f "$existing" ]] && ! cmp -s "$existing" "$incoming"; then
+                        local primary_record="" primary_product="" primary_version="" primary_build="" primary_defs=""
+                        local companion_record="" companion_product="" companion_version="" companion_build="" companion_defs=""
+                        primary_record="$(_release_product_record "$SOURCE_DIR" 2>/dev/null || true)"
+                        companion_record="$(_release_product_record "$companion" 2>/dev/null || true)"
+                        IFS='|' read -r primary_product primary_version primary_build primary_defs <<< "$primary_record"
+                        IFS='|' read -r companion_product companion_version companion_build companion_defs <<< "$companion_record"
+                        sayfail "Product ownership conflict"
+                        sgnd_print_labeledvalue --label "Primary product" --value "${primary_product:-$PRODUCT}"
+                        sgnd_print_labeledvalue --label "Companion product" --value "${companion_product:-Unknown}"
+                        sgnd_print_labeledvalue --label "File" --value "$rel"
+                        return 1
+                    fi
+                done < <(find "$companion" -type f -print0 2>/dev/null)
+                companion_rsync_args=( -a --exclude '.*' --exclude '*.state' --exclude '*.cfg' --exclude '*.code-workspace' )
+                for exclude in "${companion_excludes[@]}"; do companion_rsync_args+=( --exclude "/${exclude#/}" ); done
+                rsync "${companion_rsync_args[@]}" "$companion/" "$stage_path/" || return 1
+            done
+        fi
+        _release_write_bundle_manifest "$stage_path" || return 1
 
         # --- Build paths ------------------------------------------------------------
         tar_path_tar="${STAGING_ROOT%/}/${TAR_FILE%.gz}"
@@ -1107,8 +1411,12 @@ set -uo pipefail
     _write_release_package_info() {
         local destination="${1:?missing destination}"
 
+        local package_type="individual"
+        (( ${#RELEASE_SOURCE_DIRS[@]} > 1 )) && package_type="bundle"
+
         {
-            printf 'SGND_PACKAGE_FORMAT=%s\n' "1"
+            printf 'SGND_PACKAGE_FORMAT=%s\n' "2"
+            printf 'SGND_PACKAGE_TYPE=%s\n' "$package_type"
             printf 'SGND_PACKAGE_PROJECT=%s\n' "${PROJECT_SLUG:?project slug not resolved}"
             printf 'SGND_PACKAGE_PRODUCT=%s\n' "${PRODUCT:?product not resolved}"
             printf 'SGND_PACKAGE_VERSION=%s\n' "${VERSION:?version not resolved}"
@@ -1188,6 +1496,20 @@ set -uo pipefail
             return 1
         }
         zip_items+=("release-package.info")
+
+        if (( ${#RELEASE_SOURCE_DIRS[@]} > 1 )); then
+            local bundle_products="${STAGING_ROOT%/}/${RELEASE}/RELEASE-PRODUCTS"
+            [[ -f "$bundle_products" ]] || {
+                rm -rf -- "$package_dir"
+                sayfail "Bundled release is missing RELEASE-PRODUCTS."
+                return 1
+            }
+            cp -f -- "$bundle_products" "$package_dir/RELEASE-PRODUCTS" || {
+                rm -rf -- "$package_dir"
+                return 1
+            }
+            zip_items+=("RELEASE-PRODUCTS")
+        fi
 
         if (( ${PROJECT_IS_FRAMEWORK:-0} )); then
             cp -f -- "$manager" "$package_dir/release-manager.sh" || {
@@ -1361,8 +1683,8 @@ set -uo pipefail
         # . Behavior
         #   - Detects source changes by comparing the stored checksum with the current
         #     managed-body checksum.
-        #   - MODE_UPDATEVERSION: A=all, C=changed, N=none.
-        #   - MODE_UPDATEBUILD:   A=all, C=changed, N=none.
+        #   - MODE_UPDATEVERSION: active product policy; A=all, C=changed, N=none.
+        #   - MODE_UPDATEBUILD:   active product policy; A=all, C=changed, N=none.
         #   - Any file changed by source edits or metadata policy receives a refreshed
         #     checksum after metadata updates are applied.
         #   - Optional major/minor bump flags override explicit Version policy.
@@ -1618,7 +1940,123 @@ set -uo pipefail
         return "$failed"
     }
 
+# - Release artifact identity --------------------------------------------------------
+    # fn$ _release_product_artifact_name - Convert a display product name to its file-safe release identity
+        # . Returns
+        #   Product name with whitespace runs replaced by hyphens.
+        # . Usage
+        #   artifact_product="$(_release_product_artifact_name "$PRODUCT")"
+    _release_product_artifact_name() {
+        local product_name="${1:-}"
+        printf '%s\n' "$product_name" | sed -E 's/[[:space:]]+/-/g'
+    }
+
+# - Individual / bundled release helpers --------------------------------------------
+    # fn$ _release_create_primary_individual_release - Create the primary product as a standalone release
+    _release_create_primary_individual_release() {
+        (( ${FLAG_CREATE_INDIVIDUAL_RELEASES:-0} )) || return 0
+        (( ${#RELEASE_SOURCE_DIRS[@]} > 1 )) || return 0
+
+        local saved_release="$RELEASE" saved_tar="$TAR_FILE"
+        local -a saved_sources=("${RELEASE_SOURCE_DIRS[@]}")
+
+        # The primary product has already had its release identity resolved and metadata
+        # prepared by the normal main workflow. Package that product by itself before
+        # assembling the multi-product bundle.
+        RELEASE_SOURCE_DIRS=("$SOURCE_DIR")
+
+        sgnd_print
+        sgnd_print_sectionheader "Individual product release" --padend 0
+        sgnd_print_labeledvalue --label "Product" --value "$PRODUCT"
+        sgnd_print_labeledvalue --label "Version" --value "$VERSION"
+        sgnd_print_labeledvalue --label "Build" --value "$BUILD"
+
+        _create_tar || return 1
+        _create_release_package || return 1
+        _archive_release_manifest || return 1
+        _cleanup_staging
+
+        RELEASE_SOURCE_DIRS=("${saved_sources[@]}")
+        RELEASE="$saved_release"
+        TAR_FILE="$saved_tar"
+        return 0
+    }
+
+    # fn$ _release_use_bundled_identity - Name the assembled release after the primary product
+    _release_use_bundled_identity() {
+        (( ${#RELEASE_SOURCE_DIRS[@]} > 1 )) || return 0
+
+        # The bundle always inherits the primary product version/build; it is never
+        # prompted for a separate identity. RELEASE-PRODUCTS records every included product.
+        RELEASE="$(_release_product_artifact_name "$PRODUCT")-bundled-$VERSION.$BUILD"
+        TAR_FILE="$RELEASE.tar.gz"
+
+        sgnd_print
+        sgnd_print_sectionheader "Bundled release" --padend 0
+        sgnd_print_labeledvalue --label "Release" --value "$RELEASE"
+        sgnd_print_labeledvalue --label "Products" --value "${#RELEASE_SOURCE_DIRS[@]}"
+    }
+
 # - Main Sequence -------------------------------------------------------------------
+    # fn$ _release_create_standalone_bundled_products - Optionally create standalone releases for non-primary selected products
+    _release_create_standalone_bundled_products() {
+        (( ${#RELEASE_SOURCE_DIRS[@]} > 1 )) || return 0
+
+        local saved_source="$SOURCE_DIR" saved_product="$PRODUCT" saved_version="$VERSION" saved_build="$BUILD"
+        local saved_release="$RELEASE" saved_tar="$TAR_FILE" saved_previous="${PREVIOUS_MANIFEST:-}"
+        local saved_project_file="${PROJECT_DEFINITIONS_FILE:-}" saved_project_key="${PROJECT_DEFINITIONS_KEY:-}"
+        local saved_project_slug="${PROJECT_SLUG:-}" saved_project_is_framework="${PROJECT_IS_FRAMEWORK:-0}"
+        local root="" record="" product="" version="" build="" defs="" product_index=0
+        local saved_version_mode="${MODE_UPDATEVERSION:-C}" saved_build_mode="${MODE_UPDATEBUILD:-C}"
+        local -a saved_sources=("${RELEASE_SOURCE_DIRS[@]}")
+
+        for product_index in "${!saved_sources[@]}"; do
+            (( product_index == 0 )) && continue
+            root="${saved_sources[$product_index]}"
+            SOURCE_DIR="$root"
+            _release_resolve_project_identity || return 1
+            VERSION="${RELEASE_PRODUCT_VERSIONS[$product_index]:-$VERSION}"
+            MODE_UPDATEVERSION="${RELEASE_PRODUCT_VERSION_MODES[$product_index]:-${MODE_UPDATEVERSION:-C}}"
+            MODE_UPDATEBUILD="${RELEASE_PRODUCT_BUILD_MODES[$product_index]:-${MODE_UPDATEBUILD:-C}}"
+            BUILD="$(date +%y%j%H)"
+            RELEASE_PRODUCT_BUILDS[$product_index]="$BUILD"
+            RELEASE="$(_release_product_artifact_name "$PRODUCT")-$VERSION.$BUILD"
+            TAR_FILE="$RELEASE.tar.gz"
+            RELEASE_SOURCE_DIRS=("$SOURCE_DIR")
+            PREVIOUS_MANIFEST=""
+
+            sgnd_print
+            if (( ${FLAG_CREATE_INDIVIDUAL_RELEASES:-0} )); then
+                sgnd_print_sectionheader "Standalone product release" --padend 0
+            else
+                sgnd_print_sectionheader "Bundled product metadata" --padend 0
+            fi
+            sgnd_print_labeledvalue --label "Product" --value "$PRODUCT"
+            sgnd_print_labeledvalue --label "Version" --value "$VERSION"
+            sgnd_print_labeledvalue --label "Build" --value "$BUILD"
+
+            _normalize_canonical_sources || return 1
+            _apply_version_bump || return 1
+            _ensure_libexec_executables || return 1
+            _ensure_public_command_wrappers || return 1
+            if (( ${FLAG_CREATE_INDIVIDUAL_RELEASES:-0} )); then
+                _sgnd_release_select_previous_manifest || return 1
+                _create_tar || return 1
+                _create_release_package || return 1
+                _archive_release_manifest || return 1
+                _cleanup_staging
+            fi
+        done
+
+        SOURCE_DIR="$saved_source" PRODUCT="$saved_product" VERSION="$saved_version" BUILD="$saved_build"
+        RELEASE="$saved_release" TAR_FILE="$saved_tar" PREVIOUS_MANIFEST="$saved_previous"
+        PROJECT_DEFINITIONS_FILE="$saved_project_file" PROJECT_DEFINITIONS_KEY="$saved_project_key"
+        PROJECT_SLUG="$saved_project_slug" PROJECT_IS_FRAMEWORK="$saved_project_is_framework"
+        MODE_UPDATEVERSION="$saved_version_mode" MODE_UPDATEBUILD="$saved_build_mode"
+        RELEASE_SOURCE_DIRS=("${saved_sources[@]}")
+        return 0
+    }
+
     # fn: main - Run the executable main sequence - Run the executable main sequence
         # . Purpose
         #   Execute the release preparation workflow.
@@ -1627,7 +2065,8 @@ set -uo pipefail
         #   - Loads and initializes the framework bootstrap.
         #   - Executes builtin framework argument handling.
         #   - Prepares the standard UI state and title bar.
-        #   - Resolves release parameters.
+        #   - Resolves the development root and selects release products first.
+        #   - Resolves release parameters for the selected product set.
         #   - Creates the release archive and related metadata.
         #
         # . Arguments
@@ -1652,12 +2091,18 @@ set -uo pipefail
         sgnd_state_load_keys --array SGND_STATE_VARIABLES || exit $?
         SOURCE_DIR="${SOURCE_DIR:-"$SGND_FRAMEWORK_ROOT"}"
 
-        _release_resolve_project_identity || {
-            sayfail "Could not resolve project identity; release was not created."
+        _release_select_products || {
+            sayfail "Could not resolve release product selection; release was not created."
             exit 1
         }
 
         _get_parameters || exit $?
+
+        # Product selection resolves the definitions; interactive Version remains authoritative
+        # for the selected primary product. Build is the common YYDDDHH release build.
+        _release_resolve_project_identity || exit $?
+        VERSION="${RELEASE_PRODUCT_VERSIONS[0]:-$VERSION}"
+        RELEASE_PRODUCT_BUILDS[0]="$BUILD"
 
         _normalize_canonical_sources || {
             sayfail "Canonical normalization failed; release was not created."
@@ -1678,6 +2123,18 @@ set -uo pipefail
             sayfail "Wrapper verification failed; release was not created."
             exit 1
         }
+
+        _release_create_primary_individual_release || {
+            sayfail "Primary individual product release failed."
+            exit 1
+        }
+
+        _release_create_standalone_bundled_products || {
+            sayfail "One or more individual product releases failed."
+            exit 1
+        }
+
+        _release_use_bundled_identity || exit $?
 
         _create_tar || {
             sayfail "Release archive creation failed."
