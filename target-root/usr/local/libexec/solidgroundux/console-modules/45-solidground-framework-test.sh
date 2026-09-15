@@ -5,7 +5,7 @@
 #   Version     : 2.1
 #   Source      : 45-solidground-framework-test.sh
 #   Type        : module
-#   Group       : Management Console Modules
+#   Group       : Module Registration
 #   Purpose     : Register SolidGroundUX framework test and validation actions
 #
 # Description:

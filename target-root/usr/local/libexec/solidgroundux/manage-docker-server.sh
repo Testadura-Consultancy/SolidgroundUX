@@ -7,7 +7,7 @@
 #   Build       : 2625802
 #   Source      : manage-docker-server.sh
 #   Type        : script
-#   Group       : Management Console Modules
+#   Group       : Console Actions
 #   Purpose     : Install, configure, validate, and inspect a Docker host
 #
 # Description:

@@ -7,7 +7,7 @@
 #   Build       : 2625721
 #   Source      : manage-storage.sh
 #   Type        : script
-#   Group       : Management Console Modules
+#   Group       : Console Actions
 #   Purpose     : Configure, reconcile, validate, and inspect local storage volumes
 #
 # Description:

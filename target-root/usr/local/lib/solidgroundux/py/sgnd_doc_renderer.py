@@ -511,6 +511,15 @@ class DocRenderer:
     # Hierarchy construction
     # ----------------------------------------------------------------------
 
+    # fn: product_has_appendices - Determine whether generated appendices belong to a product
+    # . Purpose
+    #   Generated framework appendices are SolidGroundUX product documentation and must not
+    #   be synthesized for companion products in the same collection.
+    # . Usage
+    #   self.product_has_appendices(product_name)
+    def product_has_appendices(self, product_name: str) -> bool:
+        return normalize_key(product_name) == normalize_key("SolidGroundUX")
+
     # fn: build_doc_hierarchy - Build doc hierarchy
     # . Purpose
     #   Build doc hierarchy for the documentation rendering workflow.
@@ -729,37 +738,38 @@ class DocRenderer:
                         nodetype="epilogue",
                     )
 
-            sequence_index += 1
-            appendices_docindex = f"{product_docindex}.{sequence_index}"
-            appendices_node_id = f"appendices:{product_name}"
+            if self.product_has_appendices(product_name):
+                sequence_index += 1
+                appendices_docindex = f"{product_docindex}.{sequence_index}"
+                appendices_node_id = f"appendices:{product_name}"
 
-            self.nav.append(
-                NavNode(
-                    nodeid=appendices_node_id,
-                    parentnodeid=product_node_id,
-                    nodetype="appendices",
-                    node_name="Appendices",
-                    node_title="Appendices",
-                    hierarchy_level=1,
-                    docindex=appendices_docindex,
-                    contentref="",
-                )
-            )
-
-            for appendix_index, appendix in enumerate(APPENDIX_SPECS, start=1):
-                appendix_label = f"Appendix {appendix.letter}: {appendix.title}"
                 self.nav.append(
                     NavNode(
-                        nodeid=f"appendix:{product_name}:{appendix.key}",
-                        parentnodeid=appendices_node_id,
-                        nodetype="appendix",
-                        node_name=appendix_label,
-                        node_title=appendix_label,
-                        hierarchy_level=2,
-                        docindex=f"{appendices_docindex}.{appendix_index}",
-                        contentref=appendix.ref_factory(product_name),
+                        nodeid=appendices_node_id,
+                        parentnodeid=product_node_id,
+                        nodetype="appendices",
+                        node_name="Appendices",
+                        node_title="Appendices",
+                        hierarchy_level=1,
+                        docindex=appendices_docindex,
+                        contentref="",
                     )
                 )
+
+                for appendix_index, appendix in enumerate(APPENDIX_SPECS, start=1):
+                    appendix_label = f"Appendix {appendix.letter}: {appendix.title}"
+                    self.nav.append(
+                        NavNode(
+                            nodeid=f"appendix:{product_name}:{appendix.key}",
+                            parentnodeid=appendices_node_id,
+                            nodetype="appendix",
+                            node_name=appendix_label,
+                            node_title=appendix_label,
+                            hierarchy_level=2,
+                            docindex=f"{appendices_docindex}.{appendix_index}",
+                            contentref=appendix.ref_factory(product_name),
+                        )
+                    )
 
     # fn: modules_by_product - Modules by product
     # . Purpose
@@ -1867,16 +1877,37 @@ body {
     border-top: 0;
 }
 
+:root {
+    --doc-nav-width: 340px;
+}
+
 .doc-shell {
     display: grid;
-    grid-template-columns: """ + self.config.get("VAL_NAV_WIDTH", "320px") + """ 1fr;
+    grid-template-columns: var(--doc-nav-width, """ + self.config.get("VAL_NAV_WIDTH", "340px") + """) 7px minmax(0, 1fr);
     height: 100vh;
 }
 
 .doc-nav {
-    border-right: 1px solid var(--doc-border);
     overflow: auto;
     padding: 32px 20px 18px;
+}
+
+.doc-nav-resizer {
+    position: relative;
+    cursor: col-resize;
+    background: var(--doc-border);
+    touch-action: none;
+}
+
+.doc-nav-resizer::after {
+    content: "";
+    position: absolute;
+    inset: 0 -3px;
+}
+
+.doc-nav-resizer:hover,
+.doc-nav-resizer.is-resizing {
+    filter: brightness(0.8);
 }
 
 .doc-nav-title {
@@ -2223,7 +2254,8 @@ body {
 
 @media (max-width: 900px) {
     .doc-shell {
-        grid-template-columns: 270px 1fr;
+        --doc-nav-width: 270px;
+        grid-template-columns: var(--doc-nav-width) 5px minmax(0, 1fr);
     }
 
     .doc-page {
@@ -2248,6 +2280,10 @@ body {
 }
 
 @media (max-width: 640px) {
+    .doc-shell {
+        --doc-nav-width: 240px;
+    }
+
     .doc-summary-tiles,
     .doc-image-group.images-2,
     .doc-image-group.images-3,
@@ -2722,8 +2758,54 @@ body {
             '  <div class="doc-nav-title">Index</div>',
             self.render_navigation(),
             "</nav>",
+            '<div class="doc-nav-resizer" role="separator" aria-orientation="vertical" aria-label="Resize index column" tabindex="0"></div>',
             f'<iframe class="doc-content-frame" name="docframe" src="{esc(first_page)}"></iframe>',
             "</div>",
+            "<script>",
+            "(() => {",
+            "  const shell = document.querySelector('.doc-shell');",
+            "  const resizer = document.querySelector('.doc-nav-resizer');",
+            "  if (!shell || !resizer) return;",
+            "  const storageKey = 'solidgroundux.codex.navWidth';",
+            "  const clamp = (value) => Math.max(240, Math.min(value, Math.min(720, window.innerWidth * 0.6)));",
+            "  const applyWidth = (value, persist = false) => {",
+            "    const width = clamp(Number(value) || 340);",
+            "    shell.style.setProperty('--doc-nav-width', `${width}px`);",
+            "    if (persist) localStorage.setItem(storageKey, String(Math.round(width)));",
+            "  };",
+            "  const saved = localStorage.getItem(storageKey);",
+            "  if (saved) applyWidth(saved);",
+            "  let resizing = false;",
+            "  const stop = () => {",
+            "    if (!resizing) return;",
+            "    resizing = false;",
+            "    resizer.classList.remove('is-resizing');",
+            "    const width = parseFloat(getComputedStyle(shell).getPropertyValue('--doc-nav-width'));",
+            "    if (Number.isFinite(width)) localStorage.setItem(storageKey, String(Math.round(width)));",
+            "  };",
+            "  resizer.addEventListener('pointerdown', (event) => {",
+            "    resizing = true;",
+            "    resizer.classList.add('is-resizing');",
+            "    resizer.setPointerCapture(event.pointerId);",
+            "    event.preventDefault();",
+            "  });",
+            "  resizer.addEventListener('pointermove', (event) => {",
+            "    if (resizing) applyWidth(event.clientX);",
+            "  });",
+            "  resizer.addEventListener('pointerup', stop);",
+            "  resizer.addEventListener('pointercancel', stop);",
+            "  resizer.addEventListener('keydown', (event) => {",
+            "    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;",
+            "    const current = parseFloat(getComputedStyle(shell).getPropertyValue('--doc-nav-width')) || 340;",
+            "    applyWidth(current + (event.key === 'ArrowRight' ? 20 : -20), true);",
+            "    event.preventDefault();",
+            "  });",
+            "  window.addEventListener('resize', () => {",
+            "    const current = parseFloat(getComputedStyle(shell).getPropertyValue('--doc-nav-width')) || 340;",
+            "    applyWidth(current);",
+            "  });",
+            "})();",
+            "</script>",
             "</body>",
             "</html>",
         ]
@@ -2856,6 +2938,8 @@ body {
         self.render_title_page()
 
         for product_name in sorted(self.modules_by_product().keys(), key=str.casefold):
+            if not self.product_has_appendices(product_name):
+                continue
             for appendix in APPENDIX_SPECS:
                 renderer = getattr(self, appendix.renderer_name)
                 renderer(product_name)

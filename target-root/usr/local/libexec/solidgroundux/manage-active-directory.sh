@@ -7,7 +7,7 @@
 #   Build       : 2625721
 #   Source      : manage-active-directory.sh
 #   Type        : script
-#   Group       : Management Console Modules
+#   Group       : Console Actions
 #   Purpose     : Manage Samba Active Directory users, groups, memberships, and computers
 #
 # Description:

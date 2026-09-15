@@ -7,7 +7,7 @@
 #   Build       : 2625721
 #   Source      : manage-active-directory-client.sh
 #   Type        : script
-#   Group       : Management Console Modules
+#   Group       : Console Actions
 #   Purpose     : Join, reconcile, validate, and inspect an Active Directory client
 #
 # Description:

@@ -448,9 +448,10 @@ set -uo pipefail
 
     # fn: _doc_prompt_products - Prompt for one, several, or all discovered products
     _doc_prompt_products() {
-        local reply="" token="" index=0
-        local -A seen=()
-        local -a selected=() tokens=()
+        local product="" version="" label="" reply="A" token="" range_start="" range_end=""
+        local index=0 number=0
+        local -a selected_indexes=() selected_products=()
+        local -A seen_indexes=()
 
         _doc_discover_products
         (( ${#SGND_DOC_DISCOVERED_PRODUCTS[@]} > 0 )) || { VAL_DOCUMENT_PRODUCTS="ALL"; return 0; }
@@ -462,33 +463,72 @@ set -uo pipefail
         fi
 
         sgnd_print
-        sgnd_print_sectionheader "Products" --padend 0
+        sgnd_print_sectionheader "Select documentation products" --padend 0
         for index in "${!SGND_DOC_DISCOVERED_PRODUCTS[@]}"; do
-            sgnd_print "    $((index + 1))) ${SGND_DOC_DISCOVERED_PRODUCTS[$index]}  ${SGND_DOC_DISCOVERED_VERSIONS[$index]:+v${SGND_DOC_DISCOVERED_VERSIONS[$index]}}"
+            product="${SGND_DOC_DISCOVERED_PRODUCTS[$index]}"
+            version="${SGND_DOC_DISCOVERED_VERSIONS[$index]:-}"
+            label="$product"
+            [[ -n "$version" ]] && label+="  v$version"
+            sgnd_print_labeledvalue --label "$((index + 1))" --value "$label" --labelwidth 3
         done
-        sgnd_print "    A) All products"
-        sgnd_print
+        sgnd_print_labeledvalue --label "A" --value "All products" --labelwidth 3
 
-        ask --label "Products (numbers comma-separated or A)" --var reply --default "A" --back || return 1
-        if [[ "${reply^^}" == "A" || "${reply^^}" == "ALL" ]]; then
-            VAL_DOCUMENT_PRODUCTS="ALL"
-            SGND_DOC_SELECTED_PRODUCTS=("${SGND_DOC_DISCOVERED_PRODUCTS[@]}")
+        while true; do
+            reply="${VAL_DOCUMENT_PRODUCTS:-A}"
+            [[ "${reply^^}" == "ALL" ]] && reply="A"
+            ask --label "Products (comma/range or A)" \
+                --var reply \
+                --default "$reply" \
+                --colorize both \
+                --labelclr "${CYAN}" \
+                --pad 4 \
+                --labelwidth 25
+
+            if [[ "${reply^^}" == "A" ]]; then
+                VAL_DOCUMENT_PRODUCTS="ALL"
+                SGND_DOC_SELECTED_PRODUCTS=("${SGND_DOC_DISCOVERED_PRODUCTS[@]}")
+                return 0
+            fi
+
+            selected_indexes=()
+            selected_products=()
+            seen_indexes=()
+            local parse_ok=1
+            IFS=',' read -r -a tokens <<< "$reply"
+            for token in "${tokens[@]}"; do
+                token="${token//[[:space:]]/}"
+                [[ -n "$token" ]] || continue
+                if [[ "$token" =~ ^([0-9]+)-([0-9]+)$ ]]; then
+                    range_start="${BASH_REMATCH[1]}"
+                    range_end="${BASH_REMATCH[2]}"
+                    (( range_start <= range_end )) || { parse_ok=0; break; }
+                    for (( number=range_start; number<=range_end; number++ )); do
+                        (( number >= 1 && number <= ${#SGND_DOC_DISCOVERED_PRODUCTS[@]} )) || { parse_ok=0; break 2; }
+                        seen_indexes[$((number - 1))]=1
+                    done
+                elif [[ "$token" =~ ^[0-9]+$ ]]; then
+                    number="$token"
+                    (( number >= 1 && number <= ${#SGND_DOC_DISCOVERED_PRODUCTS[@]} )) || { parse_ok=0; break; }
+                    seen_indexes[$((number - 1))]=1
+                else
+                    parse_ok=0
+                    break
+                fi
+            done
+
+            if (( parse_ok == 0 || ${#seen_indexes[@]} == 0 )); then
+                saywarning "Choose A, a product number, or comma/range selections such as 1,3-4."
+                continue
+            fi
+
+            for index in "${!SGND_DOC_DISCOVERED_PRODUCTS[@]}"; do
+                [[ -n "${seen_indexes[$index]-}" ]] || continue
+                selected_products+=("${SGND_DOC_DISCOVERED_PRODUCTS[$index]}")
+            done
+            SGND_DOC_SELECTED_PRODUCTS=("${selected_products[@]}")
+            VAL_DOCUMENT_PRODUCTS="$(IFS=','; printf '%s' "${selected_products[*]}")"
             return 0
-        fi
-
-        IFS=',' read -r -a tokens <<< "$reply"
-        for token in "${tokens[@]}"; do
-            token="${token//[[:space:]]/}"
-            [[ "$token" =~ ^[0-9]+$ ]] || { saywarning "Invalid product selection: $token"; return 1; }
-            (( token >= 1 && token <= ${#SGND_DOC_DISCOVERED_PRODUCTS[@]} )) || { saywarning "Product selection out of range: $token"; return 1; }
-            index=$((token - 1))
-            [[ -n "${seen[$index]-}" ]] && continue
-            seen[$index]=1
-            selected+=("${SGND_DOC_DISCOVERED_PRODUCTS[$index]}")
         done
-        (( ${#selected[@]} > 0 )) || return 1
-        SGND_DOC_SELECTED_PRODUCTS=("${selected[@]}")
-        VAL_DOCUMENT_PRODUCTS="$(IFS=','; printf '%s' "${selected[*]}")"
     }
 
     _doc_product_is_selected() {
@@ -738,15 +778,32 @@ set -uo pipefail
 
                 sgnd_print
                 sgnd_print_sectionheader "Documentation collection" --padend 0
-                local collection_reply=""
-                [[ "$VAL_COLLECTION_MODE" == "create" ]] && collection_reply="1" || collection_reply="2"
-                ask --label "Collection: 1 Create new, 2 Update existing" --var collection_reply --default "$collection_reply" --pad "$lp" --labelwidth "$lw"
-                case "$collection_reply" in
-                    1) VAL_COLLECTION_MODE="create" ;;
-                    2) VAL_COLLECTION_MODE="update" ;;
-                    *) saywarning "Choose collection action 1 or 2"; continue ;;
-                esac
-                ask --label "Collection name" --var VAL_COLLECTION_NAME --default "$VAL_COLLECTION_NAME" --pad "$lp" --labelwidth "$lw"
+                local collection_action="1"
+                sgnd_print_sectionheader "Collection action" --padend 0
+                sgnd_print_labeledvalue --label "1" --value "Update existing collection" --labelwidth 3
+                sgnd_print_labeledvalue --label "2" --value "Create new collection" --labelwidth 3
+                [[ "$VAL_COLLECTION_MODE" == "create" ]] && collection_action="2"
+                while true; do
+                    ask --label "Collection action" \
+                        --var collection_action \
+                        --default "$collection_action" \
+                        --colorize both \
+                        --labelclr "${CYAN}" \
+                        --pad "$lp" \
+                        --labelwidth "$lw"
+                    case "$collection_action" in
+                        1) VAL_COLLECTION_MODE="update"; break ;;
+                        2) VAL_COLLECTION_MODE="create"; break ;;
+                        *) saywarning "Choose collection action 1 or 2." ;;
+                    esac
+                done
+                ask --label "Collection name" \
+                    --var VAL_COLLECTION_NAME \
+                    --default "$VAL_COLLECTION_NAME" \
+                    --colorize both \
+                    --labelclr "${CYAN}" \
+                    --pad "$lp" \
+                    --labelwidth "$lw"
             fi
 
             ask --label "Output directory" \

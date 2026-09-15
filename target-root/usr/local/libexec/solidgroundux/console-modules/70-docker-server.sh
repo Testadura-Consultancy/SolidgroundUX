@@ -6,7 +6,7 @@
 #   Build       : 2625802
 #   Source      : 70-docker-server.sh
 #   Type        : module
-#   Group       : Management Console Modules
+#   Group       : Module Registration
 #   Purpose     : Install, configure, manage, validate, and inspect a Docker host and its containers
 #
 # Description:

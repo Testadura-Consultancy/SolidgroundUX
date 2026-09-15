@@ -7,7 +7,7 @@
 #   Build       : 2625721
 #   Source      : manage-active-directory-server.sh
 #   Type        : script
-#   Group       : Management Console Modules
+#   Group       : Console Actions
 #   Purpose     : Provision, validate, and inspect a Samba Active Directory domain controller
 #
 # Description:

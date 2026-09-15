@@ -1,0 +1,1092 @@
+modulename|section|parentsection|typecode|type|itemvisibility|itemrole|name|title
+release-manager.sh|Standalone UI||fn|function|internal|normal|_release_framework_root_for_target|Resolve the framework root for the selected target
+release-manager.sh|Standalone UI||fn|function|internal|normal|_release_try_framework_ui|Prefer the installed SolidGroundUX UI when healthy
+release-manager.sh|Standalone UI||fn|function|internal|normal|_release_print|Print a line through the active UI implementation
+release-manager.sh|Standalone UI||fn|function|internal|normal|_release_section_header|Render a section header through the active UI
+release-manager.sh|Standalone UI||fn|function|internal|normal|_release_ask|Ask for a scalar value using framework ask() or the fallback UI
+release-manager.sh|Standalone UI||fn|function|internal|normal|_release_ask_yesno|Ask a yes/no question with a default
+release-manager.sh|Standalone UI||fn|function|internal|normal|_release_terminal_width|Return the usable terminal width
+release-manager.sh|Standalone UI||fn|function|internal|normal|_release_clear|Clear the active terminal reliably
+release-manager.sh|Standalone UI||fn|function|internal|normal|_release_line|Print a repeated border character
+release-manager.sh|Standalone UI||fn|function|internal|normal|_release_metadata_field|Read a field from this script's Metadata header
+release-manager.sh|Standalone UI||fn|function|internal|normal|_release_title|Render the standalone release-manager title
+release-manager.sh|Standalone UI||fn|function|internal|normal|_release_labeled_value|Print one aligned label/value pair
+release-manager.sh|Standalone UI||fn|function|internal|normal|_release_info|Write verbose informational output
+release-manager.sh|Standalone UI||fn|function|internal|normal|_release_ok|Write a successful-operation message
+release-manager.sh|Standalone UI||fn|function|internal|normal|_release_warn|Write a warning message
+release-manager.sh|Standalone UI||fn|function|internal|normal|_release_fail|Write a failure message
+release-manager.sh|Standalone UI||fn|function|internal|normal|_release_run|Execute a command or report it in dry-run mode
+release-manager.sh|Arguments and paths||fn|function|internal|normal|_ensure_root|Re-execute release-manager with elevated privileges when required
+release-manager.sh|Arguments and paths||fn|function|public|normal|print_usage|Display standalone release-manager command-line help
+release-manager.sh|Arguments and paths||fn|function|internal|normal|_set_action|Set and validate the requested release-manager action
+release-manager.sh|Arguments and paths||fn|function|public|normal|parse_args|Parse release-manager command-line arguments
+release-manager.sh|Arguments and paths||fn|function|internal|normal|_normalize_root|Normalize an absolute filesystem root
+release-manager.sh|Arguments and paths||fn|function|public|normal|init_paths|Resolve target, state, release, and archive directories
+release-manager.sh|Arguments and paths||fn|function|internal|normal|_release_default_target_root|Derive target root only from canonical manager location
+release-manager.sh|Arguments and paths||fn|function|internal|normal|_release_load_state|Load standalone parameter defaults
+release-manager.sh|Arguments and paths||fn|function|internal|normal|_release_save_state|Persist accepted parameter values
+release-manager.sh|Arguments and paths||fn|function|internal|normal|_release_prompt_settings|Resolve stateful interactive defaults
+release-manager.sh|Arguments and paths||fn|function|internal|normal|_package_info_value|Read one key from release-package.info safely
+release-manager.sh|Arguments and paths||fn|function|internal|normal|_project_slug_safe|Validate a project slug used beneath the manager state root
+release-manager.sh|Arguments and paths||fn|function|internal|normal|_load_project_info|Load persisted display identity for one project
+release-manager.sh|Arguments and paths||fn|function|internal|normal|_set_project_context|Select release/archive state for one project
+release-manager.sh|Arguments and paths||fn|function|internal|normal|_persist_project_info|Persist display identity for an admitted project package
+release-manager.sh|Arguments and paths||fn|function|internal|normal|_list_known_projects|List locally known project slugs
+release-manager.sh|Arguments and paths||fn|function|internal|normal|_select_project_interactive|Select a locally known project
+release-manager.sh|Arguments and paths||fn|function|internal|normal|_require_command|Verify that a required system command is available
+release-manager.sh|Standalone configuration||fn|function|internal|normal|_load_release_manager_config|Load persistent standalone release-manager settings
+release-manager.sh|Standalone configuration||fn|function|internal|normal|_ensure_release_manager_config|Create the persistent standalone config when absent
+release-manager.sh|Bootstrap housekeeping||fn|function|internal|normal|_ensure_manager_directories|Ensure standalone release-manager directories exist
+release-manager.sh|Bootstrap housekeeping||fn|function|internal|normal|_install_release_manager_wrapper|Install the public sgnd-release-manager command
+release-manager.sh|Bootstrap housekeeping||fn|function|internal|normal|_install_release_manager|Install the standalone manager at its canonical path
+release-manager.sh|Bootstrap housekeeping||fn|function|internal|normal|_detect_bootstrap_release|Detect one complete release set beside the running script
+release-manager.sh|Bootstrap housekeeping||fn|function|internal|normal|_admit_bootstrap_release|Validate and move an adjacent bootstrap release into releases/
+release-manager.sh|Bootstrap housekeeping||fn|function|internal|normal|_cleanup_bootstrap_files|Remove known temporary bootstrap files after first install
+release-manager.sh|Bootstrap housekeeping||fn|function|internal|normal|_bootstrap_first_install|Bootstrap and install an adjacent release on a clean machine
+release-manager.sh|Release identity and discovery||fn|function|internal|normal|_release_base_from_archive|Derive a release base name from a tar.gz archive path
+release-manager.sh|Release identity and discovery||fn|function|internal|normal|_release_matches|Test whether a release base matches an optional selector
+release-manager.sh|Release identity and discovery||fn|function|internal|normal|_release_sort|Sort release identifiers by version
+release-manager.sh|Release identity and discovery||fn|function|internal|normal|_current_release|Return the highest archived release as the current version
+release-manager.sh|Release identity and discovery||fn|function|internal|normal|_previous_release|Return the archived release immediately preceding current
+release-manager.sh|Release identity and discovery||fn|function|internal|normal|_list_archived_releases|List archived releases in ascending version order
+release-manager.sh|Release identity and discovery||fn|function|internal|normal|_find_pending_archives|List pending release tarballs under the releases directory
+release-manager.sh|Release identity and discovery||fn|function|internal|normal|_newest_pending_archive|Find the newest pending archive matching an optional release selector
+release-manager.sh|Release identity and discovery||fn|function|internal|normal|_find_archived_archive|Find the tarball belonging to an archived release
+release-manager.sh|Release identity and discovery||fn|function|internal|normal|_release_location|Resolve a release tarball from pending or archived storage
+release-manager.sh|Release identity and discovery||fn|function|internal|normal|_pending_release_base_exists|Test whether a release is available in releases/
+release-manager.sh|Release identity and discovery||fn|function|internal|normal|_archived_release_base_exists|Test whether a release is present in archive/
+release-manager.sh|Release verification||fn|function|internal|normal|_verify_sha256_sidecar|Verify one release artifact against its SHA256 sidecar
+release-manager.sh|Release verification||fn|function|internal|normal|_safe_relative_path|Validate and normalize a release-relative path
+release-manager.sh|Release verification||fn|function|internal|normal|_validate_tar_paths|Reject unsafe paths contained in a release tarball
+release-manager.sh|Release verification||fn|function|internal|normal|_validate_manifest_paths|Reject unsafe paths contained in a release manifest
+release-manager.sh|Release verification||fn|function|internal|normal|_verify_release_set|Verify checksums and path safety for a complete release set
+release-manager.sh|Manifest operations||fn|function|internal|normal|_manifest_paths|Emit normalized paths from a release manifest
+release-manager.sh|Manifest operations||fn|function|internal|normal|_target_path|Map a release-relative path beneath the configured target root
+release-manager.sh|Manifest operations||fn|function|internal|normal|_remove_paths_from_stream|Remove streamed release paths conservatively from the target
+release-manager.sh|Manifest operations||fn|function|internal|normal|_apply_removed_manifest|Apply the incoming release removal manifest
+release-manager.sh|Manifest operations||fn|function|internal|normal|_remove_release_difference|Remove paths present in one release manifest but absent from another
+release-manager.sh|Archive/release movement||fn|function|internal|normal|_archive_release_set|Move an installed pending release set into versioned archive history
+release-manager.sh|Archive/release movement||fn|function|internal|normal|_move_archive_dir_to_releases|Return one archived release directory to releases/
+release-manager.sh|Archive/release movement||fn|function|internal|normal|_move_newer_archives_to_releases|Return archived versions newer than a rollback target to releases/
+release-manager.sh|Archive/release movement||fn|function|internal|normal|_move_all_archives_to_releases|Return all archived releases to releases/
+release-manager.sh|Installation engine||fn|function|internal|normal|_extract_release|Extract a complete SolidGroundUX release beneath the target root
+release-manager.sh|Installation engine||fn|function|internal|normal|_install_pending_archive|Install, update, or roll back to a pending release archive
+release-manager.sh|Installation engine||fn|function|internal|normal|_rollback_to_archived_release|Make the installed framework match a selected archived release
+release-manager.sh|Installation engine||fn|function|internal|normal|_remove_installation|Remove the active SolidGroundUX installation while retaining release packages
+release-manager.sh|GitHub/source acquisition||fn|function|internal|normal|_download_to|Download or copy a release source to a destination file
+release-manager.sh|GitHub/source acquisition||fn|function|internal|normal|_github_release_json|Fetch metadata from the configured GitHub Release endpoint
+release-manager.sh|GitHub/source acquisition||fn|function|internal|normal|_github_latest_asset|Resolve the newest build ZIP attached to the configured GitHub Release
+release-manager.sh|GitHub/source acquisition||fn|function|internal|normal|_latest_online_release|Resolve the canonical base name of the newest published build
+release-manager.sh|GitHub/source acquisition||fn|function|internal|normal|_github_release_asset_url|Resolve the download URL for the newest published build
+release-manager.sh|GitHub/source acquisition||fn|function|internal|normal|_release_is_local_or_installed|Test whether a release is already downloaded or archived
+release-manager.sh|GitHub/source acquisition||fn|function|internal|normal|_admit_extracted_release|Validate an extracted release ZIP and admit its artifacts to releases/
+release-manager.sh|GitHub/source acquisition||fn|function|internal|normal|_acquire_release|Acquire, stage, validate, and admit a release ZIP
+release-manager.sh|Interactive helpers||fn|function|internal|normal|_confirm|Request a standalone yes/no confirmation
+release-manager.sh|Interactive helpers||fn|function|internal|normal|_select_archived_release|Select an archived release or the remove operation from a submenu
+release-manager.sh|Interactive helpers||fn|function|internal|normal|_print_status|Display current installed and locally available release state
+release-manager.sh|Interactive helpers||fn|function|internal|normal|_interactive_menu|Run the standalone interactive release-manager menu
+release-manager.sh|Interactive helpers||fn|function|internal|normal|_pause|Wait for Enter after an interactive operation
+release-manager.sh|Action dispatch||fn|function|internal|normal|_action_check|Report the latest published build and its local state
+release-manager.sh|Action dispatch||fn|function|internal|normal|_action_download|Acquire the latest build or explicitly sourced release without installing it
+release-manager.sh|Action dispatch||fn|function|internal|normal|_action_update|Acquire if needed and install the latest published build
+release-manager.sh|Action dispatch||fn|function|internal|normal|_action_install|Install the newest matching pending local release
+release-manager.sh|Action dispatch||fn|function|internal|normal|_action_rollback|Install the previous or explicitly selected archived release
+release-manager.sh|Action dispatch||fn|function|internal|normal|_action_remove|Remove the active SolidGroundUX installation after confirmation
+release-manager.sh|Main||fn|function|public|normal|main|Run standalone release-manager initialization and dispatch
+publish-web-content.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
+publish-web-content.sh|Local declarations||fn|function|internal|normal|_web_server_storage_root|Resolve the configured SolidGroundUX storage root
+publish-web-content.sh|Local declarations||fn|function|internal|normal|_web_server_root|Resolve the configured web content root
+publish-web-content.sh|Local declarations||fn|function|internal|normal|_web_server_installed_docs_root|Resolve the installed SolidGroundUX documentation path
+publish-web-content.sh|Local declarations||fn|function|internal|normal|_web_server_site_document_root|Resolve the document root for an Nginx site
+publish-web-content.sh|Local declarations||fn|function|internal|normal|_web_server_remove_document_content|Remove all content below a document root
+publish-web-content.sh|Local declarations||fn|function|internal|normal|_web_server_ensure_directory|Create and prepare a web content directory when needed
+publish-web-content.sh|Local declarations||fn|function|internal|normal|_web_server_publish_key|Return the dedicated SolidGroundUX publishing key path
+publish-web-content.sh|Local declarations||fn|function|internal|normal|_web_server_remote_access_ready|Test passwordless SSH publishing access
+publish-web-content.sh|Local declarations||fn|function|internal|normal|_web_server_setup_remote_access|Configure dedicated passwordless SSH publishing access
+publish-web-content.sh|Local declarations||fn|function|internal|normal|_web_server_publish_site|Publish local or remote content into a site document root
+publish-web-content.sh|Local declarations||fn|function|internal|normal|_web_server_publish_documentation|Publish SolidGroundUX documentation
+normalize-canon.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
+normalize-canon.sh|Parameter collection||fn|function|internal|template|_collect_cli_inputs|Collect positional file and mask arguments
+normalize-canon.sh|Parameter collection||fn|function|internal|template|_get_parameters|Resolve interactive or automatic normalization inputs
+normalize-canon.sh|Local script functions||fn|function|internal|template|_resolve_canon_files|Resolve and validate canonical fragment files
+normalize-canon.sh|Local script functions||fn|function|internal|template|_detect_canonical_target|Determine which canonical structure a file contains
+normalize-canon.sh|Local script functions||fn|function|internal|template|_replace_framework_locator|Replace one locator function and its canonical header
+normalize-canon.sh|Local script functions||fn|function|internal|template|_replace_library_guard|Replace the complete Library guard section
+normalize-canon.sh|Local script functions||fn|function|internal|template|_expand_input|Expand one file path or glob mask
+normalize-canon.sh|Local script functions||fn|function|internal|template|_normalize_file|Apply the appropriate canonical replacement to one file
+normalize-canon.sh|Main||fn|function|public|template|main|Normalize canonical structures in selected shell files
+manage-sqlserver.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
+manage-sqlserver.sh|Internal helpers||fn|function|internal|normal|_sqlserver_ubuntu_version|Return the supported Ubuntu version
+manage-sqlserver.sh|Internal helpers||fn|function|internal|normal|_sqlserver_validate_port|Validate a TCP port number
+manage-sqlserver.sh|Internal helpers||fn|function|internal|normal|_sqlserver_engine_installed|Test whether SQL Server is installed
+manage-sqlserver.sh|Internal helpers||fn|function|internal|normal|_sqlserver_tools_installed|Test whether sqlcmd tools are installed
+manage-sqlserver.sh|Internal helpers||fn|function|internal|normal|_sqlserver_conf_get|Read one persisted SQL Server setting
+manage-sqlserver.sh|Internal helpers||fn|function|internal|normal|_sqlserver_tcp_port|Return the effective SQL Server TCP port
+manage-sqlserver.sh|Internal helpers||fn|function|internal|normal|_sqlserver_storage_root|Resolve the configured SolidGroundUX storage root
+manage-sqlserver.sh|Internal helpers||fn|function|internal|normal|_sqlserver_select_directory|Select or enter a SQL Server storage directory
+manage-sqlserver.sh|Internal helpers||fn|function|internal|normal|_sqlserver_ensure_directory|Create and prepare a SQL Server storage directory
+manage-sqlserver.sh|Internal helpers||fn|function|internal|normal|_sqlserver_apply_conf|Set one mssql-conf value
+manage-sqlserver.sh|Internal helpers||fn|function|internal|normal|_sqlserver_restart_if_active|Restart SQL Server when it is currently active
+manage-sqlserver.sh|Role preparation||fn|function|internal|normal|_sqlserver_step_repository|Configure Microsoft SQL Server repositories
+manage-sqlserver.sh|Role preparation||fn|function|internal|normal|_sqlserver_step_install_engine|Install Microsoft SQL Server 2025
+manage-sqlserver.sh|Role preparation||fn|function|internal|normal|_sqlserver_step_configure|Run the canonical mssql-conf setup workflow
+manage-sqlserver.sh|Role preparation||fn|function|internal|normal|_sqlserver_step_install_tools|Install sqlcmd and bcp tools
+manage-sqlserver.sh|Role preparation||fn|function|internal|normal|_sqlserver_prepare|Run the tracked SQL Server preparation workflow
+manage-sqlserver.sh|Configuration||fn|function|internal|normal|_sqlserver_configure_storage|Configure SQL data, log, and backup directories
+manage-sqlserver.sh|Configuration||fn|function|internal|normal|_sqlserver_configure_network|Configure the SQL Server TCP port
+manage-sqlserver.sh|Configuration||fn|function|internal|normal|_sqlserver_configure_memory|Configure the SQL Server memory limit
+manage-sqlserver.sh|Configuration||fn|function|internal|normal|_sqlserver_manage_service|Manage SQL Server service state and startup behavior
+manage-sqlserver.sh|Configuration||fn|function|internal|normal|_sqlserver_configure_firewall|Allow the configured SQL Server port through UFW
+manage-sqlserver.sh|Status / validation||fn|function|internal|normal|_sqlserver_status|Show SQL Server status and effective configuration
+manage-sqlserver.sh|Status / validation||fn|function|internal|normal|_sqlserver_validate|Validate the SQL Server role
+prepare-release.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
+prepare-release.sh|Local script functions||fn|function|internal|template|_release_resolve_project_identity|Resolve the authoritative project definitions
+prepare-release.sh|Local script functions||fn|function|internal|template|_release_update_project_identity|Update version/build in the correct definitions file
+prepare-release.sh|Local script functions||fn|function|internal|template|_release_wrapper_name_for_script|Resolve wrapper metadata or conventional name
+prepare-release.sh|Local script functions||fn|function|internal|normal|_get_parameters|Collect prepare-release parameters
+prepare-release.sh|Local script functions||fn|function|internal|normal|_sgnd_release_list_manifest_history|List available removal-baseline manifests
+prepare-release.sh|Local script functions||fn|function|internal|normal|_sgnd_release_select_previous_manifest|Select the removal-baseline manifest
+prepare-release.sh|Local script functions||fn|function|internal|normal|_sgnd_release_write_removed_manifest|Write removed-path delta
+prepare-release.sh|Local script functions||fn|function|internal|normal|_create_tar|Create the release tar archive
+prepare-release.sh|Update SHA256SUMS||fn|function|internal|normal|_find_release_manager_source|Resolve the release-manager source file
+prepare-release.sh|Update SHA256SUMS||fn|function|internal|template|_write_release_package_info|Write ZIP-root package identity metadata
+prepare-release.sh|Update SHA256SUMS||fn|function|internal|normal|_create_release_package|Create the complete distributable release ZIP
+prepare-release.sh|Update SHA256SUMS||fn|function|internal|normal|_archive_release_manifest|Persist the current manifest for future removal baselines
+prepare-release.sh|Update SHA256SUMS||fn|function|internal|normal|_cleanup_staging|Remove gathered staging data
+prepare-release.sh|Update SHA256SUMS||fn|function|internal|normal|_set_script_header_version|Set an explicit version in a managed script header
+prepare-release.sh|Update SHA256SUMS||fn|function|internal|template|_normalize_canonical_sources|Normalize canonical structures before metadata processing
+prepare-release.sh|Update SHA256SUMS||fn|function|internal|normal|_apply_version_bump|Apply release metadata policy to managed source files
+prepare-release.sh|Update SHA256SUMS||fn|function|internal|template|_ensure_libexec_executables|
+prepare-release.sh|Update SHA256SUMS||fn|function|internal|normal|_ensure_public_command_wrappers|Ensure public wrappers exist for top-level libexec scripts
+prepare-release.sh|Main Sequence||fn|function|public|normal|main|Run the executable main sequence - Run the executable main sequence
+manage-active-directory-server.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
+manage-active-directory-server.sh|Provisioning context||fn|function|internal|normal|_adsvr_collect_context|
+manage-active-directory-server.sh|Provisioning context||fn|function|internal|normal|_adsvr_load_context|
+manage-active-directory-server.sh|Provisioning context||fn|function|internal|normal|_adsvr_require_context|
+manage-active-directory-server.sh|Helpers||fn|function|internal|normal|_adsvr_prepare_hosts|
+manage-active-directory-server.sh|Helpers||fn|function|internal|normal|_adsvr_set_dns_forwarder|
+manage-active-directory-server.sh|Helpers||fn|function|internal|normal|_adsvr_wait_configured|
+manage-active-directory-server.sh|Helpers||fn|function|internal|normal|_adsvr_wait_dns|
+manage-active-directory-server.sh|Provisioning steps||fn|function|internal|normal|_adsvr_step_install_packages|
+manage-active-directory-server.sh|Provisioning steps||fn|function|internal|normal|_adsvr_step_preflight|
+manage-active-directory-server.sh|Provisioning steps||fn|function|internal|normal|_adsvr_step_identity|
+manage-active-directory-server.sh|Provisioning steps||fn|function|internal|normal|_adsvr_step_provision|
+manage-active-directory-server.sh|Provisioning steps||fn|function|internal|normal|_adsvr_step_domain_settings|
+manage-active-directory-server.sh|Provisioning steps||fn|function|internal|normal|_adsvr_step_kerberos|
+manage-active-directory-server.sh|Provisioning steps||fn|function|internal|normal|_adsvr_step_resolver|
+manage-active-directory-server.sh|Provisioning steps||fn|function|internal|normal|_adsvr_step_start|
+manage-active-directory-server.sh|Provisioning steps||fn|function|internal|normal|_adsvr_step_register_dns|
+manage-active-directory-server.sh|Provisioning steps||fn|function|internal|normal|_adsvr_provision_domain|
+manage-active-directory-server.sh|Validation/status||fn|function|internal|normal|_adsvr_validate|
+manage-active-directory-server.sh|Validation/status||fn|function|internal|normal|_adsvr_status|
+tar-it.sh|Bootstrap||fn|function|internal|normal|_framework_locator|Locate and load the SolidGroundUX executable bootstrap context
+tar-it.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
+tar-it.sh|Helpers||fn|function|internal|normal|_scan_cli_args|Record which archive settings were supplied explicitly
+tar-it.sh|Helpers||fn|function|internal|normal|_normalize_archive_name|Normalize the requested archive filename
+tar-it.sh|Helpers||fn|function|internal|normal|_validate_parameters|Validate archive source and destination settings
+tar-it.sh|Helpers||fn|function|internal|normal|_getparameters|Resolve and confirm archive settings
+tar-it.sh|Helpers||fn|function|internal|normal|_create_archive|Create the compressed framework archive
+tar-it.sh|Main||fn|function|public|normal|main|Run the archive workflow
+untar-it.sh|Bootstrap||fn|function|internal|normal|_framework_locator|Locate and load the SolidGroundUX executable bootstrap context
+untar-it.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
+untar-it.sh|Helpers||fn|function|internal|normal|_scan_cli_args|Record which restore settings were supplied explicitly
+untar-it.sh|Helpers||fn|function|internal|normal|_cleanup_staging|Remove the temporary extraction directory
+untar-it.sh|Helpers||fn|function|internal|normal|_resolve_archive|Resolve ARCHIVE_FILE against ARCHIVE_DIRECTORY
+untar-it.sh|Helpers||fn|function|internal|normal|_list_archives|Build the available archive list, newest first
+untar-it.sh|Helpers||fn|function|internal|normal|_select_archive|Select an archive from the numbered archive list
+untar-it.sh|Helpers||fn|function|internal|normal|_validate_archive_entries|Reject unsafe archive entry paths
+untar-it.sh|Helpers||fn|function|internal|normal|_validate_parameters|Validate restore settings
+untar-it.sh|Helpers||fn|function|internal|normal|_getparameters|Resolve and confirm restore settings
+untar-it.sh|Helpers||fn|function|internal|normal|_extract_staging|Extract the validated archive into temporary staging
+untar-it.sh|Helpers||fn|function|internal|normal|_select_files|Select staged files using directory and filename mask
+untar-it.sh|Helpers||fn|function|internal|normal|_restore_files|Restore selected staged files beneath the target root
+untar-it.sh|Main||fn|function|public|normal|main|Run the selective restore workflow
+manage-web-server.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
+manage-web-server.sh|Local declarations||fn|function|internal|normal|_web_server_package_installed|Test whether Nginx is installed
+manage-web-server.sh|Local declarations||fn|function|internal|normal|_web_server_storage_root|Resolve the configured SolidGroundUX storage root
+manage-web-server.sh|Local declarations||fn|function|internal|normal|_web_server_root|Resolve the configured web content root
+manage-web-server.sh|Local declarations||fn|function|internal|normal|_web_server_save_root|Persist the configured web content root
+manage-web-server.sh|Local declarations||fn|function|internal|normal|_web_server_installed_docs_root|Resolve the installed SolidGroundUX documentation path
+manage-web-server.sh|Local declarations||fn|function|internal|normal|_web_server_enabled_sites|List enabled Nginx sites
+manage-web-server.sh|Local declarations||fn|function|internal|normal|_web_server_available_sites|List available Nginx sites
+manage-web-server.sh|Local declarations||fn|function|internal|normal|_web_server_validate_site_name|Validate an Nginx site name
+manage-web-server.sh|Local declarations||fn|function|internal|normal|_web_server_current_dns|Resolve the first configured non-loopback DNS server
+manage-web-server.sh|Local declarations||fn|function|internal|normal|_web_server_local_ipv4|Resolve this server's primary IPv4 address
+manage-web-server.sh|Local declarations||fn|function|internal|normal|_web_server_offer_dns_record|Optionally register an internal AD DNS A record
+manage-web-server.sh|Local declarations||fn|function|internal|normal|_web_server_site_document_root|Resolve the document root for an Nginx site
+manage-web-server.sh|Local declarations||fn|function|internal|normal|_web_server_remove_document_content|Remove all content below a document root
+manage-web-server.sh|Local declarations||fn|function|internal|normal|_web_server_ensure_directory|Create and prepare a web content directory when needed
+manage-web-server.sh|Local declarations||fn|function|internal|normal|_web_server_reload|Validate and reload Nginx
+manage-web-server.sh|Role preparation||fn|function|internal|normal|_web_server_step_install_packages|Install Nginx and publishing prerequisites
+manage-web-server.sh|Role preparation||fn|function|internal|normal|_web_server_step_start|Enable and start Nginx
+manage-web-server.sh|Role preparation||fn|function|internal|normal|_web_server_prepare|Run the tracked web-server preparation workflow
+manage-web-server.sh|Configuration||fn|function|internal|normal|_web_server_configure_root|Select or create the web content root
+manage-web-server.sh|Configuration||fn|function|internal|normal|_web_server_manage_service|Manage nginx.service state and startup behavior
+manage-web-server.sh|Configuration||fn|function|internal|normal|_web_server_configure_firewall|Allow HTTP and HTTPS through UFW
+manage-web-server.sh|Site management||fn|function|internal|normal|_web_server_create_site|Create and enable an Nginx site
+manage-web-server.sh|Site management||fn|function|internal|normal|_web_server_enable_site|Enable an available Nginx site
+manage-web-server.sh|Site management||fn|function|internal|normal|_web_server_disable_site|Disable an enabled Nginx site
+manage-web-server.sh|Site management||fn|function|internal|normal|_web_server_remove_site|Remove an Nginx site configuration
+manage-web-server.sh|Site management||fn|function|internal|normal|_web_server_remove_site_content|Remove the contents of a site's document root
+manage-web-server.sh|Site management||fn|function|internal|normal|_web_server_list_sites|List Nginx sites and document roots
+manage-web-server.sh|Site management||fn|function|internal|normal|_web_server_manage_sites|Open the site-management workflow
+manage-web-server.sh|SolidGroundUX documentation||fn|function|internal|normal|_web_server_default_docs_address|Return a sensible documentation web address
+manage-web-server.sh|SolidGroundUX documentation||fn|function|internal|normal|_web_server_configure_documentation_site|Configure the documentation web site
+manage-web-server.sh|SolidGroundUX documentation||fn|function|internal|normal|_web_server_documentation_status|Show documentation publishing status
+manage-web-server.sh|Status / validation||fn|function|internal|normal|_web_server_status|Show web-server status and configuration
+manage-web-server.sh|Status / validation||fn|function|internal|normal|_web_server_validate|Validate the web-server role
+deploy-workspace.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
+deploy-workspace.sh|Selection helpers||fn|function|internal|normal|_is_deployable_path|Test whether a relative workspace path is deployable
+deploy-workspace.sh|Selection helpers||fn|function|internal|normal|_normalize_relative_path|Normalize and validate a workspace-relative path
+deploy-workspace.sh|Selection helpers||fn|function|internal|normal|_add_selected_file|Add one deployable file to the normalized selection
+deploy-workspace.sh|Selection helpers||fn|function|internal|normal|_select_files|Resolve the combined workspace filters into a concrete file list
+deploy-workspace.sh|Parameter collection||fn|function|internal|normal|_capture_cli_parameters|Record which deployment settings were supplied explicitly
+deploy-workspace.sh|Parameter collection||fn|function|internal|normal|_validate_parameters|Validate the resolved deployment settings
+deploy-workspace.sh|Parameter collection||fn|function|internal|normal|_getparameters|Collect deployment parameters from CLI values, state, and ask
+deploy-workspace.sh|Reporting||fn|function|internal|normal|_print_deployment_summary|Display the completed deployment details
+deploy-workspace.sh|Transport||fn|function|internal|normal|_quote_remote_arg|Shell-quote one argument for the remote receive command
+deploy-workspace.sh|Transport||fn|function|internal|normal|_stream_local|Stream selected workspace files to the local receiver
+deploy-workspace.sh|Transport||fn|function|internal|normal|_ensure_remote_receiver_sudo|Ensure the remote receiver may run without a sudo password
+deploy-workspace.sh|Transport||fn|function|internal|normal|_stream_remote|Stream selected workspace files to the remote receiver over SSH
+deploy-workspace.sh|Transport||fn|function|internal|normal|_deploy|Select files and stream them to the configured receiver
+deploy-workspace.sh|Main||fn|function|public|normal|main|Run the workspace deployment workflow
+prepare-template.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
+prepare-template.sh|Script identity||var|variable|public|normal|SGND_SCRIPT_FILE|Absolute path to the currently executing script
+prepare-template.sh|Script identity||var|variable|public|normal|SGND_SCRIPT_DIR|Directory containing the currently executing script
+prepare-template.sh|Script identity||var|variable|public|normal|SGND_SCRIPT_BASE|Filename of the currently executing script
+prepare-template.sh|Script identity||var|variable|public|normal|SGND_SCRIPT_NAME|Script basename without the .sh extension
+prepare-template.sh|Script identity||var|variable|public|template|SGND_SCRIPT_FILE|
+prepare-template.sh|Script identity||var|variable|public|template|SGND_SCRIPT_DIR|
+prepare-template.sh|Script identity||var|variable|public|template|SGND_SCRIPT_BASE|
+prepare-template.sh|Script identity||var|variable|public|template|SGND_SCRIPT_NAME|
+prepare-template.sh|Framework integration||var|variable|public|normal|SGND_USING|Optional framework libraries to source after core bootstrap
+prepare-template.sh|Framework integration||var|variable|public|normal|SGND_ARGS_SPEC|Script-specific command-line argument specification
+prepare-template.sh|Example||var|variable|public|normal|SGND_SCRIPT_EXAMPLES|Optional help examples for this script
+prepare-template.sh|Example||var|variable|public|normal|SGND_SCRIPT_GLOBALS|Script globals participating in configuration loading# var: SGND_SCRIPT_GLOBALS - Script globals participating in configuration loading
+prepare-template.sh|Example||var|variable|public|normal|SGND_STATE_VARIABLES|Script variables participating in persistent state
+prepare-template.sh|Example||var|variable|public|normal|SGND_ON_EXIT_HANDLERS|Script-specific exit handler list
+prepare-template.sh|Example||var|variable|public|template|SGND_STATE_SAVE|
+prepare-template.sh|Local script functions||fn|function|internal|normal|_detect_primary_iface|Detect primary iface
+prepare-template.sh|Local script functions||fn|function|internal|normal|_reset_network_for_template|Reset network for template
+prepare-template.sh|Local script functions||fn|function|internal|normal|_prepare_template|Prepare template
+prepare-template.sh|Main||fn|function|public|normal|main|Run the executable main sequence
+manage-active-directory-client.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
+manage-active-directory-client.sh|Internal helpers||fn|function|internal|normal|_adc_collect_context|Collect Active Directory client join context
+manage-active-directory-client.sh|Internal helpers||fn|function|internal|normal|_adc_require_context|
+manage-active-directory-client.sh|Internal helpers||fn|function|internal|normal|_adc_step_install_packages|
+manage-active-directory-client.sh|Internal helpers||fn|function|internal|normal|_adc_step_preflight|
+manage-active-directory-client.sh|Internal helpers||fn|function|internal|normal|_adc_step_dns|
+manage-active-directory-client.sh|Internal helpers||fn|function|internal|normal|_adc_step_identity|
+manage-active-directory-client.sh|Internal helpers||fn|function|internal|normal|_adc_step_discover|
+manage-active-directory-client.sh|Internal helpers||fn|function|internal|normal|_adc_step_join|
+manage-active-directory-client.sh|Internal helpers||fn|function|internal|normal|_adc_step_sssd|
+manage-active-directory-client.sh|Internal helpers||fn|function|internal|normal|_adc_step_register_dns|
+manage-active-directory-client.sh|Internal helpers||fn|function|internal|normal|_adc_join_domain|
+manage-active-directory-client.sh|Internal helpers||fn|function|internal|normal|_adc_validate|Validate Active Directory client membership and local integration
+manage-active-directory-client.sh|Internal helpers||fn|function|internal|normal|_adc_reconcile|Repair safe local Active Directory client drift
+manage-active-directory-client.sh|Internal helpers||fn|function|internal|normal|_adc_status|
+manage-active-directory-client.sh|Internal helpers||fn|function|internal|normal|_adc_leave|
+framework-smoketest.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
+framework-smoketest.sh|Smoke-test input declarations||fn|function|public|normal|input_test|Run simple shell input tests
+framework-smoketest.sh|Smoke-test input declarations||fn|function|public|normal|ask_selection_test|Run interactive ask_selection tests
+framework-smoketest.sh|Smoke-test input declarations||fn|function|public|normal|ask_test|Run interactive ask helper tests
+framework-smoketest.sh|Sample/demo renderers|Smoke-test input declarations|fn|function|public|normal|say_test|Run console message helper tests
+framework-smoketest.sh|Sample/demo renderers|Smoke-test input declarations|fn|function|public|normal|loglevel_test|Run console message visibility tests for every log level
+framework-smoketest.sh|Sample/demo renderers|Smoke-test input declarations|fn|function|public|normal|file_loglevel_test|Run file logging tests for every log level
+framework-smoketest.sh|Sample/demo renderers|Smoke-test input declarations|fn|function|public|normal|view_log|Display the active SolidGroundUX logfile
+framework-smoketest.sh|Sample/demo renderers|Smoke-test input declarations|fn|function|public|normal|motd_test|Motd test
+framework-smoketest.sh|Sample/demo renderers|Smoke-test input declarations|fn|function|public|normal|sayprogress_test|Run transient progress line tests
+framework-smoketest.sh|Sample/demo renderers|Smoke-test input declarations|fn|function|public|normal|show_colorchart|Show colorchart
+framework-smoketest.sh|Sample/demo renderers|Smoke-test input declarations|fn|function|public|normal|show_theme|Browse and preview installed UI themes
+doc-generator.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
+doc-generator.sh|Framework integration||var|variable|public|template|SGND_USING|
+doc-generator.sh|Local script functions||fn|function|internal|normal|_init_parameters|Initialize documentation generator parameters
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_discover_products|Discover product definitions beneath the selected source root
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_select_products|Resolve the requested product scope
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_prompt_products|Prompt for one, several, or all discovered products
+doc-generator.sh|Local script functions||fn|function|internal|normal|_get_userinput|Collect documentation generator input
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_load_cached_table|Load a cached PSV table into a named array
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_load_cache|Restore all parser tables from the previous render cache
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_remove_modules_from_table|Remove module rows from a named table
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_remove_modules|Remove stale rows for one or more modules
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_path_matches_filespec|Test whether a path matches the active source masks
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_collect_selected_files|Resolve explicitly selected update files
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_collect_changed_files|Collect Git additions, modifications, deletions, and renames
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_iterate_explicit_files|Parse an explicit list of source files
+doc-generator.sh|Local script functions||fn|function|internal|normal|_iterate_files|Iterate source files and collect documentation data
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_progress_line|Update active-module line progress
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_count_lines|Count physical lines in a file
+doc-generator.sh|Local script functions||fn|function|internal|normal|_iterate_files|Iterate source files and collect documentation data
+doc-generator.sh|Local script functions||fn|function|internal|normal|_copy_docs_to_git|Copy generated documentation into the repository docs directory
+doc-generator.sh|Local script functions||fn|function|internal|normal|_summary|Print documentation generation summary
+doc-generator.sh|Main||fn|function|public|normal|main|Run the executable main sequence - Run the executable main sequence
+manage-solidgroundux.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
+create-wrappers.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
+create-wrappers.sh|Helpers||fn|function|internal|normal|_framework_path|Resolve a path beneath a framework root
+create-wrappers.sh|Helpers||fn|function|internal|normal|_framework_root_from_path|Resolve the framework root owning a selected path
+create-wrappers.sh|Helpers||fn|function|internal|normal|_wrapper_template_path|Resolve the canonical wrapper template path
+create-wrappers.sh|Helpers||fn|function|internal|normal|_relative_to_framework_root|Convert an absolute source path to framework-relative
+create-wrappers.sh|Helpers||fn|function|internal|normal|_wrapper_name_for_script|Return the public wrapper command name
+create-wrappers.sh|Helpers||fn|function|internal|normal|_write_wrapper|Create one framework-relative wrapper
+create-wrappers.sh|Helpers||fn|function|internal|normal|_get_parameters|Collect wrapper-generation parameters
+create-wrappers.sh|Helpers||fn|function|internal|normal|_create_wrappers|Create wrappers for selected scripts
+create-wrappers.sh|Main||fn|function|public|normal|main|Run wrapper generation
+create-workspace.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
+create-workspace.sh|General helpers|Local script functions|fn|function|internal|normal|_normalize_project_flags|Normalize create-workspace option flags
+create-workspace.sh|General helpers|Local script functions|fn|function|internal|normal|_copy_template_file|Copy one template file into the workspace
+create-workspace.sh|General helpers|Local script functions|fn|function|internal|normal|_get_template_filenames|Resolve template filenames for workspace creation
+create-workspace.sh|General helpers|Local script functions|fn|function|internal|normal|_copy_workspace_templates|Copy canonical templates into the workspace
+create-workspace.sh|General helpers|Local script functions|fn|function|internal|normal|_instantiate_project_templates|Instantiate selected workspace templates
+create-workspace.sh|General helpers|Local script functions|fn|function|internal|normal|_get_project_directories|Resolve project directory layout
+create-workspace.sh|Manifest helpers|Local script functions|fn|function|internal|normal|_manifest_init|Initialize the workspace creation manifest
+create-workspace.sh|Manifest helpers|Local script functions|fn|function|internal|normal|_manifest_record_file|Record a created file in the manifest
+create-workspace.sh|Manifest helpers|Local script functions|fn|function|internal|normal|_manifest_record_dir|Record a created directory in the manifest
+create-workspace.sh|Manifest helpers|Local script functions|fn|function|internal|normal|_uncreate_from_manifest|Remove artifacts recorded in the create manifest
+create-workspace.sh|Main sequence|Local script functions|fn|function|internal|normal|_create_repository|Create the repository directory structure
+create-workspace.sh|Main sequence|Local script functions|fn|function|internal|normal|_create_workspace_file|Create the VS Code workspace file
+create-workspace.sh|Main sequence|Local script functions|fn|function|internal|normal|_create_gitignore_file|Create the workspace .gitignore file
+create-workspace.sh|Main sequence|Local script functions|fn|function|internal|normal|_project_slug|Return the filesystem-safe project slug
+create-workspace.sh|Main sequence|Local script functions|fn|function|internal|normal|_project_key|Return the variable-safe project key
+create-workspace.sh|Main sequence|Local script functions|fn|function|internal|normal|_create_project_definitions|Create project-wide definition globals
+create-workspace.sh|Main sequence|Local script functions|fn|function|internal|normal|_create_project_motd|Create a minimal project MOTD identity entry
+create-workspace.sh|Main sequence|Local script functions|fn|function|internal|normal|_initialize_git_repository|Initialize and commit the new workspace
+create-workspace.sh|Main sequence|Local script functions|fn|function|internal|normal|_initialize_github_repository|Create and push the workspace repository
+create-workspace.sh|Main||fn|function|public|normal|main|Run the executable main sequence
+manage-active-directory.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
+manage-active-directory.sh|Internal helpers||fn|function|internal|normal|_admg_list_users_raw|Return directory users
+manage-active-directory.sh|Internal helpers||fn|function|internal|normal|_admg_list_groups_raw|Return directory groups
+manage-active-directory.sh|Internal helpers||fn|function|internal|normal|_admg_list_computers_raw|Return directory computers
+manage-active-directory.sh|Internal helpers||fn|function|internal|normal|_admg_select_user|Select one AD user
+manage-active-directory.sh|Internal helpers||fn|function|internal|normal|_admg_select_group|Select one AD group
+manage-active-directory.sh|Internal helpers||fn|function|internal|normal|_admg_select_computer|Select one AD computer
+manage-active-directory.sh|Internal helpers||fn|function|internal|normal|_admg_user_is_disabled|Test whether an AD user account is disabled
+manage-active-directory.sh|Internal helpers||fn|function|internal|normal|_admg_add_member_to_group|Add one member to one AD group
+manage-active-directory.sh|Internal helpers||fn|function|internal|normal|_admg_remove_member_from_group|Remove one member from one AD group
+manage-active-directory.sh|Internal helpers||fn|function|internal|normal|_admg_user_is_protected|Test whether a user is protected from destructive actions
+manage-active-directory.sh|Internal helpers||fn|function|internal|normal|_admg_group_is_protected|Test whether a group is protected from deletion
+manage-active-directory.sh|Internal helpers||fn|function|internal|normal|_admg_decision_is_quit|Test whether a canonical decision means quit/back
+manage-active-directory.sh|Internal helpers||fn|function|internal|normal|_admg_ask_selection|Render AD selections with manager-owned presentation
+manage-active-directory.sh|Directory overview||fn|function|internal|normal|_admg_status|Show Active Directory management summary
+manage-active-directory.sh|Directory overview||fn|function|internal|normal|_admg_validate|Validate local Active Directory administration readiness
+manage-active-directory.sh|User actions||fn|function|internal|normal|_admg_list_users|List Active Directory users
+manage-active-directory.sh|User actions||fn|function|internal|normal|_admg_show_user|Show one Active Directory user
+manage-active-directory.sh|User actions||fn|function|internal|normal|_admg_create_user|Create an Active Directory user
+manage-active-directory.sh|User actions||fn|function|internal|normal|_admg_toggle_user|Enable or disable an Active Directory user
+manage-active-directory.sh|User actions||fn|function|internal|normal|_admg_reset_user_password|Reset an Active Directory user's password
+manage-active-directory.sh|User actions||fn|function|internal|normal|_admg_set_user_password_noexpiry|Set a user's password to never expire
+manage-active-directory.sh|User actions||fn|function|internal|normal|_admg_delete_user|Delete an Active Directory user
+manage-active-directory.sh|User actions||fn|function|internal|normal|_admg_user_add_groups|Add a selected user to one or more AD groups
+manage-active-directory.sh|User actions||fn|function|internal|normal|_admg_user_remove_groups|Remove a selected user from direct group memberships
+manage-active-directory.sh|Group actions||fn|function|internal|normal|_admg_list_groups|List Active Directory groups
+manage-active-directory.sh|Group actions||fn|function|internal|normal|_admg_show_group|Show one Active Directory group
+manage-active-directory.sh|Group actions||fn|function|internal|normal|_admg_create_group|Create an Active Directory group
+manage-active-directory.sh|Group actions||fn|function|internal|normal|_admg_delete_group|Delete an Active Directory group
+manage-active-directory.sh|Group actions||fn|function|internal|normal|_admg_group_add_users|Add one or more users to a selected AD group
+manage-active-directory.sh|Group actions||fn|function|internal|normal|_admg_group_remove_members|Remove selected direct members from an AD group
+manage-active-directory.sh|Computer actions||fn|function|internal|normal|_admg_list_computers|List Active Directory computer accounts
+manage-active-directory.sh|Computer actions||fn|function|internal|normal|_admg_show_computer|Show one Active Directory computer account
+manage-active-directory.sh|Computer actions||fn|function|internal|normal|_admg_delete_computer|Delete an Active Directory computer account
+manage-samba-file-server.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
+manage-samba-file-server.sh|Helpers||fn|function|internal|normal|_smb_ask_selection|Render a Samba selection menu and return the selected value(s)
+40-solidgroundux.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+40-solidgroundux.sh|SolidGroundUX installation actions||fn|function|internal|normal|_release_manager|Open the standalone SolidGroundUX release manager
+40-solidgroundux.sh|Framework diagnostics||fn|function|internal|normal|_framework_smoketest|
+40-solidgroundux.sh|Framework diagnostics||fn|function|internal|normal|_framework_show_environment|
+40-solidgroundux.sh|Framework diagnostics||fn|function|internal|normal|_framework_show_about|
+40-solidgroundux.sh|Framework configuration actions||fn|function|internal|normal|_framework_config_view_file|Open a framework configuration file read-only
+40-solidgroundux.sh|Framework configuration actions||fn|function|internal|normal|_framework_config_view_system|View the system framework configuration
+40-solidgroundux.sh|Framework configuration actions||fn|function|internal|normal|_framework_config_view_user|View the user framework configuration
+40-solidgroundux.sh|Framework configuration actions||fn|function|public|normal|framework_configure_file|Configure validated framework settings externally
+40-solidgroundux.sh|Framework configuration actions||fn|function|internal|normal|_framework_config_edit_system|Edit the system configuration externally
+40-solidgroundux.sh|Framework configuration actions||fn|function|internal|normal|_framework_config_edit_user|Edit the user configuration externally
+40-solidgroundux.sh|Framework logging actions||fn|function|internal|normal|_framework_log_validate|
+40-solidgroundux.sh|Framework logging actions||fn|function|internal|normal|_framework_log_view|
+40-solidgroundux.sh|Framework logging actions||fn|function|internal|normal|_framework_log_follow|
+40-solidgroundux.sh|Framework logging actions||fn|function|internal|normal|_framework_log_show_errors|
+40-solidgroundux.sh|Framework logging actions||fn|function|internal|normal|_framework_log_rotate|Rotate the active logfile externally
+40-solidgroundux.sh|Internal helpers||fn|function|internal|normal|_framework_state_validate|
+40-solidgroundux.sh|Internal helpers||fn|function|internal|normal|_framework_state_apply_ui|
+40-solidgroundux.sh|Public module actions||fn|function|public|normal|framework_state_show|
+40-solidgroundux.sh|Public module actions||fn|function|public|normal|framework_state_edit|
+40-solidgroundux.sh|Public module actions||fn|function|public|normal|framework_state_save|
+40-solidgroundux.sh|Public module actions||fn|function|public|normal|framework_state_reload|
+90-development.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+90-development.sh|Development actions||fn|function|internal|normal|_dev_create_workspace|
+90-development.sh|Development actions||fn|function|internal|normal|_dev_deploy_workspace|
+90-development.sh|Development actions||fn|function|internal|normal|_dev_prepare_release|
+90-development.sh|Development actions||fn|function|internal|normal|_dev_create_wrappers|
+90-development.sh|Development actions||fn|function|internal|normal|_dev_generate_docs|
+10-computer-setup.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+10-computer-setup.sh|Module actions||fn|function|internal|normal|_computer_set_identity|
+10-computer-setup.sh|Module actions||fn|function|internal|normal|_computer_configure_ssh_service|
+10-computer-setup.sh|Module actions||fn|function|internal|normal|_computer_generate_ssh_keys|
+10-computer-setup.sh|Module actions||fn|function|internal|normal|_computer_configure_sudoers|
+10-computer-setup.sh|Module actions||fn|function|internal|normal|_computer_prepare|
+10-computer-setup.sh|Module actions||fn|function|internal|normal|_computer_status|
+10-computer-setup.sh|Module actions||fn|function|internal|normal|_computer_validate|
+10-computer-setup.sh|Module actions||fn|function|internal|normal|_prepare-template.sh|
+45-solidground-framework-test.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+45-solidground-framework-test.sh|Dispatch||fn|function|internal|template|_framework_test_run|Dispatch a framework test suite to the test executable
+30-samba-file-server.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+30-samba-file-server.sh|Project executable dispatch||fn|function|internal|template|_smb_run_project_script|Run a management executable owned by this project
+20-active-directory-server.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+receive-files.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
+receive-files.sh|Receive helpers||fn|function|internal|normal|_cleanup_archive|Remove the temporary received archive
+receive-files.sh|Receive helpers||fn|function|internal|normal|_validate_target|Validate and prepare the destination root
+receive-files.sh|Receive helpers||fn|function|internal|normal|_receive_stream|Store the incoming tar stream in a temporary archive
+receive-files.sh|Receive helpers||fn|function|internal|normal|_validate_archive|Validate all received archive entries
+receive-files.sh|Receive helpers||fn|function|internal|normal|_extract_archive|Extract the validated archive beneath DEST_ROOT
+receive-files.sh|Main||fn|function|public|normal|main|Receive, validate, and extract a streamed workspace archive
+set-identity.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
+set-identity.sh|Script identity||var|variable|public|normal|SGND_SCRIPT_FILE|Absolute path to the currently executing script
+set-identity.sh|Script identity||var|variable|public|normal|SGND_SCRIPT_DIR|Directory containing the currently executing script
+set-identity.sh|Script identity||var|variable|public|normal|SGND_SCRIPT_BASE|Filename of the currently executing script
+set-identity.sh|Script identity||var|variable|public|normal|SGND_SCRIPT_NAME|Script basename without the .sh extension
+set-identity.sh|Script identity||var|variable|public|template|SGND_SCRIPT_FILE|
+set-identity.sh|Script identity||var|variable|public|template|SGND_SCRIPT_DIR|
+set-identity.sh|Script identity||var|variable|public|template|SGND_SCRIPT_BASE|
+set-identity.sh|Script identity||var|variable|public|template|SGND_SCRIPT_NAME|
+set-identity.sh|Framework integration||var|variable|public|normal|SGND_USING|Optional framework libraries to source after core bootstrap
+set-identity.sh|Framework integration||var|variable|public|normal|SGND_ARGS_SPEC|Script-specific command-line argument specification
+set-identity.sh|Example||var|variable|public|normal|SGND_SCRIPT_EXAMPLES|Optional help examples for this script
+set-identity.sh|Example||var|variable|public|normal|SGND_SCRIPT_GLOBALS|Script globals participating in configuration loading# var: SGND_SCRIPT_GLOBALS - Script globals participating in configuration loading
+set-identity.sh|Example||var|variable|public|normal|SGND_STATE_VARIABLES|Script variables participating in persistent state
+set-identity.sh|Example||var|variable|public|normal|SGND_ON_EXIT_HANDLERS|Script-specific exit handler list
+set-identity.sh|Example||var|variable|public|template|SGND_STATE_SAVE|
+set-identity.sh|Local script functions||fn|function|internal|normal|_set_defaults|Set defaults
+set-identity.sh|Local script functions||fn|function|internal|normal|_load_current_values|Load current values
+set-identity.sh|Local script functions||fn|function|internal|normal|_get_usr_input|Get usr input
+set-identity.sh|Local script functions||fn|function|internal|normal|_set_hostname|Set hostname
+set-identity.sh|Local script functions||fn|function|internal|normal|_detect_primary_iface|Detect primary iface
+set-identity.sh|Local script functions||fn|function|internal|normal|_remove_other_netplan_files|Remove other netplan files
+set-identity.sh|Local script functions||fn|function|internal|normal|_static_ip_conflict_check|Static ip conflict check
+set-identity.sh|Local script functions||fn|function|internal|normal|_dryrun_complete|Report completion of a dry-run preview
+set-identity.sh|Main||fn|function|public|normal|main|Run the executable main sequence
+manage-storage.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
+manage-storage.sh|Internal helpers||fn|function|internal|normal|_storage_validate_device|
+manage-storage.sh|Internal helpers||fn|function|internal|normal|_storage_validate_mountpoint|
+manage-storage.sh|Internal helpers||fn|function|internal|normal|_storage_get_mountpoint|
+manage-storage.sh|Internal helpers||fn|function|internal|normal|_storage_get_share_root|
+manage-storage.sh|Internal helpers||fn|function|internal|normal|_storage_save_mountpoint|
+manage-storage.sh|Internal helpers||fn|function|internal|normal|_storage_get_configured_mountpoint|Read only the persisted storage mount point
+manage-storage.sh|Internal helpers||fn|function|internal|normal|_storage_detect_labeled_volume|Resolve the existing SGND_STORAGE filesystem
+manage-storage.sh|Internal helpers||fn|function|internal|normal|_storage_list_managed_fstab_entries|List SolidGroundUX-managed storage entries
+manage-storage.sh|Internal helpers||fn|function|internal|normal|_storage_list_stale_managed_fstab_entries|List stale SolidGroundUX-managed entries
+manage-storage.sh|Internal helpers||fn|function|internal|normal|_storage_list_unused_disks|
+manage-storage.sh|Internal helpers||fn|function|internal|normal|_storage_partition_path|
+manage-storage.sh|Internal helpers||fn|function|internal|normal|_storage_validate_account|
+manage-storage.sh|Internal helpers||fn|function|internal|normal|_storage_validate_group|
+manage-storage.sh|Internal helpers||fn|function|internal|normal|_storage_validate_mode|
+manage-storage.sh|Internal helpers||fn|function|internal|normal|_storage_select_access_target|
+manage-storage.sh|Public module actions||fn|function|public|template|storage_configure|
+manage-storage.sh|Public module actions||fn|function|public|template|storage_mount|
+manage-storage.sh|Public module actions||fn|function|public|template|storage_unmount|
+manage-storage.sh|Public module actions||fn|function|public|template|storage_expand|
+manage-storage.sh|Public module actions||fn|function|public|template|storage_access_status|
+manage-storage.sh|Public module actions||fn|function|public|template|storage_set_owner|
+manage-storage.sh|Public module actions||fn|function|public|template|storage_set_group|
+manage-storage.sh|Public module actions||fn|function|public|template|storage_set_permissions|
+manage-storage.sh|Public module actions||fn|function|public|template|storage_restore_access_defaults|
+manage-storage.sh|Public module actions||fn|function|public|template|storage_reconcile|
+manage-storage.sh|Public module actions||fn|function|public|template|storage_reconcile_persistence|
+manage-storage.sh|Public module actions||fn|function|public|template|storage_status|
+manage-storage.sh|Public module actions||fn|function|public|template|storage_validate_provisioning|
+manage-samba-shares.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_refresh_storage_paths|Resolve the configured SolidGroundUX share root
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_smb_ask_selection|Render a Samba selection menu and return the selected value(s)
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_share_path|Resolve the configured path for a Samba share
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_list_managed_shares|Discover shares beneath the SolidGroundUX share root
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_select_shares|Select one or more managed shares
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_acl_groups_for_share|Return named group ACL entries for one share
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_validate_share_name|Validate a managed Samba share name
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_validate_relative_path|Validate a relative path beneath a share root
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_share_exists|Test whether a Samba share exists
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_reload_samba|Validate and reload Samba configuration
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_create_share|Create a managed share and backing directory
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_remove_share|Remove a managed share and optionally its directory
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_ensure_selected_shares|Ensure one or more managed shares are selected
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_inherit_directory_access|Copy a parent directory's ownership and ACL model
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_create_inherited_directory_tree|Create a relative directory tree with inherited access
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_list_share_subdirectories_raw|Return relative subdirectory paths for one share
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_create_subdirectory|Create subdirectories beneath the currently selected shares
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_list_subdirectories|List subdirectories beneath the currently selected shares
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_remove_subdirectory|Remove a selected subdirectory from a selected share
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_ensure_kerberos_ticket|Ensure an authenticated Kerberos ticket is available
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_discover_ad_groups|Discover domain groups visible through NSS
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_select_group|Select or enter an AD/NSS group
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_samba_principal|Format an NSS group for a Samba user-list parameter
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_sync_share_samba_access|Synchronize Samba access lists from POSIX ACLs
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_apply_group_access|Apply read or write ACLs to selected shares
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_select_assigned_group|Select a group currently assigned to the selected shares
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_remove_group_access|Remove one AD/NSS group's access from selected shares
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_show_access|Display current share paths and named group ACLs
+manage-samba-shares.sh|Helpers||fn|function|internal|normal|_validate_selected|Validate selected share paths, ACLs, and Samba configuration
+manage-samba-shares.sh|Main||fn|function|public|normal|main|Run interactive Samba share access management
+exe-template.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
+exe-template.sh|Script identity||var|variable|public|normal|SGND_SCRIPT_FILE|Absolute path to the currently executing script
+exe-template.sh|Script identity||var|variable|public|normal|SGND_SCRIPT_DIR|Directory containing the currently executing script
+exe-template.sh|Script identity||var|variable|public|normal|SGND_SCRIPT_BASE|Filename of the currently executing script
+exe-template.sh|Script identity||var|variable|public|normal|SGND_SCRIPT_NAME|Script basename without the .sh extension
+exe-template.sh|Script identity||var|variable|public|template|SGND_SCRIPT_FILE|
+exe-template.sh|Script identity||var|variable|public|template|SGND_SCRIPT_DIR|
+exe-template.sh|Script identity||var|variable|public|template|SGND_SCRIPT_BASE|
+exe-template.sh|Script identity||var|variable|public|template|SGND_SCRIPT_NAME|
+exe-template.sh|Framework integration||var|variable|public|normal|SGND_USING|Optional framework libraries to source after core bootstrap
+exe-template.sh|Framework integration||var|variable|public|normal|SGND_ARGS_SPEC|Script-specific command-line argument specification
+exe-template.sh|Example||var|variable|public|normal|SGND_SCRIPT_EXAMPLES|Optional help examples for this script
+exe-template.sh|Example||var|variable|public|normal|SGND_SCRIPT_GLOBALS|Script globals participating in configuration loading# var: SGND_SCRIPT_GLOBALS - Script globals participating in configuration loading
+exe-template.sh|Example||var|variable|public|normal|SGND_STATE_VARIABLES|Script variables participating in persistent state
+exe-template.sh|Example||var|variable|public|normal|SGND_ON_EXIT_HANDLERS|Script-specific exit handler list
+exe-template.sh|Example||var|variable|public|template|SGND_STATE_SAVE|
+exe-template.sh|Main||fn|function|public|normal|main|Run the executable main sequence
+lib-template.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+mod-template.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+mod-template.sh|Internal helpers||fn|function|internal|template|_sample_format_status|
+mod-template.sh|Public module actions||fn|function|public|template|sample_show_status|
+mod-template.sh|Public module actions||fn|function|public|normal|sample_run_action|Run the example module action
+sgnd-bootstrap.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+sgnd-bootstrap.sh|Main sequence helpers + EXIT dispatch||fn|function|internal|normal|_parse_bootstrap_args|Parse early bootstrap options
+sgnd-bootstrap.sh|Main sequence helpers + EXIT dispatch||fn|function|internal|normal|_init_bootstrap|Initialize bootstrap environment
+sgnd-bootstrap.sh|Main sequence helpers + EXIT dispatch||fn|function|internal|normal|_source_corelibs|Source required core libraries
+sgnd-bootstrap.sh|Main sequence helpers + EXIT dispatch||fn|function|internal|normal|_source_usinglibs|Source declared optional libraries
+sgnd-bootstrap.sh|Main sequence helpers + EXIT dispatch||fn|function|internal|normal|_sgnd_on_exit_run|Run registered exit handlers
+sgnd-bootstrap.sh|Main sequence helpers + EXIT dispatch||fn|function|internal|normal|_sgnd_save_state_dispatch|Save state on clean exit
+sgnd-bootstrap.sh|Main sequence helpers + EXIT dispatch||fn|function|public|normal|sgnd_script_init_metadata|Script init metadata
+sgnd-bootstrap.sh|Short description (first line of Description)||fn|function|public|normal|sgnd_module_init_metadata|Module init metadata
+sgnd-bootstrap.sh|Attribution fields||fn|function|public|normal|sgnd_on_exit_install|On exit install
+sgnd-bootstrap.sh|Attribution fields||fn|function|public|normal|sgnd_parse_statespec|Parse statespec
+sgnd-bootstrap.sh|Attribution fields||fn|function|public|normal|sgnd_enable_save_state|Enable save state
+sgnd-bootstrap.sh|Attribution fields||fn|function|public|normal|sgnd_disable_save_state|Disable save state
+sgnd-bootstrap.sh|Attribution fields||fn|function|public|normal|sgnd_save_state|Save state
+sgnd-bootstrap.sh|Attribution fields||fn|function|public|normal|sgnd_on_exit_add|On exit add
+sgnd-bootstrap.sh|Attribution fields||fn|function|public|normal|sgnd_check_license|Check license
+sgnd-bootstrap.sh|Attribution fields||fn|function|public|normal|sgnd_load_ui_style|Load ui style
+sgnd-bootstrap.sh|Attribution fields||fn|function|public|normal|sgnd_bootstrap|Bootstrap
+doc-processor.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+doc-processor.sh|Local definitions||var|variable|public|normal|Datamodel|Content tables for parsed documentation data
+doc-processor.sh|Local definitions||fn|function|internal|normal|_init_localvars|Initialize parser state variables
+doc-processor.sh|Semantic registries|Local definitions|fn|function|internal|normal|_sgnd_doc_list_contains|Test whether a value exists in a named array
+doc-processor.sh|Semantic registries|Local definitions|fn|function|internal|normal|_sgnd_doc_is_valid_stylehint|Validate documentation style hint
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_noncommentline|Detect non-comment source lines
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_headermarker|Detect module header boundary lines
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_moduletitle|Detect the module title line
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_headerfields|Detect metadata and attribution fields
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_section|Detect documentation section headers
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_items|Detect documented items
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_headersectionheader|Detect named header sections
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_default|Detect default
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_get_section_comments|Get section comments
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_global_array_start|Detect framework/runtime/script globals array declarations
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_global_array_entry|Detect global declaration array entries
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_commentseparator|Ignore visual comment separators
+doc-processor.sh|Action|Local definitions|fn|function|internal|normal|_action_headerend|Emit module-level header data
+doc-processor.sh|Action|Local definitions|fn|function|internal|normal|_guess_nextcontenttype|Advance content type after emitted headers
+doc-processor.sh|Emitters|Local definitions|fn|function|internal|normal|_emit_globalrecord|Append a framework/runtime/script global declaration record
+doc-processor.sh|Emitters|Local definitions|fn|function|internal|normal|_emit_contentline|Append a normalized documentation content line
+doc-processor.sh|Emitters|Local definitions|fn|function|internal|normal|_emit_itemrecord|Append a documented item record
+doc-processor.sh|Emitters|Local definitions|fn|function|internal|normal|_emit_sectionrecord|Append a documentation section record
+doc-processor.sh|Internal API||fn|function|internal|normal|_parse_module_file|Parse one module source file
+doc-processor.sh|Internal API||fn|function|internal|normal|_build_content_ref|Build a stable documentation content reference
+doc-sample.sh|||doc|general documentation|public|normal|content_labels|Documentation content labels
+doc-sample.sh|||doc|general documentation|public|normal|style_hints|Documentation line markers and style hints
+doc-sample.sh|||doc|general documentation|public|normal|style_hint_examples|Style hint examples
+doc-sample.sh|This is another list item.||fn|function|public|normal|sample_public_function|Sample public function
+doc-sample.sh|This is another list item.||fn|function|public|normal|sample_function_with_arguments|Sample function with arguments
+doc-sample.sh|This is another list item.||fn|function|internal|normal|_sample_internal_function|Internal function documentation
+doc-sample.sh|This is another list item.||fn|function|public|template|sample_template_function|Sample template function
+doc-sample.sh|This is another list item.||var|variable|public|normal|SAMPLE_PUBLIC_VARIABLE|Public variable documentation
+doc-sample.sh|This is another list item.||var|variable|internal|normal|_SAMPLE_INTERNAL_VARIABLE|Internal variable documentation
+doc-sample.sh|This is another list item.||var|variable|public|template|SAMPLE_TEMPLATE_VARIABLE|Template variable documentation
+doc-sample.sh|This is another list item.||doc|general documentation|public|normal|recommended_item_sections|Recommended item sections
+doc-sample.sh|This is another list item.||doc|general documentation|public|template|general_documentation_template|General documentation template
+doc-sample.sh|Keep list items concise.||doc|general documentation|public|normal|empty_section_example|Empty section example
+ui-ask.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+ui-ask.sh|Internal helpers||fn|function|internal|normal|_ask_expand_choices|Expand compact choice specifications
+ui-ask.sh|Internal helpers||fn|function|internal|normal|_ask_choice_is_valid|
+ui-ask.sh|Internal helpers||fn|function|internal|normal|_ask_build_prompt|Build a readline-safe ask prompt
+ui-ask.sh|Internal helpers||fn|function|internal|normal|_ask_validate|
+ui-ask.sh|Internal helpers||fn|function|internal|normal|_ask_decision_expand_choices|Expand decision aliases
+ui-ask.sh|Internal helpers||fn|function|internal|normal|_ask_decision_normalize|Normalize a typed decision
+ui-ask.sh|Internal helpers||fn|function|internal|normal|_ask_decision_display|
+ui-ask.sh|Internal helpers||fn|function|internal|normal|_ask_decision_map_dlg_rc|Map autocontinue return codes to decisions
+ui-ask.sh|Internal helpers||fn|function|internal|normal|_ask_parse_fieldspec|Parse an ask_prompt_form field specification
+ui-ask.sh|Internal helpers||fn|function|internal|normal|_ask_is_ident|
+ui-ask.sh|Internal helpers||fn|function|internal|template|_ask_datetime_normalize|
+ui-ask.sh|Public API||fn|function|public|normal|ask|Ask for a single typed value
+ui-ask.sh|Public API||fn|function|public|normal|ask_datetime|
+ui-ask.sh|Public API||fn|function|public|normal|ask_decision|Ask for a canonical symbolic decision
+ui-ask.sh|Public API||fn|function|public|normal|ask_dlg_autocontinue|Show an interruptible auto-continue countdown
+ui-ask.sh|Public API||fn|function|public|normal|ask_selection|Select one or more values from a numbered list
+ui-ask.sh|Public API||fn|function|public|normal|ask_choose|Ask for a value from a choice list
+ui-ask.sh|Public API||fn|function|public|normal|ask_choose_immediate|Ask for a choice with instant single-key acceptance
+ui-ask.sh|Input coloring (match ask behavior)||fn|function|public|normal|ask_prompt_form|Prompt for multiple named fields
+ui.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+ui.sh|Compatibility overrides||fn|function|internal|normal|_sh_err|Sh err
+ui.sh|Compatibility overrides||fn|function|public|normal|confirm|Confirm
+ui.sh|Helpers||fn|function|internal|normal|_sgnd_ui_resolve_theme_file|Ui resolve theme file
+ui.sh|Public helpers|Public API|fn|function|public|normal|sgnd_strip_ansi|Strip ansi
+ui.sh|Public helpers|Public API|fn|function|public|normal|sgnd_visible_len|Visible len
+ui.sh|Theme loading|Public API|fn|function|public|normal|sgnd_ui_set_theme|Ui set theme
+ui.sh|Theme loading|Public API|fn|function|public|normal|sgnd_theme|Display or switch the active UI theme
+ui.sh|Theme loading|Public API|fn|function|public|normal|sgnd_ui_set_default_theme|Ui set default theme
+ui.sh|Styling helpers|Public API|fn|function|public|normal|sgnd_sgr|Sgr
+ui.sh|Styling helpers|Public API|fn|function|public|normal|sgnd_fg|Fg
+ui.sh|Styling helpers|Public API|fn|function|public|normal|sgnd_bg|Bg
+ui.sh|Runmode indicators|Public API|fn|function|public|normal|sgnd_update_runmode|Update runmode
+ui.sh|Runmode indicators|Public API|fn|function|public|normal|sgnd_runmode_color|Runmode color
+ui.sh|Rendering primitives|Public API|fn|function|public|normal|sgnd_terminal_width|Return the current terminal width
+ui.sh|Rendering primitives|Public API|fn|function|public|normal|sgnd_render_width|Resolve an effective console render width
+ui.sh|Rendering primitives|Public API|fn|function|public|normal|sgnd_print_labeledvalue|Print labeledvalue
+ui.sh|Rendering primitives|Public API|fn|function|public|normal|sgnd_print_labeledmultivalue|
+ui.sh|Rendering primitives|Public API|fn|function|public|normal|sgnd_print_fill|Print fill
+ui.sh|Rendering primitives|Public API|fn|function|public|normal|sgnd_print_titlebar|Print titlebar
+ui.sh|Rendering primitives|Public API|fn|function|public|normal|sgnd_print_sectionheader|Print sectionheader
+ui.sh|Rendering primitives|Public API|fn|function|public|normal|sgnd_print|Print
+ui.sh|Rendering primitives|Public API|fn|function|public|normal|sgnd_print_single|Print single
+ui.sh|Rendering primitives|Public API|fn|function|public|normal|sgnd_print_file|Print file
+ui.sh|Rendering primitives|Public API|fn|function|public|normal|sgnd_print_cell|Print cell
+ui.sh|Rendering primitives|Public API|fn|function|public|normal|sgnd_module_show_metadata|Module show metadata
+ui.sh|Rendering primitives|Public API|fn|function|public|normal|sgnd_clear|Clear the visible terminal display
+ui.sh|Sample/demo renderers|Public API|fn|function|public|normal|sgnd_color_samples|Color samples
+ui.sh|Sample/demo renderers|Public API|fn|function|public|normal|sgnd_sample_row|Sample row
+ui.sh|Sample/demo renderers|Public API|fn|function|public|normal|sgnd_style_samples|Display the active UI theme
+sgnd-core.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+sgnd-core.sh|Runtime requirements|Public API|fn|function|public|normal|sgnd_have|Have
+sgnd-core.sh|Runtime requirements|Public API|fn|function|public|normal|sgnd_need_cmd|Need cmd
+sgnd-core.sh|Runtime requirements|Public API|fn|function|public|normal|sgnd_need_bash|Need bash
+sgnd-core.sh|Runtime requirements|Public API|fn|function|public|normal|sgnd_need_tty|Need tty
+sgnd-core.sh|Filesystem and paths|Public API|fn|function|public|normal|sgnd_can_append|Can append
+sgnd-core.sh|Filesystem and paths|Public API|fn|function|public|normal|sgnd_ensure_dir|Ensure dir
+sgnd-core.sh|Filesystem and paths|Public API|fn|function|public|normal|sgnd_abs_path|Abs path
+sgnd-core.sh|Filesystem and paths|Public API|fn|function|public|normal|sgnd_mktemp_dir|Mktemp dir
+sgnd-core.sh|Filesystem and paths|Public API|fn|function|public|normal|sgnd_mktemp_file|Mktemp file
+sgnd-core.sh|Values and variables|Public API|fn|function|public|normal|sgnd_slugify|Slugify
+sgnd-core.sh|Values and variables|Public API|fn|function|public|normal|sgnd_hash_sha256_file|Hash sha256 file
+sgnd-core.sh|Values and variables|Public API|fn|function|public|normal|sgnd_safe_replace_file|Safe replace file
+sgnd-core.sh|Values and variables|Public API|fn|function|public|normal|sgnd_is_set|Is set
+sgnd-core.sh|Values and variables|Public API|fn|function|public|normal|sgnd_default|Default
+sgnd-core.sh|Values and variables|Public API|fn|function|public|normal|sgnd_is_number|Is number
+sgnd-core.sh|Values and variables|Public API|fn|function|public|normal|sgnd_array_has_items|Array has items
+sgnd-core.sh|Values and variables|Public API|fn|function|public|normal|sgnd_is_true|Is true
+sgnd-core.sh|Process and runtime|Public API|fn|function|public|normal|sgnd_proc_exists|Proc exists
+sgnd-core.sh|Process and runtime|Public API|fn|function|public|normal|sgnd_wait_for_exit|Wait for exit
+sgnd-core.sh|Process and runtime|Public API|fn|function|public|normal|sgnd_kill_if_running|Kill if running
+sgnd-core.sh|Diagnostics and execution|Public API|fn|function|public|normal|sgnd_caller_id|Caller id
+sgnd-core.sh|Diagnostics and execution|Public API|fn|function|public|normal|sgnd_stack_trace|Stack trace
+sgnd-core.sh|Diagnostics and execution|Public API|fn|function|public|normal|sgnd_has_tty|Has tty
+sgnd-core.sh|Diagnostics and execution|Public API|fn|function|public|normal|sgnd_is_ui_mode|Is ui mode
+sgnd-core.sh|Diagnostics and execution|Public API|fn|function|public|normal|sgnd_is_desktop_mode|Is desktop mode
+sgnd-core.sh|Diagnostics and execution|Public API|fn|function|public|normal|sgnd_internal_call_guard|Internal call guard
+sgnd-core.sh|Diagnostics and execution|Public API|fn|function|public|normal|sgnd_show_vars_by_prefix|Show vars by prefix
+sgnd-core.sh|Diagnostics and execution|Public API|fn|function|public|normal|sgnd_version_ge|Version ge
+sgnd-core.sh|Diagnostics and execution|Public API|fn|function|public|normal|sgnd_timestamp|Timestamp
+sgnd-core.sh|Diagnostics and execution|Public API|fn|function|public|normal|sgnd_retry|Retry
+sgnd-core.sh|Collections and strings|Public API|fn|function|public|normal|sgnd_join|Join
+sgnd-core.sh|Collections and strings|Public API|fn|function|public|normal|sgnd_array_union|Array union
+sgnd-core.sh|Collections and strings|Public API|fn|function|public|normal|sgnd_trim|Trim
+sgnd-core.sh|Collections and strings|Public API|fn|function|public|normal|sgnd_string_repeat|String repeat
+sgnd-core.sh|Collections and strings|Public API|fn|function|public|normal|sgnd_fill_left|Fill left
+sgnd-core.sh|Collections and strings|Public API|fn|function|public|normal|sgnd_fill_right|Fill right
+sgnd-core.sh|Collections and strings|Public API|fn|function|public|normal|sgnd_fill_center|Fill center
+sgnd-core.sh|Terminal text layout|Public API|fn|function|public|normal|sgnd_visible_length|Visible length
+sgnd-core.sh|Terminal text layout|Public API|fn|function|public|normal|sgnd_terminal_width|Terminal width
+sgnd-core.sh|Terminal text layout|Public API|fn|function|public|normal|sgnd_padded_visible|Padded visible
+sgnd-core.sh|Terminal text layout|Public API|fn|function|public|normal|sgnd_wrap_words|Wrap words
+sgnd-core.sh|Validation|Public API|fn|function|public|normal|sgnd_validate_ipv4|Validate ipv4
+sgnd-core.sh|Validation|Public API|fn|function|public|normal|sgnd_validate_yesno|Validate yesno
+sgnd-core.sh|Validation|Public API|fn|function|public|normal|sgnd_validate_int|Validate int
+sgnd-core.sh|Validation|Public API|fn|function|public|normal|sgnd_validate_numeric|Validate numeric
+sgnd-core.sh|Validation|Public API|fn|function|public|normal|sgnd_validate_text|Validate text
+sgnd-core.sh|Validation|Public API|fn|function|public|normal|sgnd_validate_bool|Validate bool
+sgnd-core.sh|Validation|Public API|fn|function|public|normal|sgnd_validate_date|Validate date
+sgnd-core.sh|Validation|Public API|fn|function|public|normal|sgnd_validate_cidr|Validate cidr
+sgnd-core.sh|Validation|Public API|fn|function|public|normal|sgnd_validate_slug|Validate slug
+sgnd-core.sh|Validation|Public API|fn|function|public|normal|sgnd_validate_fs_name|Validate fs name
+sgnd-core.sh|Validation|Public API|fn|function|public|normal|sgnd_validate_file_exists|Validate file exists
+sgnd-core.sh|Validation|Public API|fn|function|public|normal|sgnd_validate_path_exists|Validate path exists
+sgnd-core.sh|Validation|Public API|fn|function|public|normal|sgnd_validate_dir_exists|Validate dir exists
+sgnd-core.sh|Validation|Public API|fn|function|public|normal|sgnd_validate_executable|Validate executable
+sgnd-core.sh|Validation|Public API|fn|function|public|normal|sgnd_validate_file_not_exists|Validate file not exists
+sgnd-menu.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+sgnd-menu.sh|Toggle formatting||fn|function|internal|normal|_sgnd_console_toggleword|Render a toggle word with an emphasized hotkey
+sgnd-menu.sh|Toggle formatting||fn|function|internal|normal|_sgnd_console_statusword|Render one status-bar fragment
+sgnd-menu.sh|Toggle formatting||fn|function|internal|normal|_sgnd_console_onoff|Render a colored On/Off state
+sgnd-menu.sh|Toggle labels||fn|function|internal|normal|_sgnd_console_label_clearonrender|Build the clear-on-render label
+sgnd-menu.sh|Toggle labels||fn|function|internal|normal|_sgnd_console_label_dryrun|Build the dry-run label
+sgnd-menu.sh|Toggle labels||fn|function|internal|normal|_sgnd_console_label_debug|Build the debug label
+sgnd-menu.sh|Toggle labels||fn|function|internal|normal|_sgnd_console_label_verbose|Build the verbose label
+sgnd-menu.sh|Toggle labels||fn|function|internal|normal|_sgnd_console_label_logfile|Build the logfile label
+sgnd-menu.sh|Toggle actions||fn|function|internal|normal|_sgnd_console_toggle_clearonrender|Toggle clear-on-render
+sgnd-menu.sh|Toggle actions||fn|function|internal|normal|_sgnd_console_toggle_debug|Toggle debug mode
+sgnd-menu.sh|Toggle actions||fn|function|internal|normal|_sgnd_console_toggle_verbose|Toggle verbose mode
+sgnd-menu.sh|Toggle actions||fn|function|internal|normal|_sgnd_console_theme_name|Return the active theme name
+sgnd-menu.sh|Session actions||fn|function|internal|normal|_sgnd_console_set_lines_per_page|Set lines per page
+sgnd-menu.sh|Session actions||fn|function|internal|normal|_sgnd_console_redraw|Request a menu redraw
+sgnd-menu.sh|Session actions||fn|function|internal|normal|_sgnd_console_quit|Request menu termination
+sgnd-menu.sh|Session actions||fn|function|internal|normal|_sgnd_console_nextpage|Move to the next menu page
+sgnd-menu.sh|Session actions||fn|function|internal|normal|_sgnd_console_prevpage|Move to the previous menu page
+sgnd-menu.sh|Menu model cache||fn|function|internal|normal|_sgnd_console_refresh_model_cache|Materialize menu datatables into indexed caches
+sgnd-menu.sh|Menu model indexes||fn|function|internal|normal|_sgnd_console_collect_group_render_indexes|Build ordered group indexes for the active source
+sgnd-menu.sh|Menu model indexes||fn|function|internal|normal|_sgnd_console_collect_visible_item_indexes|Build visible item indexes for the active source
+sgnd-menu.sh|Menu model indexes||fn|function|internal|normal|_sgnd_console_visible_item_count|Return the visible item count
+sgnd-menu.sh|Menu model indexes||fn|function|internal|normal|_sgnd_console_get_visible_row_index|Resolve a visible position to its model row
+sgnd-menu.sh|Menu model indexes||fn|function|internal|normal|_sgnd_menu_module_chapter|Derive the page chapter from a module source
+sgnd-menu.sh|Menu model indexes||fn|function|internal|normal|_sgnd_console_get_visible_display_number|Return an item's chapter-local display number
+sgnd-menu.sh|Menu model indexes||fn|function|internal|normal|_sgnd_console_find_visible_pos_for_row|Find a model row in the visible index
+sgnd-menu.sh|Menu model indexes||fn|function|internal|normal|_sgnd_console_group_continues_after_visible_pos|Test whether a group continues later in the visible list
+sgnd-menu.sh|Menu layout measurement||fn|function|internal|normal|_sgnd_console_body_height|Return the usable menu-body height
+sgnd-menu.sh|Menu layout measurement||fn|function|internal|normal|_sgnd_console_measure_item_lines|Measure one rendered menu item
+sgnd-menu.sh|Menu layout measurement||fn|function|internal|normal|_sgnd_console_measure_group_header_lines|Return group-header height
+sgnd-menu.sh|Menu layout measurement||fn|function|internal|normal|_sgnd_console_display_key_width|Calculate the width of visible numeric menu keys
+sgnd-menu.sh|Menu layout measurement||fn|function|internal|normal|_sgnd_console_calc_label_width|Calculate the shared menu label width
+sgnd-menu.sh|Menu pagination||fn|function|internal|normal|_sgnd_console_build_pages|Build cached menu page boundaries
+sgnd-menu.sh|Menu rendering||fn|function|internal|normal|_sgnd_console_render_menu|Render the active menu page
+sgnd-menu.sh|Menu rendering||fn|function|internal|normal|_sgnd_console_render_menu_title|Render the console title block
+sgnd-menu.sh|Menu rendering||fn|function|internal|normal|_sgnd_console_render_page_header|Render the current page indicator above the menu body
+sgnd-menu.sh|Menu rendering||fn|function|internal|normal|_sgnd_console_render_menu_body_paged|Render the current page body
+sgnd-menu.sh|Menu rendering||fn|function|internal|normal|_sgnd_console_render_page_rows|Render selected groups and item rows
+sgnd-menu.sh|Menu rendering||fn|function|internal|normal|_sgnd_console_render_group|Render one complete menu group
+sgnd-menu.sh|Menu rendering||fn|function|internal|normal|_sgnd_console_render_togglebar|Render runtime status and keyboard legend
+sgnd-menu.sh|Public API||fn|function|public|normal|sgnd_menu_create|Initialize a reusable menu model
+sgnd-menu.sh|Public API||fn|function|public|normal|sgnd_menu_register_group|Register a menu group
+sgnd-menu.sh|Public API||fn|function|public|normal|sgnd_menu_register_item|Register one menu item
+sgnd-menu.sh|Public API||fn|function|public|normal|sgnd_menu_set_item_status|Set menu item status decoration
+sgnd-menu.sh|Public API||fn|function|internal|normal|_sgnd_menu_status_text|Build a colored status icon
+sgnd-menu.sh|Public API||fn|function|public|normal|sgnd_menu_show_menu|Render the current menu
+sgnd-menu.sh|Public API||fn|function|public|normal|sgnd_console_register_group|Compatibility alias for sgnd_menu_register_group
+sgnd-menu.sh|Public API||fn|function|public|normal|sgnd_console_register_item|Compatibility alias for sgnd_menu_register_item
+sgnd-menu.sh|Menu input and dispatch||fn|function|public|normal|sgnd_menu_read_choice|Read one menu choice or navigation key
+sgnd-menu.sh|Menu input and dispatch||fn|function|public|normal|sgnd_menu_dispatch|Dispatch a normalized menu choice
+sgnd-menu.sh|Menu input and dispatch||fn|function|internal|normal|_sgnd_console_valid_choices_csv|Build the current valid-choice list
+sgnd-menu.sh|Menu input and dispatch||fn|function|internal|normal|_sgnd_menu_execute_item|Execute a registered menu item through an optional host executor
+sgnd-menu.sh|Menu input and dispatch||fn|function|internal|normal|_sgnd_console_dispatch|Dispatch a normalized menu choice
+sgnd-comment-header-parser.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+sgnd-comment-header-parser.sh|Public API||fn|function|public|normal|sgnd_header_read|Header read
+sgnd-comment-header-parser.sh|Public API||fn|function|public|normal|sgnd_header_load_section_to_dt|Header load section to dt
+sgnd-comment-header-parser.sh|Public API||fn|function|public|normal|sgnd_header_is_section_header|Header is section header
+sgnd-comment-header-parser.sh|Public API||fn|function|public|normal|sgnd_header_buffer_load|Header buffer load
+sgnd-comment-header-parser.sh|Public API||fn|function|public|normal|sgnd_header_buffer_get_section|Header buffer get section
+sgnd-comment-header-parser.sh|Public API||fn|function|public|normal|sgnd_header_calc_checksum|Header calc checksum
+sgnd-comment-header-parser.sh|Public API||fn|function|public|normal|sgnd_header_bump_version|Header bump version
+sgnd-comment-header-parser.sh|Public API||fn|function|public|normal|sgnd_header_get_section|Header get section
+sgnd-comment-header-parser.sh|Public API||fn|function|public|normal|sgnd_header_get_section_from_text|Header get section from text
+sgnd-comment-header-parser.sh|Public API||fn|function|public|normal|sgnd_header_get_banner_parts_from_text|Header get banner parts from text
+sgnd-comment-header-parser.sh|Public API||fn|function|public|normal|sgnd_header_parse_banner_line|Header parse banner line
+sgnd-comment-header-parser.sh|Public API||fn|function|public|normal|sgnd_header_get_field|Header get field
+sgnd-comment-header-parser.sh|Public API||fn|function|public|normal|sgnd_header_get_field_value|Header get field value
+sgnd-comment-header-parser.sh|Public API||fn|function|public|normal|sgnd_header_get_banner_parts|Header get banner parts
+sgnd-comment-header-parser.sh|Public API||fn|function|public|normal|sgnd_section_get_field_value|Section get field value
+sgnd-comment-header-parser.sh|Public API||fn|function|public|normal|sgnd_header_add_field|Header add field
+sgnd-comment-header-parser.sh|Public API||fn|function|public|normal|sgnd_header_upsert_field|Header upsert field
+sgnd-comment-header-parser.sh|Public API||fn|function|public|normal|sgnd_header_set_field|Header set field
+sgnd-comment-header-parser.sh|Public API||fn|function|public|normal|sgnd_framework_set_version|Update framework version identity
+sgnd-system.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+sgnd-system.sh|Privilege and runtime requirements|Public API|fn|function|public|normal|sgnd_need_root|Need root
+sgnd-system.sh|Privilege and runtime requirements|Public API|fn|function|public|normal|sgnd_cannot_root|Cannot root
+sgnd-system.sh|Privilege and runtime requirements|Public API|fn|function|public|normal|sgnd_need_systemd|Need systemd
+sgnd-system.sh|Privilege and runtime requirements|Public API|fn|function|public|normal|sgnd_need_writable|Need writable
+sgnd-system.sh|Privilege and runtime requirements|Public API|fn|function|public|normal|sgnd_is_active|Is active
+sgnd-system.sh|Privilege and runtime requirements|Public API|fn|function|public|normal|sgnd_ensure_writable_dir|Ensure writable dir
+sgnd-system.sh|Network|Public API|fn|function|public|normal|sgnd_get_primary_nic|Get primary nic
+sgnd-system.sh|Network|Public API|fn|function|public|normal|sgnd_ping_ok|Ping ok
+sgnd-system.sh|Network|Public API|fn|function|public|normal|sgnd_port_open|Port open
+sgnd-system.sh|Network|Public API|fn|function|public|normal|sgnd_get_ip|Get ip
+sgnd-system.sh|User context and ownership|Public API|fn|function|public|normal|sgnd_real_user|Real user
+sgnd-system.sh|User context and ownership|Public API|fn|function|public|normal|sgnd_real_home|Real home
+sgnd-system.sh|User context and ownership|Public API|fn|function|public|normal|sgnd_run_as_real_user|Run as real user
+sgnd-system.sh|User context and ownership|Public API|fn|function|public|normal|sgnd_fix_ownership|Fix ownership
+sgnd-system.sh|User context and ownership|Public API|fn|function|public|normal|sgnd_fix_permissions|Fix permissions
+sgnd-system.sh|Operating system information|Public API|fn|function|public|normal|sgnd_get_os|Get os
+sgnd-system.sh|Operating system information|Public API|fn|function|public|normal|sgnd_get_os_version|Get os version
+sgnd-system.sh|Failure and command execution|Public API|fn|function|public|normal|sgnd_die|Die
+sgnd-system.sh|Failure and command execution|Public API|fn|function|public|normal|sgnd_require|Require
+sgnd-system.sh|Failure and command execution|Public API|fn|function|public|normal|sgnd_must|Must
+doc-renderer.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+doc-renderer.sh|Local definitions||var|variable|public|normal|DOC_RENDER_CACHE_DIR|Persistent renderer input cache directory
+doc-renderer.sh|Arguments|Local definitions|doc|general documentation|public|normal|render_options|Documentation output selection and ordering defaults
+doc-renderer.sh|Helpers|Local definitions|fn|function|internal|normal|_init_metadata|Initialize document-level render metadata
+doc-renderer.sh|Helpers|Local definitions|fn|function|internal|normal|_prepare_output_directory|Create and optionally clean the documentation output directory
+doc-renderer.sh|Helpers|Local definitions|fn|function|internal|normal|_export_render_config|Export renderer configuration to a PSV file
+doc-renderer.sh|Helpers|Local definitions|fn|function|internal|normal|_collect_license_lines|Collect active license text for appendix rendering
+doc-renderer.sh|Helpers|Local definitions|fn|function|internal|normal|_export_render_tables|Export parser tables for the Python renderer
+doc-renderer.sh|Helpers|Local definitions|fn|function|internal|normal|_doc_render_cache_dir|Resolve the persistent renderer cache directory
+doc-renderer.sh|Helpers|Local definitions|fn|function|internal|normal|_clear_render_cache|Remove cached renderer input data
+doc-renderer.sh|Helpers|Local definitions|fn|function|internal|normal|_persist_render_cache|Persist a complete renderer export set
+doc-renderer.sh|Helpers|Local definitions|fn|function|internal|normal|_validate_render_cache|Validate cached renderer input
+doc-renderer.sh|Helpers|Local definitions|fn|function|internal|normal|_cleanup_old_render_exports|Clean old renderer export folders
+doc-renderer.sh|Main sequence||fn|function|internal|normal|_render_site|Render collected documentation data
+doc-renderer.sh|Main sequence||fn|function|internal|normal|_render_cached_site|Render HTML from the persistent renderer cache
+ui-say.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+ui-say.sh|Helpers||fn|function|internal|normal|_say_normalize_log_level|Normalize a log level name
+ui-say.sh|Helpers||fn|function|internal|normal|_say_should_print_console|Determine whether a message should be written to the console
+ui-say.sh|Helpers||fn|function|internal|normal|_say_should_write_log|Determine whether a message should be written to the logfile
+ui-say.sh|Helpers||fn|function|internal|normal|_say_caller|Say caller
+ui-say.sh|Helpers||fn|function|internal|normal|_say_write_log|Say write log
+ui-say.sh|Helpers||fn|function|internal|normal|_sgnd_rotate_logs|Rotate logs
+ui-say.sh|Helpers||fn|function|internal|normal|_sgnd_logfile|Logfile
+ui-say.sh|Helpers||fn|function|internal|normal|_sayprogress_write_slot|Sayprogress write slot
+ui-say.sh|Helpers||fn|function|internal|normal|_sgnd_ensure_linebreak|Ensure linebreak
+ui-say.sh|Public API||fn|function|public|normal|say|Say
+ui-say.sh|Build final output line and print|Public API|fn|function|public|normal|sayprogress_begin|Sayprogress Begin
+ui-say.sh|Build final output line and print|Public API|fn|function|public|normal|sayprogress|Sayprogress
+ui-say.sh|Build final output line and print|Public API|fn|function|public|normal|sayprogress_done|Sayprogress Done
+ui-say.sh|Convenience wrappers for say() with a fixed TYPE.|Public API|fn|function|public|normal|sayinfo|Write an informational message
+ui-say.sh|Convenience wrappers for say() with a fixed TYPE.|Public API|fn|function|public|normal|saystart|Write a start/progress message
+ui-say.sh|Convenience wrappers for say() with a fixed TYPE.|Public API|fn|function|public|normal|saywarning|
+ui-say.sh|Convenience wrappers for say() with a fixed TYPE.|Public API|fn|function|public|normal|sayfail|Write a failure message
+ui-say.sh|Convenience wrappers for say() with a fixed TYPE.|Public API|fn|function|public|normal|saycancel|Write a cancellation message
+ui-say.sh|Convenience wrappers for say() with a fixed TYPE.|Public API|fn|function|public|normal|sayok|Write a success message
+ui-say.sh|Convenience wrappers for say() with a fixed TYPE.|Public API|fn|function|public|normal|sayend|Write an operation-complete message
+ui-say.sh|Convenience wrappers for say() with a fixed TYPE.|Public API|fn|function|public|normal|justsay|Write plain message text
+ui-say.sh|Convenience wrappers for say() with a fixed TYPE.|Public API|fn|function|public|normal|saydebug|Write a debug message
+sgnd-info.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+sgnd-info.sh|Internal helpers||fn|function|internal|normal|_sgnd_print_arg_spec_entry|Print arg spec entry
+sgnd-info.sh|Internal helpers||fn|function|internal|normal|_sgnd_print_arg_spec_list|Print arg spec list
+sgnd-info.sh|Internal helpers||fn|function|internal|normal|_sgnd_print_cfg_pass|Print cfg pass
+sgnd-info.sh|Public API||fn|function|public|normal|sgnd_print_cfg|Print cfg
+sgnd-info.sh|Public API||fn|function|public|normal|sgnd_print_framework_metadata|Print framework metadata
+sgnd-info.sh|Public API||fn|function|public|normal|sgnd_print_metadata|Print metadata
+sgnd-info.sh|Public API||fn|function|public|normal|sgnd_print_args|Print args
+sgnd-info.sh|Public API||fn|function|public|normal|sgnd_print_state|Print state
+sgnd-info.sh|Public API||fn|function|public|normal|sgnd_print_license|Print license
+sgnd-info.sh|Public API||fn|function|public|normal|sgnd_print_readme|Print readme
+sgnd-info.sh|Public API||fn|function|public|normal|sgnd_showenvironment|Showenvironment
+console-helpers.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+ui-glyphs.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+sgnd-cfg.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+sgnd-cfg.sh|Internal helpers||fn|function|internal|normal|_sgnd_is_ident|Is ident
+sgnd-cfg.sh|Internal helpers||fn|function|internal|normal|_sgnd_kv_load_file|Kv load file
+sgnd-cfg.sh|Internal helpers||fn|function|internal|normal|_sgnd_kv_set|Kv set
+sgnd-cfg.sh|Internal helpers||fn|function|internal|normal|_sgnd_kv_unset|Kv unset
+sgnd-cfg.sh|Internal helpers||fn|function|internal|normal|_sgnd_kv_reset_file|
+sgnd-cfg.sh|Internal helpers||fn|function|internal|normal|_sgnd_kv_get|Kv get
+sgnd-cfg.sh|Internal helpers||fn|function|internal|normal|_sgnd_kv_has|
+sgnd-cfg.sh|Internal helpers||fn|function|internal|normal|_sgnd_kv_list_keys|Kv list keys
+sgnd-cfg.sh|Public API (CFG)||fn|function|public|normal|sgnd_cfg_load|Cfg load
+sgnd-cfg.sh|Public API (CFG)||fn|function|public|normal|sgnd_cfg_set|Cfg set
+sgnd-cfg.sh|Public API (CFG)||fn|function|public|normal|sgnd_cfg_unset|Cfg unset
+sgnd-cfg.sh|Public API (CFG)||fn|function|public|normal|sgnd_cfg_reset|Cfg reset
+sgnd-cfg.sh|Public API (CFG)||fn|function|public|normal|sgnd_cfg_get|Cfg get
+sgnd-cfg.sh|Public API (CFG)||fn|function|public|normal|sgnd_cfg_has|Cfg has
+sgnd-cfg.sh|Public API (CFG)||fn|function|public|normal|sgnd_cfg_show_keys|Cfg show keys
+sgnd-cfg.sh|Public API (CFG)||fn|function|public|normal|sgnd_cfg_has_audience|Cfg has audience
+sgnd-cfg.sh|Public API (CFG)||fn|function|public|normal|sgnd_cfg_write_skeleton_filtered|
+sgnd-cfg.sh|Public API (CFG)||fn|function|internal|normal|_sgnd_cfg_write_template_header|Cfg write template header
+sgnd-cfg.sh|Public API (CFG)||fn|function|public|normal|sgnd_cfg_load_file|Cfg load file
+sgnd-cfg.sh|Public API (CFG)||fn|function|public|normal|sgnd_cfg_create_missing_domain_files|Cfg create missing domain files
+sgnd-cfg.sh|Public API (CFG)||fn|function|public|normal|sgnd_cfg_domain_apply|Cfg domain apply
+sgnd-datatable.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+sgnd-datatable.sh|DDL functions||fn|function|public|normal|sgnd_dt_array_length|Dt array length
+sgnd-datatable.sh|DDL functions||fn|function|public|normal|sgnd_dt_split_schema|Dt split schema
+sgnd-datatable.sh|DDL functions||fn|function|public|normal|sgnd_dt_split_row|Dt split row
+sgnd-datatable.sh|DDL functions||fn|function|internal|normal|_dt_build_sortkey|Dt build sortkey
+sgnd-datatable.sh|DDL functions||fn|function|public|normal|sgnd_dt_validate_value|Dt validate value
+sgnd-datatable.sh|DDL functions||fn|function|public|normal|sgnd_dt_validate_schema|Dt validate schema
+sgnd-datatable.sh|DDL functions||fn|function|public|normal|sgnd_dt_column_index|Dt column index
+sgnd-datatable.sh|DDL functions||fn|function|public|normal|sgnd_dt_column_count|Dt column count
+sgnd-datatable.sh|DML functions||fn|function|public|normal|sgnd_dt_make_row|Dt make row
+sgnd-datatable.sh|DML functions||fn|function|public|normal|sgnd_dt_has_row|Dt has row
+sgnd-datatable.sh|DML functions||fn|function|public|normal|sgnd_dt_row_get|Dt row get
+sgnd-datatable.sh|DML functions||fn|function|public|normal|sgnd_dt_row_set|Dt row set
+sgnd-datatable.sh|DML functions||fn|function|public|normal|sgnd_dt_row_count|Dt row count
+sgnd-datatable.sh|DML functions||fn|function|public|normal|sgnd_dt_insert|Dt insert
+sgnd-datatable.sh|DML functions||fn|function|public|normal|sgnd_dt_delete|Dt delete
+sgnd-datatable.sh|DML functions||fn|function|public|normal|sgnd_dt_get|Dt get
+sgnd-datatable.sh|DML functions||fn|function|public|normal|sgnd_dt_set|Dt set
+sgnd-datatable.sh|DML functions||fn|function|public|normal|sgnd_dt_find_first|Dt find first
+sgnd-datatable.sh|DML functions||fn|function|public|normal|sgnd_dt_append|Dt append
+sgnd-datatable.sh|DML functions||fn|function|public|normal|sgnd_dt_print_table|Dt print table
+sgnd-datatable.sh|DML functions||fn|function|public|normal|sgnd_dt_get_sorted_rows|Dt get sorted rows
+sgnd-datatable.sh|DML functions||fn|function|public|normal|sgnd_dt_row2var|Dt row2var
+sgnd-datatable.sh|DML functions||fn|function|public|normal|sgnd_dt_export_psv|Dt export psv
+ui-dlg.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+ui-dlg.sh|Internal helpers||fn|function|internal|normal|_dlg_keymap|Dlg keymap
+ui-dlg.sh|Internal helpers||fn|function|public|normal|sgnd_decision_expand_choices|Decision expand choices
+ui-dlg.sh|Internal helpers||fn|function|public|normal|sgnd_decision_normalize|Decision normalize
+ui-dlg.sh|Internal helpers||fn|function|public|normal|sgnd_decision_display_choices|Decision display choices
+ui-dlg.sh|Internal helpers||fn|function|public|normal|sgnd_decision_from_dialog_rc|Decision from dialog rc
+ui-dlg.sh|Public API||fn|function|public|normal|sgnd_dlg_autocontinue|Dlg autocontinue
+ui-dlg.sh|Helpers||fn|function|public|normal|sgnd_dlg_custom_rc_for_key|Dlg custom rc for key
+ui-dlg.sh|Runtime state||fn|function|public|normal|sgnd_prompt_fromlist|Prompt fromlist
+ui-dlg.sh|Runtime state||fn|function|public|normal|sgnd_ask_decision|Ask decision
+sgnd-exe-common.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+sgnd-exe-common.sh|Minimal UI||fn|function|internal|normal|_sgnd_minimal_say_normalize_log_level|Normalize a minimal bootstrap log level
+sgnd-exe-common.sh|Minimal UI||fn|function|internal|normal|_sgnd_minimal_say_should_print_console|Determine minimal bootstrap console visibility
+sgnd-exe-common.sh|Minimal UI||fn|function|public|normal|say|Emit a minimal bootstrap message
+sgnd-exe-common.sh|Local helpers||fn|function|internal|normal|_load_bootstrapper|Load the SolidGroundUX bootstrap library
+sgnd-exe-common.sh|Public API||fn|function|public|normal|sgnd_exe_start|Start a SolidGroundUX executable script
+sgnd-args.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+sgnd-args.sh|Helper functions||fn|function|internal|normal|_sgnd_arg_split|Split one argument specification
+sgnd-args.sh|Helper functions||fn|function|internal|normal|_sgnd_arg_find_spec|Find an argument specification
+sgnd-args.sh|Helper functions||fn|function|internal|normal|_sgnd_arg_validate_enum|Validate an enum argument value
+sgnd-args.sh|Helper functions||fn|function|internal|normal|_sgnd_arg_init_defaults|Initialize argument defaults
+sgnd-args.sh|Public API||var|variable|public|normal|SGND_BUILTIN_ARGS|Builtin framework argument specifications
+sgnd-args.sh|Public API||var|variable|public|normal|SGND_BUILTIN_EXAMPLES|Builtin help examples
+sgnd-args.sh|Public API||fn|function|public|normal|sgnd_show_help|Show help
+sgnd-args.sh|Public API||fn|function|public|normal|sgnd_parse_args|Parse framework or script command-line arguments
+sgnd-args.sh|Public API||fn|function|public|normal|sgnd_builtinarg_handler|Builtinarg handler
+sgnd-bootstrap-env.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+sgnd-bootstrap-env.sh|Runtime directory metadata||var|variable|public|normal|SGND_FRAMEWORK_DIRS|Framework directory specifications
+sgnd-bootstrap-env.sh|Helpers||fn|function|internal|normal|_build_framework_dirs|Build framework directory specifications
+sgnd-bootstrap-env.sh|Helpers||fn|function|public|normal|sgnd_apply_defaults|Apply defaults
+sgnd-bootstrap-env.sh|Helpers||fn|function|public|normal|sgnd_defaults_reset|Defaults reset
+sgnd-bootstrap-env.sh|Helpers||fn|function|public|normal|sgnd_rebase_directories|Rebase directories
+sgnd-bootstrap-env.sh|Helpers||fn|function|public|normal|sgnd_rebase_framework_cfg_paths|Rebase framework cfg paths
+sgnd-bootstrap-env.sh|Helpers||fn|function|public|normal|sgnd_ensure_dirs|Ensure dirs
+sgnd-definitions.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+sgnd-definitions.sh|Framework metadata||var|variable|public|normal|SGND_CORE_LIBS|Ordered core library list
+sgnd_doc_renderer.py|Python Renderer Backend||var|variable|public|normal|DOC_INDEX_LOGO|Documentation index branding asset
+sgnd_doc_renderer.py|Python Renderer Backend||var|variable|public|normal|DOC_HEADER_LOGO|Documentation page header branding asset
+sgnd_doc_renderer.py|Python Renderer Backend||var|variable|public|normal|DOC_INDEX_HERO|Documentation landing-page hero asset
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|read_psv|Read psv
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|read_config|Read config
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|esc|Esc
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|slugify|Create slug for
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|normalize_key|Normalize key
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|content_ref|Build content ref
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|canonical_ref|Build canonical ref
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|attribution_ref|Build attribution ref
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|glossary_ref|Build glossary ref
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|integrity_ref|Build integrity ref
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|globals_ref|Build globals ref
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|license_ref|Build license ref
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|enums_ref|Build enums ref
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|changelog_ref|Build changelog ref
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|install_ref|Build install ref
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|page_href_from_contentref|Build page href from contentref
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|is_item_node|Determine whether item node
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|display_name_with_title|Resolve display name with title
+sgnd_doc_renderer.py|Python Renderer Backend||cls|class|public|normal|AppendixSpec|Appendix specification
+sgnd_doc_renderer.py|Python Renderer Backend||cls|class|public|normal|NavNode|Navigation node
+sgnd_doc_renderer.py|Python Renderer Backend||cls|class|public|normal|DocRenderer|Documentation HTML renderer
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|internal|normal|__init__|Initialize renderer instance
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|run|Run
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|load_input|Load input
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|prepare_output|Prepare output
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|init_metadata|Initialize metadata
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|product_has_appendices|Determine whether generated appendices belong to a product
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|build_doc_hierarchy|Build doc hierarchy
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|modules_by_product|Modules by product
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|split_special_comment_modules|Split special comment modules
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|product_comment_role|Product comment role
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|group_comment_role|Group comment role
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|subgroup_comment_role|Subgroup comment role
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|add_standalone_doc_node|Add standalone doc node
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|is_template_module|Determine whether template module
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|should_render_item|Determine whether render item
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|section_key|Section key
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|section_level|Section level
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|is_direct_child_section|Determine whether direct child section
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|section_has_body_content|Section has body content
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|section_has_visible_direct_items|Section has visible direct items
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|should_render_section|Determine whether render section
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|add_module_node|Add module node
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|build_content_index|Build content index
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_assets|Render assets
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|copy_branding_assets|Copy branding assets
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|branding_asset_exists|Branding asset exists
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_page_branding|Render page branding
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_nav_branding|Render nav branding
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|is_theme_module|Determine whether theme module
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|parse_shell_assignments|Parse shell assignments
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|strip_shell_inline_comment|Strip shell inline comment
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|xterm_256_rgb|Xterm 256 rgb
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|parse_sgr_color|Parse sgr color
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|resolve_theme_style|Resolve theme style
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|apply_theme_effect|Apply theme effect
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|css_style_attr|Css style attr
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|theme_sample|Theme sample
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|theme_pair|Theme pair
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_theme_specimen|Render theme specimen
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_layout_css|Render layout css
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|ensure_theme_css|Ensure theme css
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|default_theme_css|Provide default theme css
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|title_from_rows|Title from rows
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|regular_module_rows|Regular module rows
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|count_source_lines|Count source lines
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|collect_landing_summary|Collect landing summary
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_landing_summary|Render landing summary
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_title_page|Render title page
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_index_page|Render index page
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|is_appendix_ref|Determine whether appendix ref
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|has_renderable_page|Determine whether renderable page
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_navigation|Render navigation
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|get_first_item_page|Get first item page
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_content_pages|Render content pages
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_attribution_page|Render attribution page
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_attribution_body|Render attribution body
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_glossary_page|Render glossary page
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_glossary_body|Render glossary body
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|collect_glossary_rows|Collect glossary rows
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|extract_item_purpose|Extract item purpose
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_glossary_table|Render glossary table
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_integrity_page|Render integrity page
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_integrity_body|Render integrity body
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_license_page|Render license page
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_license_body|Render license body
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_enums_page|Render enums page
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_enums_body|Render enums body
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_globals_page|Render globals page
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_globals_body|Render globals body
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_globals_table|Render globals table
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|read_optional_project_document|Read optional project document
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_markdown_document|Render markdown document
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|flush_paragraph|Flush paragraph
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|close_list|Close list
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_project_document_page|Render project document page
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_canonical_page|Render canonical page
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_changelog_page|Render changelog page
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_install_page|Render install page
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_content_page|Render content page
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_content_page_for_ref|Render content page for ref
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|breadcrumb_from_contentref|Breadcrumb from contentref
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|is_module_level_special_page|Determine whether module level special page
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_module_content|Render module content
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|is_images_marker|Determine whether images marker
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|parse_image_entry|Parse image entry
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|image_source|Image source
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_image_group|Render image group
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|is_flowing_prose_row|Determine whether flowing prose row
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_rows|Render rows
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_content_for_ref|Render content for ref
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|main|Run documentation renderer
+21-style-fantasy.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
+21-style-fantasy.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
+21-style-fantasy.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
+31-style-mono-amber.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
+31-style-mono-amber.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
+31-style-mono-amber.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
+22-style-redalert.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
+22-style-redalert.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
+22-style-redalert.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
+32-style-mono-blue.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
+32-style-mono-blue.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
+32-style-mono-blue.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
+11-style-steelblue.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
+11-style-steelblue.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
+11-style-steelblue.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
+23-style-psychedelic.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
+23-style-psychedelic.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
+23-style-psychedelic.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
+10-style-dark.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
+10-style-dark.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
+10-style-dark.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
+30-style-mono-green.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
+30-style-mono-green.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
+30-style-mono-green.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
+20-style-testadura.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
+20-style-testadura.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
+20-style-testadura.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
+00-style-default.sh|say() global defaults||var|variable|public|normal|style_say_global_defaults|say() global defaults
+00-style-default.sh|Say prefixes||var|variable|public|normal|style_say_prefixes|Say prefixes
+00-style-default.sh|Colors||var|variable|public|normal|style_colors|Colors
+default-ui-palette.sh|Text attributes (SGR)||var|variable|public|normal|style_text_attributes_sgr|Text attributes (SGR)
+default-ui-palette.sh|Color codes||var|variable|public|normal|style_color_codes|Color codes
+default-ui-palette.sh|Foreground colors||var|variable|public|normal|style_foreground_dark_muted|Foreground: Dark / muted
+default-ui-palette.sh|Foreground colors||var|variable|public|normal|style_foreground_normal|Foreground: Normal
+default-ui-palette.sh|Foreground colors||var|variable|public|normal|style_foreground_bright|Foreground: Bright
+default-ui-palette.sh|Background colors||var|variable|public|normal|style_background_dark_muted|Background: Dark / muted
+default-ui-palette.sh|Background colors||var|variable|public|normal|style_background_normal|Background: Normal
+default-ui-palette.sh|Background colors||var|variable|public|normal|style_background_bright|Background: Bright
+default-ui-palette.sh|Background colors||var|variable|public|normal|palette_testadura_brand|Testadura brand colors
+default-ui-palette.sh|Background colors||var|variable|public|normal|palette_solidground_brand|SolidGround brand colors

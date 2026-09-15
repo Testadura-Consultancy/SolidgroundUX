@@ -7,7 +7,7 @@
 #   Build       : 2625722
 #   Source      : manage-web-server.sh
 #   Type        : script
-#   Group       : Management Console Modules
+#   Group       : Console Actions
 #   Purpose     : Configure, manage, validate, and inspect an Nginx web server
 # =====================================================================================
 set -uo pipefail

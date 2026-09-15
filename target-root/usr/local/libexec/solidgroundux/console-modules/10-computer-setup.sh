@@ -7,7 +7,7 @@
 #   Checksum    : 777bbe54b0ccf2962f682734ae12b49f62543ad3971608b804ee6950802b31e7
 #   Source      : 10-computer-setup.sh
 #   Type        : module
-#   Group       : Management Console Modules
+#   Group       : Module Registration
 #   Purpose     : Configure and validate the base computer
 #
 # Description:

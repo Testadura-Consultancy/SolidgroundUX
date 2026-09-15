@@ -7,7 +7,7 @@
 #   Source      : framework-smoketest.sh
 #   Wrapper     : sgnd-framework-smoketest
 #   Type        : script
-#   Group       : Management Console Modules
+#   Group       : Console Actions
 #   Purpose     : Validate the framework and exercise its interactive UI helpers
 #
 # Description:

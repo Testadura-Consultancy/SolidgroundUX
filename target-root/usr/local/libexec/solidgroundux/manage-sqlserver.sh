@@ -7,7 +7,7 @@
 #   Build       : 2625801
 #   Source      : manage-sqlserver.sh
 #   Type        : script
-#   Group       : Management Console Modules
+#   Group       : Console Actions
 #   Purpose     : Install, configure, manage, validate, and inspect Microsoft SQL Server
 # ==================================================================================
 set -uo pipefail

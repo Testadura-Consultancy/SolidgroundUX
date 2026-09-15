@@ -7,7 +7,7 @@
 #   Build       : 2624123
 #   Source      : manage-solidgroundux.sh
 #   Type        : script
-#   Group       : Management Console Modules
+#   Group       : Console Actions
 #   Purpose     : Apply persistent SolidGroundUX framework management actions
 #
 # Description:

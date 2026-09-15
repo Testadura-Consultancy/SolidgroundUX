@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>storage_reconcile_persistence</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<div class="doc-page-branding"><span class="doc-page-branding-title">SolidGroundUX Documentation</span><img src="../assets/branding/doc-header-logo.png" alt="SolidGroundUX"></div>
+<header class="doc-page-header">
+  <div class="doc-title">storage_reconcile_persistence</div>
+  <div class="doc-breadcrumb">manage-storage.sh:::Public module actions:storage_reconcile_persistence</div>
+</header>
+<div class="ct-functionbody sh-highlight">Purpose</div>
+<div class="ct-functionbody">  Remove stale SolidGroundUX-managed storage entries from /etc/fstab.</div>
+<div class="ct-functionbody"></div>
+<div class="ct-functionbody sh-highlight">Behavior</div>
+<div class="ct-functionbody">  - Detects the active filesystem labeled SGND_STORAGE.</div>
+<div class="ct-functionbody">  - Considers only fstab entries explicitly preceded by the canonical</div>
+<div class="ct-functionbody">    &#x27;# SolidGroundUX managed storage&#x27; marker.</div>
+<div class="ct-functionbody">  - Keeps the managed entry that matches the detected SGND_STORAGE UUID and mount point.</div>
+<div class="ct-functionbody">  - Removes stale managed storage blocks only; unrelated fstab entries are untouched.</div>
+<div class="ct-functionbody">  - Creates a timestamped backup before changing /etc/fstab.</div>
+<div class="ct-functionbody">  - Honors console dry-run mode.</div>
+</main>
+</body>
+</html>

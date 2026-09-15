@@ -6,7 +6,7 @@
 #   Build       : 2625721
 #   Source      : 27-active-directory-management.sh
 #   Type        : module
-#   Group       : Management Console Modules
+#   Group       : Module Registration
 #   Purpose     : Register Active Directory object-management actions
 #
 # Description:

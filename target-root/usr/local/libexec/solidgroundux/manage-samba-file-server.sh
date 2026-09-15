@@ -7,7 +7,7 @@
 #   Build       : 2624123
 #   Source      : manage-samba-file-server.sh
 #   Type        : script
-#   Group       : Management Console Modules
+#   Group       : Console Actions
 #   Purpose     : Prepare, validate, and inspect the Samba file-server service
 #
 # Description:

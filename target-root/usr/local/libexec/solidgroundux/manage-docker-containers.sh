@@ -7,7 +7,7 @@
 #   Build       : 2625802
 #   Source      : manage-docker-containers.sh
 #   Type        : script
-#   Group       : Management Console Modules
+#   Group       : Console Actions
 #   Purpose     : Create and manage Docker containers and images
 #
 # Description:

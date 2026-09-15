@@ -7,7 +7,7 @@
 #   Checksum    : f0226399b8e8fec81db6596957b38d79b09960986a2e8398cc107e53cc5ccf2f
 #   Source      : 40-solidgroundux.sh
 #   Type        : module
-#   Group       : Management Console Modules
+#   Group       : Module Registration
 #   Purpose     : Manage the SolidGroundUX framework and release lifecycle
 #
 # Description:

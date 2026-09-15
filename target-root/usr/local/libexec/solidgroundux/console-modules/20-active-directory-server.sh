@@ -7,7 +7,7 @@
 #   Checksum    : 08eae622f9f542950ea2431dd34887a01a82ea2728dc8efbd03fb98aeaef6dfd
 #   Source      : 20-active-directory-server.sh
 #   Type        : module
-#   Group       : Management Console Modules
+#   Group       : Module Registration
 #   Purpose     : Register Samba Active Directory server management actions
 #
 # Description:

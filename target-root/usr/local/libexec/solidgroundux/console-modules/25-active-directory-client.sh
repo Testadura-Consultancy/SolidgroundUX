@@ -6,7 +6,7 @@
 #   Build       : 2625721
 #   Source      : 25-active-directory-client.sh
 #   Type        : module
-#   Group       : Management Console Modules
+#   Group       : Module Registration
 #   Purpose     : Register Active Directory client management actions
 #
 # Description:
