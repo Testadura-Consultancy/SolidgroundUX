@@ -445,6 +445,7 @@ class DocRenderer:
         self.doc_subtitle = ""
         self.doc_version = ""
         self.doc_product = ""
+        self.collection_name = ""
         self.doc_render_date = ""
 
     # fn: run - Run
@@ -503,6 +504,7 @@ class DocRenderer:
         self.doc_subtitle = self.config.get("VAL_DOCUMENT_SUBTITLE", "")
         self.doc_version = self.config.get("VAL_DOCUMENT_VERSION", "")
         self.doc_product = self.config.get("VAL_DOCUMENT_PRODUCT", "")
+        self.collection_name = self.config.get("VAL_COLLECTION_NAME", "") or self.doc_title or self.doc_product
         self.doc_render_date = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     # ----------------------------------------------------------------------
@@ -2650,8 +2652,8 @@ body {
         output_file.parent.mkdir(parents=True, exist_ok=True)
 
         product = self.doc_product or "SolidGroundUX"
-        brand = "SolidGroundUX" if product.lower() == "solidgroundux" else product
-        subtitle = "Professional Bash Framework"
+        brand = self.collection_name or ("SolidGroundUX" if product.lower() == "solidgroundux" else product)
+        subtitle = self.doc_subtitle or "Documentation Collection"
         release_image = self.output_dir / "assets" / "images" / DOC_INDEX_HERO
 
         meta_lines = []
@@ -2685,7 +2687,7 @@ body {
             f'<div class="doc-title-page-subtitle">{esc(subtitle)}</div>',
             hero_html,
             summary_html,
-            '<p class="doc-title-page-note">This documentation is generated directly from the framework source.</p>',
+            '<p class="doc-title-page-note">This collection is generated directly from the selected product source.</p>',
             '<div class="doc-title-page-meta">',
             *meta_lines,
             '</div>',

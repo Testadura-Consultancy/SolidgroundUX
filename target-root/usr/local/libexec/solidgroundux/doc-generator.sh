@@ -158,7 +158,7 @@ set -uo pipefail
         # Optional: script-specific arguments
         # 
         # Each entry:
-        #   "name|short|type|var|help|choices"
+        #   "name|short|type|var|help|default|choices"
         #
         #   name    = long option name WITHOUT leading --
         #   short   - short option name WITHOUT leading -
@@ -176,6 +176,9 @@ set -uo pipefail
         "clean|c|flag|FLAG_CLEAN_OUTPUT|Clear output directory before writing|0|"
         "clear-render-cache||flag|FLAG_CLEAR_RENDER_CACHE|Clear cached renderer input before rebuilding it|0|"
         "copy-to-git||flag|FLAG_COPY_TO_GIT|Copy generated documentation to the Git repository docs directory|0|"
+        "collection|C|enum|VAL_COLLECTION_MODE|Collection action: create or update|update|create,update"
+        "collection-name||value|VAL_COLLECTION_NAME|Documentation collection name||"
+        "products|p|value|VAL_DOCUMENT_PRODUCTS|Comma-separated product names or ALL||"
         "file|f|value|VAL_FILESPEC|Comma-separated file masks for source scanning||"
         "mode|m|enum|VAL_UPDATE_MODE|Generation mode: full, selected, changed, or render|full|full,selected,changed,render"
         "update-files|u|value|VAL_UPDATE_FILES|Comma-separated files for selected update mode||"
@@ -257,6 +260,9 @@ set -uo pipefail
         #   - The script does not use persistent state.
     SGND_STATE_VARIABLES=(
         "VAL_SRCDIR|Source Directory||"
+        "VAL_COLLECTION_MODE|Collection action (create or update)||"
+        "VAL_COLLECTION_NAME|Documentation collection name||"
+        "VAL_DOCUMENT_PRODUCTS|Selected documentation products||"
         "VAL_FILESPEC|Filename masks||"
         "VAL_UPDATE_MODE|Generation mode (full, selected, changed, render)||"
         "VAL_UPDATE_FILES|Selected update files||"
@@ -341,6 +347,9 @@ set -uo pipefail
         VAL_UPDATE_FILES="${VAL_UPDATE_FILES:-}"
         VAL_OUTDIR="${VAL_OUTDIR:-$SGND_DOCS_DIR}"
         VAL_SRCDIR="${VAL_SRCDIR:-$SGND_FRAMEWORK_ROOT}"
+        VAL_COLLECTION_MODE="${VAL_COLLECTION_MODE:-update}"
+        VAL_COLLECTION_NAME="${VAL_COLLECTION_NAME:-SolidGroundUX Codex}"
+        VAL_DOCUMENT_PRODUCTS="${VAL_DOCUMENT_PRODUCTS:-ALL}"
 
         VAL_DOCUMENT_TITLE="${VAL_DOCUMENT_TITLE:-${SGND_PRODUCT:-}, Full Development Documentation}"
         VAL_DOCUMENT_SUBTITLE="${VAL_DOCUMENT_SUBTITLE:-}"
@@ -348,6 +357,281 @@ set -uo pipefail
         VAL_DOCUMENT_PRODUCT="${VAL_DOCUMENT_PRODUCT:-${SGND_PRODUCT:-}}"
 
    
+    }
+
+    # fn: _doc_discover_products - Discover product definitions beneath the selected source root
+        # . Purpose
+        #   Treat usr/local/lib/solidgroundux/globals/*-definitions.sh as the product registry
+        #   for the selected source tree.
+        # . Outputs (globals)
+        #   SGND_DOC_DISCOVERED_PRODUCTS, SGND_DOC_DISCOVERED_VERSIONS,
+        #   SGND_DOC_DISCOVERED_BUILDS, SGND_DOC_DISCOVERED_DEFINITIONS.
+    _doc_discover_products() {
+        local globals_dir="${VAL_SRCDIR%/}/usr/local/lib/solidgroundux/globals"
+        local definition="" record="" product="" version="" build=""
+
+        SGND_DOC_DISCOVERED_PRODUCTS=()
+        SGND_DOC_DISCOVERED_VERSIONS=()
+        SGND_DOC_DISCOVERED_BUILDS=()
+        SGND_DOC_DISCOVERED_DEFINITIONS=()
+
+        [[ -d "$globals_dir" ]] || {
+            saywarning "No product definitions directory found beneath source: $globals_dir"
+            return 0
+        }
+
+        while IFS= read -r -d '' definition; do
+            record="$(bash -c '
+                set -u
+                source "$1"
+                for var in $(compgen -A variable SGND_); do
+                    case "$var" in
+                        *_PRODUCT)
+                            prefix="${var%_PRODUCT}"
+                            version_var="${prefix}_VERSION"
+                            build_var="${prefix}_BUILD"
+                            printf "%s|%s|%s\n" "${!var-}" "${!version_var-}" "${!build_var-}"
+                            exit 0
+                            ;;
+                    esac
+                done
+            ' bash "$definition" 2>/dev/null || true)"
+            [[ -n "$record" ]] || continue
+            IFS='|' read -r product version build <<< "$record"
+            [[ -n "$product" ]] || continue
+            SGND_DOC_DISCOVERED_PRODUCTS+=("$product")
+            SGND_DOC_DISCOVERED_VERSIONS+=("$version")
+            SGND_DOC_DISCOVERED_BUILDS+=("$build")
+            SGND_DOC_DISCOVERED_DEFINITIONS+=("$definition")
+        done < <(find "$globals_dir" -maxdepth 1 -type f -name '*-definitions.sh' -print0 2>/dev/null | sort -z)
+
+        if (( ${#SGND_DOC_DISCOVERED_PRODUCTS[@]} == 0 )); then
+            saywarning "No *-definitions.sh product definitions found in $globals_dir"
+        fi
+    }
+
+    # fn: _doc_select_products - Resolve the requested product scope
+    _doc_select_products() {
+        local spec="${VAL_DOCUMENT_PRODUCTS:-ALL}"
+        local item="" product="" found=0
+        local -a requested=()
+
+        SGND_DOC_SELECTED_PRODUCTS=()
+        (( ${#SGND_DOC_DISCOVERED_PRODUCTS[@]} > 0 )) || return 0
+
+        if [[ -z "$spec" || "${spec^^}" == "ALL" ]]; then
+            SGND_DOC_SELECTED_PRODUCTS=("${SGND_DOC_DISCOVERED_PRODUCTS[@]}")
+            VAL_DOCUMENT_PRODUCTS="ALL"
+            return 0
+        fi
+
+        IFS=',' read -r -a requested <<< "$spec"
+        for item in "${requested[@]}"; do
+            item="${item#"${item%%[![:space:]]*}"}"
+            item="${item%"${item##*[![:space:]]}"}"
+            [[ -n "$item" ]] || continue
+            found=0
+            for product in "${SGND_DOC_DISCOVERED_PRODUCTS[@]}"; do
+                if [[ "${product,,}" == "${item,,}" ]]; then
+                    SGND_DOC_SELECTED_PRODUCTS+=("$product")
+                    found=1
+                    break
+                fi
+            done
+            (( found )) || {
+                sayfail "Unknown documentation product: $item"
+                return 1
+            }
+        done
+        (( ${#SGND_DOC_SELECTED_PRODUCTS[@]} > 0 ))
+    }
+
+    # fn: _doc_prompt_products - Prompt for one, several, or all discovered products
+    _doc_prompt_products() {
+        local reply="" token="" index=0
+        local -A seen=()
+        local -a selected=() tokens=()
+
+        _doc_discover_products
+        (( ${#SGND_DOC_DISCOVERED_PRODUCTS[@]} > 0 )) || { VAL_DOCUMENT_PRODUCTS="ALL"; return 0; }
+        if (( ${#SGND_DOC_DISCOVERED_PRODUCTS[@]} == 1 )); then
+            VAL_DOCUMENT_PRODUCTS="${SGND_DOC_DISCOVERED_PRODUCTS[0]}"
+            SGND_DOC_SELECTED_PRODUCTS=("${SGND_DOC_DISCOVERED_PRODUCTS[0]}")
+            sayinfo "Documentation product: ${SGND_DOC_DISCOVERED_PRODUCTS[0]}"
+            return 0
+        fi
+
+        sgnd_print
+        sgnd_print_sectionheader "Products" --padend 0
+        for index in "${!SGND_DOC_DISCOVERED_PRODUCTS[@]}"; do
+            sgnd_print "    $((index + 1))) ${SGND_DOC_DISCOVERED_PRODUCTS[$index]}  ${SGND_DOC_DISCOVERED_VERSIONS[$index]:+v${SGND_DOC_DISCOVERED_VERSIONS[$index]}}"
+        done
+        sgnd_print "    A) All products"
+        sgnd_print
+
+        ask --label "Products (numbers comma-separated or A)" --var reply --default "A" --back || return 1
+        if [[ "${reply^^}" == "A" || "${reply^^}" == "ALL" ]]; then
+            VAL_DOCUMENT_PRODUCTS="ALL"
+            SGND_DOC_SELECTED_PRODUCTS=("${SGND_DOC_DISCOVERED_PRODUCTS[@]}")
+            return 0
+        fi
+
+        IFS=',' read -r -a tokens <<< "$reply"
+        for token in "${tokens[@]}"; do
+            token="${token//[[:space:]]/}"
+            [[ "$token" =~ ^[0-9]+$ ]] || { saywarning "Invalid product selection: $token"; return 1; }
+            (( token >= 1 && token <= ${#SGND_DOC_DISCOVERED_PRODUCTS[@]} )) || { saywarning "Product selection out of range: $token"; return 1; }
+            index=$((token - 1))
+            [[ -n "${seen[$index]-}" ]] && continue
+            seen[$index]=1
+            selected+=("${SGND_DOC_DISCOVERED_PRODUCTS[$index]}")
+        done
+        (( ${#selected[@]} > 0 )) || return 1
+        SGND_DOC_SELECTED_PRODUCTS=("${selected[@]}")
+        VAL_DOCUMENT_PRODUCTS="$(IFS=','; printf '%s' "${selected[*]}")"
+    }
+
+    _doc_product_is_selected() {
+        local candidate="${1:-}" product=""
+        (( ${#SGND_DOC_SELECTED_PRODUCTS[@]} > 0 )) || return 0
+        for product in "${SGND_DOC_SELECTED_PRODUCTS[@]}"; do
+            [[ "${candidate,,}" == "${product,,}" ]] && return 0
+        done
+        return 1
+    }
+
+    _doc_selected_module_names() {
+        local row="" name="" product=""
+        for row in "${MOD_TABLE[@]}"; do
+            IFS='|' read -r _ name _ _ _ _ _ _ _ _ product <<< "$row"
+            _doc_product_is_selected "$product" && printf '%s\n' "$name"
+        done
+    }
+
+    _doc_force_single_product_on_new_modules() {
+        local start_index="${1:-0}"
+        local forced_product="" row=""
+        local -a fields=()
+        (( ${#SGND_DOC_DISCOVERED_PRODUCTS[@]} == 1 )) || return 0
+        forced_product="${SGND_DOC_DISCOVERED_PRODUCTS[0]}"
+        for (( i=start_index; i<${#MOD_TABLE[@]}; i++ )); do
+            row="${MOD_TABLE[$i]}"
+            IFS='|' read -r -a fields <<< "$row"
+            while (( ${#fields[@]} < 11 )); do fields+=(""); done
+            fields[10]="$forced_product"
+            MOD_TABLE[$i]="$(IFS='|'; printf '%s' "${fields[*]}")"
+        done
+    }
+
+    _doc_prune_new_modules_to_selected_products() {
+        local start_index="${1:-0}"
+        local row="" name="" product=""
+        local -a fields=() remove_modules=()
+        for (( i=start_index; i<${#MOD_TABLE[@]}; i++ )); do
+            row="${MOD_TABLE[$i]}"
+            IFS='|' read -r -a fields <<< "$row"
+            name="${fields[1]-}"
+            product="${fields[10]-}"
+            if ! _doc_product_is_selected "$product"; then
+                [[ -n "$name" ]] && remove_modules+=("$name")
+            fi
+        done
+        _doc_remove_modules "${remove_modules[@]}"
+    }
+
+    _doc_filter_current_tables_to_selected_products() {
+        local row="" name="" product="" field=""
+        local -A keep_modules=()
+        local -a retained=() fields=()
+
+        retained=()
+        for row in "${MOD_TABLE[@]}"; do
+            IFS='|' read -r -a fields <<< "$row"
+            name="${fields[1]-}"
+            product="${fields[10]-}"
+            if _doc_product_is_selected "$product"; then
+                retained+=("$row")
+                [[ -n "$name" ]] && keep_modules["$name"]=1
+            fi
+        done
+        MOD_TABLE=("${retained[@]}")
+
+        for spec in 'MOD_ATTRIBUTION:0' 'MOD_GLOBALS:0' 'MOD_SECTIONS:0' 'MOD_ITEMS:0' 'DOC_CONTENT_LINES:0'; do
+            local array_name="${spec%%:*}" field_index="${spec##*:}"
+            local -n table_ref="$array_name"
+            retained=()
+            for row in "${table_ref[@]}"; do
+                IFS='|' read -r -a fields <<< "$row"
+                field="${fields[$field_index]-}"
+                [[ -n "${keep_modules[$field]-}" ]] && retained+=("$row")
+            done
+            table_ref=("${retained[@]}")
+        done
+    }
+
+    _doc_validate_unique_module_names() {
+        local row="" name="" product="" previous=""
+        local -A owner=()
+        local -a fields=()
+        for row in "${MOD_TABLE[@]}"; do
+            IFS='|' read -r -a fields <<< "$row"
+            name="${fields[1]-}"
+            product="${fields[10]-}"
+            [[ -n "$name" ]] || continue
+            previous="${owner[$name]-}"
+            if [[ -n "$previous" && "${previous,,}" != "${product,,}" ]]; then
+                sayfail "Documentation collection contains duplicate module name '$name' in products '$previous' and '$product'."
+                sayinfo "Module basenames must currently be unique across a documentation collection."
+                return 1
+            fi
+            owner[$name]="$product"
+        done
+    }
+
+    _doc_full_update_collection() {
+        local -a cache_mod_table=("${MOD_TABLE[@]}")
+        local -a cache_mod_attribution=("${MOD_ATTRIBUTION[@]}")
+        local -a cache_mod_globals=("${MOD_GLOBALS[@]}")
+        local -a cache_mod_sections=("${MOD_SECTIONS[@]}")
+        local -a cache_mod_items=("${MOD_ITEMS[@]}")
+        local -a cache_doc_content=("${DOC_CONTENT_LINES[@]}")
+        local -a old_modules=()
+        local row="" name="" product=""
+        local -a fields=()
+
+        for row in "${cache_mod_table[@]}"; do
+            IFS='|' read -r -a fields <<< "$row"
+            name="${fields[1]-}"
+            product="${fields[10]-}"
+            _doc_product_is_selected "$product" && [[ -n "$name" ]] && old_modules+=("$name")
+        done
+
+        MOD_TABLE=(); MOD_ATTRIBUTION=(); MOD_GLOBALS=(); MOD_SECTIONS=(); MOD_ITEMS=(); DOC_CONTENT_LINES=()
+        _iterate_files "$VAL_SRCDIR" "$VAL_FILESPEC" "$FLAG_RECURSIVE_SCAN" _parse_module_file
+        _doc_force_single_product_on_new_modules 0
+        _doc_filter_current_tables_to_selected_products
+
+        local -a fresh_mod_table=("${MOD_TABLE[@]}")
+        local -a fresh_mod_attribution=("${MOD_ATTRIBUTION[@]}")
+        local -a fresh_mod_globals=("${MOD_GLOBALS[@]}")
+        local -a fresh_mod_sections=("${MOD_SECTIONS[@]}")
+        local -a fresh_mod_items=("${MOD_ITEMS[@]}")
+        local -a fresh_doc_content=("${DOC_CONTENT_LINES[@]}")
+
+        MOD_TABLE=("${cache_mod_table[@]}")
+        MOD_ATTRIBUTION=("${cache_mod_attribution[@]}")
+        MOD_GLOBALS=("${cache_mod_globals[@]}")
+        MOD_SECTIONS=("${cache_mod_sections[@]}")
+        MOD_ITEMS=("${cache_mod_items[@]}")
+        DOC_CONTENT_LINES=("${cache_doc_content[@]}")
+
+        _doc_remove_modules "${old_modules[@]}"
+        MOD_TABLE+=("${fresh_mod_table[@]}")
+        MOD_ATTRIBUTION+=("${fresh_mod_attribution[@]}")
+        MOD_GLOBALS+=("${fresh_mod_globals[@]}")
+        MOD_SECTIONS+=("${fresh_mod_sections[@]}")
+        MOD_ITEMS+=("${fresh_mod_items[@]}")
+        DOC_CONTENT_LINES+=("${fresh_doc_content[@]}")
     }
 
     # fn: _get_userinput - Collect documentation generator input
@@ -449,12 +733,25 @@ set -uo pipefail
                     --labelclr "${CYAN}" \
                     --pad "$lp" \
                     --labelwidth "$lw"
+
+                _doc_prompt_products || return 1
+
+                sgnd_print
+                sgnd_print_sectionheader "Documentation collection" --padend 0
+                local collection_reply=""
+                [[ "$VAL_COLLECTION_MODE" == "create" ]] && collection_reply="1" || collection_reply="2"
+                ask --label "Collection: 1 Create new, 2 Update existing" --var collection_reply --default "$collection_reply" --pad "$lp" --labelwidth "$lw"
+                case "$collection_reply" in
+                    1) VAL_COLLECTION_MODE="create" ;;
+                    2) VAL_COLLECTION_MODE="update" ;;
+                    *) saywarning "Choose collection action 1 or 2"; continue ;;
+                esac
+                ask --label "Collection name" --var VAL_COLLECTION_NAME --default "$VAL_COLLECTION_NAME" --pad "$lp" --labelwidth "$lw"
             fi
 
             ask --label "Output directory" \
                 --var VAL_OUTDIR \
                 --default "$VAL_OUTDIR" \
-                --validate sgnd_validate_dir_exists \
                 --colorize both \
                 --labelclr "${CYAN}" \
                 --pad "$lp" \
@@ -464,12 +761,12 @@ set -uo pipefail
             sgnd_print_sectionheader "Behavioral flags" --padend 0
             lw=45
 
-            if [[ "$VAL_UPDATE_MODE" == "full" ]]; then
+            if [[ "$VAL_COLLECTION_MODE" == "create" && "$VAL_UPDATE_MODE" == "full" ]]; then
                 FLAG_CLEAN_OUTPUT=1
-                sgnd_print "    Clean output directory before writing : Yes (required for Full mode)"
+                sgnd_print "    Clean output directory before writing : Yes (new collection)"
             else
                 FLAG_CLEAN_OUTPUT=0
-                sgnd_print "    Clean output directory before writing : No"
+                sgnd_print "    Clean output directory before writing : No (collection update)"
             fi
 
             if [[ "$VAL_UPDATE_MODE" == "render" ]]; then
@@ -530,7 +827,7 @@ set -uo pipefail
 
             if [[ "$VAL_UPDATE_MODE" != "render" ]]; then
                 sgnd_print
-                sgnd_print_sectionheader "Documentation metadata" --padend 0
+                sgnd_print_sectionheader "Collection metadata" --padend 0
                 ask --label "Document title" \
                 --var VAL_DOCUMENT_TITLE \
                 --default "$VAL_DOCUMENT_TITLE" \
@@ -555,13 +852,8 @@ set -uo pipefail
                 --pad "$lp" \
                 --labelwidth "$lw"
 
-            ask --label "Document product name" \
-                --var VAL_DOCUMENT_PRODUCT \
-                --default "$VAL_DOCUMENT_PRODUCT" \
-                --colorize both \
-                --labelclr "${CYAN}" \
-                --pad "$lp" \
-                --labelwidth "$lw"
+            VAL_DOCUMENT_PRODUCT="$VAL_COLLECTION_NAME"
+            sgnd_print_labeledvalue --label "Products" --value "${VAL_DOCUMENT_PRODUCTS:-ALL}" --labelwidth "$lw"
             fi
 
             (( ${SGND_STATE_SAVE:-0} )) && default="Y" || default="N"
@@ -1216,6 +1508,8 @@ set -uo pipefail
         fi
         sgnd_print
         sgnd_print "  Generation mode: $VAL_UPDATE_MODE"
+        sgnd_print "  Collection: ${VAL_COLLECTION_NAME:-Documentation} (${VAL_COLLECTION_MODE:-update})"
+        [[ "$VAL_UPDATE_MODE" == "render" ]] || sgnd_print "  Products: ${VAL_DOCUMENT_PRODUCTS:-ALL}"
         [[ "$VAL_UPDATE_MODE" == "render" ]] || sgnd_print "  Source directory: $VAL_SRCDIR"
         sgnd_print "  Output directory: $VAL_OUTDIR"
         sgnd_print
@@ -1273,9 +1567,28 @@ set -uo pipefail
         # Initialize parameters with defaults where not set by arguments or state
         _init_parameters
 
-        # Prompt for user input if not auto-running  
-        if (( !FLAG_AUTO_RUN )); then      
+        # Prompt for user input if not auto-running
+        if (( !FLAG_AUTO_RUN )); then
             _get_userinput || return $?
+        elif [[ "$VAL_UPDATE_MODE" != "render" ]]; then
+            _doc_discover_products
+            _doc_select_products || return 1
+        fi
+
+        if [[ "$VAL_UPDATE_MODE" != "render" ]]; then
+            _doc_discover_products
+            _doc_select_products || return 1
+            VAL_DOCUMENT_PRODUCT="${VAL_COLLECTION_NAME:-Documentation}"
+        fi
+
+        if [[ "$VAL_COLLECTION_MODE" == "create" && "$VAL_UPDATE_MODE" != "full" && "$VAL_UPDATE_MODE" != "render" ]]; then
+            sayfail "Creating a new documentation collection requires Full mode."
+            return 1
+        fi
+        if [[ "$VAL_COLLECTION_MODE" == "update" && "$VAL_UPDATE_MODE" != "render" && ! -d "$VAL_OUTDIR/.sgnd-doc-cache" ]]; then
+            sayfail "Cannot update documentation collection without an existing cache: $VAL_OUTDIR/.sgnd-doc-cache"
+            sayinfo "Choose Create new collection for the first build."
+            return 1
         fi
 
         local start_time
@@ -1288,22 +1601,38 @@ set -uo pipefail
 
         case "$VAL_UPDATE_MODE" in
             full)
-                FLAG_CLEAN_OUTPUT=1
-                _iterate_files "$VAL_SRCDIR" "$VAL_FILESPEC" "$FLAG_RECURSIVE_SCAN" _parse_module_file
+                if [[ "$VAL_COLLECTION_MODE" == "update" ]]; then
+                    FLAG_CLEAN_OUTPUT=0
+                    _doc_load_cache || return 1
+                    _doc_full_update_collection || return 1
+                else
+                    FLAG_CLEAN_OUTPUT=1
+                    _iterate_files "$VAL_SRCDIR" "$VAL_FILESPEC" "$FLAG_RECURSIVE_SCAN" _parse_module_file
+                    _doc_force_single_product_on_new_modules 0
+                    _doc_filter_current_tables_to_selected_products
+                fi
                 ;;
             selected)
                 FLAG_CLEAN_OUTPUT=0
                 _doc_load_cache || return 1
                 _doc_collect_selected_files || return 1
+                local before_selected_count="${#MOD_TABLE[@]}"
                 _doc_remove_modules "${SGND_DOC_REMOVE_MODULES[@]}"
+                before_selected_count="${#MOD_TABLE[@]}"
                 _doc_iterate_explicit_files _parse_module_file "${SGND_DOC_UPDATE_FILES[@]}"
+                _doc_force_single_product_on_new_modules "$before_selected_count"
+                _doc_prune_new_modules_to_selected_products "$before_selected_count"
                 ;;
             changed)
                 FLAG_CLEAN_OUTPUT=0
                 _doc_load_cache || return 1
                 _doc_collect_changed_files || return 1
+                local before_changed_count="${#MOD_TABLE[@]}"
                 _doc_remove_modules "${SGND_DOC_REMOVE_MODULES[@]}"
+                before_changed_count="${#MOD_TABLE[@]}"
                 _doc_iterate_explicit_files _parse_module_file "${SGND_DOC_UPDATE_FILES[@]}"
+                _doc_force_single_product_on_new_modules "$before_changed_count"
+                _doc_prune_new_modules_to_selected_products "$before_changed_count"
                 ;;
             render)
                 FLAG_CLEAN_OUTPUT=0
@@ -1323,6 +1652,10 @@ set -uo pipefail
             sayok "Done parsing source files (duration: $(( end_time - start_time )) seconds)"
         else
             sayinfo "Render mode selected; source parsing skipped"
+        fi
+
+        if [[ "$VAL_UPDATE_MODE" != "render" ]]; then
+            _doc_validate_unique_module_names || return 1
         fi
 
         if [[ "$VAL_UPDATE_MODE" != "render" ]] && (( FLAG_REVIEW )); then

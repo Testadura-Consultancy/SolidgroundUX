@@ -287,6 +287,8 @@ set -uo pipefail
                 printf 'VAL_DOCUMENT_SUBTITLE|%s\n' "${VAL_DOCUMENT_SUBTITLE:-}"
                 printf 'VAL_DOCUMENT_VERSION|%s\n' "${VAL_DOCUMENT_VERSION:-}"
                 printf 'VAL_DOCUMENT_PRODUCT|%s\n' "${VAL_DOCUMENT_PRODUCT:-}"
+                printf 'VAL_COLLECTION_NAME|%s\n' "${VAL_COLLECTION_NAME:-}"
+                printf 'VAL_DOCUMENT_PRODUCTS|%s\n' "${VAL_DOCUMENT_PRODUCTS:-ALL}"
                 printf 'FLAG_CLEAN_OUTPUT|0\n'
                 printf 'VAL_NAV_WIDTH|%s\n' "${VAL_NAV_WIDTH:-320px}"
 

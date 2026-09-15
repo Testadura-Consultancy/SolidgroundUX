@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # =====================================================================================
-# SolidGroundUX - Framework Smoke Test and Validation
+# SolidGroundUX Management Console Modules - Framework Smoke Test and Validation
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
 #   Source      : framework-smoketest.sh
 #   Wrapper     : sgnd-framework-smoketest
 #   Type        : script
-#   Group       : SolidGround Console
+#   Group       : Management Console Modules
 #   Purpose     : Validate the framework and exercise its interactive UI helpers
 #
 # Description:
