@@ -327,17 +327,23 @@ Documentation therefore remains close to the code it describes rather than becom
 
 ## Release preparation
 
-`prepare-release` turns a development tree into a prepared SolidGroundUX release.
+`prepare-release` turns one or more development products into prepared SolidGroundUX release packages.
 
-Its responsibilities include release metadata maintenance, checksums, manifests, removed-file tracking, executable permissions, wrapper verification and creation of the final release artifacts.
+A release run can select a primary product and companion products. Each product keeps its own product identity and version, while Build uses the standard SolidGroundUX day-of-year plus hour value. Version and Version/Build update policy are handled per product.
 
-The resulting release package is intended to be consumed by `release-manager`.
+The tool can create individual product releases, a combined bundle, or both. A bundle inherits Version and Build from its primary product. Human-readable product names are retained in package metadata, while generated filenames use filesystem-safe product names.
+
+Its responsibilities include release metadata maintenance, checksums, manifests, removed-file tracking, executable permissions, wrapper verification, product ownership collision detection and creation of the final release artifacts.
+
+Every prepared package carries project/product identity used by `release-manager`, so Version and Build do not have to be re-entered during installation or update. The resulting release packages are intended to be consumed by `release-manager`.
 
 ---
 
 # Installation and Release Management
 
-SolidGroundUX uses `release-manager.sh` as the canonical installation and release-lifecycle tool.
+SolidGroundUX uses `release-manager.sh` as the canonical installation and release-lifecycle tool for the framework and separately released SolidGroundUX products.
+
+The Release Manager discovers prepared packages from their package metadata and can switch between bundled and individual products. Each project keeps its own release/archive state and GitHub repository configuration. Version and Build belong to the prepared package and are not operator-entered Release Manager settings.
 
 The previous separate installer, updater and uninstaller architecture has been superseded.
 

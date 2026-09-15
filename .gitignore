@@ -26,6 +26,7 @@ target-root/var/lib/solidgroundux/releases/*
 target-root/var/lib/solidgroundux/releases/*.tar*
 target-root/var/lib/solidgroundux/releases/*.manifest*
 target-root/var/lib/solidgroundux/releases/*.sha256
+target-root/var/lib/solidgroundux/projects
 
 # Allow installer scripts
 !target-root/var/lib/solidgroundux/releases/sgnd-install.sh

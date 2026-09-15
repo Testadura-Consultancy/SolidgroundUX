@@ -11,6 +11,12 @@ practical framework development.
 
 ### Added
 
+- Added multi-product release preparation to `prepare-release.sh`. A release run can select multiple development products, choose a primary product, create individual product packages, and create a combined bundle from the same preparation workflow.
+- Added per-product release metadata handling in `prepare-release.sh`: each selected product carries its own product identity, version, and Version/Build update policy. Version is entered per product; Build continues to use the standard day-of-year plus hour build number.
+- Added product ownership collision detection while assembling bundles. Conflicting paths owned by different selected products now stop preparation with the primary product, companion product, and conflicting file reported explicitly.
+- Added package discovery to `release-manager.sh`, allowing the Release Manager to select between bundled and individual product packages and to maintain project-specific release/archive state.
+- Added GitHub release discovery for project packages using each project's configured repository.
+
 - Added development-context indicators to `management-console`, showing the console host and console application as `DEV` when running from non-production roots while remaining hidden during normal production use.
 - Added console application context detection to `management-console`.
   - Introduced `SGND_CONSOLE_APP_ROOT`, derived from the active `--appcfg` path.
@@ -18,6 +24,12 @@ practical framework development.
   - Added development-context indicators to the console index when either the console host or console application is running from a non-production root; indicators remain hidden in normal production use.
 
 ### Changed
+
+- `prepare-release.sh` now derives bundle Version and Build from the primary product; bundle identity is never prompted or maintained separately.
+- Product names used in generated release filenames are normalized to filesystem-safe names, including replacement of spaces with hyphens, while the human-readable Product value remains unchanged in package metadata and UI.
+- Release Manager package selection uses package metadata rather than asking the operator to enter Version or Build values.
+- Release Manager repository values are retained as project/package state and reused when that package is selected again.
+- Release Manager project handling now supports both the SolidGroundUX framework and separately released SolidGroundUX applications such as Management Console Modules through the same lifecycle engine.
 
 - Changed comment-header section parsing to terminate at the first empty comment line, preventing subsequent header sections from being included in multiline metadata such as `Description`.
 - Changed `management-console` executable resolution to prefer the active console application's executable directories before falling back to framework-owned executable locations.
@@ -46,6 +58,9 @@ practical framework development.
 - Framework smoke-test utility actions now continue the numbered menu sequence instead of using `L`, `V`, and `A`, avoiding collisions with framework/console shortcut keys; the timed smoke-test reader now accepts multi-digit selections.
 
 ### Repaired
+- Repaired project-specific GitHub release checks for separately packaged products after validating repository visibility and repository-specific release endpoints.
+- Repaired project package identity so Version and Build are obtained from prepared package metadata rather than being treated as Release Manager input.
+
 - Repaired canonical library-guard normalization so the next top-level source section is detected whether or not whitespace exists before its separator run, preventing sections such as `Minimal UI` from being consumed during normalization.
 - Repaired canonical library guards for early bootstrap libraries by making metadata initialization conditional until `sgnd_module_init_metadata` is available.
 - Repaired repeated argument parsing that could reset a previously recognized script flag such as `--auto` during bootstrap, causing unattended tools to fall back into interactive behavior.

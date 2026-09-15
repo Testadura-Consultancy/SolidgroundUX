@@ -1,7 +1,8 @@
 # Installing SolidGroundUX
 
 SolidGroundUX uses a standalone `release-manager.sh` for installation, update,
-rollback, reinstallation, and removal.
+rollback, reinstallation, and removal of the framework and separately packaged
+SolidGroundUX products.
 
 The release manager does not depend on an existing SolidGroundUX installation.
 It can therefore be used on a clean machine or to recover an incomplete or
@@ -13,9 +14,18 @@ Download the latest SolidGroundUX release bundle from:
 
 https://github.com/Testadura-Mark/SolidGroundUX/releases
 
-The release bundle is provided as:
+The framework release can be provided as an individual package or as a bundle
+containing companion SolidGroundUX products. `prepare-release.sh` may produce both
+forms in the same release run.
 
-* `SolidGroundUX-<version>-release.zip`
+Typical package names are:
+
+* `SolidGroundUX-<version>.<build>-release.zip`
+* `SolidGroundUX-bundled-<version>.<build>-release.zip`
+* `<Product-Name>-<version>.<build>-release.zip`
+
+Generated filenames use filesystem-safe product names (for example, spaces are
+replaced with hyphens); the human-readable product name remains in package metadata.
 
 The ZIP contains:
 
@@ -101,9 +111,15 @@ After installation, start the release manager with:
 sudo /var/lib/solidgroundux/release-manager.sh
 ```
 
+The interactive Release Manager discovers available bundled and individual
+packages from their package metadata. Selecting a package establishes its project,
+product, Version, Build, managed release/archive directories, and GitHub repository.
+Version and Build are therefore not entered manually in the Release Manager.
+
 The interactive menu can:
 
-* Check GitHub for the latest release.
+* Select another available package.
+* Check the selected project's GitHub repository for the latest release.
 * Download the latest release.
 * Update to the latest GitHub release.
 * Install the newest locally available release.
@@ -121,8 +137,9 @@ To check GitHub without changing the local machine:
 sudo /var/lib/solidgroundux/release-manager.sh --check
 ```
 
-The release manager compares the latest published GitHub release with releases
-already present in `archive/` or `releases/`.
+The release manager checks the GitHub repository configured for the selected
+project/package and compares its latest published release with releases already
+present in that project's `archive/` or `releases/` state.
 
 If the latest release is already installed or downloaded, it is not downloaded
 again.
