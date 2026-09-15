@@ -378,10 +378,39 @@ set -uo pipefail
         return 1
     }
 
-    # fn$ _release_product_excludes - Return newline-separated release excludes for a product root
+    # fn$ _release_product_excludes - Return the complete release exclusion policy for a product root
     _release_product_excludes() {
         local root="${1:?missing target root}"
+        local repo_root="" ignore_file="" line=""
         local globals_dir="${root%/}/usr/local/lib/solidgroundux/globals" file="" value=""
+
+        # Mandatory release safety policy. These paths are runtime/development state and
+        # must never be shipped, even when a repository has no .release-ignore file.
+        printf '%s\n' \
+            '.*' \
+            '*.state' \
+            '*.cfg' \
+            '*.code-workspace' \
+            '/var/log/solidgroundux.log*' \
+            '/var/lib/solidgroundux/archive/' \
+            '/var/lib/solidgroundux/releases/' \
+            '/var/lib/solidgroundux/projects/'
+
+        # A normal product workspace packages <repo>/target-root. Keep release policy at
+        # repository root so it is versioned with the product without becoming payload.
+        if [[ "$(basename -- "$root")" == "target-root" ]]; then
+            repo_root="$(dirname -- "$root")"
+            ignore_file="${repo_root%/}/.release-ignore"
+            if [[ -f "$ignore_file" ]]; then
+                while IFS= read -r line || [[ -n "$line" ]]; do
+                    line="${line#"${line%%[![:space:]]*}"}"
+                    line="${line%"${line##*[![:space:]]}"}"
+                    [[ -n "$line" && "$line" != \#* ]] && printf '%s\n' "$line"
+                done < "$ignore_file"
+            fi
+        fi
+
+        # Product definitions may add exceptional/generated exclusions dynamically.
         [[ -d "$globals_dir" ]] || return 0
         while IFS= read -r -d '' file; do
             value="$(bash -c '
@@ -393,7 +422,7 @@ set -uo pipefail
             [[ -n "$value" ]] || continue
             tr ',' '\n' <<< "$value"
             return 0
-        done < <(find "$globals_dir" -maxdepth 1 -type f -name '*-definitions.sh' -print0 2>/dev/null | sort -z)
+        done < <(find "$globals_dir" -maxdepth 1 -type f \( -name 'sgnd-definitions.sh' -o -name '*-definitions.sh' \) -print0 2>/dev/null | sort -z)
     }
 
     # fn$ _release_parse_product_selection - Parse A/comma/range product selection
@@ -1228,8 +1257,8 @@ set -uo pipefail
                 local -a primary_excludes=() primary_rsync_args=()
                 local exclude=""
                 while IFS= read -r exclude; do [[ -n "$exclude" ]] && primary_excludes+=("$exclude"); done < <(_release_product_excludes "$SOURCE_DIR")
-                primary_rsync_args=( -a --delete --exclude '.*' --exclude '*.state' --exclude '*.cfg' --exclude '*.code-workspace' --exclude '/var/log/solidgroundux.log*' --exclude '/var/lib/solidgroundux/archive/*' --exclude '/var/lib/solidgroundux/releases/*' )
-                for exclude in "${primary_excludes[@]}"; do primary_rsync_args+=( --exclude "/${exclude#/}" ); done
+                primary_rsync_args=( -a --delete )
+                for exclude in "${primary_excludes[@]}"; do primary_rsync_args+=( --exclude "$exclude" ); done
                 rsync "${primary_rsync_args[@]}" \
                     "${SOURCE_DIR%/}/" "$stage_path/" || {
                         sayfail "rsync failed."
@@ -1243,17 +1272,21 @@ set -uo pipefail
             local companion="" rel="" existing="" incoming=""
             for companion in "${RELEASE_SOURCE_DIRS[@]:1}"; do
                 local -a companion_excludes=() companion_rsync_args=()
-                local exclude="" skip=0
+                local exclude=""
                 while IFS= read -r exclude; do [[ -n "$exclude" ]] && companion_excludes+=("$exclude"); done < <(_release_product_excludes "$companion")
+                companion_rsync_args=( -a )
+                for exclude in "${companion_excludes[@]}"; do companion_rsync_args+=( --exclude "$exclude" ); done
                 if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
                     sayinfo "Would have overlaid companion product from $companion"
                     continue
                 fi
-                while IFS= read -r -d '' incoming; do
-                    rel="${incoming#${companion%/}/}"
-                    skip=0
-                    for exclude in "${companion_excludes[@]}"; do [[ "$rel" == "${exclude#/}" || "$rel" == "${exclude#/}/"* ]] && { skip=1; break; }; done
-                    (( skip )) && continue
+
+                # Use rsync itself to enumerate the files that survive the release policy.
+                # Collision detection and the actual overlay therefore obey identical rules.
+                while IFS= read -r rel; do
+                    [[ -n "$rel" && "$rel" != */ ]] || continue
+                    incoming="${companion%/}/$rel"
+                    [[ -f "$incoming" ]] || continue
                     existing="$stage_path/$rel"
                     if [[ -f "$existing" ]] && ! cmp -s "$existing" "$incoming"; then
                         local primary_record="" primary_product="" primary_version="" primary_build="" primary_defs=""
@@ -1268,10 +1301,8 @@ set -uo pipefail
                         sgnd_print_labeledvalue --label "File" --value "$rel"
                         return 1
                     fi
-                done < <(find "$companion" -type f -print0 2>/dev/null)
-                companion_rsync_args=( -a --exclude '.*' --exclude '*.state' --exclude '*.cfg' --exclude '*.code-workspace' )
-                for exclude in "${companion_excludes[@]}"; do companion_rsync_args+=( --exclude "/${exclude#/}" ); done
-                rsync "${companion_rsync_args[@]}" "$companion/" "$stage_path/" || return 1
+                done < <(rsync "${companion_rsync_args[@]}" --dry-run --out-format='%n' "${companion%/}/" "$stage_path/" 2>/dev/null)
+                rsync "${companion_rsync_args[@]}" "${companion%/}/" "$stage_path/" || return 1
             done
         fi
         _release_write_bundle_manifest "$stage_path" || return 1

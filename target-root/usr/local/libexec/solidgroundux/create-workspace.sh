@@ -22,7 +22,7 @@
 #     - Instantiates the selected starter template(s) from that local template set
 #     - Creates project-namespaced definitions in the SolidGroundUX globals folder
 #     - Optionally creates a simple 95-<project> MOTD identity entry
-#     - Generates a VS Code workspace file and standard .gitignore
+#     - Generates a VS Code workspace file and standard .gitignore and .release-ignore
 #     - Optionally initializes Git and creates/pushes a GitHub repository using gh
 #
 # Design principles:
@@ -1280,6 +1280,42 @@ set -uo pipefail
         fi
     }
 
+    # fn: _create_releaseignore_file - Create the workspace .release-ignore file
+    _create_releaseignore_file(){
+        local releaseignore_file="${PROJECT_FOLDER}/.release-ignore"
+        local existed=0
+
+        [[ -e "$releaseignore_file" ]] && existed=1
+
+        if [[ "$FLAG_DRYRUN" -eq 1 ]]; then
+            sayinfo "Would have created .release-ignore"
+            return 0
+        fi
+
+        sayinfo "Creating .release-ignore"
+        saydebug "$releaseignore_file"
+
+        printf '%s\n' \
+        '# SolidGroundUX release exclusions' \
+        '' \
+        '# Local/editor/runtime metadata' \
+        '.*' \
+        '*.state' \
+        '*.cfg' \
+        '*.code-workspace' \
+        '' \
+        '# Runtime data that must not be packaged' \
+        '/var/log/solidgroundux.log*' \
+        '/var/lib/solidgroundux/archive/' \
+        '/var/lib/solidgroundux/releases/' \
+        '/var/lib/solidgroundux/projects/' \
+        > "$releaseignore_file" || return 1
+
+        if (( ! existed )); then
+            _manifest_record_file "$releaseignore_file"
+        fi
+    }
+
     # fn: _project_slug - Return the filesystem-safe project slug
         # . Usage
         #   _project_slug
@@ -1552,7 +1588,7 @@ set -uo pipefail
         #   - In normal mode:
         #       - resolves project settings interactively
         #       - initializes the workspace manifest
-        #       - creates the repository structure, workspace file, and .gitignore
+        #       - creates the repository structure, workspace file, .gitignore, and .release-ignore
         #       - creates project definitions and optionally a project MOTD entry
 #       - optionally initializes Git and creates/pushes a GitHub repository
         #       - applies final ownership and permission fixes when not in dry-run mode.
@@ -1639,6 +1675,7 @@ set -uo pipefail
             _create_repository || exit $?
             _create_workspace_file || exit $?
             _create_gitignore_file || exit $?
+            _create_releaseignore_file || exit $?
             _create_project_definitions || exit $?
             _create_project_motd || exit $?
 

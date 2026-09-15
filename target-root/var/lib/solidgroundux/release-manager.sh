@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2625500
-#   Checksum    : 1e81e99f8872a12cf760f98694a3df8777713cb44a4ec6200f0c2cee3cf86e94
+#   Build       : 2625822
+#   Checksum    : c9215682419edd8f7cfb1812fdc69cf9d807ab41177b2a376b1e181e5e4b3d26
 #   Source      : release-manager.sh
 #   Wrapper     : sgnd-release
 #   Type        : script
