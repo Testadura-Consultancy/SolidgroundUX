@@ -188,6 +188,17 @@ body {
     border-radius: 8px;
 }
 
+
+.doc-aligned-block {
+    display: grid;
+    column-gap: 1.25ch;
+    row-gap: 0;
+    margin: 0;
+}
+
+.doc-aligned-cell { min-width: 0; }
+.doc-aligned-cell:not(.doc-aligned-last) { white-space: nowrap; }
+
 .doc-data-table {
     border-collapse: collapse;
     margin-top: 12px;

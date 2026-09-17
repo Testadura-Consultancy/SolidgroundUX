@@ -491,6 +491,36 @@ prepare-template.sh|Local script functions||fn|function|internal|normal|_detect_
 prepare-template.sh|Local script functions||fn|function|internal|normal|_reset_network_for_template|Reset network for template
 prepare-template.sh|Local script functions||fn|function|internal|normal|_prepare_template|Prepare template
 prepare-template.sh|Main||fn|function|public|normal|main|Run the executable main sequence
+doc-generator.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
+doc-generator.sh|Framework integration||var|variable|public|template|SGND_USING|
+doc-generator.sh|Local script functions||fn|function|internal|normal|_init_parameters|Initialize documentation generator parameters
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_collection_slug|Convert a collection name into a filesystem-safe directory name
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_finalize_outdir|Resolve the final collection output directory
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_product_config_id|Convert a product name into a stable config filename stem
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_resolve_ignore_file|Resolve/create the per-product .docignore file
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_path_is_ignored|Test a source file against the active product .docignore
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_parse_product_file|Apply ignore/duplicate policy before parsing a product file
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_discover_products|Discover product definitions beneath the selected source root
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_select_products|Resolve the requested product scope
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_prompt_products|Prompt for one, several, or all discovered products
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_prompt_primary_product|Select the lead product for the collection
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_force_product_on_new_modules|Attribute newly parsed modules to a product
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_iterate_selected_product_roots|Parse every selected product source tree
+doc-generator.sh|Local script functions||fn|function|internal|normal|_get_userinput|Collect documentation generator input
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_load_cache|Restore all parser tables from the previous render cache
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_remove_modules_from_table|Remove module rows from a named table
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_remove_modules|Remove stale rows for one or more modules
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_path_matches_filespec|Test whether a path matches the active source masks
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_collect_selected_files|Resolve explicitly selected update files
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_collect_changed_files|Collect Git additions, modifications, deletions, and renames
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_iterate_explicit_files|Parse an explicit list of source files
+doc-generator.sh|Local script functions||fn|function|internal|normal|_iterate_files|Iterate source files and collect documentation data
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_progress_line|Update active-module line progress
+doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_count_lines|Count physical lines in a file
+doc-generator.sh|Local script functions||fn|function|internal|normal|_iterate_files|Iterate source files and collect documentation data
+doc-generator.sh|Local script functions||fn|function|internal|normal|_copy_docs_to_git|Copy generated documentation into the repository docs directory
+doc-generator.sh|Local script functions||fn|function|internal|normal|_summary|Print documentation generation summary
+doc-generator.sh|Main||fn|function|public|normal|main|Run the executable main sequence - Run the executable main sequence
 create-wrappers.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
 create-wrappers.sh|Helpers||fn|function|internal|normal|_framework_path|Resolve a path beneath a framework root
 create-wrappers.sh|Helpers||fn|function|internal|normal|_framework_root_from_path|Resolve the framework root owning a selected path
@@ -574,31 +604,6 @@ sgnd-bootstrap.sh|Attribution fields||fn|function|public|normal|sgnd_on_exit_add
 sgnd-bootstrap.sh|Attribution fields||fn|function|public|normal|sgnd_check_license|Check license
 sgnd-bootstrap.sh|Attribution fields||fn|function|public|normal|sgnd_load_ui_style|Load ui style
 sgnd-bootstrap.sh|Attribution fields||fn|function|public|normal|sgnd_bootstrap|Bootstrap
-doc-processor.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
-doc-processor.sh|Local definitions||var|variable|public|normal|Datamodel|Content tables for parsed documentation data
-doc-processor.sh|Local definitions||fn|function|internal|normal|_init_localvars|Initialize parser state variables
-doc-processor.sh|Semantic registries|Local definitions|fn|function|internal|normal|_sgnd_doc_list_contains|Test whether a value exists in a named array
-doc-processor.sh|Semantic registries|Local definitions|fn|function|internal|normal|_sgnd_doc_is_valid_stylehint|Validate documentation style hint
-doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_noncommentline|Detect non-comment source lines
-doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_headermarker|Detect module header boundary lines
-doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_moduletitle|Detect the module title line
-doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_headerfields|Detect metadata and attribution fields
-doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_section|Detect documentation section headers
-doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_items|Detect documented items
-doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_headersectionheader|Detect named header sections
-doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_default|Detect default
-doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_get_section_comments|Get section comments
-doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_global_array_start|Detect framework/runtime/script globals array declarations
-doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_global_array_entry|Detect global declaration array entries
-doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_commentseparator|Ignore visual comment separators
-doc-processor.sh|Action|Local definitions|fn|function|internal|normal|_action_headerend|Emit module-level header data
-doc-processor.sh|Action|Local definitions|fn|function|internal|normal|_guess_nextcontenttype|Advance content type after emitted headers
-doc-processor.sh|Emitters|Local definitions|fn|function|internal|normal|_emit_globalrecord|Append a framework/runtime/script global declaration record
-doc-processor.sh|Emitters|Local definitions|fn|function|internal|normal|_emit_contentline|Append a normalized documentation content line
-doc-processor.sh|Emitters|Local definitions|fn|function|internal|normal|_emit_itemrecord|Append a documented item record
-doc-processor.sh|Emitters|Local definitions|fn|function|internal|normal|_emit_sectionrecord|Append a documentation section record
-doc-processor.sh|Internal API||fn|function|internal|normal|_parse_module_file|Parse one module source file
-doc-processor.sh|Internal API||fn|function|internal|normal|_build_content_ref|Build a stable documentation content reference
 doc-sample.sh|||doc|general documentation|public|normal|content_labels|Documentation content labels
 doc-sample.sh|||doc|general documentation|public|normal|style_hints|Documentation line markers and style hints
 doc-sample.sh|||doc|general documentation|public|normal|style_hint_examples|Style hint examples
@@ -938,6 +943,14 @@ sgnd-args.sh|Public API||var|variable|public|normal|SGND_BUILTIN_EXAMPLES|Builti
 sgnd-args.sh|Public API||fn|function|public|normal|sgnd_show_help|Show help
 sgnd-args.sh|Public API||fn|function|public|normal|sgnd_parse_args|Parse framework or script command-line arguments
 sgnd-args.sh|Public API||fn|function|public|normal|sgnd_builtinarg_handler|Builtinarg handler
+sgnd-bootstrap-env.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+sgnd-bootstrap-env.sh|Runtime directory metadata||var|variable|public|normal|SGND_FRAMEWORK_DIRS|Framework directory specifications
+sgnd-bootstrap-env.sh|Helpers||fn|function|internal|normal|_build_framework_dirs|Build framework directory specifications
+sgnd-bootstrap-env.sh|Helpers||fn|function|public|normal|sgnd_apply_defaults|Apply defaults
+sgnd-bootstrap-env.sh|Helpers||fn|function|public|normal|sgnd_defaults_reset|Defaults reset
+sgnd-bootstrap-env.sh|Helpers||fn|function|public|normal|sgnd_rebase_directories|Rebase directories
+sgnd-bootstrap-env.sh|Helpers||fn|function|public|normal|sgnd_rebase_framework_cfg_paths|Rebase framework cfg paths
+sgnd-bootstrap-env.sh|Helpers||fn|function|public|normal|sgnd_ensure_dirs|Ensure dirs
 sgnd-definitions.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
 sgnd-definitions.sh|Framework metadata||var|variable|public|normal|SGND_CORE_LIBS|Ordered core library list
 21-style-fantasy.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
@@ -980,44 +993,31 @@ default-ui-palette.sh|Background colors||var|variable|public|normal|style_backgr
 default-ui-palette.sh|Background colors||var|variable|public|normal|style_background_bright|Background: Bright
 default-ui-palette.sh|Background colors||var|variable|public|normal|palette_testadura_brand|Testadura brand colors
 default-ui-palette.sh|Background colors||var|variable|public|normal|palette_solidground_brand|SolidGround brand colors
-doc-generator.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
-doc-generator.sh|Framework integration||var|variable|public|template|SGND_USING|
-doc-generator.sh|Local script functions||fn|function|internal|normal|_init_parameters|Initialize documentation generator parameters
-doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_collection_slug|Convert a collection name into a filesystem-safe directory name
-doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_finalize_outdir|Resolve the final collection output directory
-doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_product_config_id|Convert a product name into a stable config filename stem
-doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_resolve_ignore_file|Resolve/create the per-product .docignore file
-doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_path_is_ignored|Test a source file against the active product .docignore
-doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_parse_product_file|Apply ignore/duplicate policy before parsing a product file
-doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_discover_products|Discover product definitions beneath the selected source root
-doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_select_products|Resolve the requested product scope
-doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_prompt_products|Prompt for one, several, or all discovered products
-doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_prompt_primary_product|Select the lead product for the collection
-doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_force_product_on_new_modules|Attribute newly parsed modules to a product
-doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_iterate_selected_product_roots|Parse every selected product source tree
-doc-generator.sh|Local script functions||fn|function|internal|normal|_get_userinput|Collect documentation generator input
-doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_load_cache|Restore all parser tables from the previous render cache
-doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_remove_modules_from_table|Remove module rows from a named table
-doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_remove_modules|Remove stale rows for one or more modules
-doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_path_matches_filespec|Test whether a path matches the active source masks
-doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_collect_selected_files|Resolve explicitly selected update files
-doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_collect_changed_files|Collect Git additions, modifications, deletions, and renames
-doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_iterate_explicit_files|Parse an explicit list of source files
-doc-generator.sh|Local script functions||fn|function|internal|normal|_iterate_files|Iterate source files and collect documentation data
-doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_progress_line|Update active-module line progress
-doc-generator.sh|Local script functions||fn|function|internal|normal|_doc_count_lines|Count physical lines in a file
-doc-generator.sh|Local script functions||fn|function|internal|normal|_iterate_files|Iterate source files and collect documentation data
-doc-generator.sh|Local script functions||fn|function|internal|normal|_copy_docs_to_git|Copy generated documentation into the repository docs directory
-doc-generator.sh|Local script functions||fn|function|internal|normal|_summary|Print documentation generation summary
-doc-generator.sh|Main||fn|function|public|normal|main|Run the executable main sequence - Run the executable main sequence
-sgnd-bootstrap-env.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
-sgnd-bootstrap-env.sh|Runtime directory metadata||var|variable|public|normal|SGND_FRAMEWORK_DIRS|Framework directory specifications
-sgnd-bootstrap-env.sh|Helpers||fn|function|internal|normal|_build_framework_dirs|Build framework directory specifications
-sgnd-bootstrap-env.sh|Helpers||fn|function|public|normal|sgnd_apply_defaults|Apply defaults
-sgnd-bootstrap-env.sh|Helpers||fn|function|public|normal|sgnd_defaults_reset|Defaults reset
-sgnd-bootstrap-env.sh|Helpers||fn|function|public|normal|sgnd_rebase_directories|Rebase directories
-sgnd-bootstrap-env.sh|Helpers||fn|function|public|normal|sgnd_rebase_framework_cfg_paths|Rebase framework cfg paths
-sgnd-bootstrap-env.sh|Helpers||fn|function|public|normal|sgnd_ensure_dirs|Ensure dirs
+doc-processor.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+doc-processor.sh|Local definitions||var|variable|public|normal|Datamodel|Content tables for parsed documentation data
+doc-processor.sh|Local definitions||fn|function|internal|normal|_init_localvars|Initialize parser state variables
+doc-processor.sh|Semantic registries|Local definitions|fn|function|internal|normal|_sgnd_doc_list_contains|Test whether a value exists in a named array
+doc-processor.sh|Semantic registries|Local definitions|fn|function|internal|normal|_sgnd_doc_is_valid_stylehint|Validate documentation style hint
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_noncommentline|Detect non-comment source lines
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_headermarker|Detect module header boundary lines
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_moduletitle|Detect the module title line
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_headerfields|Detect metadata and attribution fields
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_section|Detect documentation section headers
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_items|Detect documented items
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_headersectionheader|Detect named header sections
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_default|Detect default
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_get_section_comments|Get section comments
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_global_array_start|Detect framework/runtime/script globals array declarations
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_global_array_entry|Detect global declaration array entries
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_commentseparator|Ignore visual comment separators
+doc-processor.sh|Action|Local definitions|fn|function|internal|normal|_action_headerend|Emit module-level header data
+doc-processor.sh|Action|Local definitions|fn|function|internal|normal|_guess_nextcontenttype|Advance content type after emitted headers
+doc-processor.sh|Emitters|Local definitions|fn|function|internal|normal|_emit_globalrecord|Append a framework/runtime/script global declaration record
+doc-processor.sh|Emitters|Local definitions|fn|function|internal|normal|_emit_contentline|Append a normalized documentation content line
+doc-processor.sh|Emitters|Local definitions|fn|function|internal|normal|_emit_itemrecord|Append a documented item record
+doc-processor.sh|Emitters|Local definitions|fn|function|internal|normal|_emit_sectionrecord|Append a documentation section record
+doc-processor.sh|Internal API||fn|function|internal|normal|_parse_module_file|Parse one module source file
+doc-processor.sh|Internal API||fn|function|internal|normal|_build_content_ref|Build a stable documentation content reference
 sgnd_doc_renderer.py|Python Renderer Backend||var|variable|public|normal|DOC_INDEX_LOGO|Documentation index branding asset
 sgnd_doc_renderer.py|Python Renderer Backend||var|variable|public|normal|DOC_HEADER_LOGO|Documentation page header branding asset
 sgnd_doc_renderer.py|Python Renderer Backend||var|variable|public|normal|DOC_INDEX_HERO|Documentation landing-page hero asset
@@ -1134,6 +1134,8 @@ sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_t
 sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|parse_image_entry|Parse image entry
 sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|image_source|Image source
 sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_image_group|Render image group
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|parse_alignment_row|Parse an aligned documentation row
+sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_alignment_block|Render aligned documentation rows
 sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|is_flowing_prose_row|Determine whether flowing prose row
 sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_rows|Render rows
 sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_content_for_ref|Render content for ref

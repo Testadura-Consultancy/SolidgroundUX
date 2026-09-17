@@ -785,6 +785,10 @@ set -uo pipefail
             #
             # . Behavior
             #   - Supports the module implementation; not intended as a public framework API.
+            #   - Extracts the optional leading documentation style hint from normal content.
+            #   - Leaves the remaining content intact, including :: table separators and the renderer-owned <> alignment token.
+            #   - This keeps table syntax renderer-owned: `. Table` starts a table, the first row may
+            #     use `!` as its style hint, and a blank documentation line ends the table.
             #   - Uses framework UI/output conventions for terminal or dialog interaction.
             #
             # . Arguments

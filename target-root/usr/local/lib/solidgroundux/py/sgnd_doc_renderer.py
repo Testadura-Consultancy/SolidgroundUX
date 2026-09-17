@@ -2124,6 +2124,17 @@ body {
     border-radius: 8px;
 }
 
+
+.doc-aligned-block {
+    display: grid;
+    column-gap: 1.25ch;
+    row-gap: 0;
+    margin: 0;
+}
+
+.doc-aligned-cell { min-width: 0; }
+.doc-aligned-cell:not(.doc-aligned-last) { white-space: nowrap; }
+
 .doc-data-table {
     border-collapse: collapse;
     margin-top: 12px;
@@ -4316,6 +4327,37 @@ body {
         lines.append('</div>')
         return "\n".join(lines)
 
+    # fn: parse_alignment_row - Parse an aligned documentation row
+    # . Purpose
+    #   Split the renderer-owned <> alignment token into presentation columns.
+    def parse_alignment_row(self, value: str) -> List[str]:
+        return [cell.strip() for cell in (value or "").split("<>")]
+
+    # fn: render_alignment_block - Render aligned documentation rows
+    # . Purpose
+    #   Align corresponding <> columns across consecutive documentation lines.
+    def render_alignment_block(self, rows: Sequence[Row]) -> str:
+        parsed = [self.parse_alignment_row(row.get("content", "") or "") for row in rows]
+        if not parsed:
+            return ""
+        column_count = max(len(cells) for cells in parsed)
+        template = " ".join(["max-content"] * max(0, column_count - 1) + ["minmax(0, 1fr)"])
+        lines = [f'<div class="doc-aligned-block" style="grid-template-columns:{esc(template)}">']
+        for row, cells in zip(rows, parsed):
+            cells = cells + [""] * (column_count - len(cells))
+            style_hint = row.get("stylehint", "normal") or "normal"
+            content_type = row.get("contenttype", "documentbody") or "documentbody"
+            classes = [f"ct-{content_type}", "doc-aligned-cell"]
+            if style_hint != "normal":
+                classes.append(f"sh-{style_hint}")
+            for cell_index, cell in enumerate(cells):
+                cell_classes = list(classes)
+                if cell_index == column_count - 1:
+                    cell_classes.append("doc-aligned-last")
+                lines.append(f'<div class="{esc(" ".join(cell_classes))}">{esc(cell)}</div>')
+        lines.append('</div>')
+        return "\n".join(lines)
+
     # fn: is_flowing_prose_row - Determine whether flowing prose row
     # . Purpose
     #   Return True when a row may be reflowed into a logical paragraph.
@@ -4437,6 +4479,27 @@ body {
                 image_html = self.render_image_group(entries)
                 if image_html:
                     lines.append(image_html)
+                continue
+
+            # <> is a renderer-owned alignment token. Consecutive rows containing it
+            # form one grid so corresponding columns share one browser-calculated width.
+            if "<>" in (row.get("content", "") or ""):
+                alignment_rows: List[Row] = []
+                alignment_content_type = content_type
+                while index < len(rows):
+                    alignment_row = rows[index]
+                    if alignment_row.get("suppress", "0") == "1":
+                        index += 1
+                        continue
+                    if (alignment_row.get("contenttype", "documentbody") or "documentbody") != alignment_content_type:
+                        break
+                    if "<>" not in (alignment_row.get("content", "") or ""):
+                        break
+                    alignment_rows.append(alignment_row)
+                    index += 1
+                alignment_html = self.render_alignment_block(alignment_rows)
+                if alignment_html:
+                    lines.append(alignment_html)
                 continue
 
             if self.is_flowing_prose_row(row):

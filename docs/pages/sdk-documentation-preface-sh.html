@@ -39,10 +39,20 @@
 <div class="ct-L2Sectionbody"></div>
 <p class="ct-L2Sectionbody">Four generation modes are available:</p>
 <div class="ct-L2Sectionbody"></div>
-<div class="ct-L2Sectionbody">    1  Full              Reparse all matching source files for the selected products</div>
-<div class="ct-L2Sectionbody">    2  Selected          Reparse only explicitly selected matching files</div>
-<div class="ct-L2Sectionbody">    3  Changed           Reparse matching Git changes relative to HEAD, plus untracked files</div>
-<div class="ct-L2Sectionbody">    4  Render existing   Rebuild HTML from the persisted renderer data only</div>
+<div class="doc-aligned-block" style="grid-template-columns:max-content max-content minmax(0, 1fr)">
+<div class="ct-L2Sectionbody doc-aligned-cell">1</div>
+<div class="ct-L2Sectionbody doc-aligned-cell">Full</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">Reparse all matching source files for the selected products</div>
+<div class="ct-L2Sectionbody doc-aligned-cell">2</div>
+<div class="ct-L2Sectionbody doc-aligned-cell">Selected</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">Reparse only explicitly selected matching files</div>
+<div class="ct-L2Sectionbody doc-aligned-cell">3</div>
+<div class="ct-L2Sectionbody doc-aligned-cell">Changed</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">Reparse matching Git changes relative to HEAD, plus untracked files</div>
+<div class="ct-L2Sectionbody doc-aligned-cell">4</div>
+<div class="ct-L2Sectionbody doc-aligned-cell">Render existing</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">Rebuild HTML from the persisted renderer data only</div>
+</div>
 <div class="ct-L2Sectionbody"></div>
 <p class="ct-L2Sectionbody">Creating a new collection in Full mode starts with a clean output directory. A Full update of an existing collection instead loads the existing cache and refreshes the selected products without clearing the collection. Selected and Changed modes also load the existing cache and replace or remove only the affected modules.</p>
 <div class="ct-L2Sectionbody"></div>
@@ -66,26 +76,44 @@
 <div class="ct-L2Sectionbody"></div>
 <p class="ct-L2Sectionbody">The primary labels are:</p>
 <div class="ct-L2Sectionbody"></div>
-<div class="ct-L2Sectionbody">    fn:      Function or method documentation</div>
-<div class="ct-L2Sectionbody">    var:     Variable documentation</div>
-<div class="ct-L2Sectionbody">    cls:     Class documentation</div>
-<div class="ct-L2Sectionbody">    doc:     General documentation</div>
+<div class="doc-aligned-block" style="grid-template-columns:max-content minmax(0, 1fr)">
+<div class="ct-L2Sectionbody doc-aligned-cell">fn:</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">Function or method documentation</div>
+<div class="ct-L2Sectionbody doc-aligned-cell">var:</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">Variable documentation</div>
+<div class="ct-L2Sectionbody doc-aligned-cell">cls:</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">Class documentation</div>
+<div class="ct-L2Sectionbody doc-aligned-cell">doc:</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">General documentation</div>
+</div>
 <div class="ct-L2Sectionbody"></div>
 <p class="ct-L2Sectionbody">Each label can be followed by either a colon or a dollar sign.</p>
 <div class="ct-L2Sectionbody"></div>
 <p class="ct-L2Sectionbody">A colon indicates a normal documentation item:</p>
 <div class="ct-L2Sectionbody"></div>
-<div class="ct-L2Sectionbody">    fn:      Normal function or method documentation</div>
-<div class="ct-L2Sectionbody">    var:     Normal variable documentation</div>
-<div class="ct-L2Sectionbody">    cls:     Normal class documentation</div>
-<div class="ct-L2Sectionbody">    doc:     Normal general documentation</div>
+<div class="doc-aligned-block" style="grid-template-columns:max-content minmax(0, 1fr)">
+<div class="ct-L2Sectionbody doc-aligned-cell">fn:</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">Normal function or method documentation</div>
+<div class="ct-L2Sectionbody doc-aligned-cell">var:</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">Normal variable documentation</div>
+<div class="ct-L2Sectionbody doc-aligned-cell">cls:</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">Normal class documentation</div>
+<div class="ct-L2Sectionbody doc-aligned-cell">doc:</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">Normal general documentation</div>
+</div>
 <div class="ct-L2Sectionbody"></div>
 <p class="ct-L2Sectionbody">A dollar sign indicates a template documentation item:</p>
 <div class="ct-L2Sectionbody"></div>
-<div class="ct-L2Sectionbody">    fn$      Template function documentation</div>
-<div class="ct-L2Sectionbody">    var$     Template variable documentation</div>
-<div class="ct-L2Sectionbody">    cls$     Template class documentation</div>
-<div class="ct-L2Sectionbody">    doc$     Template general documentation</div>
+<div class="doc-aligned-block" style="grid-template-columns:max-content minmax(0, 1fr)">
+<div class="ct-L2Sectionbody doc-aligned-cell">fn$</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">Template function documentation</div>
+<div class="ct-L2Sectionbody doc-aligned-cell">var$</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">Template variable documentation</div>
+<div class="ct-L2Sectionbody doc-aligned-cell">cls$</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">Template class documentation</div>
+<div class="ct-L2Sectionbody doc-aligned-cell">doc$</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">Template general documentation</div>
+</div>
 <div class="ct-L2Sectionbody"></div>
 <p class="ct-L2Sectionbody">Template items are primarily intended for reusable examples and template files. The renderer can treat them differently from normal framework items, depending on the group or context in which they appear.</p>
 <div class="ct-L2Sectionbody"></div>
@@ -99,9 +127,14 @@
 <div class="ct-L2Sectionbody"></div>
 <p class="ct-L2Sectionbody">Structural headings use a hyphenated hierarchy. The number of hyphens immediately following the comment marker determines the heading level:</p>
 <div class="ct-L2Sectionbody"></div>
-<div class="ct-L2Sectionbody">    # - Heading      Level 1: primary/top-level section</div>
-<div class="ct-L2Sectionbody">    # -- Section     Level 2: section within the current level 1 heading</div>
-<div class="ct-L2Sectionbody">    # --- Subsection Level 3: subsection or paragraph-level grouping</div>
+<div class="doc-aligned-block" style="grid-template-columns:max-content minmax(0, 1fr)">
+<div class="ct-L2Sectionbody doc-aligned-cell"># - Heading      Level 1</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">primary/top-level section</div>
+<div class="ct-L2Sectionbody doc-aligned-cell"># -- Section     Level 2</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">section within the current level 1 heading</div>
+<div class="ct-L2Sectionbody doc-aligned-cell"># --- Subsection Level 3</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">subsection or paragraph-level grouping</div>
+</div>
 <div class="ct-L2Sectionbody"></div>
 <p class="ct-L2Sectionbody">The hierarchy is semantic, not decorative. Peer headings at the same structural level should use the same number of hyphens. In particular, top-level source sections must use `# -` and should not be written as `# --` or `# ---` merely for visual emphasis.</p>
 <div class="ct-L2Sectionbody"></div>
@@ -124,14 +157,24 @@
 <div class="ct-L2Sectionbody"></div>
 <p class="ct-L2Sectionbody">The currently supported style hints are:</p>
 <div class="ct-L2Sectionbody"></div>
-<div class="ct-L2Sectionbody">    normal      Standard rendered text</div>
-<div class="ct-L2Sectionbody">    label       (:) Label or small subheader text</div>
-<div class="ct-L2Sectionbody">    highlight   (.) Highlighted text</div>
-<div class="ct-L2Sectionbody">    emphasis    (!) Emphasized text</div>
-<div class="ct-L2Sectionbody">    underline   (_) Underlined text</div>
-<div class="ct-L2Sectionbody">    quote       (~) Quoted or aside text</div>
-<div class="ct-L2Sectionbody">    listitem    (-) Bullet-style list item</div>
-<div class="ct-L2Sectionbody">    indent          Reserved indentation style</div>
+<div class="doc-aligned-block" style="grid-template-columns:max-content minmax(0, 1fr)">
+<div class="ct-L2Sectionbody doc-aligned-cell">normal</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">Standard rendered text</div>
+<div class="ct-L2Sectionbody doc-aligned-cell">label</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">(:) Label or small subheader text</div>
+<div class="ct-L2Sectionbody doc-aligned-cell">highlight</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">(.) Highlighted text</div>
+<div class="ct-L2Sectionbody doc-aligned-cell">emphasis</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">(!) Emphasized text</div>
+<div class="ct-L2Sectionbody doc-aligned-cell">underline</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">(_) Underlined text</div>
+<div class="ct-L2Sectionbody doc-aligned-cell">quote</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">(~) Quoted or aside text</div>
+<div class="ct-L2Sectionbody doc-aligned-cell">listitem</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">(-) Bullet-style list item</div>
+<div class="ct-L2Sectionbody doc-aligned-cell">indent</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">Reserved indentation style</div>
+</div>
 <div class="ct-L2Sectionbody"></div>
 <p class="ct-L2Sectionbody">Marker characters are only interpreted when they are the first token after the comment marker. Leading whitespace after &quot;# &quot; is preserved as author layout and prevents marker interpretation.</p>
 <div class="ct-L2Sectionbody"></div>
@@ -141,19 +184,48 @@
 <div class="ct-L2Sectionbody"></div>
 <p class="ct-L2Sectionbody">The file doc-sample.sh should be treated as the practical reference for the supported documentation syntax.</p>
 <div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionheader">Aligned Documentation</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="doc-aligned-block" style="grid-template-columns:max-content minmax(0, 1fr)">
+<div class="ct-L2Sectionbody doc-aligned-cell">The renderer recognizes @</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">as an alignment token in ordinary documentation content.</div>
+<div class="ct-L2Sectionbody doc-aligned-cell">Consecutive lines containing @</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">form one aligned block. Corresponding fields share</div>
+</div>
+<p class="ct-L2Sectionbody">the same browser-calculated column width, so proportional fonts remain correctly aligned. The token is removed from rendered output.</p>
+<div class="ct-L2Sectionbody"></div>
+<div class="doc-aligned-block" style="grid-template-columns:max-content minmax(0, 1fr)">
+<div class="ct-L2Sectionbody doc-aligned-cell"># &gt; fn:</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">Function or method documentation</div>
+<div class="ct-L2Sectionbody doc-aligned-cell"># &gt; var:</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">Variable documentation</div>
+<div class="ct-L2Sectionbody doc-aligned-cell"># &gt; cls:</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">Class documentation</div>
+<div class="ct-L2Sectionbody doc-aligned-cell"># &gt; doc:</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">General documentation</div>
+</div>
+<div class="ct-L2Sectionbody"></div>
+<div class="doc-aligned-block" style="grid-template-columns:max-content minmax(0, 1fr)">
+<div class="ct-L2Sectionbody doc-aligned-cell">More than two columns are allowed by using</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">more than once on each line. Alignment</div>
+<div class="ct-L2Sectionbody doc-aligned-cell">ends when the next rendered documentation line does not contain</div>
+<div class="ct-L2Sectionbody doc-aligned-cell doc-aligned-last">. The processor</div>
+</div>
+<p class="ct-L2Sectionbody">preserves the token as content; alignment is intentionally renderer-owned.</p>
+<div class="ct-L2Sectionbody"></div>
 <div class="ct-L2Sectionheader">Tables</div>
 <div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">Documentation can embed tabular data directly in structured source comments. A table begins with a highlighted Table marker and is normally closed explicitly with a highlighted EndTable marker. A blank documentation line also ends the table for compatibility with earlier table syntax.</p>
+<p class="ct-L2Sectionbody">Documentation can embed tabular data directly in structured source comments. A table begins with a highlighted Table marker. The following documentation lines are collected as table rows until a blank documentation line ends the table.</p>
 <div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">Table cells are separated by a double colon (::). The first table row is treated as the semantic header row and is rendered using &lt;thead&gt; and &lt;th&gt;; following rows are rendered using &lt;tbody&gt; and &lt;td&gt;. Column widths are left to the browser and stylesheet.</p>
+<p class="ct-L2Sectionbody">Table cells are separated by a double colon (::). The first table row is always the semantic header row and is rendered using &lt;thead&gt; and &lt;th&gt;; following rows are rendered using &lt;tbody&gt; and &lt;td&gt;. Column widths are left to the browser and stylesheet.</p>
 <div class="ct-L2Sectionbody"></div>
 <div class="ct-L2Sectionbody">    # . Table</div>
 <div class="ct-L2Sectionbody">    # ! Name :: Description :: Status</div>
 <div class="ct-L2Sectionbody">    # Framework :: Core SolidGroundUX framework :: Active</div>
-<div class="ct-L2Sectionbody">    # ~ Console :: Management console modules :: Active</div>
-<div class="ct-L2Sectionbody">    # . EndTable</div>
+<div class="ct-L2Sectionbody">    # Console :: Management console modules :: Active</div>
+<div class="ct-L2Sectionbody">    #</div>
 <div class="ct-L2Sectionbody"></div>
-<p class="ct-L2Sectionbody">Style hints may be used on any table row. They remain presentation hints and do not determine whether a row belongs to the table. When a row style is implemented by the renderer, its normal sh-&lt;stylehint&gt; class is applied to that row. The first row remains the table header regardless of its style hint.</p>
+<p class="ct-L2Sectionbody">The first row may use the emphasis marker (!) as a visual style hint. This does not change its table semantics: the first row remains the header. Following rows use normal documentation lines so they remain part of the table. The processor preserves the :: separators as content; table recognition, cell splitting, and HTML semantics belong to the renderer.</p>
 <div class="ct-L2Sectionbody"></div>
 <div class="ct-L2Sectionheader">Images</div>
 <div class="ct-L2Sectionbody"></div>

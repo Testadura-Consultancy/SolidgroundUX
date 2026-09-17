@@ -57,10 +57,10 @@
 #
 # > Four generation modes are available:
 # >
-# >     1  Full              Reparse all matching source files for the selected products
-# >     2  Selected          Reparse only explicitly selected matching files
-# >     3  Changed           Reparse matching Git changes relative to HEAD, plus untracked files
-# >     4  Render existing   Rebuild HTML from the persisted renderer data only
+# >     1 <> Full            <> Reparse all matching source files for the selected products
+# >     2 <> Selected        <> Reparse only explicitly selected matching files
+# >     3 <> Changed         <> Reparse matching Git changes relative to HEAD, plus untracked files
+# >     4 <> Render existing <> Rebuild HTML from the persisted renderer data only
 # >
 # > Creating a new collection in Full mode starts with a clean output directory. A Full
 # > update of an existing collection instead loads the existing cache and refreshes the
@@ -99,26 +99,26 @@
 #
 # > The primary labels are:
 #
-# >     fn:      Function or method documentation
-# >     var:     Variable documentation
-# >     cls:     Class documentation
-# >     doc:     General documentation
+# >     fn:  <> Function or method documentation
+# >     var: <> Variable documentation
+# >     cls: <> Class documentation
+# >     doc: <> General documentation
 #
 # > Each label can be followed by either a colon or a dollar sign.
 #
 # > A colon indicates a normal documentation item:
 #
-# >     fn:      Normal function or method documentation
-# >     var:     Normal variable documentation
-# >     cls:     Normal class documentation
-# >     doc:     Normal general documentation
+# >     fn:  <> Normal function or method documentation
+# >     var: <> Normal variable documentation
+# >     cls: <> Normal class documentation
+# >     doc: <> Normal general documentation
 #
 # > A dollar sign indicates a template documentation item:
 #
-# >     fn$      Template function documentation
-# >     var$     Template variable documentation
-# >     cls$     Template class documentation
-# >     doc$     Template general documentation
+# >     fn$  <> Template function documentation
+# >     var$ <> Template variable documentation
+# >     cls$ <> Template class documentation
+# >     doc$ <> Template general documentation
 #
 # > Template items are primarily intended for reusable examples and template files.
 # > The renderer can treat them differently from normal framework items, depending
@@ -140,9 +140,9 @@
 # > Structural headings use a hyphenated hierarchy. The number of hyphens immediately
 # > following the comment marker determines the heading level:
 # >
-# >     # - Heading      Level 1: primary/top-level section
-# >     # -- Section     Level 2: section within the current level 1 heading
-# >     # --- Subsection Level 3: subsection or paragraph-level grouping
+# >     # - Heading      Level 1 <> primary/top-level section
+# >     # -- Section     Level 2 <> section within the current level 1 heading
+# >     # --- Subsection Level 3 <> subsection or paragraph-level grouping
 # >
 # > The hierarchy is semantic, not decorative. Peer headings at the same structural
 # > level should use the same number of hyphens. In particular, top-level source
@@ -175,14 +175,14 @@
 #
 # > The currently supported style hints are:
 #
-# >     normal      Standard rendered text
-# >     label       (:) Label or small subheader text
-# >     highlight   (.) Highlighted text
-# >     emphasis    (!) Emphasized text
-# >     underline   (_) Underlined text
-# >     quote       (~) Quoted or aside text
-# >     listitem    (-) Bullet-style list item
-# >     indent          Reserved indentation style
+# >     normal      <> Standard rendered text
+# >     label       <> (:) Label or small subheader text
+# >     highlight   <> (.) Highlighted text
+# >     emphasis    <> (!) Emphasized text
+# >     underline   <> (_) Underlined text
+# >     quote       <> (~) Quoted or aside text
+# >     listitem    <> (-) Bullet-style list item
+# >     indent      <> Reserved indentation style
 #
 # > Marker characters are only interpreted when they are the first token after the
 # > comment marker. Leading whitespace after "# " is preserved as author layout and
@@ -197,27 +197,43 @@
 # > The file doc-sample.sh should be treated as the practical reference for the
 # > supported documentation syntax.
 #
+# -- Aligned Documentation ----------------------------------------------------------
+#
+# > The renderer recognizes @<> as an alignment token in ordinary documentation content.
+# > Consecutive lines containing @<> form one aligned block. Corresponding fields share
+# > the same browser-calculated column width, so proportional fonts remain correctly aligned.
+# > The token is removed from rendered output.
+# >
+# >     # > fn:  <> Function or method documentation
+# >     # > var: <> Variable documentation
+# >     # > cls: <> Class documentation
+# >     # > doc: <> General documentation
+# >
+# > More than two columns are allowed by using <> more than once on each line. Alignment
+# > ends when the next rendered documentation line does not contain <>. The processor
+# > preserves the token as content; alignment is intentionally renderer-owned.
+#
 # -- Tables -------------------------------------------------------------------------
 #
 # > Documentation can embed tabular data directly in structured source comments. A
-# > table begins with a highlighted Table marker and is normally closed explicitly with
-# > a highlighted EndTable marker. A blank documentation line also ends the table for
-# > compatibility with earlier table syntax.
+# > table begins with a highlighted Table marker. The following documentation lines are
+# > collected as table rows until a blank documentation line ends the table.
 # >
-# > Table cells are separated by a double colon (::). The first table row is treated as
-# > the semantic header row and is rendered using <thead> and <th>; following rows are
-# > rendered using <tbody> and <td>. Column widths are left to the browser and stylesheet.
+# > Table cells are separated by a double colon (::). The first table row is always the
+# > semantic header row and is rendered using <thead> and <th>; following rows are rendered
+# > using <tbody> and <td>. Column widths are left to the browser and stylesheet.
 # >
 # >     # . Table
 # >     # ! Name :: Description :: Status
 # >     # Framework :: Core SolidGroundUX framework :: Active
-# >     # ~ Console :: Management console modules :: Active
-# >     # . EndTable
+# >     # Console :: Management console modules :: Active
+# >     #
 # >
-# > Style hints may be used on any table row. They remain presentation hints and do not
-# > determine whether a row belongs to the table. When a row style is implemented by the
-# > renderer, its normal sh-<stylehint> class is applied to that row. The first row remains
-# > the table header regardless of its style hint.
+# > The first row may use the emphasis marker (!) as a visual style hint. This does not
+# > change its table semantics: the first row remains the header. Following rows use normal
+# > documentation lines so they remain part of the table. The processor preserves the ::
+# > separators as content; table recognition, cell splitting, and HTML semantics belong to
+# > the renderer.
 #
 # -- Images -------------------------------------------------------------------------
 #

@@ -92,7 +92,6 @@ manage-samba-file-server.sh|Actions|||Actions|1
 manage-samba-file-server.sh|Main|||Main|1
 management-console-modules_preface.sh|SolidGroundUX Management Console Modules|||SolidGroundUX Management Console Modules|1
 management-console-modules_preface.sh|Architecture|SolidGroundUX Management Console Modules||Architecture|2
-management-console-modules_preface.sh|50-web-server.sh|||: manage-web-server.sh ::|1
 40-solidgroundux.sh|Library guard|||Library guard|1
 40-solidgroundux.sh|Module metadata|||Module metadata|1
 40-solidgroundux.sh|SolidGroundUX installation actions|||SolidGroundUX installation actions|1
@@ -174,6 +173,17 @@ active-directory-management.sh|Shared validation|||Shared validation|1
 active-directory-management.sh|Shared host/network discovery|||Shared host/network discovery|1
 active-directory-management.sh|Shared AD state|||Shared AD state|1
 active-directory-management.sh|Shared discovery|||Shared discovery|1
+deployment_preface.sh|Deployment|||Deployment|1
+deployment_preface.sh|Release Preparation|Deployment||Release Preparation|2
+deployment_preface.sh|Products and Bundles|Deployment||Products and Bundles|2
+deployment_preface.sh|Release Manager|Deployment||Release Manager|2
+deployment_preface.sh|First Installation|Deployment||First Installation|2
+deployment_preface.sh|Interactive Use|Deployment||Interactive Use|2
+deployment_preface.sh|Command-line Use|Deployment||Command-line Use|2
+deployment_preface.sh|GitHub Acquisition|Deployment||GitHub Acquisition|2
+deployment_preface.sh|Relationship to deploy-workspace.sh|Deployment||Relationship to deploy-workspace.sh|2
+deployment_preface.sh|How the Three Tools Relate|Deployment||How the Three Tools Relate|2
+deployment_preface.sh|Integrity and Recovery|Deployment||Integrity and Recovery|2
 release-manager.sh|Defaults|||Defaults|3
 release-manager.sh|Standalone UI|||Standalone UI|3
 release-manager.sh|Arguments and paths|||Arguments and paths|3
@@ -228,6 +238,27 @@ untar-it.sh|Framework integration|||Framework integration|1
 untar-it.sh|Local declarations|||Local declarations|1
 untar-it.sh|Helpers|||Helpers|1
 untar-it.sh|Main|||Main|1
+solidground console_preface.sh|SolidGround Management Console|||SolidGround Management Console|1
+solidground console_preface.sh|Console Module Lifecycle|SolidGround Management Console||Console Module Lifecycle|2
+solidground console_preface.sh|Main Components|SolidGround Management Console||Main Components|2
+solidground console_preface.sh|Governing Boundary|SolidGround Management Console||Governing Boundary|2
+solidground console_preface.sh|Main Index|SolidGround Management Console||Main Index|2
+solidground console_preface.sh|Lazy Module Lifecycle|SolidGround Management Console||Lazy Module Lifecycle|2
+solidground console_preface.sh|Module Contract|SolidGround Management Console||Module Contract|2
+solidground console_preface.sh|Page Ordering|SolidGround Management Console||Page Ordering|2
+solidground console_preface.sh|Navigation|SolidGround Management Console||Navigation|2
+solidground console_preface.sh|Post-action Pause|SolidGround Management Console||Post-action Pause|2
+solidground console_preface.sh|Startup Presentation|SolidGround Management Console||Startup Presentation|2
+solidground console_preface.sh|Console Status and Direct Controls|SolidGround Management Console||Console Status and Direct Controls|2
+solidground console_preface.sh|Paging and Rendering|SolidGround Management Console||Paging and Rendering|2
+solidground console_preface.sh|Module Enable State|SolidGround Management Console||Module Enable State|2
+solidground console_preface.sh|Action Status|SolidGround Management Console||Action Status|2
+solidground console_preface.sh|SolidGroundUX Page|SolidGround Management Console||SolidGroundUX Page|2
+solidground console_preface.sh|Storage Page|SolidGround Management Console||Storage Page|2
+solidground console_preface.sh|Active Directory and Samba Share Management|SolidGround Management Console||Active Directory and Samba Share Management|2
+solidground console_preface.sh|Creating a New Console Module|SolidGround Management Console||Creating a New Console Module|2
+solidground console_preface.sh|Dedicated Console Applications|SolidGround Management Console||Dedicated Console Applications|2
+solidground console_preface.sh|Why This Architecture Matters|SolidGround Management Console||Why This Architecture Matters|2
 deploy-workspace.sh|Bootstrap|||Bootstrap|3
 deploy-workspace.sh|Script metadata (identity)|||Script metadata (identity)|3
 deploy-workspace.sh|Script metadata (framework integration)|||Script metadata (framework integration)|3
@@ -244,6 +275,13 @@ prepare-template.sh|Example|||Arguments|3
 prepare-template.sh|Local script declarations|||Local script declarations|1
 prepare-template.sh|Local script functions|||Local script functions|1
 prepare-template.sh|Main|||Main|1
+doc-generator.sh|Bootstrap|||Bootstrap|1
+doc-generator.sh|Script identity|||Script identity|1
+doc-generator.sh|Framework integration|||Framework integration|1
+doc-generator.sh|Local script functions|||Local script functions|1
+doc-generator.sh|Main|||Main|1
+doc-generator.sh|Startup|Main||Startup|2
+doc-generator.sh|Main script logic|Main||Main script logic|2
 create-wrappers.sh|Bootstrap|||Bootstrap|1
 create-wrappers.sh|Script identity|||Script identity|1
 create-wrappers.sh|Framework integration|||Framework integration|1
@@ -289,6 +327,39 @@ mod-template.sh|Module metadata|||Module metadata|1
 mod-template.sh|Internal helpers|||Internal helpers|1
 mod-template.sh|Public module actions|||Public module actions|1
 mod-template.sh|Console registration|||Console registration|1
+solidgroundux_epilogue.sh|How do I...?|||How do I...?|1
+solidgroundux_epilogue.sh|Add a command-line argument|How do I...?||Add a command-line argument|2
+solidgroundux_epilogue.sh|Use configuration files|How do I...?||Use configuration files|2
+solidgroundux_epilogue.sh|Use persistent state variables|How do I...?||Use persistent state variables|2
+solidgroundux_epilogue.sh|Source an additional framework library|How do I...?||Source an additional framework library|2
+solidgroundux_epilogue.sh|Use themed colors, styles, and glyphs|How do I...?||Use themed colors, styles, and glyphs|2
+solidgroundux_epilogue.sh|Ask the user for input|How do I...?||Ask the user for input|2
+solidgroundux_epilogue.sh|Show an auto-continue prompt|How do I...?||Show an auto-continue prompt|2
+solidgroundux_epilogue.sh|Write screen output|How do I...?||Write screen output|2
+solidgroundux_epilogue.sh|Work with pipe-separated datatables|How do I...?||Work with pipe-separated datatables|2
+solidgroundux_epilogue.sh|Create a VS Code workspace|How do I...?||Create a VS Code workspace|2
+solidgroundux_epilogue.sh|Deploy a workspace|How do I...?||Deploy a workspace|2
+solidgroundux_epilogue.sh|Generate documentation|How do I...?||Generate documentation|2
+solidgroundux_epilogue.sh|Add a console command|How do I...?||Add a console command|2
+solidgroundux_epilogue.sh|Add generated help examples|How do I...?||Add generated help examples|2
+solidgroundux_epilogue.sh|Subsystem Reference Guide|||Subsystem Reference Guide|1
+solidgroundux_epilogue.sh|1. Executable Startup Contract|Subsystem Reference Guide||1. Executable Startup Contract|2
+solidgroundux_epilogue.sh|2. Bootstrap and Runtime Initialization|Subsystem Reference Guide||2. Bootstrap and Runtime Initialization|2
+solidgroundux_epilogue.sh|3. Framework Directory and Global Model|Subsystem Reference Guide||3. Framework Directory and Global Model|2
+solidgroundux_epilogue.sh|4. Command-Line Argument Parsing|Subsystem Reference Guide||4. Command-Line Argument Parsing|2
+solidgroundux_epilogue.sh|5. Configuration Support|Subsystem Reference Guide||5. Configuration Support|2
+solidgroundux_epilogue.sh|6. State Support|Subsystem Reference Guide||6. State Support|2
+solidgroundux_epilogue.sh|7. Dependency Loading|Subsystem Reference Guide||7. Dependency Loading|2
+solidgroundux_epilogue.sh|8. Console Messaging and Log Levels|Subsystem Reference Guide||8. Console Messaging and Log Levels|2
+solidgroundux_epilogue.sh|9. File Logging|Subsystem Reference Guide||9. File Logging|2
+solidgroundux_epilogue.sh|10. UI Rendering, Theming, and Palettes|Subsystem Reference Guide||10. UI Rendering, Theming, and Palettes|2
+solidgroundux_epilogue.sh|11. User Input and Dialogs|Subsystem Reference Guide||11. User Input and Dialogs|2
+solidgroundux_epilogue.sh|12. Progress Helpers|Subsystem Reference Guide||12. Progress Helpers|2
+solidgroundux_epilogue.sh|13. Metadata and Header Parsing|Subsystem Reference Guide||13. Metadata and Header Parsing|2
+solidgroundux_epilogue.sh|14. Documentation Generation|Subsystem Reference Guide||14. Documentation Generation|2
+solidgroundux_epilogue.sh|15. Datatable Helpers|Subsystem Reference Guide||15. Datatable Helpers|2
+solidgroundux_epilogue.sh|16. Console Host and Modules|Subsystem Reference Guide||16. Console Host and Modules|2
+solidgroundux_epilogue.sh|17. SDK, Workspace, Deployment, and Release Tools|Subsystem Reference Guide||17. SDK, Workspace, Deployment, and Release Tools|2
 sgnd-bootstrap.sh|Library guard|||Library guard|1
 sgnd-bootstrap.sh|Main sequence helpers + EXIT dispatch|||Main sequence helpers + EXIT dispatch|1
 sgnd-bootstrap.sh|Banner (Product / Title)|||Banner (Product / Title)|3
@@ -304,14 +375,6 @@ sgnd-bootstrap.sh|Load sections once|||Load sections once|3
 sgnd-bootstrap.sh|Description (multiline section)|||Description (multiline section)|3
 sgnd-bootstrap.sh|Metadata fields|||Metadata fields|3
 sgnd-bootstrap.sh|Attribution fields|||Attribution fields|3
-doc-processor.sh|Library guard|||Library guard|1
-doc-processor.sh|Local definitions|||Local definitions|1
-doc-processor.sh|Parser expressions|Local definitions||Parser expressions|2
-doc-processor.sh|Semantic registries|Local definitions||Semantic registries|2
-doc-processor.sh|Detectors|Local definitions||Detectors|2
-doc-processor.sh|Action|Local definitions||Action|2
-doc-processor.sh|Emitters|Local definitions||Emitters|2
-doc-processor.sh|Internal API|||Internal API|1
 doc-sample.sh|This is a list item.|||This is a list item.|1
 doc-sample.sh|This is another list item.|||This is another list item.|1
 doc-sample.sh|Add list items where useful.|||Add list items where useful.|1
@@ -381,9 +444,27 @@ ui-say.sh|Resolve style tokens for this TYPE via maps (LBL_*, ICO_*, SYM_*, MSG_
 ui-say.sh|Decode --show (supports "label,icon", "label+symbol", "all")|Public API||Decode --show (supports "label,icon", "label+symbol", "all")|2
 ui-say.sh|Build final output line and print|Public API||Build final output line and print|2
 ui-say.sh|Convenience wrappers for say() with a fixed TYPE.|Public API||Convenience wrappers for say() with a fixed TYPE.|2
+common core_preface.sh|Available Services|||Available Services|1
+common core_preface.sh|Configuration Management|Available Services||Configuration Management|2
+common core_preface.sh|State Management|Available Services||State Management|2
+common core_preface.sh|Command-Line Arguments|Available Services||Command-Line Arguments|2
+common core_preface.sh|User Interface Services|Available Services||User Interface Services|2
+common core_preface.sh|Console Applications|Available Services||Console Applications|2
+common core_preface.sh|Documentation Generation|Available Services||Documentation Generation|2
 sgnd-info.sh|Library guard|||Library guard|1
 sgnd-info.sh|Internal helpers|||Internal helpers|1
 sgnd-info.sh|Public API|||Public API|1
+bootstrap_preface.sh|Bootstrap|||Bootstrap|1
+bootstrap_preface.sh|Bootstrap Sequence|Bootstrap||Bootstrap Sequence|2
+bootstrap_preface.sh|Bootstrap Environment|Bootstrap||Bootstrap Environment|2
+bootstrap_preface.sh|Automatic Library Loading|Bootstrap||Automatic Library Loading|2
+bootstrap_preface.sh|Global Definitions|Bootstrap||Global Definitions|2
+bootstrap_preface.sh|Configuration Management|Bootstrap||Configuration Management|2
+bootstrap_preface.sh|Transferable Framework State|Bootstrap||Transferable Framework State|2
+bootstrap_preface.sh|Console and File Log Levels|Bootstrap||Console and File Log Levels|2
+bootstrap_preface.sh|Built-in Arguments|Bootstrap||Built-in Arguments|2
+bootstrap_preface.sh|Relationship to the Executable Template|Bootstrap||Relationship to the Executable Template|2
+bootstrap_preface.sh|Why Bootstrap Matters|Bootstrap||Why Bootstrap Matters|2
 sdk tools_preface.sh|SDK|||SDK|1
 sdk tools_preface.sh|Typical Development Workflow|SDK||Typical Development Workflow|2
 sdk tools_preface.sh|Creating a New Project|SDK||Creating a New Project|2
@@ -437,6 +518,31 @@ sgnd-exe-common.sh|Public API|||Public API|1
 sgnd-args.sh|Library guard|||Library guard|1
 sgnd-args.sh|Helper functions|||Helper functions|1
 sgnd-args.sh|Public API|||Public API|1
+solidgroundux_preface.sh|How it came to pass...|||How it came to pass...|1
+solidgroundux_preface.sh|SolidGroundUX in a nutshell|||SolidGroundUX in a nutshell|1
+solidgroundux_preface.sh|Framework capabilities summary|||Framework capabilities summary|1
+solidgroundux_preface.sh|Bootstrap and runtime initialization|Framework capabilities summary||Bootstrap and runtime initialization|2
+solidgroundux_preface.sh|Library loading with sgnd_using|Framework capabilities summary||Library loading with sgnd_using|2
+solidgroundux_preface.sh|Built-in and custom arguments|Framework capabilities summary||Built-in and custom arguments|2
+solidgroundux_preface.sh|Configuration management|Framework capabilities summary||Configuration management|2
+solidgroundux_preface.sh|State management|Framework capabilities summary||State management|2
+solidgroundux_preface.sh|Screen logging and user messages|Framework capabilities summary||Screen logging and user messages|2
+solidgroundux_preface.sh|File logging|Framework capabilities summary||File logging|2
+solidgroundux_preface.sh|Pretty UI and dialogs|Framework capabilities summary||Pretty UI and dialogs|2
+solidgroundux_preface.sh|Datatable helpers|Framework capabilities summary||Datatable helpers|2
+solidgroundux_preface.sh|Modular console host|Framework capabilities summary||Modular console host|2
+solidgroundux_preface.sh|Documentation generator|Framework capabilities summary||Documentation generator|2
+solidgroundux_preface.sh|SDK templates|Framework capabilities summary||SDK templates|2
+solidgroundux_preface.sh|Workspace, deployment, and release tools|Framework capabilities summary||Workspace, deployment, and release tools|2
+solidgroundux_preface.sh|Architecture|||Architecture|1
+solidgroundux_preface.sh|Layered Architecture|Architecture||Layered Architecture|2
+solidgroundux_preface.sh|Framework Locator and Run Modes|Architecture||Framework Locator and Run Modes|2
+solidgroundux_preface.sh|Bootstrap Architecture|Architecture||Bootstrap Architecture|2
+solidgroundux_preface.sh|Public and Internal APIs|Architecture||Public and Internal APIs|2
+solidgroundux_preface.sh|Convention Over Configuration|Architecture||Convention Over Configuration|2
+sgnd-bootstrap-env.sh|Library guard|||Library guard|1
+sgnd-bootstrap-env.sh|Runtime directory metadata|||Runtime directory metadata|1
+sgnd-bootstrap-env.sh|Helpers|||Helpers|1
 sgnd-definitions.sh|Library guard|||Library guard|1
 sgnd-definitions.sh|Framework identity|||Framework identity|1
 sgnd-definitions.sh|Framework defaults|||Framework defaults|1
@@ -473,130 +579,24 @@ default-ui-palette.sh|Text attributes (SGR)|||Text attributes (SGR)|1
 default-ui-palette.sh|Color codes|||Color codes|1
 default-ui-palette.sh|Foreground colors|||Foreground colors|1
 default-ui-palette.sh|Background colors|||Background colors|1
-doc-generator.sh|Bootstrap|||Bootstrap|1
-doc-generator.sh|Script identity|||Script identity|1
-doc-generator.sh|Framework integration|||Framework integration|1
-doc-generator.sh|Local script functions|||Local script functions|1
-doc-generator.sh|Main|||Main|1
-doc-generator.sh|Startup|Main||Startup|2
-doc-generator.sh|Main script logic|Main||Main script logic|2
-solidground console_preface.sh|SolidGround Management Console|||SolidGround Management Console|1
-solidground console_preface.sh|Console Module Lifecycle|SolidGround Management Console||Console Module Lifecycle|2
-solidground console_preface.sh|Main Components|SolidGround Management Console||Main Components|2
-solidground console_preface.sh|Governing Boundary|SolidGround Management Console||Governing Boundary|2
-solidground console_preface.sh|Main Index|SolidGround Management Console||Main Index|2
-solidground console_preface.sh|Lazy Module Lifecycle|SolidGround Management Console||Lazy Module Lifecycle|2
-solidground console_preface.sh|Module Contract|SolidGround Management Console||Module Contract|2
-solidground console_preface.sh|Page Ordering|SolidGround Management Console||Page Ordering|2
-solidground console_preface.sh|Navigation|SolidGround Management Console||Navigation|2
-solidground console_preface.sh|Post-action Pause|SolidGround Management Console||Post-action Pause|2
-solidground console_preface.sh|Startup Presentation|SolidGround Management Console||Startup Presentation|2
-solidground console_preface.sh|Console Status and Direct Controls|SolidGround Management Console||Console Status and Direct Controls|2
-solidground console_preface.sh|Paging and Rendering|SolidGround Management Console||Paging and Rendering|2
-solidground console_preface.sh|Module Enable State|SolidGround Management Console||Module Enable State|2
-solidground console_preface.sh|Action Status|SolidGround Management Console||Action Status|2
-solidground console_preface.sh|SolidGroundUX Page|SolidGround Management Console||SolidGroundUX Page|2
-solidground console_preface.sh|Storage Page|SolidGround Management Console||Storage Page|2
-solidground console_preface.sh|Active Directory and Samba Share Management|SolidGround Management Console||Active Directory and Samba Share Management|2
-solidground console_preface.sh|Creating a New Console Module|SolidGround Management Console||Creating a New Console Module|2
-solidground console_preface.sh|Dedicated Console Applications|SolidGround Management Console||Dedicated Console Applications|2
-solidground console_preface.sh|Why This Architecture Matters|SolidGround Management Console||Why This Architecture Matters|2
-bootstrap_preface.sh|Bootstrap|||Bootstrap|1
-bootstrap_preface.sh|Bootstrap Sequence|Bootstrap||Bootstrap Sequence|2
-bootstrap_preface.sh|Bootstrap Environment|Bootstrap||Bootstrap Environment|2
-bootstrap_preface.sh|Automatic Library Loading|Bootstrap||Automatic Library Loading|2
-bootstrap_preface.sh|Global Definitions|Bootstrap||Global Definitions|2
-bootstrap_preface.sh|Configuration Management|Bootstrap||Configuration Management|2
-bootstrap_preface.sh|Transferable Framework State|Bootstrap||Transferable Framework State|2
-bootstrap_preface.sh|Console and File Log Levels|Bootstrap||Console and File Log Levels|2
-bootstrap_preface.sh|Built-in Arguments|Bootstrap||Built-in Arguments|2
-bootstrap_preface.sh|Relationship to the Executable Template|Bootstrap||Relationship to the Executable Template|2
-bootstrap_preface.sh|Why Bootstrap Matters|Bootstrap||Why Bootstrap Matters|2
-common core_preface.sh|Available Services|||Available Services|1
-common core_preface.sh|Configuration Management|Available Services||Configuration Management|2
-common core_preface.sh|State Management|Available Services||State Management|2
-common core_preface.sh|Command-Line Arguments|Available Services||Command-Line Arguments|2
-common core_preface.sh|User Interface Services|Available Services||User Interface Services|2
-common core_preface.sh|Console Applications|Available Services||Console Applications|2
-common core_preface.sh|Documentation Generation|Available Services||Documentation Generation|2
+doc-processor.sh|Library guard|||Library guard|1
+doc-processor.sh|Local definitions|||Local definitions|1
+doc-processor.sh|Parser expressions|Local definitions||Parser expressions|2
+doc-processor.sh|Semantic registries|Local definitions||Semantic registries|2
+doc-processor.sh|Detectors|Local definitions||Detectors|2
+doc-processor.sh|Action|Local definitions||Action|2
+doc-processor.sh|Emitters|Local definitions||Emitters|2
+doc-processor.sh|Internal API|||Internal API|1
 sdk-documentation_preface.sh|Documentation Generator|||Documentation Generator|1
 sdk-documentation_preface.sh|Documentation Workflow|Documentation Generator||Documentation Workflow|2
 sdk-documentation_preface.sh|Module Headers|Documentation Generator||Module Headers|2
 sdk-documentation_preface.sh|Documentation Labels|Documentation Generator||Documentation Labels|2
 sdk-documentation_preface.sh|Sections and Structure|Documentation Generator||Sections and Structure|2
 sdk-documentation_preface.sh|Style Hints|Documentation Generator||Style Hints|2
+sdk-documentation_preface.sh|Aligned Documentation|Documentation Generator||Aligned Documentation|2
 sdk-documentation_preface.sh|Tables|Documentation Generator||Tables|2
 sdk-documentation_preface.sh|Images|Documentation Generator||Images|2
 sdk-documentation_preface.sh|Generated Output|Documentation Generator||Generated Output|2
 sdk-documentation_preface.sh|Documentation Conventions|Documentation Generator||Documentation Conventions|2
 sdk-documentation_preface.sh|Why Source-Based Documentation|Documentation Generator||Why Source-Based Documentation|2
-sgnd-bootstrap-env.sh|Library guard|||Library guard|1
-sgnd-bootstrap-env.sh|Runtime directory metadata|||Runtime directory metadata|1
-sgnd-bootstrap-env.sh|Helpers|||Helpers|1
-solidgroundux_epilogue.sh|How do I...?|||How do I...?|1
-solidgroundux_epilogue.sh|Add a command-line argument|How do I...?||Add a command-line argument|2
-solidgroundux_epilogue.sh|Use configuration files|How do I...?||Use configuration files|2
-solidgroundux_epilogue.sh|Use persistent state variables|How do I...?||Use persistent state variables|2
-solidgroundux_epilogue.sh|Source an additional framework library|How do I...?||Source an additional framework library|2
-solidgroundux_epilogue.sh|Use themed colors, styles, and glyphs|How do I...?||Use themed colors, styles, and glyphs|2
-solidgroundux_epilogue.sh|Ask the user for input|How do I...?||Ask the user for input|2
-solidgroundux_epilogue.sh|Show an auto-continue prompt|How do I...?||Show an auto-continue prompt|2
-solidgroundux_epilogue.sh|Write screen output|How do I...?||Write screen output|2
-solidgroundux_epilogue.sh|Work with pipe-separated datatables|How do I...?||Work with pipe-separated datatables|2
-solidgroundux_epilogue.sh|Create a VS Code workspace|How do I...?||Create a VS Code workspace|2
-solidgroundux_epilogue.sh|Deploy a workspace|How do I...?||Deploy a workspace|2
-solidgroundux_epilogue.sh|Generate documentation|How do I...?||Generate documentation|2
-solidgroundux_epilogue.sh|Add a console command|How do I...?||Add a console command|2
-solidgroundux_epilogue.sh|Add generated help examples|How do I...?||Add generated help examples|2
-solidgroundux_epilogue.sh|Subsystem Reference Guide|||Subsystem Reference Guide|1
-solidgroundux_epilogue.sh|1. Executable Startup Contract|Subsystem Reference Guide||1. Executable Startup Contract|2
-solidgroundux_epilogue.sh|2. Bootstrap and Runtime Initialization|Subsystem Reference Guide||2. Bootstrap and Runtime Initialization|2
-solidgroundux_epilogue.sh|3. Framework Directory and Global Model|Subsystem Reference Guide||3. Framework Directory and Global Model|2
-solidgroundux_epilogue.sh|4. Command-Line Argument Parsing|Subsystem Reference Guide||4. Command-Line Argument Parsing|2
-solidgroundux_epilogue.sh|5. Configuration Support|Subsystem Reference Guide||5. Configuration Support|2
-solidgroundux_epilogue.sh|6. State Support|Subsystem Reference Guide||6. State Support|2
-solidgroundux_epilogue.sh|7. Dependency Loading|Subsystem Reference Guide||7. Dependency Loading|2
-solidgroundux_epilogue.sh|8. Console Messaging and Log Levels|Subsystem Reference Guide||8. Console Messaging and Log Levels|2
-solidgroundux_epilogue.sh|9. File Logging|Subsystem Reference Guide||9. File Logging|2
-solidgroundux_epilogue.sh|10. UI Rendering, Theming, and Palettes|Subsystem Reference Guide||10. UI Rendering, Theming, and Palettes|2
-solidgroundux_epilogue.sh|11. User Input and Dialogs|Subsystem Reference Guide||11. User Input and Dialogs|2
-solidgroundux_epilogue.sh|12. Progress Helpers|Subsystem Reference Guide||12. Progress Helpers|2
-solidgroundux_epilogue.sh|13. Metadata and Header Parsing|Subsystem Reference Guide||13. Metadata and Header Parsing|2
-solidgroundux_epilogue.sh|14. Documentation Generation|Subsystem Reference Guide||14. Documentation Generation|2
-solidgroundux_epilogue.sh|15. Datatable Helpers|Subsystem Reference Guide||15. Datatable Helpers|2
-solidgroundux_epilogue.sh|16. Console Host and Modules|Subsystem Reference Guide||16. Console Host and Modules|2
-solidgroundux_epilogue.sh|17. SDK, Workspace, Deployment, and Release Tools|Subsystem Reference Guide||17. SDK, Workspace, Deployment, and Release Tools|2
-solidgroundux_preface.sh|How it came to pass...|||How it came to pass...|1
-solidgroundux_preface.sh|SolidGroundUX in a nutshell|||SolidGroundUX in a nutshell|1
-solidgroundux_preface.sh|Framework capabilities summary|||Framework capabilities summary|1
-solidgroundux_preface.sh|Bootstrap and runtime initialization|Framework capabilities summary||Bootstrap and runtime initialization|2
-solidgroundux_preface.sh|Library loading with sgnd_using|Framework capabilities summary||Library loading with sgnd_using|2
-solidgroundux_preface.sh|Built-in and custom arguments|Framework capabilities summary||Built-in and custom arguments|2
-solidgroundux_preface.sh|Configuration management|Framework capabilities summary||Configuration management|2
-solidgroundux_preface.sh|State management|Framework capabilities summary||State management|2
-solidgroundux_preface.sh|Screen logging and user messages|Framework capabilities summary||Screen logging and user messages|2
-solidgroundux_preface.sh|File logging|Framework capabilities summary||File logging|2
-solidgroundux_preface.sh|Pretty UI and dialogs|Framework capabilities summary||Pretty UI and dialogs|2
-solidgroundux_preface.sh|Datatable helpers|Framework capabilities summary||Datatable helpers|2
-solidgroundux_preface.sh|Modular console host|Framework capabilities summary||Modular console host|2
-solidgroundux_preface.sh|Documentation generator|Framework capabilities summary||Documentation generator|2
-solidgroundux_preface.sh|SDK templates|Framework capabilities summary||SDK templates|2
-solidgroundux_preface.sh|Workspace, deployment, and release tools|Framework capabilities summary||Workspace, deployment, and release tools|2
-solidgroundux_preface.sh|Architecture|||Architecture|1
-solidgroundux_preface.sh|Layered Architecture|Architecture||Layered Architecture|2
-solidgroundux_preface.sh|Framework Locator and Run Modes|Architecture||Framework Locator and Run Modes|2
-solidgroundux_preface.sh|Bootstrap Architecture|Architecture||Bootstrap Architecture|2
-solidgroundux_preface.sh|Public and Internal APIs|Architecture||Public and Internal APIs|2
-solidgroundux_preface.sh|Convention Over Configuration|Architecture||Convention Over Configuration|2
 sgnd_doc_renderer.py|Python Renderer Backend|||Python Renderer Backend|1
-deployment_preface.sh|Deployment|||Deployment|1
-deployment_preface.sh|Release Preparation|Deployment||Release Preparation|2
-deployment_preface.sh|Products and Bundles|Deployment||Products and Bundles|2
-deployment_preface.sh|Release Manager|Deployment||Release Manager|2
-deployment_preface.sh|First Installation|Deployment||First Installation|2
-deployment_preface.sh|Interactive Use|Deployment||Interactive Use|2
-deployment_preface.sh|Command-line Use|Deployment||Command-line Use|2
-deployment_preface.sh|GitHub Acquisition|Deployment||GitHub Acquisition|2
-deployment_preface.sh|Relationship to deploy-workspace.sh|Deployment||Relationship to deploy-workspace.sh|2
-deployment_preface.sh|How the Three Tools Relate|Deployment||How the Three Tools Relate|2
-deployment_preface.sh|Integrity and Recovery|Deployment||Integrity and Recovery|2
