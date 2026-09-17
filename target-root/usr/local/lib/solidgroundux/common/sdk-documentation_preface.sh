@@ -199,18 +199,18 @@
 #
 # -- Aligned Documentation ----------------------------------------------------------
 #
-# > The renderer recognizes @<> as an alignment token in ordinary documentation content.
-# > Consecutive lines containing @<> form one aligned block. Corresponding fields share
+# > The renderer recognizes @ <> as an alignment token in ordinary documentation content.
+# > Consecutive lines containing @ <> form one aligned block. Corresponding fields share
 # > the same browser-calculated column width, so proportional fonts remain correctly aligned.
 # > The token is removed from rendered output.
-# >
+# > 
 # >     # > fn:  <> Function or method documentation
 # >     # > var: <> Variable documentation
 # >     # > cls: <> Class documentation
 # >     # > doc: <> General documentation
 # >
-# > More than two columns are allowed by using <> more than once on each line. Alignment
-# > ends when the next rendered documentation line does not contain <>. The processor
+# > More than two columns are allowed by using @ <> more than once on each line. Alignment
+# > ends when the next rendered documentation line does not contain @ <>. The processor
 # > preserves the token as content; alignment is intentionally renderer-owned.
 #
 # -- Tables -------------------------------------------------------------------------
