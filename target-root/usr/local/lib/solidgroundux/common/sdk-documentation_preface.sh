@@ -2,7 +2,7 @@
 # SolidGroundUX - Documentation Generator Overview
 # ----------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
+#   Version     : 2.1
 #   Build       : 2625813
 #   Checksum    : 8e5d9e0ce027b36b4c5f35ea02dad60d02f12a99e5bead2c47fe4fd5b55bf030
 #   Source      : sdk documentation_preface.sh
@@ -33,37 +33,45 @@
 #
 # -- Documentation Workflow ---------------------------------------------------------
 #
-# > The documentation pipeline consists of several stages.
+# > The generator coordinates product discovery, source collection, parsing, cached
+# > documentation data, rendering, and final output. One documentation collection can
+# > contain one or more selected products. A primary product is selected as the lead
+# > product and is processed first; the remaining products retain deterministic order.
 #
 # . Images
-#   doc-generation-process.png :: Document generation process 
+#   doc-generation-process.png :: Documentation generation pipeline
 #
-# > The processor reads source files and extracts module metadata, sections, items,
-# > documentation lines, attribution data, and integrity information.
+# > For each selected product, the generator resolves its source root and applies the
+# > configured source file masks. A per-product documentation ignore file is resolved
+# > from user configuration first and system configuration second. Ignored files are
+# > excluded before parsing, and duplicate module basenames are skipped with a warning.
 #
-# > The renderer receives the normalized tables produced by the processor and turns
-# > them into HTML pages, navigation, appendices, glossary entries, and supporting
-# > assets.
+# > The processor reads the selected source files and extracts module metadata, sections,
+# > items, documentation lines, attribution data, and integrity information into
+# > normalized tables. These tables are persisted as documentation cache data and form
+# > the input to the renderer.
 #
-# > The generator coordinates the overall process and acts as the main entry point
-# > for producing the documentation set.
-# >
+# > The renderer turns the normalized data into HTML pages, navigation, appendices,
+# > glossary entries, branding, and supporting assets. Each selected product may also
+# > contribute documentation assets from its canonical usr/local/assets directory.
+#
 # > Four generation modes are available:
 # >
-# >     1  Full              Reparse all matching source files and rebuild the complete set
+# >     1  Full              Reparse all matching source files for the selected products
 # >     2  Selected          Reparse only explicitly selected matching files
-# >     3  Changed           Reparse matching files changed since the selected baseline
+# >     3  Changed           Reparse matching Git changes relative to HEAD, plus untracked files
 # >     4  Render existing   Rebuild HTML from the persisted renderer data only
 # >
-# > Full generation cleans the output directory before rebuilding the complete set.
-# > Selected and Changed generation preserve existing output so they can be used for
-# > incremental updates. Successful parse modes persist the normalized renderer input
-# > data, allowing Render existing data mode to regenerate HTML, navigation, CSS,
-# > branding, and other renderer-owned output without rescanning source files.
+# > Creating a new collection in Full mode starts with a clean output directory. A Full
+# > update of an existing collection instead loads the existing cache and refreshes the
+# > selected products without clearing the collection. Selected and Changed modes also
+# > load the existing cache and replace or remove only the affected modules.
 # >
-# > After files or modules are renamed or removed, use Full generation so obsolete
-# > generated pages are deleted rather than surviving from an earlier documentation run.
-# > Render existing data does not re-read source comments or metadata.
+# > Successful parse modes pass the normalized data to the renderer and persist the data
+# > required for later incremental or render-only runs. Render existing mode bypasses
+# > source parsing completely and regenerates renderer-owned output from cached data.
+# > The generated site can optionally be copied to the primary product repository's docs
+# > directory after rendering.
 #
 # -- Module Headers -----------------------------------------------------------------
 #
@@ -189,6 +197,28 @@
 # > The file doc-sample.sh should be treated as the practical reference for the
 # > supported documentation syntax.
 #
+# -- Tables -------------------------------------------------------------------------
+#
+# > Documentation can embed tabular data directly in structured source comments. A
+# > table begins with a highlighted Table marker and is normally closed explicitly with
+# > a highlighted EndTable marker. A blank documentation line also ends the table for
+# > compatibility with earlier table syntax.
+# >
+# > Table cells are separated by a double colon (::). The first table row is treated as
+# > the semantic header row and is rendered using <thead> and <th>; following rows are
+# > rendered using <tbody> and <td>. Column widths are left to the browser and stylesheet.
+# >
+# >     # . Table
+# >     # ! Name :: Description :: Status
+# >     # Framework :: Core SolidGroundUX framework :: Active
+# >     # ~ Console :: Management console modules :: Active
+# >     # . EndTable
+# >
+# > Style hints may be used on any table row. They remain presentation hints and do not
+# > determine whether a row belongs to the table. When a row style is implemented by the
+# > renderer, its normal sh-<stylehint> class is applied to that row. The first row remains
+# > the table header regardless of its style hint.
+#
 # -- Images -------------------------------------------------------------------------
 #
 # > Documentation can embed one image or a group of images directly from structured
@@ -215,11 +245,13 @@
 # > renderer derives alternative text from the filename.
 # >
 # > Relative filenames are resolved beneath the generated assets/images directory.
-# > Framework documentation assets placed under:
+# > Each selected documentation product may provide documentation assets beneath:
 # >
-# >     <source-root>/usr/local/lib/solidgroundux/assets
+# >     <product-source-root>/usr/local/assets
 # >
-# > are copied to the generated documentation assets/images directory before rendering.
+# > The generator supplies these product asset directories to the renderer. Their flat
+# > contents are merged into the generated documentation assets/images directory without
+# > renaming files, so asset filenames are expected to be globally unique across products.
 # > Sources beginning with assets/ are resolved relative to the generated documentation
 # > asset root. Absolute paths, http/https URLs, and data URLs are also accepted by the
 # > renderer.

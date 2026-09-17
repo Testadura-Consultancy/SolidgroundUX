@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Tables</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<div class="doc-page-branding"><span class="doc-page-branding-title">SolidGroundUX Documentation</span><img src="../assets/branding/doc-header-logo.png" alt="SolidGroundUX"></div>
+<header class="doc-page-header">
+  <div class="doc-title">Tables</div>
+  <div class="doc-breadcrumb">sdk-documentation_preface.sh::Documentation Generator:Tables:</div>
+</header>
+<div class="ct-L2Sectionbody"></div>
+<p class="ct-L2Sectionbody">Documentation can embed tabular data directly in structured source comments. A table begins with a highlighted Table marker and is normally closed explicitly with a highlighted EndTable marker. A blank documentation line also ends the table for compatibility with earlier table syntax.</p>
+<div class="ct-L2Sectionbody"></div>
+<p class="ct-L2Sectionbody">Table cells are separated by a double colon (::). The first table row is treated as the semantic header row and is rendered using &lt;thead&gt; and &lt;th&gt;; following rows are rendered using &lt;tbody&gt; and &lt;td&gt;. Column widths are left to the browser and stylesheet.</p>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody">    # . Table</div>
+<div class="ct-L2Sectionbody">    # ! Name :: Description :: Status</div>
+<div class="ct-L2Sectionbody">    # Framework :: Core SolidGroundUX framework :: Active</div>
+<div class="ct-L2Sectionbody">    # ~ Console :: Management console modules :: Active</div>
+<div class="ct-L2Sectionbody">    # . EndTable</div>
+<div class="ct-L2Sectionbody"></div>
+<p class="ct-L2Sectionbody">Style hints may be used on any table row. They remain presentation hints and do not determine whether a row belongs to the table. When a row style is implemented by the renderer, its normal sh-&lt;stylehint&gt; class is applied to that row. The first row remains the table header regardless of its style hint.</p>
+<div class="ct-L2Sectionbody"></div>
+</main>
+</body>
+</html>

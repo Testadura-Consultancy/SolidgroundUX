@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Framework Locator and Run Modes</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<div class="doc-page-branding"><span class="doc-page-branding-title">SolidGroundUX Documentation</span><img src="../assets/branding/doc-header-logo.png" alt="SolidGroundUX"></div>
+<header class="doc-page-header">
+  <div class="doc-title">Framework Locator and Run Modes</div>
+  <div class="doc-breadcrumb">solidgroundux_preface.sh::Architecture:Framework Locator and Run Modes:</div>
+</header>
+<div class="ct-L2Sectionbody"></div>
+<p class="ct-L2Sectionbody">SolidGroundUX does not assume that the framework is installed at the filesystem root. The framework locator determines SGND_FRAMEWORK_ROOT from the location of the executing script, allowing the same logical filesystem layout to be used in both installed and development environments.</p>
+<div class="ct-L2Sectionbody"></div>
+<p class="ct-L2Sectionbody">When running from the normal system locations, the framework root is `/`. When running from a development `target-root`, that directory becomes the framework root instead. Framework paths are then resolved relative to that root.</p>
+<div class="ct-L2Sectionbody"></div>
+<div class="doc-image-group images-1">
+<figure class="doc-image">
+<img src="../assets/images/sgnd-framework-locator.png" alt="Framework locator and ROOT/NON-ROOT run modes." loading="lazy">
+<figcaption>Framework locator and ROOT/NON-ROOT run modes.</figcaption>
+</figure>
+</div>
+<p class="ct-L2Sectionbody">This allows development copies to behave like an installed framework without modifying the live system. Executables running from a non-root framework display `NON-ROOT` in the title bar to make the active environment immediately visible.</p>
+<div class="ct-L2Sectionbody"></div>
+<div class="ct-L2Sectionbody"></div>
+</main>
+</body>
+</html>

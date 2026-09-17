@@ -52,6 +52,7 @@ Notes:
 from __future__ import annotations
 
 import html
+import os
 import re
 import shutil
 import sys
@@ -427,6 +428,14 @@ class DocRenderer:
         self.output_dir = output_dir
         self.asset_dir = output_dir / "assets"
         self.page_dir = output_dir / "pages"
+        asset_sources = os.environ.get("SGND_DOC_ASSETS_DIRS", "").strip()
+        if not asset_sources:
+            asset_sources = os.environ.get("SGND_DOC_ASSETS_DIR", "").strip()
+        self.asset_source_dirs = [
+            Path(source).resolve()
+            for source in asset_sources.split(os.pathsep)
+            if source.strip()
+        ]
 
         self.mod_table: List[Row] = []
         self.mod_sections: List[Row] = []
@@ -830,12 +839,23 @@ class DocRenderer:
             group_name = module.get("group", "") or "Ungrouped"
             group_key = normalize_key(group_name)
 
+            purpose_key = normalize_key(module.get("purpose", ""))
+            # A product-level *_preface file belongs directly beneath its product.
+            # Matching Group to product avoids stealing ordinary group/subgroup prefaces.
+            if module_key.endswith("_preface") and group_key == product_key:
+                product_specials["preface"].append(module)
+                continue
+            if purpose_key in {"product_preface", "documentation_preface"}:
+                product_specials["preface"].append(module)
+                continue
+            if purpose_key in {"product_epilogue", "documentation_epilogue"}:
+                product_specials["epilogue"].append(module)
+                continue
+
             role = self.product_comment_role(module_key, product_key)
             if role:
                 product_specials[role].append(module)
                 continue
-
-            purpose_key = normalize_key(module.get("purpose", ""))
             role = ""
             if purpose_key == "group_preface" and not module.get("subgroup", ""):
                 role = "preface"
@@ -1359,7 +1379,44 @@ class DocRenderer:
     def render_assets(self) -> None:
         self.render_layout_css()
         self.ensure_theme_css()
+        self.copy_documentation_images()
         self.copy_branding_assets()
+
+    # fn: copy_documentation_images - Copy shared documentation images
+    # . Purpose
+    #   Copy the framework-wide documentation image collection into the generated site.
+    # . Usage
+    #   self.copy_documentation_images()
+    def copy_documentation_images(self) -> None:
+        """Merge documentation images from the selected products' canonical asset directories."""
+        source_dirs = [source for source in self.asset_source_dirs if source.is_dir()]
+        if not source_dirs:
+            return
+
+        image_target_dir = self.asset_dir / "images"
+        if image_target_dir.exists():
+            shutil.rmtree(image_target_dir)
+        image_target_dir.mkdir(parents=True, exist_ok=True)
+
+        copied: Dict[str, Path] = {}
+        for source_dir in source_dirs:
+            for source in source_dir.iterdir():
+                target = image_target_dir / source.name
+                key = source.name.casefold()
+                if key in copied:
+                    print(
+                        f"WARNING: duplicate documentation asset '{source.name}' in '{source_dir}'; "
+                        f"already supplied by '{copied[key].parent}'. Skipping duplicate.",
+                        file=sys.stderr,
+                    )
+                    continue
+                if source.is_dir():
+                    shutil.copytree(source, target)
+                elif source.is_file():
+                    shutil.copy2(source, target)
+                else:
+                    continue
+                copied[key] = source
 
     # fn: copy_branding_assets - Copy branding assets
     # . Purpose
@@ -1372,15 +1429,13 @@ class DocRenderer:
         branding_dir.mkdir(parents=True, exist_ok=True)
 
         candidates = {
-            DOC_HEADER_LOGO: (
-                self.input_dir / DOC_HEADER_LOGO,
-                self.input_dir / "assets" / DOC_HEADER_LOGO,
-                Path(__file__).resolve().parent.parent / "assets" / DOC_HEADER_LOGO,
+            DOC_HEADER_LOGO: tuple(
+                [source / DOC_HEADER_LOGO for source in self.asset_source_dirs]
+                + [self.input_dir / DOC_HEADER_LOGO, self.input_dir / "assets" / DOC_HEADER_LOGO]
             ),
-            DOC_INDEX_LOGO: (
-                self.input_dir / DOC_INDEX_LOGO,
-                self.input_dir / "assets" / DOC_INDEX_LOGO,
-                Path(__file__).resolve().parent.parent / "assets" / DOC_INDEX_LOGO,
+            DOC_INDEX_LOGO: tuple(
+                [source / DOC_INDEX_LOGO for source in self.asset_source_dirs]
+                + [self.input_dir / DOC_INDEX_LOGO, self.input_dir / "assets" / DOC_INDEX_LOGO]
             ),
         }
 
@@ -4118,6 +4173,87 @@ body {
             return False
         return (row.get("stylehint", "normal") or "normal") in {"label", "highlight"}
 
+    # fn: is_table_marker - Determine whether table marker
+    # . Purpose
+    #   Determine whether a documentation row starts a table block.
+    #
+    # . Arguments
+    #   row  Documentation content row to inspect.
+    # . Usage
+    #   self.is_table_marker(<row>)
+    def is_table_marker(self, row: Row) -> bool:
+        if (row.get("content", "") or "").strip().casefold() not in {"table", "tables"}:
+            return False
+        return (row.get("stylehint", "normal") or "normal") in {"label", "highlight"}
+
+    # fn: parse_table_row - Parse table row
+    # . Purpose
+    #   Split one double-colon-delimited documentation table row into cells.
+    #
+    # . Arguments
+    #   value  Double-colon-delimited table row.
+    # . Usage
+    #   self.parse_table_row(<value>)
+    def parse_table_row(self, value: str) -> List[str]:
+        text = (value or "").strip()
+        return [cell.strip() for cell in text.split("::")]
+
+    # fn: is_endtable_marker - Determine whether end-table marker
+    # . Purpose
+    #   Determine whether a documentation row explicitly ends a table block.
+    #
+    # . Arguments
+    #   row  Documentation content row to inspect.
+    # . Usage
+    #   self.is_endtable_marker(<row>)
+    def is_endtable_marker(self, row: Row) -> bool:
+        if (row.get("content", "") or "").strip().casefold() not in {"endtable", "endtables"}:
+            return False
+        return (row.get("stylehint", "normal") or "normal") in {"label", "highlight"}
+
+    # fn: render_table - Render documentation table
+    # . Purpose
+    #   Render parsed documentation table rows using the standard data-table styling.
+    #
+    # . Arguments
+    #   rows  Parsed table rows as (cells, stylehint); the first row is the header.
+    # . Usage
+    #   self.render_table(<rows>)
+    def render_table(self, rows: Sequence[tuple[Sequence[str], str]]) -> str:
+        if not rows:
+            return ""
+
+        column_count = max(len(cells) for cells, _style_hint in rows)
+        normalized = [
+            (list(cells) + [""] * (column_count - len(cells)), style_hint)
+            for cells, style_hint in rows
+        ]
+        header, header_style = normalized[0]
+        body = normalized[1:]
+
+        def row_class(style_hint: str) -> str:
+            if not style_hint or style_hint == "normal":
+                return ""
+            return f' class="{esc(f"sh-{style_hint}")}"'
+
+        lines = [
+            '<table class="doc-data-table">',
+            f'<thead><tr{row_class(header_style)}>'
+            + ''.join(f'<th>{esc(cell)}</th>' for cell in header)
+            + '</tr></thead>',
+        ]
+        if body:
+            lines.append('<tbody>')
+            for cells, style_hint in body:
+                lines.append(
+                    f'<tr{row_class(style_hint)}>'
+                    + ''.join(f'<td>{esc(cell)}</td>' for cell in cells)
+                    + '</tr>'
+                )
+            lines.append('</tbody>')
+        lines.append('</table>')
+        return "\n".join(lines)
+
     # fn: parse_image_entry - Parse image entry
     # . Purpose
     #   Parse image entry for the documentation rendering workflow.
@@ -4241,6 +4377,39 @@ body {
             if skip_first_header and not skipped_first_header and content_type.endswith("header"):
                 skipped_first_header = True
                 index += 1
+                continue
+
+            if self.is_table_marker(row):
+                table_rows: List[tuple[List[str], str]] = []
+                index += 1
+
+                while index < len(rows):
+                    table_row = rows[index]
+                    if table_row.get("suppress", "0") == "1":
+                        index += 1
+                        continue
+
+                    if self.is_endtable_marker(table_row):
+                        index += 1
+                        break
+
+                    table_content = table_row.get("content", "") or ""
+                    table_style = table_row.get("stylehint", "normal") or "normal"
+
+                    # Keep blank-line termination for compatibility with existing documents.
+                    if not table_content.strip():
+                        index += 1
+                        break
+                    if table_row.get("contenttype", "") != content_type:
+                        break
+
+                    # Style hints describe the row; they do not affect table membership.
+                    table_rows.append((self.parse_table_row(table_content), table_style))
+                    index += 1
+
+                table_html = self.render_table(table_rows)
+                if table_html:
+                    lines.append(table_html)
                 continue
 
             if self.is_images_marker(row):

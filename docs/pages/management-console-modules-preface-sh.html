@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SolidGroundUX Management Console Modules - Console Modules Introduction</title>
+  <link rel="stylesheet" href="../assets/doc.css">
+  <link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+<main class="doc-page">
+<div class="doc-page-branding"><span class="doc-page-branding-title">SolidGroundUX Documentation</span><img src="../assets/branding/doc-header-logo.png" alt="SolidGroundUX"></div>
+<header class="doc-page-header">
+  <div class="doc-title">SolidGroundUX Management Console Modules - Console Modules Introduction</div>
+  <div class="doc-breadcrumb">SolidGroundUX Codex / management-console-modules_preface.sh</div>
+</header>
+<div class="ct-L1Sectionheader">SolidGroundUX Management Console Modules</div>
+<div class="doc-image-group images-1">
+<figure class="doc-image">
+<img src="../assets/images/mcm.png" alt="SolidGround Management Console, the host application." loading="lazy">
+<figcaption>SolidGround Management Console, the host application.</figcaption>
+</figure>
+</div>
+<p class="ct-L1Sectionbody">SolidGroundUX began with a practical goal:</p>
+<div class="ct-L1Sectionbody sh-quote">   make configuring and managing Linux servers consistent, repeatable and considerably less tedious. </div>
+<div class="ct-L1Sectionbody"></div>
+<p class="ct-L1Sectionbody">As the framework matured, the management functionality built on top of it grew into something substantial in its own right. As of version 2.1 of the framework, that functionality became a separate product: SolidGroundUX Management Console Modules. The separation is architectural rather than merely organizational. SolidGroundUX provides the runtime, conventions, APIs, console infrastructure and reusable framework services. The Management Console Modules are designed to run through the framework executable sgnd-console. They began as a way to showcase the SolidGroundUX Management Console....</p>
+<div class="ct-L1Sectionbody"></div>
+<p class="ct-L1Sectionbody">The Management Console Modules have evolved into a collection of shell scripts covering a broad range of practical server-management tasks. They have been tested extensively on Ubuntu 24.04 LTS and 25.04.</p>
+<div class="ct-L1Sectionbody"></div>
+<p class="ct-L1Sectionbody">In practice they have demonstrated that configuring a Samba AD domain controller, a Samba file server, a SQL Server host and an Nginx web server can be reduced from hours of repetitive configuration to a largely guided and repeatable process.</p>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-label">A little bragging</div>
+<p class="ct-L1Sectionbody">During end-to-end testing, configuring a Samba AD domain controller, Samba file server, SQL Server host and Nginx web server took little over half an hour, including basic user and share configuration.</p>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L2Sectionheader">Architecture</div>
+<p class="ct-L2Sectionbody">The Management Console Modules are implemented as a collection of shell scripts, that all reside in a directory. sgnd-console is the host application which takes a paramaeter to load a module or all modules in a directory. This directory defaults to usr/local/libexec/solidgroundux/console-modules. The actual module scripts are named with a two-digit prefix to control the order in which they are loaded, the consist mostly of menuregistration calls, and mayube a little local helper. These menu registrations call a separate executable, that handles the actual work. The &#x27;action&#x27; scripts are selfcontained executables and leverage SolidGroundUX and could be called outside sgnd-console</p>
+<div class="doc-image-group images-1">
+<figure class="doc-image">
+<img src="../assets/images/mcm-architecture.png" alt="SolidGround Management Console Modules Architecture." loading="lazy">
+<figcaption>SolidGround Management Console Modules Architecture.</figcaption>
+</figure>
+</div>
+<table class="doc-data-table">
+<thead><tr class="sh-emphasis"><th>Module</th><th>Executable</th><th>Common</th></tr></thead>
+<tbody>
+<tr><td>10-computer-setup.sh</td><td>set-identity.sh</td><td></td></tr>
+<tr class="sh-quote"><td>15-storage.sh</td><td>manage-storage.sh</td><td></td></tr>
+<tr><td>20-active-directory-server.sh</td><td>manage-active-directory-server.sh</td><td>active-directory-management.sh</td></tr>
+<tr><td>25-active-directory-client.sh</td><td>manage-active-directory-client.sh</td><td>active-directory-management.sh</td></tr>
+<tr><td>27-active-directory-management.sh</td><td>manage-active-directory.sh</td><td>active-directory-management.sh</td></tr>
+<tr class="sh-underline"><td>30-samba-file-server.sh</td><td>manage-samba-file-server.sh</td><td></td></tr>
+<tr><td>30-samba-file-server.sh</td><td>manage-samba-shares.sh</td><td></td></tr>
+<tr class="sh-highlight"><td>40-solidgroundux.sh</td><td>manage-solidgroundux.sh</td><td></td></tr>
+<tr><td>45-solidground-framework-test.sh</td><td>framework-smoketest.sh</td><td></td></tr>
+</tbody>
+</table>
+<div class="ct-L1Sectionheader">50-web-server.sh</div>
+<div class="ct-L1Sectionbody sh-label">50-web-server.sh :: publish-web-content.sh ::</div>
+<div class="ct-L1Sectionbody">  60-sqlserver.sh :: manage-sqlserver.sh ::</div>
+<div class="ct-L1Sectionbody">  70-docker-server.sh :: manage-docker-server.sh ::</div>
+<div class="ct-L1Sectionbody">  70-docker-server.sh :: manage-docker-containers.sh ::</div>
+<div class="ct-L1Sectionbody">  90-development.sh :: ::</div>
+<div class="ct-L1Sectionbody sh-highlight">EndTable</div>
+</main>
+</body>
+</html>

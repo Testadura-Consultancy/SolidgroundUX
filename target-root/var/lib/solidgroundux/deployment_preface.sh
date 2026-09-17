@@ -94,6 +94,20 @@
 # > prepare-release.sh is a development/release-authoring tool and therefore uses the
 # > normal SolidGroundUX framework runtime.
 #
+# -- Products and Bundles ------------------------------------------------------------
+#
+# > Release preparation is product-aware. Each product retains its own identity,
+# > version, build policy, package metadata, repository information, and release state.
+# > Products can be prepared and distributed independently.
+#
+# > A bundle combines compatible product releases for convenient distribution without
+# > merging their identities. The bundle inherits the primary product version and build;
+# > companion products remain independently versioned and can subsequently be updated
+# > through the Release Manager on their own lifecycle.
+#
+# . Images
+#   sgnd-product-release-lifecycle.png :: Product-aware release and bundle lifecycle.
+#
 # -- Release Manager -----------------------------------------------------------------
 #
 # > release-manager.sh is the canonical installation and release-lifecycle tool.

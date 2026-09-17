@@ -19,7 +19,7 @@
 # ==================================================================================
 # - SolidGround Management Console -------------------------------------------------
 # . Images
-#   smc.png :: Figure 1 – SolidGround Management Console.
+#   smc.png :: SolidGround Management Console.
 #
 # > The SolidGround Management Console is the interactive administration shell for
 # > SolidGroundUX. It is built from a generic console host, a reusable menu engine,
@@ -88,6 +88,10 @@
 # > cooperating SolidGroundUX libraries use `_sgnd_*` and are treated as
 # > framework-internal/protected rather than application-facing API. Plain `_helper`
 # > names remain local/private to their owning script or module.
+#
+# > Console modules also inherit the framework DRYRUN contract. A module that delegates
+# > work to an executable must propagate DRYRUN so the delegated operation cannot make
+# > persistent changes while the console is in dry-run mode.
 #
 # -- Main Index ---------------------------------------------------------------------
 #

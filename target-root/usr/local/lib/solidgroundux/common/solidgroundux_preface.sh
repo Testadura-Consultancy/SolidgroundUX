@@ -34,6 +34,10 @@
 # > consistent, and hopefully enjoyable framework for building console applications in Bash. Not bad for a
 # > first Bash project. I haven't configured a single VM since I started building it, so I sometimes wonder
 # > whether the original plan still works...
+# > Meanwhile, another 3 months later, having now configured many VMs in minutes rather than hours, we're at version 2.1. 
+# > The framework is broader, cleaner, and architecturally grounded. What started as a way to make configuring 
+# > a few Linux servers less tedious has become a framework for building, deploying, managing, and documenting 
+# > them consistently.
 #   
 # > I'm releasing this software on GitHub under the Testadura Non-Commercial License (TD-NC) v1.1. This means
 # > you can use it free of charge for non-commercial purposes, even within a commercial environment. However,
@@ -82,7 +86,7 @@
 
 # - Framework capabilities summary --------------------------------------------------
 # . Images
-#   Framework-Features.png :: Figure 2 – SolidGroundUX capabilities.  
+#   Framework-Features.png :: SolidGroundUX capabilities.  
 #
 # > SolidGroundUX can be used as a small runtime framework, a documentation system,
 # > a console application host, and a deployment toolkit. The sections below provide
@@ -243,7 +247,7 @@
 #
 # > The framework is organized into several logical layers.
 # . Images
-#   Framework-Architecture.png :: Figure 1 – SolidGroundUX layered architecture.  
+#   Framework-Architecture.png :: SolidGroundUX layered architecture.  
 #
 # > The diagram provides a high-level overview of the major framework
 # > components and their relationships. The remainder of this documentation
@@ -262,6 +266,25 @@
 # > register menu groups and menu items with a common host application, providing a
 # > lightweight plugin architecture implemented entirely in Bash.
 #
+# -- Framework Locator and Run Modes -------------------------------------------------
+#
+# > SolidGroundUX does not assume that the framework is installed at the filesystem
+# > root. The framework locator determines SGND_FRAMEWORK_ROOT from the location of
+# > the executing script, allowing the same logical filesystem layout to be used in
+# > both installed and development environments.
+#
+# > When running from the normal system locations, the framework root is `/`. When
+# > running from a development `target-root`, that directory becomes the framework
+# > root instead. Framework paths are then resolved relative to that root.
+#
+# . Images
+#   sgnd-framework-locator.png :: Framework locator and ROOT/NON-ROOT run modes.
+#
+# > This allows development copies to behave like an installed framework without
+# > modifying the live system. Executables running from a non-root framework display
+# > `NON-ROOT` in the title bar to make the active environment immediately visible.
+#
+#
 # -- Bootstrap Architecture ----------------------------------------------------------
 #
 # > The bootstrap system is the heart of the framework.
@@ -273,7 +296,7 @@
 # > A typical startup sequence consists of:
 #   
 # . Images
-#   Bootstrap-Sequence.png :: Figure 3 – SolidGroundUX bootstrap sequence.  
+#   Bootstrap-Sequence.png :: SolidGroundUX bootstrap sequence.  
 #
 #   
 # > By centralizing initialization logic, application scripts remain focused on their

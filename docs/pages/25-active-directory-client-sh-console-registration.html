@@ -11,7 +11,7 @@
 <div class="doc-page-branding"><span class="doc-page-branding-title">SolidGroundUX Documentation</span><img src="../assets/branding/doc-header-logo.png" alt="SolidGroundUX"></div>
 <header class="doc-page-header">
   <div class="doc-title">Console registration</div>
-  <div class="doc-breadcrumb">SolidGroundUX / 25-active-directory-client.sh / Console registration</div>
+  <div class="doc-breadcrumb">SolidGroundUX Codex / 25-active-directory-client.sh / Console registration</div>
 </header>
 <p class="ct-L1Sectionbody">Provides Active Directory client preparation and domain membership management. The complete join workflow is exposed together with its individual steps for diagnosis, validation, status inspection, DNS registration, and domain leave.</p>
 <div class="ct-L1Sectionbody"></div>
@@ -51,6 +51,10 @@
 <div class="ct-L1Sectionbody sh-emphasis">Register client DNS</div>
 <div class="ct-L1Sectionbody">  &gt; Register and verify the client IPv4 host record.</div>
 <div class="ct-L1Sectionbody">  &gt; Handler: _adc_step_register_dns</div>
+<div class="ct-L1Sectionbody"></div>
+<div class="ct-L1Sectionbody sh-emphasis">Reconcile AD client</div>
+<div class="ct-L1Sectionbody">  &gt; Repair safe local AD client drift without rejoining the realm.</div>
+<div class="ct-L1Sectionbody">  &gt; Handler: _adc_reconcile</div>
 <div class="ct-L1Sectionbody"></div>
 <div class="ct-L1Sectionbody sh-emphasis">Validate AD client</div>
 <div class="ct-L1Sectionbody">  &gt; Validate membership, service discovery, and SSSD.</div>

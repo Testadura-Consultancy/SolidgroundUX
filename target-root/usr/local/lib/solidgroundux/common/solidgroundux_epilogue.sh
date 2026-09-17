@@ -62,7 +62,7 @@
 #
 # -- Source an additional framework library -----------------------------------------
 #
-# > Add the library filename to SGND_USING. After core libraries are loaded,
+# > Declare the library filename in `SGND_USING`. After core libraries are loaded,
 # > sgnd_bootstrap sources the declared libraries from the common library directory.
 #
 # > Example:

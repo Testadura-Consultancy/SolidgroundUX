@@ -245,7 +245,7 @@ set -uo pipefail
         SGND_STYLE_DIR="$SGND_FRAMEWORK_ROOT/usr/local/lib/$product/styles"
         SGND_ARCHIVE_DIR="$SGND_FRAMEWORK_ROOT/usr/local/lib/$product/archive"
 
-        SGND_DOCS_DIR="$SGND_FRAMEWORK_ROOT/usr/local/share/testadura/$product/doc"   # May be absent in dev/minimal installs
+        SGND_DOCS_DIR="$SGND_FRAMEWORK_ROOT/usr/local/share/doc"   # May be absent in dev/minimal installs
         SGND_LOCAL_DOC="$SGND_DOCS_DIR/$product/index.html"
         SGND_LICENSE_FILE="$SGND_FRAMEWORK_ROOT/usr/local/share/testadura/$product/LICENSE"   # May be absent in dev/minimal installs
         SGND_README_FILE="$SGND_FRAMEWORK_ROOT/usr/local/share/testadura/$product/README.md"

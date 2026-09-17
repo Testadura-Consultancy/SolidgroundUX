@@ -40,14 +40,21 @@
 # > Unlike configuration values, state represents remembered runtime choices and
 # > workflow context such as previous selections, recently used values, UI choices,
 # > or cached information. Scripts opt individual values into persistence explicitly.
-#  
+# >
+# . Images
+#   sgnd-config-state-precedence.png | Configuration and state precedence in SolidGroundUX.
 # -- Command-Line Arguments ----------------------------------------------------------
 #  
+# >
 # > The argument subsystem provides standardized command-line processing. After the
 # > bootstrap separates framework options from script arguments, applications can
 # > define their own declarative argument specification while retaining framework
 # > built-ins such as help, version reporting, tracing, debugging, and configuration
 # > overrides.
+# >
+# > DRYRUN is a framework-wide execution contract rather than merely a display flag.
+# > When DRYRUN is active, cooperating framework tools and delegated actions must avoid
+# > persistent changes, including configuration/state writes and system modifications.
 #
 # -- User Interface Services ---------------------------------------------------------
 #

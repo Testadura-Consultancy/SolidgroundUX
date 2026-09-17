@@ -44,7 +44,7 @@
 # . Images
 #   Bootstrap-Sequence.png :: Bootstrap Sequence.  
 #   
-# > The exact implementation is intentionally hidden behind the bootstrap API. The
+# > The implementation is centralized behind the bootstrap API. The
 # > important point is that every bootstrapped script enters its main logic with the
 # > same basic runtime assumptions.
 #
@@ -61,6 +61,11 @@
 # > paths or guess where framework components are located. This also allows the same
 # > code to work both during development and after deployment, provided the expected
 # > layout is available.
+# >
+# > In production, `SGND_FRAMEWORK_ROOT` normally resolves to `/`. In a development
+# > workspace it resolves to the repository `target-root`. The filesystem layout below
+# > that root is intentionally the same, allowing framework code to use one path model
+# > in both environments.
 #
 # -- Automatic Library Loading ------------------------------------------------------
 #

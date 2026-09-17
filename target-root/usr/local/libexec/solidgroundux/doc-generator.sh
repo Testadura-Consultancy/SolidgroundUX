@@ -184,7 +184,7 @@ set -uo pipefail
         "update-files|u|value|VAL_UPDATE_FILES|Comma-separated files for selected update mode||"
         "outdir|o|value|VAL_OUTDIR|Output directory for generated docs||"
         "recursive|r|flag|FLAG_RECURSIVE_SCAN|Recursively scan source directory|1|"
-        "srcdir|s|value|VAL_SRCDIR|Source directory to scan||"
+        "srcdir|s|value|VAL_DISCOVERY_ROOT|Product discovery root||"
         "review|v|flag|FLAG_REVIEW|Review assembled data|0|"
     )
 
@@ -259,14 +259,15 @@ set -uo pipefail
         # Leave empty if:
         #   - The script does not use persistent state.
     SGND_STATE_VARIABLES=(
-        "VAL_SRCDIR|Source Directory||"
+        "VAL_DISCOVERY_ROOT|Product discovery root||"
         "VAL_COLLECTION_MODE|Collection action (create or update)||"
         "VAL_COLLECTION_NAME|Documentation collection name||"
         "VAL_DOCUMENT_PRODUCTS|Selected documentation products||"
+        "VAL_PRIMARY_PRODUCT|Primary documentation product||"
         "VAL_FILESPEC|Filename masks||"
         "VAL_UPDATE_MODE|Generation mode (full, selected, changed, render)||"
         "VAL_UPDATE_FILES|Selected update files||"
-        "VAL_OUTDIR|Output Directory||"
+        "VAL_OUTPUT_ROOT|Output Root||"
         "FLAG_RECURSIVE_SCAN|Recursive Scan||"
         "FLAG_CLEAN_OUTPUT|Clean Output Directory||"
         "FLAG_CLEAR_RENDER_CACHE|Clear cached renderer input before rebuilding||"
@@ -345,11 +346,28 @@ set -uo pipefail
         VAL_FILESPEC="${VAL_FILESPEC:-*.sh,*.py}"
         VAL_UPDATE_MODE="${VAL_UPDATE_MODE:-full}"
         VAL_UPDATE_FILES="${VAL_UPDATE_FILES:-}"
-        VAL_OUTDIR="${VAL_OUTDIR:-$SGND_DOCS_DIR}"
+        # Product discovery starts above the individual repository target-roots.
+        # For a normal development tree (.../<repo>/target-root), default to the
+        # common development directory containing the sibling product repositories.
+        if [[ -z "${VAL_DISCOVERY_ROOT:-}" ]]; then
+            if [[ "$(basename -- "${SGND_FRAMEWORK_ROOT%/}")" == "target-root" ]]; then
+                VAL_DISCOVERY_ROOT="$(dirname -- "$(dirname -- "${SGND_FRAMEWORK_ROOT%/}")")"
+            else
+                VAL_DISCOVERY_ROOT="${SGND_FRAMEWORK_ROOT%/}"
+            fi
+        fi
+        # VAL_SRCDIR is now derived from the first selected product and retained
+        # internally for legacy Git/cache operations; it is no longer user input.
         VAL_SRCDIR="${VAL_SRCDIR:-$SGND_FRAMEWORK_ROOT}"
+        # Output root is a persistent/user-selectable preference.  An explicit
+        # --outdir is a one-run final destination override and is never persisted.
+        SGND_DOC_OUTDIR_OVERRIDE="${VAL_OUTDIR:-}"
+        VAL_OUTPUT_ROOT="${VAL_OUTPUT_ROOT:-$SGND_DOCS_DIR}"
+        VAL_OUTDIR=""
         VAL_COLLECTION_MODE="${VAL_COLLECTION_MODE:-update}"
         VAL_COLLECTION_NAME="${VAL_COLLECTION_NAME:-SolidGroundUX Codex}"
         VAL_DOCUMENT_PRODUCTS="${VAL_DOCUMENT_PRODUCTS:-ALL}"
+        VAL_PRIMARY_PRODUCT="${VAL_PRIMARY_PRODUCT:-}"
 
         VAL_DOCUMENT_TITLE="${VAL_DOCUMENT_TITLE:-${SGND_PRODUCT:-}, Full Development Documentation}"
         VAL_DOCUMENT_SUBTITLE="${VAL_DOCUMENT_SUBTITLE:-}"
@@ -357,6 +375,109 @@ set -uo pipefail
         VAL_DOCUMENT_PRODUCT="${VAL_DOCUMENT_PRODUCT:-${SGND_PRODUCT:-}}"
 
    
+    }
+
+
+    # fn: _doc_collection_slug - Convert a collection name into a filesystem-safe directory name
+    _doc_collection_slug() {
+        local value="${1:-Documentation}"
+        value="${value// /-}"
+        value="$(printf '%s' "$value" | tr '[:upper:]' '[:lower:]' | tr -cd '[:alnum:]_.-')"
+        printf '%s\n' "${value:-documentation}"
+    }
+
+    # fn: _doc_finalize_outdir - Resolve the final collection output directory
+    _doc_finalize_outdir() {
+        local slug=""
+
+        # --outdir is an explicit final-destination override.  When supplied,
+        # use it exactly as given and do not append the collection name.
+        if [[ -n "${SGND_DOC_OUTDIR_OVERRIDE:-}" ]]; then
+            VAL_OUTDIR="${SGND_DOC_OUTDIR_OVERRIDE%/}"
+            return 0
+        fi
+
+        slug="$(_doc_collection_slug "${VAL_COLLECTION_NAME:-Documentation}")"
+        VAL_OUTPUT_ROOT="${VAL_OUTPUT_ROOT%/}"
+        VAL_OUTDIR="${VAL_OUTPUT_ROOT}/${slug}"
+    }
+
+    # fn: _doc_product_config_id - Convert a product name into a stable config filename stem
+    _doc_product_config_id() {
+        local value="${1:-product}"
+        value="$(printf '%s' "$value" | tr '[:upper:] ' '[:lower:]-' | tr -cd '[:alnum:]_.-')"
+        printf '%s\n' "${value:-product}"
+    }
+
+    # fn: _doc_resolve_ignore_file - Resolve/create the per-product .docignore file
+    _doc_resolve_ignore_file() {
+        local product="${1:-}"
+        local id="" user_file="" system_file=""
+        id="$(_doc_product_config_id "$product")"
+        user_file="${SGND_USRCFG_DIR%/}/${id}.docignore"
+        system_file="${SGND_SYSCFG_DIR%/}/${id}.docignore"
+
+        if [[ -r "$user_file" ]]; then
+            printf '%s\n' "$user_file"
+            return 0
+        fi
+        if [[ -r "$system_file" ]]; then
+            printf '%s\n' "$system_file"
+            return 0
+        fi
+
+        if (( ${FLAG_DRYRUN:-0} )); then
+            sayinfo "Would create default documentation ignore file: $user_file" >&2
+            printf '%s\n' "$user_file"
+            return 0
+        fi
+
+        mkdir -p "${SGND_USRCFG_DIR%/}" || return 1
+        printf '%s\n' \
+            "# Documentation exclusions for $product" \
+            "# One shell-style path or filename pattern per line." \
+            "# Blank lines and lines beginning with # are ignored." \
+            "# Examples:" \
+            "# *-template.sh" \
+            "# templates/**" \
+            > "$user_file"
+            
+        sayinfo "Created default documentation ignore file: $user_file" >&2
+        printf '%s\n' "$user_file"
+    }
+
+    # fn: _doc_path_is_ignored - Test a source file against the active product .docignore
+    _doc_path_is_ignored() {
+        local path="${1:-}" source_root="${2:-}" ignore_file="${3:-}"
+        local rel="" name="" pattern=""
+        [[ -r "$ignore_file" ]] || return 1
+        rel="${path#${source_root%/}/}"
+        name="${path##*/}"
+        while IFS= read -r pattern || [[ -n "$pattern" ]]; do
+            pattern="${pattern%$'\r'}"
+            pattern="${pattern#"${pattern%%[![:space:]]*}"}"
+            pattern="${pattern%"${pattern##*[![:space:]]}"}"
+            [[ -n "$pattern" && "${pattern:0:1}" != "#" ]] || continue
+            [[ "$rel" == $pattern || "$name" == $pattern ]] && return 0
+        done < "$ignore_file"
+        return 1
+    }
+
+    # fn: _doc_parse_product_file - Apply ignore/duplicate policy before parsing a product file
+    _doc_parse_product_file() {
+        local file="${1:-}" name="${file##*/}" previous=""
+        if _doc_path_is_ignored "$file" "$SGND_DOC_ACTIVE_SOURCE_ROOT" "$SGND_DOC_ACTIVE_IGNORE_FILE"; then
+            ((SGND_DOC_IGNORED_COUNT++))
+            return 0
+        fi
+        previous="${SGND_DOC_SEEN_MODULES[$name]-}"
+        if [[ -n "$previous" ]]; then
+            saywarning "Duplicate module '$name' in product '$SGND_DOC_ACTIVE_PRODUCT'; already collected from '$previous'. Skipping duplicate."
+            ((SGND_DOC_DUPLICATE_COUNT++))
+            return 0
+        fi
+        SGND_DOC_SEEN_MODULES["$name"]="$SGND_DOC_ACTIVE_PRODUCT"
+        _parse_module_file "$file"
     }
 
     # fn: _doc_discover_products - Discover product definitions beneath the selected source root
@@ -367,9 +488,9 @@ set -uo pipefail
         #   SGND_DOC_DISCOVERED_PRODUCTS, SGND_DOC_DISCOVERED_VERSIONS,
         #   SGND_DOC_DISCOVERED_BUILDS, SGND_DOC_DISCOVERED_DEFINITIONS.
     _doc_discover_products() {
-        local globals_dir="${VAL_SRCDIR%/}/usr/local/lib/solidgroundux/globals"
-        local source_repo="" development_root="" repo="" definition=""
-        local record="" product="" version="" build="" project_root=""
+        local discovery_root="${VAL_DISCOVERY_ROOT%/}"
+        local candidate="" globals_dir="" definition="" record=""
+        local product="" version="" build="" project_root=""
         local -a definition_roots=()
         local -A seen_products=()
 
@@ -379,25 +500,17 @@ set -uo pipefail
         SGND_DOC_DISCOVERED_DEFINITIONS=()
         SGND_DOC_DISCOVERED_ROOTS=()
 
-        # Production / arbitrary source: the selected source tree is the registry.
-        definition_roots+=("$globals_dir")
-
-        # Development source: target-root is normally one repository beneath a common
-        # development directory. Discover sibling product repositories as well so the
-        # documentation generator can offer one combined ecosystem collection.
-        if [[ "$(basename -- "${VAL_SRCDIR%/}")" == "target-root" ]]; then
-            source_repo="$(dirname -- "${VAL_SRCDIR%/}")"
-            development_root="$(dirname -- "$source_repo")"
-            if [[ -d "$development_root" ]]; then
-                while IFS= read -r -d '' repo; do
-                    [[ -d "$repo/target-root/usr/local/lib/solidgroundux/globals" ]] || continue
-                    definition_roots+=("$repo/target-root/usr/local/lib/solidgroundux/globals")
-                done < <(find "$development_root" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null | sort -z)
-            fi
+        # A discovery root may itself be a target-root (production/single product),
+        # or it may contain sibling product repositories, each with a target-root.
+        if [[ -d "$discovery_root/usr/local/lib/solidgroundux/globals" ]]; then
+            definition_roots+=("$discovery_root/usr/local/lib/solidgroundux/globals")
         fi
+        while IFS= read -r -d '' candidate; do
+            globals_dir="$candidate/target-root/usr/local/lib/solidgroundux/globals"
+            [[ -d "$globals_dir" ]] && definition_roots+=("$globals_dir")
+        done < <(find "$discovery_root" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null | sort -z)
 
         for globals_dir in "${definition_roots[@]}"; do
-            [[ -d "$globals_dir" ]] || continue
             while IFS= read -r -d '' definition; do
                 record="$(bash -c '
                     set -u
@@ -417,15 +530,14 @@ set -uo pipefail
                 [[ -n "$record" ]] || continue
                 IFS='|' read -r product version build <<< "$record"
                 [[ -n "$product" ]] || continue
-
-                # The primary source tree is searched first. If the same product is also
-                # visible through a sibling path, retain the first authoritative record.
                 [[ -z "${seen_products[${product,,}]-}" ]] || continue
                 seen_products["${product,,}"]=1
 
-                project_root="${definition%%/target-root/*}"
-                [[ "$project_root" != "$definition" ]] || project_root="${VAL_SRCDIR%/}"
-
+                if [[ "$definition" == */target-root/* ]]; then
+                    project_root="${definition%%/target-root/*}"
+                else
+                    project_root="$discovery_root"
+                fi
                 SGND_DOC_DISCOVERED_PRODUCTS+=("$product")
                 SGND_DOC_DISCOVERED_VERSIONS+=("$version")
                 SGND_DOC_DISCOVERED_BUILDS+=("$build")
@@ -435,7 +547,7 @@ set -uo pipefail
         done
 
         if (( ${#SGND_DOC_DISCOVERED_PRODUCTS[@]} == 0 )); then
-            saywarning "No *-definitions.sh product definitions found for source: $VAL_SRCDIR"
+            saywarning "No SolidGroundUX products found beneath discovery root: $VAL_DISCOVERY_ROOT"
         fi
     }
 
@@ -560,6 +672,88 @@ set -uo pipefail
         done
     }
 
+    # fn: _doc_prompt_primary_product - Select the lead product for the collection
+    _doc_prompt_primary_product() {
+        local product="" reply="" index=0 default_index=1
+        local -a reordered=()
+
+        (( ${#SGND_DOC_SELECTED_PRODUCTS[@]} > 0 )) || return 0
+
+        # A single selected product is necessarily primary.
+        if (( ${#SGND_DOC_SELECTED_PRODUCTS[@]} == 1 )); then
+            VAL_PRIMARY_PRODUCT="${SGND_DOC_SELECTED_PRODUCTS[0]}"
+            return 0
+        fi
+
+        # Prefer the persisted primary product.  On first use, prefer the running
+        # framework product when it is part of the selection; otherwise use the
+        # first selected product.
+        for index in "${!SGND_DOC_SELECTED_PRODUCTS[@]}"; do
+            product="${SGND_DOC_SELECTED_PRODUCTS[$index]}"
+            if [[ -n "${VAL_PRIMARY_PRODUCT:-}" && "${product,,}" == "${VAL_PRIMARY_PRODUCT,,}" ]]; then
+                default_index=$((index + 1))
+                break
+            fi
+            if [[ -z "${VAL_PRIMARY_PRODUCT:-}" && -n "${SGND_PRODUCT:-}" && "${product,,}" == "${SGND_PRODUCT,,}" ]]; then
+                default_index=$((index + 1))
+            fi
+        done
+
+        sgnd_print
+        sgnd_print_sectionheader "Primary product" --padend 0
+        for index in "${!SGND_DOC_SELECTED_PRODUCTS[@]}"; do
+            sgnd_print_labeledvalue --label "$((index + 1))" --value "${SGND_DOC_SELECTED_PRODUCTS[$index]}" --labelwidth 3
+        done
+
+        while true; do
+            reply="$default_index"
+            ask --label "Primary product" --var reply --default "$reply" \
+                --colorize both --labelclr "${CYAN}" --pad 4 --labelwidth 25
+            if [[ "$reply" =~ ^[0-9]+$ ]] && (( reply >= 1 && reply <= ${#SGND_DOC_SELECTED_PRODUCTS[@]} )); then
+                break
+            fi
+            saywarning "Choose one of the selected product numbers."
+        done
+
+        VAL_PRIMARY_PRODUCT="${SGND_DOC_SELECTED_PRODUCTS[$((reply - 1))]}"
+
+        # Collection order is primary first, followed by the remaining selected
+        # products in their existing deterministic order.  The renderer therefore
+        # receives the intended index order without needing separate primary logic.
+        reordered+=("$VAL_PRIMARY_PRODUCT")
+        for product in "${SGND_DOC_SELECTED_PRODUCTS[@]}"; do
+            [[ "${product,,}" == "${VAL_PRIMARY_PRODUCT,,}" ]] && continue
+            reordered+=("$product")
+        done
+        SGND_DOC_SELECTED_PRODUCTS=("${reordered[@]}")
+    }
+
+    _doc_set_primary_source_root() {
+        local product="${VAL_PRIMARY_PRODUCT:-${SGND_DOC_SELECTED_PRODUCTS[0]:-}}" discovered="" project_root="" index=0
+        [[ -n "$product" ]] || return 0
+        for index in "${!SGND_DOC_DISCOVERED_PRODUCTS[@]}"; do
+            discovered="${SGND_DOC_DISCOVERED_PRODUCTS[$index]}"
+            [[ "${discovered,,}" == "${product,,}" ]] || continue
+            project_root="${SGND_DOC_DISCOVERED_ROOTS[$index]:-}"
+            [[ -d "$project_root/target-root" ]] && VAL_SRCDIR="$project_root/target-root" || VAL_SRCDIR="$project_root"
+            return 0
+        done
+    }
+
+    _doc_print_selected_sources() {
+        local product="" discovered="" project_root="" source_root="" index=0
+        for product in "${SGND_DOC_SELECTED_PRODUCTS[@]}"; do
+            for index in "${!SGND_DOC_DISCOVERED_PRODUCTS[@]}"; do
+                discovered="${SGND_DOC_DISCOVERED_PRODUCTS[$index]}"
+                [[ "${discovered,,}" == "${product,,}" ]] || continue
+                project_root="${SGND_DOC_DISCOVERED_ROOTS[$index]:-}"
+                [[ -d "$project_root/target-root" ]] && source_root="$project_root/target-root" || source_root="$project_root"
+                sgnd_print_labeledvalue --label "$product" --value "$source_root" --labelwidth 38 --pad 4 --labelclr "${CYAN}" --valueclr "${YELLOW}"
+                break
+            done
+        done
+    }
+
     _doc_product_is_selected() {
         local candidate="${1:-}" product=""
         (( ${#SGND_DOC_SELECTED_PRODUCTS[@]} > 0 )) || return 0
@@ -625,8 +819,15 @@ set -uo pipefail
                 }
 
                 sayinfo "Parsing documentation product: $product"
+                SGND_DOC_ACTIVE_PRODUCT="$product"
+                SGND_DOC_ACTIVE_SOURCE_ROOT="$source_root"
+                SGND_DOC_ACTIVE_IGNORE_FILE="$(_doc_resolve_ignore_file "$product")" || return 1
                 before_count="${#MOD_TABLE[@]}"
-                _iterate_files "$source_root" "$VAL_FILESPEC" "$FLAG_RECURSIVE_SCAN" "$callback" || return 1
+                if [[ "$callback" == "_parse_module_file" ]]; then
+                    _iterate_files "$source_root" "$VAL_FILESPEC" "$FLAG_RECURSIVE_SCAN" _doc_parse_product_file || return 1
+                else
+                    _iterate_files "$source_root" "$VAL_FILESPEC" "$FLAG_RECURSIVE_SCAN" "$callback" || return 1
+                fi
                 _doc_force_product_on_new_modules "$before_count" "$product"
                 found=1
                 break
@@ -711,12 +912,12 @@ set -uo pipefail
             [[ -n "$name" ]] || continue
             previous="${owner[$name]-}"
             if [[ -n "$previous" && "${previous,,}" != "${product,,}" ]]; then
-                sayfail "Documentation collection contains duplicate module name '$name' in products '$previous' and '$product'."
-                sayinfo "Module basenames must currently be unique across a documentation collection."
-                return 1
+                saywarning "Duplicate module '$name' remains in collected data for products '$previous' and '$product'."
+            else
+                owner["$name"]="$product"
             fi
-            owner[$name]="$product"
         done
+        return 0
     }
 
     _doc_full_update_collection() {
@@ -793,229 +994,104 @@ set -uo pipefail
         # Examples:
         #   _get_userinput
     _get_userinput() {
-        local lw=25
-        local lp=4
-        local default="N"
-        local reply
-    
+        local lw=25 lp=4 default="N" reply="" mode_reply="" collection_action="1"
+
         while true; do
             sgnd_print
+            sgnd_print_sectionheader "Product discovery" --padend 0
+            ask --label "Product discovery root" --var VAL_DISCOVERY_ROOT --default "$VAL_DISCOVERY_ROOT" \
+                --validate sgnd_validate_dir_exists --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+
+            _doc_prompt_products || return 1
+            _doc_prompt_primary_product || return 1
+            _doc_set_primary_source_root
+
+            sgnd_print
             sgnd_print_sectionheader "Generation mode" --padend 0
-
-            local mode_reply=""
             case "$VAL_UPDATE_MODE" in
-                full)     mode_reply="1" ;;
-                selected) mode_reply="2" ;;
-                changed)  mode_reply="3" ;;
-                render)   mode_reply="4" ;;
-                *)        mode_reply="1" ;;
+                full) mode_reply="1" ;; selected) mode_reply="2" ;; changed) mode_reply="3" ;; render) mode_reply="4" ;; *) mode_reply="1" ;;
             esac
-
             while true; do
-                ask --label "Mode: 1 Full, 2 Selected, 3 Changed, 4 Render existing data" \
-                    --var mode_reply \
-                    --default "$mode_reply" \
-                    --colorize both \
-                    --labelclr "${CYAN}" \
-                    --pad "$lp" \
-                    --labelwidth "$lw"
-
+                ask --label "Mode: 1 Full, 2 Selected, 3 Changed, 4 Render existing data" --var mode_reply --default "$mode_reply" \
+                    --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
                 case "$mode_reply" in
-                    1) VAL_UPDATE_MODE="full"; break ;;
-                    2) VAL_UPDATE_MODE="selected"; break ;;
-                    3) VAL_UPDATE_MODE="changed"; break ;;
-                    4) VAL_UPDATE_MODE="render"; break ;;
+                    1) VAL_UPDATE_MODE="full"; break ;; 2) VAL_UPDATE_MODE="selected"; break ;;
+                    3) VAL_UPDATE_MODE="changed"; break ;; 4) VAL_UPDATE_MODE="render"; break ;;
                     *) saywarning "Choose generation mode 1, 2, 3, or 4" ;;
                 esac
             done
-
             if [[ "$VAL_UPDATE_MODE" == "selected" ]]; then
-                ask --label "Files to update (comma-separated)" \
-                    --var VAL_UPDATE_FILES \
-                    --default "$VAL_UPDATE_FILES" \
-                    --colorize both \
-                    --labelclr "${CYAN}" \
-                    --pad "$lp" \
-                    --labelwidth "$lw"
-            fi
-
-            sgnd_print
-            if [[ "$VAL_UPDATE_MODE" == "render" ]]; then
-                sgnd_print_sectionheader "Destination" --padend 0
-            else
-                sgnd_print_sectionheader "Source and destination" --padend 0
+                ask --label "Files to update (comma-separated)" --var VAL_UPDATE_FILES --default "$VAL_UPDATE_FILES" \
+                    --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
             fi
 
             if [[ "$VAL_UPDATE_MODE" != "render" ]]; then
-                ask --label "Source directory" \
-                    --var VAL_SRCDIR \
-                    --default "$VAL_SRCDIR" \
-                    --validate sgnd_validate_dir_exists \
-                    --colorize both \
-                    --labelclr "${CYAN}" \
-                    --pad "$lp" \
-                    --labelwidth "$lw"
-
-                ask --label "Source file masks" \
-                    --var VAL_FILESPEC \
-                    --default "$VAL_FILESPEC" \
-                    --colorize both \
-                    --labelclr "${CYAN}" \
-                    --pad "$lp" \
-                    --labelwidth "$lw"
-
-                _doc_prompt_products || return 1
+                sgnd_print
+                sgnd_print_sectionheader "Source selection" --padend 0
+                _doc_print_selected_sources
+                ask --label "Source file masks" --var VAL_FILESPEC --default "$VAL_FILESPEC" \
+                    --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
 
                 sgnd_print
                 sgnd_print_sectionheader "Documentation collection" --padend 0
-                local collection_action="1"
                 sgnd_print_labeledvalue --label "1" --value "Update existing collection" --labelwidth 3
                 sgnd_print_labeledvalue --label "2" --value "Create new collection" --labelwidth 3
-                [[ "$VAL_COLLECTION_MODE" == "create" ]] && collection_action="2"
+                [[ "$VAL_COLLECTION_MODE" == "create" ]] && collection_action="2" || collection_action="1"
                 while true; do
-                    ask --label "Collection action" \
-                        --var collection_action \
-                        --default "$collection_action" \
-                        --colorize both \
-                        --labelclr "${CYAN}" \
-                        --pad "$lp" \
-                        --labelwidth "$lw"
-                    case "$collection_action" in
-                        1) VAL_COLLECTION_MODE="update"; break ;;
-                        2) VAL_COLLECTION_MODE="create"; break ;;
-                        *) saywarning "Choose collection action 1 or 2." ;;
-                    esac
+                    ask --label "Collection action" --var collection_action --default "$collection_action" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+                    case "$collection_action" in 1) VAL_COLLECTION_MODE="update"; break ;; 2) VAL_COLLECTION_MODE="create"; break ;; *) saywarning "Choose collection action 1 or 2." ;; esac
                 done
-                ask --label "Collection name" \
-                    --var VAL_COLLECTION_NAME \
-                    --default "$VAL_COLLECTION_NAME" \
-                    --colorize both \
-                    --labelclr "${CYAN}" \
-                    --pad "$lp" \
-                    --labelwidth "$lw"
+                ask --label "Collection name" --var VAL_COLLECTION_NAME --default "$VAL_COLLECTION_NAME" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+                ask --label "Document title" --var VAL_DOCUMENT_TITLE --default "$VAL_DOCUMENT_TITLE" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+                ask --label "Document subtitle" --var VAL_DOCUMENT_SUBTITLE --default "$VAL_DOCUMENT_SUBTITLE" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+                ask --label "Document version" --var VAL_DOCUMENT_VERSION --default "$VAL_DOCUMENT_VERSION" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+                VAL_DOCUMENT_PRODUCT="$VAL_COLLECTION_NAME"
+            else
+                sgnd_print
+                sgnd_print_sectionheader "Documentation collection" --padend 0
             fi
 
-            ask --label "Output directory" \
-                --var VAL_OUTDIR \
-                --default "$VAL_OUTDIR" \
-                --colorize both \
-                --labelclr "${CYAN}" \
-                --pad "$lp" \
-                --labelwidth "$lw"
+            ask --label "Output root" --var VAL_OUTPUT_ROOT --default "$VAL_OUTPUT_ROOT" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+            if [[ -n "${SGND_DOC_OUTDIR_OVERRIDE:-}" ]]; then
+                VAL_OUTDIR="${SGND_DOC_OUTDIR_OVERRIDE%/}"
+            else
+                VAL_OUTDIR="${VAL_OUTPUT_ROOT%/}/$(_doc_collection_slug "${VAL_COLLECTION_NAME:-Documentation}")"
+            fi
+            ask --label "Output directory" --var VAL_OUTDIR --default "$VAL_OUTDIR" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
 
             sgnd_print
             sgnd_print_sectionheader "Behavioral flags" --padend 0
             lw=45
-
             if [[ "$VAL_COLLECTION_MODE" == "create" && "$VAL_UPDATE_MODE" == "full" ]]; then
-                FLAG_CLEAN_OUTPUT=1
-                sgnd_print "    Clean output directory before writing : Yes (new collection)"
+                FLAG_CLEAN_OUTPUT=1; sgnd_print "    Clean output directory before writing : Yes (new collection)"
             else
-                FLAG_CLEAN_OUTPUT=0
-                sgnd_print "    Clean output directory before writing : No (collection update)"
+                FLAG_CLEAN_OUTPUT=0; sgnd_print "    Clean output directory before writing : No (collection update)"
             fi
-
             if [[ "$VAL_UPDATE_MODE" == "render" ]]; then
-                FLAG_CLEAR_RENDER_CACHE=0
-                FLAG_REVIEW=0
+                FLAG_CLEAR_RENDER_CACHE=0; FLAG_REVIEW=0
                 sgnd_print "    Clear cached render data             : No (Render mode uses the cache)"
                 sgnd_print "    Scan recursively                     : Not applicable"
                 sgnd_print "    View parsed data                     : Not applicable"
             else
                 [[ "$VAL_UPDATE_MODE" == "full" ]] && default="Y" || default="N"
-                ask --label "Clear cached render data" \
-                    --var reply \
-                    --type flag \
-                    --default "$default" \
-                    --validate sgnd_validate_yesno \
-                    --colorize both \
-                    --labelclr "${CYAN}" \
-                    --pad "$lp" \
-                    --labelwidth "$lw"
+                ask --label "Clear cached render data" --var reply --type flag --default "$default" --validate sgnd_validate_yesno --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
                 [[ "${reply,,}" =~ ^(y|yes)$ ]] && FLAG_CLEAR_RENDER_CACHE=1 || FLAG_CLEAR_RENDER_CACHE=0
-
                 (( ${FLAG_RECURSIVE_SCAN:-0} )) && default="Y" || default="N"
-                ask --label "Scan recursively" \
-                    --var reply \
-                    --type flag \
-                    --default "$default" \
-                    --validate sgnd_validate_yesno \
-                    --colorize both \
-                    --labelclr "${CYAN}" \
-                    --pad "$lp" \
-                    --labelwidth "$lw"
+                ask --label "Scan recursively" --var reply --type flag --default "$default" --validate sgnd_validate_yesno --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
                 [[ "${reply,,}" =~ ^(y|yes)$ ]] && FLAG_RECURSIVE_SCAN=1 || FLAG_RECURSIVE_SCAN=0
-
                 (( ${FLAG_REVIEW:-0} )) && default="Y" || default="N"
-                ask --label "View parsed data" \
-                    --var reply \
-                    --type flag \
-                    --default "$default" \
-                    --validate sgnd_validate_yesno \
-                    --colorize both \
-                    --labelclr "${CYAN}" \
-                    --pad "$lp" \
-                    --labelwidth "$lw"
+                ask --label "View parsed data" --var reply --type flag --default "$default" --validate sgnd_validate_yesno --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
                 [[ "${reply,,}" =~ ^(y|yes)$ ]] && FLAG_REVIEW=1 || FLAG_REVIEW=0
             fi
-
             (( ${FLAG_COPY_TO_GIT:-0} )) && default="Y" || default="N"
-            ask --label "Copy generated site to Git docs" \
-                --var reply \
-                --type flag \
-                --default "$default" \
-                --validate sgnd_validate_yesno \
-                --colorize both \
-                --labelclr "${CYAN}" \
-                --pad "$lp" \
-                --labelwidth "$lw"
+            ask --label "Copy generated site to Git docs" --var reply --type flag --default "$default" --validate sgnd_validate_yesno --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
             [[ "${reply,,}" =~ ^(y|yes)$ ]] && FLAG_COPY_TO_GIT=1 || FLAG_COPY_TO_GIT=0
-
-            if [[ "$VAL_UPDATE_MODE" != "render" ]]; then
-                sgnd_print
-                sgnd_print_sectionheader "Collection metadata" --padend 0
-                ask --label "Document title" \
-                --var VAL_DOCUMENT_TITLE \
-                --default "$VAL_DOCUMENT_TITLE" \
-                --colorize both \
-                --labelclr "${CYAN}" \
-                --pad "$lp" \
-                --labelwidth "$lw"
-
-            ask --label "Document subtitle" \
-                --var VAL_DOCUMENT_SUBTITLE \
-                --default "$VAL_DOCUMENT_SUBTITLE" \
-                --colorize both \
-                --labelclr "${CYAN}" \
-                --pad "$lp" \
-                --labelwidth "$lw"
-
-            ask --label "Document version" \
-                --var VAL_DOCUMENT_VERSION \
-                --default "$VAL_DOCUMENT_VERSION" \
-                --colorize both \
-                --labelclr "${CYAN}" \
-                --pad "$lp" \
-                --labelwidth "$lw"
-
-            VAL_DOCUMENT_PRODUCT="$VAL_COLLECTION_NAME"
-            sgnd_print_labeledvalue --label "Products" --value "${VAL_DOCUMENT_PRODUCTS:-ALL}" --labelwidth "$lw" --pad "$lp" --labelclr "${CYAN}" --valueclr "${YELLOW}"
-            fi
-
             (( ${SGND_STATE_SAVE:-0} )) && default="Y" || default="N"
-            ask --label "Save these answers" \
-                --var reply \
-                --type flag \
-                --default "$default" \
-                --validate sgnd_validate_yesno \
-                --colorize both \
-                --labelclr "${CYAN}" \
-                --pad "$lp" \
-                --labelwidth "$lw"
+            ask --label "Save these answers" --var reply --type flag --default "$default" --validate sgnd_validate_yesno --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
             [[ "${reply,,}" =~ ^(y|yes)$ ]] && SGND_STATE_SAVE=1 || SGND_STATE_SAVE=0
 
             # Confirmation
-            sgnd_print_sectionheader #--maxwidth "$(( lw + 5 ))"
+            sgnd_print_sectionheader
             sgnd_print
             ask_dlg_autocontinue --seconds 15 --message "Continue with these settings?" --redo --cancel --pause
 
@@ -1025,25 +1101,9 @@ set -uo pipefail
                 3) continue ;;
                 *) sayfail "Aborting (unexpected response)."; return 1 ;;
             esac
-
-            sgnd_showenvironment
         done
     }
 
-    # fn: _doc_load_cached_table - Load a cached PSV table into a named array
-        # . Purpose
-        #   Restore one parser table from the persistent documentation cache.
-        #
-        # . Arguments
-        #   $1  Cached PSV filename.
-        #   $2  Destination array name.
-        #
-        # . Returns
-        #   0 when the table was loaded.
-        #   1 when the cache file is missing or unreadable.
-        #
-        # . Usage
-        #   _doc_load_cached_table "$VAL_OUTDIR/.sgnd-doc-cache/mod_table.psv" MOD_TABLE
     _doc_load_cached_table() {
         local cache_file="${1:-}"
         local array_name="${2:-}"
@@ -1651,12 +1711,15 @@ set -uo pipefail
             sgnd_print  "  Sections processed: ${#MOD_SECTIONS[@]}"
             sgnd_print  "  Items documented: ${#MOD_ITEMS[@]}"
             sgnd_print  "  Comments extracted: ${#DOC_CONTENT_LINES[@]}"
+            sgnd_print  "  Files ignored: ${SGND_DOC_IGNORED_COUNT:-0}"
+            sgnd_print  "  Duplicate modules skipped: ${SGND_DOC_DUPLICATE_COUNT:-0}"
         fi
         sgnd_print
         sgnd_print "  Generation mode: $VAL_UPDATE_MODE"
         sgnd_print "  Collection: ${VAL_COLLECTION_NAME:-Documentation} (${VAL_COLLECTION_MODE:-update})"
         [[ "$VAL_UPDATE_MODE" == "render" ]] || sgnd_print "  Products: ${VAL_DOCUMENT_PRODUCTS:-ALL}"
         [[ "$VAL_UPDATE_MODE" == "render" ]] || sgnd_print "  Source directory: $VAL_SRCDIR"
+        sgnd_print "  Output root: $VAL_OUTPUT_ROOT"
         sgnd_print "  Output directory: $VAL_OUTDIR"
         sgnd_print
         sgnd_print "  Starttime: $(date -d "@$main_start" '+%H:%M:%S')"
@@ -1716,16 +1779,22 @@ set -uo pipefail
         # Prompt for user input if not auto-running
         if (( !FLAG_AUTO_RUN )); then
             _get_userinput || return $?
-        elif [[ "$VAL_UPDATE_MODE" != "render" ]]; then
+        else
             _doc_discover_products
             _doc_select_products || return 1
+            _doc_set_primary_source_root
         fi
 
-        if [[ "$VAL_UPDATE_MODE" != "render" ]]; then
-            _doc_discover_products
-            _doc_select_products || return 1
-            VAL_DOCUMENT_PRODUCT="${VAL_COLLECTION_NAME:-Documentation}"
+        # Interactive mode already asked for the final, non-persistent output
+        # directory. Auto mode derives it here (or honors explicit --outdir).
+        if (( FLAG_AUTO_RUN )); then
+            _doc_finalize_outdir
         fi
+
+        _doc_discover_products
+        _doc_select_products || return 1
+        _doc_set_primary_source_root
+        [[ "$VAL_UPDATE_MODE" != "render" ]] && VAL_DOCUMENT_PRODUCT="${VAL_COLLECTION_NAME:-Documentation}"
 
         if [[ "$VAL_COLLECTION_MODE" == "create" && "$VAL_UPDATE_MODE" != "full" && "$VAL_UPDATE_MODE" != "render" ]]; then
             sayfail "Creating a new documentation collection requires Full mode."
@@ -1744,6 +1813,10 @@ set -uo pipefail
 
         display_time="$(date +%H:%M:%S)"
         saystart "Documentation generation started at $display_time"
+
+        declare -gA SGND_DOC_SEEN_MODULES=()
+        SGND_DOC_IGNORED_COUNT=0
+        SGND_DOC_DUPLICATE_COUNT=0
 
         case "$VAL_UPDATE_MODE" in
             full)
@@ -1833,6 +1906,25 @@ set -uo pipefail
         else
             saystart "Rendering html documentation"
             start_time="$(date +%s)"
+
+            # Each selected product contributes its canonical usr/local/assets directory.
+            # The renderer merges these flat collections without renaming files; asset
+            # filenames therefore remain globally unique by project convention.
+            SGND_DOC_ASSETS_DIRS=""
+            for _asset_product in "${SGND_DOC_SELECTED_PRODUCTS[@]}"; do
+                for _asset_index in "${!SGND_DOC_DISCOVERED_PRODUCTS[@]}"; do
+                    [[ "${SGND_DOC_DISCOVERED_PRODUCTS[$_asset_index],,}" == "${_asset_product,,}" ]] || continue
+                    _asset_project_root="${SGND_DOC_DISCOVERED_ROOTS[$_asset_index]:-}"
+                    [[ -d "$_asset_project_root/target-root" ]] && _asset_source_root="$_asset_project_root/target-root" || _asset_source_root="$_asset_project_root"
+                    _asset_dir="${_asset_source_root%/}/usr/local/assets"
+                    [[ -d "$_asset_dir" ]] || break
+                    [[ -n "$SGND_DOC_ASSETS_DIRS" ]] && SGND_DOC_ASSETS_DIRS+=":"
+                    SGND_DOC_ASSETS_DIRS+="$_asset_dir"
+                    break
+                done
+            done
+            export SGND_DOC_ASSETS_DIRS
+            saydebug "Documentation asset sources: $SGND_DOC_ASSETS_DIRS"
 
             if [[ "$VAL_UPDATE_MODE" == "render" ]]; then
                 _render_cached_site "$VAL_OUTDIR" || return 1

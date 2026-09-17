@@ -8,19 +8,13 @@
 			"path": "../../../../etc/solidgroundux"
 		},
 		{
-			"path": "../../.config/solidgroundux"
-		},
-		{
-			"path": "../../.config"
-		},
-		{
-			"path": "../../.state"
-		},
-		{
 			"path": "../../.log"
 		},
 		{
-			"path": "../../../../home/sysadmin/dev/SolidGroundUX/target-root/usr/local/share/doc/sgndux-codex"
+			"path": "../../../../home/sysadmin/.config"
+		},
+		{
+			"path": "../../../../home/sysadmin/.state"
 		}
 	],
 	"settings": {
