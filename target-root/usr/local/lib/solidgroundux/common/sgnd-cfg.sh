@@ -3,7 +3,7 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2625813
+#   Build       : 2626021
 #   Checksum    : a086436cf66ce5edf2ddfc22c230a9733182ff9437cabec780e7fce8bf8e823e
 #   Source      : sgnd-cfg.sh
 #   Type        : library

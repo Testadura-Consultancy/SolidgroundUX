@@ -2,8 +2,8 @@
 # SolidGroundUX - Testadura UI Style
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 2.0
-#   Build       : 2625813
+#   Version     : 2.1
+#   Build       : 2626021
 #   Checksum    : 4aeb328c47f9c6800c12d7b1701fcc022241234b5c2f5b36cd04259d23122622
 #   Source      : 20-style-testadura.sh
 #   Type        : library

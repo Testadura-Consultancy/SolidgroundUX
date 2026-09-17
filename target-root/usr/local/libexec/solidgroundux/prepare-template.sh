@@ -4,7 +4,7 @@
 # ------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2625813
+#   Build       : 2626021
 #   Checksum    : d86b7bef506fe9f9c57ead361851f936fc1b8fc1428307691eb6e19fecce5a16
 #   Source      : prepare-template.sh
 #   Type        : script

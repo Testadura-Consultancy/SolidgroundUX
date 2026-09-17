@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2625813
-#   Checksum    : ce9e9a229de5e8ef3b3eab21ce7553951b99148abd5a8da12bef03ed0996e74e
+#   Build       : 2626021
+#   Checksum    : 33c658c985319b8257ae54fa7f47d77366fbb0f4b6c511810557214fa2f5105f
 #   Source      : solidgroundux_preface.sh
 #   Type        : documentation
 #   Group       : SolidGroundUX

@@ -3,13 +3,13 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2625813
+#   Build       : 2626021
 #   Source      : solidground console_preface.sh
 #   Type        : documentation
 #   Group       : SolidGround Console
 #   Purpose     : Describe the SolidGround Management Console architecture and module contract
 #
-#   Checksum : 9d83865ca4d152cdd0cf3fd51d7bfec89cfa3a11312fd7e35baaa98462df716a
+#   Checksum : dace0129f66efea4815f0cc8a84b76f94c4855d22cd0c610f96ded0aa7cae970
 # Attribution:
 #   Developers  : Mark Fieten
 #   Company     : Testadura Consultancy
