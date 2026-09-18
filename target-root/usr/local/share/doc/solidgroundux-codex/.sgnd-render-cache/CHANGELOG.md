@@ -16,6 +16,8 @@ practical framework development.
 
 ## Unreleased
 
+## Release 2.1.2626021
+
 ### Added
 
 - Added multi-product documentation collections to `doc-generator.sh`. Documentation runs can discover products beneath a development root, select one or more products, and designate a primary product as the lead product for ordering, defaults, and deterministic first-wins behavior.

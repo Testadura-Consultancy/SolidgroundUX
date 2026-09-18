@@ -114,7 +114,7 @@ The framework supplies the common execution environment. Applications and tools 
 
 Executable scripts explicitly bootstrap into SolidGroundUX. The bootstrap layer provides a predictable runtime environment including:
 
-- Framework and application root discovery
+- Framework-root discovery from the executing component
 - Runtime path construction
 - Library loading through `SGND_USING`
 - Script metadata
@@ -317,7 +317,11 @@ SolidGroundUX includes tools for building and maintaining applications that use 
 
 ## Documentation generation
 
-`doc-generator` extracts structured documentation from source comments and renders a navigable HTML documentation set.
+`doc-generator` extracts structured documentation from source comments, maintains a normalized processor/renderer boundary, and renders a navigable HTML documentation set.
+
+The source dialect supports presentation hints, image groups, semantic tables using `. Table` / `. EndTable` with `::` cell separators, and `<>` alignment columns for proportional-font layout without turning aligned text into a table. A literal `@` modifier is defined to protect documentation text from structural interpretation.
+
+Generation can build a complete collection, update selected or changed content, or render again from existing normalized data. Per-product `.docignore` configuration and deterministic multi-product asset handling allow one documentation collection to span multiple products without silently overwriting duplicate assets.
 
 Documentation therefore remains close to the code it describes rather than becoming an unrelated document that must be maintained independently.
 
@@ -329,11 +333,11 @@ Documentation therefore remains close to the code it describes rather than becom
 
 `prepare-release` turns one or more development products into prepared SolidGroundUX release packages.
 
-A release run can select a primary product and companion products. Each product keeps its own product identity and version, while Build uses the standard SolidGroundUX day-of-year plus hour value. Version and Version/Build update policy are handled per product.
+A release run can select a primary product and companion products. Each product keeps its own product identity and its own version/build update policy. A combined bundle inherits Version and Build from the primary product rather than maintaining separate bundle metadata.
 
 The tool can create individual product releases, a combined bundle, or both. A bundle inherits Version and Build from its primary product. Human-readable product names are retained in package metadata, while generated filenames use filesystem-safe product names.
 
-Its responsibilities include release metadata maintenance, checksums, manifests, removed-file tracking, executable permissions, wrapper verification, product ownership collision detection and creation of the final release artifacts.
+Its responsibilities include per-product release metadata maintenance, checksums, manifests, removed-file tracking, executable permissions, wrapper verification, product ownership collision detection and creation of the final release artifacts. Conflicting bundle paths are reported rather than silently allowing one product to overwrite another.
 
 Every prepared package carries project/product identity used by `release-manager`, so Version and Build do not have to be re-entered during installation or update. The resulting release packages are intended to be consumed by `release-manager`.
 

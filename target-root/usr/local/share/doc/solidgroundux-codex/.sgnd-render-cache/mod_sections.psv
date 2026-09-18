@@ -24,6 +24,8 @@ manage-active-directory-server.sh|Provisioning steps|||Provisioning steps|1
 manage-active-directory-server.sh|Validation/status|||Validation/status|1
 manage-active-directory-server.sh|Action dispatch|||Action dispatch|1
 manage-active-directory-server.sh|Main|||Main|1
+management-console-modules_preface.sh|SolidGroundUX Management Console Modules|||SolidGroundUX Management Console Modules|1
+management-console-modules_preface.sh|Architecture|SolidGroundUX Management Console Modules||Architecture|2
 manage-web-server.sh|Bootstrap|||Bootstrap|1
 manage-web-server.sh|Script metadata|||Script metadata|1
 manage-web-server.sh|Framework integration|||Framework integration|1
@@ -90,8 +92,6 @@ manage-samba-file-server.sh|Local declarations|||Local declarations|1
 manage-samba-file-server.sh|Helpers|||Helpers|1
 manage-samba-file-server.sh|Actions|||Actions|1
 manage-samba-file-server.sh|Main|||Main|1
-management-console-modules_preface.sh|SolidGroundUX Management Console Modules|||SolidGroundUX Management Console Modules|1
-management-console-modules_preface.sh|Architecture|SolidGroundUX Management Console Modules||Architecture|2
 40-solidgroundux.sh|Library guard|||Library guard|1
 40-solidgroundux.sh|Module metadata|||Module metadata|1
 40-solidgroundux.sh|SolidGroundUX installation actions|||SolidGroundUX installation actions|1
@@ -238,6 +238,27 @@ untar-it.sh|Framework integration|||Framework integration|1
 untar-it.sh|Local declarations|||Local declarations|1
 untar-it.sh|Helpers|||Helpers|1
 untar-it.sh|Main|||Main|1
+management-console.sh|Bootstrap|||Bootstrap|3
+management-console.sh|Script metadata (identity)|||Script metadata (identity)|3
+management-console.sh|Script metadata (framework integration)|||Script metadata (framework integration)|3
+management-console.sh|Example|||Arguments|3
+management-console.sh|Local scripts and definitions|||Local scripts and definitions|3
+management-console.sh|Console state|||Console state|3
+management-console.sh|Console state ownership|||Console state ownership|3
+management-console.sh|Console paths|||Console paths|3
+management-console.sh|Console application context|||Console application context|3
+management-console.sh|Console configuration|||Console configuration|3
+management-console.sh|Action result tracking|||Action result tracking|3
+management-console.sh|Built-in menu registration|||Built-in menu registration|3
+management-console.sh|Module visibility|||Module visibility|3
+management-console.sh|Module loading|||Module loading|3
+management-console.sh|Script execution|||Script execution|3
+management-console.sh|Console loop|||Console loop|3
+management-console.sh|Console execution-context controls|||Console execution-context controls|3
+management-console.sh|Console module API|||Console module API|3
+management-console.sh|Main|||Main|3
+management-console.sh|Startup|||Startup|2
+management-console.sh|Main script logic|||Main script logic|2
 solidground console_preface.sh|SolidGround Management Console|||SolidGround Management Console|1
 solidground console_preface.sh|Console Module Lifecycle|SolidGround Management Console||Console Module Lifecycle|2
 solidground console_preface.sh|Main Components|SolidGround Management Console||Main Components|2
@@ -375,6 +396,14 @@ sgnd-bootstrap.sh|Load sections once|||Load sections once|3
 sgnd-bootstrap.sh|Description (multiline section)|||Description (multiline section)|3
 sgnd-bootstrap.sh|Metadata fields|||Metadata fields|3
 sgnd-bootstrap.sh|Attribution fields|||Attribution fields|3
+doc-processor.sh|Library guard|||Library guard|1
+doc-processor.sh|Local definitions|||Local definitions|1
+doc-processor.sh|Parser expressions|Local definitions||Parser expressions|2
+doc-processor.sh|Semantic registries|Local definitions||Semantic registries|2
+doc-processor.sh|Detectors|Local definitions||Detectors|2
+doc-processor.sh|Action|Local definitions||Action|2
+doc-processor.sh|Emitters|Local definitions||Emitters|2
+doc-processor.sh|Internal API|||Internal API|1
 doc-sample.sh|This is a list item.|||This is a list item.|1
 doc-sample.sh|This is another list item.|||This is another list item.|1
 doc-sample.sh|Add list items where useful.|||Add list items where useful.|1
@@ -503,6 +532,18 @@ sgnd-cfg.sh|Library guard|||Library guard|1
 sgnd-cfg.sh|Internal helpers|||Internal helpers|1
 sgnd-cfg.sh|Public API (CFG)|||Public API (CFG)|1
 sgnd-cfg.sh|Public API (STATE)|||Public API (STATE)|1
+sdk-documentation_preface.sh|Documentation Generator|||Documentation Generator|1
+sdk-documentation_preface.sh|Documentation Workflow|Documentation Generator||Documentation Workflow|2
+sdk-documentation_preface.sh|Module Headers|Documentation Generator||Module Headers|2
+sdk-documentation_preface.sh|Documentation Labels|Documentation Generator||Documentation Labels|2
+sdk-documentation_preface.sh|Sections and Structure|Documentation Generator||Sections and Structure|2
+sdk-documentation_preface.sh|Style Hints|Documentation Generator||Style Hints|2
+sdk-documentation_preface.sh|Aligned Documentation|Documentation Generator||Aligned Documentation|2
+sdk-documentation_preface.sh|Tables|Documentation Generator||Tables|2
+sdk-documentation_preface.sh|Images|Documentation Generator||Images|2
+sdk-documentation_preface.sh|Generated Output|Documentation Generator||Generated Output|2
+sdk-documentation_preface.sh|Documentation Conventions|Documentation Generator||Documentation Conventions|2
+sdk-documentation_preface.sh|Why Source-Based Documentation|Documentation Generator||Why Source-Based Documentation|2
 sgnd-datatable.sh|Library guard|||Library guard|1
 sgnd-datatable.sh|DDL functions|||DDL functions|1
 sgnd-datatable.sh|DML functions|||DML functions|1
@@ -547,6 +588,7 @@ sgnd-definitions.sh|Library guard|||Library guard|1
 sgnd-definitions.sh|Framework identity|||Framework identity|1
 sgnd-definitions.sh|Framework defaults|||Framework defaults|1
 sgnd-definitions.sh|Framework metadata|||Framework metadata|1
+sgnd_doc_renderer.py|Python Renderer Backend|||Python Renderer Backend|1
 21-style-fantasy.sh|Documentation summaries|||Documentation summaries|1
 31-style-mono-amber.sh|say() global defaults|||say() global defaults|1
 31-style-mono-amber.sh|Say prefixes|||Say prefixes|1
@@ -579,24 +621,3 @@ default-ui-palette.sh|Text attributes (SGR)|||Text attributes (SGR)|1
 default-ui-palette.sh|Color codes|||Color codes|1
 default-ui-palette.sh|Foreground colors|||Foreground colors|1
 default-ui-palette.sh|Background colors|||Background colors|1
-doc-processor.sh|Library guard|||Library guard|1
-doc-processor.sh|Local definitions|||Local definitions|1
-doc-processor.sh|Parser expressions|Local definitions||Parser expressions|2
-doc-processor.sh|Semantic registries|Local definitions||Semantic registries|2
-doc-processor.sh|Detectors|Local definitions||Detectors|2
-doc-processor.sh|Action|Local definitions||Action|2
-doc-processor.sh|Emitters|Local definitions||Emitters|2
-doc-processor.sh|Internal API|||Internal API|1
-sdk-documentation_preface.sh|Documentation Generator|||Documentation Generator|1
-sdk-documentation_preface.sh|Documentation Workflow|Documentation Generator||Documentation Workflow|2
-sdk-documentation_preface.sh|Module Headers|Documentation Generator||Module Headers|2
-sdk-documentation_preface.sh|Documentation Labels|Documentation Generator||Documentation Labels|2
-sdk-documentation_preface.sh|Sections and Structure|Documentation Generator||Sections and Structure|2
-sdk-documentation_preface.sh|Style Hints|Documentation Generator||Style Hints|2
-sdk-documentation_preface.sh|Aligned Documentation|Documentation Generator||Aligned Documentation|2
-sdk-documentation_preface.sh|Tables|Documentation Generator||Tables|2
-sdk-documentation_preface.sh|Images|Documentation Generator||Images|2
-sdk-documentation_preface.sh|Generated Output|Documentation Generator||Generated Output|2
-sdk-documentation_preface.sh|Documentation Conventions|Documentation Generator||Documentation Conventions|2
-sdk-documentation_preface.sh|Why Source-Based Documentation|Documentation Generator||Why Source-Based Documentation|2
-sgnd_doc_renderer.py|Python Renderer Backend|||Python Renderer Backend|1

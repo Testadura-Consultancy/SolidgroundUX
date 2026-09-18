@@ -19,7 +19,7 @@
 <h3 class="ct-L2Sectionheader">Download</h3>
 <p class="ct-documentbody">Download the latest SolidGroundUX release bundle from:</p>
 <p class="ct-documentbody">https://github.com/Testadura-Mark/SolidGroundUX/releases</p>
-<p class="ct-documentbody">The framework release can be provided as an individual package or as a bundle containing companion SolidGroundUX products. `prepare-release.sh` may produce both forms in the same release run.</p>
+<p class="ct-documentbody">The framework release can be provided as an individual package or as a bundle containing companion SolidGroundUX products. `prepare-release.sh` may produce both forms in the same release run. Each product retains its own release-metadata policy, while a combined bundle inherits Version and Build from its primary product.</p>
 <p class="ct-documentbody">Typical package names are:</p>
 <ul>
 <li>`SolidGroundUX-&lt;version&gt;.&lt;build&gt;-release.zip`</li>
@@ -63,7 +63,7 @@ sudo ./release-manager.sh --install</code></pre>
 <h3 class="ct-L2Sectionheader">Release Storage</h3>
 <p class="ct-documentbody">SolidGroundUX deliberately uses the filesystem itself as release state.</p>
 <h4 class="ct-L3Sectionheader">Available releases</h4>
-<p class="ct-documentbody">Downloaded, prepared, or rolled-back releases are stored below:</p>
+<p class="ct-documentbody">Downloaded/admitted or rolled-back releases are stored below:</p>
 <pre class="doc-license-text"><code>/var/lib/solidgroundux/releases</code></pre>
 <p class="ct-documentbody">These releases are available for installation.</p>
 <h4 class="ct-L3Sectionheader">Installed release history</h4>
@@ -76,7 +76,7 @@ sudo ./release-manager.sh --install</code></pre>
 <h3 class="ct-L2Sectionheader">Interactive Release Manager</h3>
 <p class="ct-documentbody">After installation, start the release manager with:</p>
 <pre class="doc-license-text"><code>sudo /var/lib/solidgroundux/release-manager.sh</code></pre>
-<p class="ct-documentbody">The interactive Release Manager discovers available bundled and individual packages from their package metadata. Selecting a package establishes its project, product, Version, Build, managed release/archive directories, and GitHub repository. Version and Build are therefore not entered manually in the Release Manager.</p>
+<p class="ct-documentbody">The interactive Release Manager discovers available bundled and individual packages from their package metadata. Bundle identity follows the primary product, while contained products retain their own product metadata. Selecting a package establishes its project, product, Version, Build, managed release/archive directories, and GitHub repository. Version and Build are therefore not entered manually in the Release Manager.</p>
 <p class="ct-documentbody">The interactive menu can:</p>
 <ul>
 <li>Select another available package.</li>

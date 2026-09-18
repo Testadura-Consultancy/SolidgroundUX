@@ -456,6 +456,42 @@ untar-it.sh|Helpers||fn|function|internal|normal|_extract_staging|Extract the va
 untar-it.sh|Helpers||fn|function|internal|normal|_select_files|Select staged files using directory and filename mask
 untar-it.sh|Helpers||fn|function|internal|normal|_restore_files|Restore selected staged files beneath the target root
 untar-it.sh|Main||fn|function|public|normal|main|Run the selective restore workflow
+management-console.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
+management-console.sh|Console state ownership||fn|function|internal|normal|_sgnd_console_state_owner|Resolve the user that should own console state
+management-console.sh|Console state ownership||fn|function|internal|normal|_sgnd_console_prepare_state_directory|Ensure a writable per-user state directory
+management-console.sh|Console state ownership||fn|function|internal|normal|_sgnd_console_finalize_state_file|Normalize ownership and permissions of a state file
+management-console.sh|Console application context||fn|function|internal|normal|_sgnd_console_set_app_context|Initialize application-owned executable paths
+management-console.sh|Console configuration||fn|function|internal|normal|_sgnd_console_load_config|Resolve the console module source
+management-console.sh|Action result tracking||fn|function|public|normal|sgnd_console_action_status|Read persisted status for a menu action
+management-console.sh|Action result tracking||fn|function|public|normal|sgnd_console_record_action_result|Persist and display an action result
+management-console.sh|Action result tracking||fn|function|public|normal|sgnd_console_run_tracked|Execute one registered action and track its result
+management-console.sh|Action result tracking||fn|function|internal|normal|_sgnd_console_execute_menu_item|Execute a menu item with console result tracking
+management-console.sh|Action result tracking||fn|function|internal|normal|_sgnd_console_refresh_action_statuses|Apply persisted statuses to menu items
+management-console.sh|Action result tracking||fn|function|internal|normal|_sgnd_console_reset_page_results|Clear tracked action results for the active management page
+management-console.sh|Built-in menu registration||fn|function|internal|normal|_sgnd_console_register_builtin_items|Register host-owned navigation items
+management-console.sh|Built-in menu registration||fn|function|internal|normal|_sgnd_console_register_fallback_group|Register fallback console group
+management-console.sh|Built-in menu registration||fn|function|internal|normal|_sgnd_console_group_exists|Test whether a console group exists
+management-console.sh|Built-in menu registration||fn|function|internal|normal|_sgnd_console_show_loaded_module_metadata|Show metadata for loaded console modules
+management-console.sh|Module visibility||fn|function|internal|normal|_sgnd_console_module_state_set|Persist module visibility state
+management-console.sh|Module visibility||fn|function|internal|normal|_sgnd_console_manage_visibility|Manage index-page module visibility
+management-console.sh|Module visibility||fn|function|internal|normal|_sgnd_console_module_literal_metadata|Read lightweight module metadata without sourcing the module
+management-console.sh|Module visibility||fn|function|internal|normal|_sgnd_console_register_pages|Build the lightweight startup page index
+management-console.sh|Module visibility||fn|function|internal|normal|_sgnd_console_open_page|Lazy-load and activate one registered module page
+management-console.sh|Module visibility||fn|function|internal|normal|_sgnd_console_show_index|Render the lightweight module index page
+management-console.sh|Module loading||fn|function|internal|normal|_sgnd_console_source_module|Source one console module
+management-console.sh|Script execution||fn|function|internal|normal|_sgnd_build_command_args|Build arguments for a public SolidGroundUX command
+management-console.sh|Script execution||fn|function|internal|normal|_sgnd_run_public_command|Resolve and run a SolidGroundUX public command
+management-console.sh|Script execution||fn|function|internal|normal|_sgnd_console_open_shell|Open an interactive child shell
+management-console.sh|Script execution||fn|function|internal|normal|_sgnd_console_toggle_access|Relaunch with the opposite privilege level
+management-console.sh|Console execution-context controls||fn|function|internal|normal|_sgnd_console_toggle_dryrun|Toggle dry-run/commit mode
+management-console.sh|Console execution-context controls||fn|function|internal|normal|_sgnd_console_cycle_loglevel_value|Resolve the adjacent framework log level
+management-console.sh|Console execution-context controls||fn|function|internal|normal|_sgnd_console_persist_framework_value|Persist one framework state value
+management-console.sh|Console execution-context controls||fn|function|internal|normal|_sgnd_console_cycle_console_loglevel|Cycle and persist console log level
+management-console.sh|Console execution-context controls||fn|function|internal|normal|_sgnd_console_cycle_file_loglevel|Cycle and persist file log level
+management-console.sh|Console execution-context controls||fn|function|internal|normal|_sgnd_console_cycle_theme|Cycle the active console theme
+management-console.sh|Console execution-context controls||fn|function|internal|normal|_sgnd_console_handle_control|Handle console-owned direct controls
+management-console.sh|Console execution-context controls||fn|function|internal|normal|_sgnd_console_run|Run the console interaction loop
+management-console.sh|Main||fn|function|public|normal|main|Run the SolidGround management console
 deploy-workspace.sh|Bootstrap||fn|function|internal|template|_framework_locator|Resolve and load the active SolidGroundUX framework
 deploy-workspace.sh|Selection helpers||fn|function|internal|normal|_is_deployable_path|Test whether a relative workspace path is deployable
 deploy-workspace.sh|Selection helpers||fn|function|internal|normal|_normalize_relative_path|Normalize and validate a workspace-relative path
@@ -604,6 +640,31 @@ sgnd-bootstrap.sh|Attribution fields||fn|function|public|normal|sgnd_on_exit_add
 sgnd-bootstrap.sh|Attribution fields||fn|function|public|normal|sgnd_check_license|Check license
 sgnd-bootstrap.sh|Attribution fields||fn|function|public|normal|sgnd_load_ui_style|Load ui style
 sgnd-bootstrap.sh|Attribution fields||fn|function|public|normal|sgnd_bootstrap|Bootstrap
+doc-processor.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
+doc-processor.sh|Local definitions||var|variable|public|normal|Datamodel|Content tables for parsed documentation data
+doc-processor.sh|Local definitions||fn|function|internal|normal|_init_localvars|Initialize parser state variables
+doc-processor.sh|Semantic registries|Local definitions|fn|function|internal|normal|_sgnd_doc_list_contains|Test whether a value exists in a named array
+doc-processor.sh|Semantic registries|Local definitions|fn|function|internal|normal|_sgnd_doc_is_valid_stylehint|Validate documentation style hint
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_noncommentline|Detect non-comment source lines
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_headermarker|Detect module header boundary lines
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_moduletitle|Detect the module title line
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_headerfields|Detect metadata and attribution fields
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_section|Detect documentation section headers
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_items|Detect documented items
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_headersectionheader|Detect named header sections
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_default|Detect default
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_get_section_comments|Get section comments
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_global_array_start|Detect framework/runtime/script globals array declarations
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_global_array_entry|Detect global declaration array entries
+doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_commentseparator|Ignore visual comment separators
+doc-processor.sh|Action|Local definitions|fn|function|internal|normal|_action_headerend|Emit module-level header data
+doc-processor.sh|Action|Local definitions|fn|function|internal|normal|_guess_nextcontenttype|Advance content type after emitted headers
+doc-processor.sh|Emitters|Local definitions|fn|function|internal|normal|_emit_globalrecord|Append a framework/runtime/script global declaration record
+doc-processor.sh|Emitters|Local definitions|fn|function|internal|normal|_emit_contentline|Append a normalized documentation content line
+doc-processor.sh|Emitters|Local definitions|fn|function|internal|normal|_emit_itemrecord|Append a documented item record
+doc-processor.sh|Emitters|Local definitions|fn|function|internal|normal|_emit_sectionrecord|Append a documentation section record
+doc-processor.sh|Internal API||fn|function|internal|normal|_parse_module_file|Parse one module source file
+doc-processor.sh|Internal API||fn|function|internal|normal|_build_content_ref|Build a stable documentation content reference
 doc-sample.sh|||doc|general documentation|public|normal|content_labels|Documentation content labels
 doc-sample.sh|||doc|general documentation|public|normal|style_hints|Documentation line markers and style hints
 doc-sample.sh|||doc|general documentation|public|normal|style_hint_examples|Style hint examples
@@ -953,71 +1014,6 @@ sgnd-bootstrap-env.sh|Helpers||fn|function|public|normal|sgnd_rebase_framework_c
 sgnd-bootstrap-env.sh|Helpers||fn|function|public|normal|sgnd_ensure_dirs|Ensure dirs
 sgnd-definitions.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
 sgnd-definitions.sh|Framework metadata||var|variable|public|normal|SGND_CORE_LIBS|Ordered core library list
-21-style-fantasy.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
-21-style-fantasy.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
-21-style-fantasy.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
-31-style-mono-amber.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
-31-style-mono-amber.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
-31-style-mono-amber.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
-22-style-redalert.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
-22-style-redalert.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
-22-style-redalert.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
-32-style-mono-blue.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
-32-style-mono-blue.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
-32-style-mono-blue.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
-11-style-steelblue.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
-11-style-steelblue.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
-11-style-steelblue.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
-23-style-psychedelic.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
-23-style-psychedelic.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
-23-style-psychedelic.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
-10-style-dark.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
-10-style-dark.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
-10-style-dark.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
-30-style-mono-green.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
-30-style-mono-green.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
-30-style-mono-green.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
-20-style-testadura.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
-20-style-testadura.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
-20-style-testadura.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
-00-style-default.sh|say() global defaults||var|variable|public|normal|style_say_global_defaults|say() global defaults
-00-style-default.sh|Say prefixes||var|variable|public|normal|style_say_prefixes|Say prefixes
-00-style-default.sh|Colors||var|variable|public|normal|style_colors|Colors
-default-ui-palette.sh|Text attributes (SGR)||var|variable|public|normal|style_text_attributes_sgr|Text attributes (SGR)
-default-ui-palette.sh|Color codes||var|variable|public|normal|style_color_codes|Color codes
-default-ui-palette.sh|Foreground colors||var|variable|public|normal|style_foreground_dark_muted|Foreground: Dark / muted
-default-ui-palette.sh|Foreground colors||var|variable|public|normal|style_foreground_normal|Foreground: Normal
-default-ui-palette.sh|Foreground colors||var|variable|public|normal|style_foreground_bright|Foreground: Bright
-default-ui-palette.sh|Background colors||var|variable|public|normal|style_background_dark_muted|Background: Dark / muted
-default-ui-palette.sh|Background colors||var|variable|public|normal|style_background_normal|Background: Normal
-default-ui-palette.sh|Background colors||var|variable|public|normal|style_background_bright|Background: Bright
-default-ui-palette.sh|Background colors||var|variable|public|normal|palette_testadura_brand|Testadura brand colors
-default-ui-palette.sh|Background colors||var|variable|public|normal|palette_solidground_brand|SolidGround brand colors
-doc-processor.sh|Library guard||fn|function|internal|template|_sgnd_lib_guard|Enforce source-only, single-load library initialization
-doc-processor.sh|Local definitions||var|variable|public|normal|Datamodel|Content tables for parsed documentation data
-doc-processor.sh|Local definitions||fn|function|internal|normal|_init_localvars|Initialize parser state variables
-doc-processor.sh|Semantic registries|Local definitions|fn|function|internal|normal|_sgnd_doc_list_contains|Test whether a value exists in a named array
-doc-processor.sh|Semantic registries|Local definitions|fn|function|internal|normal|_sgnd_doc_is_valid_stylehint|Validate documentation style hint
-doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_noncommentline|Detect non-comment source lines
-doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_headermarker|Detect module header boundary lines
-doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_moduletitle|Detect the module title line
-doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_headerfields|Detect metadata and attribution fields
-doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_section|Detect documentation section headers
-doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_items|Detect documented items
-doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_headersectionheader|Detect named header sections
-doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_default|Detect default
-doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_get_section_comments|Get section comments
-doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_global_array_start|Detect framework/runtime/script globals array declarations
-doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_global_array_entry|Detect global declaration array entries
-doc-processor.sh|Detectors|Local definitions|fn|function|internal|normal|_detect_commentseparator|Ignore visual comment separators
-doc-processor.sh|Action|Local definitions|fn|function|internal|normal|_action_headerend|Emit module-level header data
-doc-processor.sh|Action|Local definitions|fn|function|internal|normal|_guess_nextcontenttype|Advance content type after emitted headers
-doc-processor.sh|Emitters|Local definitions|fn|function|internal|normal|_emit_globalrecord|Append a framework/runtime/script global declaration record
-doc-processor.sh|Emitters|Local definitions|fn|function|internal|normal|_emit_contentline|Append a normalized documentation content line
-doc-processor.sh|Emitters|Local definitions|fn|function|internal|normal|_emit_itemrecord|Append a documented item record
-doc-processor.sh|Emitters|Local definitions|fn|function|internal|normal|_emit_sectionrecord|Append a documentation section record
-doc-processor.sh|Internal API||fn|function|internal|normal|_parse_module_file|Parse one module source file
-doc-processor.sh|Internal API||fn|function|internal|normal|_build_content_ref|Build a stable documentation content reference
 sgnd_doc_renderer.py|Python Renderer Backend||var|variable|public|normal|DOC_INDEX_LOGO|Documentation index branding asset
 sgnd_doc_renderer.py|Python Renderer Backend||var|variable|public|normal|DOC_HEADER_LOGO|Documentation page header branding asset
 sgnd_doc_renderer.py|Python Renderer Backend||var|variable|public|normal|DOC_INDEX_HERO|Documentation landing-page hero asset
@@ -1140,3 +1136,43 @@ sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|is_flowi
 sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_rows|Render rows
 sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|render_content_for_ref|Render content for ref
 sgnd_doc_renderer.py|Python Renderer Backend||fn|function|public|normal|main|Run documentation renderer
+21-style-fantasy.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
+21-style-fantasy.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
+21-style-fantasy.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
+31-style-mono-amber.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
+31-style-mono-amber.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
+31-style-mono-amber.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
+22-style-redalert.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
+22-style-redalert.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
+22-style-redalert.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
+32-style-mono-blue.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
+32-style-mono-blue.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
+32-style-mono-blue.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
+11-style-steelblue.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
+11-style-steelblue.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
+11-style-steelblue.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
+23-style-psychedelic.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
+23-style-psychedelic.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
+23-style-psychedelic.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
+10-style-dark.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
+10-style-dark.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
+10-style-dark.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
+30-style-mono-green.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
+30-style-mono-green.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
+30-style-mono-green.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
+20-style-testadura.sh|Documentation summaries||var|variable|public|normal|style_say_global_defaults|say() global defaults
+20-style-testadura.sh|Documentation summaries||var|variable|public|normal|style_say_prefixes|Say prefixes
+20-style-testadura.sh|Documentation summaries||var|variable|public|normal|style_colors|Colors
+00-style-default.sh|say() global defaults||var|variable|public|normal|style_say_global_defaults|say() global defaults
+00-style-default.sh|Say prefixes||var|variable|public|normal|style_say_prefixes|Say prefixes
+00-style-default.sh|Colors||var|variable|public|normal|style_colors|Colors
+default-ui-palette.sh|Text attributes (SGR)||var|variable|public|normal|style_text_attributes_sgr|Text attributes (SGR)
+default-ui-palette.sh|Color codes||var|variable|public|normal|style_color_codes|Color codes
+default-ui-palette.sh|Foreground colors||var|variable|public|normal|style_foreground_dark_muted|Foreground: Dark / muted
+default-ui-palette.sh|Foreground colors||var|variable|public|normal|style_foreground_normal|Foreground: Normal
+default-ui-palette.sh|Foreground colors||var|variable|public|normal|style_foreground_bright|Foreground: Bright
+default-ui-palette.sh|Background colors||var|variable|public|normal|style_background_dark_muted|Background: Dark / muted
+default-ui-palette.sh|Background colors||var|variable|public|normal|style_background_normal|Background: Normal
+default-ui-palette.sh|Background colors||var|variable|public|normal|style_background_bright|Background: Bright
+default-ui-palette.sh|Background colors||var|variable|public|normal|palette_testadura_brand|Testadura brand colors
+default-ui-palette.sh|Background colors||var|variable|public|normal|palette_solidground_brand|SolidGround brand colors

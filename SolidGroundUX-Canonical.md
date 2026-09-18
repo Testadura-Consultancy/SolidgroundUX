@@ -342,7 +342,7 @@ Where framework initialization has stricter ordering requirements, that ordering
 
 For the SolidGround Management Console, canonical initialization may add console-specific path or host initialization after `sgnd_exe_start`.
 
-`SGND_FRAMEWORK_ROOT` MUST be established by `_framework_locator` before framework libraries are loaded. The former `SGND_FRAMEWORK_ROOT` bootstrap contract is obsolete.
+`SGND_FRAMEWORK_ROOT` MUST be established by `_framework_locator` before framework libraries are loaded. The former separate application-root bootstrap contract is obsolete; `SGND_FRAMEWORK_ROOT` is the canonical location contract.
 
 ## 4.4 Functions
 
@@ -589,11 +589,11 @@ Framework built-ins and script-specific options MAY be freely intermixed before 
 A dry run MUST:
 
 - show what would be done;
-- avoid the material changes;
+- avoid **all persistent changes**, including framework state/configuration writes and delegated actions;
 - preserve validation where validation is safe;
 - clearly identify skipped actions.
 
-Dry-run output MUST NOT claim that changes were applied.
+Dry-run output MUST NOT claim that changes were applied. A component that delegates work MUST propagate dry-run semantics to that work rather than relying only on its own top-level guard.
 
 ---
 
@@ -1083,7 +1083,7 @@ build
 release
 ```
 
-A package MUST also contain the complete release archive, manifest, removed manifest, and their checksum sidecars.
+A package MUST also contain the complete release archive, manifest, removed manifest, and their checksum sidecars. When multiple products are assembled into one bundle, path ownership collisions MUST be detected and reported rather than resolved by silent overwrite.
 
 SolidGroundUX framework packages MAY additionally contain a ZIP-root `release-manager.sh` bootstrap copy. Generic project packages SHOULD rely on an already installed Release Manager.
 
@@ -1262,13 +1262,31 @@ Documentation SHOULD be generated from canonical headers and metadata where poss
 
 Generated output MUST not invent details absent from source contracts.
 
-## 19.3 Paragraph Generation
+## 19.3 Documentation Dialect and Rendering
 
-Consecutive non-empty documentation lines SHOULD be treated as coherent paragraphs in generated HTML.
+The documentation source dialect SHOULD remain readable as ordinary source comments while allowing explicit presentation constructs where whitespace alone is insufficient.
 
-Formatting rules MUST preserve readable separation without turning every source line into a separate paragraph.
+Canonical constructs include:
 
-## 19.4 Appendices
+- style hints for presentation without changing the underlying documentation item;
+- image groups for publishing source-associated images;
+- `. Table` / `. EndTable` blocks, with `::` separating semantic table cells;
+- `<>` alignment columns for visually aligned ordinary documentation in proportional fonts without table semantics;
+- `@` as the literal/parser modifier: once recognized, subsequent content on that documentation line is intended to remain literal rather than being structurally reinterpreted.
+
+The normalized processor/renderer contract MUST preserve the information required by these constructs without coupling source-language parsing to HTML rendering.
+
+Consecutive non-empty ordinary documentation lines SHOULD be treated as coherent paragraphs in generated HTML. Formatting rules MUST preserve readable separation without turning every source line into a separate paragraph.
+
+## 19.4 Documentation Collections
+
+Documentation generation MAY operate on complete collections, selected content, changed content, or previously normalized content that is rendered again.
+
+Multi-product documentation collections MUST remain deterministic. Product-specific exclusions SHOULD be expressed through `<product>.docignore` configuration resolved through the normal framework system/user configuration locations. Duplicate collected assets MUST NOT be silently overwritten; deterministic ownership and a visible warning are required.
+
+Framework defaults MAY seed an output location, but the renderer MUST use the final resolved output directory selected for the generation run. Published collections MAY use a collection-specific subdirectory beneath a shared documentation root.
+
+## 19.5 Appendices
 
 Appendices MAY contain:
 
@@ -1281,7 +1299,7 @@ Appendices MAY contain:
 
 Appendix numbering MAY begin with Appendix 0 where the appendix establishes principles that precede the technical body.
 
-## 19.5 Examples
+## 19.6 Examples
 
 Examples MUST be concrete, executable where practical, and consistent with current names and paths.
 
@@ -1300,6 +1318,8 @@ SGND_VERSION.SGND_BUILD
 ```
 
 Project-specific definitions MAY provide equivalent project-scoped Version and Build globals.
+
+When a release contains multiple products, version/build update policy MUST be evaluated per product. A combined bundle MUST inherit the release identity of its primary product rather than maintaining an independent bundle version/build policy.
 
 Build identifiers MAY embed date or time information according to the release process.
 

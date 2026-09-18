@@ -232,7 +232,7 @@
 exit $?</code></pre>
 <p class="ct-documentbody">Where framework initialization has stricter ordering requirements, that ordering is part of the contract.</p>
 <p class="ct-documentbody">For the SolidGround Management Console, canonical initialization may add console-specific path or host initialization after `sgnd_exe_start`.</p>
-<p class="ct-documentbody">`SGND_FRAMEWORK_ROOT` MUST be established by `_framework_locator` before framework libraries are loaded. The former `SGND_FRAMEWORK_ROOT` bootstrap contract is obsolete.</p>
+<p class="ct-documentbody">`SGND_FRAMEWORK_ROOT` MUST be established by `_framework_locator` before framework libraries are loaded. The former separate application-root bootstrap contract is obsolete; `SGND_FRAMEWORK_ROOT` is the canonical location contract.</p>
 <h3 class="ct-L2Sectionheader">4.4 Functions</h3>
 <p class="ct-documentbody">Functions MUST perform one coherent responsibility.</p>
 <p class="ct-documentbody">A function SHOULD be short enough that its control flow remains visible, but no arbitrary line limit is imposed.</p>
@@ -367,11 +367,11 @@ set-identity.sh</code></pre>
 <p class="ct-documentbody">A dry run MUST:</p>
 <ul>
 <li>show what would be done;</li>
-<li>avoid the material changes;</li>
+<li>avoid **all persistent changes**, including framework state/configuration writes and delegated actions;</li>
 <li>preserve validation where validation is safe;</li>
 <li>clearly identify skipped actions.</li>
 </ul>
-<p class="ct-documentbody">Dry-run output MUST NOT claim that changes were applied.</p>
+<p class="ct-documentbody">Dry-run output MUST NOT claim that changes were applied. A component that delegates work MUST propagate dry-run semantics to that work rather than relying only on its own top-level guard.</p>
 <p class="ct-documentbody">---</p>
 <h2 class="ct-L1Sectionheader">8. Return Values and Error Handling</h2>
 <h3 class="ct-L2Sectionheader">8.1 Exit Status</h3>
@@ -656,7 +656,7 @@ product
 version
 build
 release</code></pre>
-<p class="ct-documentbody">A package MUST also contain the complete release archive, manifest, removed manifest, and their checksum sidecars.</p>
+<p class="ct-documentbody">A package MUST also contain the complete release archive, manifest, removed manifest, and their checksum sidecars. When multiple products are assembled into one bundle, path ownership collisions MUST be detected and reported rather than resolved by silent overwrite.</p>
 <p class="ct-documentbody">SolidGroundUX framework packages MAY additionally contain a ZIP-root `release-manager.sh` bootstrap copy. Generic project packages SHOULD rely on an already installed Release Manager.</p>
 <p class="ct-documentbody">The package identity file is transport metadata. The deployed project definitions file remains the authoritative runtime project identity.</p>
 <h3 class="ct-L2Sectionheader">16.3 Bootstrap and Canonical Manager</h3>
@@ -760,10 +760,23 @@ release</code></pre>
 <h3 class="ct-L2Sectionheader">19.2 Canonical Sources</h3>
 <p class="ct-documentbody">Documentation SHOULD be generated from canonical headers and metadata where possible.</p>
 <p class="ct-documentbody">Generated output MUST not invent details absent from source contracts.</p>
-<h3 class="ct-L2Sectionheader">19.3 Paragraph Generation</h3>
-<p class="ct-documentbody">Consecutive non-empty documentation lines SHOULD be treated as coherent paragraphs in generated HTML.</p>
-<p class="ct-documentbody">Formatting rules MUST preserve readable separation without turning every source line into a separate paragraph.</p>
-<h3 class="ct-L2Sectionheader">19.4 Appendices</h3>
+<h3 class="ct-L2Sectionheader">19.3 Documentation Dialect and Rendering</h3>
+<p class="ct-documentbody">The documentation source dialect SHOULD remain readable as ordinary source comments while allowing explicit presentation constructs where whitespace alone is insufficient.</p>
+<p class="ct-documentbody">Canonical constructs include:</p>
+<ul>
+<li>style hints for presentation without changing the underlying documentation item;</li>
+<li>image groups for publishing source-associated images;</li>
+<li>`. Table` / `. EndTable` blocks, with `::` separating semantic table cells;</li>
+<li>`&lt;&gt;` alignment columns for visually aligned ordinary documentation in proportional fonts without table semantics;</li>
+<li>`@` as the literal/parser modifier: once recognized, subsequent content on that documentation line is intended to remain literal rather than being structurally reinterpreted.</li>
+</ul>
+<p class="ct-documentbody">The normalized processor/renderer contract MUST preserve the information required by these constructs without coupling source-language parsing to HTML rendering.</p>
+<p class="ct-documentbody">Consecutive non-empty ordinary documentation lines SHOULD be treated as coherent paragraphs in generated HTML. Formatting rules MUST preserve readable separation without turning every source line into a separate paragraph.</p>
+<h3 class="ct-L2Sectionheader">19.4 Documentation Collections</h3>
+<p class="ct-documentbody">Documentation generation MAY operate on complete collections, selected content, changed content, or previously normalized content that is rendered again.</p>
+<p class="ct-documentbody">Multi-product documentation collections MUST remain deterministic. Product-specific exclusions SHOULD be expressed through `&lt;product&gt;.docignore` configuration resolved through the normal framework system/user configuration locations. Duplicate collected assets MUST NOT be silently overwritten; deterministic ownership and a visible warning are required.</p>
+<p class="ct-documentbody">Framework defaults MAY seed an output location, but the renderer MUST use the final resolved output directory selected for the generation run. Published collections MAY use a collection-specific subdirectory beneath a shared documentation root.</p>
+<h3 class="ct-L2Sectionheader">19.5 Appendices</h3>
 <p class="ct-documentbody">Appendices MAY contain:</p>
 <ul>
 <li>reference material;</li>
@@ -774,7 +787,7 @@ release</code></pre>
 <li>migration guidance.</li>
 </ul>
 <p class="ct-documentbody">Appendix numbering MAY begin with Appendix 0 where the appendix establishes principles that precede the technical body.</p>
-<h3 class="ct-L2Sectionheader">19.5 Examples</h3>
+<h3 class="ct-L2Sectionheader">19.6 Examples</h3>
 <p class="ct-documentbody">Examples MUST be concrete, executable where practical, and consistent with current names and paths.</p>
 <p class="ct-documentbody">An example using a non-existent command is a documentation defect.</p>
 <p class="ct-documentbody">---</p>
@@ -783,6 +796,7 @@ release</code></pre>
 <p class="ct-documentbody">Canonical framework display:</p>
 <pre class="doc-license-text"><code>SGND_VERSION.SGND_BUILD</code></pre>
 <p class="ct-documentbody">Project-specific definitions MAY provide equivalent project-scoped Version and Build globals.</p>
+<p class="ct-documentbody">When a release contains multiple products, version/build update policy MUST be evaluated per product. A combined bundle MUST inherit the release identity of its primary product rather than maintaining an independent bundle version/build policy.</p>
 <p class="ct-documentbody">Build identifiers MAY embed date or time information according to the release process.</p>
 <h3 class="ct-L2Sectionheader">20.2 Script Headers</h3>
 <p class="ct-documentbody">Release tooling SHOULD synchronize version metadata in changed script headers and MUST update the authoritative project definitions file for the release identity being produced.</p>

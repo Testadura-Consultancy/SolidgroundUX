@@ -16,7 +16,8 @@ https://github.com/Testadura-Mark/SolidGroundUX/releases
 
 The framework release can be provided as an individual package or as a bundle
 containing companion SolidGroundUX products. `prepare-release.sh` may produce both
-forms in the same release run.
+forms in the same release run. Each product retains its own release-metadata policy,
+while a combined bundle inherits Version and Build from its primary product.
 
 Typical package names are:
 
@@ -76,7 +77,7 @@ SolidGroundUX deliberately uses the filesystem itself as release state.
 
 ### Available releases
 
-Downloaded, prepared, or rolled-back releases are stored below:
+Downloaded/admitted or rolled-back releases are stored below:
 
 ```text
 /var/lib/solidgroundux/releases
@@ -112,7 +113,8 @@ sudo /var/lib/solidgroundux/release-manager.sh
 ```
 
 The interactive Release Manager discovers available bundled and individual
-packages from their package metadata. Selecting a package establishes its project,
+packages from their package metadata. Bundle identity follows the primary product,
+while contained products retain their own product metadata. Selecting a package establishes its project,
 product, Version, Build, managed release/archive directories, and GitHub repository.
 Version and Build are therefore not entered manually in the Release Manager.
 
