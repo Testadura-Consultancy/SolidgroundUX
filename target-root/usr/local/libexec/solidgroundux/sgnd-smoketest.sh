@@ -3,15 +3,15 @@
 # SolidGroundUX Framework - Smoke Test and Validation
 # -------------------------------------------------------------------------------------
 # Metadata:
-#   Version     : 1.2
+#   Version     : 2.1
 #   Source      : sgnd-smoketest.sh
 #   Wrapper     : sgnd-smoketest
 #   Type        : script
 #   Group       : Console Actions
 #   Purpose     : Validate the framework and exercise its interactive UI helpers
 #
-#   Build : 2626021
-#   Checksum : a4c62c151180f4d1944bd5b0dc6e12db2e0f84e16583cf52dd2d247d2b1236c5
+#   Build : 2626414
+#   Checksum : 56a4747ce7681cbac30d3877cc47ea84c7e1d5718a1c85c090d1a992ab9220bf
 # Description:
 #   Framework-owned smoke-test and validation implementation for SolidGroundUX. Supports individual validation suites, a complete Run All
 #   pass, and the original interactive UI smoke-test menu.

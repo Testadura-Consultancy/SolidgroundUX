@@ -48,7 +48,7 @@ Instead of treating Bash scripts as isolated utilities, SolidGroundUX treats the
 
 The framework does not attempt to hide Bash or prescribe a pattern merely because it is fashionable. It provides practical building blocks where they add value and stays out of the way where they do not.
 
-SolidGroundUX has since grown beyond the framework itself. It now combines that application framework with development and release tooling and a modular Linux management environment. The same framework primitives used by standalone applications are reused by the SolidGround Management Console rather than being reimplemented specifically for administration.
+SolidGroundUX has since grown into a small family of related products. The Framework provides the common runtime and reusable APIs; Management Console Modules provides the modular Linux administration application; development and release tooling is being separated into the SolidGround SDK. All three follow the same framework conventions without requiring management functionality to be part of the Framework itself.
 
 ## CPRP: the design principles
 
@@ -83,14 +83,14 @@ SolidGroundUX is organized around a small common runtime rather than a collectio
 flowchart TB
 
     APP["Applications & Executables"]
-    CONSOLE["SolidGround Management Console"]
-    TOOLING["Development & Release Tooling"]
+    CONSOLE["SolidGround Management Console Modules"]
+    TOOLING["SolidGround SDK / Development & Release Tooling"]
 
     RUNTIME["Bootstrap & Runtime"]
 
     SERVICES["Framework Services<br/>UI & Theming · Logging · Configuration · Persistent State · Dialogs & Input · Menu API"]
     LIBS["Shared Libraries<br/>Data Tables · Common Helpers · Console Helpers"]
-    PAGES["Management Console Pages<br/>Computer Setup · Storage · AD Server · AD Client · Samba File Server · SolidGroundUX · Development"]
+    PAGES["Management Console Pages<br/>Computer Setup · Storage · AD Server · AD Client · AD Management · Samba · Web · SQL Server · Docker · Framework Test · Development"]
 
     APP --> RUNTIME
     CONSOLE --> RUNTIME
@@ -311,7 +311,7 @@ SolidGroundUX includes tools for building and maintaining applications that use 
 
 ## Workspaces
 
-`create-workspace` creates a repository-shaped development workspace and copies the canonical SolidGroundUX templates into it.
+`create-workspace` creates a repository-shaped development workspace. It discovers installed convenience templates, lets the developer choose which templates to copy into the workspace, can instantiate starter scripts per selected template, and creates basic repository material including `README.md`, `CHANGELOG.md`, and project assets.
 
 `deploy-workspace` deploys complete or filtered workspace content locally or remotely. It supports incremental deployment and can select content by filename or mask and modification time.
 
@@ -337,7 +337,7 @@ A release run can select a primary product and companion products. Each product 
 
 The tool can create individual product releases, a combined bundle, or both. A bundle inherits Version and Build from its primary product. Human-readable product names are retained in package metadata, while generated filenames use filesystem-safe product names.
 
-Its responsibilities include per-product release metadata maintenance, checksums, manifests, removed-file tracking, executable permissions, wrapper verification, product ownership collision detection and creation of the final release artifacts. Conflicting bundle paths are reported rather than silently allowing one product to overwrite another.
+Its responsibilities include per-product release metadata maintenance, checksums, manifests, removed-file tracking, executable permissions, wrapper verification, product ownership collision detection and creation of the final release artifacts. Removal baselines are selected independently per product (and for the bundle), with manifest choices filtered to the matching product. Conflicting bundle paths are reported rather than silently allowing one product to overwrite another.
 
 Every prepared package carries project/product identity used by `release-manager`, so Version and Build do not have to be re-entered during installation or update. The resulting release packages are intended to be consumed by `release-manager`.
 
@@ -402,7 +402,7 @@ SolidGroundUX favors convention over repeated configuration.
 
 Executable scripts, source-only libraries and Management Console modules each follow recognizable structures. Shared behavior is moved into common libraries when multiple independent consumers need it.
 
-In particular, lazy-loaded console modules must not depend on another page having been opened first. Functionality genuinely shared between modules belongs in a common library such as `console-helpers.sh` or another appropriately scoped library.
+In particular, lazy-loaded console modules must not depend on another page having been opened first. Functionality genuinely shared between modules belongs in an appropriately scoped common library. Management-console-specific ownership remains with the Management Console Modules product.
 
 This keeps page modules focused on registration and subject-specific behavior while preserving predictable dependencies.
 
@@ -419,7 +419,7 @@ This keeps page modules focused on registration and subject-specific behavior wh
 | `release-manager` | Install, update, rollback, reinstall or remove SolidGroundUX releases |
 | `create-wrappers` | Create public command wrappers for SolidGroundUX executables |
 | `doc-generator` | Generate the HTML framework documentation |
-| `framework-smoketest` | Exercise core framework APIs and runtime behaviour |
+| `sgnd-smoketest` | Validate the framework installation and exercise core framework APIs and runtime behaviour |
 
 ---
 

@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2626021
-#   Checksum    : f07da7cb300c6688b9e3fb4eab81729f39d961d49291caa2517359df95f123bc
+#   Build       : 2626415
+#   Checksum    : 4116c31e9650c3152786998b49390ac6cb40dbcb6147ed169a08f825fe8ef3e1
 #   Source      : prepare-release.sh
 #   Type        : script
 #   Group       : SDK
@@ -303,6 +303,8 @@ set -uo pipefail
     RELEASE_PRODUCT_BUILDS=()
     RELEASE_PRODUCT_VERSION_MODES=()
     RELEASE_PRODUCT_BUILD_MODES=()
+    RELEASE_PRODUCT_BASELINES=()
+    BUNDLE_PREVIOUS_MANIFEST=""
 
 # - Local script functions ----------------------------------------------------------
     # fn$ _release_resolve_project_identity - Resolve the authoritative project definitions
@@ -739,12 +741,26 @@ set -uo pipefail
              local auto_index=0
              RELEASE_PRODUCT_VERSION_MODES=()
              RELEASE_PRODUCT_BUILD_MODES=()
+             RELEASE_PRODUCT_BASELINES=()
+             BUNDLE_PREVIOUS_MANIFEST=""
              for auto_index in "${!RELEASE_PRODUCT_NAMES[@]}"; do
                  RELEASE_PRODUCT_VERSION_MODES+=("${MODE_UPDATEVERSION^^}")
                  RELEASE_PRODUCT_BUILD_MODES+=("${MODE_UPDATEBUILD^^}")
                  RELEASE_PRODUCT_BUILDS[$auto_index]="$BUILD"
              done
              VERSION="${RELEASE_PRODUCT_VERSIONS[0]}"
+             for auto_index in "${!RELEASE_PRODUCT_NAMES[@]}"; do
+                 if (( ${#RELEASE_SOURCE_DIRS[@]} == 1 || ${FLAG_CREATE_INDIVIDUAL_RELEASES:-0} )); then
+                     _sgnd_release_select_product_baseline "$auto_index" || return 1
+                 else
+                     RELEASE_PRODUCT_BASELINES[$auto_index]=""
+                 fi
+             done
+             if (( ${#RELEASE_SOURCE_DIRS[@]} > 1 )); then
+                 _sgnd_release_select_bundle_baseline || return 1
+             else
+                 BUNDLE_PREVIOUS_MANIFEST=""
+             fi
              sayinfo "Auto mode: using last deployment or default settings."
              return 0
         fi
@@ -780,6 +796,61 @@ set -uo pipefail
                 done
                 sgnd_print_labeledvalue --label "Individual product releases" --value "$([[ ${FLAG_CREATE_INDIVIDUAL_RELEASES:-0} -eq 1 ]] && printf Yes || printf No)" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth 46
                 sgnd_print_labeledvalue --label "Bundled release" --value "$(_release_product_artifact_name "$PRODUCT")-bundled-$VERSION.$BUILD" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth 46
+            fi
+
+            sgnd_print
+            sgnd_print_sectionheader "Release metadata" --padend 0
+            local product_index=0 product_version="" product_version_mode="" product_build_mode=""
+            for product_index in "${!RELEASE_PRODUCT_NAMES[@]}"; do
+                sgnd_print_labeledvalue --label "Product" --value "${RELEASE_PRODUCT_NAMES[$product_index]}" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+                product_version="${RELEASE_PRODUCT_VERSIONS[$product_index]}"
+                ask --label "  Version" --var product_version --default "$product_version" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+                RELEASE_PRODUCT_VERSIONS[$product_index]="$product_version"
+                sgnd_print_labeledvalue --label "  Build" --value "$BUILD" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+                RELEASE_PRODUCT_BUILDS[$product_index]="$BUILD"
+                product_version_mode="${RELEASE_PRODUCT_VERSION_MODES[$product_index]:-${MODE_UPDATEVERSION:-C}}"
+                product_build_mode="${RELEASE_PRODUCT_BUILD_MODES[$product_index]:-${MODE_UPDATEBUILD:-C}}"
+                ask_decision --label "  Update version (A/C/N)" \
+                    --choices "A,C,N" --default "${product_version_mode^^}" --var product_version_mode \
+                    --displaychoices 0 --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+                ask_decision --label "  Update build (A/C/N)" \
+                    --choices "A,C,N" --default "${product_build_mode^^}" --var product_build_mode \
+                    --displaychoices 0 --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
+                RELEASE_PRODUCT_VERSION_MODES[$product_index]="${product_version_mode^^}"
+                RELEASE_PRODUCT_BUILD_MODES[$product_index]="${product_build_mode^^}"
+                sgnd_print
+            done
+            VERSION="${RELEASE_PRODUCT_VERSIONS[0]}"
+            for product_index in "${!RELEASE_PRODUCT_BUILDS[@]}"; do
+                RELEASE_PRODUCT_BUILDS[$product_index]="$BUILD"
+            done
+            # Release filenames follow the selected primary product's entered Version.
+            RELEASE="$(_release_product_artifact_name "$PRODUCT")-$VERSION.$BUILD"
+            TAR_FILE="$RELEASE.tar.gz"
+            MODE_UPDATEVERSION="${RELEASE_PRODUCT_VERSION_MODES[0]:-${MODE_UPDATEVERSION:-C}}"
+            MODE_UPDATEBUILD="${RELEASE_PRODUCT_BUILD_MODES[0]:-${MODE_UPDATEBUILD:-C}}"
+
+            # Removal baselines belong to the release artifact they will be applied to.
+            # Select them immediately after the per-product release metadata.
+            RELEASE_PRODUCT_BASELINES=()
+            for product_index in "${!RELEASE_PRODUCT_NAMES[@]}"; do
+                if (( ${#RELEASE_SOURCE_DIRS[@]} == 1 || ${FLAG_CREATE_INDIVIDUAL_RELEASES:-0} )); then
+                    _sgnd_release_select_product_baseline "$product_index" || {
+                        saycancel "Release preparation cancelled."
+                        return 1
+                    }
+                else
+                    RELEASE_PRODUCT_BASELINES[$product_index]=""
+                fi
+            done
+
+            if (( ${#RELEASE_SOURCE_DIRS[@]} > 1 )); then
+                _sgnd_release_select_bundle_baseline || {
+                    saycancel "Release preparation cancelled."
+                    return 1
+                }
+            else
+                BUNDLE_PREVIOUS_MANIFEST=""
             fi
 
             sgnd_print
@@ -829,38 +900,6 @@ set -uo pipefail
                 saveparms="N"
             fi
 
-            sgnd_print
-            sgnd_print_sectionheader "Release metadata" --padend 0
-            local product_index=0 product_version="" product_version_mode="" product_build_mode=""
-            for product_index in "${!RELEASE_PRODUCT_NAMES[@]}"; do
-                sgnd_print_labeledvalue --label "Product" --value "${RELEASE_PRODUCT_NAMES[$product_index]}" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
-                product_version="${RELEASE_PRODUCT_VERSIONS[$product_index]}"
-                ask --label "  Version" --var product_version --default "$product_version" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
-                RELEASE_PRODUCT_VERSIONS[$product_index]="$product_version"
-                sgnd_print_labeledvalue --label "  Build" --value "$BUILD" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
-                RELEASE_PRODUCT_BUILDS[$product_index]="$BUILD"
-                product_version_mode="${RELEASE_PRODUCT_VERSION_MODES[$product_index]:-${MODE_UPDATEVERSION:-C}}"
-                product_build_mode="${RELEASE_PRODUCT_BUILD_MODES[$product_index]:-${MODE_UPDATEBUILD:-C}}"
-                ask_decision --label "  Update version (A/C/N)" \
-                    --choices "A,C,N" --default "${product_version_mode^^}" --var product_version_mode \
-                    --displaychoices 0 --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
-                ask_decision --label "  Update build (A/C/N)" \
-                    --choices "A,C,N" --default "${product_build_mode^^}" --var product_build_mode \
-                    --displaychoices 0 --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
-                RELEASE_PRODUCT_VERSION_MODES[$product_index]="${product_version_mode^^}"
-                RELEASE_PRODUCT_BUILD_MODES[$product_index]="${product_build_mode^^}"
-                sgnd_print
-            done
-            VERSION="${RELEASE_PRODUCT_VERSIONS[0]}"
-            for product_index in "${!RELEASE_PRODUCT_BUILDS[@]}"; do
-                RELEASE_PRODUCT_BUILDS[$product_index]="$BUILD"
-            done
-            # Release filenames follow the selected primary product's entered Version.
-            RELEASE="$(_release_product_artifact_name "$PRODUCT")-$VERSION.$BUILD"
-            TAR_FILE="$RELEASE.tar.gz"
-            MODE_UPDATEVERSION="${RELEASE_PRODUCT_VERSION_MODES[0]:-${MODE_UPDATEVERSION:-C}}"
-            MODE_UPDATEBUILD="${RELEASE_PRODUCT_BUILD_MODES[0]:-${MODE_UPDATEBUILD:-C}}"
-
             if [[ "$FLAG_CREATEWRAPPERS" -eq 1 ]]; then
                 createwrappers="Y"
             else
@@ -897,11 +936,6 @@ set -uo pipefail
                 *)     FLAG_NORMALIZE_CANON=0 ;;
             esac
 
-            _sgnd_release_select_previous_manifest || {
-                saycancel "Release preparation cancelled."
-                return 1
-            }
-
             ask --label "Save these settings for future use (Y/N)" --var saveparms --default "$saveparms" --colorize both --labelclr "${CYAN}" --pad "$lp" --labelwidth "$lw"
             if [[ "$saveparms" == "Y" || "$saveparms" == "y" ]]; then
                 FLAG_SAVEPARMS=1
@@ -937,98 +971,163 @@ set -uo pipefail
     }
 
 
-    # fn: _sgnd_release_list_manifest_history - List available removal-baseline manifests
+    # fn: _sgnd_release_list_manifest_history - List removal-baseline manifests for an artifact
         # . Purpose
-        #   List persistent manifest-history files in release/version order.
+        #   List persistent manifest-history files for one explicit release artifact identity,
+        #   newest build first.
+        #
+        # . Arguments
+        #   $1  Artifact product name, for example SolidGroundUX or SolidGroundUX-bundled.
+        #
+        # . Behavior
+        #   - Matches only the requested artifact identity.
+        #   - Keeps bundled and individual release histories separate.
+        #   - Sorts by the numeric build suffix first, then by version as a tie-breaker.
         #
         # . Returns
         #   0 always.
         #
         # . Usage
-        #   _sgnd_release_list_manifest_history
+        #   _sgnd_release_list_manifest_history "SolidGroundUX"
     _sgnd_release_list_manifest_history() {
+        local artifact_product="${1:?missing artifact product}"
+        local file="" base="" remainder="" version="" build=""
+        local want_bundle=0
+
         [[ -d "$MANIFEST_HISTORY_DIR" ]] || return 0
-        find "$MANIFEST_HISTORY_DIR" -maxdepth 1 -type f -name "$(_release_product_artifact_name "$PRODUCT")-*.manifest" -printf '%f\n' 2>/dev/null \
-            | LC_ALL=C sort -V
+        [[ "$artifact_product" == *-bundled ]] && want_bundle=1
+
+        while IFS= read -r -d '' file; do
+            base="$(basename -- "$file")"
+            remainder="${base#${artifact_product}-}"
+            remainder="${remainder%.manifest}"
+
+            # An individual product prefix also matches its bundled artifact. Exclude that
+            # explicitly so the two histories can never contaminate each other.
+            if (( ! want_bundle )) && [[ "$remainder" == bundled-* ]]; then
+                continue
+            fi
+
+            # The filename glob is necessarily prefix-based.  A product such as
+            # SolidGroundUX must not therefore absorb manifests belonging to
+            # SolidGroundUX-Management-Console-Modules.  After removing the exact
+            # artifact prefix, a valid remainder must start with the release version.
+            [[ "$remainder" =~ ^([0-9][0-9A-Za-z._+-]*)\.([0-9]+)$ ]] || continue
+            version="${BASH_REMATCH[1]}"
+            build="${BASH_REMATCH[2]}"
+            printf '%020d\t%s\t%s\n' "$build" "$version" "$base"
+        done < <(find "$MANIFEST_HISTORY_DIR" -maxdepth 1 -type f -name "${artifact_product}-*.manifest" -print0 2>/dev/null) \
+            | LC_ALL=C sort -t $'\t' -k1,1nr -k2,2Vr \
+            | cut -f3-
+
+        return 0
     }
 
-    # fn: _sgnd_release_select_previous_manifest - Select the removal-baseline manifest
+    # fn: _sgnd_release_select_baseline_for_artifact - Select one artifact removal baseline
         # . Purpose
-        #   Resolve the manifest against which removed paths are calculated.
+        #   Resolve the manifest against which removed paths are calculated for one release
+        #   artifact rather than for the prepare-release run as a whole.
+        #
+        # . Arguments
+        #   $1  Display label.
+        #   $2  Artifact product name used to filter manifest history.
+        #   $3  Name of the variable that receives the selected absolute manifest path.
         #
         # . Behavior
-        #   - Honors PREVIOUS_MANIFEST when already supplied by argument/state.
-        #   - In auto mode, requires the stored path to still exist or uses no baseline.
-        #   - In interactive mode, offers manifests from persistent history, an explicit
-        #     custom path, or no baseline.
+        #   - Defaults to the matching manifest with the highest numeric build number.
+        #   - Offers older manifests, a custom path, and an explicit baseless release.
+        #   - In auto mode selects the latest matching manifest, or no baseline when none exists.
         #
         # . Returns
         #   0 on success; 1 on invalid/cancelled selection.
         #
         # . Usage
-        #   _sgnd_release_select_previous_manifest
-    _sgnd_release_select_previous_manifest() {
-        local selection=""
-        local custom=""
+        #   _sgnd_release_select_baseline_for_artifact "SolidGroundUX" "SolidGroundUX" baseline
+    _sgnd_release_select_baseline_for_artifact() {
+        local display_label="${1:?missing display label}"
+        local artifact_product="${2:?missing artifact product}"
+        local output_var="${3:?missing output variable}"
+        local selection="" custom="" latest="" manifest="" current="${!output_var-}"
         local i=0
-        local -a manifests=()
-        local -a options=()
+        local -a manifests=() options=()
 
-        if [[ -n "${PREVIOUS_MANIFEST:-}" && ! -f "$PREVIOUS_MANIFEST" ]]; then
-            if (( ${FLAG_AUTO:-0} )); then
-                sayfail "Stored removal baseline no longer exists: $PREVIOUS_MANIFEST"
-                return 1
-            fi
-
-            saywarning "Stored removal baseline not found: $PREVIOUS_MANIFEST"
-            PREVIOUS_MANIFEST=""
+        if [[ -n "$current" && ! -f "$current" ]]; then
+            saywarning "Stored removal baseline not found for $display_label: $current"
+            current=""
         fi
 
-        mapfile -t manifests < <(_sgnd_release_list_manifest_history)
+        mapfile -t manifests < <(_sgnd_release_list_manifest_history "$artifact_product")
+        (( ${#manifests[@]} > 0 )) && latest="${manifests[0]}"
 
         if (( ${FLAG_AUTO:-0} )); then
-            # Auto mode reuses the stored/argument baseline when present.
+            [[ -z "$current" && -n "$latest" ]] && current="${MANIFEST_HISTORY_DIR%/}/$latest"
+            printf -v "$output_var" '%s' "$current"
             return 0
         fi
 
-        if (( ${#manifests[@]} > 0 )); then
-            for (( i=${#manifests[@]}-1; i>=0; i-- )); do
+        sgnd_print
+        sgnd_print_sectionheader "Removal baseline: $display_label" --padend 0
+
+        if [[ -n "$latest" ]]; then
+            options+=("Latest baseline: $latest")
+            for (( i=1; i<${#manifests[@]}; i++ )); do
                 options+=("${manifests[$i]}")
             done
         else
-            sayinfo "No manifests are currently stored in $MANIFEST_HISTORY_DIR"
+            sayinfo "No matching manifests are currently stored in $MANIFEST_HISTORY_DIR"
         fi
-
         options+=("Custom path" "No removal baseline")
 
-        ask_selection \
-            --label "Removal baseline manifest" \
-            --var selection \
-            --items "${options[@]}" || return 1
+        ask_selection --label "Selection" --var selection --items "${options[@]}" || return 1
 
         case "$selection" in
-            "No removal baseline")
-                PREVIOUS_MANIFEST=""
-                return 0
-                ;;
+            "No removal baseline") current="" ;;
             "Custom path")
-                ask \
-                    --label "Manifest path" \
-                    --var custom \
-                    --default "" \
-                    --validate sgnd_validate_file_exists \
-                    --colorize both \
-                    --labelclr "${CYAN}" \
-                    --pad 4 \
-                    --labelwidth 20
-
-                PREVIOUS_MANIFEST="$(readlink -f "$custom")"
-                return 0
+                ask --label "Manifest path" --var custom --default "" \
+                    --validate sgnd_validate_file_exists --colorize both --labelclr "${CYAN}" \
+                    --pad 4 --labelwidth 20
+                current="$(readlink -f "$custom")"
+                ;;
+            "Latest baseline: "*)
+                manifest="${selection#Latest baseline: }"
+                current="${MANIFEST_HISTORY_DIR%/}/$manifest"
+                ;;
+            *)
+                current="${MANIFEST_HISTORY_DIR%/}/$selection"
                 ;;
         esac
 
-        PREVIOUS_MANIFEST="${MANIFEST_HISTORY_DIR%/}/$selection"
+        printf -v "$output_var" '%s' "$current"
         return 0
+    }
+
+    # fn: _sgnd_release_select_product_baseline - Select baseline for one product release
+        # . Returns
+        #   0 on success; non-zero on cancelled/invalid selection.
+        # . Usage
+        #   _sgnd_release_select_product_baseline 0
+    _sgnd_release_select_product_baseline() {
+        local product_index="${1:?missing product index}"
+        local product="${RELEASE_PRODUCT_NAMES[$product_index]:?missing product name}"
+        local artifact_product=""
+        local selected="${RELEASE_PRODUCT_BASELINES[$product_index]-}"
+
+        artifact_product="$(_release_product_artifact_name "$product")"
+        _sgnd_release_select_baseline_for_artifact "$product" "$artifact_product" selected || return $?
+        RELEASE_PRODUCT_BASELINES[$product_index]="$selected"
+    }
+
+    # fn: _sgnd_release_select_bundle_baseline - Select baseline for the assembled bundle
+        # . Returns
+        #   0 on success; non-zero on cancelled/invalid selection.
+        # . Usage
+        #   _sgnd_release_select_bundle_baseline
+    _sgnd_release_select_bundle_baseline() {
+        local artifact_product="$(_release_product_artifact_name "$PRODUCT")-bundled"
+        local selected="${BUNDLE_PREVIOUS_MANIFEST:-}"
+
+        _sgnd_release_select_baseline_for_artifact "${PRODUCT} bundle" "$artifact_product" selected || return $?
+        BUNDLE_PREVIOUS_MANIFEST="$selected"
     }
 
     # _sgnd_release_write_checksum
@@ -2002,6 +2101,7 @@ set -uo pipefail
         sgnd_print_labeledvalue --label "Version" --value "$VERSION"
         sgnd_print_labeledvalue --label "Build" --value "$BUILD"
 
+        PREVIOUS_MANIFEST="${RELEASE_PRODUCT_BASELINES[0]-}"
         _create_tar || return 1
         _create_release_package || return 1
         _archive_release_manifest || return 1
@@ -2054,7 +2154,7 @@ set -uo pipefail
             RELEASE="$(_release_product_artifact_name "$PRODUCT")-$VERSION.$BUILD"
             TAR_FILE="$RELEASE.tar.gz"
             RELEASE_SOURCE_DIRS=("$SOURCE_DIR")
-            PREVIOUS_MANIFEST=""
+            PREVIOUS_MANIFEST="${RELEASE_PRODUCT_BASELINES[$product_index]-}"
 
             sgnd_print
             if (( ${FLAG_CREATE_INDIVIDUAL_RELEASES:-0} )); then
@@ -2071,7 +2171,6 @@ set -uo pipefail
             _ensure_libexec_executables || return 1
             _ensure_public_command_wrappers || return 1
             if (( ${FLAG_CREATE_INDIVIDUAL_RELEASES:-0} )); then
-                _sgnd_release_select_previous_manifest || return 1
                 _create_tar || return 1
                 _create_release_package || return 1
                 _archive_release_manifest || return 1
@@ -2166,6 +2265,12 @@ set -uo pipefail
         }
 
         _release_use_bundled_identity || exit $?
+
+        if (( ${#RELEASE_SOURCE_DIRS[@]} > 1 )); then
+            PREVIOUS_MANIFEST="${BUNDLE_PREVIOUS_MANIFEST:-}"
+        else
+            PREVIOUS_MANIFEST="${RELEASE_PRODUCT_BASELINES[0]-}"
+        fi
 
         _create_tar || {
             sayfail "Release archive creation failed."

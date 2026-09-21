@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2626021
-#   Checksum    : c64a689b258b83498615a0f148e1eac7f41ead84a19d9d598ad5abf87ffdd31c
+#   Build       : 2626414
+#   Checksum    : deaa3d2211abae565ec2e9094ba9af573d66c1e99d29b28e1ee9ac4d0133d922
 #   Source      : create-workspace.sh
 #   Type        : script
 #   Group       : SDK
@@ -18,8 +18,8 @@
 #   The script:
 #     - Resolves project name and target folder
 #     - Creates a repository-shaped target-root structure
-#     - Copies reusable SolidGroundUX templates into the workspace, excluding canon/
-#     - Instantiates the selected starter template(s) from that local template set
+#     - Lists installed convenience templates and lets the user choose which to copy
+#     - Copies the selected convenience templates into the new project workspace
 #     - Creates project-namespaced definitions in the SolidGroundUX globals folder
 #     - Optionally creates a simple 95-<project> MOTD identity entry
 #     - Generates a VS Code workspace file and standard .gitignore and .release-ignore
@@ -171,14 +171,11 @@ set -uo pipefail
             #   - -h / --help is built in and does not need to be defined here.
             #   - Parsed values become available in the configured target variables.
         SGND_ARGS_SPEC=(
-            "exe|e|flag|FLAG_EXE|Create executable template and folders|0|"
-            "lib|l|flag|FLAG_LIB|Create library template and folders|0|"
-            "mod|m|flag|FLAG_MOD|Create console module template and folders|0|"
             "project|p|value|PROJECT_NAME|Project name|"
             "product||value|PRODUCT_NAME|Product name|"
-            "title||value|SCRIPT_TITLE|Generated script title|"
             "group||value|PROJECT_GROUP|Generated script group|"
             "subgroup||value|PROJECT_SUBGROUP|Generated script subgroup|"
+            "root||value|PROJECT_ROOT|Project root folder|"
             "folder|f|value|PROJECT_FOLDER|Set project folder|"
             "gitinit|g|flag|FLAG_GIT_INIT|Initialize a local Git repository|0|"
             "github||flag|FLAG_GITHUB_INIT|Create and push a GitHub repository using gh|0|"
@@ -250,6 +247,10 @@ set -uo pipefail
             # Leave empty if:
             #   - The script does not use persistent state.
         SGND_STATE_VARIABLES=(
+            PRODUCT_NAME
+            PROJECT_GROUP
+            PROJECT_SUBGROUP
+            PROJECT_ROOT
         )
 
         # SGND_ON_EXIT_HANDLERS
@@ -282,43 +283,19 @@ set -uo pipefail
             # Scripts that want persistent state must:
             #   1) set SGND_STATE_SAVE=1
             #   2) call sgnd_bootstrap --state
-        SGND_STATE_SAVE=0
+        SGND_STATE_SAVE=1
 
+
+# - Workspace template selection ----------------------------------------------------
+    WORKSPACE_SELECTED_TEMPLATES=()
+    FLAG_CREATE_STARTERS=0
+    STARTER_TEMPLATE_NAMES=()
+    STARTER_SCRIPT_NAMES=()
+    STARTER_GROUPS=()
+    STARTER_SUBGROUPS=()
 
 # - Local script functions ----------------------------------------------------------
  # -- General helpers
-    # fn: _normalize_project_flags - Normalize create-workspace option flags
-        # . Purpose
-        #   Normalize project selection flags into a coherent default state.
-        #
-        # . Behavior
-        #   - If no project flags are given, defaults to executable and library.
-        #
-        # Inputs (globals):
-        #   FLAG_EXE
-        #   FLAG_LIB
-        #   FLAG_MOD
-        #
-        # Outputs (globals):
-        #   FLAG_EXE
-        #   FLAG_LIB
-        #   FLAG_MOD
-        #
-        # . Returns
-        #   0 on success
-        #
-        # . Usage
-        #   _normalize_project_flags "example" "example-2"
-    _normalize_project_flags() {
-        if (( ! ${FLAG_EXE:-0} )) && (( ! ${FLAG_LIB:-0} )) && (( ! ${FLAG_MOD:-0} )); then
-            FLAG_EXE=1
-            FLAG_LIB=1
-            FLAG_MOD=0
-        fi
-
-        return 0
-    }
-
     # fn: _copy_template_file - Copy one template file into the workspace
         # . Purpose
         #   Copy a single template file to a target location.
@@ -386,37 +363,6 @@ set -uo pipefail
         sayinfo "Copied template $src -> $dst"
     }
 
-    # fn: _get_template_filenames - Resolve template filenames for workspace creation
-        # . Purpose
-        #   Determine output filenames for selected template types.
-        #
-        # . Arguments
-        #   $1  Name reference for exe filename
-        #   $2  Name reference for lib filename
-        #   $3  Name reference for mod filename
-        #
-        # . Usage
-        #   _get_template_filenames "/tmp/sgnd-example.txt" "/tmp/sgnd-example.txt" "/tmp/sgnd-example.txt"
-    _get_template_filenames() {
-        local -n exe_ref=$1
-        local -n lib_ref=$2
-        local -n mod_ref=$3
-        local project_slug=""
-
-        project_slug="${PROJECT_NAME// /-}"
-        project_slug="${project_slug,,}"
-
-        exe_ref="${project_slug}.sh"
-
-        if (( ${FLAG_EXE:-0} )) && (( ${FLAG_LIB:-0} )); then
-            lib_ref="${project_slug}-lib.sh"
-        else
-            lib_ref="${project_slug}.sh"
-        fi
-
-        mod_ref="mod-${project_slug}.sh"
-    }
-
     # fn: _template_metadata_value - Read one Metadata field from a template
     _template_metadata_value() {
         local file="${1:?missing template file}" field="${2:?missing field}"
@@ -442,14 +388,23 @@ set -uo pipefail
         mv -f "$tmp" "$file"
     }
 
-    # fn: _specialize_generated_file - Apply selected product/script metadata to a generated starter file
+    # fn: _specialize_generated_file - Apply selected metadata to a generated starter file
     _specialize_generated_file() {
-        local file="${1:?missing generated file}" tmp=""
+        local file="${1:?missing generated file}"
+        local script_name="${2:?missing script name}"
+        local group="${3:-}"
+        local subgroup="${4:-}"
+        local tmp="" title="${script_name%.sh}"
         [[ -f "$file" ]] || return 1
         (( ${FLAG_DRYRUN:-0} )) && return 0
         tmp="$(mktemp)" || return 1
-        awk -v product="${PRODUCT_NAME:-$PROJECT_NAME}" -v title="${SCRIPT_TITLE:-$PRODUCT_NAME}" -v group="${PROJECT_GROUP:-}" -v subgroup="${PROJECT_SUBGROUP:-}" '
+        awk -v product="${PRODUCT_NAME:-$PROJECT_NAME}" -v title="$title" -v source="$script_name" -v group="$group" -v subgroup="$subgroup" '
             NR==3 && /^# / { print "# " product " - " title; next }
+            /^#[[:space:]]+Source[[:space:]]*:/ { print "#   Source      : " source; next }
+            /^#[[:space:]]+Version[[:space:]]*:/ { print "#   Version     : 1.0"; next }
+            /^#[[:space:]]+Build[[:space:]]*:/ { print "#   Build       : -"; next }
+            /^#[[:space:]]+Checksum[[:space:]]*:/ { print "#   Checksum    : -"; next }
+            /^#[[:space:]]+Product[[:space:]]*:/ { print "#   Product     : " product; next }
             /^#[[:space:]]+Group[[:space:]]*:/ { print "#   Group       : " group; next }
             /^#[[:space:]]+Subgroup[[:space:]]*:/ { print "#   Subgroup    : " subgroup; next }
             { print }
@@ -466,16 +421,155 @@ set -uo pipefail
         fi
     }
 
-    # fn: _resolve_template_metadata_defaults - Resolve header defaults from the selected starter template
-    _resolve_template_metadata_defaults() {
-        local source_dir="" template=""
+    # fn: _resolve_convenience_template_selection - Select convenience templates for the workspace
+        # . Purpose
+        #   Discover installed convenience templates and let the user choose which copies
+        #   should be placed in the new workspace.
+        #
+        # . Behavior
+        #   - Lists all top-level convenience-template files except templates_preface.sh.
+        #   - Defaults to all discovered templates.
+        #   - Accepts "all", "none", or a comma-separated list of template numbers.
+        #   - In automatic mode, selects all discovered templates without prompting.
+        #
+        # . Outputs (globals)
+        #   WORKSPACE_SELECTED_TEMPLATES
+        #
+        # . Returns
+        #   0 on success, including when no convenience templates are installed.
+        #   1 on invalid interactive selection.
+    _resolve_convenience_template_selection() {
+        local source_dir="" template="" answer="all" item="" index=0
+        local -a available=() selected=()
+
         source_dir="$(_workspace_convenience_template_dir)"
-        if (( ${FLAG_EXE:-0} )); then template="$source_dir/exe-template.sh"
-        elif (( ${FLAG_LIB:-0} )); then template="$source_dir/lib-template.sh"
-        else template="$source_dir/mod-template.sh"; fi
-        SCRIPT_TITLE="${SCRIPT_TITLE:-${PRODUCT_NAME:-$PROJECT_NAME}}"
-        PROJECT_GROUP="${PROJECT_GROUP:-$(_template_metadata_value "$template" Group 2>/dev/null || true)}"
-        PROJECT_SUBGROUP="${PROJECT_SUBGROUP:-$(_template_metadata_value "$template" Subgroup 2>/dev/null || true)}"
+        WORKSPACE_SELECTED_TEMPLATES=()
+
+        if [[ ! -d "$source_dir" ]]; then
+            saywarning "Convenience template directory not found: $source_dir"
+            return 0
+        fi
+
+        while IFS= read -r -d '' template; do
+            [[ "$(basename -- "$template")" == "templates_preface.sh" ]] && continue
+            available+=( "$(basename -- "$template")" )
+        done < <(find "$source_dir" -mindepth 1 -maxdepth 1 -type f -print0 2>/dev/null | sort -z)
+
+        if (( ${#available[@]} == 0 )); then
+            saywarning "No convenience templates found in: $source_dir"
+            return 0
+        fi
+
+        if (( ! ${FLAG_AUTO:-0} )); then
+            sgnd_print
+            sgnd_print_sectionheader "Convenience templates"
+            for index in "${!available[@]}"; do
+                sgnd_print "  $((index + 1))) ${available[index]}"
+            done
+            sgnd_print
+            ask --label "Templates to copy (all/none/numbers)" --var answer --default "all"
+            answer="${answer,,}"
+        fi
+
+        case "$answer" in
+            all|"")
+                selected=( "${available[@]}" )
+                ;;
+            none)
+                selected=()
+                ;;
+            *)
+                IFS=',' read -r -a choices <<< "$answer"
+                for item in "${choices[@]}"; do
+                    item="${item//[[:space:]]/}"
+                    [[ "$item" =~ ^[0-9]+$ ]] || {
+                        sayfail "Invalid template selection: $item"
+                        return 1
+                    }
+                    (( item >= 1 && item <= ${#available[@]} )) || {
+                        sayfail "Template selection out of range: $item"
+                        return 1
+                    }
+                    selected+=( "${available[item-1]}" )
+                done
+                ;;
+        esac
+
+        WORKSPACE_SELECTED_TEMPLATES=( "${selected[@]}" )
+        return 0
+    }
+
+    # fn: _resolve_starter_scripts - Configure optional starter files for selected templates
+    _resolve_starter_scripts() {
+        local resp="N" template="" default_name="" name="" group="" subgroup="" slug=""
+        STARTER_TEMPLATE_NAMES=()
+        STARTER_SCRIPT_NAMES=()
+        STARTER_GROUPS=()
+        STARTER_SUBGROUPS=()
+        FLAG_CREATE_STARTERS=0
+
+        (( ${#WORKSPACE_SELECTED_TEMPLATES[@]} > 0 )) || return 0
+        (( ${FLAG_AUTO:-0} )) && return 0
+
+        slug="$(_project_slug)"
+        for template in "${WORKSPACE_SELECTED_TEMPLATES[@]}"; do
+            sgnd_print
+            sgnd_print_sectionheader "$template"
+            resp="N"
+            ask --label "Add starter script (Y/N)" --var resp --default "N" --choices "Y,Yes,N,No" --labelwidth 25
+            resp="${resp^^}"
+            [[ "$resp" == "Y" || "$resp" == "YES" ]] || continue
+
+            FLAG_CREATE_STARTERS=1
+            case "$template" in
+                wrapper-template) default_name="$slug" ;;
+                doc-template.sh) default_name="${slug}-doc.sh" ;;
+                *) default_name="${slug}.sh" ;;
+            esac
+            name="$default_name"
+            group="${PROJECT_GROUP:-}"
+            subgroup="${PROJECT_SUBGROUP:-}"
+            ask --label "Script name " --var name --default "$name" --labelwidth 25
+            ask --label "Group " --var group --default "$group" --labelwidth 25
+            ask --label "Subgroup " --var subgroup --default "$subgroup" --labelwidth 25
+            STARTER_TEMPLATE_NAMES+=("$template")
+            STARTER_SCRIPT_NAMES+=("$name")
+            STARTER_GROUPS+=("$group")
+            STARTER_SUBGROUPS+=("$subgroup")
+        done
+    }
+
+    # fn: _starter_target_path - Resolve conventional target path for a starter template
+    _starter_target_path() {
+        local template="${1:?missing template}" name="${2:?missing script name}"
+        case "$template" in
+            exe-template.sh) printf '%s\n' "${PROJECT_FOLDER}/target-root/usr/local/libexec/solidgroundux/${name}" ;;
+            lib-template.sh) printf '%s\n' "${PROJECT_FOLDER}/target-root/usr/local/lib/solidgroundux/common/${name}" ;;
+            mod-template.sh) printf '%s\n' "${PROJECT_FOLDER}/target-root/usr/local/libexec/solidgroundux/console-modules/${name}" ;;
+            doc-template.sh) printf '%s\n' "${PROJECT_FOLDER}/target-root/usr/local/share/doc/${PRODUCT_NAME}/${name}" ;;
+            wrapper-template) printf '%s\n' "${PROJECT_FOLDER}/target-root/usr/local/bin/${name}" ;;
+            *) printf '%s\n' "${PROJECT_FOLDER}/target-root/usr/local/libexec/solidgroundux/${name}" ;;
+        esac
+    }
+
+    # fn: _create_starter_scripts - Instantiate configured starter files from workspace templates
+    _create_starter_scripts() {
+        local i=0 template="" source="" target="" name=""
+        (( ${FLAG_CREATE_STARTERS:-0} )) || return 0
+        for i in "${!STARTER_TEMPLATE_NAMES[@]}"; do
+            template="${STARTER_TEMPLATE_NAMES[i]}"
+            name="${STARTER_SCRIPT_NAMES[i]}"
+            source="${PROJECT_FOLDER}/target-root/usr/local/lib/solidgroundux/templates/${template}"
+            target="$(_starter_target_path "$template" "$name")" || return 1
+            if (( ${FLAG_DRYRUN:-0} )); then
+                sayinfo "Would have created starter: $target"
+                continue
+            fi
+            mkdir -p -- "$(dirname -- "$target")" || return 1
+            _copy_template_file "$source" "$target" || return 1
+            _specialize_generated_file "$target" "$name" "${STARTER_GROUPS[i]}" "${STARTER_SUBGROUPS[i]}" || return 1
+            [[ "$template" == "exe-template.sh" || "$template" == "mod-template.sh" || "$template" == "wrapper-template" || "$template" == "doc-template.sh" ]] && chmod +x -- "$target"
+        done
     }
 
     # fn: _copy_workspace_templates - Copy shared convenience templates into the workspace
@@ -484,7 +578,7 @@ set -uo pipefail
         #
         # . Behavior
         #   - Resolves the installed shared convenience-template directory.
-        #   - Copies all top-level convenience-template files except templates_preface.sh.
+        #   - Copies only the convenience templates selected for this workspace.
         #   - Records newly created template files in the workspace manifest.
         #   - Honors dry-run mode through _copy_template_file().
         #
@@ -494,173 +588,54 @@ set -uo pipefail
         #
         # . Returns
         #   0 on success.
-        #   1 when the canonical template directory is missing or a copy fails.
+        #   1 when a selected template is missing or a copy fails.
         #
         # . Usage
         #   _copy_workspace_templates
     _copy_workspace_templates() {
         local source_dir=""
         local target_dir="${PROJECT_FOLDER}/target-root/usr/local/lib/solidgroundux/templates"
-        local template=""
-        local found=0
+        local template_name=""
 
         source_dir="$(_workspace_convenience_template_dir)"
 
-        [[ -d "$source_dir" ]] || {
-            sayfail "Convenience template directory not found: $source_dir"
-            return 1
-        }
+        if (( ${#WORKSPACE_SELECTED_TEMPLATES[@]} == 0 )); then
+            sayinfo "No convenience templates selected for copying."
+            return 0
+        fi
 
-        while IFS= read -r -d '' template; do
-            case "$(basename -- "$template")" in
-                templates_preface.sh)
-                    continue
-                    ;;
-            esac
-
-            found=1
-            _copy_template_file "$template" "$target_dir/$(basename -- "$template")" || return 1
-            _specialize_workspace_template "$target_dir/$(basename -- "$template")" || return 1
-        done < <(
-            find "$source_dir" -mindepth 1 -maxdepth 1 -type f -print0 2>/dev/null | sort -z
-        )
-
-        (( found )) || {
-            sayfail "No convenience templates found in: $source_dir"
-            return 1
-        }
+        for template_name in "${WORKSPACE_SELECTED_TEMPLATES[@]}"; do
+            [[ -f "$source_dir/$template_name" ]] || {
+                sayfail "Selected convenience template not found: $source_dir/$template_name"
+                return 1
+            }
+            _copy_template_file "$source_dir/$template_name" "$target_dir/$template_name" || return 1
+            _specialize_workspace_template "$target_dir/$template_name" || return 1
+        done
 
         return 0
     }
 
-    # fn: _instantiate_project_templates - Instantiate selected workspace templates
-        # . Purpose
-        #   Create selected project starter files from the workspace-local template set.
-        #
-        # . Behavior
-        #   - Uses only templates already copied into the active workspace.
-        #   - Instantiates executable, library, and/or console module templates according to selection.
-        #   - Preserves the repository-shaped target-root layout.
-        #
-        # Inputs (globals):
-        #   PROJECT_NAME
-        #   PROJECT_FOLDER
-        #   FLAG_EXE
-        #   FLAG_LIB
-        #   FLAG_MOD
-        #
-        # . Returns
-        #   0 on success.
-        #   1 when a selected template cannot be instantiated.
-        #
-        # . Usage
-        #   _instantiate_project_templates
-    _instantiate_project_templates() {
-        local template_dir="${PROJECT_FOLDER}/target-root/usr/local/lib/solidgroundux/templates"
-        local exe_file=""
-        local lib_file=""
-        local mod_file=""
-        local project_slug=""
-
-        project_slug="${PROJECT_NAME// /-}"
-        project_slug="${project_slug,,}"
-
-        _get_template_filenames exe_file lib_file mod_file
-
-        if (( ${FLAG_EXE:-0} )); then
-            _copy_template_file \
-                "${template_dir}/exe-template.sh" \
-                "${PROJECT_FOLDER}/target-root/usr/local/libexec/${exe_file}" \
-                || return 1
-            _specialize_generated_file "${PROJECT_FOLDER}/target-root/usr/local/libexec/${exe_file}" || return 1
-        fi
-
-        if (( ${FLAG_LIB:-0} )); then
-            _copy_template_file \
-                "${template_dir}/lib-template.sh" \
-                "${PROJECT_FOLDER}/target-root/usr/local/lib/${lib_file}" \
-                || return 1
-            _specialize_generated_file "${PROJECT_FOLDER}/target-root/usr/local/lib/${lib_file}" || return 1
-        fi
-
-        if (( ${FLAG_MOD:-0} )); then
-            _copy_template_file \
-                "${template_dir}/mod-template.sh" \
-                "${PROJECT_FOLDER}/target-root/usr/local/libexec/solidgroundux/${project_slug}/${mod_file}" \
-                || return 1
-            _specialize_generated_file "${PROJECT_FOLDER}/target-root/usr/local/libexec/solidgroundux/${project_slug}/${mod_file}" || return 1
-        fi
-
-        return 0
-    }
-
-
-    # fn: _get_project_directories - Resolve project directory layout
-        # . Purpose
-        #   Build the directory list required for the selected project components.
-        #
-        # . Behavior
-        #   - Adds shared target-root folders when any component is selected
-        #   - Adds executable folders when FLAG_EXE=1
-        #   - Adds library folders when FLAG_LIB=1
-        #   - Adds module folders when FLAG_MOD=1
-        #
-        # . Arguments
-        #   $1  Name reference to output array
-        #
-        # Inputs (globals):
-        #   PROJECT_NAME
-        #   FLAG_EXE
-        #   FLAG_LIB
-        #   FLAG_MOD
-        #
-        # . Returns
-        #   0 on success
-        #
-        # . Usage
-        #   _get_project_directories "/tmp"
+    # fn: _get_project_directories - Resolve the standard project directory layout
     _get_project_directories() {
         local -n out_ref=$1
-        local project_slug=""
 
-        project_slug="${PROJECT_NAME// /-}"
-        project_slug="${project_slug,,}"
-
-        out_ref=()
-
-        if (( ${FLAG_EXE:-0} )) || (( ${FLAG_LIB:-0} )) || (( ${FLAG_MOD:-0} )); then
-            out_ref+=(
-                "target-root"
-                "target-root/etc/update-motd.d"
-                "target-root/usr/local/lib/solidgroundux/globals"
-                "target-root/usr/local/lib/solidgroundux/templates"
-                "target-root/usr/local/share/doc/$PROJECT_NAME"
-                "target-root/var/state"
-            )
-        fi
-
-        if (( ${FLAG_EXE:-0} )); then
-            out_ref+=(
-                "target-root/etc/systemd/system"
-                "target-root/usr/local/bin"
-                "target-root/usr/local/sbin"
-                "target-root/usr/local/libexec"
-                "target-root/var/lib/solidgroundux/releases"
-            )
-        fi
-
-        if (( ${FLAG_LIB:-0} )); then
-            out_ref+=(
-                "target-root/usr/local/lib"
-            )
-        fi
-
-        if (( ${FLAG_MOD:-0} )); then
-            out_ref+=(
-                "target-root/usr/local/libexec"
-                "target-root/usr/local/libexec/solidgroundux/${project_slug}"
-            )
-        fi
+        out_ref=(
+            "target-root"
+            "target-root/assets"
+            "target-root/etc/systemd/system"
+            "target-root/etc/update-motd.d"
+            "target-root/usr/local/assets"
+            "target-root/usr/local/bin"
+            "target-root/usr/local/sbin"
+            "target-root/usr/local/lib"
+            "target-root/usr/local/lib/solidgroundux/globals"
+            "target-root/usr/local/lib/solidgroundux/templates"
+            "target-root/usr/local/libexec"
+            "target-root/usr/local/share/doc/$PROJECT_NAME"
+            "target-root/var/lib/solidgroundux/releases"
+            "target-root/var/state"
+        )
     }
 
  # -- Manifest helpers
@@ -891,10 +866,9 @@ set -uo pipefail
             sgnd_print_sectionheader "Project name and location" --maxwidth "$mxw"
             ask --label "Project name " --var PROJECT_NAME --default "$default_projectname" --labelwidth "$lw"
             PRODUCT_NAME="${PRODUCT_NAME:-$PROJECT_NAME}"
+            PROJECT_GROUP="${PROJECT_GROUP:-}"
+            PROJECT_SUBGROUP="${PROJECT_SUBGROUP:-}"
             ask --label "Product name " --var PRODUCT_NAME --default "$PRODUCT_NAME" --labelwidth "$lw"
-            _resolve_template_metadata_defaults
-            SCRIPT_TITLE="${SCRIPT_TITLE:-$PRODUCT_NAME}"
-            ask --label "Script title " --var SCRIPT_TITLE --default "$SCRIPT_TITLE" --labelwidth "$lw"
             ask --label "Group " --var PROJECT_GROUP --default "$PROJECT_GROUP" --labelwidth "$lw"
             ask --label "Subgroup " --var PROJECT_SUBGROUP --default "$PROJECT_SUBGROUP" --labelwidth "$lw"
 
@@ -904,50 +878,18 @@ set -uo pipefail
             local resp
             local default
 
-            # Get Project folder
-            if [[ -n "${PROJECT_FOLDER:-}" ]]; then
-                default_folder="$PROJECT_FOLDER"
-            else
-                default_folder="$SGND_USER_HOME/dev/${slug}"
+            PROJECT_ROOT="${PROJECT_ROOT:-$SGND_USER_HOME/dev}"
+            ask --label "Project root " --var PROJECT_ROOT --default "$PROJECT_ROOT" --labelwidth "$lw"
+            if [[ "$PROJECT_ROOT" != /* ]]; then
+                PROJECT_ROOT="$(pwd)/$PROJECT_ROOT"
             fi
+
+            # Project folder defaults to the stateful project root plus normalized project name.
+            default_folder="${PROJECT_ROOT%/}/${slug}"
             ask --label "Project folder " --var PROJECT_FOLDER --default "$default_folder" --labelwidth "$lw"
             if [[ "$PROJECT_FOLDER" != /* ]]; then
                PROJECT_FOLDER="$(pwd)/$PROJECT_FOLDER"
             fi
-
-            sgnd_print
-            sgnd_print_sectionheader "Script templates to include" --maxwidth "$mxw"
-            lw=35
-            # Include exe script
-            if [[ "${FLAG_EXE:-0}" -eq 1 ]]; then
-                default="Y"
-            else
-                default="N"
-            fi
-            ask --label "Include executable script (Y/N)" --var resp --default "$default" --choices "Y,Yes,N,No" --labelwidth "$lw" 
-            resp="${resp^^}"
-            [[ "$resp" == "Y" || "$resp" == "YES" ]] && FLAG_EXE=1 || FLAG_EXE=0
-
-            # Include library script
-            if [[ "${FLAG_LIB:-0}" -eq 1 ]]; then
-                default="Y"
-            else
-                default="N"
-            fi
-            ask --label "Include library script (Y/N)" --var resp --default "$default" --choices "Y,Yes,N,No" --labelwidth "$lw"
-            resp="${resp^^}"
-            [[ "$resp" == "Y" || "$resp" == "YES" ]] && FLAG_LIB=1 || FLAG_LIB=0
-            
-            # Include console module
-            if [[ "${FLAG_MOD:-0}" -eq 1 ]]; then
-                default="Y"
-            else
-                default="N"
-            fi
-            
-            ask --label "Include console module (Y/N)" --var resp --default "$default" --choices "Y,Yes,N,No" --labelwidth "$lw"
-            resp="${resp^^}"
-            [[ "$resp" == "Y" || "$resp" == "YES" ]] && FLAG_MOD=1 || FLAG_MOD=0
 
             default="Y"
             (( FLAG_CREATE_MOTD )) || default="N"
@@ -955,14 +897,12 @@ set -uo pipefail
             resp="${resp^^}"
             [[ "$resp" == "Y" || "$resp" == "YES" ]] && FLAG_CREATE_MOTD=1 || FLAG_CREATE_MOTD=0
 
-            saydebug "${slug}"
+            # Select the installed convenience templates as part of the interactive
+            # workspace settings, so the selection is visible before confirmation.
+            _resolve_convenience_template_selection || return 1
+            _resolve_starter_scripts || return 1
 
-            if (( ! FLAG_EXE )) && (( ! FLAG_LIB )) && (( ! FLAG_MOD )); then
-                saywarning "Nothing selected; defaulting to executable and library."
-                FLAG_EXE=1
-                FLAG_LIB=1
-                FLAG_MOD=0
-            fi
+            saydebug "${slug}"
 
             sgnd_print
             sgnd_print_sectionheader "Version control" --maxwidth "$mxw"
@@ -992,24 +932,19 @@ set -uo pipefail
             sgnd_print 
             sgnd_print_sectionheader "Summary" --maxwidth "$mxw"
 
-            local exe_text="no"
-            local lib_text="no"
-            local mod_text="no"
-
-            (( ${FLAG_EXE:-0} )) && exe_text="yes"
-            (( ${FLAG_LIB:-0} )) && lib_text="yes"
-            (( ${FLAG_MOD:-0} )) && mod_text="yes"
-
             sgnd_print_labeledvalue --label "Project name"   --value "$PROJECT_NAME"
             sgnd_print_labeledvalue --label "Product name"   --value "$PRODUCT_NAME"
-            sgnd_print_labeledvalue --label "Script title"   --value "$SCRIPT_TITLE"
             sgnd_print_labeledvalue --label "Group"          --value "$PROJECT_GROUP"
             sgnd_print_labeledvalue --label "Subgroup"       --value "${PROJECT_SUBGROUP:--}"
+            sgnd_print_labeledvalue --label "Project root"   --value "$PROJECT_ROOT"
             sgnd_print_labeledvalue --label "Project folder" --value "$PROJECT_FOLDER"
-            sgnd_print_labeledvalue --label "Executable"     --value "$exe_text"
-            sgnd_print_labeledvalue --label "Library"        --value "$lib_text"
-            sgnd_print_labeledvalue --label "Console module" --value "$mod_text"
             sgnd_print_labeledvalue --label "Project MOTD"    --value "$([[ ${FLAG_CREATE_MOTD:-1} -eq 1 ]] && printf yes || printf no)"
+            local template_text="none"
+            if (( ${#WORKSPACE_SELECTED_TEMPLATES[@]} > 0 )); then
+                template_text="$(IFS=', '; printf '%s' "${WORKSPACE_SELECTED_TEMPLATES[*]}")"
+            fi
+            sgnd_print_labeledvalue --label "Templates"       --value "$template_text"
+            sgnd_print_labeledvalue --label "Starter scripts" --value "$([[ ${FLAG_CREATE_STARTERS:-0} -eq 1 ]] && printf yes || printf no)"
             sgnd_print_labeledvalue --label "Initialize Git"  --value "$([[ ${FLAG_GIT_INIT:-0} -eq 1 ]] && printf yes || printf no)"
             sgnd_print_labeledvalue --label "Create GitHub"   --value "$([[ ${FLAG_GITHUB_INIT:-0} -eq 1 ]] && printf yes || printf no)"
             if (( ${FLAG_GITHUB_INIT:-0} )); then
@@ -1029,7 +964,7 @@ set -uo pipefail
             case $? in
                 0|1) break ;;
                 2) saycancel "Aborting as per user request."; return 1 ;;
-                3) PROJECT_NAME=""; PRODUCT_NAME=""; SCRIPT_TITLE=""; PROJECT_GROUP=""; PROJECT_SUBGROUP=""; PROJECT_FOLDER=""; continue ;;
+                3) PROJECT_NAME=""; PROJECT_FOLDER=""; continue ;;
                 *) sayfail "Aborting (unexpected response)."; return 1 ;;
             esac
         done
@@ -1041,16 +976,13 @@ set -uo pipefail
         #
         # . Behavior
         #   - Creates the project root folder when needed.
-        #   - Builds the directory structure based on selected project components.
-        #   - Copies only the applicable template file(s).
+        #   - Builds the standard repository-shaped workspace directory structure.
+        #   - Copies only the convenience templates selected for the workspace.
         #   - Honors dry-run mode by reporting intended actions without modifying the filesystem.
         #
         # Inputs (globals):
         #   PROJECT_FOLDER
         #   PROJECT_NAME
-        #   FLAG_EXE
-        #   FLAG_LIB
-        #   FLAG_MOD
         #   SGND_COMMON_LIB
         #   FLAG_DRYRUN
         #
@@ -1093,7 +1025,92 @@ set -uo pipefail
         done
 
         _copy_workspace_templates || return 1
-        _instantiate_project_templates || return 1
+        _create_starter_scripts || return 1
+    }
+
+    # fn: _workspace_default_logo - Resolve the default logo copied into new workspaces
+    _workspace_default_logo() {
+        local candidate=""
+        local -a candidates=(
+            "${SGND_FRAMEWORK_ROOT%/}/usr/local/assets/SolidGround UX.png"
+            "/usr/local/assets/SolidGround UX.png"
+        )
+
+        for candidate in "${candidates[@]}"; do
+            [[ -f "$candidate" ]] && { printf '%s\n' "$candidate"; return 0; }
+        done
+        return 1
+    }
+
+    # fn: _create_workspace_project_files - Create README, CHANGELOG, and project logo
+    _create_workspace_project_files() {
+        local readme_file="${PROJECT_FOLDER}/README.md"
+        local changelog_file="${PROJECT_FOLDER}/CHANGELOG.md"
+        local asset_dir="${PROJECT_FOLDER}/target-root/usr/local/assets"
+        local slug="" logo_source="" logo_name="" logo_target=""
+        local existed_readme=0 existed_changelog=0 existed_logo=0
+
+        slug="$(_project_slug)"
+        logo_name="${slug}.png"
+        logo_target="${asset_dir}/${logo_name}"
+
+        [[ -e "$readme_file" ]] && existed_readme=1
+        [[ -e "$changelog_file" ]] && existed_changelog=1
+        [[ -e "$logo_target" ]] && existed_logo=1
+
+        if (( ${FLAG_DRYRUN:-0} )); then
+            sayinfo "Would have created $readme_file"
+            sayinfo "Would have created $changelog_file"
+            if logo_source="$(_workspace_default_logo 2>/dev/null)"; then
+                sayinfo "Would have copied project logo $logo_source -> $logo_target"
+            else
+                saywarning "Default workspace logo not found; README logo would be omitted."
+            fi
+            return 0
+        fi
+
+        mkdir -p -- "$asset_dir" || return 1
+
+        if logo_source="$(_workspace_default_logo 2>/dev/null)"; then
+            cp -- "$logo_source" "$logo_target" || return 1
+            (( existed_logo )) || _manifest_record_file "$logo_target"
+        else
+            logo_name=""
+            saywarning "Default workspace logo not found; README created without a logo."
+        fi
+
+        {
+            printf '# %s\n\n' "${PRODUCT_NAME:-$PROJECT_NAME}"
+            printf '<table>\n<tr>\n'
+            if [[ -n "$logo_name" ]]; then
+                printf '<td width="170" align="center" valign="middle">\n'
+                printf '  <img width="96" height="96" alt="%s logo" src="target-root/usr/local/assets/%s" />\n' "${PRODUCT_NAME:-$PROJECT_NAME}" "$logo_name"
+                printf '</td>\n'
+            fi
+            printf '<td valign="middle">\n'
+            printf '<em>Help me...</em><br>\n\n'
+            printf '## Treat Bash applications like software projects.\n\n'
+            printf '<em>...but get out of my way.</em>\n'
+            printf '</td>\n</tr>\n</table>\n\n'
+            printf '<table>\n<tr>\n'
+            printf '<td width="33%%" align="center">\n  <a href="target-root/usr/local/share/doc/%s/"><strong>Documentation</strong></a><br>\n  Project reference and guides\n</td>\n' "$PROJECT_NAME"
+            printf '<td width="33%%" align="center">\n  <a href="CHANGELOG.md"><strong>Changelog</strong></a><br>\n  Releases and development history\n</td>\n'
+            printf '<td width="33%%" align="center">\n  <strong>Project</strong><br>\n  %s\n</td>\n' "${PROJECT_NAME}"
+            printf '</tr>\n</table>\n'
+        } > "$readme_file" || return 1
+
+        {
+            printf '# Changelog\n\n'
+            printf 'All notable changes to %s are documented in this file.\n\n' "${PRODUCT_NAME:-$PROJECT_NAME}"
+            printf '## Unreleased\n\n'
+            printf '### Added\n\n'
+            printf '### Changed\n\n'
+            printf '### Deleted\n'
+        } > "$changelog_file" || return 1
+
+        (( existed_readme )) || _manifest_record_file "$readme_file"
+        (( existed_changelog )) || _manifest_record_file "$changelog_file"
+        return 0
     }
 
     # _create_workspace_file
@@ -1632,7 +1649,7 @@ set -uo pipefail
     main() {
         # -- Startup
             _framework_locator || exit $?
-            sgnd_exe_start -- "$@"
+            sgnd_exe_start --autostate -- "$@"
 
         # -- Main script logic
           # -- Uncreate mode
@@ -1685,6 +1702,7 @@ set -uo pipefail
             _manifest_init || exit $?
             _create_repository || exit $?
             _create_workspace_file || exit $?
+            _create_workspace_project_files || exit $?
             _create_gitignore_file || exit $?
             _create_releaseignore_file || exit $?
             _create_project_definitions || exit $?
@@ -1704,6 +1722,14 @@ set -uo pipefail
             if (( ! ${FLAG_AUTO:-0} )); then
                 sgnd_print
                 sgnd_print_sectionheader "Workspace creation complete" --padend 60
+                sgnd_print
+                if command -v tree >/dev/null 2>&1; then
+                    tree "$PROJECT_FOLDER"
+                else
+                    find "$PROJECT_FOLDER" -print
+                fi
+                sgnd_print
+                sgnd_print_sectionheader "" --padend 60
                 ask_dlg_autocontinue \
                     --seconds 10 \
                     --message "Press Enter to end." \

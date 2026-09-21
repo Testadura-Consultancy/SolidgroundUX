@@ -4,7 +4,7 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2626021
+#   Build       : 2626414
 #   Checksum    : 7ed0ee2c1b287a207a6bf3fc3e3bba3257eb8105468610f9fe05e30feaf6b01c
 #   Source      : normalize-canon.sh
 #   Type        : script
