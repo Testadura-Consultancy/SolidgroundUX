@@ -2284,33 +2284,141 @@ EOF
         _release_ok "Rollback complete: $target_base"
     }
 
-    # fn: _remove_installation - Remove the active SolidGroundUX installation while retaining release packages
+    # fn: _remove_by_manifest - Remove files listed by a selected release manifest
         # . Purpose
-        #   Remove the active SolidGroundUX installation while retaining release packages.
+        #   Remove exactly the files/symlinks owned by a selected release manifest.
+        #   Directories are removed only when empty by _remove_paths_from_stream.
         # . Returns
-        #   0 on success; non-zero when removal or release movement fails.
+        #   0 on success; non-zero when the manifest is invalid or removal fails.
         # . Usage
-        #   _remove_installation
-    _remove_installation() {
-        local current=""
-        local manifest=""
+        #   _remove_by_manifest "$manifest"
+    _remove_by_manifest() {
+        local manifest="${1:?missing manifest}"
 
-        current="$(_current_release 2>/dev/null || true)"
-        [[ -n "$current" ]] || {
-            _release_ok "$SGND_RELEASE_PRODUCT is not installed"
-            return 0
-        }
-
-        manifest="${VAL_ARCHIVE_ROOT%/}/${current}/${current}.manifest"
         [[ -f "$manifest" ]] || {
-            _release_fail "Current release manifest is missing: $manifest"
+            _release_fail "Removal manifest not found: $manifest"
             return 1
         }
+        _validate_manifest_paths "$manifest" || return 1
 
-        _release_info "Removing installed release: $current"
+        _release_info "Removing files listed by: $(basename -- "$manifest")"
         _manifest_paths "$manifest" | _remove_paths_from_stream || return 1
-        _move_all_archives_to_releases || return 1
-        _release_ok "$SGND_RELEASE_PRODUCT removed; archived releases returned to the releases directory"
+        _release_ok "Manifest removal complete: $(basename -- "$manifest")"
+    }
+
+    # fn: _file_belongs_to_product - Test a text file for positive SolidGround product ownership
+        # . Purpose
+        #   Recognize the canonical title header '# <Product> - ...' and an explicit
+        #   '# Product : <Product>' metadata line. Binary/non-readable files never match.
+        # . Returns
+        #   0 when the file positively identifies the requested product; 1 otherwise.
+        # . Usage
+        #   _file_belongs_to_product "$path" "$SGND_RELEASE_PRODUCT"
+    _file_belongs_to_product() {
+        local file="${1:?missing file}"
+        local product="${2:?missing product}"
+        local line=""
+        local count=0
+
+        [[ -f "$file" && -r "$file" ]] || return 1
+        LC_ALL=C grep -Iq . "$file" 2>/dev/null || return 1
+
+        while IFS= read -r line && (( count < 80 )); do
+            count=$(( count + 1 ))
+            if [[ "$line" == "# $product -"* || "$line" == "# $product —"* ]]; then
+                return 0
+            fi
+            if [[ "$line" =~ ^#[[:space:]]*Product[[:space:]]*:[[:space:]]*(.*)$ ]] && [[ "${BASH_REMATCH[1]}" == "$product" ]]; then
+                return 0
+            fi
+        done < "$file"
+        return 1
+    }
+
+    # fn: _scan_product_owned_paths - Emit files beneath managed roots that positively identify a product
+        # . Purpose
+        #   Recover product ownership without a release manifest by inspecting file headers.
+        #   Only files with positive product metadata are emitted; symlinks are not followed.
+        # . Returns
+        #   0 after scanning the available managed roots.
+        # . Usage
+        #   _scan_product_owned_paths "$SGND_RELEASE_PRODUCT"
+    _scan_product_owned_paths() {
+        local product="${1:?missing product}"
+        local root="${VAL_TARGET_ROOT%/}"
+        local scan_root=""
+        local file=""
+        local rel=""
+        local -a roots=("etc" "usr/local" "var/lib/solidgroundux")
+
+        [[ -n "$root" ]] || root="/"
+        for rel in "${roots[@]}"; do
+            scan_root="$root/$rel"
+            [[ -d "$scan_root" ]] || continue
+            while IFS= read -r -d '' file; do
+                _file_belongs_to_product "$file" "$product" || continue
+                if [[ "$root" == "/" ]]; then
+                    printf '%s\n' "${file#/}"
+                else
+                    printf '%s\n' "${file#${root}/}"
+                fi
+            done < <(find "$scan_root" -xdev -type f -print0 2>/dev/null)
+        done
+    }
+
+    # fn: _remove_by_product_scan - Remove files positively identified as belonging to a product
+        # . Purpose
+        #   Provide a recovery cleanup independent of release manifests by scanning canonical
+        #   managed roots for SolidGround metadata headers belonging to the selected product.
+        # . Returns
+        #   0 on success; non-zero when removal fails.
+        # . Usage
+        #   _remove_by_product_scan "$SGND_RELEASE_PRODUCT"
+    _remove_by_product_scan() {
+        local product="${1:?missing product}"
+        local matches=""
+        local count=0
+
+        matches="$(mktemp)" || return 1
+        _scan_product_owned_paths "$product" > "$matches"
+        count="$(wc -l < "$matches" | tr -d '[:space:]')"
+
+        if (( count == 0 )); then
+            rm -f -- "$matches"
+            _release_ok "No header-owned files found for $product"
+            return 0
+        fi
+
+        _release_info "Found $count header-owned file(s) for $product"
+        _remove_paths_from_stream < "$matches"
+        local rc=$?
+        rm -f -- "$matches"
+        (( rc == 0 )) && _release_ok "Product ownership cleanup complete: $product"
+        return "$rc"
+    }
+
+    # fn: _remove_bundle_products_by_scan - Remove header-owned files for every product in a bundle
+        # . Purpose
+        #   Apply ownership cleanup to each product recorded in RELEASE-PRODUCTS.
+        # . Returns
+        #   0 when every product scan succeeds; non-zero on the first failure.
+        # . Usage
+        #   _remove_bundle_products_by_scan
+    _remove_bundle_products_by_scan() {
+        local product=""
+        local found=0
+
+        while IFS= read -r product; do
+            [[ -n "$product" ]] || continue
+            found=1
+            _remove_by_product_scan "$product" || return 1
+        done < <(_bundle_product_names)
+
+        (( found )) || {
+            _release_fail "Bundle product metadata is unavailable; no products were scanned"
+            return 1
+        }
+        return 0
     }
 
 # --- GitHub/source acquisition ------------------------------------------------------
@@ -2673,7 +2781,192 @@ EOF
     }
 
 
-    # fn: _select_archived_release - Select an archived release or the remove operation from a submenu
+    # fn: _bundle_products_file - Locate product metadata for the selected bundle
+        # . Purpose
+        #   Locate RELEASE-PRODUCTS metadata retained beside the installed or pending bundle.
+        # . Returns
+        #   0 and the metadata path when found; 1 otherwise.
+        # . Usage
+        #   products_file="$(_bundle_products_file)"
+    _bundle_products_file() {
+        local base=""
+        local archive=""
+        local products=""
+
+        base="$(_current_release 2>/dev/null || true)"
+        if [[ -n "$base" ]]; then
+            products="${VAL_ARCHIVE_ROOT%/}/${base}/${base}.products"
+            [[ -r "$products" ]] && { printf '%s\n' "$products"; return 0; }
+        fi
+
+        archive="$(_newest_pending_archive 2>/dev/null || true)"
+        if [[ -n "$archive" ]]; then
+            base="$(_release_base_from_archive "$archive" 2>/dev/null || true)"
+            products="$(dirname -- "$archive")/${base}.products"
+            [[ -r "$products" ]] && { printf '%s\n' "$products"; return 0; }
+        fi
+        return 1
+    }
+
+    # fn: _bundle_product_names - Emit product names recorded in bundle metadata
+        # . Purpose
+        #   Read the first field of RELEASE-PRODUCTS records without hard-coding products.
+        # . Returns
+        #   0 when bundle metadata is available; 1 otherwise.
+        # . Usage
+        #   mapfile -t products < <(_bundle_product_names)
+    _bundle_product_names() {
+        local products_file=""
+        local line=""
+        local product=""
+
+        products_file="$(_bundle_products_file)" || return 1
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            [[ -n "${line//[[:space:]]/}" ]] || continue
+            [[ "$line" =~ ^[[:space:]]*# ]] && continue
+            IFS='|' read -r product _ <<< "$line"
+            [[ -n "$product" ]] && printf '%s\n' "$product"
+        done < "$products_file"
+    }
+
+    # fn: _select_bundle_removal_scope - Select one constituent product or the complete bundle
+        # . Purpose
+        #   Present products from RELEASE-PRODUCTS dynamically so future bundle members require
+        #   no release-manager code changes. ALL represents the complete bundle/all products.
+        # . Returns
+        #   0 with product name or ALL on stdout; 1 when returning/cancelling.
+        # . Usage
+        #   scope="$(_select_bundle_removal_scope "Removal scope")"
+    _select_bundle_removal_scope() {
+        local title="${1:-Removal scope}"
+        local choice=""
+        local i=0
+        local -a products=()
+
+        mapfile -t products < <(_bundle_product_names)
+        (( ${#products[@]} > 0 )) || {
+            _release_fail "Bundle product metadata is unavailable; cannot determine removal scope"
+            return 1
+        }
+
+        printf '\n%s%s%s\n' "$_RL_BRIGHT_WHITE" "$title" "$_RL_RESET" > /dev/tty
+        _release_line "─" > /dev/tty
+        printf '\n' > /dev/tty
+        for i in "${!products[@]}"; do
+            printf '  %s%d)%s %s%s%s\n' "$_RL_UI_PROMPT" "$(( i + 1 ))" "$_RL_RESET" "$_RL_DARK_WHITE" "${products[$i]}" "$_RL_RESET" > /dev/tty
+        done
+        printf '  %s%d)%s %sAll products in bundle%s\n' "$_RL_UI_PROMPT" "$(( ${#products[@]} + 1 ))" "$_RL_RESET" "$_RL_MSG_FAIL" "$_RL_RESET" > /dev/tty
+        printf '  %sQ)%s %sReturn%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET" > /dev/tty
+        printf '\n' > /dev/tty
+        _release_line "─" > /dev/tty
+        printf '%sSelect product: %s' "$_RL_UI_PROMPT" "$_RL_UI_INPUT" > /dev/tty
+        read -r choice < /dev/tty
+        printf '%s' "$_RL_RESET" > /dev/tty
+
+        case "${choice^^}" in Q|"") return 1 ;; esac
+        [[ "$choice" =~ ^[0-9]+$ ]] || return 1
+        if (( choice == ${#products[@]} + 1 )); then
+            printf '%s\n' 'ALL'
+            return 0
+        fi
+        (( choice >= 1 && choice <= ${#products[@]} )) || return 1
+        printf '%s\n' "${products[$(( choice - 1 ))]}"
+    }
+
+    # fn: _list_product_manifests - List archived manifests for a product and release variant
+        # . Purpose
+        #   Find manifests by exact product artifact identity without prefix collisions.
+        # . Returns
+        #   0 after emitting matching manifest paths in version order.
+        # . Usage
+        #   _list_product_manifests "$product" individual
+    _list_product_manifests() {
+        local product="${1:?missing product}"
+        local variant="${2:-individual}"
+        local artifact_product=""
+        local dir=""
+        local base=""
+        local remainder=""
+        local manifest=""
+        local -a rows=()
+
+        artifact_product="$(_release_product_artifact_name "$product")"
+        [[ -d "$VAL_ARCHIVE_ROOT" ]] || return 0
+        while IFS= read -r dir; do
+            base="$(basename -- "$dir")"
+            if [[ "$variant" == "bundle" ]]; then
+                [[ "$base" == "${artifact_product}-bundled-"* ]] || continue
+                remainder="${base#${artifact_product}-bundled-}"
+            else
+                [[ "$base" == "${artifact_product}-"* && "$base" != "${artifact_product}-bundled-"* ]] || continue
+                remainder="${base#${artifact_product}-}"
+            fi
+            # Release identities begin with the numeric version. This rejects longer product
+            # names that merely share the requested product's filename prefix.
+            [[ "$remainder" =~ ^[0-9] ]] || continue
+            manifest="${dir%/}/${base}.manifest"
+            [[ -f "$manifest" ]] && rows+=("$base|$manifest")
+        done < <(find "$VAL_ARCHIVE_ROOT" -mindepth 1 -maxdepth 1 -type d -name "${artifact_product}-*" -print 2>/dev/null)
+
+        (( ${#rows[@]} > 0 )) || return 0
+        printf '%s\n' "${rows[@]}" | LC_ALL=C sort -t'|' -k1,1V | cut -d'|' -f2-
+    }
+
+    # fn: _select_removal_manifest_for - Select an archived manifest for a product/variant
+        # . Purpose
+        #   Present matching archived manifests from new to old.
+        # . Returns
+        #   0 with the selected manifest path on stdout; 1 when returning/cancelling.
+        # . Usage
+        #   manifest="$(_select_removal_manifest_for "$product" individual)"
+    _select_removal_manifest_for() {
+        local product="${1:?missing product}"
+        local variant="${2:-individual}"
+        local manifest=""
+        local choice=""
+        local i=0
+        local -a manifests=()
+
+        mapfile -t manifests < <(_list_product_manifests "$product" "$variant")
+        (( ${#manifests[@]} > 0 )) || {
+            _release_fail "No archived ${variant} manifests found for $product"
+            return 1
+        }
+
+        printf '\n%sRemoval manifests: %s%s\n' "$_RL_BRIGHT_WHITE" "$product" "$_RL_RESET" > /dev/tty
+        _release_line "─" > /dev/tty
+        printf "${_RL_ITALIC}  Manifests listed from new to old. Only the selected manifest is used.\n${_RL_RESET}" > /dev/tty
+        printf '\n' > /dev/tty
+        for (( i=${#manifests[@]}-1; i>=0; i-- )); do
+            manifest="${manifests[$i]}"
+            printf '  %s%d)%s %s%s%s\n' "$_RL_UI_PROMPT" "$(( ${#manifests[@]} - i ))" "$_RL_RESET" "$_RL_DARK_WHITE" "$(basename -- "$manifest")" "$_RL_RESET" > /dev/tty
+        done
+        printf '  %sQ)%s %sReturn%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET" > /dev/tty
+        printf '\n' > /dev/tty
+        _release_line "─" > /dev/tty
+        printf '%sSelect manifest: %s' "$_RL_UI_PROMPT" "$_RL_UI_INPUT" > /dev/tty
+        read -r choice < /dev/tty
+        printf '%s' "$_RL_RESET" > /dev/tty
+
+        case "${choice^^}" in Q|"") return 1 ;; esac
+        [[ "$choice" =~ ^[0-9]+$ ]] || return 1
+        (( choice >= 1 && choice <= ${#manifests[@]} )) || return 1
+        i=$(( ${#manifests[@]} - choice ))
+        printf '%s\n' "${manifests[$i]}"
+    }
+
+    # fn: _select_removal_manifest - Select an archived manifest for the active package
+        # . Purpose
+        #   Preserve the individual-package path while delegating to the generic selector.
+        # . Returns
+        #   0 with the selected manifest path on stdout; 1 when returning/cancelling.
+        # . Usage
+        #   manifest="$(_select_removal_manifest)"
+    _select_removal_manifest() {
+        _select_removal_manifest_for "$SGND_RELEASE_PRODUCT" "${VAL_VARIANT:-${SGND_RELEASE_VARIANT:-individual}}"
+    }
+
+    # fn: _select_archived_release - Select an archived release from a submenu
         # . Purpose
         #   Select an archived release or the remove operation from a submenu.
         # . Returns
@@ -2691,8 +2984,6 @@ EOF
         mapfile -t releases < <(_list_archived_releases)
         (( ${#releases[@]} > 0 )) || { _release_fail "No archived releases found"; return 1; }
 
-        local remove_choice=$(( ${#releases[@]} + 1 ))
-
         printf '\n%sArchived releases%s\n' "$_RL_BRIGHT_WHITE" "$_RL_RESET" > /dev/tty
         
         _release_line "─" > /dev/tty
@@ -2707,7 +2998,6 @@ EOF
                 printf '  %s%d)%s %s%s%s\n' "$_RL_UI_PROMPT" "$(( ${#releases[@]} - i ))" "$_RL_RESET" "$_RL_DARK_WHITE" "$base" "$_RL_RESET" > /dev/tty
             fi
         done
-        printf '  %s%d)%s %sRemove %s%s\n' "$_RL_MSG_FAIL" "$remove_choice" "$_RL_RESET" "$_RL_MSG_FAIL" "$SGND_RELEASE_PRODUCT" "$_RL_RESET" > /dev/tty
         printf '  %sQ)%s %sReturn%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET" > /dev/tty
         printf '\n' > /dev/tty
         _release_line "─" > /dev/tty
@@ -2720,11 +3010,6 @@ EOF
         esac
 
         [[ "$choice" =~ ^[0-9]+$ ]] || return 1
-        if (( choice == remove_choice )); then
-            printf '%s\n' 'REMOVE'
-            return 0
-        fi
-
         (( choice >= 1 && choice <= ${#releases[@]} )) || return 1
         i=$(( ${#releases[@]} - choice ))
         printf '%s\n' "${releases[$i]}"
@@ -2778,7 +3063,9 @@ EOF
             printf '    %s2)%s %sDownload latest build%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
             printf '    %s3)%s %sUpdate to latest build%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
             printf '    %s4)%s %sInstall newest local release%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
-            printf '    %s5)%s %sInstall archived version / remove%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
+            printf '    %s5)%s %sInstall archived version%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
+            printf '    %s6)%s %sRemove using manifest%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
+            printf '    %s7)%s %sRemove product by ownership scan%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
 
             printf '    %sP)%s %sSelect package%s\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
             printf '    %sQ)%s %sQuit%s\n\n' "$_RL_UI_PROMPT" "$_RL_RESET" "$_RL_UI_TEXT" "$_RL_RESET"
@@ -2795,10 +3082,35 @@ EOF
                 4) ACTION=install; _action_install; _pause ;;
                 5)
                     target="$(_select_archived_release 2>/dev/tty)" || continue
-                    if [[ "$target" == 'REMOVE' ]]; then
-                        _confirm "Remove $SGND_RELEASE_PRODUCT?" && _remove_installation
+                    _confirm "Install $target?" && _rollback_to_archived_release "$target"
+                    _pause
+                    ;;
+                6)
+                    local removal_scope=""
+                    if [[ "${VAL_VARIANT:-${SGND_RELEASE_VARIANT:-individual}}" == "bundle" ]]; then
+                        removal_scope="$(_select_bundle_removal_scope "Remove using manifest" 2>/dev/tty)" || continue
+                        if [[ "$removal_scope" == "ALL" ]]; then
+                            target="$(_select_removal_manifest_for "$SGND_RELEASE_PRODUCT" bundle 2>/dev/tty)" || continue
+                        else
+                            target="$(_select_removal_manifest_for "$removal_scope" individual 2>/dev/tty)" || continue
+                        fi
                     else
-                        _confirm "Install $target?" && _rollback_to_archived_release "$target"
+                        target="$(_select_removal_manifest 2>/dev/tty)" || continue
+                    fi
+                    _confirm "Remove files listed by $(basename -- "$target")?" && _remove_by_manifest "$target"
+                    _pause
+                    ;;
+                7)
+                    local removal_scope=""
+                    if [[ "${VAL_VARIANT:-${SGND_RELEASE_VARIANT:-individual}}" == "bundle" ]]; then
+                        removal_scope="$(_select_bundle_removal_scope "Remove product by ownership scan" 2>/dev/tty)" || continue
+                        if [[ "$removal_scope" == "ALL" ]]; then
+                            _confirm "Scan managed trees and remove header-owned files for all products in this bundle?" && _remove_bundle_products_by_scan
+                        else
+                            _confirm "Scan managed trees and remove files whose headers identify $removal_scope?" && _remove_by_product_scan "$removal_scope"
+                        fi
+                    else
+                        _confirm "Scan managed trees and remove files whose headers identify $SGND_RELEASE_PRODUCT?" && _remove_by_product_scan "$SGND_RELEASE_PRODUCT"
                     fi
                     _pause
                     ;;
@@ -3024,8 +3336,19 @@ EOF
         # . Usage
         #   _action_remove
     _action_remove() {
-        _confirm "Remove $SGND_RELEASE_PRODUCT from $VAL_TARGET_ROOT?" || return 2
-        _remove_installation
+        local current=""
+        local manifest=""
+
+        current="$(_current_release 2>/dev/null || true)"
+        [[ -n "$current" ]] || {
+            _release_ok "$SGND_RELEASE_PRODUCT is not installed"
+            return 0
+        }
+        manifest="${VAL_ARCHIVE_ROOT%/}/${current}/${current}.manifest"
+        _confirm "Remove $SGND_RELEASE_PRODUCT using $(basename -- "$manifest")?" || return 2
+        _remove_by_manifest "$manifest" || return 1
+        _move_all_archives_to_releases || return 1
+        _release_ok "$SGND_RELEASE_PRODUCT removed; archived releases returned to the releases directory"
     }
 
 # --- Main ----------------------------------------------------------------------------
