@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 # =====================================================================================
-# SolidGroundUX - Command Wrapper
+# SolidGroundUX - Smoke Test Command Wrapper
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 1.0
 #   Build       : -
 #   Checksum    : d0227d9918b8f9791c05f4b66cba11e99383b902db80294ab63a5093258c23c0
-#   Source      : wrapper-template
+#   Source      : sgnd-smoketest
 #   Type        : wrapper
-#   Group       : SDK
-#   Subgroup    : Templates
-#   Purpose     : Launch a configured SolidGroundUX target beneath the active framework root.
+#   Group       : Framework
+#   Subgroup    : Smoke Tests
+#   Purpose     : Launch the SolidGroundUX framework smoke-test executable.
 #
 # Description:
 #   Resolves the active SolidGroundUX framework from this wrapper's physical path,
@@ -116,7 +116,7 @@ set -uo pipefail
     }
 
 # - Wrapper target -------------------------------------------------------------------
-    SGND_WRAPPER_TARGET="usr/local/libexec/solidgroundux/management-console.sh"
+    SGND_WRAPPER_TARGET="usr/local/libexec/solidgroundux/sgnd-smoketest.sh"
 
 # - Main -----------------------------------------------------------------------------
     _framework_locator || exit $?

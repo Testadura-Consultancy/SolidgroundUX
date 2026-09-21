@@ -172,6 +172,8 @@ set -uo pipefail
         DEST_ROOT
         SELECT_DIRECTORY
         SELECT_MATCH
+        CHANGED_AFTER
+        FLAG_SINCE_LAST
         RECEIVER_PATH
         LAST_DEPLOY_SUCCESS
     )
@@ -557,6 +559,7 @@ set -uo pipefail
                     --var DEPLOY_TRANSPORT \
                     --default "$DEPLOY_TRANSPORT" \
                     --colorize both
+                sgnd_save_state || return $?
             fi
 
             if [[ "$DEPLOY_TRANSPORT" == "remote" ]]; then
@@ -568,6 +571,7 @@ set -uo pipefail
                         --var REMOTE_TARGET \
                         --default "$REMOTE_TARGET" \
                         --colorize both
+                    sgnd_save_state || return $?
                 fi
             else
                 REMOTE_TARGET=""
@@ -581,6 +585,7 @@ set -uo pipefail
                     --var SRC_ROOT \
                     --default "$SRC_ROOT" \
                     --colorize both
+                sgnd_save_state || return $?
             fi
 
             if (( ! CLI_DEST_ROOT )); then
@@ -591,6 +596,7 @@ set -uo pipefail
                     --var DEST_ROOT \
                     --default "$DEST_ROOT" \
                     --colorize both
+                sgnd_save_state || return $?
             fi
 
             if (( ! CLI_SELECT_DIRECTORY )); then
@@ -601,6 +607,7 @@ set -uo pipefail
                     --var SELECT_DIRECTORY \
                     --default "$SELECT_DIRECTORY" \
                     --colorize both
+                sgnd_save_state || return $?
             fi
 
             if (( ! CLI_SELECT_MATCH )); then
@@ -611,13 +618,14 @@ set -uo pipefail
                     --var SELECT_MATCH \
                     --default "$SELECT_MATCH" \
                     --colorize both
+                sgnd_save_state || return $?
             fi
 
             if (( CLI_CHANGED_AFTER )); then
                 FLAG_SINCE_LAST=0
             elif (( CLI_SINCE_LAST )); then
                 sgnd_print_labeledvalue \
-                    --label "Last succeededdeployment" \
+                    --label "Last succeeded deployment" \
                     --value "${LAST_DEPLOY_SUCCESS:-Not available}"
             else
                 if [[ -n "${LAST_DEPLOY_SUCCESS:-}" ]]; then
@@ -634,6 +642,7 @@ set -uo pipefail
                 case "${since_last^^}" in
                     Y|YES)
                         FLAG_SINCE_LAST=1
+                        sgnd_save_state || return $?
                         sgnd_print_labeledvalue \
                             --label "Last succeeded deployment" \
                             --value "$LAST_DEPLOY_SUCCESS"
@@ -641,6 +650,7 @@ set -uo pipefail
                     *)
                         FLAG_SINCE_LAST=0
                         CHANGED_AFTER="1900-01-01"
+                        sgnd_save_state || return $?
                         sgnd_print "Only files modified after this date or timestamp are included."
                         sgnd_print "Datetime shortcuts are accepted, for example N, D, -2h, -30m, or -1d."
                         sgnd_print "Use 1900-01-01 to apply no practical date restriction."
@@ -649,6 +659,7 @@ set -uo pipefail
                             --var CHANGED_AFTER \
                             --default "$CHANGED_AFTER" \
                             --colorize both
+                        sgnd_save_state || return $?
                         ;;
                 esac
             fi
@@ -660,6 +671,7 @@ set -uo pipefail
                     --var RECEIVER_PATH \
                     --default "$RECEIVER_PATH" \
                     --colorize both
+                sgnd_save_state || return $?
             fi
 
             _validate_parameters || {
@@ -911,7 +923,17 @@ set -uo pipefail
         _framework_locator || exit $?
         sgnd_exe_start --autostate -- "$@"
 
+        # Load this script's persisted inputs explicitly before building prompt defaults.
+        # This keeps deploy-workspace deterministic instead of relying on implicit autostate load timing.
+        sgnd_state_load_keys --array SGND_STATE_VARIABLES || return $?
+
         _getparameters || return $?
+
+        # Persist the confirmed interactive/CLI settings before deployment.
+        # Do not rely solely on exit-time autostate: a failed transfer should not
+        # force the operator to re-enter the deployment parameters next time.
+        sgnd_save_state || return $?
+
         _deploy || return $?
 
         ask_dlg_autocontinue \

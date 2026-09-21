@@ -92,6 +92,24 @@ set -uo pipefail
         && declare -F sgnd_header_buffer_load >/dev/null 2>&1; then
         sgnd_module_init_metadata "${BASH_SOURCE[0]}"
     fi
+# - Internal helpers ----------------------------------------------------------------
+    # fn: _sgnd_flag_is_on - Evaluate whether a menu/framework flag is enabled
+        # . Arguments
+        #   $1  Value to evaluate.
+        #
+        # . Returns
+        #   0 for 1, true, yes, or on (case-insensitive variants currently supported).
+        #   1 otherwise.
+        #
+        # . Usage
+        #   _sgnd_flag_is_on "${FLAG_DRYRUN:-0}"
+    _sgnd_flag_is_on() {
+        case "${1:-}" in
+            1|true|TRUE|yes|YES|on|ON) return 0 ;;
+            *) return 1 ;;
+        esac
+    }
+
 # - Toggle formatting --------------------------------------------------------------
     # fn: _sgnd_console_toggleword - Render a toggle word with an emphasized hotkey
         # . Purpose

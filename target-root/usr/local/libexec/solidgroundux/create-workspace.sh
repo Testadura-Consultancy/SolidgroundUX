@@ -457,9 +457,19 @@ set -uo pipefail
         mv -f "$tmp" "$file"
     }
 
+    # fn: _workspace_convenience_template_dir - Resolve the installed shared template library
+    _workspace_convenience_template_dir() {
+        if [[ "${SGND_FRAMEWORK_ROOT:-/}" == "/" ]]; then
+            printf '%s\n' "/usr/local/share/solidgroundux/convenience-templates"
+        else
+            printf '%s\n' "${SGND_FRAMEWORK_ROOT%/}/usr/local/share/solidgroundux/convenience-templates"
+        fi
+    }
+
     # fn: _resolve_template_metadata_defaults - Resolve header defaults from the selected starter template
     _resolve_template_metadata_defaults() {
-        local source_dir="${SGND_COMMON_LIB}/../templates" template=""
+        local source_dir="" template=""
+        source_dir="$(_workspace_convenience_template_dir)"
         if (( ${FLAG_EXE:-0} )); then template="$source_dir/exe-template.sh"
         elif (( ${FLAG_LIB:-0} )); then template="$source_dir/lib-template.sh"
         else template="$source_dir/mod-template.sh"; fi
@@ -468,14 +478,13 @@ set -uo pipefail
         PROJECT_SUBGROUP="${PROJECT_SUBGROUP:-$(_template_metadata_value "$template" Subgroup 2>/dev/null || true)}"
     }
 
-    # fn: _copy_workspace_templates - Copy canonical templates into the workspace
+    # fn: _copy_workspace_templates - Copy shared convenience templates into the workspace
         # . Purpose
         #   Seed the repository-shaped workspace with the installed SolidGroundUX templates.
         #
         # . Behavior
-        #   - Resolves the installed canonical template directory.
-        #   - Copies all top-level template files except templates_preface.sh.
-#   - Excludes templates/canon because only top-level files are copied.
+        #   - Resolves the installed shared convenience-template directory.
+        #   - Copies all top-level convenience-template files except templates_preface.sh.
         #   - Records newly created template files in the workspace manifest.
         #   - Honors dry-run mode through _copy_template_file().
         #
@@ -490,13 +499,15 @@ set -uo pipefail
         # . Usage
         #   _copy_workspace_templates
     _copy_workspace_templates() {
-        local source_dir="${SGND_COMMON_LIB}/../templates"
+        local source_dir=""
         local target_dir="${PROJECT_FOLDER}/target-root/usr/local/lib/solidgroundux/templates"
         local template=""
         local found=0
 
+        source_dir="$(_workspace_convenience_template_dir)"
+
         [[ -d "$source_dir" ]] || {
-            sayfail "Canonical template directory not found: $source_dir"
+            sayfail "Convenience template directory not found: $source_dir"
             return 1
         }
 
@@ -515,7 +526,7 @@ set -uo pipefail
         )
 
         (( found )) || {
-            sayfail "No templates found in: $source_dir"
+            sayfail "No convenience templates found in: $source_dir"
             return 1
         }
 
