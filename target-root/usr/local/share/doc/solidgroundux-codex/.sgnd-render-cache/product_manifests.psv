@@ -1,0 +1,5 @@
+product|version|build|company|copyright|license|documentation|appendices|project_root
+SolidGroundUX|2.1|2626501|Testadura Consultancy|© 2025 - 2026 Testadura Consultancy|Testadura Non-Commercial License (TD-NC) v1.1.|https://testadura-consultancy.github.io/SolidGroundUX/|attribution,glossary,integrity,globals,enums,license,changelog,install,canonical|/srv/storage/development/solidgroundux
+SolidGroundUX Management Console Modules|2.1|2626501|Testadura Consultancy|© 2025 - 2026 Testadura Consultancy|Testadura Non-Commercial License (TD-NC) v1.1.||attribution,license,changelog|/srv/storage/development/solidgroundux-mcm
+SolidGroundUX SDK|2.1|2626501|Testadura Consultancy|© 2025 - 2026 Testadura Consultancy|Testadura Non-Commercial License (TD-NC) v1.1.||attribution,license,changelog|/srv/storage/development/solidgroundux-sdk
+SolidGroundUX StylePack|1.0|2626500|Testadura Consultancy|© 2025 - 2026 Testadura Consultancy|Testadura Non-Commercial License (TD-NC) v1.1.||attribution,license,changelog|/srv/storage/development/solidgroundux-stylepack

@@ -1,35 +1,26 @@
-# SolidGroundUX
-
 <table>
 <tr>
 <td width="170" align="center" valign="middle">
-  <img width="96" height="96" alt="SolidGroundUX logo" src="target-root/usr/local/assets/SolidGround UX.png" />
+  <img width="96" height="96" alt="SolidGroundUX logo" src="target-root/usr/local/assets/sux-readmelogo.png" />
 </td>
 <td valign="middle">
-  <em>Help me...</em><br>
-
-  ## Treat Bash applications like software projects.
-
-  <em>...but get out of my way.</em>
+  <big><big><big><strong>SolidGroundUX</strong></big></big></big><br>
+  <sub>Version 2.1.2626414 · © 2026 Testadura</sub>
 </td>
 </tr>
 </table>
 
 <table>
 <tr>
-<td width="25%" align="center">
-  <a href="https://testadura-consultancy.github.io/SolidgroundUX/"><strong>Documentation</strong></a><br>
-  Framework reference and guides
+<td width="33%" align="center">
+  <a href="target-root/usr/local/share/doc/SolidGroundUX/index.html"><strong>Documentation</strong></a><br>
+  Product reference and guides
 </td>
-<td width="25%" align="center">
-  <a href="INSTALL.md"><strong>Installation</strong></a><br>
-  Installation and release management
-</td>
-<td width="25%" align="center">
+<td width="33%" align="center">
   <a href="CHANGELOG.md"><strong>Changelog</strong></a><br>
   Releases and development history
 </td>
-<td width="25%" align="center">
+<td width="33%" align="center">
   <a href="LICENSE"><strong>License</strong></a><br>
   Terms of use and redistribution
 </td>
@@ -38,7 +29,7 @@
 
 ---
 
-## What is SolidGroundUX?
+## About SolidGroundUX
 
 The best way to understand SolidGroundUX is not by looking at its features, but by understanding why it came to be.
 
@@ -48,7 +39,7 @@ Instead of treating Bash scripts as isolated utilities, SolidGroundUX treats the
 
 The framework does not attempt to hide Bash or prescribe a pattern merely because it is fashionable. It provides practical building blocks where they add value and stays out of the way where they do not.
 
-SolidGroundUX has since grown into a small family of related products. The Framework provides the common runtime and reusable APIs; Management Console Modules provides the modular Linux administration application; development and release tooling is being separated into the SolidGround SDK. All three follow the same framework conventions without requiring management functionality to be part of the Framework itself.
+SolidGroundUX has since grown into a small family of related products. The Framework provides the common runtime and reusable APIs; Management Console Modules provides the modular Linux administration application; the SolidGroundUX SDK owns development, documentation and release tooling. All three follow the same framework conventions without requiring management or development tooling to be part of the Framework itself.
 
 ## CPRP: the design principles
 
@@ -412,14 +403,8 @@ This keeps page modules focused on registration and subject-specific behavior wh
 
 | Tool | Purpose |
 |---|---|
-| `sgnd-console` | Run the SolidGround Management Console |
-| `create-workspace` | Create a framework-oriented development workspace |
-| `deploy-workspace` | Deploy complete or filtered workspace content locally or remotely |
-| `prepare-release` | Prepare release archives, manifests, checksums and metadata |
-| `release-manager` | Install, update, rollback, reinstall or remove SolidGroundUX releases |
-| `create-wrappers` | Create public command wrappers for SolidGroundUX executables |
-| `doc-generator` | Generate the HTML framework documentation |
 | `sgnd-smoketest` | Validate the framework installation and exercise core framework APIs and runtime behaviour |
+| `tar-it` / `untar-it` | Framework archive helpers used by framework consumers and tooling |
 
 ---
 
@@ -431,8 +416,6 @@ SolidGroundUX is intended for developers and system administrators who:
 - Prefer reusable infrastructure over copy-and-paste development
 - Want a consistent application structure
 - Value documentation, readability and maintainability
-- Need deployment and release tooling without adopting a larger runtime
-- Want common Linux administration workflows presented through a consistent interface
 - Prefer software that remains understandable and inspectable rather than hiding behaviour behind unnecessary abstraction
 
 SolidGroundUX does not try to turn Bash into another language.

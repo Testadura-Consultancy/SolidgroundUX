@@ -2,7 +2,7 @@
 
 **Version 2.1**
 
-![SolidGroundUX 2.1](resources/solidgroundux-social-preview.png)
+![SolidGroundUX 2.1](target-root/usr/local/assets/sux-releasenotes.png)
 
 > **Canonical • Project-aware • Self-bootstrapping • Built for
 > real-world automation**
@@ -26,6 +26,10 @@ introduces canonical source normalization, project definitions and
 workspace scaffolding, product-aware release preparation,
 self-describing release packages, and a substantially redesigned
 standalone Release Manager.
+
+The consolidation ultimately exposed a larger architectural boundary that had previously been implicit: SolidGroundUX is no longer treated as one monolithic product repository. The platform is now separated into three independently maintained products: **SolidGroundUX** for the framework/runtime, **SolidGroundUX Management Console Modules** for the administration application and its modules, and **SolidGroundUX SDK** for development, documentation, workspace, and release tooling. MCM and SDK depend on the Framework, but not on each other.
+
+That physical separation also made framework-resource resolution explicit. A component running from a non-Framework development workspace keeps its own contextual `SGND_FRAMEWORK_ROOT`, while Framework-owned resources are resolved from a local Framework when present and otherwise fall back to the installed Framework. This preserves staged-development semantics without recreating the removed application-root concept.
 
 Those architectural changes also enabled visible improvements to
 everyday development and operation. Framework arguments are
@@ -64,6 +68,26 @@ root without requiring a separate application-root configuration.
 
 This removes first-run root questions from normal framework bootstrap
 and eliminates a substantial amount of path-specific configuration.
+
+### Three product architecture
+
+SolidGroundUX 2.1 formalizes three product boundaries that were previously combined in one development tree:
+
+- **SolidGroundUX** owns the framework runtime, bootstrap, shared libraries, UI primitives, generic APIs, framework smoke tests, and core archive helpers.
+- **SolidGroundUX Management Console Modules** owns the Management Console host, console-specific behavior, module discovery and registration, administration modules, and console validation.
+- **SolidGroundUX SDK** owns workspace creation and deployment, canonical preparation, documentation generation, release preparation, release management tooling, and other development/release utilities.
+
+MCM and SDK both consume SolidGroundUX Framework services. Neither product depends on the other. Each product has its own repository, definitions, release identity, documentation collection, and lifecycle.
+
+The split deliberately tests architectural ownership: code that only worked because another component happened to be adjacent in the old repository must now resolve its dependency through an explicit product contract.
+
+### Framework resource resolution
+
+`SGND_FRAMEWORK_ROOT` remains the contextual root derived from the executing component. It is not rewritten merely because an SDK or MCM development tree does not contain the Framework.
+
+Framework-owned resources are instead resolved through the framework resolver. A real local Framework is preferred when present; otherwise the installed Framework beneath `/` is used. If a local Framework exists but a requested Framework resource is absent, the installed copy is the fallback.
+
+This allows development executables in independently checked-out SDK and MCM workspaces to use an installed Framework while preserving their own development-root semantics for product configuration, state, and project paths.
 
 ### Canonical bootstrap generation
 
@@ -296,6 +320,9 @@ standalone implementation and release operations remain available.
 ### Bootstrap and framework location
 
 -   Removed the `SGND_APPLICATION_ROOT` runtime concept.
+-   Formalized independent Framework, Management Console Modules, and SDK product/repository boundaries.
+-   Added Framework-resource resolution so SDK and MCM development workspaces can consume an installed Framework without changing their contextual `SGND_FRAMEWORK_ROOT`.
+-   Local Framework resources take precedence when a real Framework is present; installed Framework resources provide the fallback.
 -   Removed the former `solidgroundux.cfg` bootstrap/root-discovery
     workflow.
 -   Added deterministic `SGND_FRAMEWORK_ROOT` derivation from the
@@ -444,9 +471,7 @@ standalone implementation and release operations remain available.
 -   Retained **About SolidGroundUX** on the SolidGroundUX page.
 -   Removed the obsolete repository-mirroring action from the
     Development module.
--   Development tooling now focuses on workspace creation, workspace
-    deployment, release preparation, wrapper creation, and documentation
-    generation.
+-   Development and release tooling is now owned by the separate SolidGroundUX SDK rather than the Management Console product.
 
 ### Wrapper generation
 
