@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2626414
-#   Checksum    : 38df563b31b1ebd0741cbd709216b09d812943d78362da7de33ed7f935edb404
+#   Build       : 2626523
+#   Checksum    : 532ba48413689a77b4b74114e721d1f76a6e78edae75c04f2e6f8ce6682eb7ce
 #   Source      : sux-common-core-preface.sh
 #   Type        : documentation
 #   Group       : Common Core

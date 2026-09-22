@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2626414
-#   Checksum    : 15a1410f5d88f8b19b5169fad632785838ebe071d9b942ca7aeb3b1e85713b49
+#   Build       : 2626523
+#   Checksum    : 972145c454a220bae6ca501ee7c88a10a96c24138cad7722502264a0d1332be1
 #   Source      : sux-bootstrap-preface.sh
 #   Type        : documentation
 #   Group       : Bootstrap

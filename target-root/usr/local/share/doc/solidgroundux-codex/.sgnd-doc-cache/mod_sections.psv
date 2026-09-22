@@ -567,18 +567,6 @@ receive-files.sh|Script metadata (framework integration)|||Script metadata (fram
 receive-files.sh|Local declarations|||Local declarations|1
 receive-files.sh|Receive helpers|||Receive helpers|1
 receive-files.sh|Main|||Main|1
-sdk-tools_preface.sh|SDK|||SDK|1
-sdk-tools_preface.sh|Typical Development Workflow|SDK||Typical Development Workflow|2
-sdk-tools_preface.sh|Creating a New Project|SDK||Creating a New Project|2
-sdk-tools_preface.sh|Development Phase|SDK||Development Phase|2
-sdk-tools_preface.sh|Development Deployment|SDK||Development Deployment|2
-sdk-tools_preface.sh|Metadata Management|SDK||Metadata Management|2
-sdk-tools_preface.sh|Documentation Generation|SDK||Documentation Generation|2
-sdk-tools_preface.sh|Workspace Deployment|SDK||Workspace Deployment|2
-sdk-tools_preface.sh|Preparing a Release|SDK||Preparing a Release|2
-sdk-tools_preface.sh|Why These Tools Exist|SDK||Why These Tools Exist|2
-sdk-tools_preface.sh|Workspace Layout|SDK||Workspace Layout|2
-sdk-tools_preface.sh|Development Conventions|SDK||Development Conventions|2
 sdk-documentation_preface.sh|Documentation Generator|||Documentation Generator|1
 sdk-documentation_preface.sh|Documentation Workflow|Documentation Generator||Documentation Workflow|2
 sdk-documentation_preface.sh|Module Headers|Documentation Generator||Module Headers|2
@@ -640,3 +628,15 @@ doc-renderer.sh|Main sequence|||Main sequence|1
 solidgroundux-sdk-definitions.sh|Library guard|||Library guard|1
 solidgroundux-sdk-definitions.sh|SDK identity|||SDK identity|1
 sgnd_doc_renderer.py|Python Renderer Backend|||Python Renderer Backend|1
+sdk-tools_preface.sh|SDK|||SDK|1
+sdk-tools_preface.sh|Typical Development Workflow|SDK||Typical Development Workflow|2
+sdk-tools_preface.sh|Creating a New Project|SDK||Creating a New Project|2
+sdk-tools_preface.sh|Development Phase|SDK||Development Phase|2
+sdk-tools_preface.sh|Development Deployment|SDK||Development Deployment|2
+sdk-tools_preface.sh|Metadata Management|SDK||Metadata Management|2
+sdk-tools_preface.sh|Documentation Generation|SDK||Documentation Generation|2
+sdk-tools_preface.sh|Workspace Deployment|SDK||Workspace Deployment|2
+sdk-tools_preface.sh|Preparing a Release|SDK||Preparing a Release|2
+sdk-tools_preface.sh|Why These Tools Exist|SDK||Why These Tools Exist|2
+sdk-tools_preface.sh|Workspace Layout|SDK||Workspace Layout|2
+sdk-tools_preface.sh|Development Conventions|SDK||Development Conventions|2

@@ -75,7 +75,6 @@ doc-generator.sh|Mark Fieten|Testadura Consultancy|-|© 2025 - 2026 Testadura Co
 create-wrappers.sh|Mark Fieten|Testadura Consultancy|-|© 2025 - 2026 Testadura Consultancy|Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 create-workspace.sh|Mark Fieten|Testadura Consultancy|-|© 2025 - 2026 Testadura Consultancy|Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 receive-files.sh|Mark Fieten|Testadura Consultancy|-|© 2025 - 2026 Testadura Consultancy|Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
-sdk-tools_preface.sh|Mark Fieten|Testadura Consultancy|-|© 2025 - 2026 Testadura Consultancy|Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 sdk-documentation_preface.sh|Mark Fieten|Testadura Consultancy|-|© 2025 - 2026 Testadura Consultancy|Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 sdk-deployment_preface.sh|Mark Fieten|Testadura Consultancy|-|© 2025 - 2026 Testadura Consultancy|Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 exe-template.sh|Mark Fieten|Testadura Consultancy|-|© 2025 - 2026 Testadura Consultancy|Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
@@ -87,3 +86,4 @@ doc-sample.sh|Mark Fieten|Testadura Consultancy|-|© 2025 - 2026 Testadura Consu
 doc-renderer.sh|Mark Fieten|Testadura Consultancy|-|© 2025 - 2026 Testadura Consultancy|Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 solidgroundux-sdk-definitions.sh|Mark Fieten|Testadura Consultancy|-|© 2025 - 2026 Testadura Consultancy|Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
 sgnd_doc_renderer.py|Mark Fieten|Testadura Consultancy|-|© 2025 - 2026 Testadura Consultancy|Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.
+sdk-tools_preface.sh|Mark Fieten|Testadura Consultancy|-|© 2025 - 2026 Testadura Consultancy|Licensed under the Testadura Non-Commercial License (TD-NC) v1.1.

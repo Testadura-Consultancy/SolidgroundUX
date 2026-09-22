@@ -7,14 +7,9 @@ practical framework development.
 
 ## Backlog
 
-### SolidGroundUX 2.2 — documentation engine migration
--   Keep doc-generator.sh as the SolidGroundUX-facing orchestrator.
--   Port doc-processor.sh to Python.
--   Preserve the existing normalized data contract.
--   Run Bash and Python processors side-by-side during development and compare output.
-    Remove the Bash processor only when they're demonstrably equivalent.
-
 ## Unreleased
+
+## Release 2.1.2626523
 
 ### Added
 

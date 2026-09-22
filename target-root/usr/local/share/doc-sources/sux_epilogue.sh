@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2626414
-#   Checksum    : 8fee16c9b838724189708c2144ba91207a5701ddd34cefc5693c33f96981db77
+#   Build       : 2626523
+#   Checksum    : f067b412f914ad6def3baceb18adb7303fadc460b5fe61d1dd8cfca8e2132eba
 #   Source      : sux-epilogue.sh
 #   Type        : documentation
 #   Group       : SolidGroundUX

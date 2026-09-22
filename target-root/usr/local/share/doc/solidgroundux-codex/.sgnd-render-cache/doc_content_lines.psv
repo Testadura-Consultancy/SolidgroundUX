@@ -16969,200 +16969,6 @@ receive-files.sh|354|102|Main|||normal|main|Receive, validate, and extract a str
 receive-files.sh|355|103|Main|||normal|main|Receive, validate, and extract a streamed workspace archive|functionbody||receive-files.sh:::Main:main
 receive-files.sh|356|104|Main|||highlight|main|Receive, validate, and extract a streamed workspace archive|functionbody|Usage|receive-files.sh:::Main:main
 receive-files.sh|357|105|Main|||normal|main|Receive, validate, and extract a streamed workspace archive|functionbody|  main "$@"|receive-files.sh:::Main:main
-sdk-tools_preface.sh|2|1||||normal|||moduleheader|SolidGroundUX SDK - SDK Overview|sdk-tools_preface.sh::::
-sdk-tools_preface.sh|21|2|SDK|||normal|||L1Sectionheader|SDK|sdk-tools_preface.sh:::SDK:
-sdk-tools_preface.sh|22|3|SDK|||normal|||L1Sectionbody||sdk-tools_preface.sh:::SDK:
-sdk-tools_preface.sh|23|4|SDK|||normal|||L1Sectionbody|The SDK group contains the utilities used to create, maintain, deploy,|sdk-tools_preface.sh:::SDK:
-sdk-tools_preface.sh|24|5|SDK|||normal|||L1Sectionbody|document, package, and release SolidGroundUX-based projects.|sdk-tools_preface.sh:::SDK:
-sdk-tools_preface.sh|25|6|SDK|||normal|||L1Sectionbody||sdk-tools_preface.sh:::SDK:
-sdk-tools_preface.sh|26|7|SDK|||normal|||L1Sectionbody|While the framework itself provides the runtime foundation for applications,|sdk-tools_preface.sh:::SDK:
-sdk-tools_preface.sh|27|8|SDK|||normal|||L1Sectionbody|the SDK tools support the development lifecycle around that runtime. Together|sdk-tools_preface.sh:::SDK:
-sdk-tools_preface.sh|28|9|SDK|||normal|||L1Sectionbody|they form a lightweight development environment for creating structured Bash|sdk-tools_preface.sh:::SDK:
-sdk-tools_preface.sh|29|10|SDK|||normal|||L1Sectionbody|applications without having to reinvent the surrounding project administration|sdk-tools_preface.sh:::SDK:
-sdk-tools_preface.sh|30|11|SDK|||normal|||L1Sectionbody|for every new tool.|sdk-tools_preface.sh:::SDK:
-sdk-tools_preface.sh|31|12|SDK|||normal|||L1Sectionbody||sdk-tools_preface.sh:::SDK:
-sdk-tools_preface.sh|32|13|Typical Development Workflow|SDK||normal|||L2Sectionheader|Typical Development Workflow|sdk-tools_preface.sh::SDK:Typical Development Workflow:
-sdk-tools_preface.sh|33|14|Typical Development Workflow|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Typical Development Workflow:
-sdk-tools_preface.sh|34|15|Typical Development Workflow|SDK||normal|||L2Sectionbody|A typical SolidGroundUX project follows an iterative lifecycle:|sdk-tools_preface.sh::SDK:Typical Development Workflow:
-sdk-tools_preface.sh|35|16|Typical Development Workflow|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Typical Development Workflow:
-sdk-tools_preface.sh|36|17|Typical Development Workflow|SDK||highlight|||L2Sectionbody|Images|sdk-tools_preface.sh::SDK:Typical Development Workflow:
-sdk-tools_preface.sh|37|18|Typical Development Workflow|SDK||normal|||L2Sectionbody|  dev-lifecycle.png :: A typical development lifecycle for a SolidGroundUX project.  |sdk-tools_preface.sh::SDK:Typical Development Workflow:
-sdk-tools_preface.sh|38|19|Typical Development Workflow|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Typical Development Workflow:
-sdk-tools_preface.sh|39|20|Typical Development Workflow|SDK||normal|||L2Sectionbody|The SDK tools automate much of the repetitive work involved in these stages,|sdk-tools_preface.sh::SDK:Typical Development Workflow:
-sdk-tools_preface.sh|40|21|Typical Development Workflow|SDK||normal|||L2Sectionbody|allowing developers to focus primarily on application functionality.|sdk-tools_preface.sh::SDK:Typical Development Workflow:
-sdk-tools_preface.sh|41|22|Typical Development Workflow|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Typical Development Workflow:
-sdk-tools_preface.sh|42|23|Creating a New Project|SDK||normal|||L2Sectionheader|Creating a New Project|sdk-tools_preface.sh::SDK:Creating a New Project:
-sdk-tools_preface.sh|43|24|Creating a New Project|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Creating a New Project:
-sdk-tools_preface.sh|44|25|Creating a New Project|SDK||normal|||L2Sectionbody|Most projects begin with the workspace creation utility.|sdk-tools_preface.sh::SDK:Creating a New Project:
-sdk-tools_preface.sh|45|26|Creating a New Project|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Creating a New Project:
-sdk-tools_preface.sh|46|27|Creating a New Project|SDK||normal|||L2Sectionbody|The workspace generator creates the repository-shaped target-root structure,|sdk-tools_preface.sh::SDK:Creating a New Project:
-sdk-tools_preface.sh|47|28|Creating a New Project|SDK||normal|||L2Sectionbody|project definitions, optional project MOTD, VS Code workspace file, and a local copy|sdk-tools_preface.sh::SDK:Creating a New Project:
-sdk-tools_preface.sh|48|29|Creating a New Project|SDK||normal|||L2Sectionbody|of the reusable component templates. It can instantiate starter executable, library,|sdk-tools_preface.sh::SDK:Creating a New Project:
-sdk-tools_preface.sh|49|30|Creating a New Project|SDK||normal|||L2Sectionbody|and console-module files and can optionally initialize and publish the repository|sdk-tools_preface.sh::SDK:Creating a New Project:
-sdk-tools_preface.sh|50|31|Creating a New Project|SDK||normal|||L2Sectionbody|through Git/GitHub.|sdk-tools_preface.sh::SDK:Creating a New Project:
-sdk-tools_preface.sh|51|32|Creating a New Project|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Creating a New Project:
-sdk-tools_preface.sh|52|33|Creating a New Project|SDK||normal|||L2Sectionbody|The resulting workspace provides a consistent starting point for development.|sdk-tools_preface.sh::SDK:Creating a New Project:
-sdk-tools_preface.sh|53|34|Creating a New Project|SDK||normal|||L2Sectionbody|Rather than manually creating directories and copying scripts between projects,|sdk-tools_preface.sh::SDK:Creating a New Project:
-sdk-tools_preface.sh|54|35|Creating a New Project|SDK||normal|||L2Sectionbody|developers can begin with a known structure that already follows framework|sdk-tools_preface.sh::SDK:Creating a New Project:
-sdk-tools_preface.sh|55|36|Creating a New Project|SDK||normal|||L2Sectionbody|conventions.|sdk-tools_preface.sh::SDK:Creating a New Project:
-sdk-tools_preface.sh|56|37|Creating a New Project|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Creating a New Project:
-sdk-tools_preface.sh|57|38|Development Phase|SDK||normal|||L2Sectionheader|Development Phase|sdk-tools_preface.sh::SDK:Development Phase:
-sdk-tools_preface.sh|58|39|Development Phase|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Phase:
-sdk-tools_preface.sh|59|40|Development Phase|SDK||normal|||L2Sectionbody|During development, executable scripts, libraries, modules, and documentation|sdk-tools_preface.sh::SDK:Development Phase:
-sdk-tools_preface.sh|60|41|Development Phase|SDK||normal|||L2Sectionbody|are created within the workspace structure.|sdk-tools_preface.sh::SDK:Development Phase:
-sdk-tools_preface.sh|61|42|Development Phase|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Phase:
-sdk-tools_preface.sh|62|43|Development Phase|SDK||normal|||L2Sectionbody|The provided templates are intended to be the preferred starting point for new|sdk-tools_preface.sh::SDK:Development Phase:
-sdk-tools_preface.sh|63|44|Development Phase|SDK||normal|||L2Sectionbody|components. They contain the recommended metadata headers, bootstrap structure,|sdk-tools_preface.sh::SDK:Development Phase:
-sdk-tools_preface.sh|64|45|Development Phase|SDK||normal|||L2Sectionbody|documentation conventions, and coding patterns used throughout the framework.|sdk-tools_preface.sh::SDK:Development Phase:
-sdk-tools_preface.sh|65|46|Development Phase|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Phase:
-sdk-tools_preface.sh|66|47|Development Phase|SDK||normal|||L2Sectionbody|Following the templates helps maintain consistency across projects and reduces|sdk-tools_preface.sh::SDK:Development Phase:
-sdk-tools_preface.sh|67|48|Development Phase|SDK||normal|||L2Sectionbody|the amount of boilerplate code required.|sdk-tools_preface.sh::SDK:Development Phase:
-sdk-tools_preface.sh|68|49|Development Phase|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Phase:
-sdk-tools_preface.sh|69|50|Development Deployment|SDK||normal|||L2Sectionheader|Development Deployment|sdk-tools_preface.sh::SDK:Development Deployment:
-sdk-tools_preface.sh|70|51|Development Deployment|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Deployment:
-sdk-tools_preface.sh|71|52|Development Deployment|SDK||normal|||L2Sectionbody|During development, the workspace can be deployed into a development target|sdk-tools_preface.sh::SDK:Development Deployment:
-sdk-tools_preface.sh|72|53|Development Deployment|SDK||normal|||L2Sectionbody|environment. This allows scripts and libraries to be tested in a layout that|sdk-tools_preface.sh::SDK:Development Deployment:
-sdk-tools_preface.sh|73|54|Development Deployment|SDK||normal|||L2Sectionbody|closely resembles the final installed structure.|sdk-tools_preface.sh::SDK:Development Deployment:
-sdk-tools_preface.sh|74|55|Development Deployment|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Deployment:
-sdk-tools_preface.sh|75|56|Development Deployment|SDK||normal|||L2Sectionbody|This deployment step is part of the normal development loop. Code is written in|sdk-tools_preface.sh::SDK:Development Deployment:
-sdk-tools_preface.sh|76|57|Development Deployment|SDK||normal|||L2Sectionbody|the workspace, deployed to the development target, tested, debugged, and then|sdk-tools_preface.sh::SDK:Development Deployment:
-sdk-tools_preface.sh|77|58|Development Deployment|SDK||normal|||L2Sectionbody|refined in the workspace again.|sdk-tools_preface.sh::SDK:Development Deployment:
-sdk-tools_preface.sh|78|59|Development Deployment|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Deployment:
-sdk-tools_preface.sh|79|60|Development Deployment|SDK||normal|||L2Sectionbody|This keeps the development process honest: scripts are not only tested from|sdk-tools_preface.sh::SDK:Development Deployment:
-sdk-tools_preface.sh|80|61|Development Deployment|SDK||normal|||L2Sectionbody|their source location, but also from the filesystem layout in which they are|sdk-tools_preface.sh::SDK:Development Deployment:
-sdk-tools_preface.sh|81|62|Development Deployment|SDK||normal|||L2Sectionbody|eventually expected to run.|sdk-tools_preface.sh::SDK:Development Deployment:
-sdk-tools_preface.sh|82|63|Development Deployment|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Deployment:
-sdk-tools_preface.sh|83|64|Metadata Management|SDK||normal|||L2Sectionheader|Metadata Management|sdk-tools_preface.sh::SDK:Metadata Management:
-sdk-tools_preface.sh|84|65|Metadata Management|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Metadata Management:
-sdk-tools_preface.sh|85|66|Metadata Management|SDK||normal|||L2Sectionbody|Metadata plays an important role within the SolidGroundUX ecosystem. Version,|sdk-tools_preface.sh::SDK:Metadata Management:
-sdk-tools_preface.sh|86|67|Metadata Management|SDK||normal|||L2Sectionbody|build, checksum, attribution, licensing, and source identity are maintained through|sdk-tools_preface.sh::SDK:Metadata Management:
-sdk-tools_preface.sh|87|68|Metadata Management|SDK||normal|||L2Sectionbody|the canonical source-header model.|sdk-tools_preface.sh::SDK:Metadata Management:
-sdk-tools_preface.sh|88|69|Metadata Management|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Metadata Management:
-sdk-tools_preface.sh|89|70|Metadata Management|SDK||normal|||L2Sectionbody|Metadata maintenance is consolidated into prepare-release.sh and the shared|sdk-tools_preface.sh::SDK:Metadata Management:
-sdk-tools_preface.sh|90|71|Metadata Management|SDK||normal|||L2Sectionbody|header-parser support. Version and Build can be updated for all files, changed files|sdk-tools_preface.sh::SDK:Metadata Management:
-sdk-tools_preface.sh|91|72|Metadata Management|SDK||normal|||L2Sectionbody|only, or left untouched, while checksums are refreshed whenever source or release|sdk-tools_preface.sh::SDK:Metadata Management:
-sdk-tools_preface.sh|92|73|Metadata Management|SDK||normal|||L2Sectionbody|metadata changes require it.|sdk-tools_preface.sh::SDK:Metadata Management:
-sdk-tools_preface.sh|93|74|Metadata Management|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Metadata Management:
-sdk-tools_preface.sh|94|75|Metadata Management|SDK||normal|||L2Sectionbody|Keeping this work in release preparation avoids a separate metadata-maintenance tool|sdk-tools_preface.sh::SDK:Metadata Management:
-sdk-tools_preface.sh|95|76|Metadata Management|SDK||normal|||L2Sectionbody|and ensures the release artifacts and source headers are synchronized together.|sdk-tools_preface.sh::SDK:Metadata Management:
-sdk-tools_preface.sh|96|77|Metadata Management|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Metadata Management:
-sdk-tools_preface.sh|97|78|Documentation Generation|SDK||normal|||L2Sectionheader|Documentation Generation|sdk-tools_preface.sh::SDK:Documentation Generation:
-sdk-tools_preface.sh|98|79|Documentation Generation|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Documentation Generation:
-sdk-tools_preface.sh|99|80|Documentation Generation|SDK||normal|||L2Sectionbody|Documentation is generated directly from source code comments.|sdk-tools_preface.sh::SDK:Documentation Generation:
-sdk-tools_preface.sh|100|81|Documentation Generation|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Documentation Generation:
-sdk-tools_preface.sh|101|82|Documentation Generation|SDK||normal|||L2Sectionbody|Rather than maintaining a completely separate documentation tree, developers|sdk-tools_preface.sh::SDK:Documentation Generation:
-sdk-tools_preface.sh|102|83|Documentation Generation|SDK||normal|||L2Sectionbody|document modules, functions, variables, and concepts alongside the|sdk-tools_preface.sh::SDK:Documentation Generation:
-sdk-tools_preface.sh|103|84|Documentation Generation|SDK||normal|||L2Sectionbody|implementation.|sdk-tools_preface.sh::SDK:Documentation Generation:
-sdk-tools_preface.sh|104|85|Documentation Generation|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Documentation Generation:
-sdk-tools_preface.sh|105|86|Documentation Generation|SDK||normal|||L2Sectionbody|The documentation generator extracts this information and transforms it into a|sdk-tools_preface.sh::SDK:Documentation Generation:
-sdk-tools_preface.sh|106|87|Documentation Generation|SDK||normal|||L2Sectionbody|navigable HTML documentation set.|sdk-tools_preface.sh::SDK:Documentation Generation:
-sdk-tools_preface.sh|107|88|Documentation Generation|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Documentation Generation:
-sdk-tools_preface.sh|108|89|Documentation Generation|SDK||normal|||L2Sectionbody|This approach helps keep implementation and documentation synchronized while|sdk-tools_preface.sh::SDK:Documentation Generation:
-sdk-tools_preface.sh|109|90|Documentation Generation|SDK||normal|||L2Sectionbody|reducing duplication of effort.|sdk-tools_preface.sh::SDK:Documentation Generation:
-sdk-tools_preface.sh|110|91|Documentation Generation|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Documentation Generation:
-sdk-tools_preface.sh|111|92|Workspace Deployment|SDK||normal|||L2Sectionheader|Workspace Deployment|sdk-tools_preface.sh::SDK:Workspace Deployment:
-sdk-tools_preface.sh|112|93|Workspace Deployment|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Workspace Deployment:
-sdk-tools_preface.sh|113|94|Workspace Deployment|SDK||normal|||L2Sectionbody|deploy-workspace.sh is a development and test-deployment tool. It transfers a|sdk-tools_preface.sh::SDK:Workspace Deployment:
-sdk-tools_preface.sh|114|95|Workspace Deployment|SDK||normal|||L2Sectionbody|complete workspace or a filtered/incremental selection into a local or remote|sdk-tools_preface.sh::SDK:Workspace Deployment:
-sdk-tools_preface.sh|115|96|Workspace Deployment|SDK||normal|||L2Sectionbody|target root so the code can be exercised in its intended filesystem layout.|sdk-tools_preface.sh::SDK:Workspace Deployment:
-sdk-tools_preface.sh|116|97|Workspace Deployment|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Workspace Deployment:
-sdk-tools_preface.sh|117|98|Workspace Deployment|SDK||normal|||L2Sectionbody|Workspace deployment is deliberately separate from formal release installation.|sdk-tools_preface.sh::SDK:Workspace Deployment:
-sdk-tools_preface.sh|118|99|Workspace Deployment|SDK||normal|||L2Sectionbody|It does not define the installed-release lifecycle and should not be treated as an|sdk-tools_preface.sh::SDK:Workspace Deployment:
-sdk-tools_preface.sh|119|100|Workspace Deployment|SDK||normal|||L2Sectionbody|installer. Formal release creation belongs to prepare-release.sh; installation,|sdk-tools_preface.sh::SDK:Workspace Deployment:
-sdk-tools_preface.sh|120|101|Workspace Deployment|SDK||normal|||L2Sectionbody|update, rollback/reinstallation, and removal belong to release-manager.sh.|sdk-tools_preface.sh::SDK:Workspace Deployment:
-sdk-tools_preface.sh|121|102|Workspace Deployment|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Workspace Deployment:
-sdk-tools_preface.sh|122|103|Preparing a Release|SDK||normal|||L2Sectionheader|Preparing a Release|sdk-tools_preface.sh::SDK:Preparing a Release:
-sdk-tools_preface.sh|123|104|Preparing a Release|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Preparing a Release:
-sdk-tools_preface.sh|124|105|Preparing a Release|SDK||normal|||L2Sectionbody|prepare-release.sh creates the complete project release set consumed by the Release|sdk-tools_preface.sh::SDK:Preparing a Release:
-sdk-tools_preface.sh|125|106|Preparing a Release|SDK||normal|||L2Sectionbody|Manager. It resolves project identity from the project definitions file, maintains|sdk-tools_preface.sh::SDK:Preparing a Release:
-sdk-tools_preface.sh|126|107|Preparing a Release|SDK||normal|||L2Sectionbody|Version and Build metadata, refreshes changed-file checksums, verifies executable|sdk-tools_preface.sh::SDK:Preparing a Release:
-sdk-tools_preface.sh|127|108|Preparing a Release|SDK||normal|||L2Sectionbody|wrappers, and generates the archive, manifest, removal manifest, checksum sidecars,|sdk-tools_preface.sh::SDK:Preparing a Release:
-sdk-tools_preface.sh|128|109|Preparing a Release|SDK||normal|||L2Sectionbody|and the distributable release ZIP.|sdk-tools_preface.sh::SDK:Preparing a Release:
-sdk-tools_preface.sh|129|110|Preparing a Release|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Preparing a Release:
-sdk-tools_preface.sh|130|111|Preparing a Release|SDK||normal|||L2Sectionbody|Every ZIP contains release-package.info so the package identifies its project,|sdk-tools_preface.sh::SDK:Preparing a Release:
-sdk-tools_preface.sh|131|112|Preparing a Release|SDK||normal|||L2Sectionbody|product, version, build, and release without inspecting the payload tar. SolidGroundUX|sdk-tools_preface.sh::SDK:Preparing a Release:
-sdk-tools_preface.sh|132|113|Preparing a Release|SDK||normal|||L2Sectionbody|framework ZIPs additionally include release-manager.sh as a clean-machine bootstrap|sdk-tools_preface.sh::SDK:Preparing a Release:
-sdk-tools_preface.sh|133|114|Preparing a Release|SDK||normal|||L2Sectionbody|entry point; generic project ZIPs use the already installed Release Manager.|sdk-tools_preface.sh::SDK:Preparing a Release:
-sdk-tools_preface.sh|134|115|Preparing a Release|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Preparing a Release:
-sdk-tools_preface.sh|135|116|Why These Tools Exist|SDK||normal|||L2Sectionheader|Why These Tools Exist|sdk-tools_preface.sh::SDK:Why These Tools Exist:
-sdk-tools_preface.sh|136|117|Why These Tools Exist|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Why These Tools Exist:
-sdk-tools_preface.sh|137|118|Why These Tools Exist|SDK||normal|||L2Sectionbody|Bash projects often begin as a handful of scripts and gradually evolve into|sdk-tools_preface.sh::SDK:Why These Tools Exist:
-sdk-tools_preface.sh|138|119|Why These Tools Exist|SDK||normal|||L2Sectionbody|collections of loosely related files with inconsistent structures.|sdk-tools_preface.sh::SDK:Why These Tools Exist:
-sdk-tools_preface.sh|139|120|Why These Tools Exist|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Why These Tools Exist:
-sdk-tools_preface.sh|140|121|Why These Tools Exist|SDK||normal|||L2Sectionbody|The SDK tools attempt to prevent that outcome by encouraging a repeatable|sdk-tools_preface.sh::SDK:Why These Tools Exist:
-sdk-tools_preface.sh|141|122|Why These Tools Exist|SDK||normal|||L2Sectionbody|workflow and a consistent project layout from the beginning.|sdk-tools_preface.sh::SDK:Why These Tools Exist:
-sdk-tools_preface.sh|142|123|Why These Tools Exist|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Why These Tools Exist:
-sdk-tools_preface.sh|143|124|Why These Tools Exist|SDK||normal|||L2Sectionbody|In other words, they automate the boring parts of project administration so|sdk-tools_preface.sh::SDK:Why These Tools Exist:
-sdk-tools_preface.sh|144|125|Why These Tools Exist|SDK||normal|||L2Sectionbody|developers can spend their time building software rather than managing files.|sdk-tools_preface.sh::SDK:Why These Tools Exist:
-sdk-tools_preface.sh|145|126|Why These Tools Exist|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Why These Tools Exist:
-sdk-tools_preface.sh|146|127|Workspace Layout|SDK||normal|||L2Sectionheader|Workspace Layout|sdk-tools_preface.sh::SDK:Workspace Layout:
-sdk-tools_preface.sh|147|128|Workspace Layout|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Workspace Layout:
-sdk-tools_preface.sh|148|129|Workspace Layout|SDK||normal|||L2Sectionbody|SolidGroundUX projects follow a standardized directory structure.|sdk-tools_preface.sh::SDK:Workspace Layout:
-sdk-tools_preface.sh|149|130|Workspace Layout|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Workspace Layout:
-sdk-tools_preface.sh|150|131|Workspace Layout|SDK||normal|||L2Sectionbody|While individual projects may add folders as needed, the framework expects a|sdk-tools_preface.sh::SDK:Workspace Layout:
-sdk-tools_preface.sh|151|132|Workspace Layout|SDK||normal|||L2Sectionbody|number of well-known locations. The typical workspace structure mimics the|sdk-tools_preface.sh::SDK:Workspace Layout:
-sdk-tools_preface.sh|152|133|Workspace Layout|SDK||normal|||L2Sectionbody|expected deployment layout, making it easier to transition from development to|sdk-tools_preface.sh::SDK:Workspace Layout:
-sdk-tools_preface.sh|153|134|Workspace Layout|SDK||normal|||L2Sectionbody|deployment without reorganizing files.|sdk-tools_preface.sh::SDK:Workspace Layout:
-sdk-tools_preface.sh|154|135|Workspace Layout|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Workspace Layout:
-sdk-tools_preface.sh|155|136|Workspace Layout|SDK||normal|||L2Sectionbody|The deployment tools depend on this structure to determine which files to|sdk-tools_preface.sh::SDK:Workspace Layout:
-sdk-tools_preface.sh|156|137|Workspace Layout|SDK||normal|||L2Sectionbody|include and where to place them during deployment. The structure also helps|sdk-tools_preface.sh::SDK:Workspace Layout:
-sdk-tools_preface.sh|157|138|Workspace Layout|SDK||normal|||L2Sectionbody|ensure that generated documentation, metadata, and supporting assets are|sdk-tools_preface.sh::SDK:Workspace Layout:
-sdk-tools_preface.sh|158|139|Workspace Layout|SDK||normal|||L2Sectionbody|maintained consistently across projects.|sdk-tools_preface.sh::SDK:Workspace Layout:
-sdk-tools_preface.sh|159|140|Workspace Layout|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Workspace Layout:
-sdk-tools_preface.sh|160|141|Workspace Layout|SDK||emphasis|||L2Sectionbody|Deviate at your own peril.|sdk-tools_preface.sh::SDK:Workspace Layout:
-sdk-tools_preface.sh|161|142|Workspace Layout|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Workspace Layout:
-sdk-tools_preface.sh|162|143|Workspace Layout|SDK||highlight|||L2Sectionbody|Images|sdk-tools_preface.sh::SDK:Workspace Layout:
-sdk-tools_preface.sh|163|144|Workspace Layout|SDK||normal|||L2Sectionbody|  project-structure.png :: Folder structure of a typical SolidGroundUX project workspace. |sdk-tools_preface.sh::SDK:Workspace Layout:
-sdk-tools_preface.sh|164|145|Workspace Layout|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Workspace Layout:
-sdk-tools_preface.sh|165|146|Workspace Layout|SDK||normal|||L2Sectionbody|Executable applications are typically placed in bin and sbin, reusable|sdk-tools_preface.sh::SDK:Workspace Layout:
-sdk-tools_preface.sh|166|147|Workspace Layout|SDK||normal|||L2Sectionbody|libraries in lib, and internal implementation helpers in libexec.|sdk-tools_preface.sh::SDK:Workspace Layout:
-sdk-tools_preface.sh|167|148|Workspace Layout|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Workspace Layout:
-sdk-tools_preface.sh|168|149|Workspace Layout|SDK||normal|||L2Sectionbody|This separation helps distinguish public interfaces from internal|sdk-tools_preface.sh::SDK:Workspace Layout:
-sdk-tools_preface.sh|169|150|Workspace Layout|SDK||normal|||L2Sectionbody|implementation details and keeps larger projects maintainable.|sdk-tools_preface.sh::SDK:Workspace Layout:
-sdk-tools_preface.sh|170|151|Workspace Layout|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Workspace Layout:
-sdk-tools_preface.sh|171|152|Development Conventions|SDK||normal|||L2Sectionheader|Development Conventions|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|172|153|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|173|154|Development Conventions|SDK||normal|||L2Sectionbody|SolidGroundUX relies heavily on conventions to keep projects consistent.|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|174|155|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|175|156|Development Conventions|SDK||normal|||L2Sectionbody|Public framework functions should use the sgnd_ prefix.|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|176|157|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|177|158|Development Conventions|SDK||normal|||L2Sectionbody|Framework-public functions use `sgnd_*`. Framework-internal functions shared by|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|178|159|Development Conventions|SDK||normal|||L2Sectionbody|cooperating framework libraries use `_sgnd_*`. A plain leading underscore such as|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|179|160|Development Conventions|SDK||normal|||L2Sectionbody|`_helper` identifies a script- or module-local private implementation detail. Bash|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|180|161|Development Conventions|SDK||normal|||L2Sectionbody|cannot enforce these access levels, but the naming convention communicates intent.|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|181|162|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|182|163|Development Conventions|SDK||normal|||L2Sectionbody|Executable scripts should be based on the executable template.|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|183|164|Development Conventions|SDK||normal|||L2Sectionbody|User-facing executables should normally be exposed through lightweight wrappers|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|184|165|Development Conventions|SDK||normal|||L2Sectionbody|in bin or sbin. The actual implementation script should live in the appropriate|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|185|166|Development Conventions|SDK||normal|||L2Sectionbody|product subfolder, usually below libexec, and be invoked by the wrapper.|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|186|167|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|187|168|Development Conventions|SDK||normal|||L2Sectionbody|This keeps the command path clean while allowing implementation scripts,|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|188|169|Development Conventions|SDK||normal|||L2Sectionbody|supporting files, and internal helpers to remain grouped by product.|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|189|170|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|190|171|Development Conventions|SDK||normal|||L2Sectionbody|Reusable libraries should be based on the library template.|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|191|172|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|192|173|Development Conventions|SDK||normal|||L2Sectionbody|Libraries should generally not perform actions merely because they are sourced.|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|193|174|Development Conventions|SDK||normal|||L2Sectionbody|With the exception of library guards, metadata registration, dependency|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|194|175|Development Conventions|SDK||normal|||L2Sectionbody|registration, and similar initialization tasks, sourcing a library should not|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|195|176|Development Conventions|SDK||normal|||L2Sectionbody|execute business logic, modify user data, create files, or perform external|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|196|177|Development Conventions|SDK||normal|||L2Sectionbody|operations.|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|197|178|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|198|179|Development Conventions|SDK||normal|||L2Sectionbody|Libraries are expected to provide functionality through public functions. The|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|199|180|Development Conventions|SDK||normal|||L2Sectionbody|caller decides when that functionality is executed.|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|200|181|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|201|182|Development Conventions|SDK||normal|||L2Sectionbody|Modules intended for menu-driven applications should use the module template.|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|202|183|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|203|184|Development Conventions|SDK||normal|||L2Sectionbody|Metadata headers should be maintained in all framework-managed files.|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|204|185|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|205|186|Development Conventions|SDK||normal|||L2Sectionbody|Documentation should be maintained close to the source code using the framework|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|206|187|Development Conventions|SDK||normal|||L2Sectionbody|documentation conventions.|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|207|188|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|208|189|Development Conventions|SDK||normal|||L2Sectionbody|Development-only artifacts should be kept out of the deployed target layout|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|209|190|Development Conventions|SDK||normal|||L2Sectionbody|unless they are intentionally part of the product being released.|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|210|191|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|211|192|Development Conventions|SDK||normal|||L2Sectionbody|Developers are free to deviate from these conventions when appropriate, but|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|212|193|Development Conventions|SDK||normal|||L2Sectionbody|following them generally results in more maintainable projects and more useful|sdk-tools_preface.sh::SDK:Development Conventions:
-sdk-tools_preface.sh|213|194|Development Conventions|SDK||normal|||L2Sectionbody|generated documentation.|sdk-tools_preface.sh::SDK:Development Conventions:
 sdk-documentation_preface.sh|2|1||||normal|||moduleheader|SolidGroundUX SDK - Documentation Generator Overview|sdk-documentation_preface.sh::::
 sdk-documentation_preface.sh|21|2|Documentation Generator|||normal|||L1Sectionheader|Documentation Generator|sdk-documentation_preface.sh:::Documentation Generator:
 sdk-documentation_preface.sh|22|3|Documentation Generator|||normal|||L1Sectionbody||sdk-documentation_preface.sh:::Documentation Generator:
@@ -20330,3 +20136,197 @@ sgnd_doc_renderer.py|4560|917|Python Renderer Backend|||highlight|main|Run docum
 sgnd_doc_renderer.py|4561|918|Python Renderer Backend|||normal|main|Run documentation renderer|functionbody|  argv  Value consumed by this function; see the typed Python signature for its contract.|sgnd_doc_renderer.py:::Python Renderer Backend:main
 sgnd_doc_renderer.py|4562|919|Python Renderer Backend|||highlight|main|Run documentation renderer|functionbody|Usage|sgnd_doc_renderer.py:::Python Renderer Backend:main
 sgnd_doc_renderer.py|4563|920|Python Renderer Backend|||normal|main|Run documentation renderer|functionbody|  main(<argv>)|sgnd_doc_renderer.py:::Python Renderer Backend:main
+sdk-tools_preface.sh|2|1||||normal|||moduleheader|SolidGroundUX SDK - SDK Overview|sdk-tools_preface.sh::::
+sdk-tools_preface.sh|21|2|SDK|||normal|||L1Sectionheader|SDK|sdk-tools_preface.sh:::SDK:
+sdk-tools_preface.sh|22|3|SDK|||normal|||L1Sectionbody||sdk-tools_preface.sh:::SDK:
+sdk-tools_preface.sh|23|4|SDK|||normal|||L1Sectionbody|The SDK group contains the utilities used to create, maintain, deploy,|sdk-tools_preface.sh:::SDK:
+sdk-tools_preface.sh|24|5|SDK|||normal|||L1Sectionbody|document, package, and release SolidGroundUX-based projects.|sdk-tools_preface.sh:::SDK:
+sdk-tools_preface.sh|25|6|SDK|||normal|||L1Sectionbody||sdk-tools_preface.sh:::SDK:
+sdk-tools_preface.sh|26|7|SDK|||normal|||L1Sectionbody|While the framework itself provides the runtime foundation for applications,|sdk-tools_preface.sh:::SDK:
+sdk-tools_preface.sh|27|8|SDK|||normal|||L1Sectionbody|the SDK tools support the development lifecycle around that runtime. Together|sdk-tools_preface.sh:::SDK:
+sdk-tools_preface.sh|28|9|SDK|||normal|||L1Sectionbody|they form a lightweight development environment for creating structured Bash|sdk-tools_preface.sh:::SDK:
+sdk-tools_preface.sh|29|10|SDK|||normal|||L1Sectionbody|applications without having to reinvent the surrounding project administration|sdk-tools_preface.sh:::SDK:
+sdk-tools_preface.sh|30|11|SDK|||normal|||L1Sectionbody|for every new tool.|sdk-tools_preface.sh:::SDK:
+sdk-tools_preface.sh|31|12|SDK|||normal|||L1Sectionbody||sdk-tools_preface.sh:::SDK:
+sdk-tools_preface.sh|32|13|Typical Development Workflow|SDK||normal|||L2Sectionheader|Typical Development Workflow|sdk-tools_preface.sh::SDK:Typical Development Workflow:
+sdk-tools_preface.sh|33|14|Typical Development Workflow|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Typical Development Workflow:
+sdk-tools_preface.sh|34|15|Typical Development Workflow|SDK||normal|||L2Sectionbody|A typical SolidGroundUX project follows an iterative lifecycle:|sdk-tools_preface.sh::SDK:Typical Development Workflow:
+sdk-tools_preface.sh|35|16|Typical Development Workflow|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Typical Development Workflow:
+sdk-tools_preface.sh|36|17|Typical Development Workflow|SDK||highlight|||L2Sectionbody|Images|sdk-tools_preface.sh::SDK:Typical Development Workflow:
+sdk-tools_preface.sh|37|18|Typical Development Workflow|SDK||normal|||L2Sectionbody|  sdk-dev-lifecycle.png :: A typical development lifecycle for a SolidGroundUX project.  |sdk-tools_preface.sh::SDK:Typical Development Workflow:
+sdk-tools_preface.sh|38|19|Typical Development Workflow|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Typical Development Workflow:
+sdk-tools_preface.sh|39|20|Typical Development Workflow|SDK||normal|||L2Sectionbody|The SDK tools automate much of the repetitive work involved in these stages,|sdk-tools_preface.sh::SDK:Typical Development Workflow:
+sdk-tools_preface.sh|40|21|Typical Development Workflow|SDK||normal|||L2Sectionbody|allowing developers to focus primarily on application functionality.|sdk-tools_preface.sh::SDK:Typical Development Workflow:
+sdk-tools_preface.sh|41|22|Typical Development Workflow|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Typical Development Workflow:
+sdk-tools_preface.sh|42|23|Creating a New Project|SDK||normal|||L2Sectionheader|Creating a New Project|sdk-tools_preface.sh::SDK:Creating a New Project:
+sdk-tools_preface.sh|43|24|Creating a New Project|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Creating a New Project:
+sdk-tools_preface.sh|44|25|Creating a New Project|SDK||normal|||L2Sectionbody|Most projects begin with the workspace creation utility.|sdk-tools_preface.sh::SDK:Creating a New Project:
+sdk-tools_preface.sh|45|26|Creating a New Project|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Creating a New Project:
+sdk-tools_preface.sh|46|27|Creating a New Project|SDK||normal|||L2Sectionbody|The workspace generator creates the repository-shaped target-root structure,|sdk-tools_preface.sh::SDK:Creating a New Project:
+sdk-tools_preface.sh|47|28|Creating a New Project|SDK||normal|||L2Sectionbody|project definitions, optional project MOTD, VS Code workspace file, and a local copy|sdk-tools_preface.sh::SDK:Creating a New Project:
+sdk-tools_preface.sh|48|29|Creating a New Project|SDK||normal|||L2Sectionbody|of the reusable component templates. It can instantiate starter executable, library,|sdk-tools_preface.sh::SDK:Creating a New Project:
+sdk-tools_preface.sh|49|30|Creating a New Project|SDK||normal|||L2Sectionbody|and console-module files and can optionally initialize and publish the repository|sdk-tools_preface.sh::SDK:Creating a New Project:
+sdk-tools_preface.sh|50|31|Creating a New Project|SDK||normal|||L2Sectionbody|through Git/GitHub.|sdk-tools_preface.sh::SDK:Creating a New Project:
+sdk-tools_preface.sh|51|32|Creating a New Project|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Creating a New Project:
+sdk-tools_preface.sh|52|33|Creating a New Project|SDK||normal|||L2Sectionbody|The resulting workspace provides a consistent starting point for development.|sdk-tools_preface.sh::SDK:Creating a New Project:
+sdk-tools_preface.sh|53|34|Creating a New Project|SDK||normal|||L2Sectionbody|Rather than manually creating directories and copying scripts between projects,|sdk-tools_preface.sh::SDK:Creating a New Project:
+sdk-tools_preface.sh|54|35|Creating a New Project|SDK||normal|||L2Sectionbody|developers can begin with a known structure that already follows framework|sdk-tools_preface.sh::SDK:Creating a New Project:
+sdk-tools_preface.sh|55|36|Creating a New Project|SDK||normal|||L2Sectionbody|conventions.|sdk-tools_preface.sh::SDK:Creating a New Project:
+sdk-tools_preface.sh|56|37|Creating a New Project|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Creating a New Project:
+sdk-tools_preface.sh|57|38|Development Phase|SDK||normal|||L2Sectionheader|Development Phase|sdk-tools_preface.sh::SDK:Development Phase:
+sdk-tools_preface.sh|58|39|Development Phase|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Phase:
+sdk-tools_preface.sh|59|40|Development Phase|SDK||normal|||L2Sectionbody|During development, executable scripts, libraries, modules, and documentation|sdk-tools_preface.sh::SDK:Development Phase:
+sdk-tools_preface.sh|60|41|Development Phase|SDK||normal|||L2Sectionbody|are created within the workspace structure.|sdk-tools_preface.sh::SDK:Development Phase:
+sdk-tools_preface.sh|61|42|Development Phase|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Phase:
+sdk-tools_preface.sh|62|43|Development Phase|SDK||normal|||L2Sectionbody|The provided templates are intended to be the preferred starting point for new|sdk-tools_preface.sh::SDK:Development Phase:
+sdk-tools_preface.sh|63|44|Development Phase|SDK||normal|||L2Sectionbody|components. They contain the recommended metadata headers, bootstrap structure,|sdk-tools_preface.sh::SDK:Development Phase:
+sdk-tools_preface.sh|64|45|Development Phase|SDK||normal|||L2Sectionbody|documentation conventions, and coding patterns used throughout the framework.|sdk-tools_preface.sh::SDK:Development Phase:
+sdk-tools_preface.sh|65|46|Development Phase|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Phase:
+sdk-tools_preface.sh|66|47|Development Phase|SDK||normal|||L2Sectionbody|Following the templates helps maintain consistency across projects and reduces|sdk-tools_preface.sh::SDK:Development Phase:
+sdk-tools_preface.sh|67|48|Development Phase|SDK||normal|||L2Sectionbody|the amount of boilerplate code required.|sdk-tools_preface.sh::SDK:Development Phase:
+sdk-tools_preface.sh|68|49|Development Phase|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Phase:
+sdk-tools_preface.sh|69|50|Development Deployment|SDK||normal|||L2Sectionheader|Development Deployment|sdk-tools_preface.sh::SDK:Development Deployment:
+sdk-tools_preface.sh|70|51|Development Deployment|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Deployment:
+sdk-tools_preface.sh|71|52|Development Deployment|SDK||normal|||L2Sectionbody|During development, the workspace can be deployed into a development target|sdk-tools_preface.sh::SDK:Development Deployment:
+sdk-tools_preface.sh|72|53|Development Deployment|SDK||normal|||L2Sectionbody|environment. This allows scripts and libraries to be tested in a layout that|sdk-tools_preface.sh::SDK:Development Deployment:
+sdk-tools_preface.sh|73|54|Development Deployment|SDK||normal|||L2Sectionbody|closely resembles the final installed structure.|sdk-tools_preface.sh::SDK:Development Deployment:
+sdk-tools_preface.sh|74|55|Development Deployment|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Deployment:
+sdk-tools_preface.sh|75|56|Development Deployment|SDK||normal|||L2Sectionbody|This deployment step is part of the normal development loop. Code is written in|sdk-tools_preface.sh::SDK:Development Deployment:
+sdk-tools_preface.sh|76|57|Development Deployment|SDK||normal|||L2Sectionbody|the workspace, deployed to the development target, tested, debugged, and then|sdk-tools_preface.sh::SDK:Development Deployment:
+sdk-tools_preface.sh|77|58|Development Deployment|SDK||normal|||L2Sectionbody|refined in the workspace again.|sdk-tools_preface.sh::SDK:Development Deployment:
+sdk-tools_preface.sh|78|59|Development Deployment|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Deployment:
+sdk-tools_preface.sh|79|60|Development Deployment|SDK||normal|||L2Sectionbody|This keeps the development process honest: scripts are not only tested from|sdk-tools_preface.sh::SDK:Development Deployment:
+sdk-tools_preface.sh|80|61|Development Deployment|SDK||normal|||L2Sectionbody|their source location, but also from the filesystem layout in which they are|sdk-tools_preface.sh::SDK:Development Deployment:
+sdk-tools_preface.sh|81|62|Development Deployment|SDK||normal|||L2Sectionbody|eventually expected to run.|sdk-tools_preface.sh::SDK:Development Deployment:
+sdk-tools_preface.sh|82|63|Development Deployment|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Deployment:
+sdk-tools_preface.sh|83|64|Metadata Management|SDK||normal|||L2Sectionheader|Metadata Management|sdk-tools_preface.sh::SDK:Metadata Management:
+sdk-tools_preface.sh|84|65|Metadata Management|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Metadata Management:
+sdk-tools_preface.sh|85|66|Metadata Management|SDK||normal|||L2Sectionbody|Metadata plays an important role within the SolidGroundUX ecosystem. Version,|sdk-tools_preface.sh::SDK:Metadata Management:
+sdk-tools_preface.sh|86|67|Metadata Management|SDK||normal|||L2Sectionbody|build, checksum, attribution, licensing, and source identity are maintained through|sdk-tools_preface.sh::SDK:Metadata Management:
+sdk-tools_preface.sh|87|68|Metadata Management|SDK||normal|||L2Sectionbody|the canonical source-header model.|sdk-tools_preface.sh::SDK:Metadata Management:
+sdk-tools_preface.sh|88|69|Metadata Management|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Metadata Management:
+sdk-tools_preface.sh|89|70|Metadata Management|SDK||normal|||L2Sectionbody|Metadata maintenance is consolidated into prepare-release.sh and the shared|sdk-tools_preface.sh::SDK:Metadata Management:
+sdk-tools_preface.sh|90|71|Metadata Management|SDK||normal|||L2Sectionbody|header-parser support. Version and Build can be updated for all files, changed files|sdk-tools_preface.sh::SDK:Metadata Management:
+sdk-tools_preface.sh|91|72|Metadata Management|SDK||normal|||L2Sectionbody|only, or left untouched, while checksums are refreshed whenever source or release|sdk-tools_preface.sh::SDK:Metadata Management:
+sdk-tools_preface.sh|92|73|Metadata Management|SDK||normal|||L2Sectionbody|metadata changes require it.|sdk-tools_preface.sh::SDK:Metadata Management:
+sdk-tools_preface.sh|93|74|Metadata Management|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Metadata Management:
+sdk-tools_preface.sh|94|75|Metadata Management|SDK||normal|||L2Sectionbody|Keeping this work in release preparation avoids a separate metadata-maintenance tool|sdk-tools_preface.sh::SDK:Metadata Management:
+sdk-tools_preface.sh|95|76|Metadata Management|SDK||normal|||L2Sectionbody|and ensures the release artifacts and source headers are synchronized together.|sdk-tools_preface.sh::SDK:Metadata Management:
+sdk-tools_preface.sh|96|77|Metadata Management|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Metadata Management:
+sdk-tools_preface.sh|97|78|Documentation Generation|SDK||normal|||L2Sectionheader|Documentation Generation|sdk-tools_preface.sh::SDK:Documentation Generation:
+sdk-tools_preface.sh|98|79|Documentation Generation|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Documentation Generation:
+sdk-tools_preface.sh|99|80|Documentation Generation|SDK||normal|||L2Sectionbody|Documentation is generated directly from source code comments.|sdk-tools_preface.sh::SDK:Documentation Generation:
+sdk-tools_preface.sh|100|81|Documentation Generation|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Documentation Generation:
+sdk-tools_preface.sh|101|82|Documentation Generation|SDK||normal|||L2Sectionbody|Rather than maintaining a completely separate documentation tree, developers|sdk-tools_preface.sh::SDK:Documentation Generation:
+sdk-tools_preface.sh|102|83|Documentation Generation|SDK||normal|||L2Sectionbody|document modules, functions, variables, and concepts alongside the|sdk-tools_preface.sh::SDK:Documentation Generation:
+sdk-tools_preface.sh|103|84|Documentation Generation|SDK||normal|||L2Sectionbody|implementation.|sdk-tools_preface.sh::SDK:Documentation Generation:
+sdk-tools_preface.sh|104|85|Documentation Generation|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Documentation Generation:
+sdk-tools_preface.sh|105|86|Documentation Generation|SDK||normal|||L2Sectionbody|The documentation generator extracts this information and transforms it into a|sdk-tools_preface.sh::SDK:Documentation Generation:
+sdk-tools_preface.sh|106|87|Documentation Generation|SDK||normal|||L2Sectionbody|navigable HTML documentation set.|sdk-tools_preface.sh::SDK:Documentation Generation:
+sdk-tools_preface.sh|107|88|Documentation Generation|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Documentation Generation:
+sdk-tools_preface.sh|108|89|Documentation Generation|SDK||normal|||L2Sectionbody|This approach helps keep implementation and documentation synchronized while|sdk-tools_preface.sh::SDK:Documentation Generation:
+sdk-tools_preface.sh|109|90|Documentation Generation|SDK||normal|||L2Sectionbody|reducing duplication of effort.|sdk-tools_preface.sh::SDK:Documentation Generation:
+sdk-tools_preface.sh|110|91|Documentation Generation|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Documentation Generation:
+sdk-tools_preface.sh|111|92|Workspace Deployment|SDK||normal|||L2Sectionheader|Workspace Deployment|sdk-tools_preface.sh::SDK:Workspace Deployment:
+sdk-tools_preface.sh|112|93|Workspace Deployment|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Workspace Deployment:
+sdk-tools_preface.sh|113|94|Workspace Deployment|SDK||normal|||L2Sectionbody|deploy-workspace.sh is a development and test-deployment tool. It transfers a|sdk-tools_preface.sh::SDK:Workspace Deployment:
+sdk-tools_preface.sh|114|95|Workspace Deployment|SDK||normal|||L2Sectionbody|complete workspace or a filtered/incremental selection into a local or remote|sdk-tools_preface.sh::SDK:Workspace Deployment:
+sdk-tools_preface.sh|115|96|Workspace Deployment|SDK||normal|||L2Sectionbody|target root so the code can be exercised in its intended filesystem layout.|sdk-tools_preface.sh::SDK:Workspace Deployment:
+sdk-tools_preface.sh|116|97|Workspace Deployment|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Workspace Deployment:
+sdk-tools_preface.sh|117|98|Workspace Deployment|SDK||normal|||L2Sectionbody|Workspace deployment is deliberately separate from formal release installation.|sdk-tools_preface.sh::SDK:Workspace Deployment:
+sdk-tools_preface.sh|118|99|Workspace Deployment|SDK||normal|||L2Sectionbody|It does not define the installed-release lifecycle and should not be treated as an|sdk-tools_preface.sh::SDK:Workspace Deployment:
+sdk-tools_preface.sh|119|100|Workspace Deployment|SDK||normal|||L2Sectionbody|installer. Formal release creation belongs to prepare-release.sh; installation,|sdk-tools_preface.sh::SDK:Workspace Deployment:
+sdk-tools_preface.sh|120|101|Workspace Deployment|SDK||normal|||L2Sectionbody|update, rollback/reinstallation, and removal belong to release-manager.sh.|sdk-tools_preface.sh::SDK:Workspace Deployment:
+sdk-tools_preface.sh|121|102|Workspace Deployment|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Workspace Deployment:
+sdk-tools_preface.sh|122|103|Preparing a Release|SDK||normal|||L2Sectionheader|Preparing a Release|sdk-tools_preface.sh::SDK:Preparing a Release:
+sdk-tools_preface.sh|123|104|Preparing a Release|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Preparing a Release:
+sdk-tools_preface.sh|124|105|Preparing a Release|SDK||normal|||L2Sectionbody|prepare-release.sh creates the complete project release set consumed by the Release|sdk-tools_preface.sh::SDK:Preparing a Release:
+sdk-tools_preface.sh|125|106|Preparing a Release|SDK||normal|||L2Sectionbody|Manager. It resolves project identity from the project definitions file, maintains|sdk-tools_preface.sh::SDK:Preparing a Release:
+sdk-tools_preface.sh|126|107|Preparing a Release|SDK||normal|||L2Sectionbody|Version and Build metadata, refreshes changed-file checksums, verifies executable|sdk-tools_preface.sh::SDK:Preparing a Release:
+sdk-tools_preface.sh|127|108|Preparing a Release|SDK||normal|||L2Sectionbody|wrappers, and generates the archive, manifest, removal manifest, checksum sidecars,|sdk-tools_preface.sh::SDK:Preparing a Release:
+sdk-tools_preface.sh|128|109|Preparing a Release|SDK||normal|||L2Sectionbody|and the distributable release ZIP.|sdk-tools_preface.sh::SDK:Preparing a Release:
+sdk-tools_preface.sh|129|110|Preparing a Release|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Preparing a Release:
+sdk-tools_preface.sh|130|111|Preparing a Release|SDK||normal|||L2Sectionbody|Every ZIP contains release-package.info so the package identifies its project,|sdk-tools_preface.sh::SDK:Preparing a Release:
+sdk-tools_preface.sh|131|112|Preparing a Release|SDK||normal|||L2Sectionbody|product, version, build, and release without inspecting the payload tar. SolidGroundUX|sdk-tools_preface.sh::SDK:Preparing a Release:
+sdk-tools_preface.sh|132|113|Preparing a Release|SDK||normal|||L2Sectionbody|framework ZIPs additionally include release-manager.sh as a clean-machine bootstrap|sdk-tools_preface.sh::SDK:Preparing a Release:
+sdk-tools_preface.sh|133|114|Preparing a Release|SDK||normal|||L2Sectionbody|entry point; generic project ZIPs use the already installed Release Manager.|sdk-tools_preface.sh::SDK:Preparing a Release:
+sdk-tools_preface.sh|134|115|Preparing a Release|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Preparing a Release:
+sdk-tools_preface.sh|135|116|Why These Tools Exist|SDK||normal|||L2Sectionheader|Why These Tools Exist|sdk-tools_preface.sh::SDK:Why These Tools Exist:
+sdk-tools_preface.sh|136|117|Why These Tools Exist|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Why These Tools Exist:
+sdk-tools_preface.sh|137|118|Why These Tools Exist|SDK||normal|||L2Sectionbody|Bash projects often begin as a handful of scripts and gradually evolve into|sdk-tools_preface.sh::SDK:Why These Tools Exist:
+sdk-tools_preface.sh|138|119|Why These Tools Exist|SDK||normal|||L2Sectionbody|collections of loosely related files with inconsistent structures.|sdk-tools_preface.sh::SDK:Why These Tools Exist:
+sdk-tools_preface.sh|139|120|Why These Tools Exist|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Why These Tools Exist:
+sdk-tools_preface.sh|140|121|Why These Tools Exist|SDK||normal|||L2Sectionbody|The SDK tools attempt to prevent that outcome by encouraging a repeatable|sdk-tools_preface.sh::SDK:Why These Tools Exist:
+sdk-tools_preface.sh|141|122|Why These Tools Exist|SDK||normal|||L2Sectionbody|workflow and a consistent project layout from the beginning.|sdk-tools_preface.sh::SDK:Why These Tools Exist:
+sdk-tools_preface.sh|142|123|Why These Tools Exist|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Why These Tools Exist:
+sdk-tools_preface.sh|143|124|Why These Tools Exist|SDK||normal|||L2Sectionbody|In other words, they automate the boring parts of project administration so|sdk-tools_preface.sh::SDK:Why These Tools Exist:
+sdk-tools_preface.sh|144|125|Why These Tools Exist|SDK||normal|||L2Sectionbody|developers can spend their time building software rather than managing files.|sdk-tools_preface.sh::SDK:Why These Tools Exist:
+sdk-tools_preface.sh|145|126|Why These Tools Exist|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Why These Tools Exist:
+sdk-tools_preface.sh|146|127|Workspace Layout|SDK||normal|||L2Sectionheader|Workspace Layout|sdk-tools_preface.sh::SDK:Workspace Layout:
+sdk-tools_preface.sh|147|128|Workspace Layout|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Workspace Layout:
+sdk-tools_preface.sh|148|129|Workspace Layout|SDK||normal|||L2Sectionbody|SolidGroundUX projects follow a standardized directory structure.|sdk-tools_preface.sh::SDK:Workspace Layout:
+sdk-tools_preface.sh|149|130|Workspace Layout|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Workspace Layout:
+sdk-tools_preface.sh|150|131|Workspace Layout|SDK||normal|||L2Sectionbody|While individual projects may add folders as needed, the framework expects a|sdk-tools_preface.sh::SDK:Workspace Layout:
+sdk-tools_preface.sh|151|132|Workspace Layout|SDK||normal|||L2Sectionbody|number of well-known locations. The typical workspace structure mimics the|sdk-tools_preface.sh::SDK:Workspace Layout:
+sdk-tools_preface.sh|152|133|Workspace Layout|SDK||normal|||L2Sectionbody|expected deployment layout, making it easier to transition from development to|sdk-tools_preface.sh::SDK:Workspace Layout:
+sdk-tools_preface.sh|153|134|Workspace Layout|SDK||normal|||L2Sectionbody|deployment without reorganizing files.|sdk-tools_preface.sh::SDK:Workspace Layout:
+sdk-tools_preface.sh|154|135|Workspace Layout|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Workspace Layout:
+sdk-tools_preface.sh|155|136|Workspace Layout|SDK||normal|||L2Sectionbody|The deployment tools depend on this structure to determine which files to|sdk-tools_preface.sh::SDK:Workspace Layout:
+sdk-tools_preface.sh|156|137|Workspace Layout|SDK||normal|||L2Sectionbody|include and where to place them during deployment. The structure also helps|sdk-tools_preface.sh::SDK:Workspace Layout:
+sdk-tools_preface.sh|157|138|Workspace Layout|SDK||normal|||L2Sectionbody|ensure that generated documentation, metadata, and supporting assets are|sdk-tools_preface.sh::SDK:Workspace Layout:
+sdk-tools_preface.sh|158|139|Workspace Layout|SDK||normal|||L2Sectionbody|maintained consistently across projects.|sdk-tools_preface.sh::SDK:Workspace Layout:
+sdk-tools_preface.sh|159|140|Workspace Layout|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Workspace Layout:
+sdk-tools_preface.sh|160|141|Workspace Layout|SDK||emphasis|||L2Sectionbody|Deviate at your own peril.|sdk-tools_preface.sh::SDK:Workspace Layout:
+sdk-tools_preface.sh|161|142|Workspace Layout|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Workspace Layout:
+sdk-tools_preface.sh|162|143|Workspace Layout|SDK||highlight|||L2Sectionbody|Images|sdk-tools_preface.sh::SDK:Workspace Layout:
+sdk-tools_preface.sh|163|144|Workspace Layout|SDK||normal|||L2Sectionbody|  sdk-project-structure.png :: Folder structure of a typical SolidGroundUX project workspace. |sdk-tools_preface.sh::SDK:Workspace Layout:
+sdk-tools_preface.sh|164|145|Workspace Layout|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Workspace Layout:
+sdk-tools_preface.sh|165|146|Workspace Layout|SDK||normal|||L2Sectionbody|Executable applications are typically placed in bin and sbin, reusable|sdk-tools_preface.sh::SDK:Workspace Layout:
+sdk-tools_preface.sh|166|147|Workspace Layout|SDK||normal|||L2Sectionbody|libraries in lib, and internal implementation helpers in libexec.|sdk-tools_preface.sh::SDK:Workspace Layout:
+sdk-tools_preface.sh|167|148|Workspace Layout|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Workspace Layout:
+sdk-tools_preface.sh|168|149|Workspace Layout|SDK||normal|||L2Sectionbody|This separation helps distinguish public interfaces from internal|sdk-tools_preface.sh::SDK:Workspace Layout:
+sdk-tools_preface.sh|169|150|Workspace Layout|SDK||normal|||L2Sectionbody|implementation details and keeps larger projects maintainable.|sdk-tools_preface.sh::SDK:Workspace Layout:
+sdk-tools_preface.sh|170|151|Workspace Layout|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Workspace Layout:
+sdk-tools_preface.sh|171|152|Development Conventions|SDK||normal|||L2Sectionheader|Development Conventions|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|172|153|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|173|154|Development Conventions|SDK||normal|||L2Sectionbody|SolidGroundUX relies heavily on conventions to keep projects consistent.|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|174|155|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|175|156|Development Conventions|SDK||normal|||L2Sectionbody|Public framework functions should use the sgnd_ prefix.|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|176|157|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|177|158|Development Conventions|SDK||normal|||L2Sectionbody|Framework-public functions use `sgnd_*`. Framework-internal functions shared by|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|178|159|Development Conventions|SDK||normal|||L2Sectionbody|cooperating framework libraries use `_sgnd_*`. A plain leading underscore such as|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|179|160|Development Conventions|SDK||normal|||L2Sectionbody|`_helper` identifies a script- or module-local private implementation detail. Bash|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|180|161|Development Conventions|SDK||normal|||L2Sectionbody|cannot enforce these access levels, but the naming convention communicates intent.|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|181|162|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|182|163|Development Conventions|SDK||normal|||L2Sectionbody|Executable scripts should be based on the executable template.|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|183|164|Development Conventions|SDK||normal|||L2Sectionbody|User-facing executables should normally be exposed through lightweight wrappers|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|184|165|Development Conventions|SDK||normal|||L2Sectionbody|in bin or sbin. The actual implementation script should live in the appropriate|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|185|166|Development Conventions|SDK||normal|||L2Sectionbody|product subfolder, usually below libexec, and be invoked by the wrapper.|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|186|167|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|187|168|Development Conventions|SDK||normal|||L2Sectionbody|This keeps the command path clean while allowing implementation scripts,|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|188|169|Development Conventions|SDK||normal|||L2Sectionbody|supporting files, and internal helpers to remain grouped by product.|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|189|170|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|190|171|Development Conventions|SDK||normal|||L2Sectionbody|Reusable libraries should be based on the library template.|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|191|172|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|192|173|Development Conventions|SDK||normal|||L2Sectionbody|Libraries should generally not perform actions merely because they are sourced.|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|193|174|Development Conventions|SDK||normal|||L2Sectionbody|With the exception of library guards, metadata registration, dependency|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|194|175|Development Conventions|SDK||normal|||L2Sectionbody|registration, and similar initialization tasks, sourcing a library should not|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|195|176|Development Conventions|SDK||normal|||L2Sectionbody|execute business logic, modify user data, create files, or perform external|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|196|177|Development Conventions|SDK||normal|||L2Sectionbody|operations.|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|197|178|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|198|179|Development Conventions|SDK||normal|||L2Sectionbody|Libraries are expected to provide functionality through public functions. The|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|199|180|Development Conventions|SDK||normal|||L2Sectionbody|caller decides when that functionality is executed.|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|200|181|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|201|182|Development Conventions|SDK||normal|||L2Sectionbody|Modules intended for menu-driven applications should use the module template.|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|202|183|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|203|184|Development Conventions|SDK||normal|||L2Sectionbody|Metadata headers should be maintained in all framework-managed files.|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|204|185|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|205|186|Development Conventions|SDK||normal|||L2Sectionbody|Documentation should be maintained close to the source code using the framework|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|206|187|Development Conventions|SDK||normal|||L2Sectionbody|documentation conventions.|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|207|188|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|208|189|Development Conventions|SDK||normal|||L2Sectionbody|Development-only artifacts should be kept out of the deployed target layout|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|209|190|Development Conventions|SDK||normal|||L2Sectionbody|unless they are intentionally part of the product being released.|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|210|191|Development Conventions|SDK||normal|||L2Sectionbody||sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|211|192|Development Conventions|SDK||normal|||L2Sectionbody|Developers are free to deviate from these conventions when appropriate, but|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|212|193|Development Conventions|SDK||normal|||L2Sectionbody|following them generally results in more maintainable projects and more useful|sdk-tools_preface.sh::SDK:Development Conventions:
+sdk-tools_preface.sh|213|194|Development Conventions|SDK||normal|||L2Sectionbody|generated documentation.|sdk-tools_preface.sh::SDK:Development Conventions:
