@@ -3,10 +3,10 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2626414
-#   Checksum    : 0fe2e21e623c4c09162e1547c8389dd6b4411a40e178787711cbc6e6c337ddd1
+#   Build       : 2626501
+#   Checksum    : d53dfe459b13e86cfaac9c50059d26143a3ea8fb15ea7f6ad347379227b54723
 #   Source      : sgnd-menu.sh
-#   Group       : SolidGround Console
+#   Group       : Common Core
 #   Type        : library
 #   Purpose     : Provide reusable menu definition, rendering, navigation, and dispatch
 #

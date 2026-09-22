@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2626414
-#   Checksum    : 7a92a82d196b8c60f93718c12bb00f46d277792c671f53b87000ae4e66a4a5db
+#   Build       : 2626501
+#   Checksum    : d7378750c490e4e9016536bd4594165fab4027799d990e1dec3f01c941d61e6d
 #   Source      : sgnd-bootstrap.sh
 #   Type        : library
 #   Group       : Bootstrap
@@ -198,9 +198,14 @@ set -uo pipefail
             SGND_GLOBALS_FOLDER="${SGND_FRAMEWORK_ROOT%/}/usr/local/lib/solidgroundux/globals"
         fi
 
+        local framework_definitions=""
+        sgnd_framework_resolve_path \
+            "usr/local/lib/solidgroundux/globals/sgnd-definitions.sh" \
+            framework_definitions || return 126
+
         # shellcheck source=/dev/null
         source "$SGND_BOOTSTRAP_DIR/sgnd-comment-header-parser.sh"
-        source "$SGND_GLOBALS_FOLDER/sgnd-definitions.sh"
+        source "$framework_definitions"
         source "$SGND_BOOTSTRAP_DIR/sgnd-bootstrap-env.sh"
 
         # Project definition files are foundational globals rather than SGND_USING
@@ -218,7 +223,7 @@ set -uo pipefail
         # Initialize them here once header parsing helpers are available.
         sgnd_module_init_metadata "$SGND_BOOTSTRAP_DIR/sgnd-bootstrap.sh"
         sgnd_module_init_metadata "$SGND_BOOTSTRAP_DIR/sgnd-comment-header-parser.sh"
-        sgnd_module_init_metadata "$SGND_GLOBALS_FOLDER/sgnd-definitions.sh"
+        sgnd_module_init_metadata "$framework_definitions"
         sgnd_module_init_metadata "$SGND_BOOTSTRAP_DIR/sgnd-bootstrap-env.sh"
 
         sgnd_script_init_metadata
@@ -257,7 +262,12 @@ set -uo pipefail
 
         local lib path
         for lib in "${SGND_CORE_LIBS[@]}"; do
-            path="$SGND_COMMON_LIB/$lib"
+            sgnd_framework_resolve_path \
+                "usr/local/lib/solidgroundux/common/$lib" \
+                path || {
+                    sayfail "Core library not found: $lib"
+                    return 126
+                }
             # shellcheck source=/dev/null
             source "$path"
         done
@@ -292,7 +302,13 @@ set -uo pipefail
         sayinfo "Loading optional libraries..."
 
         for lib in "${SGND_USING[@]}"; do
-            path="$SGND_COMMON_LIB/$lib"
+            sgnd_framework_resolve_path \
+                "usr/local/lib/solidgroundux/common/$lib" \
+                path || {
+                    sayfail "Optional library not found or unreadable: $lib"
+                    return 126
+                }
+
             [[ -r "$path" ]] || {
                 sayfail "Optional library not found or unreadable: $path"
                 return 126
@@ -707,6 +723,19 @@ set -uo pipefail
         local license_file="$SGND_LICENSE_FILE"
         local license_name="${SGND_LICENSE_FILE##*/}"
         local accepted_file="$SGND_STATE_DIR/$license_name.accepted"
+        local framework_relative_license=""
+
+        # SGND_LICENSE_FILE is rebased to the contextual root during bootstrap. When
+        # that root belongs to an SDK/MCM development tree, resolve the Framework-owned
+        # license through the canonical Framework resolver instead.
+        if [[ ! -r "$license_file" && "$SGND_FRAMEWORK_ROOT" != "/" ]]; then
+            if [[ "$license_file" == "${SGND_FRAMEWORK_ROOT%/}/"* ]]; then
+                framework_relative_license="${license_file#${SGND_FRAMEWORK_ROOT%/}/}"
+                if sgnd_framework_resolve_path "$framework_relative_license" license_file; then
+                    SGND_LICENSE_FILE="$license_file"
+                fi
+            fi
+        fi
         local isaccepted=0
         local wasaccepted=0
         local current_hash
@@ -784,6 +813,32 @@ set -uo pipefail
 
         SGND_LICENSE_ACCEPTED=$isaccepted
     }
+    # fn: _boot_fail - Report a bootstrap failure safely
+        # . Purpose
+        #   Report a bootstrap-stage failure without depending on later UI initialization.
+        #
+        # . Parameters
+        #   $1 Failure message.
+        #   $2 Return status.
+        #
+        # . Returns
+        #   Returns the supplied status, defaulting to 1.
+        #
+        # . Usage
+        #   _boot_fail "Failed to load core libraries" 126
+    _boot_fail() {
+        local message="${1:-Bootstrap failed}"
+        local rc="${2:-1}"
+
+        if declare -F sayfail >/dev/null 2>&1; then
+            sayfail "$message"
+        else
+            printf 'FATAL: %s\n' "$message" >&2
+        fi
+
+        return "$rc"
+    }
+
     # fn: sgnd_load_ui_style - Load ui style
         # . Purpose
         #   Load the configured SolidGroundUX UI palette and style files.
@@ -804,6 +859,12 @@ set -uo pipefail
         local palette_path="$SGND_UI_PALETTE"
         local style_name=""
         local resolved_style=""
+        local resolved_style_dir=""
+
+        if sgnd_framework_resolve_path "usr/local/lib/solidgroundux/styles" resolved_style_dir; then
+            SGND_STYLE_DIR="$resolved_style_dir"
+        fi
+
 
         if [[ "$style_path" != */* ]]; then
             if [[ -r "$SGND_STYLE_DIR/$style_path" ]]; then
@@ -825,7 +886,14 @@ set -uo pipefail
             fi
         fi
 
-        [[ "$palette_path" == */* ]] || palette_path="$SGND_STYLE_DIR/$palette_path"
+        if [[ "$palette_path" != */* ]]; then
+            palette_path="$SGND_STYLE_DIR/$palette_path"
+        elif [[ ! -r "$palette_path" && "$SGND_FRAMEWORK_ROOT" != "/" ]]; then
+            local framework_style_dir="${SGND_FRAMEWORK_ROOT%/}/usr/local/lib/solidgroundux/styles"
+            if [[ "$palette_path" == "$framework_style_dir/"* ]]; then
+                palette_path="${SGND_STYLE_DIR%/}/${palette_path##*/}"
+            fi
+        fi
 
         [[ -r "$palette_path" ]] || { saywarning "Palette not found: $palette_path"; return 1; }
         [[ -r "$style_path"   ]] || { saywarning "Style not found: $style_path";   return 1; }

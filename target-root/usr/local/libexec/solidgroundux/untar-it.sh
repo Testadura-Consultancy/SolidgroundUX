@@ -4,11 +4,11 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2626414
-#   Checksum    : 27a6bcf472467aecc1c4bb015f3718367b57892358b9ffb9a942bd51faba04f4
+#   Build       : 2626501
+#   Checksum    : 4e96599eae431a48b6d8bb7fa08cbdc56c8a534bef887e9ac48a3321297b7bb4
 #   Source      : untar-it.sh
 #   Type        : script
-#   Group       : SDK
+#   Group       : Common Core
 #   Purpose     : Restore selected files from a SolidGroundUX framework archive
 #
 # Description:
@@ -119,7 +119,6 @@ set -uo pipefail
         # shellcheck source=/dev/null
         source "$exe_common"
     }
-
 # - Script metadata ----------------------------------------------------------------
     SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
     SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"

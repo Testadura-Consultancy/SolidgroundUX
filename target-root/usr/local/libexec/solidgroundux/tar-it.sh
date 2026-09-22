@@ -4,11 +4,11 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2626414
-#   Checksum    : 9113b9dec022383734886b895ebadb76460fc1f1192a515a7d19f8dc93d3694f
+#   Build       : 2626501
+#   Checksum    : 4b6e310a85125ddb93cc25072c551def5896453fd56f25e26cfc32fd2bcbd328
 #   Source      : tar-it.sh
 #   Type        : script
-#   Group       : SDK
+#   Group       : Common Core
 #   Purpose     : Create a timestamped archive of a SolidGroundUX framework tree
 #
 # Description:
@@ -119,7 +119,6 @@ set -uo pipefail
         # shellcheck source=/dev/null
         source "$exe_common"
     }
-
 # - Script metadata ----------------------------------------------------------------
     SGND_SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
     SGND_SCRIPT_DIR="$(cd -- "$(dirname -- "$SGND_SCRIPT_FILE")" && pwd)"

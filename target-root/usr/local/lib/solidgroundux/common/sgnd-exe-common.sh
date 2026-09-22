@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2626414
-#   Checksum    : 24b9f8bbc87f6d113ce34c5127d13cbe31ae3ed266f2c3f8f22c30925751b2f7
+#   Build       : 2626501
+#   Checksum    : f20b9da39cf69dfb3eb56ca87522d6565348aab37630552c4372388bcb581756
 #   Source      : sgnd-exe-common.sh
 #   Type        : library
 #   Group       : Bootstrap
@@ -323,6 +323,45 @@ set -uo pipefail
         #   sayend "SolidGroundUX example complete"
     sayend()     { say END "$@"; }
 
+# - Framework path resolution --------------------------------------------------------
+    # fn: sgnd_framework_resolve_path - Resolve a Framework-owned path with installed fallback
+        # . Purpose
+        #   Resolve a Framework-owned file or directory from the active development tree,
+        #   falling back to the installed Framework when the active tree does not provide it.
+        #
+        # . Parameters
+        #   $1 Framework-relative path, without a leading slash.
+        #   $2 Output variable receiving the resolved absolute path.
+        #
+        # . Behavior
+        #   - Tries SGND_FRAMEWORK_ROOT first.
+        #   - When the path is absent and SGND_FRAMEWORK_ROOT is not /, tries /.
+        #   - Does not change SGND_FRAMEWORK_ROOT.
+        #
+        # . Returns
+        #   0 when the path exists.
+        #   126 when the path cannot be resolved.
+        #
+        # . Usage
+        #   sgnd_framework_resolve_path "usr/local/lib/solidgroundux/common/sgnd-bootstrap.sh" resolved_path
+    sgnd_framework_resolve_path() {
+        local relative_path="${1#/}"
+        local out_var="$2"
+        local candidate=""
+
+        if [[ "$SGND_FRAMEWORK_ROOT" == "/" ]]; then
+            candidate="/$relative_path"
+        elif [[ -e "${SGND_FRAMEWORK_ROOT%/}/usr/local/lib/solidgroundux/common/sgnd-exe-common.sh" ]]; then
+            candidate="${SGND_FRAMEWORK_ROOT%/}/$relative_path"
+            [[ -e "$candidate" ]] || candidate="/$relative_path"
+        else
+            candidate="/$relative_path"
+        fi
+
+        [[ -e "$candidate" ]] || return 126
+        printf -v "$out_var" '%s' "$candidate"
+    }
+
 # - Local helpers -------------------------------------------------------------------
     # fn: _load_bootstrapper - Load the SolidGroundUX bootstrap library
         # . Purpose
@@ -349,11 +388,12 @@ set -uo pipefail
     _load_bootstrapper(){
         local bootstrap=""
 
-        if [[ "$SGND_FRAMEWORK_ROOT" == "/" ]]; then
-            bootstrap="/usr/local/lib/solidgroundux/common/sgnd-bootstrap.sh"
-        else
-            bootstrap="${SGND_FRAMEWORK_ROOT%/}/usr/local/lib/solidgroundux/common/sgnd-bootstrap.sh"
-        fi
+        sgnd_framework_resolve_path \
+            "usr/local/lib/solidgroundux/common/sgnd-bootstrap.sh" \
+            bootstrap || {
+                printf '%s\n' "FATAL: Cannot resolve SolidGroundUX bootstrap library"
+                return 126
+            }
 
         [[ -r "$bootstrap" ]] || {
             printf '%s\n' "FATAL: Cannot read bootstrap: $bootstrap"
