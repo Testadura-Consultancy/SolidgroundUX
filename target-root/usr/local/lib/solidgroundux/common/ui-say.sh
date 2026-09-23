@@ -1237,7 +1237,7 @@ set -uo pipefail
             # Examples:
             #   saywarning "Configuration missing"
         saywarning() {
-            say WARN --delay 1 "$@"
+            say WARN --delay 0.5 "$@"
         }
 
             # fn: sayfail - Write a failure message
@@ -1260,7 +1260,7 @@ set -uo pipefail
                 # . Usage
                 #   sayfail "Example failure"
         sayfail() {
-            say FAIL --delay 2 "$@"
+            say FAIL --delay 1 "$@"
         }
 
             # fn: saycancel - Write a cancellation message
