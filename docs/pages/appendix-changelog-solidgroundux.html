@@ -17,17 +17,14 @@
 <p class="ct-documentbody">All notable changes to SolidGroundUX are documented in this file.</p>
 <p class="ct-documentbody">The format is inspired by *Keep a Changelog* while remaining focused on practical framework development.</p>
 <h3 class="ct-L2Sectionheader">Backlog</h3>
-<h4 class="ct-L3Sectionheader">SolidGroundUX 2.2 — documentation engine migration</h4>
-<ul>
-<li>Keep doc-generator.sh as the SolidGroundUX-facing orchestrator.</li>
-<li>Port doc-processor.sh to Python.</li>
-<li>Preserve the existing normalized data contract.</li>
-<li>Run Bash and Python processors side-by-side during development and compare output.</li>
-<p class="ct-documentbody">Remove the Bash processor only when they&#x27;re demonstrably equivalent.</p>
-</ul>
 <h3 class="ct-L2Sectionheader">Unreleased</h3>
+<h3 class="ct-L2Sectionheader">Release 2.1.2626612</h3>
 <h4 class="ct-L3Sectionheader">Added</h4>
 <ul>
+<li>Restored the canonical framework locator and library-guard templates lost during the product split.</li>
+<li>Updated the canonical framework locator so development executables can bootstrap `sgnd-exe-common.sh` from the installed Framework when it is not present in the active product overlay.</li>
+<li>Restored the comment-header parser required for module metadata and menu descriptions.</li>
+<li>Moved canonical normalization ownership into the Framework alongside the structures it maintains.</li>
 <li>Added the framework-owned `sgnd-smoketest` public command and standalone smoke-test implementation. The Framework owns framework installation validation and smoke tests; Management Console registration and module validation remain Management Console Modules concerns.</li>
 <li>Added `sgnd_framework_resolve_path` as the common resolver for Framework-owned resources used from Framework, SDK and Management Console development roots. Local Framework resources are preferred only when the contextual root actually contains a Framework; otherwise resolution falls back to the installed Framework.</li>
 </ul>
