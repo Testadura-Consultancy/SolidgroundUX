@@ -4,7 +4,7 @@
 # Metadata:
 #   Version     : 2.1
 #   Build       : 2626612
-#   Checksum    : cae05e75f7fc8585ff445432e508d2ec8ffbc32d3edcc2590f83b3f129560c30
+#   Checksum    : ce06002505c2c5cad775330b680f770bffac36b79664478d4b8870fdb74a516d
 #   Source      : sgnd-definitions.sh
 #   Type        : library
 #   Group       : Bootstrap
