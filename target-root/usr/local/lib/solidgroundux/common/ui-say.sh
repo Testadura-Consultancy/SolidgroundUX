@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2626414
-#   Checksum    : 83fbddefc09e8a1245716ef70c913466de6fd4665a08c4e51b848b03121261ff
+#   Build       : 2626612
+#   Checksum    : 7758ed7599bc06de5b98b11e9e14778d77e2516365da1777130bccf35c195031
 #   Source      : ui-say.sh
 #   Type        : library
 #   Group       : UI
@@ -572,7 +572,7 @@ set -uo pipefail
         fi
     }
 
-# - Public API ---------------------------------------------------------------------
+# - Public API ---------------------------------------------------------------------q
     # fn: say - Say
         # . Purpose
         #   Emit a standardized SolidGroundUX console message.
@@ -615,6 +615,11 @@ set -uo pipefail
         #       Select which parts are colorized. Supported values are none, label,
         #       msg, date, both, and all.
         #
+        #   --delay VALUE
+        #       Delay after handling the message. The default is 0 (no delay).
+        #       Positive values are passed to sleep and may be fractional.
+        #       -1 waits for a single keypress.
+        #
         # Inputs (globals):
         #   SAY_DATE_DEFAULT, SAY_SHOW_DEFAULT, SAY_COLORIZE_DEFAULT, SAY_DATE_FORMAT
         #   SGND_CONSOLE_LOG_LEVEL, SGND_FILE_LOG_LEVEL, SGND_LINEBREAK_PENDING
@@ -638,6 +643,7 @@ set -uo pipefail
         local add_date="${SAY_DATE_DEFAULT:-0}"
         local show="${SAY_SHOW_DEFAULT:-label}"
         local colorize="${SAY_COLORIZE_DEFAULT:-label}"
+        local delay=0
 
         local explicit_type=0
         local msg=""
@@ -663,6 +669,10 @@ set -uo pipefail
                     ;;
                 --colorize)
                     colorize="$2"
+                    shift 2
+                    ;;
+                --delay)
+                    delay="${2:?missing value for --delay}"
                     shift 2
                     ;;
                 --)
@@ -702,6 +712,13 @@ set -uo pipefail
                 printf '%s\n' "$msg"
             fi
             _say_write_log "EMPTY" "$msg" ""
+
+            case "$delay" in
+                -1) read -r -n 1 -s ;;
+                0) ;;
+                *) sleep "$delay" ;;
+            esac
+
             return 0
         fi
 
@@ -829,6 +846,12 @@ set -uo pipefail
         fi
 
         _say_write_log "$type" "$msg" "$date_str"
+
+        case "$delay" in
+            -1) read -r -n 1 -s ;;
+            0) ;;
+            *) sleep "$delay" ;;
+        esac
     }
 
     # doc: sayprogress usage patterns - Sayprogress Usage Patterns
@@ -1206,6 +1229,7 @@ set -uo pipefail
             #
             # . Behavior
             #   - Delegates to say WARN.
+            #   - Defaults to --delay 0.5; an explicit --delay supplied by the caller overrides it.
             #
             # . Usage
             #   saywarning "Example warning"
@@ -1213,12 +1237,16 @@ set -uo pipefail
             # Examples:
             #   saywarning "Configuration missing"
         saywarning() {
-            say WARN "$@"
+            say WARN --delay 1 "$@"
         }
 
             # fn: sayfail - Write a failure message
                 # . Purpose
                 #   Report a failed operation through the SolidGroundUX message layer.
+                #
+                # . Behavior
+                #   - Delegates to say FAIL.
+                #   - Defaults to --delay 0.5; an explicit --delay supplied by the caller overrides it.
                 #
                 # . Arguments
                 #   $@ - Message text to write.
@@ -1232,7 +1260,7 @@ set -uo pipefail
                 # . Usage
                 #   sayfail "Example failure"
         sayfail() {
-            say FAIL "$@"
+            say FAIL --delay 2 "$@"
         }
 
             # fn: saycancel - Write a cancellation message

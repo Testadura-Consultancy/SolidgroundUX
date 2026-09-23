@@ -10,52 +10,26 @@
 SolidGroundUX 2.1 is an architectural consolidation release with
 significant functional consequences.
 
-Version 2.0 established the framework, modular Management Console,
-administration modules, documentation pipeline, development tooling, and
-formal release lifecycle as one coherent platform. Version 2.1
-consolidates the contracts underneath that platform: where the framework
-lives, how projects identify themselves, how canonical bootstrap code is
-maintained, how products are assembled into releases, and how source
-documentation becomes published documentation.
+Version 2.0 established the framework, modular Management Console, administration modules, documentation pipeline, development tooling, and formal release lifecycle as one coherent platform. Version 2.1 consolidates the contracts underneath that platform: where the framework lives, how projects identify themselves, how canonical bootstrap code is maintained, how products are assembled into releases, and how source documentation becomes published documentation.
 
-The central architectural change is the removal of an unnecessary
-distinction between framework and application roots. SolidGroundUX now
-derives one `SGND_FRAMEWORK_ROOT` directly from the physical location of
-the executing component. Around that simpler bootstrap model, 2.1
-introduces canonical source normalization, project definitions and
-workspace scaffolding, product-aware release preparation,
-self-describing release packages, and a substantially redesigned
-standalone Release Manager.
+The central architectural change is the removal of an unnecessarydistinction between framework and application roots. SolidGroundUX now derives one `SGND_FRAMEWORK_ROOT` directly from the physical location of the executing component. Around that simpler bootstrap model, 2.1 introduces canonical source normalization, project definitions and workspace scaffolding, product-aware release preparation, self-describing release packages, and a substantially redesigned standalone Release Manager.
 
 The consolidation ultimately exposed a larger architectural boundary that had previously been implicit: SolidGroundUX is no longer treated as one monolithic product repository. The platform is now separated into three independently maintained products: **SolidGroundUX** for the framework/runtime, **SolidGroundUX Management Console Modules** for the administration application and its modules, and **SolidGroundUX SDK** for development, documentation, workspace, and release tooling. MCM and SDK depend on the Framework, but not on each other.
 
 That physical separation also made framework-resource resolution explicit. A component running from a non-Framework development workspace keeps its own contextual `SGND_FRAMEWORK_ROOT`, while Framework-owned resources are resolved from a local Framework when present and otherwise fall back to the installed Framework. This preserves staged-development semantics without recreating the removed application-root concept.
 
-Those architectural changes also enabled visible improvements to
-everyday development and operation. Framework arguments are
-order-independent, workspaces can establish new projects from canonical
-conventions, release preparation can assemble multiple products without
-confusing their identities, release and recovery operations share one
-interface, and the documentation pipeline has grown into a substantially
-richer publishing system while keeping source comments as its
-authoritative input.
+Those architectural changes also enabled visible improvements to everyday development and operation. Framework arguments are order-independent, workspaces can establish new projects from canonical conventions, release preparation can assemble multiple products without confusing their identities, relea  and recovery operations share one interface, and the documentation pipeline has grown into a substantially richer publishing system while keeping source comments as its authoritative input.
 
-The result is not merely less configuration and duplicated bootstrap
-logic. SolidGroundUX 2.1 provides a clearer and more capable path from
-source tree to development workspace, from documented code to published
-documentation, and from prepared products to installed and recoverable
-systems.
+The result is not merely less configuration and duplicated bootstrap logic. SolidGroundUX 2.1 provides a clearer and more capable path from source tree to development workspace, from documented code to published
+documentation, and from prepared products to installed and recoverable systems.
 
 ## Highlights
 
 ### One framework root
 
-SolidGroundUX no longer requires `SGND_APPLICATION_ROOT` or the former
-`solidgroundux.cfg` bootstrap configuration.
+SolidGroundUX no longer requires `SGND_APPLICATION_ROOT` or the former `solidgroundux.cfg` bootstrap configuration.
 
-Executables derive `SGND_FRAMEWORK_ROOT` from their physical path by
-locating the last `usr`, `etc`, or `var` component. This gives
-production and development trees the same filesystem contract:
+Executables derive `SGND_FRAMEWORK_ROOT` from their physical path by locating the last `usr`, `etc`, or `var` component. This gives production and development trees the same filesystem contract:
 
 ``` text
 /usr/local/bin/...                                      -> /
@@ -63,11 +37,9 @@ production and development trees the same filesystem contract:
 /srv/storage/development/SolidGroundUX/target-root/usr/... -> /srv/storage/development/SolidGroundUX/target-root
 ```
 
-A development `target-root` therefore behaves like a staged installation
-root without requiring a separate application-root configuration.
+A development `target-root` therefore behaves like a staged installation root without requiring a separate application-root configuration.
 
-This removes first-run root questions from normal framework bootstrap
-and eliminates a substantial amount of path-specific configuration.
+This removes first-run root questions from normal framework bootstrap and eliminates a substantial amount of path-specific configuration.
 
 ### Three product architecture
 
@@ -91,23 +63,13 @@ This allows development executables in independently checked-out SDK and MCM wor
 
 ### Canonical bootstrap generation
 
-The small pieces of code that necessarily exist before the framework can
-load itself are now treated as generated canonical fragments rather than
-dozens of independently maintained copies.
+The small pieces of code that necessarily exist before the framework can load itself are now treated as generated canonical fragments rather than dozens of independently maintained copies.
 
-`normalize-canon.sh` normalizes the framework locator in executables and
-the library guard in sourced libraries and modules. It skips the
-canonical source fragments themselves, validates modified shell files
-with `bash -n`, and uses checksum comparison to determine whether a file
-actually changed.
+`normalize-canon.sh` normalizes the framework locator in executables and the library guard in sourced libraries and modules. It skips the canonical source fragments themselves, validates modified shell files with `bash -n`, and uses checksum comparison to determine whether a file actually changed.
 
-`prepare-release.sh` invokes canonical normalization before release
-metadata and artifacts are produced, ensuring released bootstrap code
-comes from the canonical definitions.
+`prepare-release.sh` invokes canonical normalization before release metadata and artifacts are produced, ensuring released bootstrap code comes from the canonical definitions.
 
-The library guard also now avoids early metadata initialization until
-the comment-header parser is available, removing a bootstrap dependency
-cycle exposed during the 2.1 conversion.
+The library guard also now avoids early metadata initialization until the comment-header parser is available, removing a bootstrap dependency cycle exposed during the 2.1 conversion.
 
 ### Order-independent argument handling
 

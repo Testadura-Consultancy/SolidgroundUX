@@ -9,10 +9,13 @@ practical framework development.
 
 ## Unreleased
 
-## Release 2.1.2626523
+## Release 2.1.2626612
 
 ### Added
-
+- Restored the canonical framework locator and library-guard templates lost during the product split.
+- Updated the canonical framework locator so development executables can bootstrap `sgnd-exe-common.sh` from the installed Framework when it is not present in the active product overlay.
+- Restored the comment-header parser required for module metadata and menu descriptions.
+- Moved canonical normalization ownership into the Framework alongside the structures it maintains.
 - Added the framework-owned `sgnd-smoketest` public command and standalone smoke-test implementation. The Framework owns framework installation validation and smoke tests; Management Console registration and module validation remain Management Console Modules concerns.
 - Added `sgnd_framework_resolve_path` as the common resolver for Framework-owned resources used from Framework, SDK and Management Console development roots. Local Framework resources are preferred only when the contextual root actually contains a Framework; otherwise resolution falls back to the installed Framework.
 
