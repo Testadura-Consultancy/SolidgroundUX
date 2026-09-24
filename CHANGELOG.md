@@ -7,7 +7,19 @@ practical framework development.
 
 ## Backlog
 
+- Metadata reconciliation: review metadata consumed or initialized at runtime against canonical comment-header metadata. Remove duplicate literals only where both represent the same identity; retain separate runtime/application metadata where it serves a distinct purpose.
+- Make Management Console lazy module loading transactional so registrations made by a module are rolled back when metadata validation or module loading fails, preventing duplicate registrations on a later retry.
+
 ## Unreleased
+
+### Added
+- Added configurable warning and error message delays to the Framework globals, with `saywarning` and `sayfail` consuming the configured defaults while allowing an explicit `--delay` override.
+
+### Changed
+- Standardized the warning/error delay policy at 0.5 seconds by default; `--delay 0` remains immediate and `--delay -1` waits for a keypress.
+
+### Fixed
+- Restored the canonical `sgnd-smoketest` implementation and completed Framework ownership of the public smoke-test command after the product split.
 
 ## Release 2.1.2626612
 
