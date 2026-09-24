@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2626612
-#   Checksum    : ce06002505c2c5cad775330b680f770bffac36b79664478d4b8870fdb74a516d
+#   Build       : 2626710
+#   Checksum    : c64ca22d1818dbb7b9b575003364b434aceb4f951d7ccab3f3aa9b18c57500b2
 #   Source      : sgnd-definitions.sh
 #   Type        : library
 #   Group       : Bootstrap
@@ -76,7 +76,7 @@ set -uo pipefail
 # - Framework identity --------------------------------------------------------------
     SGND_PRODUCT="SolidGroundUX"
     SGND_VERSION="2.1"
-    SGND_BUILD="2626612"
+    SGND_BUILD="2626710"
     SGND_COMPANY="Testadura Consultancy"
     SGND_COPYRIGHT="© 2025 - 2026 Testadura Consultancy"
     SGND_LICENSE="Testadura Non-Commercial License (TD-NC) v1.1."
@@ -98,6 +98,8 @@ set -uo pipefail
 
     SGND_DEFAULT_UI_STYLE="00-style-default.sh"
     SGND_DEFAULT_UI_PALETTE="default-ui-palette.sh"
+    SGND_DEFAULT_UI_WARNING_DELAY=0.5
+    SGND_DEFAULT_UI_ERROR_DELAY=0.5
 
     SGND_DEFAULT_SAY_DATE=0
     SGND_DEFAULT_SAY_SHOW="label"
@@ -126,6 +128,8 @@ set -uo pipefail
 
         "both|SGND_UI_STYLE|Default UI style file (basename or path)|"          # <- both
         "both|SGND_UI_PALETTE|Default UI palette file (basename or path)|"      # <- both
+        "both|SGND_UI_WARNING_DELAY|Default delay in seconds after warning messages; -1 waits for a keypress.|"
+        "both|SGND_UI_ERROR_DELAY|Default delay in seconds after error messages; -1 waits for a keypress.|"
 
         "user|SAY_COLORIZE_DEFAULT|Default colorized console output setting|"
         "user|SAY_DATE_DEFAULT|Default timestamp visibility|"
@@ -179,6 +183,8 @@ set -uo pipefail
 
         "both|SGND_UI_STYLE|Selected SolidGroundUX UI style file.|"
         "both|SGND_UI_PALETTE|Selected SolidGroundUX UI palette file.|"
+        "both|SGND_UI_WARNING_DELAY|Delay in seconds after warning messages; -1 waits for a keypress.|"
+        "both|SGND_UI_ERROR_DELAY|Delay in seconds after error messages; -1 waits for a keypress.|"
         "both|SGND_CONSOLE_WIDTH|Preferred standard width for console rendering primitives.|"
         "both|SGND_MAX_RENDER_WIDTH|Upper limit applied to console rendering width.|"
 

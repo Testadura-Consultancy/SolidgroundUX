@@ -3,8 +3,8 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2626612
-#   Checksum    : 7758ed7599bc06de5b98b11e9e14778d77e2516365da1777130bccf35c195031
+#   Build       : 2626710
+#   Checksum    : 0ff4d64f67b41dfb30733cbdaf2ff0b9cedf764a0fafd06e0541138038ba6985
 #   Source      : ui-say.sh
 #   Type        : library
 #   Group       : UI
@@ -1229,7 +1229,7 @@ set -uo pipefail
             #
             # . Behavior
             #   - Delegates to say WARN.
-            #   - Defaults to --delay 0.5; an explicit --delay supplied by the caller overrides it.
+            #   - Defaults to SGND_UI_WARNING_DELAY (fallback 0.5); an explicit --delay supplied by the caller overrides it.
             #
             # . Usage
             #   saywarning "Example warning"
@@ -1237,7 +1237,7 @@ set -uo pipefail
             # Examples:
             #   saywarning "Configuration missing"
         saywarning() {
-            say WARN --delay 0.5 "$@"
+            say WARN --delay "${SGND_UI_WARNING_DELAY:-0.5}" "$@"
         }
 
             # fn: sayfail - Write a failure message
@@ -1246,7 +1246,7 @@ set -uo pipefail
                 #
                 # . Behavior
                 #   - Delegates to say FAIL.
-                #   - Defaults to --delay 0.5; an explicit --delay supplied by the caller overrides it.
+                #   - Defaults to SGND_UI_ERROR_DELAY (fallback 0.5); an explicit --delay supplied by the caller overrides it.
                 #
                 # . Arguments
                 #   $@ - Message text to write.
@@ -1260,7 +1260,7 @@ set -uo pipefail
                 # . Usage
                 #   sayfail "Example failure"
         sayfail() {
-            say FAIL --delay 1 "$@"
+            say FAIL --delay "${SGND_UI_ERROR_DELAY:-0.5}" "$@"
         }
 
             # fn: saycancel - Write a cancellation message

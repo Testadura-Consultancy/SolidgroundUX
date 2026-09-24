@@ -3,7 +3,7 @@
 # -------------------------------------------------------------------------------------
 # Metadata:
 #   Version     : 2.1
-#   Build       : 2626414
+#   Build       : 2626710
 #   Checksum    : e879dc424bd4795ba916dd32837116e0c6c0c19a9f1f989829d50eeb99fb5ef7
 #   Source      : sgnd-bootstrap-env.sh
 #   Type        : library
@@ -172,6 +172,8 @@ set -uo pipefail
 
         : "${SGND_UI_STYLE:=$SGND_DEFAULT_UI_STYLE}"
         : "${SGND_UI_PALETTE:=$SGND_DEFAULT_UI_PALETTE}"
+        : "${SGND_UI_WARNING_DELAY:=$SGND_DEFAULT_UI_WARNING_DELAY}"
+        : "${SGND_UI_ERROR_DELAY:=$SGND_DEFAULT_UI_ERROR_DELAY}"
 
         : "${SAY_DATE_DEFAULT:=$SGND_DEFAULT_SAY_DATE}"
         : "${SAY_SHOW_DEFAULT:=$SGND_DEFAULT_SAY_SHOW}"
