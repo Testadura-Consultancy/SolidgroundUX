@@ -12,6 +12,8 @@ practical framework development.
 
 ## Unreleased
 
+## Release 2.1.2626712
+
 ### Added
 - Added configurable warning and error message delays to the Framework globals, with `saywarning` and `sayfail` consuming the configured defaults while allowing an explicit `--delay` override.
 

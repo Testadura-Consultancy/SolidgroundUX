@@ -2,13 +2,10 @@
 
 **Version 2.1**
 
-![SolidGroundUX 2.1](target-root/usr/local/assets/sux-releasenotes.png)
+![SolidGroundUX 2.1](https://raw.githubusercontent.com/Testadura-Consultancy/SolidGroundUX/main/target-root/usr/local/assets/sux-readmelogo.png)
 
-> **Canonical • Project-aware • Self-bootstrapping • Built for
-> real-world automation**
 
-SolidGroundUX 2.1 is an architectural consolidation release with
-significant functional consequences.
+SolidGroundUX 2.1 is an architectural consolidation release with significant functional consequences.
 
 Version 2.0 established the framework, modular Management Console, administration modules, documentation pipeline, development tooling, and formal release lifecycle as one coherent platform. Version 2.1 consolidates the contracts underneath that platform: where the framework lives, how projects identify themselves, how canonical bootstrap code is maintained, how products are assembled into releases, and how source documentation becomes published documentation.
 
